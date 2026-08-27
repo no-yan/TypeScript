@@ -91,3 +91,12 @@ func (f *NodeFactory) allocListFromNodes(loc core.TextRange, nodes []*Node) List
 	}
 	return list
 }
+
+func (f *NodeFactory) TakeNodeRef() map[*Node]NodeRef {
+	if f == nil {
+		return nil
+	}
+	m := f.nodeRef
+	f.nodeRef = nil
+	return m
+}

@@ -149,9 +149,7 @@ func ParseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptK
 		root := p.factory.HandleOf(result.AsNode())
 		p.factory.StoreSync(result.AsNode())
 		result.SetParseStore(storeFactory.Store(), root)
-		if root.Ref() != 0 {
-			_ = ast.ExpandStore(root, opts, sourceText)
-		}
+		result.SetParseNodeRef(p.factory.TakeNodeRef())
 	}
 	storeFactory.Seal()
 	return result

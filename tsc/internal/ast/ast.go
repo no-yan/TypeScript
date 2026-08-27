@@ -2505,8 +2505,10 @@ type SourceFile struct {
 	// to be an external module (previously "true").
 	ExternalModuleIndicator *Node
 
-	parseStore *Store
-	parseRoot  NodeRef
+	parseStore   *Store
+	parseRoot    NodeRef
+	parseNodeRef map[*Node]NodeRef
+	parseRefNode map[NodeRef]*Node
 
 	// Fields set by binder
 
@@ -2575,6 +2577,37 @@ func (node *SourceFile) SetParseStore(s *Store, root Handle) {
 	if root.s == s {
 		node.parseRoot = root.id
 	}
+}
+
+func (node *SourceFile) SetParseNodeRef(m map[*Node]NodeRef) {
+	node.parseNodeRef = m
+	if m == nil {
+		node.parseRefNode = nil
+		return
+	}
+	rev := make(map[NodeRef]*Node, len(m))
+	for n, ref := range m {
+		rev[ref] = n
+	}
+	node.parseRefNode = rev
+}
+
+func (node *SourceFile) HandleOf(n *Node) Handle {
+	if node.parseStore == nil || node.parseNodeRef == nil || n == nil {
+		return Handle{}
+	}
+	ref, ok := node.parseNodeRef[n]
+	if !ok {
+		return Handle{}
+	}
+	return node.parseStore.At(ref)
+}
+
+func (node *SourceFile) NodeFor(ref NodeRef) *Node {
+	if node.parseRefNode == nil {
+		return nil
+	}
+	return node.parseRefNode[ref]
 }
 
 func (node *SourceFile) Text() string {

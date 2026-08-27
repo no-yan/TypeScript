@@ -44,3 +44,25 @@ func BenchmarkBind(b *testing.B) {
 		})
 	}
 }
+
+func TestBindStoreSideMaps(t *testing.T) {
+	t.Parallel()
+	opts := ast.SourceFileParseOptions{FileName: "/index.ts", Path: "/index.ts"}
+	file := parser.ParseSourceFile(opts, "function f(x: number) { return x; }\n", core.ScriptKindTS)
+	BindSourceFile(file)
+	store := file.ParseStore()
+	if store == nil || store.Len() == 0 {
+		t.Fatal("bind requires a nonempty parse Store")
+	}
+	var sawSymbol bool
+	ast.Walk(file.ParseRoot(), func(h ast.Handle) bool {
+		if h.Symbol() != nil {
+			sawSymbol = true
+			return true
+		}
+		return false
+	})
+	if !sawSymbol {
+		t.Fatal("BindSourceFile must write Symbol onto Store handles")
+	}
+}
