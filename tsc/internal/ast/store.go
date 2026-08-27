@@ -36,7 +36,8 @@ type nodeHeader struct {
 	childStart uint32
 	childLen   uint32
 	identText  uint32
-	list0      ListRef // 0 = no list. One list per node in this slice.
+	listStart  uint32
+	listLen    uint32
 }
 
 type listHeader struct {
@@ -54,6 +55,7 @@ type Store struct {
 	nodes         []nodeHeader
 	lists         []listHeader
 	children      []NodeRef
+	listSlots     []ListRef
 	internBuf     []byte
 	internOff     []uint32 // intern id i occupies internBuf[internOff[i]:internOff[i+1]]
 	internIdx     map[string]uint32
@@ -76,11 +78,18 @@ func NewStore(hint int) *Store {
 }
 
 func (s *Store) Alloc(kind Kind, flags NodeFlags, loc core.TextRange, childLen int) Handle {
+	return s.AllocSlots(kind, flags, loc, childLen, 0)
+}
+
+func (s *Store) AllocSlots(kind Kind, flags NodeFlags, loc core.TextRange, childLen, listLen int) Handle {
 	if s == nil {
 		panic("ast: Alloc on nil Store")
 	}
 	if childLen < 0 {
 		panic("ast: negative childLen")
+	}
+	if listLen < 0 {
+		panic("ast: negative listLen")
 	}
 	if len(s.nodes) >= int(^NodeRef(0)) {
 		panic("ast: Store exhausted")
@@ -90,6 +99,10 @@ func (s *Store) Alloc(kind Kind, flags NodeFlags, loc core.TextRange, childLen i
 	if childLen > 0 {
 		s.children = append(s.children, make([]NodeRef, childLen)...)
 	}
+	listStart := uint32(len(s.listSlots))
+	if listLen > 0 {
+		s.listSlots = append(s.listSlots, make([]ListRef, listLen)...)
+	}
 	s.nodes = append(s.nodes, nodeHeader{
 		kind:       kind,
 		flags:      flags,
@@ -97,6 +110,8 @@ func (s *Store) Alloc(kind Kind, flags NodeFlags, loc core.TextRange, childLen i
 		end:        int32(loc.End()),
 		childStart: start,
 		childLen:   uint32(childLen),
+		listStart:  listStart,
+		listLen:    uint32(listLen),
 	})
 	return Handle{s: s, id: id}
 }
@@ -189,6 +204,14 @@ func (s *Store) ListHasTrailingComma(list ListRef) bool {
 	}
 	last := s.ListAt(list, n-1)
 	return last.Loc().End() < s.ListLoc(list).End()
+}
+
+func (s *Store) setListLoc(list ListRef, loc core.TextRange) {
+	if list == 0 || s == nil {
+		return
+	}
+	s.lists[list].pos = int32(loc.Pos())
+	s.lists[list].end = int32(loc.End())
 }
 
 func (s *Store) SetListAt(list ListRef, i int, h Handle) {
@@ -444,19 +467,52 @@ func (h Handle) SetNextContainer(next Handle) {
 	h.s.SetNextContainer(h.id, h.refInStore(next))
 }
 
+func (h Handle) NumListSlots() int {
+	if h.id == 0 || h.s == nil {
+		return 0
+	}
+	return int(h.s.nodes[h.id].listLen)
+}
+
+func (h Handle) ListSlot(i int) ListRef {
+	h.mustLive()
+	n := &h.s.nodes[h.id]
+	if i < 0 || i >= int(n.listLen) {
+		panic("ast: list slot out of range")
+	}
+	return h.s.listSlots[int(n.listStart)+i]
+}
+
+func (h Handle) SetListSlot(i int, list ListRef) {
+	h.mustLive()
+	n := &h.s.nodes[h.id]
+	if i < 0 || i >= int(n.listLen) {
+		panic("ast: list slot out of range")
+	}
+	h.s.listSlots[int(n.listStart)+i] = list
+}
+
 func (h Handle) List() ListRef {
 	if h.id == 0 || h.s == nil {
 		return 0
 	}
-	return h.s.nodes[h.id].list0
+	n := &h.s.nodes[h.id]
+	if n.listLen == 0 {
+		return 0
+	}
+	return h.s.listSlots[n.listStart]
 }
 
 func (h Handle) SetList(list ListRef) {
 	h.mustLive()
-	h.s.nodes[h.id].list0 = list
+	n := &h.s.nodes[h.id]
+	if n.listLen == 0 {
+		panic("ast: SetList on node with no list slots")
+	}
+	h.s.listSlots[n.listStart] = list
 }
 
-// ForEachChild visits non-zero named children, then list0 elements. true stops.
+// ForEachChild visits non-zero named children, then each list slot. true stops.
 func (h Handle) ForEachChild(v StoreVisitor) bool {
 	if h.id == 0 || h.s == nil {
 		return false
@@ -471,8 +527,12 @@ func (h Handle) ForEachChild(v StoreVisitor) bool {
 			return true
 		}
 	}
-	if n.list0 != 0 {
-		l := &h.s.lists[n.list0]
+	for slot := range int(n.listLen) {
+		list := h.s.listSlots[int(n.listStart)+slot]
+		if list == 0 {
+			continue
+		}
+		l := &h.s.lists[list]
 		for i := range int(l.len) {
 			ref := h.s.children[int(l.start)+i]
 			if ref == 0 {

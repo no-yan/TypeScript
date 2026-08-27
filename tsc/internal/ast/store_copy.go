@@ -2,7 +2,7 @@ package ast
 
 // CopySubtree deep-copies the subtree rooted at src into f's Store.
 // A zero src returns a zero Handle. Parents are left unset; callers use
-// SetParentsInChildren. Named children and list0 elements are remapped.
+// SetParentsInChildren. Named children and every list slot are remapped.
 func (f *Factory) CopySubtree(src Handle) Handle {
 	if src.Ref() == 0 {
 		return Handle{}
@@ -35,7 +35,8 @@ func (c *subtreeCopier) copy(ref NodeRef) Handle {
 	}
 	src := c.src.At(ref)
 	n := src.NumChildren()
-	dst := c.dst.create(src.Kind(), src.Flags(), src.Loc(), n)
+	listN := src.NumListSlots()
+	dst := c.dst.createSlots(src.Kind(), src.Flags(), src.Loc(), n, listN)
 	dst.SetTokenFlags(src.TokenFlags())
 	c.remap[ref] = dst.Ref()
 	if text := src.Ident(); text != "" {
@@ -44,8 +45,10 @@ func (c *subtreeCopier) copy(ref NodeRef) Handle {
 	for i := range n {
 		dst.SetChild(i, c.copy(src.Child(i).Ref()))
 	}
-	if list := src.List(); list != 0 {
-		dst.SetList(c.copyList(list))
+	for i := range listN {
+		if list := src.ListSlot(i); list != 0 {
+			dst.SetListSlot(i, c.copyList(list))
+		}
 	}
 	return dst
 }

@@ -35,7 +35,11 @@ func (f *Factory) Store() *Store { return f.store }
 func (f *Factory) Seal() { f.store.Seal() }
 
 func (f *Factory) create(kind Kind, flags NodeFlags, loc core.TextRange, childLen int) Handle {
-	h := f.store.Alloc(kind, flags, loc, childLen)
+	return f.createSlots(kind, flags, loc, childLen, 0)
+}
+
+func (f *Factory) createSlots(kind Kind, flags NodeFlags, loc core.TextRange, childLen, listLen int) Handle {
+	h := f.store.AllocSlots(kind, flags, loc, childLen, listLen)
 	if f.hooks.OnCreate != nil {
 		f.hooks.OnCreate(h)
 	}
@@ -72,7 +76,7 @@ func (f *Factory) List(loc core.TextRange, elems ...Handle) ListRef {
 }
 
 func (f *Factory) ArrayLiteral(p ArrayLiteralParts) Handle {
-	h := f.create(KindArrayLiteralExpression, 0, p.Loc, 0)
+	h := f.createSlots(KindArrayLiteralExpression, 0, p.Loc, 0, 1)
 	h.SetList(p.Elements)
 	return h
 }
@@ -88,7 +92,7 @@ func (f *Factory) Parameter(p ParameterParts) Handle {
 }
 
 func (f *Factory) FunctionExpression(loc core.TextRange, params ListRef) Handle {
-	h := f.create(KindFunctionExpression, 0, loc, 0)
+	h := f.createSlots(KindFunctionExpression, 0, loc, 0, 1)
 	h.SetList(params)
 	return h
 }

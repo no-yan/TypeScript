@@ -6,7 +6,7 @@ Motivation and early sketch: [TypeScript#63807](https://github.com/microsoft/Typ
 
 ## Status
 
-Safe to keep on a branch as a **package-local experiment**: nothing on the production compile path calls `NewFactory`, `NewStore`, `FlattenNode`, or `CopySubtree` today. The production tree remains `*Node` (`ast.go`, `ast_generated.go`, `NodeFactory`, `printer.EmitContext`).
+Safe to keep on a branch as a **package-local experiment**. PR-3 (unlanded) has `ParseSourceFile` allocate through `NewFactory` and `ExpandStore` at the parse boundary. The production tree returned to binder is still `*Node`. Do not land `ExpandStore` on microsoft/main; PR-6 deletes it.
 
 Do **not** treat this document as a merged, settled design for the whole compiler until the [Open questions](#open-questions) below have written answers. The layout bet (packed header, noscan columns) has package-level evidence. Identity across files, mutation rules, incremental parse, emit sharing, and an end-to-end stop criterion do not.
 
@@ -90,10 +90,13 @@ Temporary bridges such as `FlattenNode` are **measurement-only**. They keep Kind
 
 | Path | Role |
 | --- | --- |
-| `store.go` | `Store`, `NodeRef`, `ListRef`, `Handle`, walk, parents, symbol/flow/locals/nextContainer side maps, `list0` |
+| `store.go` | `Store`, `NodeRef`, `ListRef`, `Handle`, walk, parents, symbol/flow/locals/nextContainer side maps, packed `listSlots` |
 | `store_identity.go` | `StoreID`, `GlobalRef`, `StoreSet` (cross-store identity, SourceFile metadata) |
-| `store_schema.go` | BinaryExpression, Parameter, ArrayLiteral slot layout |
+| `store_schema.go` | BinaryExpression, Parameter, ArrayLiteral slot layout (β slice) |
+| `store_schema_generated.go` | Slot constants from `ast.json` (`npx hereby generate`) |
 | `store_factory.go` | Store-only `Factory`, `NewFactoryOn` |
+| `store_bridge.go` | `NodeFactory.AttachStore` dual-write into Store during parse |
+| `store_expand.go` | Temporary Store → `*Node` copy at the parse boundary (delete in PR-6) |
 | `store_copy.go` | `Factory.CopySubtree` (cross-store remap) |
 | `store_flatten.go` | Lossy `*Node` → Store copy for benches |
 | `store_*_test.go`, `store_*_bench_test.go` | Unit, copy, adversarial, and e2e benches |

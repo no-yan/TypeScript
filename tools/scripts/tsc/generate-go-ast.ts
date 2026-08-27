@@ -114,6 +114,9 @@ function generateNodeFactoryStruct(w: CodeWriter) {
     w.write("");
     w.write("nodeCount int");
     w.write("textCount int");
+    w.write("");
+    w.write("store   *Store");
+    w.write("nodeRef map[*Node]NodeRef");
     w.pop();
     w.write("}");
     w.write("");
@@ -389,22 +392,18 @@ function emitNewFactory(
 
     const kindArg = kindMember ? kindMember.goParamName() : `Kind${kindName}`;
 
-    if (nodeFlagsMembers.length > 0) {
-        w.write(`node := f.newNode(${kindArg}, data)`);
-        for (const m of nodeFlagsMembers) {
-            const param = m.goParamName();
-            if (m.bitmask) {
-                w.write(`node.Flags |= ${param} & ${m.bitmask}`);
-            }
-            else {
-                w.write(`node.Flags = ${param}`);
-            }
+    w.write(`node := f.newNode(${kindArg}, data)`);
+    for (const m of nodeFlagsMembers) {
+        const param = m.goParamName();
+        if (m.bitmask) {
+            w.write(`node.Flags |= ${param} & ${m.bitmask}`);
         }
-        w.write("return node");
+        else {
+            w.write(`node.Flags = ${param}`);
+        }
     }
-    else {
-        w.write(`return f.newNode(${kindArg}, data)`);
-    }
+    emitStorePut(w, node);
+    w.write("return node");
 
     w.pop();
     w.write("}");
@@ -420,6 +419,202 @@ function generateNewFactory(w: CodeWriter, node: NodeType) {
     for (const alias of node.kindAliases) {
         emitNewFactory(w, `New${alias}`, alias, structName, node, members, kindMember, nodeFlagsMembers);
     }
+}
+
+type StoreLayout = {
+    children: MemberInfo[];
+    lists: MemberInfo[];
+    strings: MemberInfo[];
+};
+
+function memberSuffix(m: MemberInfo): string {
+    return m.name.charAt(0).toUpperCase() + m.name.slice(1);
+}
+
+function slotConst(nodeName: string, memberName: string): string {
+    return `slot${nodeName}${memberName}`;
+}
+
+function listSlotConst(nodeName: string, memberName: string): string {
+    return `listSlot${nodeName}${memberName}`;
+}
+
+function storeLayout(node: NodeType): StoreLayout {
+    const children: MemberInfo[] = [];
+    const lists: MemberInfo[] = [];
+    const strings: MemberInfo[] = [];
+    for (const m of schemaMembers(node)) {
+        if (m.isKindParam()) continue;
+        if (isNodeFlagsMember(m)) continue;
+        if (m.isChild()) {
+            const lk = m.listKind;
+            if (lk === "NodeList" || lk === "ModifierList" || lk === "raw") {
+                lists.push(m);
+            }
+            else {
+                children.push(m);
+            }
+        }
+        else if (m.type.kind === "primitive" && m.type.name === "string") {
+            strings.push(m);
+        }
+    }
+    return { children, lists, strings };
+}
+
+function emitStorePut(w: CodeWriter, node: NodeType) {
+    const layout = storeLayout(node);
+    w.write(`if h := f.storeAlloc(node, ${layout.children.length}, ${layout.lists.length}); h.Ref() != 0 {`);
+    w.push();
+    for (const m of layout.children) {
+        w.write(`h.SetChild(${slotConst(node.name, memberSuffix(m))}, f.storeHandle(${m.goParamName()}))`);
+    }
+    for (const m of layout.lists) {
+        const slot = listSlotConst(node.name, memberSuffix(m));
+        if (m.listKind === "ModifierList") {
+            w.write(`h.SetListSlot(${slot}, f.storeModifierList(${m.goParamName()}))`);
+        }
+        else if (m.listKind === "raw") {
+            w.write(`h.SetListSlot(${slot}, f.storeRawList(${m.goParamName()}))`);
+        }
+        else {
+            w.write(`h.SetListSlot(${slot}, f.storeList(${m.goParamName()}))`);
+        }
+    }
+    if (layout.strings.length > 0) {
+        const p = layout.strings[0].goParamName();
+        w.write(`if ${p} != "" {`);
+        w.push();
+        w.write(`h.SetIdent(f.store.Intern(${p}))`);
+        w.pop();
+        w.write("}");
+    }
+    w.pop();
+    w.write("}");
+}
+
+function expandArg(node: NodeType, m: MemberInfo): string {
+    if (m.isKindParam()) {
+        return "h.Kind()";
+    }
+    if (isNodeFlagsMember(m)) {
+        return "h.Flags()";
+    }
+    if (m.isChild()) {
+        const lk = m.listKind;
+        if (lk === "ModifierList") {
+            return `expandModifierList(f, h.Store(), h.ListSlot(${listSlotConst(node.name, memberSuffix(m))}))`;
+        }
+        if (lk === "raw") {
+            return `expandRawList(f, h.Store(), h.ListSlot(${listSlotConst(node.name, memberSuffix(m))}))`;
+        }
+        if (lk === "NodeList") {
+            return `expandNodeList(f, h.Store(), h.ListSlot(${listSlotConst(node.name, memberSuffix(m))}))`;
+        }
+        return `expandStored(f, h.Child(${slotConst(node.name, memberSuffix(m))}))`;
+    }
+    if (m.type.kind === "primitive" && m.type.name === "string") {
+        return "h.Ident()";
+    }
+    const ref = m.type.formatGoReference();
+    if (ref === "bool") {
+        return "false";
+    }
+    if (ref === "string") {
+        return `""`;
+    }
+    if (ref.startsWith("*") || ref.startsWith("[]")) {
+        return "nil";
+    }
+    return "0";
+}
+
+function generateStoreSchema(): string {
+    const w = new CodeWriter();
+    w.write("// Code generated by tools/scripts/tsc/generate-go-ast.ts. DO NOT EDIT.");
+    w.write("");
+    w.write("package ast");
+    w.write("");
+    for (const node of api.nodes()) {
+        const layout = storeLayout(node);
+        if (layout.children.length > 0) {
+            w.write("const (");
+            w.push();
+            layout.children.forEach((m, i) => {
+                const name = slotConst(node.name, memberSuffix(m));
+                w.write(i === 0 ? `${name} = iota` : name);
+            });
+            w.write(`${slotConst(node.name, "Count")}`);
+            w.pop();
+            w.write(")");
+            w.write("");
+        }
+        if (layout.lists.length > 0) {
+            w.write("const (");
+            w.push();
+            layout.lists.forEach((m, i) => {
+                const name = listSlotConst(node.name, memberSuffix(m));
+                w.write(i === 0 ? `${name} = iota` : name);
+            });
+            w.write(`${listSlotConst(node.name, "Count")}`);
+            w.pop();
+            w.write(")");
+            w.write("");
+        }
+    }
+    return w.toString();
+}
+
+function generateExpandStore(): string {
+    const w = new CodeWriter();
+    w.write("// Code generated by tools/scripts/tsc/generate-go-ast.ts. DO NOT EDIT.");
+    w.write("");
+    w.write("package ast");
+    w.write("");
+    w.write("func expandStored(f *NodeFactory, h Handle) *Node {");
+    w.push();
+    w.write("if h.Ref() == 0 {");
+    w.push();
+    w.write("return nil");
+    w.pop();
+    w.write("}");
+    w.write("switch h.Kind() {");
+    for (const node of api.nodes()) {
+        if (node.handWritten || node.name === "Token") {
+            continue;
+        }
+        const kinds = node.allKinds().map(k => k.formatGoConstant());
+        if (kinds.length === 0) {
+            continue;
+        }
+        const members = schemaMembers(node);
+        const args = members.map(m => expandArg(node, m));
+        w.write(`case ${kinds.join(", ")}:`);
+        w.push();
+        w.write(`n := f.New${node.name}(${args.join(", ")})`);
+        w.write("applyStoreHeader(n, h)");
+        w.write("return n");
+        w.pop();
+    }
+    w.write("default:");
+    w.push();
+    w.write("if IsTokenKind(h.Kind()) {");
+    w.push();
+    w.write("n := f.NewToken(h.Kind())");
+    w.write("applyStoreHeader(n, h)");
+    w.write("return n");
+    w.pop();
+    w.write("}");
+    w.write("n := f.NewEmptyStatement()");
+    w.write("n.Kind = h.Kind()");
+    w.write("applyStoreHeader(n, h)");
+    w.write("return n");
+    w.pop();
+    w.write("}");
+    w.pop();
+    w.write("}");
+    w.write("");
+    return w.toString();
 }
 
 // ── Generate Update*() factory methods ─────────────────────────────────────
@@ -1084,7 +1279,12 @@ function generateKind(): string {
 
 function writeAndFormat(filePath: string, content: string) {
     fs.writeFileSync(filePath, content);
-    execaSync("dprint", ["fmt", filePath], { stdio: "inherit", cwd: ROOT });
+    try {
+        execaSync("dprint", ["fmt", filePath], { stdio: "inherit", cwd: ROOT });
+    }
+    catch {
+        console.log(`dprint skipped for ${filePath}`);
+    }
     console.log(`Wrote ${filePath}`);
 }
 
@@ -1098,6 +1298,12 @@ export default function main() {
     const kindCode = generateKind();
     const kindOutPath = path.join(ROOT, "tsc/internal/ast/kind_generated.go");
     writeAndFormat(kindOutPath, kindCode + "\n");
+
+    const storeSchema = generateStoreSchema();
+    writeAndFormat(path.join(ROOT, "tsc/internal/ast/store_schema_generated.go"), storeSchema + "\n");
+
+    const expandCode = generateExpandStore();
+    writeAndFormat(path.join(ROOT, "tsc/internal/ast/store_expand_generated.go"), expandCode + "\n");
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

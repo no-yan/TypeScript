@@ -135,12 +135,26 @@ func putParser(p *Parser) {
 func ParseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptKind core.ScriptKind) *ast.SourceFile {
 	p := getParser()
 	defer putParser(p)
+	storeFactory := ast.NewFactory(ast.FactoryHooks{})
+	p.factory.AttachStore(storeFactory.Store())
 	p.initializeState(opts, sourceText, scriptKind)
 	p.nextToken()
+	var result *ast.SourceFile
 	if p.scriptKind == core.ScriptKindJSON {
-		return p.parseJSONText()
+		result = p.parseJSONText()
+	} else {
+		result = p.parseSourceFileWorker()
 	}
-	return p.parseSourceFileWorker()
+	if result != nil {
+		root := p.factory.HandleOf(result.AsNode())
+		p.factory.StoreSync(result.AsNode())
+		result.SetParseStore(storeFactory.Store(), root)
+		if root.Ref() != 0 {
+			_ = ast.ExpandStore(root, opts, sourceText)
+		}
+	}
+	storeFactory.Seal()
+	return result
 }
 
 func (p *Parser) initializeClosures() {
@@ -5962,6 +5976,7 @@ func (p *Parser) finishNodeWithEnd(node *ast.Node, pos int, end int) *ast.Node {
 		p.hasParseError = false
 	}
 	p.overrideParentInImmediateChildren(node)
+	p.factory.StoreSync(node)
 	return node
 }
 
