@@ -42,3 +42,32 @@ func TestFactoryCopySubtree(t *testing.T) {
 	}()
 	copied.SetChild(0, left)
 }
+
+func TestFactoryCopySubtreeRemapsList(t *testing.T) {
+	t.Parallel()
+	parse := ast.NewFactory(ast.FactoryHooks{})
+	a := parse.Identifier("a")
+	a.SetLoc(core.NewTextRange(1, 2))
+	a.SetTokenFlags(ast.TokenFlagsSingleQuote)
+	b := parse.Identifier("b")
+	b.SetLoc(core.NewTextRange(4, 5))
+	arr := parse.ArrayLiteral(ast.ArrayLiteralParts{
+		Elements: parse.List(core.NewTextRange(1, 6), a, b),
+		Loc:      core.NewTextRange(0, 7),
+	})
+	parse.Seal()
+
+	emit := ast.NewFactory(ast.FactoryHooks{})
+	copied := emit.CopySubtree(arr)
+	assert.Equal(t, ast.KindArrayLiteralExpression, copied.Kind())
+	assert.Equal(t, 2, emit.Store().ListLen(copied.Elements()))
+	assert.Assert(t, emit.Store().ListHasTrailingComma(copied.Elements()))
+	ca := emit.Store().ListAt(copied.Elements(), 0)
+	cb := emit.Store().ListAt(copied.Elements(), 1)
+	assert.Equal(t, "a", ca.Text())
+	assert.Equal(t, "b", cb.Text())
+	assert.Equal(t, ast.TokenFlagsSingleQuote, ca.TokenFlags())
+	assert.Assert(t, ca.Ref() != a.Ref())
+	assert.Assert(t, ca.Store() != a.Store())
+	assert.Equal(t, copied.Store(), ca.Store())
+}

@@ -73,3 +73,72 @@ func TestFactoryOnCreateHook(t *testing.T) {
 	f.Token(ast.KindPlusToken)
 	assert.Equal(t, 2, n)
 }
+
+func TestFactoryArrayLiteralListAndTrailingComma(t *testing.T) {
+	t.Parallel()
+	f := ast.NewFactory(ast.FactoryHooks{})
+	a := f.Identifier("a")
+	a.SetLoc(core.NewTextRange(1, 2))
+	b := f.Identifier("b")
+	b.SetLoc(core.NewTextRange(4, 5))
+	elems := f.List(core.NewTextRange(1, 6), a, b)
+	arr := f.ArrayLiteral(ast.ArrayLiteralParts{Elements: elems, Loc: core.NewTextRange(0, 7)})
+	arr.SetParentsInChildren()
+
+	assert.Equal(t, elems, arr.Elements())
+	assert.Equal(t, 2, f.Store().ListLen(arr.Elements()))
+	assert.Assert(t, f.Store().ListHasTrailingComma(arr.Elements()))
+	assert.Equal(t, arr.Ref(), a.Parent().Ref())
+	assert.Equal(t, arr.Ref(), b.Parent().Ref())
+
+	var kinds []ast.Kind
+	ast.Walk(arr, func(h ast.Handle) bool {
+		kinds = append(kinds, h.Kind())
+		return false
+	})
+	assert.DeepEqual(t, []ast.Kind{
+		ast.KindArrayLiteralExpression,
+		ast.KindIdentifier,
+		ast.KindIdentifier,
+	}, kinds)
+}
+
+func TestFactoryReplaceListAfterCreate(t *testing.T) {
+	t.Parallel()
+	f := ast.NewFactory(ast.FactoryHooks{})
+	x := f.Identifier("x")
+	fn := f.FunctionExpression(core.NewTextRange(0, 10), f.List(core.NewTextRange(1, 2), x))
+	thisName := f.Identifier("this")
+	thisParam := f.Parameter(ast.ParameterParts{Name: thisName, Loc: core.NewTextRange(1, 5)})
+	fn.SetList(f.List(core.NewTextRange(1, 8), thisParam, x))
+	assert.Equal(t, 2, f.Store().ListLen(fn.List()))
+	assert.Equal(t, thisParam.Ref(), f.Store().ListAt(fn.List(), 0).Ref())
+	assert.Equal(t, x.Ref(), f.Store().ListAt(fn.List(), 1).Ref())
+}
+
+func TestFactoryParamTypeWrittenAfterCreate(t *testing.T) {
+	t.Parallel()
+	f := ast.NewFactory(ast.FactoryHooks{})
+	name := f.Identifier("p")
+	param := f.Parameter(ast.ParameterParts{Name: name, Loc: core.NewTextRange(0, 1)})
+	assert.Equal(t, ast.NodeRef(0), param.ParamType().Ref())
+	typ := f.Identifier("string")
+	param.SetParamType(typ)
+	assert.Equal(t, typ.Ref(), param.ParamType().Ref())
+	q := f.Token(ast.KindQuestionToken)
+	param.SetParamQuestion(q)
+	assert.Equal(t, q.Ref(), param.ParamQuestion().Ref())
+}
+
+func TestFactoryTokenFlagsAndFlowSideMap(t *testing.T) {
+	t.Parallel()
+	f := ast.NewFactory(ast.FactoryHooks{})
+	lit := f.Identifier("'x'")
+	lit.SetTokenFlags(ast.TokenFlagsSingleQuote)
+	assert.Equal(t, ast.TokenFlagsSingleQuote, lit.TokenFlags())
+	flow := &ast.FlowNode{Flags: ast.FlowFlagsStart}
+	lit.SetFlowNode(flow)
+	assert.Equal(t, flow, lit.FlowNode())
+	lit.SetFlowNode(nil)
+	assert.Assert(t, lit.FlowNode() == nil)
+}

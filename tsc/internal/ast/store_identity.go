@@ -1,0 +1,90 @@
+package ast
+
+import "sync"
+
+// StoreID identifies a Store within one StoreSet. 0 is missing.
+type StoreID uint32
+
+// GlobalRef is a process-wide node identity: StoreID in the high 32 bits,
+// NodeRef in the low 32. 0 is missing. Unlike *Node or NodeId, it is
+// pointer-free, deterministic for a fixed registration order, and usable
+// as a map key without making the map scannable.
+type GlobalRef uint64
+
+func MakeGlobalRef(store StoreID, ref NodeRef) GlobalRef {
+	if store == 0 || ref == 0 {
+		return 0
+	}
+	return GlobalRef(store)<<32 | GlobalRef(ref)
+}
+
+func (g GlobalRef) StoreID() StoreID { return StoreID(g >> 32) }
+func (g GlobalRef) Ref() NodeRef     { return NodeRef(g) }
+
+// StoreSet is the identity domain: it assigns StoreIDs and resolves
+// GlobalRefs back to Handles. Register stores in file order to get
+// deterministic ids across runs.
+type StoreSet struct {
+	mu     sync.RWMutex
+	stores []*Store // index i holds the Store with StoreID i+1
+}
+
+func NewStoreSet() *StoreSet { return &StoreSet{} }
+
+// Add registers a Store and assigns its StoreID. A Store belongs to at
+// most one StoreSet; registering it twice panics.
+func (ss *StoreSet) Add(s *Store) StoreID {
+	if s == nil {
+		panic("ast: Add nil Store")
+	}
+	ss.mu.Lock()
+	defer ss.mu.Unlock()
+	if s.id != 0 {
+		panic("ast: Store already registered")
+	}
+	id := StoreID(len(ss.stores) + 1)
+	s.id = id
+	ss.stores = append(ss.stores, s)
+	return id
+}
+
+func (ss *StoreSet) Store(id StoreID) *Store {
+	if id == 0 {
+		return nil
+	}
+	ss.mu.RLock()
+	defer ss.mu.RUnlock()
+	if int(id) > len(ss.stores) {
+		return nil
+	}
+	return ss.stores[id-1]
+}
+
+func (ss *StoreSet) At(g GlobalRef) Handle {
+	s := ss.Store(g.StoreID())
+	if s == nil {
+		return Handle{}
+	}
+	return s.At(g.Ref())
+}
+
+// ID reports the StoreID assigned by StoreSet.Add, or 0 before registration.
+func (s *Store) ID() StoreID {
+	if s == nil {
+		return 0
+	}
+	return s.id
+}
+
+// Global returns the process-wide identity of the node. It panics on a
+// Store that was never registered, because a silent 0 would corrupt any
+// map keyed by GlobalRef.
+func (h Handle) Global() GlobalRef {
+	if h.id == 0 || h.s == nil {
+		return 0
+	}
+	if h.s.id == 0 {
+		panic("ast: Global on unregistered Store")
+	}
+	return MakeGlobalRef(h.s.id, h.id)
+}

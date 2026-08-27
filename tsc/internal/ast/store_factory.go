@@ -63,6 +63,53 @@ func (f *Factory) List(loc core.TextRange, elems ...Handle) ListRef {
 	return list
 }
 
+func (f *Factory) ArrayLiteral(p ArrayLiteralParts) Handle {
+	h := f.create(KindArrayLiteralExpression, 0, p.Loc, 0)
+	h.SetList(p.Elements)
+	return h
+}
+
+func (f *Factory) Parameter(p ParameterParts) Handle {
+	h := f.create(KindParameter, 0, p.Loc, paramSlotCount)
+	h.SetChild(paramSlotDotDotDot, p.DotDotDot)
+	h.SetChild(paramSlotName, p.Name)
+	h.SetChild(paramSlotQuestion, p.Question)
+	h.SetChild(paramSlotType, p.Type)
+	h.SetChild(paramSlotInitializer, p.Initializer)
+	return h
+}
+
+func (f *Factory) FunctionExpression(loc core.TextRange, params ListRef) Handle {
+	h := f.create(KindFunctionExpression, 0, loc, 0)
+	h.SetList(params)
+	return h
+}
+
+func (h Handle) ParamType() Handle {
+	h.requireKind(KindParameter)
+	return h.Child(paramSlotType)
+}
+
+func (h Handle) SetParamType(typ Handle) {
+	h.requireKind(KindParameter)
+	h.SetChild(paramSlotType, typ)
+}
+
+func (h Handle) ParamQuestion() Handle {
+	h.requireKind(KindParameter)
+	return h.Child(paramSlotQuestion)
+}
+
+func (h Handle) SetParamQuestion(q Handle) {
+	h.requireKind(KindParameter)
+	h.SetChild(paramSlotQuestion, q)
+}
+
+func (h Handle) Elements() ListRef {
+	h.requireKind(KindArrayLiteralExpression)
+	return h.List()
+}
+
 // Left / Operator / Right are named BinaryExpression slot accessors.
 func (h Handle) Left() Handle {
 	h.requireKind(KindBinaryExpression)

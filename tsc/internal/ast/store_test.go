@@ -83,12 +83,13 @@ func TestStoreSealDropsInternIndex(t *testing.T) {
 	h.SetIdent(id)
 	s.Seal()
 	assert.Equal(t, "foo", h.Ident())
-	defer func() {
-		if recover() == nil {
-			t.Fatal("expected panic")
-		}
-	}()
-	s.Intern("bar")
+	bar := s.Intern("bar")
+	assert.Assert(t, bar != id)
+	again := s.Intern("foo")
+	assert.Assert(t, again != id)
+	lazy := s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
+	lazy.SetIdent(bar)
+	assert.Equal(t, "bar", lazy.Ident())
 }
 
 func TestStoreGrowPastHint(t *testing.T) {

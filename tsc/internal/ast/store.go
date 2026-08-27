@@ -29,12 +29,14 @@ type StoreVisitor func(Handle) bool
 type nodeHeader struct {
 	kind       Kind
 	flags      NodeFlags
+	tokenFlags TokenFlags
 	pos        int32
 	end        int32
 	parent     NodeRef
 	childStart uint32
 	childLen   uint32
 	identText  uint32
+	list0      ListRef // 0 = no list. One list per node in this slice.
 }
 
 type listHeader struct {
@@ -48,6 +50,7 @@ type listHeader struct {
 // arrays are pointer-free (noscan). Sparse side maps (symbols) remain
 // scannable on purpose: only declaration nodes use them.
 type Store struct {
+	id        StoreID // assigned by StoreSet.Add; 0 until registered
 	nodes     []nodeHeader
 	lists     []listHeader
 	children  []NodeRef
@@ -55,6 +58,7 @@ type Store struct {
 	internOff []uint32 // intern id i occupies internBuf[internOff[i]:internOff[i+1]]
 	internIdx map[string]uint32
 	symbols   map[NodeRef]*Symbol
+	flows     map[NodeRef]*FlowNode
 }
 
 func NewStore(hint int) *Store {
@@ -126,18 +130,15 @@ func (s *Store) Intern(text string) uint32 {
 	if id, ok := s.internIdx[text]; ok {
 		return id
 	}
-	if s.internIdx == nil {
-		panic("ast: Intern after Seal")
-	}
 	id := uint32(len(s.internOff) - 1)
 	s.internBuf = append(s.internBuf, text...)
 	s.internOff = append(s.internOff, uint32(len(s.internBuf)))
-	s.internIdx[text] = id
+	if s.internIdx != nil {
+		s.internIdx[text] = id
+	}
 	return id
 }
 
-// Seal drops the construction-time intern index. Call once no new text
-// will be interned. Side maps are kept.
 func (s *Store) Seal() {
 	s.internIdx = nil
 }
@@ -179,6 +180,15 @@ func (s *Store) ListAt(list ListRef, i int) Handle {
 	return Handle{s: s, id: s.children[int(l.start)+i]}
 }
 
+func (s *Store) ListHasTrailingComma(list ListRef) bool {
+	n := s.ListLen(list)
+	if n == 0 {
+		return false
+	}
+	last := s.ListAt(list, n-1)
+	return last.Loc().End() < s.ListLoc(list).End()
+}
+
 func (s *Store) SetListAt(list ListRef, i int, h Handle) {
 	if list == 0 || s == nil {
 		panic("ast: SetListAt on missing list")
@@ -218,6 +228,27 @@ func (s *Store) Symbol(ref NodeRef) *Symbol {
 	return s.symbols[ref]
 }
 
+func (s *Store) SetFlow(ref NodeRef, flow *FlowNode) {
+	if s == nil || ref == 0 {
+		return
+	}
+	if flow == nil {
+		delete(s.flows, ref)
+		return
+	}
+	if s.flows == nil {
+		s.flows = make(map[NodeRef]*FlowNode)
+	}
+	s.flows[ref] = flow
+}
+
+func (s *Store) Flow(ref NodeRef) *FlowNode {
+	if s == nil || ref == 0 {
+		return nil
+	}
+	return s.flows[ref]
+}
+
 func (s *Store) internText(id uint32) string {
 	start, end := s.internOff[id], s.internOff[id+1]
 	if start == end {
@@ -243,6 +274,16 @@ func (h Handle) Flags() NodeFlags {
 func (h Handle) SetFlags(flags NodeFlags) {
 	h.mustLive()
 	h.s.nodes[h.id].flags = flags
+}
+
+func (h Handle) TokenFlags() TokenFlags {
+	h.mustLive()
+	return h.s.nodes[h.id].tokenFlags
+}
+
+func (h Handle) SetTokenFlags(flags TokenFlags) {
+	h.mustLive()
+	h.s.nodes[h.id].tokenFlags = flags
 }
 
 func (h Handle) Loc() core.TextRange {
@@ -323,7 +364,31 @@ func (h Handle) SetSymbol(sym *Symbol) {
 	h.s.SetSymbol(h.id, sym)
 }
 
-// ForEachChild visits non-zero children in slot order. true stops.
+func (h Handle) FlowNode() *FlowNode {
+	if h.id == 0 || h.s == nil {
+		return nil
+	}
+	return h.s.Flow(h.id)
+}
+
+func (h Handle) SetFlowNode(flow *FlowNode) {
+	h.mustLive()
+	h.s.SetFlow(h.id, flow)
+}
+
+func (h Handle) List() ListRef {
+	if h.id == 0 || h.s == nil {
+		return 0
+	}
+	return h.s.nodes[h.id].list0
+}
+
+func (h Handle) SetList(list ListRef) {
+	h.mustLive()
+	h.s.nodes[h.id].list0 = list
+}
+
+// ForEachChild visits non-zero named children, then list0 elements. true stops.
 func (h Handle) ForEachChild(v StoreVisitor) bool {
 	if h.id == 0 || h.s == nil {
 		return false
@@ -336,6 +401,18 @@ func (h Handle) ForEachChild(v StoreVisitor) bool {
 		}
 		if v(Handle{s: h.s, id: ref}) {
 			return true
+		}
+	}
+	if n.list0 != 0 {
+		l := &h.s.lists[n.list0]
+		for i := range int(l.len) {
+			ref := h.s.children[int(l.start)+i]
+			if ref == 0 {
+				continue
+			}
+			if v(Handle{s: h.s, id: ref}) {
+				return true
+			}
 		}
 	}
 	return false
