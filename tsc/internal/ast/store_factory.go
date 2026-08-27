@@ -7,8 +7,9 @@ type FactoryHooks struct {
 	OnCreate func(Handle)
 }
 
-// Factory allocates exclusively into an owned Store. It is the β entry
-// point: callers receive Handle values, never *Node.
+// Factory allocates exclusively into one Store. NewFactory owns a new Store.
+// NewFactoryOn appends into an existing Store so checker synthetics and emit
+// updates can share parse children.
 type Factory struct {
 	hooks FactoryHooks
 	store *Store
@@ -20,6 +21,13 @@ func NewFactory(hooks FactoryHooks) *Factory {
 
 func NewFactoryHint(hooks FactoryHooks, hint int) *Factory {
 	return &Factory{hooks: hooks, store: NewStore(hint)}
+}
+
+func NewFactoryOn(s *Store, hooks FactoryHooks) *Factory {
+	if s == nil {
+		panic("ast: NewFactoryOn nil Store")
+	}
+	return &Factory{hooks: hooks, store: s}
 }
 
 func (f *Factory) Store() *Store { return f.store }

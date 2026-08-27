@@ -82,3 +82,14 @@ func TestZeroHandleGlobalIsZero(t *testing.T) {
 	var h ast.Handle
 	assert.Equal(t, ast.GlobalRef(0), h.Global())
 }
+
+func TestStoreSetFile(t *testing.T) {
+	t.Parallel()
+	ss := ast.NewStoreSet()
+	s := ast.NewStore(2)
+	id := ss.Add(s)
+	sf := &ast.SourceFile{}
+	ss.SetFile(id, sf)
+	assert.Equal(t, sf, ss.File(id))
+	assert.Assert(t, ss.File(0) == nil)
+}

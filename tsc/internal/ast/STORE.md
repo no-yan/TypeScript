@@ -90,10 +90,10 @@ Temporary bridges such as `FlattenNode` are **measurement-only**. They keep Kind
 
 | Path | Role |
 | --- | --- |
-| `store.go` | `Store`, `NodeRef`, `ListRef`, `Handle`, walk, parents, symbol/flow side maps, `list0` |
-| `store_identity.go` | `StoreID`, `GlobalRef`, `StoreSet` (cross-store identity) |
+| `store.go` | `Store`, `NodeRef`, `ListRef`, `Handle`, walk, parents, symbol/flow/locals/nextContainer side maps, `list0` |
+| `store_identity.go` | `StoreID`, `GlobalRef`, `StoreSet` (cross-store identity, SourceFile metadata) |
 | `store_schema.go` | BinaryExpression, Parameter, ArrayLiteral slot layout |
-| `store_factory.go` | Store-only `Factory` |
+| `store_factory.go` | Store-only `Factory`, `NewFactoryOn` |
 | `store_copy.go` | `Factory.CopySubtree` (cross-store remap) |
 | `store_flatten.go` | Lossy `*Node` → Store copy for benches |
 | `store_*_test.go`, `store_*_bench_test.go` | Unit, copy, adversarial, and e2e benches |
@@ -200,10 +200,10 @@ Checked against the live `*Node` pipeline (parser, binder, checker, printer). No
 | Layout bet has package-level evidence | done |
 | Cross-store identity exists in code | done (`store_identity.go`) |
 | Functional constraints written from live parser/binder/checker | done (this section) |
-| Header/side-map split implemented for TokenFlags, Locals, FlowNode, NextContainer, extra intern kinds | TokenFlags on header, FlowNode side map, Intern after Seal. Locals / NextContainer not started |
+| Header/side-map split implemented for TokenFlags, Locals, FlowNode, NextContainer, extra intern kinds | TokenFlags on header, FlowNode / Locals / NextContainer side maps, Intern after Seal |
 | Child slots and lists remain writable after the host exists (JSDoc reparse + lazy TS JSDoc) | done (`SetChild`, `SetList`, Intern after Seal) |
-| Synthetics and emit updates append into the parse Store (no cross-store child edges) | policy written; no Factory-on-existing-Store helper yet |
-| Store-to-SourceFile metadata map | not started |
+| Synthetics and emit updates append into the parse Store (no cross-store child edges) | `NewFactoryOn` |
+| Store-to-SourceFile metadata map | `StoreSet.SetFile` / `File` |
 | `ListRef` in schema + `CopySubtree` remaps lists | done (`list0`, ArrayLiteral, FunctionExpression params, `copyList`) |
 | `GOGC` / `GOMEMLIMIT`-only baseline on a large `tsgo` run | measured. FAIL-PERF on this harness (see [cmd/tsc GOGC baseline](#cmdtsc-gogc-baseline)). abandons the **perf** bet, not the functional one |
 

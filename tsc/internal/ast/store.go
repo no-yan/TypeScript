@@ -50,15 +50,17 @@ type listHeader struct {
 // arrays are pointer-free (noscan). Sparse side maps (symbols) remain
 // scannable on purpose: only declaration nodes use them.
 type Store struct {
-	id        StoreID // assigned by StoreSet.Add; 0 until registered
-	nodes     []nodeHeader
-	lists     []listHeader
-	children  []NodeRef
-	internBuf []byte
-	internOff []uint32 // intern id i occupies internBuf[internOff[i]:internOff[i+1]]
-	internIdx map[string]uint32
-	symbols   map[NodeRef]*Symbol
-	flows     map[NodeRef]*FlowNode
+	id            StoreID // assigned by StoreSet.Add; 0 until registered
+	nodes         []nodeHeader
+	lists         []listHeader
+	children      []NodeRef
+	internBuf     []byte
+	internOff     []uint32 // intern id i occupies internBuf[internOff[i]:internOff[i+1]]
+	internIdx     map[string]uint32
+	symbols       map[NodeRef]*Symbol
+	flows         map[NodeRef]*FlowNode
+	locals        map[NodeRef]SymbolTable
+	nextContainer map[NodeRef]NodeRef
 }
 
 func NewStore(hint int) *Store {
@@ -249,6 +251,48 @@ func (s *Store) Flow(ref NodeRef) *FlowNode {
 	return s.flows[ref]
 }
 
+func (s *Store) SetLocals(ref NodeRef, locals SymbolTable) {
+	if s == nil || ref == 0 {
+		return
+	}
+	if locals == nil {
+		delete(s.locals, ref)
+		return
+	}
+	if s.locals == nil {
+		s.locals = make(map[NodeRef]SymbolTable)
+	}
+	s.locals[ref] = locals
+}
+
+func (s *Store) Locals(ref NodeRef) SymbolTable {
+	if s == nil || ref == 0 {
+		return nil
+	}
+	return s.locals[ref]
+}
+
+func (s *Store) SetNextContainer(ref NodeRef, next NodeRef) {
+	if s == nil || ref == 0 {
+		return
+	}
+	if next == 0 {
+		delete(s.nextContainer, ref)
+		return
+	}
+	if s.nextContainer == nil {
+		s.nextContainer = make(map[NodeRef]NodeRef)
+	}
+	s.nextContainer[ref] = next
+}
+
+func (s *Store) NextContainer(ref NodeRef) NodeRef {
+	if s == nil || ref == 0 {
+		return 0
+	}
+	return s.nextContainer[ref]
+}
+
 func (s *Store) internText(id uint32) string {
 	start, end := s.internOff[id], s.internOff[id+1]
 	if start == end {
@@ -374,6 +418,30 @@ func (h Handle) FlowNode() *FlowNode {
 func (h Handle) SetFlowNode(flow *FlowNode) {
 	h.mustLive()
 	h.s.SetFlow(h.id, flow)
+}
+
+func (h Handle) Locals() SymbolTable {
+	if h.id == 0 || h.s == nil {
+		return nil
+	}
+	return h.s.Locals(h.id)
+}
+
+func (h Handle) SetLocals(locals SymbolTable) {
+	h.mustLive()
+	h.s.SetLocals(h.id, locals)
+}
+
+func (h Handle) NextContainer() Handle {
+	if h.id == 0 || h.s == nil {
+		return Handle{}
+	}
+	return h.s.At(h.s.NextContainer(h.id))
+}
+
+func (h Handle) SetNextContainer(next Handle) {
+	h.mustLive()
+	h.s.SetNextContainer(h.id, h.refInStore(next))
 }
 
 func (h Handle) List() ListRef {

@@ -126,6 +126,22 @@ func TestStoreCrossStoreChildPanics(t *testing.T) {
 	parent.SetChild(0, child)
 }
 
+func TestStoreLocalsAndNextContainer(t *testing.T) {
+	t.Parallel()
+	s := ast.NewStore(4)
+	fn := s.Alloc(ast.KindFunctionExpression, 0, core.UndefinedTextRange(), 0)
+	body := s.Alloc(ast.KindBlock, 0, core.UndefinedTextRange(), 0)
+	sym := &ast.Symbol{Name: "x"}
+	table := ast.SymbolTable{"x": sym}
+	fn.SetLocals(table)
+	fn.SetNextContainer(body)
+	got := fn.Locals()
+	assert.Equal(t, 1, len(got))
+	assert.Equal(t, sym, got["x"])
+	assert.Equal(t, body.Ref(), fn.NextContainer().Ref())
+	assert.Equal(t, s, fn.NextContainer().Store())
+}
+
 func buildStoreTree(s *ast.Store, depth int) ast.Handle {
 	if depth <= 1 {
 		h := s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
