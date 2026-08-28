@@ -103,7 +103,7 @@ Temporary bridges such as `FlattenNode` are **measurement-only**. They keep Kind
 From `tsc/`:
 
 ```bash
-go test ./internal/ast -run 'TestStore|TestFactory|TestFlatten' 
+go test ./internal/ast -run 'TestStore|TestFactory|TestFlatten'
 go test ./internal/ast -run TestE2ELayoutReport -v
 go test ./internal/ast -run '^$' -bench E2E -count 3
 ```
