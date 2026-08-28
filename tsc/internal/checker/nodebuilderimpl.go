@@ -2871,6 +2871,7 @@ func (b *NodeBuilderImpl) createAnonymousTypeNodeEx(t *Type, forceClassExpansion
 		}
 
 		// !!! JS support
+		// if c.isJSConstructor(symbol.ValueDeclaration) {
 		// 	// Instance and static types share the same symbol; only add 'typeof' for the static side.
 		// 	return b.symbolToTypeNode(symbol, isInstanceType, nil)
 		// } else
