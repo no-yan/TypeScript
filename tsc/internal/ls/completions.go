@@ -814,7 +814,7 @@ func (l *LanguageService) getCompletionData(
 		// For a computed property with an accessible name like `Symbol.iterator`,
 		// we'll add a completion for the *name* `Symbol` instead of for the property.
 		// If this is e.g. [Symbol.iterator], add a completion for `Symbol`.
-		computedPropertyName := core.FirstNonNil(symbol.Declarations, func(decl *ast.Node) *ast.Node {
+		computedPropertyName := core.FirstNonNil(ast.DeclarationNodes(symbol), func(decl *ast.Node) *ast.Node {
 			name := ast.GetNameOfDeclaration(decl)
 			if name != nil && name.Kind == ast.KindComputedPropertyName {
 				return name
@@ -952,7 +952,7 @@ func (l *LanguageService) getCompletionData(
 						if isNamespaceName {
 							// At `namespace N.M/**/`, if this is the only declaration of `M`, don't include `M` as a completion.
 							isValidAccess = exportedSymbol.Flags&ast.SymbolFlagsNamespace != 0 &&
-								!core.Every(exportedSymbol.Declarations, func(declaration *ast.Declaration) bool {
+								!ast.EveryDeclaration(exportedSymbol, func(declaration *ast.Declaration) bool {
 									return declaration.Parent == node.Parent
 								})
 						} else if isRhsOfImportDeclaration {
@@ -970,8 +970,8 @@ func (l *LanguageService) getCompletionData(
 
 					// If the module is merged with a value, we must get the type of the class and add its properties (for inherited static methods).
 					if !isTypeLocation && !insideJSDocTagTypeExpression &&
-						core.Some(
-							symbol.Declarations,
+						ast.SomeDeclaration(
+							symbol,
 							func(decl *ast.Declaration) bool {
 								return decl.Kind != ast.KindSourceFile && decl.Kind != ast.KindModuleDeclaration && decl.Kind != ast.KindEnumDeclaration
 							},
@@ -1511,7 +1511,7 @@ func (l *LanguageService) getCompletionData(
 			symbols = append(symbols,
 				filterClassMembersList(baseSymbols, decl.Members(), classElementModifierFlags, file, position)...)
 			for index, symbol := range symbols {
-				declaration := symbol.ValueDeclaration
+				declaration := ast.NodeOf(symbol.ValueDeclaration)
 				if declaration != nil && ast.IsClassElement(declaration) &&
 					declaration.Name() != nil &&
 					ast.IsComputedPropertyName(declaration.Name()) {
@@ -1629,13 +1629,13 @@ func (l *LanguageService) getCompletionData(
 		for index, symbol := range symbols {
 			symbolId := ast.GetSymbolId(symbol)
 			if !typeChecker.IsArgumentsSymbol(symbol) &&
-				!core.Some(symbol.Declarations, func(decl *ast.Declaration) bool {
+				!ast.SomeDeclaration(symbol, func(decl *ast.Declaration) bool {
 					return ast.GetSourceFileOfNode(decl) == file
 				}) {
 				symbolToSortTextMap[symbolId] = SortTextGlobalsOrKeywords
 			}
 			if typeOnlyAliasNeedsPromotion && symbol.Flags&ast.SymbolFlagsValue == 0 {
-				typeOnlyAliasDeclaration := core.Find(symbol.Declarations, ast.IsTypeOnlyImportDeclaration)
+				typeOnlyAliasDeclaration := ast.FindSymbolDeclaration(symbol, ast.IsTypeOnlyImportDeclaration)
 				if typeOnlyAliasDeclaration != nil {
 					origin := &symbolOriginInfo{
 						kind: symbolOriginInfoKindTypeOnlyAlias,
@@ -1853,8 +1853,8 @@ func (l *LanguageService) completionInfoFromData(
 			return !tracker.hasValue(literal)
 		})
 		data.symbols = core.Filter(data.symbols, func(symbol *ast.Symbol) bool {
-			if symbol.ValueDeclaration != nil && ast.IsEnumMember(symbol.ValueDeclaration) {
-				value := typeChecker.GetConstantValue(symbol.ValueDeclaration)
+			if symbol.ValueDeclaration != 0 && ast.IsEnumMember(ast.NodeOf(symbol.ValueDeclaration)) {
+				value := typeChecker.GetConstantValue(ast.NodeOf(symbol.ValueDeclaration))
 				if value != nil && tracker.hasValue(value) {
 					return false
 				}
@@ -2030,7 +2030,7 @@ func (l *LanguageService) getCompletionEntriesFromSymbols(
 		// True for locals; false for globals, module exports from other files, `this.` completions.
 		shouldShadowLaterSymbols := (origin == nil || originIsTypeOnlyAlias(origin)) &&
 			!(symbol.Parent == nil &&
-				!core.Some(symbol.Declarations, func(d *ast.Node) bool { return ast.GetSourceFileOfNode(d) == file }))
+				!ast.SomeDeclaration(symbol, func(d *ast.Node) bool { return ast.GetSourceFileOfNode(d) == file }))
 		uniques[name] = shouldShadowLaterSymbols
 		var sym *ast.Symbol
 		if includeSymbols {
@@ -2497,7 +2497,7 @@ func (l *LanguageService) createObjectLiteralMethod(snippetPrinter *snippetPrint
 	factory := snippetPrinter.factory
 	emitContext := snippetPrinter.emitContext
 
-	declaration := core.FirstOrNil(symbol.Declarations)
+	declaration := core.FirstOrNil(ast.DeclarationNodes(symbol))
 	if !isObjectLiteralMethodCompletionCandidateDeclaration(declaration) {
 		return nil
 	}
@@ -3056,7 +3056,7 @@ func isClassLikeMemberCompletion(symbol *ast.Symbol, location *ast.Node, file *a
 func symbolAppearsToBeTypeOnly(symbol *ast.Symbol, typeChecker *checker.Checker) bool {
 	flags := checker.SkipAlias(symbol, typeChecker).CombinedLocalAndExportSymbolFlags()
 	return flags&ast.SymbolFlagsValue == 0 &&
-		(len(symbol.Declarations) == 0 || !ast.IsInJSFile(symbol.Declarations[0]) || flags&ast.SymbolFlagsType != 0)
+		(len(symbol.Declarations) == 0 || !ast.IsInJSFile(ast.NodeOf(symbol.Declarations[0])) || flags&ast.SymbolFlagsType != 0)
 }
 
 func shouldIncludeSymbol(
@@ -3078,7 +3078,7 @@ func shouldIncludeSymbol(
 	// `const a = /* no 'a' here */`
 	if closestSymbolDeclaration != nil &&
 		ast.IsVariableDeclaration(closestSymbolDeclaration) &&
-		symbol.ValueDeclaration == closestSymbolDeclaration {
+		ast.NodeOf(symbol.ValueDeclaration) == closestSymbolDeclaration {
 		return false
 	}
 
@@ -3086,10 +3086,10 @@ func shouldIncludeSymbol(
 	// `function f(a = /* no 'a' and 'b' here */, b) { }` or
 	// `function f<T = /* no 'T' and 'T2' here */>(a: T, b: T2) { }`
 	var symbolDeclaration *ast.Declaration
-	if symbol.ValueDeclaration != nil {
-		symbolDeclaration = symbol.ValueDeclaration
+	if symbol.ValueDeclaration != 0 {
+		symbolDeclaration = ast.NodeOf(symbol.ValueDeclaration)
 	} else if len(symbol.Declarations) > 0 {
-		symbolDeclaration = symbol.Declarations[0]
+		symbolDeclaration = ast.NodeOf(symbol.Declarations[0])
 	}
 
 	if closestSymbolDeclaration != nil && symbolDeclaration != nil {
@@ -3179,7 +3179,7 @@ func getCompletionEntryDisplayNameForSymbol(
 	variant := core.IfElse(isJsxIdentifierExpected, core.LanguageVariantJSX, core.LanguageVariantStandard)
 	// name is a valid identifier or private identifier text
 	if scanner.IsIdentifierText(name, variant) ||
-		symbol.ValueDeclaration != nil && ast.IsPrivateIdentifierClassElementDeclaration(symbol.ValueDeclaration) {
+		symbol.ValueDeclaration != 0 && ast.IsPrivateIdentifierClassElementDeclaration(ast.NodeOf(symbol.ValueDeclaration)) {
 		return name, false
 	}
 	if symbol.Flags&ast.SymbolFlagsAlias != 0 {
@@ -3428,7 +3428,7 @@ func getFirstSymbolInChain(symbol *ast.Symbol, enclosingDeclaration *ast.Node, t
 }
 
 func isModuleSymbol(symbol *ast.Symbol) bool {
-	return core.Some(symbol.Declarations, func(decl *ast.Declaration) bool { return decl.Kind == ast.KindSourceFile })
+	return ast.SomeDeclaration(symbol, func(decl *ast.Declaration) bool { return decl.Kind == ast.KindSourceFile })
 }
 
 func getNullableSymbolOriginInfoKind(kind symbolOriginInfoKind, insertQuestionDot bool) symbolOriginInfoKind {
@@ -3439,9 +3439,9 @@ func getNullableSymbolOriginInfoKind(kind symbolOriginInfoKind, insertQuestionDo
 }
 
 func isStaticProperty(symbol *ast.Symbol) bool {
-	return symbol.ValueDeclaration != nil &&
-		symbol.ValueDeclaration.ModifierFlags()&ast.ModifierFlagsStatic != 0 &&
-		ast.IsClassLike(symbol.ValueDeclaration.Parent)
+	return symbol.ValueDeclaration != 0 &&
+		ast.NodeOf(symbol.ValueDeclaration).ModifierFlags()&ast.ModifierFlagsStatic != 0 &&
+		ast.IsClassLike(ast.NodeOf(symbol.ValueDeclaration).Parent)
 }
 
 // getContextualTypeForConditionalExpression handles completion within a conditional expression
@@ -3661,8 +3661,8 @@ func isInTypeParameterDefault(contextToken *ast.Node) bool {
 }
 
 func isDeprecated(symbol *ast.Symbol, typeChecker *checker.Checker) bool {
-	declarations := checker.SkipAlias(symbol, typeChecker).Declarations
-	return len(declarations) > 0 && core.Every(declarations, func(decl *ast.Declaration) bool { return typeChecker.IsDeprecatedDeclaration(decl) })
+	aliased := checker.SkipAlias(symbol, typeChecker)
+	return len(aliased.Declarations) > 0 && ast.EveryDeclaration(aliased, typeChecker.IsDeprecatedDeclaration)
 }
 
 func (l *LanguageService) getReplacementRangeForContextToken(file *ast.SourceFile, contextToken *ast.Node, position int) *lsproto.Range {
@@ -4441,7 +4441,7 @@ func getPropertiesForObjectExpression(
 		if len(member.Declarations) == 0 {
 			return true
 		}
-		return core.Some(member.Declarations, func(decl *ast.Declaration) bool { return decl.Parent != obj })
+		return ast.SomeDeclaration(member, func(decl *ast.Declaration) bool { return decl.Parent != obj })
 	}
 
 	properties := getApparentProperties(t, obj, typeChecker)
@@ -4730,7 +4730,7 @@ func filterClassMembersList(
 		return !existingMemberNames.Has(ast.SymbolName(propertySymbol)) &&
 			len(propertySymbol.Declarations) > 0 &&
 			checker.GetDeclarationModifierFlagsFromSymbol(propertySymbol)&ast.ModifierFlagsPrivate == 0 &&
-			!(propertySymbol.ValueDeclaration != nil && ast.IsPrivateIdentifierClassElementDeclaration(propertySymbol.ValueDeclaration))
+			!(propertySymbol.ValueDeclaration != 0 && ast.IsPrivateIdentifierClassElementDeclaration(ast.NodeOf(propertySymbol.ValueDeclaration)))
 	})
 }
 
@@ -6605,8 +6605,8 @@ func (l *LanguageService) getExhaustiveCaseSnippets(
 				debug.Assert(t.Symbol().Parent != nil, "An enum member type should have a parent symbol (the enum symbol)")
 				// Filter existing enums by their values
 				var enumValue any
-				if t.Symbol().ValueDeclaration != nil {
-					enumValue = c.GetConstantValue(t.Symbol().ValueDeclaration)
+				if t.Symbol().ValueDeclaration != 0 {
+					enumValue = c.GetConstantValue(ast.NodeOf(t.Symbol().ValueDeclaration))
 				}
 				if enumValue != nil {
 					if tracker.hasValue(enumValue) {

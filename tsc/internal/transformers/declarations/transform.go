@@ -121,8 +121,8 @@ func NewDeclarationTransformer(host DeclarationEmitHost, context *printer.EmitCo
 		}
 		props := resolver.GetPropertiesOfContainerFunction(node)
 		for _, p := range props {
-			if ast.IsExpandoPropertyDeclaration(p.ValueDeclaration) {
-				errorTarget := p.ValueDeclaration
+			if ast.IsExpandoPropertyDeclaration(ast.NodeOf(p.ValueDeclaration)) {
+				errorTarget := ast.NodeOf(p.ValueDeclaration)
 				if ast.IsBinaryExpression(errorTarget) {
 					errorTarget = errorTarget.AsBinaryExpression().Left
 				}
@@ -358,7 +358,7 @@ func (tx *DeclarationTransformer) transformSourceFile(node *ast.SourceFile) *ast
 	if ast.IsExternalOrCommonJSModule(node) {
 		if ast.IsInJSFile(node.AsNode()) {
 			if exportEquals := node.Symbol.Exports[ast.InternalSymbolNameExportEquals]; exportEquals != nil && len(exportEquals.Declarations) > 1 {
-				for _, node := range exportEquals.Declarations {
+				for _, node := range ast.DeclarationNodes(exportEquals) {
 					tx.state.addDiagnostic(createDiagnosticForNode(node, diagnostics.Multiple_module_exports_assignments_cannot_be_serialized_for_declaration_emit))
 				}
 			}
@@ -1095,7 +1095,7 @@ func (tx *DeclarationTransformer) transformConstructSignatureDeclaration(input *
 }
 
 func (tx *DeclarationTransformer) omitPrivateMethodType(input *ast.Node) *ast.Node {
-	if input.Symbol() != nil && len(input.Symbol().Declarations) > 0 && input.Symbol().Declarations[0] != input {
+	if input.Symbol() != nil && len(input.Symbol().Declarations) > 0 && ast.NodeOf(input.Symbol().Declarations[0]) != input {
 		return nil
 	}
 	result := tx.Factory().NewPropertyDeclaration(

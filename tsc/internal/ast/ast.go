@@ -2565,6 +2565,13 @@ func (node *SourceFile) ParseOptions() SourceFileParseOptions {
 
 func (node *SourceFile) ParseStore() *Store { return node.parseStore }
 
+func (node *SourceFile) ParseNodeRef() map[*Node]NodeRef {
+	if node == nil {
+		return nil
+	}
+	return node.parseNodeRef
+}
+
 func (node *SourceFile) ParseRoot() Handle {
 	if node.parseStore == nil || node.parseRoot == 0 {
 		return Handle{}
@@ -2604,10 +2611,67 @@ func (node *SourceFile) HandleOf(n *Node) Handle {
 }
 
 func (node *SourceFile) NodeFor(ref NodeRef) *Node {
-	if node.parseRefNode == nil {
+	if node == nil || ref == 0 {
 		return nil
 	}
-	return node.parseRefNode[ref]
+	if node.parseRefNode != nil {
+		if n := node.parseRefNode[ref]; n != nil {
+			return n
+		}
+	}
+	for n, r := range node.parseNodeRef {
+		if r == ref {
+			if node.parseRefNode == nil {
+				node.parseRefNode = make(map[NodeRef]*Node)
+			}
+			node.parseRefNode[ref] = n
+			return n
+		}
+	}
+	return nil
+}
+
+func (node *SourceFile) RefOf(n *Node) GlobalRef {
+	if node == nil || n == nil {
+		return 0
+	}
+	h := node.HandleOf(n)
+	if h.Ref() == 0 {
+		return 0
+	}
+	return h.Global()
+}
+
+func (file *SourceFile) NodeOf(g GlobalRef) *Node {
+	if file == nil || g == 0 {
+		return nil
+	}
+	if file.parseStore != nil && file.parseStore.id == g.StoreID() {
+		return file.NodeFor(g.Ref())
+	}
+	return NodeOf(g)
+}
+
+func (node *SourceFile) AbsorbNodeRef(m map[*Node]NodeRef) {
+	if node == nil || m == nil {
+		return
+	}
+	if node.parseNodeRef == nil {
+		node.SetParseNodeRef(m)
+		return
+	}
+	if node.parseRefNode == nil {
+		node.parseRefNode = make(map[NodeRef]*Node, len(node.parseNodeRef)+len(m))
+		for n, ref := range node.parseNodeRef {
+			node.parseRefNode[ref] = n
+		}
+	}
+	for n, ref := range m {
+		if node.parseNodeRef[n] == 0 {
+			node.parseNodeRef[n] = ref
+		}
+		node.parseRefNode[ref] = n
+	}
 }
 
 func (node *SourceFile) Text() string {

@@ -155,13 +155,13 @@ func (sd *snapshotData) newSymbolResponse(symbol *ast.Symbol, canonicalProject P
 
 	if len(symbol.Declarations) > 0 {
 		resp.Declarations = make([]NodeHandle, len(symbol.Declarations))
-		for i, decl := range symbol.Declarations {
+		for i, decl := range ast.DeclarationNodes(symbol) {
 			resp.Declarations[i] = sd.nodeHandleFrom(decl)
 		}
 	}
 
-	if symbol.ValueDeclaration != nil {
-		resp.ValueDeclaration = sd.nodeHandleFrom(symbol.ValueDeclaration)
+	if symbol.ValueDeclaration != 0 {
+		resp.ValueDeclaration = sd.nodeHandleFrom(ast.NodeOf(symbol.ValueDeclaration))
 	}
 
 	if symbol.Parent != nil {

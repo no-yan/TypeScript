@@ -670,8 +670,8 @@ func (c *Checker) checkApplicableSignatureForJsxCallLikeElement(node *ast.Node, 
 			// We will not report errors in this function for fragments, since we do not check them in this function
 			diag := NewDiagnosticForNode(tagName, diagnostics.Tag_0_expects_at_least_1_arguments_but_the_JSX_factory_2_provides_at_most_3, entityNameToString(tagName), absoluteMinArgCount, entityNameToString(factory), maxParamCount)
 			tagNameSymbol := c.getSymbolAtLocation(tagName, false)
-			if tagNameSymbol != nil && tagNameSymbol.ValueDeclaration != nil {
-				diag.AddRelatedInfo(NewDiagnosticForNode(tagNameSymbol.ValueDeclaration, diagnostics.X_0_is_declared_here, entityNameToString(tagName)))
+			if tagNameSymbol != nil && tagNameSymbol.ValueDeclaration != 0 {
+				diag.AddRelatedInfo(NewDiagnosticForNode(ast.NodeOf(tagNameSymbol.ValueDeclaration), diagnostics.X_0_is_declared_here, entityNameToString(tagName)))
 			}
 			c.reportDiagnostic(diag, diagnosticOutput)
 		}
@@ -744,7 +744,7 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 				attributeSymbol := c.newSymbol(ast.SymbolFlagsProperty|member.Flags, member.Name)
 				attributeSymbol.Declarations = member.Declarations
 				attributeSymbol.Parent = member.Parent
-				if member.ValueDeclaration != nil {
+				if member.ValueDeclaration != 0 {
 					attributeSymbol.ValueDeclaration = member.ValueDeclaration
 				}
 				links := c.valueSymbolLinks.Get(attributeSymbol)
@@ -842,10 +842,12 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 			default:
 				links.resolvedType = c.createArrayType(c.getUnionType(childTypes))
 			}
-			// Fake up a property declaration for the children
-			childrenPropSymbol.ValueDeclaration = c.factory.NewPropertySignatureDeclaration(nil, c.factory.NewIdentifier(jsxChildrenPropertyName), nil /*postfixToken*/, nil /*type*/, nil /*initializer*/)
-			childrenPropSymbol.ValueDeclaration.Parent = attributeParent
-			childrenPropSymbol.ValueDeclaration.AsPropertySignatureDeclaration().Symbol = childrenPropSymbol
+			decl := c.factory.NewPropertySignatureDeclaration(nil, c.factory.NewIdentifier(jsxChildrenPropertyName), nil /*postfixToken*/, nil /*type*/, nil /*initializer*/)
+			decl.Parent = attributeParent
+			decl.AsPropertySignatureDeclaration().Symbol = childrenPropSymbol
+			if file := ast.GetSourceFileOfNode(attributeParent); file != nil {
+				childrenPropSymbol.ValueDeclaration = file.RefOf(decl)
+			}
 			childPropMap := make(ast.SymbolTable)
 			childPropMap[jsxChildrenPropertyName] = childrenPropSymbol
 			spread = c.getSpreadType(spread, c.newAnonymousType(attributesSymbol, childPropMap, nil, nil, nil), attributesSymbol, objectFlags|c.getPropagatingFlagsOfTypes(childTypes, TypeFlagsNone), false /*readonly*/)
@@ -1104,7 +1106,7 @@ func (c *Checker) getNameFromJsxElementAttributesContainer(nameOfAttribPropConta
 			}
 			if len(propertiesOfJsxElementAttribPropInterface) > 1 && len(jsxElementAttribPropInterfaceSym.Declarations) != 0 {
 				// More than one property on ElementAttributesProperty is an error
-				c.error(jsxElementAttribPropInterfaceSym.Declarations[0], diagnostics.The_global_type_JSX_0_may_not_have_more_than_one_property, nameOfAttribPropContainer)
+				c.error(ast.NodeOf(jsxElementAttribPropInterfaceSym.Declarations[0]), diagnostics.The_global_type_JSX_0_may_not_have_more_than_one_property, nameOfAttribPropContainer)
 			}
 		}
 	}

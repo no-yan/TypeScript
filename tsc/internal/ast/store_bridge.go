@@ -16,6 +16,22 @@ func (f *NodeFactory) AttachStore(s *Store) {
 	f.nodeRef = make(map[*Node]NodeRef)
 }
 
+// Parser AttachStore wipes; checker reuses the parse map so parse children keep their refs.
+func (f *NodeFactory) AttachStoreMap(s *Store, m map[*Node]NodeRef) {
+	if f == nil {
+		panic("ast: AttachStoreMap on nil NodeFactory")
+	}
+	if s == nil {
+		panic("ast: AttachStoreMap nil Store")
+	}
+	f.store = s
+	if m == nil {
+		f.nodeRef = make(map[*Node]NodeRef)
+	} else {
+		f.nodeRef = m
+	}
+}
+
 func (f *NodeFactory) Store() *Store {
 	if f == nil {
 		return nil
@@ -56,7 +72,14 @@ func (f *NodeFactory) storeAlloc(node *Node, childLen, listLen int) Handle {
 }
 
 func (f *NodeFactory) storeHandle(n *Node) Handle {
-	return f.HandleOf(n)
+	if h := f.HandleOf(n); h.Ref() != 0 {
+		return h
+	}
+	file := GetSourceFileOfNode(n)
+	if file == nil {
+		return Handle{}
+	}
+	return file.HandleOf(n)
 }
 
 func (f *NodeFactory) storeList(list *NodeList) ListRef {

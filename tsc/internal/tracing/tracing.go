@@ -712,7 +712,7 @@ func (t *typeTracer) buildTypeDescriptor(typ TracedType, recursionIdentityMap ma
 		firstDeclSymbol = symbol
 	}
 	if firstDeclSymbol != nil && len(firstDeclSymbol.Declarations) > 0 {
-		desc.FirstDeclaration = getLocation(firstDeclSymbol.Declarations[0])
+		desc.FirstDeclaration = getLocation(ast.NodeOf(firstDeclSymbol.Declarations[0]))
 	}
 
 	// Display text

@@ -440,7 +440,7 @@ func (b *NodeBuilderImpl) pseudoTypeEquivalentToType(t *pseudochecker.PseudoType
 				// Name lookup failed or returned no result; search target properties
 				// for one whose declaration name node matches the one we have
 				for _, prop := range targetProps {
-					if prop.ValueDeclaration != nil && prop.ValueDeclaration.Name() == e.Name {
+					if prop.ValueDeclaration != 0 && ast.NodeOf(prop.ValueDeclaration).Name() == e.Name {
 						targetProp = prop
 						break
 					}
@@ -612,7 +612,7 @@ func (b *NodeBuilderImpl) pseudoParametersEquivalentToParameters(params []*pseud
 	}
 	for i, p := range params {
 		targetParam := targetSig.parameters[i]
-		if p.Optional != b.ch.isOptionalParameter(targetParam.ValueDeclaration) {
+		if p.Optional != b.ch.isOptionalParameter(ast.NodeOf(targetParam.ValueDeclaration)) {
 			if reportErrors {
 				b.ctx.tracker.ReportInferenceFallback(p.Name.Parent)
 			}

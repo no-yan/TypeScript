@@ -876,7 +876,7 @@ func (c *Checker) GetConstantValue(node *ast.Node) any {
 	}
 	if symbol != nil && symbol.Flags&ast.SymbolFlagsEnumMember != 0 {
 		// inline property\index accesses only for const enums
-		member := symbol.ValueDeclaration
+		member := ast.NodeOf(symbol.ValueDeclaration)
 		if ast.IsEnumConst(member.Parent) {
 			return c.getEnumMemberValue(member).Value
 		}
@@ -1115,7 +1115,7 @@ func (c *Checker) IsLibSymbolForHoverVerbosity(symbol *ast.Symbol) bool {
 	if symbol == nil {
 		return false
 	}
-	for _, decl := range symbol.Declarations {
+	for _, decl := range ast.DeclarationNodes(symbol) {
 		sf := ast.GetSourceFileOfNode(decl)
 		if sf != nil && c.program.IsSourceFileDefaultLibrary(sf.Path()) {
 			return true

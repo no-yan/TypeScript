@@ -32,6 +32,24 @@ type StoreSet struct {
 
 func NewStoreSet() *StoreSet { return &StoreSet{} }
 
+var (
+	identityOnce   sync.Once
+	identityStores *StoreSet
+)
+
+func identitySet() *StoreSet {
+	identityOnce.Do(func() { identityStores = NewStoreSet() })
+	return identityStores
+}
+
+func RegisterFile(file *SourceFile) {
+	identitySet().BindFile(file)
+}
+
+func NodeOf(g GlobalRef) *Node {
+	return identitySet().NodeOf(g)
+}
+
 // Add registers a Store and assigns its StoreID. A Store belongs to at
 // most one StoreSet; registering it twice panics.
 func (ss *StoreSet) Add(s *Store) StoreID {
@@ -48,6 +66,47 @@ func (ss *StoreSet) Add(s *Store) StoreID {
 	ss.stores = append(ss.stores, s)
 	ss.files = append(ss.files, nil)
 	return id
+}
+
+func (ss *StoreSet) BindFile(file *SourceFile) {
+	if ss == nil || file == nil {
+		return
+	}
+	s := file.ParseStore()
+	if s == nil {
+		return
+	}
+	if s.ID() == 0 {
+		ss.Add(s)
+	} else {
+		ss.adopt(s)
+	}
+	ss.SetFile(s.ID(), file)
+}
+
+func (ss *StoreSet) adopt(s *Store) {
+	if s == nil || s.id == 0 {
+		return
+	}
+	ss.mu.Lock()
+	defer ss.mu.Unlock()
+	idx := int(s.id - 1)
+	for len(ss.stores) <= idx {
+		ss.stores = append(ss.stores, nil)
+		ss.files = append(ss.files, nil)
+	}
+	ss.stores[idx] = s
+}
+
+func (ss *StoreSet) NodeOf(g GlobalRef) *Node {
+	if ss == nil || g == 0 {
+		return nil
+	}
+	file := ss.File(g.StoreID())
+	if file == nil {
+		return nil
+	}
+	return file.NodeFor(g.Ref())
 }
 
 func (ss *StoreSet) SetFile(id StoreID, file *SourceFile) {

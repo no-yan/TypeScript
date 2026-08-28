@@ -415,7 +415,7 @@ func (l *LanguageService) getStringLiteralCompletionEntries(
 			return &stringLiteralCompletions{
 				fromProperties: &completionsFromProperties{
 					symbols: core.Filter(properties, func(s *ast.Symbol) bool {
-						return s.ValueDeclaration == nil || !ast.IsPrivateIdentifierClassElementDeclaration(s.ValueDeclaration)
+						return s.ValueDeclaration == 0 || !ast.IsPrivateIdentifierClassElementDeclaration(ast.NodeOf(s.ValueDeclaration))
 					}),
 					hasIndexSignature: false,
 				},
@@ -578,7 +578,7 @@ func stringLiteralCompletionsForObjectLiteral(
 func stringLiteralCompletionsFromProperties(t *checker.Type, typeChecker *checker.Checker) *completionsFromProperties {
 	return &completionsFromProperties{
 		symbols: core.Filter(typeChecker.GetApparentProperties(t), func(s *ast.Symbol) bool {
-			return !(s.ValueDeclaration != nil && ast.IsPrivateIdentifierClassElementDeclaration(s.ValueDeclaration))
+			return !(s.ValueDeclaration != 0 && ast.IsPrivateIdentifierClassElementDeclaration(ast.NodeOf(s.ValueDeclaration)))
 		}),
 		hasIndexSignature: hasIndexSignature(t, typeChecker),
 	}

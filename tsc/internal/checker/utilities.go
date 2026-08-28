@@ -70,7 +70,7 @@ func hasReadonlyModifier(node *ast.Node) bool {
 }
 
 func isStaticPrivateIdentifierProperty(s *ast.Symbol) bool {
-	return s.ValueDeclaration != nil && ast.IsPrivateIdentifierClassElementDeclaration(s.ValueDeclaration) && ast.IsStatic(s.ValueDeclaration)
+	return s.ValueDeclaration != 0 && ast.IsPrivateIdentifierClassElementDeclaration(ast.NodeOf(s.ValueDeclaration)) && ast.IsStatic(ast.NodeOf(s.ValueDeclaration))
 }
 
 func isEmptyObjectLiteral(expression *ast.Node) bool {
@@ -196,7 +196,7 @@ func canHaveLocals(node *ast.Node) bool {
 }
 
 func isShorthandAmbientModuleSymbol(moduleSymbol *ast.Symbol) bool {
-	return isShorthandAmbientModule(moduleSymbol.ValueDeclaration)
+	return isShorthandAmbientModule(ast.NodeOf(moduleSymbol.ValueDeclaration))
 }
 
 func isShorthandAmbientModule(node *ast.Node) bool {
@@ -374,7 +374,7 @@ func (c *Checker) compareSymbolsWorker(s1, s2 *ast.Symbol) int {
 		return -1
 	}
 	if len(s1.Declarations) != 0 && len(s2.Declarations) != 0 {
-		if r := c.compareNodes(s1.Declarations[0], s2.Declarations[0]); r != 0 {
+		if r := c.compareNodes(ast.NodeOf(s1.Declarations[0]), ast.NodeOf(s2.Declarations[0])); r != 0 {
 			return r
 		}
 	} else if len(s1.Declarations) != 0 {
@@ -730,16 +730,16 @@ func getDeclarationModifierFlagsFromSymbolEx(s *ast.Symbol, isWrite bool) ast.Mo
 		}
 		return accessModifier
 	}
-	if s.ValueDeclaration != nil {
+	if s.ValueDeclaration != 0 {
 		var declaration *ast.Node
 		if isWrite {
-			declaration = core.Find(s.Declarations, ast.IsSetAccessorDeclaration)
+			declaration = ast.FindSymbolDeclaration(s, ast.IsSetAccessorDeclaration)
 		}
 		if declaration == nil && s.Flags&ast.SymbolFlagsGetAccessor != 0 {
-			declaration = core.Find(s.Declarations, ast.IsGetAccessorDeclaration)
+			declaration = ast.FindSymbolDeclaration(s, ast.IsGetAccessorDeclaration)
 		}
 		if declaration == nil {
-			declaration = s.ValueDeclaration
+			declaration = ast.NodeOf(s.ValueDeclaration)
 		}
 		flags := ast.GetCombinedModifierFlags(declaration)
 		if s.Parent != nil && s.Parent.Flags&ast.SymbolFlagsClass != 0 {
@@ -1042,8 +1042,8 @@ func (c *Checker) isConstantVariable(symbol *ast.Symbol) bool {
 
 func (c *Checker) isParameterOrMutableLocalVariable(symbol *ast.Symbol) bool {
 	// Return true if symbol is a parameter, a catch clause variable, or a mutable local variable
-	if symbol.ValueDeclaration != nil {
-		declaration := ast.GetRootDeclaration(symbol.ValueDeclaration)
+	if symbol.ValueDeclaration != 0 {
+		declaration := ast.GetRootDeclaration(ast.NodeOf(symbol.ValueDeclaration))
 		return declaration != nil && (ast.IsParameterDeclaration(declaration) || ast.IsVariableDeclaration(declaration) && (ast.IsCatchClause(declaration.Parent) || c.isMutableLocalVariableDeclaration(declaration)))
 	}
 	return false
@@ -1258,7 +1258,7 @@ func getEnclosingContainer(node *ast.Node) *ast.Node {
 }
 
 func getDeclarationsOfKind(symbol *ast.Symbol, kind ast.Kind) []*ast.Node {
-	return core.Filter(symbol.Declarations, func(d *ast.Node) bool { return d.Kind == kind })
+	return core.Filter(ast.DeclarationNodes(symbol), func(d *ast.Node) bool { return d.Kind == kind })
 }
 
 func hasType(node *ast.Node) bool {
@@ -1578,7 +1578,7 @@ func tryGetPropertyAccessOrIdentifierToString(expr *ast.Node) string {
 func allDeclarationsInSameSourceFile(symbol *ast.Symbol) bool {
 	if len(symbol.Declarations) > 1 {
 		var sourceFile *ast.SourceFile
-		for i, d := range symbol.Declarations {
+		for i, d := range ast.DeclarationNodes(symbol) {
 			if i == 0 {
 				sourceFile = ast.GetSourceFileOfNode(d)
 			} else if ast.GetSourceFileOfNode(d) != sourceFile {
@@ -1726,15 +1726,15 @@ func (c *Checker) isUncheckedJSSuggestion(node *ast.Node, suggestion *ast.Symbol
 		if c.compilerOptions.CheckJs.IsUnknown() && file.CheckJsDirective == nil && (file.ScriptKind == core.ScriptKindJS || file.ScriptKind == core.ScriptKindJSX) {
 			var declarationFile *ast.SourceFile
 			if suggestion != nil {
-				if firstDeclaration := core.FirstOrNil(suggestion.Declarations); firstDeclaration != nil {
+				if firstDeclaration := core.FirstOrNil(ast.DeclarationNodes(suggestion)); firstDeclaration != nil {
 					declarationFile = ast.GetSourceFileOfNode(firstDeclaration)
 				}
 			}
 			suggestionHasNoExtendsOrDecorators := suggestion == nil ||
-				suggestion.ValueDeclaration == nil ||
-				!ast.IsClassLike(suggestion.ValueDeclaration) ||
-				len(ast.GetExtendsHeritageClauseElements(suggestion.ValueDeclaration)) != 0 ||
-				ast.ClassOrConstructorParameterIsDecorated(false, suggestion.ValueDeclaration)
+				suggestion.ValueDeclaration == 0 ||
+				!ast.IsClassLike(ast.NodeOf(suggestion.ValueDeclaration)) ||
+				len(ast.GetExtendsHeritageClauseElements(ast.NodeOf(suggestion.ValueDeclaration))) != 0 ||
+				ast.ClassOrConstructorParameterIsDecorated(false, ast.NodeOf(suggestion.ValueDeclaration))
 			return !(file != declarationFile && declarationFile != nil && ast.IsGlobalSourceFile(declarationFile.AsNode())) &&
 				!(excludeClasses && suggestion != nil && suggestion.Flags&ast.SymbolFlagsClass != 0 && suggestionHasNoExtendsOrDecorators) &&
 				!(node != nil && excludeClasses && ast.IsPropertyAccessExpression(node) && node.Expression().Kind == ast.KindThisKeyword && suggestionHasNoExtendsOrDecorators)

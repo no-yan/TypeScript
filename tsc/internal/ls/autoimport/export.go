@@ -102,7 +102,7 @@ func SymbolToExport(symbol *ast.Symbol, ch *checker.Checker) *Export {
 		return nil
 	}
 
-	declaration := core.FirstOrNil(symbol.Declarations)
+	declaration := core.FirstOrNil(ast.DeclarationNodes(symbol))
 	if declaration == nil {
 		return nil
 	}

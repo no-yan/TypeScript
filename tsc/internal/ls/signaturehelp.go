@@ -671,8 +671,8 @@ func (l *LanguageService) createSignatureHelpParameterFromLabel(parameter *ast.S
 	isOptional := parameter.CheckFlags&ast.CheckFlagsOptionalParameter != 0
 	isRest := parameter.CheckFlags&ast.CheckFlagsRestParameter != 0
 	var documentation *lsproto.StringOrMarkupContent
-	if parameter.ValueDeclaration != nil {
-		doc := getDocumentationFromDeclaration(l.documentationLocationMapper(spanmap.FeatureSignatureHelp), c, nil, parameter.ValueDeclaration, nil, docFormat, true /*commentOnly*/)
+	if parameter.ValueDeclaration != 0 {
+		doc := getDocumentationFromDeclaration(l.documentationLocationMapper(spanmap.FeatureSignatureHelp), c, nil, ast.NodeOf(parameter.ValueDeclaration), nil, docFormat, true /*commentOnly*/)
 		if doc != "" {
 			documentation = &lsproto.StringOrMarkupContent{
 				MarkupContent: &lsproto.MarkupContent{
@@ -1302,7 +1302,7 @@ func tryGetParameterInfo(startingToken *ast.Node, sourceFile *ast.SourceFile, c 
 
 func chooseBetterSymbol(s *ast.Symbol) *ast.Symbol {
 	if s.Name == ast.InternalSymbolNameType {
-		for _, d := range s.Declarations {
+		for _, d := range ast.DeclarationNodes(s) {
 			if ast.IsFunctionTypeNode(d) && ast.CanHaveSymbol(d.Parent) {
 				return d.Parent.Symbol()
 			}

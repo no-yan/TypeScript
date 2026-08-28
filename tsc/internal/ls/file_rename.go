@@ -399,5 +399,5 @@ func isAmbientModuleSymbol(symbol *ast.Symbol) bool {
 	if symbol == nil {
 		return false
 	}
-	return slices.ContainsFunc(symbol.Declarations, ast.IsModuleWithStringLiteralName)
+	return ast.SomeDeclaration(symbol, ast.IsModuleWithStringLiteralName)
 }

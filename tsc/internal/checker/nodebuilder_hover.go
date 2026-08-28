@@ -63,7 +63,7 @@ func (b *NodeBuilderImpl) expandEnumDecl(symbol *ast.Symbol) *ast.Node {
 			members = append(members, b.f.NewEnumMember(b.f.NewIdentifier(last.Name), b.enumMemberInitializer(last)))
 			break
 		}
-		memberDecl := core.Find(p.Declarations, ast.IsEnumMember)
+		memberDecl := ast.FindSymbolDeclaration(p, ast.IsEnumMember)
 		var initializer *ast.Node
 		if memberDecl != nil && memberDecl.AsEnumMember().Initializer != nil {
 			initializer = b.f.DeepCloneNode(memberDecl.AsEnumMember().Initializer)
@@ -89,7 +89,7 @@ func (b *NodeBuilderImpl) expandEnumDecl(symbol *ast.Symbol) *ast.Node {
 }
 
 func (b *NodeBuilderImpl) enumMemberInitializer(p *ast.Symbol) *ast.Node {
-	memberDecl := core.Find(p.Declarations, ast.IsEnumMember)
+	memberDecl := ast.FindSymbolDeclaration(p, ast.IsEnumMember)
 	if memberDecl == nil {
 		return nil
 	}
@@ -111,7 +111,7 @@ func (b *NodeBuilderImpl) expandClassDecl(symbol *ast.Symbol) *ast.Node {
 	name := ast.SymbolName(symbol)
 	b.ctx.approximateLength += 9 + len(name)
 
-	classLikeDeclarations := core.Filter(symbol.Declarations, ast.IsClassLike)
+	classLikeDeclarations := core.Filter(ast.DeclarationNodes(symbol), ast.IsClassLike)
 	originalDecl := core.FirstOrNil(classLikeDeclarations)
 	oldEnclosing := b.ctx.enclosingDeclaration
 	if originalDecl != nil {
@@ -126,7 +126,7 @@ func (b *NodeBuilderImpl) expandClassDecl(symbol *ast.Symbol) *ast.Node {
 	classType := b.ch.getTypeWithThisArgument(declaredType, nil, false)
 	baseTypes := b.ch.getBaseTypes(b.ch.getTargetType(classType))
 	staticType := b.ch.getTypeOfSymbol(symbol)
-	isClass := staticType.symbol != nil && staticType.symbol.ValueDeclaration != nil && ast.IsClassLike(staticType.symbol.ValueDeclaration)
+	isClass := staticType.symbol != nil && staticType.symbol.ValueDeclaration != 0 && ast.IsClassLike(ast.NodeOf(staticType.symbol.ValueDeclaration))
 	var staticBaseType *Type
 	if isClass {
 		staticBaseType = b.ch.getBaseConstructorTypeOfClass(declaredType)
@@ -235,7 +235,7 @@ func (b *NodeBuilderImpl) expandInterfaceDecl(symbol *ast.Symbol) *ast.Node {
 	b.ctx.approximateLength += 14 + len(name)
 
 	interfaceType := b.ch.getDeclaredTypeOfClassOrInterface(symbol)
-	interfaceDeclarations := core.Filter(symbol.Declarations, ast.IsInterfaceDeclaration)
+	interfaceDeclarations := core.Filter(ast.DeclarationNodes(symbol), ast.IsInterfaceDeclaration)
 	localParams := b.ch.getLocalTypeParametersOfClassOrInterfaceOrTypeAlias(symbol)
 	typeParamDecls := core.Map(localParams, func(p *Type) *ast.Node { return b.typeParameterToDeclaration(p) })
 	baseTypes := b.ch.getBaseTypes(interfaceType)
@@ -315,8 +315,8 @@ func (b *NodeBuilderImpl) serializePropertiesWithTruncation(properties []*ast.Sy
 // serializeConstructors builds constructor signature(s) for a class, with base type filtering.
 func (b *NodeBuilderImpl) serializeConstructors(staticType *Type, staticBaseType *Type, isClass bool, symbol *ast.Symbol) []*ast.Node {
 	isNonConstructable := !isClass &&
-		symbol.ValueDeclaration != nil &&
-		ast.IsInJSFile(symbol.ValueDeclaration) &&
+		symbol.ValueDeclaration != 0 &&
+		ast.IsInJSFile(ast.NodeOf(symbol.ValueDeclaration)) &&
 		len(b.ch.getSignaturesOfType(staticType, SignatureKindConstruct)) == 0
 	if isNonConstructable {
 		b.ctx.approximateLength += 21
@@ -589,9 +589,9 @@ func (b *NodeBuilderImpl) filterInheritedProperties(t *Type, baseTypes []*Type, 
 
 func (b *NodeBuilderImpl) isNamespaceMember(p *ast.Symbol) bool {
 	return p.Flags&(ast.SymbolFlagsType|ast.SymbolFlagsNamespace|ast.SymbolFlagsAlias) != 0 ||
-		!(p.Flags&ast.SymbolFlagsPrototype != 0 || p.Name == "prototype" || (p.ValueDeclaration != nil && ast.HasStaticModifier(p.ValueDeclaration) && ast.IsClassLike(p.ValueDeclaration.Parent)))
+		!(p.Flags&ast.SymbolFlagsPrototype != 0 || p.Name == "prototype" || (p.ValueDeclaration != 0 && ast.HasStaticModifier(ast.NodeOf(p.ValueDeclaration)) && ast.IsClassLike(ast.NodeOf(p.ValueDeclaration).Parent)))
 }
 
 func isHashPrivate(s *ast.Symbol) bool {
-	return s.ValueDeclaration != nil && s.ValueDeclaration.Name() != nil && ast.IsPrivateIdentifier(s.ValueDeclaration.Name())
+	return s.ValueDeclaration != 0 && ast.NodeOf(s.ValueDeclaration).Name() != nil && ast.IsPrivateIdentifier(ast.NodeOf(s.ValueDeclaration).Name())
 }

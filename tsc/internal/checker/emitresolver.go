@@ -292,7 +292,7 @@ func (r *EmitResolver) markLinkedAliases(node *ast.Node) {
 		visited[ast.GetSymbolId(exportSymbol)] = struct{}{}
 
 		var nextSymbol *ast.Symbol
-		for _, declaration := range exportSymbol.Declarations {
+		for _, declaration := range ast.DeclarationNodes(exportSymbol) {
 			r.declarationLinks.Get(declaration).isVisible = core.TSTrue
 
 			if ast.IsInternalModuleImportEqualsDeclaration(declaration) {
@@ -397,7 +397,7 @@ func (r *EmitResolver) hasVisibleDeclarations(symbol *ast.Symbol, shouldComputeA
 		addVisibleAlias = noopAddVisibleAlias
 	}
 
-	for _, declaration := range symbol.Declarations {
+	for _, declaration := range ast.DeclarationNodes(symbol) {
 		if ast.IsIdentifier(declaration) {
 			continue
 		}
@@ -529,7 +529,7 @@ func (r *EmitResolver) IsImportRequiredByAugmentation(decl *ast.ImportDeclaratio
 		merged := r.checker.getMergedSymbol(s)
 		if merged != s {
 			if len(merged.Declarations) > 0 {
-				for _, d := range merged.Declarations {
+				for _, d := range ast.DeclarationNodes(merged) {
 					declFile := ast.GetSourceFileOfNode(d)
 					if declFile == importTarget {
 						return true
@@ -665,7 +665,7 @@ func (r *EmitResolver) IsExpandoFunctionDeclarationUnsafe(node *ast.Node) bool {
 	// this is substantially different from strada, but so is expando property checking
 	props := r.GetPropertiesOfContainerFunction(node)
 	for _, p := range props {
-		if ast.IsExpandoPropertyDeclaration(p.ValueDeclaration) {
+		if ast.IsExpandoPropertyDeclaration(ast.NodeOf(p.ValueDeclaration)) {
 			return true
 		}
 	}
@@ -766,8 +766,8 @@ func (r *EmitResolver) isAliasResolvedToValue(symbol *ast.Symbol, excludeTypeOnl
 	if symbol == nil {
 		return false
 	}
-	if symbol.ValueDeclaration != nil {
-		if container := ast.GetSourceFileOfNode(symbol.ValueDeclaration); container != nil {
+	if symbol.ValueDeclaration != 0 {
+		if container := ast.GetSourceFileOfNode(ast.NodeOf(symbol.ValueDeclaration)); container != nil {
 			fileSymbol := c.getSymbolOfDeclaration(container.AsNode())
 			// Ensures cjs export assignment is setup, since this symbol may point at, and merge with, the file itself.
 			// If we don't, the merge may not have yet occurred, and the flags check below will be missing flags that
@@ -1185,7 +1185,7 @@ func (r *EmitResolver) GetTypeReferenceSerializationKind(typeName *ast.Node, loc
 		rootValueSymbol := r.checker.resolveEntityName(ast.GetFirstIdentifier(typeName), ast.SymbolFlagsValue, true, true, location)
 
 		if rootValueSymbol != nil && len(rootValueSymbol.Declarations) > 0 {
-			isTypeOnly = core.Every(rootValueSymbol.Declarations, ast.IsTypeOnlyImportOrExportDeclaration)
+			isTypeOnly = ast.EveryDeclaration(rootValueSymbol, ast.IsTypeOnlyImportOrExportDeclaration)
 		}
 	}
 	valueSymbol := r.checker.resolveEntityName(typeName, ast.SymbolFlagsValue, true, true, location)

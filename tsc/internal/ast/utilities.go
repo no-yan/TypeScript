@@ -2506,12 +2506,9 @@ func IsParameterLike(node *Node) bool {
 }
 
 func GetDeclarationOfKind(symbol *Symbol, kind Kind) *Node {
-	for _, declaration := range symbol.Declarations {
-		if declaration.Kind == kind {
-			return declaration
-		}
-	}
-	return nil
+	return FindSymbolDeclaration(symbol, func(declaration *Node) bool {
+		return declaration.Kind == kind
+	})
 }
 
 func FindConstructorDeclaration(node *ClassLikeDeclaration) *Node {
@@ -2962,7 +2959,7 @@ func IsExclusivelyTypeOnlyImportOrExport(node *Node) bool {
 }
 
 func GetClassLikeDeclarationOfSymbol(symbol *Symbol) *Node {
-	return core.Find(symbol.Declarations, IsClassLike)
+	return FindSymbolDeclaration(symbol, IsClassLike)
 }
 
 func IsCallLikeExpression(node *Node) bool {
@@ -3584,7 +3581,7 @@ func IsExternalModuleAugmentation(node *Node) bool {
 }
 
 func GetSourceFileOfModule(module *Symbol) *SourceFile {
-	declaration := module.ValueDeclaration
+	declaration := NodeOf(module.ValueDeclaration)
 	if declaration == nil {
 		declaration = GetNonAugmentationDeclaration(module)
 	}
@@ -3592,7 +3589,7 @@ func GetSourceFileOfModule(module *Symbol) *SourceFile {
 }
 
 func GetNonAugmentationDeclaration(symbol *Symbol) *Node {
-	return core.Find(symbol.Declarations, func(d *Node) bool {
+	return FindSymbolDeclaration(symbol, func(d *Node) bool {
 		return !IsExternalModuleAugmentation(d) && !IsGlobalScopeAugmentation(d)
 	})
 }
