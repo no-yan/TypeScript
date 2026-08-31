@@ -81,16 +81,29 @@ func (p *Parser) parseNativeExpression(factory *ast.Factory) (ast.Handle, bool) 
 }
 
 func (p *Parser) parseNativeAssignmentExpression(factory *ast.Factory) (ast.Handle, bool) {
+	if p.lookAhead((*Parser).isNativeArrowHead) {
+		return p.parseNativeExplicitArrow(factory)
+	}
 	pos := p.nodePos()
 	expression, ok := p.parseNativeBinaryExpression(factory, ast.OperatorPrecedenceLowest)
 	if !ok {
 		return ast.Handle{}, false
 	}
 	if p.token != ast.KindQuestionToken {
-		// Assignment and arrow expressions intentionally fall back until their
-		// left-hand-side and parameter diagnostics can migrate with them.
-		if ast.IsAssignmentOperator(p.reScanGreaterThanToken()) || p.token == ast.KindEqualsGreaterThanToken {
-			return ast.Handle{}, false
+		if ast.IsAssignmentOperator(p.reScanGreaterThanToken()) {
+			operator := p.parseNativeToken(factory)
+			right, ok := p.parseNativeAssignmentExpression(factory)
+			if !ok {
+				return ast.Handle{}, false
+			}
+			return p.finishNativeHandle(
+				factory,
+				factory.NewBinaryExpression(0, expression, ast.Handle{}, operator, right),
+				pos,
+			), true
+		}
+		if p.token == ast.KindEqualsGreaterThanToken {
+			return p.finishNativeArrow(factory, expression, pos)
 		}
 		return expression, true
 	}
@@ -124,16 +137,18 @@ func (p *Parser) parseNativeBinaryExpression(factory *ast.Factory, precedence as
 		if !shouldConsumeBinaryOperator(operator, newPrecedence, precedence) {
 			break
 		}
-		// These operators require the TypeScript type grammar, which is not part
-		// of the expression slice.
 		if operator == ast.KindAsKeyword || operator == ast.KindSatisfiesKeyword {
-			break
-		}
-		// In TypeScript, relational angle brackets are ambiguous with generic
-		// calls and tagged templates. Conservatively retain the full parser for
-		// those two operators until type arguments are Handle-native.
-		if operator == ast.KindLessThanToken || operator == ast.KindGreaterThanToken {
-			return ast.Handle{}, false
+			p.nextToken()
+			typeNode, ok := p.parseNativeType(factory)
+			if !ok {
+				return ast.Handle{}, false
+			}
+			if operator == ast.KindAsKeyword {
+				left = p.finishNativeHandle(factory, factory.NewAsExpression(left, typeNode), pos)
+			} else {
+				left = p.finishNativeHandle(factory, factory.NewSatisfiesExpression(left, typeNode), pos)
+			}
+			continue
 		}
 		operatorToken := p.parseNativeToken(factory)
 		right, ok := p.parseNativeBinaryExpression(factory, newPrecedence)
@@ -170,6 +185,66 @@ func (p *Parser) parseNativeUnaryExpression(factory *ast.Factory) (ast.Handle, b
 			return ast.Handle{}, false
 		}
 		return p.finishNativeHandle(factory, factory.NewPrefixUnaryExpression(operator, operand), pos), true
+	case ast.KindTypeOfKeyword, ast.KindVoidKeyword, ast.KindDeleteKeyword:
+		pos := p.nodePos()
+		kind := p.token
+		p.nextToken()
+		operand, ok := p.parseNativeUnaryExpression(factory)
+		if !ok {
+			return ast.Handle{}, false
+		}
+		switch kind {
+		case ast.KindTypeOfKeyword:
+			return p.finishNativeHandle(factory, factory.NewTypeOfExpression(operand), pos), true
+		case ast.KindVoidKeyword:
+			return p.finishNativeHandle(factory, factory.NewVoidExpression(operand), pos), true
+		default:
+			return p.finishNativeHandle(factory, factory.NewDeleteExpression(operand), pos), true
+		}
+	case ast.KindAwaitKeyword:
+		pos := p.nodePos()
+		p.nextToken()
+		operand, ok := p.parseNativeUnaryExpression(factory)
+		if !ok {
+			return ast.Handle{}, false
+		}
+		return p.finishNativeHandle(factory, factory.NewAwaitExpression(operand), pos), true
+	case ast.KindYieldKeyword:
+		pos := p.nodePos()
+		p.nextToken()
+		var asterisk ast.Handle
+		if p.token == ast.KindAsteriskToken {
+			asterisk = p.parseNativeToken(factory)
+		}
+		var expression ast.Handle
+		var ok bool
+		if p.token != ast.KindEndOfFile && p.token != ast.KindCloseBraceToken && p.token != ast.KindCloseParenToken &&
+			p.token != ast.KindCloseBracketToken && p.token != ast.KindCommaToken && p.token != ast.KindSemicolonToken &&
+			p.token != ast.KindColonToken && !p.hasPrecedingLineBreak() {
+			expression, ok = p.parseNativeAssignmentExpression(factory)
+			if !ok {
+				return ast.Handle{}, false
+			}
+		}
+		return p.finishNativeHandle(factory, factory.NewYieldExpression(asterisk, expression), pos), true
+	case ast.KindLessThanToken, ast.KindLessThanLessThanToken:
+		if p.scriptKind == core.ScriptKindTSX || p.scriptKind == core.ScriptKindJSX {
+			return ast.Handle{}, false
+		}
+		pos := p.nodePos()
+		if p.reScanLessThanToken() != ast.KindLessThanToken {
+			return ast.Handle{}, false
+		}
+		p.nextToken()
+		typeNode, ok := p.parseNativeType(factory)
+		if !ok || !p.consumeNativeGreaterThan() {
+			return ast.Handle{}, false
+		}
+		operand, ok := p.parseNativeUnaryExpression(factory)
+		if !ok {
+			return ast.Handle{}, false
+		}
+		return p.finishNativeHandle(factory, factory.NewTypeAssertion(typeNode, operand), pos), true
 	}
 	return p.parseNativeLeftHandSideExpression(factory)
 }
@@ -200,7 +275,8 @@ func (p *Parser) parseNativeLeftHandSideExpression(factory *ast.Factory) (ast.Ha
 		if p.token == ast.KindLessThanToken || p.token == ast.KindLessThanLessThanToken {
 			typeArguments, ok := p.tryParseNativeTypeArguments(factory)
 			if !ok {
-				return ast.Handle{}, false
+				// `1 << 0` and `a < b` are binary operators, not type arguments.
+				return expression, true
 			}
 			switch {
 			case p.token == ast.KindOpenParenToken:
@@ -294,6 +370,11 @@ func (p *Parser) parseNativeLeftHandSideExpression(factory *ast.Factory) (ast.Ha
 				p.nextToken()
 				return p.finishNativeHandle(factory, factory.NewPostfixUnaryExpression(expression, operator), pos), true
 			}
+			if p.token == ast.KindExclamationToken && !p.hasPrecedingLineBreak() {
+				p.nextToken()
+				expression = p.finishNativeHandle(factory, factory.NewNonNullExpression(expression, flags), pos)
+				continue
+			}
 			return expression, true
 		}
 	}
@@ -356,8 +437,26 @@ func (p *Parser) parseNativePrimaryExpression(factory *ast.Factory) (ast.Handle,
 	case ast.KindTemplateHead:
 		return p.parseNativeTemplateExpression(factory, false)
 	case ast.KindNewKeyword:
+		if p.lookAhead(func(p *Parser) bool {
+			return p.nextToken() == ast.KindDotToken
+		}) {
+			return p.parseNativeMetaProperty(factory, ast.KindNewKeyword)
+		}
 		return p.parseNativeNewExpression(factory)
-	case ast.KindThisKeyword, ast.KindNullKeyword, ast.KindTrueKeyword, ast.KindFalseKeyword:
+	case ast.KindImportKeyword:
+		if p.lookAhead(func(p *Parser) bool {
+			return p.nextToken() == ast.KindDotToken
+		}) {
+			return p.parseNativeMetaProperty(factory, ast.KindImportKeyword)
+		}
+		return ast.Handle{}, false
+	case ast.KindFunctionKeyword:
+		return p.parseNativeFunctionExpression(factory, 0)
+	case ast.KindClassKeyword:
+		return p.parseNativeClassExpression(factory, 0)
+	case ast.KindAsyncKeyword:
+		return p.parseNativeAsyncPrimary(factory)
+	case ast.KindThisKeyword, ast.KindSuperKeyword, ast.KindNullKeyword, ast.KindTrueKeyword, ast.KindFalseKeyword:
 		pos := p.nodePos()
 		kind := p.token
 		p.nextToken()
@@ -440,6 +539,20 @@ func (p *Parser) parseNativeObjectLiteral(factory *ast.Factory) (ast.Handle, boo
 				return ast.Handle{}, false
 			}
 			property = p.finishNativeHandle(factory, factory.NewSpreadAssignment(expression), propertyPos)
+		} else if p.lookAhead((*Parser).isNativeObjectAccessorStart) {
+			property, ok := p.parseNativeObjectAccessor(factory, propertyPos)
+			if !ok {
+				return ast.Handle{}, false
+			}
+			properties = append(properties, property)
+			if p.token == ast.KindCommaToken {
+				p.nextToken()
+				if p.token == ast.KindCloseBraceToken {
+					break
+				}
+				continue
+			}
+			break
 		} else {
 			wasIdentifier := p.isIdentifier()
 			name, ok := p.parseNativePropertyName(factory)
@@ -457,6 +570,11 @@ func (p *Parser) parseNativeObjectLiteral(factory *ast.Factory) (ast.Handle, boo
 					factory.NewPropertyAssignment(0, name, ast.Handle{}, ast.Handle{}, initializer),
 					propertyPos,
 				)
+			} else if p.token == ast.KindOpenParenToken || p.token == ast.KindLessThanToken || p.token == ast.KindLessThanLessThanToken {
+				property, ok = p.parseNativeObjectMethodRest(factory, propertyPos, 0, name)
+				if !ok {
+					return ast.Handle{}, false
+				}
 			} else if wasIdentifier && p.token != ast.KindEqualsToken {
 				property = p.finishNativeHandle(
 					factory,
@@ -482,6 +600,92 @@ func (p *Parser) parseNativeObjectLiteral(factory *ast.Factory) (ast.Handle, boo
 	list := factory.List(core.NewTextRange(listPos, p.nodePos()), properties...)
 	p.nextToken()
 	return p.finishNativeHandle(factory, factory.NewObjectLiteralExpression(list, multiLine), pos), true
+}
+
+func (p *Parser) parseNativeObjectMethodRest(factory *ast.Factory, pos int, modifiers ast.ListRef, name ast.Handle) (ast.Handle, bool) {
+	typeParameters, ok := p.parseNativeTypeParameters(factory)
+	if !ok {
+		return ast.Handle{}, false
+	}
+	parameters, ok := p.parseNativeParameterList(factory)
+	if !ok {
+		return ast.Handle{}, false
+	}
+	var returnType ast.Handle
+	if p.token == ast.KindColonToken {
+		p.nextToken()
+		returnType, ok = p.parseNativeType(factory)
+		if !ok {
+			return ast.Handle{}, false
+		}
+	}
+	if p.token != ast.KindOpenBraceToken {
+		return ast.Handle{}, false
+	}
+	body, ok := p.parseNativeBlock(factory)
+	if !ok {
+		return ast.Handle{}, false
+	}
+	return p.finishNativeHandle(
+		factory,
+		factory.NewMethodDeclaration(modifiers, ast.Handle{}, name, ast.Handle{}, typeParameters, parameters, returnType, ast.Handle{}, body),
+		pos,
+	), true
+}
+
+func (p *Parser) isNativeObjectAccessorStart() bool {
+	if p.token != ast.KindGetKeyword && p.token != ast.KindSetKeyword {
+		return false
+	}
+	p.nextToken()
+	return tokenIsIdentifierOrKeyword(p.token) ||
+		p.token == ast.KindStringLiteral ||
+		p.token == ast.KindNumericLiteral ||
+		p.token == ast.KindOpenBracketToken
+}
+
+func (p *Parser) parseNativeObjectAccessor(factory *ast.Factory, pos int) (ast.Handle, bool) {
+	isGet := p.token == ast.KindGetKeyword
+	p.nextToken()
+	name, ok := p.parseNativePropertyName(factory)
+	if !ok {
+		return ast.Handle{}, false
+	}
+	typeParameters, ok := p.parseNativeTypeParameters(factory)
+	if !ok {
+		return ast.Handle{}, false
+	}
+	parameters, ok := p.parseNativeParameterList(factory)
+	if !ok {
+		return ast.Handle{}, false
+	}
+	var returnType ast.Handle
+	if p.token == ast.KindColonToken {
+		p.nextToken()
+		returnType, ok = p.parseNativeType(factory)
+		if !ok {
+			return ast.Handle{}, false
+		}
+	}
+	if p.token != ast.KindOpenBraceToken {
+		return ast.Handle{}, false
+	}
+	body, ok := p.parseNativeBlock(factory)
+	if !ok {
+		return ast.Handle{}, false
+	}
+	if isGet {
+		return p.finishNativeHandle(
+			factory,
+			factory.NewGetAccessorDeclaration(0, name, typeParameters, parameters, returnType, ast.Handle{}, body),
+			pos,
+		), true
+	}
+	return p.finishNativeHandle(
+		factory,
+		factory.NewSetAccessorDeclaration(0, name, typeParameters, parameters, returnType, ast.Handle{}, body),
+		pos,
+	), true
 }
 
 func (p *Parser) isNativeTemplateStart() bool {
@@ -599,7 +803,7 @@ memberDone:
 	if p.token == ast.KindLessThanToken || p.token == ast.KindLessThanLessThanToken {
 		typeArguments, ok = p.tryParseNativeTypeArguments(factory)
 		if !ok {
-			return ast.Handle{}, false
+			typeArguments = 0
 		}
 	}
 	if p.token == ast.KindQuestionDotToken {
@@ -615,155 +819,292 @@ memberDone:
 	return p.finishNativeHandle(factory, factory.NewNewExpression(expression, typeArguments, arguments), pos), true
 }
 
-// tryParseNativeTypeArguments first recognizes the complete pointer-free type
-// subset so a failed speculation cannot leave orphan Store rows.
-func (p *Parser) tryParseNativeTypeArguments(factory *ast.Factory) (ast.ListRef, bool) {
-	state := p.mark()
-	if !p.scanNativeTypeArguments() ||
-		(p.token != ast.KindOpenParenToken && !p.isNativeTemplateStart()) {
-		p.rewind(state)
-		return 0, false
+func (p *Parser) parseNativeMetaProperty(factory *ast.Factory, keyword ast.Kind) (ast.Handle, bool) {
+	pos := p.nodePos()
+	if p.token != keyword {
+		return ast.Handle{}, false
 	}
-	p.rewind(state)
-	return p.parseNativeTypeArguments(factory)
+	p.nextToken()
+	if p.token != ast.KindDotToken {
+		return ast.Handle{}, false
+	}
+	p.nextToken()
+	name, ok := p.parseNativeIdentifierName(factory)
+	if !ok {
+		return ast.Handle{}, false
+	}
+	return p.finishNativeHandle(factory, factory.NewMetaProperty(keyword, name), pos), true
 }
 
-func (p *Parser) scanNativeTypeArguments() bool {
-	if p.reScanLessThanToken() != ast.KindLessThanToken {
+func (p *Parser) parseNativeFunctionExpression(factory *ast.Factory, modifiers ast.ListRef) (ast.Handle, bool) {
+	return p.parseNativeFunctionExpressionAt(factory, p.nodePos(), modifiers)
+}
+
+func (p *Parser) parseNativeFunctionExpressionAt(factory *ast.Factory, pos int, modifiers ast.ListRef) (ast.Handle, bool) {
+	if p.token != ast.KindFunctionKeyword {
+		return ast.Handle{}, false
+	}
+	p.nextToken()
+	var asterisk ast.Handle
+	if p.token == ast.KindAsteriskToken {
+		asterisk = p.parseNativeToken(factory)
+	}
+	var name ast.Handle
+	if p.isBindingIdentifier() {
+		name = p.parseNativeIdentifier(factory)
+	}
+	typeParameters, ok := p.parseNativeTypeParameters(factory)
+	if !ok {
+		return ast.Handle{}, false
+	}
+	parameters, ok := p.parseNativeParameterList(factory)
+	if !ok {
+		return ast.Handle{}, false
+	}
+	var returnType ast.Handle
+	if p.token == ast.KindColonToken {
+		p.nextToken()
+		returnType, ok = p.parseNativeType(factory)
+		if !ok {
+			return ast.Handle{}, false
+		}
+	}
+	if p.token != ast.KindOpenBraceToken {
+		return ast.Handle{}, false
+	}
+	body, ok := p.parseNativeBlock(factory)
+	if !ok {
+		return ast.Handle{}, false
+	}
+	return p.finishNativeHandle(
+		factory,
+		factory.NewFunctionExpression(modifiers, asterisk, name, typeParameters, parameters, returnType, ast.Handle{}, body),
+		pos,
+	), true
+}
+
+func (p *Parser) parseNativeClassExpression(factory *ast.Factory, modifiers ast.ListRef) (ast.Handle, bool) {
+	pos := p.nodePos()
+	if p.token != ast.KindClassKeyword {
+		return ast.Handle{}, false
+	}
+	p.nextToken()
+	var name ast.Handle
+	if p.isBindingIdentifier() && p.token != ast.KindImplementsKeyword {
+		name = p.parseNativeIdentifier(factory)
+	}
+	typeParameters, ok := p.parseNativeTypeParameters(factory)
+	if !ok {
+		return ast.Handle{}, false
+	}
+	heritage, ok := p.parseNativeHeritageClauses(factory, false)
+	if !ok {
+		return ast.Handle{}, false
+	}
+	members, ok := p.parseNativeClassMembers(factory)
+	if !ok {
+		return ast.Handle{}, false
+	}
+	return p.finishNativeHandle(
+		factory,
+		factory.NewClassExpression(modifiers, name, typeParameters, heritage, members),
+		pos,
+	), true
+}
+
+func (p *Parser) parseNativeAsyncPrimary(factory *ast.Factory) (ast.Handle, bool) {
+	if p.lookAhead(func(p *Parser) bool { return p.nextToken() == ast.KindFunctionKeyword }) {
+		pos := p.nodePos()
+		mod := p.parseNativeToken(factory)
+		mods := factory.List(core.NewTextRange(pos, p.nodePos()), mod)
+		return p.parseNativeFunctionExpressionAt(factory, pos, mods)
+	}
+	if p.lookAhead((*Parser).isUnparenthesizedAsyncArrow) {
+		pos := p.nodePos()
+		mod := p.parseNativeToken(factory)
+		mods := factory.List(core.NewTextRange(pos, p.nodePos()), mod)
+		name := p.parseNativeIdentifier(factory)
+		return p.finishNativeArrowWithModifiers(factory, name, pos, mods)
+	}
+	if p.lookAhead((*Parser).isParenthesizedAsyncArrow) {
+		pos := p.nodePos()
+		mod := p.parseNativeToken(factory)
+		mods := factory.List(core.NewTextRange(pos, p.nodePos()), mod)
+		expr, ok := p.parseNativePrimaryExpression(factory)
+		if !ok {
+			return ast.Handle{}, false
+		}
+		return p.finishNativeArrowWithModifiers(factory, expr, pos, mods)
+	}
+	return p.parseNativeIdentifier(factory), true
+}
+
+func (p *Parser) isUnparenthesizedAsyncArrow() bool {
+	if p.token != ast.KindAsyncKeyword {
 		return false
 	}
 	p.nextToken()
-	if !p.scanNativeType() {
+	if !p.isIdentifier() {
 		return false
 	}
-	for p.token == ast.KindCommaToken {
+	p.nextTokenWithoutCheck()
+	return p.token == ast.KindEqualsGreaterThanToken
+}
+
+func (p *Parser) isParenthesizedAsyncArrow() bool {
+	if p.token != ast.KindAsyncKeyword {
+		return false
+	}
+	p.nextToken()
+	if p.token != ast.KindOpenParenToken {
+		return false
+	}
+	depth := 1
+	p.nextToken()
+	for depth > 0 && p.token != ast.KindEndOfFile {
+		switch p.token {
+		case ast.KindOpenParenToken:
+			depth++
+		case ast.KindCloseParenToken:
+			depth--
+		}
+		p.nextToken()
+	}
+	return p.token == ast.KindEqualsGreaterThanToken
+}
+
+func (p *Parser) finishNativeArrow(factory *ast.Factory, expression ast.Handle, pos int) (ast.Handle, bool) {
+	return p.finishNativeArrowWithModifiers(factory, expression, pos, 0)
+}
+
+func (p *Parser) finishNativeArrowWithModifiers(factory *ast.Factory, expression ast.Handle, pos int, modifiers ast.ListRef) (ast.Handle, bool) {
+	parameters, ok := nativeArrowParameters(factory, expression)
+	if !ok {
+		return ast.Handle{}, false
+	}
+	equalsGreaterThan := p.parseNativeToken(factory)
+	body, ok := p.parseNativeArrowBody(factory)
+	if !ok {
+		return ast.Handle{}, false
+	}
+	return p.finishNativeHandle(
+		factory,
+		factory.NewArrowFunction(modifiers, 0, parameters, ast.Handle{}, ast.Handle{}, equalsGreaterThan, body),
+		pos,
+	), true
+}
+
+func nativeArrowParameters(factory *ast.Factory, expression ast.Handle) (ast.ListRef, bool) {
+	switch expression.Kind() {
+	case ast.KindIdentifier:
+		param := factory.Finish(
+			factory.NewParameterDeclaration(0, ast.Handle{}, expression, ast.Handle{}, ast.Handle{}, ast.Handle{}),
+			expression.Loc(),
+		)
+		return factory.List(expression.Loc(), param), true
+	case ast.KindParenthesizedExpression:
+		inner := expression.ParenthesizedExpressionExpression()
+		if inner.Ref() == 0 {
+			return factory.List(expression.Loc()), true
+		}
+		return nativeArrowParameterList(factory, inner, expression.Loc())
+	default:
+		return 0, false
+	}
+}
+
+func nativeArrowParameterList(factory *ast.Factory, expression ast.Handle, loc core.TextRange) (ast.ListRef, bool) {
+	elems := make([]ast.Handle, 0, 4)
+	for expression.Kind() == ast.KindBinaryExpression &&
+		expression.BinaryExpressionOperatorToken().Kind() == ast.KindCommaToken {
+		right := expression.BinaryExpressionRight()
+		param, ok := nativeArrowParameter(factory, right)
+		if !ok {
+			return 0, false
+		}
+		elems = append(elems, param)
+		expression = expression.BinaryExpressionLeft()
+	}
+	first, ok := nativeArrowParameter(factory, expression)
+	if !ok {
+		return 0, false
+	}
+	elems = append(elems, first)
+	for i, j := 0, len(elems)-1; i < j; i, j = i+1, j-1 {
+		elems[i], elems[j] = elems[j], elems[i]
+	}
+	return factory.List(loc, elems...), true
+}
+
+func (p *Parser) isNativeArrowHead() bool {
+	if p.token == ast.KindLessThanToken || p.token == ast.KindLessThanLessThanToken {
+		if !p.scanNativeTypeParameterList() {
+			return false
+		}
+	}
+	if p.token != ast.KindOpenParenToken {
+		return false
+	}
+	if !p.scanNativeParameterList() {
+		return false
+	}
+	if p.token == ast.KindColonToken {
 		p.nextToken()
 		if !p.scanNativeType() {
 			return false
 		}
 	}
-	if !p.consumeNativeGreaterThan() {
-		return false
-	}
-	return true
+	return p.token == ast.KindEqualsGreaterThanToken
 }
 
-func (p *Parser) consumeNativeGreaterThan() bool {
-	// Scan emits one GreaterThanToken per `>`. ReScanGreaterThanToken would
-	// merge the inner and outer closes of nested arguments such as
-	// Map<string, Entry[]>.
-	if p.token != ast.KindGreaterThanToken {
-		return false
-	}
-	p.nextToken()
-	return true
-}
-
-func (p *Parser) scanNativeType() bool {
-	if isNativeKeywordType(p.token) {
-		p.nextToken()
-	} else if p.isIdentifier() {
-		p.nextTokenWithoutCheck()
-		for p.token == ast.KindDotToken {
-			p.nextToken()
-			if !tokenIsIdentifierOrKeyword(p.token) {
-				return false
-			}
-			p.nextTokenWithoutCheck()
-		}
-		if p.token == ast.KindLessThanToken || p.token == ast.KindLessThanLessThanToken {
-			if !p.scanNativeTypeArguments() {
-				return false
-			}
-		}
-	} else {
-		return false
-	}
-	for p.token == ast.KindOpenBracketToken {
-		p.nextToken()
-		if p.token != ast.KindCloseBracketToken {
-			return false
-		}
-		p.nextToken()
-	}
-	return true
-}
-
-func (p *Parser) parseNativeTypeArguments(factory *ast.Factory) (ast.ListRef, bool) {
-	if p.reScanLessThanToken() != ast.KindLessThanToken {
-		return 0, false
-	}
-	p.nextToken()
-	listPos := p.nodePos()
-	types := make([]ast.Handle, 0, 2)
-	for {
-		typeNode, ok := p.parseNativeType(factory)
-		if !ok {
-			return 0, false
-		}
-		types = append(types, typeNode)
-		if p.token != ast.KindCommaToken {
-			break
-		}
-		p.nextToken()
-	}
-	if !p.consumeNativeGreaterThan() {
-		return 0, false
-	}
-	list := factory.List(core.NewTextRange(listPos, p.nodePos()), types...)
-	return list, true
-}
-
-func (p *Parser) parseNativeType(factory *ast.Factory) (ast.Handle, bool) {
+func (p *Parser) parseNativeExplicitArrow(factory *ast.Factory) (ast.Handle, bool) {
 	pos := p.nodePos()
-	var result ast.Handle
-	if isNativeKeywordType(p.token) {
-		kind := p.token
-		p.nextToken()
-		result = p.finishNativeHandle(factory, factory.NewKeywordTypeNode(kind), pos)
-	} else if p.isIdentifier() {
-		name := p.parseNativeIdentifier(factory)
-		for p.token == ast.KindDotToken {
-			p.nextToken()
-			right, ok := p.parseNativeIdentifierName(factory)
-			if !ok {
-				return ast.Handle{}, false
-			}
-			name = p.finishNativeHandle(factory, factory.NewQualifiedName(name, right), pos)
-		}
-		var arguments ast.ListRef
-		var ok bool
-		if p.token == ast.KindLessThanToken || p.token == ast.KindLessThanLessThanToken {
-			arguments, ok = p.parseNativeTypeArguments(factory)
-			if !ok {
-				return ast.Handle{}, false
-			}
-		}
-		result = p.finishNativeHandle(factory, factory.NewTypeReferenceNode(name, arguments), pos)
-	} else {
+	typeParameters, ok := p.parseNativeTypeParameters(factory)
+	if !ok {
 		return ast.Handle{}, false
 	}
-	for p.token == ast.KindOpenBracketToken {
+	parameters, ok := p.parseNativeParameterList(factory)
+	if !ok {
+		return ast.Handle{}, false
+	}
+	var returnType ast.Handle
+	if p.token == ast.KindColonToken {
 		p.nextToken()
-		if p.token != ast.KindCloseBracketToken {
+		returnType, ok = p.parseNativeType(factory)
+		if !ok {
 			return ast.Handle{}, false
 		}
-		p.nextToken()
-		result = p.finishNativeHandle(factory, factory.NewArrayTypeNode(result), pos)
 	}
-	return result, true
+	if p.token != ast.KindEqualsGreaterThanToken {
+		return ast.Handle{}, false
+	}
+	equalsGreaterThan := p.parseNativeToken(factory)
+	body, ok := p.parseNativeArrowBody(factory)
+	if !ok {
+		return ast.Handle{}, false
+	}
+	return p.finishNativeHandle(
+		factory,
+		factory.NewArrowFunction(0, typeParameters, parameters, returnType, ast.Handle{}, equalsGreaterThan, body),
+		pos,
+	), true
 }
 
-func isNativeKeywordType(kind ast.Kind) bool {
-	switch kind {
-	case ast.KindAnyKeyword, ast.KindBigIntKeyword, ast.KindBooleanKeyword,
-		ast.KindIntrinsicKeyword, ast.KindNeverKeyword, ast.KindNumberKeyword,
-		ast.KindObjectKeyword, ast.KindStringKeyword, ast.KindSymbolKeyword,
-		ast.KindUndefinedKeyword, ast.KindUnknownKeyword, ast.KindVoidKeyword:
-		return true
-	default:
-		return false
+func nativeArrowParameter(factory *ast.Factory, expression ast.Handle) (ast.Handle, bool) {
+	if expression.Kind() != ast.KindIdentifier {
+		return ast.Handle{}, false
 	}
+	return factory.Finish(
+		factory.NewParameterDeclaration(0, ast.Handle{}, expression, ast.Handle{}, ast.Handle{}, ast.Handle{}),
+		expression.Loc(),
+	), true
+}
+
+func (p *Parser) parseNativeArrowBody(factory *ast.Factory) (ast.Handle, bool) {
+	if p.token == ast.KindOpenBraceToken {
+		return p.parseNativeBlock(factory)
+	}
+	return p.parseNativeAssignmentExpression(factory)
 }
 
 func (p *Parser) parseNativePropertyName(factory *ast.Factory) (ast.Handle, bool) {

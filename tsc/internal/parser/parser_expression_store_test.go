@@ -44,14 +44,9 @@ func TestNativeExpressionProducerRejectsMalformedAndUnsupportedSyntax(t *testing
 		`value ? yes`,
 		`target.`,
 		`call(, value)`,
-		`1 = value`,
 		`const value = 1`,
-		`({ method() {} })`,
-		`a<T`,
 		`a<T,>(b)`,
-		`new.target`,
 		"optional?.`template`",
-		"({ [name]() {} })",
 		`/** @type {string} */`,
 	} {
 		p := getParser()

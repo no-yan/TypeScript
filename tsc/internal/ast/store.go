@@ -182,6 +182,59 @@ func (s *Store) Seal() {
 	s.internIdx = nil
 }
 
+// StoreCheckpoint is a speculative-parse watermark. Restore truncates node,
+// list, and child columns back to this point. Interned strings stay; they are
+// not counted in Len and are safe to reuse.
+type StoreCheckpoint struct {
+	nodes     int
+	lists     int
+	children  int
+	listSlots int
+}
+
+func (s *Store) Checkpoint() StoreCheckpoint {
+	if s == nil {
+		return StoreCheckpoint{}
+	}
+	return StoreCheckpoint{
+		nodes:     len(s.nodes),
+		lists:     len(s.lists),
+		children:  len(s.children),
+		listSlots: len(s.listSlots),
+	}
+}
+
+func (s *Store) Restore(cp StoreCheckpoint) {
+	if s == nil {
+		return
+	}
+	if cp.nodes < 1 || cp.nodes > len(s.nodes) ||
+		cp.lists < 1 || cp.lists > len(s.lists) ||
+		cp.children < 0 || cp.children > len(s.children) ||
+		cp.listSlots < 0 || cp.listSlots > len(s.listSlots) {
+		panic("ast: invalid Store checkpoint")
+	}
+	s.nodes = s.nodes[:cp.nodes]
+	s.lists = s.lists[:cp.lists]
+	s.children = s.children[:cp.children]
+	s.listSlots = s.listSlots[:cp.listSlots]
+	cutNodeMap(s.symbols, NodeRef(cp.nodes))
+	cutNodeMap(s.localSymbols, NodeRef(cp.nodes))
+	cutNodeMap(s.flows, NodeRef(cp.nodes))
+	cutNodeMap(s.endFlows, NodeRef(cp.nodes))
+	cutNodeMap(s.returnFlows, NodeRef(cp.nodes))
+	cutNodeMap(s.locals, NodeRef(cp.nodes))
+	cutNodeMap(s.nextContainer, NodeRef(cp.nodes))
+}
+
+func cutNodeMap[V any](m map[NodeRef]V, min NodeRef) {
+	for k := range m {
+		if k >= min {
+			delete(m, k)
+		}
+	}
+}
+
 func (s *Store) Len() int {
 	if s == nil || len(s.nodes) == 0 {
 		return 0

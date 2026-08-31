@@ -163,9 +163,9 @@ func ParseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptK
 			p.factory.AttachStore(storeFactory.Store())
 			result = p.parseJSONText()
 		}
-	} else if p.scriptKind == core.ScriptKindTS && !tspath.IsDeclarationFileName(p.opts.FileName) {
+	} else if p.scriptKind == core.ScriptKindTS || p.scriptKind == core.ScriptKindJS {
 		nativeFactory := ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
-		if nativeRoot, ok := p.tryParseExpressionSourceHandle(nativeFactory); ok {
+		if nativeRoot, ok := p.tryParseSourceHandle(nativeFactory); ok {
 			storeFactory = nativeFactory
 			var materialized ast.MaterializeStats
 			result, nodeRefs, materialized = ast.MaterializeSourceFile(nativeRoot, p.opts, p.sourceText)
