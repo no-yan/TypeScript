@@ -121,10 +121,22 @@ interleaved and rotated across default GOGC, `GOGC=off`, `GOGC=200`, and
 The earlier 2026-08-27 numbers are discarded. That harness accepted exit 2
 while compiling `tsc/testdata/fixtures/compiler/checker.ts`, whose unresolved
 `./_namespaces/ts.js` import stopped the run in module resolution. It therefore
-did not measure a completed check and could not support the recorded perf
-verdict. Fresh medians must be recorded from the corrected harness before
-applying the PR-1 stop rule. A later PR-7 table for Store versus trunk belongs
-next to them.
+did not measure a completed check and could not support its recorded verdict.
+
+Corrected-harness medians on 2026-08-31:
+
+| Environment | median |
+| --- | --- |
+| default GOGC | 3.105s |
+| `GOGC=off` | 3.046s |
+| `GOGC=200` | 3.088s |
+| `GOMEMLIMIT=8GiB` | 3.094s |
+
+Default / `GOGC=off` is 1.02, below the required 1.10. `GOMEMLIMIT` /
+`GOGC=off` is 1.02, above the allowed 0.95. The corrected PR-1 perf rule
+therefore fails: this self-contained workload does not expose enough GC cost
+to justify the Store performance bet. A later PR-7 table for Store versus trunk
+belongs next to these numbers if the functional experiment continues.
 
 ## Open questions
 
@@ -208,6 +220,6 @@ Checked against the live `*Node` pipeline (parser, binder, checker, printer). No
 | Synthetics and emit updates append into the parse Store (no cross-store child edges) | policy written; no Factory-on-existing-Store helper yet |
 | Store-to-SourceFile metadata map | not started |
 | `ListRef` in schema + `CopySubtree` remaps lists | done (`list0`, ArrayLiteral, FunctionExpression params, `copyList`) |
-| `GOGC` / `GOMEMLIMIT`-only baseline on a large `tsgo` run | corrected harness ready; fresh medians pending (see [cmd/tsc GOGC baseline](#cmdtsc-gogc-baseline)) |
+| `GOGC` / `GOMEMLIMIT`-only baseline on a large `tsgo` run | corrected run complete; FAIL-PERF (see [cmd/tsc GOGC baseline](#cmdtsc-gogc-baseline)) |
 
 `BenchmarkNewProgram` (`compiler/program_test.go:308`) is too small for the perf baseline.
