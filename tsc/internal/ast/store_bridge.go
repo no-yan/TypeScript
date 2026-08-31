@@ -41,6 +41,10 @@ func (f *NodeFactory) StoreSync(n *Node) {
 	}
 	h.SetLoc(n.Loc)
 	h.SetFlags(n.Flags)
+	h.ForEachChild(func(child Handle) bool {
+		child.SetParent(h)
+		return false
+	})
 }
 
 func (f *NodeFactory) storeAlloc(node *Node, childLen, listLen int) Handle {

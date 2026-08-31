@@ -2572,6 +2572,9 @@ func (node *SourceFile) ParseRoot() Handle {
 
 func (node *SourceFile) SetParseStore(s *Store, root Handle) {
 	node.parseStore = s
+	if s != nil {
+		s.SetSourceFile(node)
+	}
 	if root.s == s {
 		node.parseRoot = root.id
 	}

@@ -8,10 +8,14 @@ func ExpandStore(root Handle, opts SourceFileParseOptions, text string) *Node {
 		return nil
 	}
 	f := NewNodeFactory(NodeFactoryHooks{})
+	var result *Node
 	if root.Kind() == KindSourceFile {
-		return expandSourceFile(f, root, opts, text)
+		result = expandSourceFile(f, root, opts, text)
+	} else {
+		result = expandStored(f, root)
 	}
-	return expandStored(f, root)
+	SetParentInChildren(result)
+	return result
 }
 
 func expandSourceFile(f *NodeFactory, h Handle, opts SourceFileParseOptions, text string) *Node {
