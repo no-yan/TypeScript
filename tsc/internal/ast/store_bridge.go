@@ -94,6 +94,18 @@ func (f *NodeFactory) storeHandle(n *Node) Handle {
 	return file.HandleOf(n)
 }
 
+func (f *NodeFactory) storeNodesEqual(left *Node, right *Node) bool {
+	if left == right {
+		return true
+	}
+	leftHandle := f.storeHandle(left)
+	rightHandle := f.storeHandle(right)
+	return leftHandle.Ref() != 0 &&
+		rightHandle.Ref() != 0 &&
+		leftHandle.Store() == rightHandle.Store() &&
+		leftHandle.Ref() == rightHandle.Ref()
+}
+
 func (f *NodeFactory) storeSetChild(parent Handle, slot int, child *Node) {
 	if child == nil {
 		parent.SetChild(slot, Handle{})

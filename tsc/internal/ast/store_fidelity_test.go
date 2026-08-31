@@ -88,3 +88,25 @@ func TestStoreBridgePreservesCrossFileChildrenAsGlobalRefs(t *testing.T) {
 	assert.Equal(t, sourceFile.RefOf(child), storeB.ExternalListAt(list, 0))
 	assert.Equal(t, sourceNode, child.Parent)
 }
+
+func TestStoreAwareUpdateReusesEquivalentNodeRefs(t *testing.T) {
+	t.Parallel()
+	plain := NewNodeFactory(NodeFactoryHooks{})
+	left := plain.NewIdentifier("left")
+	equivalentLeft := plain.NewIdentifier("left")
+	right := plain.NewIdentifier("right")
+	original := plain.NewQualifiedName(left, right)
+
+	store := NewStore(4)
+	leftHandle := store.Alloc(KindIdentifier, 0, core.UndefinedTextRange(), 0)
+	rightHandle := store.Alloc(KindIdentifier, 0, core.UndefinedTextRange(), 0)
+	factory := NewNodeFactory(NodeFactoryHooks{})
+	factory.AttachStoreMap(store, map[*Node]NodeRef{
+		left:           leftHandle.Ref(),
+		equivalentLeft: leftHandle.Ref(),
+		right:          rightHandle.Ref(),
+	})
+
+	updated := factory.UpdateQualifiedName(original.AsQualifiedName(), equivalentLeft, right)
+	assert.Equal(t, original, updated)
+}

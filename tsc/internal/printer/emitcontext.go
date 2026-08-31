@@ -16,12 +16,14 @@ import (
 // NOTE: EmitContext is not guaranteed to be thread-safe.
 type EmitContext struct {
 	Factory       *NodeFactory // Required. The NodeFactory to use to create new nodes
-	autoGenerate  map[*ast.MemberName]*AutoGenerateInfo
-	textSource    map[*ast.StringLiteralNode]*ast.Node
-	original      map[*ast.Node]*ast.Node
-	emitNodes     core.LinkStore[*ast.Node, emitNode]
-	assignedName  map[*ast.Node]*ast.Expression
-	classThis     map[*ast.Node]*ast.IdentifierNode
+	storeFile     *ast.SourceFile
+	identityNodes map[ast.GlobalRef]*ast.Node
+	autoGenerate  map[ast.GlobalRef]*AutoGenerateInfo
+	textSource    map[ast.GlobalRef]ast.GlobalRef
+	original      map[ast.GlobalRef]ast.GlobalRef
+	emitNodes     core.LinkStore[ast.GlobalRef, emitNode]
+	assignedName  map[ast.GlobalRef]ast.GlobalRef
+	classThis     map[ast.GlobalRef]ast.GlobalRef
 	varScopeStack core.Stack[*varScope]
 	letScopeStack core.Stack[*varScope]
 	emitHelpers   collections.OrderedSet[*EmitHelper]
@@ -76,12 +78,61 @@ func (c *EmitContext) AttachStore(file *ast.SourceFile) func() {
 		return func() {}
 	}
 	unlock := file.LockParseStoreWriter()
+	c.storeFile = file
 	c.Factory.AttachStoreMap(file.ParseStore(), file.ParseNodeRef())
 	return func() {
 		file.AbsorbNodeRef(c.Factory.TakeNodeRef())
 		c.Factory.DetachStore()
+		c.storeFile = nil
 		unlock()
 	}
+}
+
+func (c *EmitContext) NodeIdentity(node *ast.Node) ast.GlobalRef {
+	if node == nil {
+		return 0
+	}
+	var identity ast.GlobalRef
+	if handle := c.Factory.HandleOf(node); handle.Ref() != 0 && handle.Store().ID() != 0 {
+		identity = handle.Global()
+	} else if c.storeFile != nil {
+		if handle := c.storeFile.HandleOf(node); handle.Ref() != 0 && handle.Store().ID() != 0 {
+			identity = handle.Global()
+		}
+	}
+	if identity == 0 {
+		identity = ast.GlobalRef(ast.GetNodeId(node))
+	}
+	if c.identityNodes == nil {
+		c.identityNodes = make(map[ast.GlobalRef]*ast.Node)
+	}
+	c.identityNodes[identity] = node
+	return identity
+}
+
+func (c *EmitContext) nodeForIdentity(identity ast.GlobalRef) *ast.Node {
+	if identity == 0 {
+		return nil
+	}
+	if node := c.identityNodes[identity]; node != nil {
+		return node
+	}
+	if identity.StoreID() != 0 {
+		return ast.NodeOf(identity)
+	}
+	return nil
+}
+
+func (c *EmitContext) emitNode(node *ast.Node) *emitNode {
+	return c.emitNodes.Get(c.NodeIdentity(node))
+}
+
+func (c *EmitContext) tryEmitNode(node *ast.Node) *emitNode {
+	return c.emitNodes.TryGet(c.NodeIdentity(node))
+}
+
+func (c *EmitContext) hasEmitNode(node *ast.Node) bool {
+	return c.emitNodes.Has(c.NodeIdentity(node))
 }
 
 func (c *EmitContext) onCreate(node *ast.Node) {
@@ -95,9 +146,9 @@ func (c *EmitContext) onUpdate(updated *ast.Node, original *ast.Node) {
 func (c *EmitContext) onClone(updated *ast.Node, original *ast.Node) {
 	c.SetOriginal(updated, original)
 	if ast.IsIdentifier(updated) || ast.IsPrivateIdentifier(updated) {
-		if autoGenerate := c.autoGenerate[original]; autoGenerate != nil {
+		if autoGenerate := c.autoGenerate[c.NodeIdentity(original)]; autoGenerate != nil {
 			autoGenerateCopy := *autoGenerate
-			c.autoGenerate[updated] = &autoGenerateCopy
+			c.autoGenerate[c.NodeIdentity(updated)] = &autoGenerateCopy
 		}
 	}
 }
@@ -392,7 +443,7 @@ func (c *EmitContext) isHoistedVariableStatement(node *ast.Statement) bool {
 // Gets whether a given name has an associated AutoGenerateInfo entry.
 func (c *EmitContext) HasAutoGenerateInfo(node *ast.MemberName) bool {
 	if node != nil {
-		_, ok := c.autoGenerate[node]
+		_, ok := c.autoGenerate[c.NodeIdentity(node)]
 		return ok
 	}
 	return false
@@ -403,12 +454,12 @@ func (c *EmitContext) GetAutoGenerateInfo(name *ast.MemberName) *AutoGenerateInf
 	if name == nil {
 		return nil
 	}
-	return c.autoGenerate[name]
+	return c.autoGenerate[c.NodeIdentity(name)]
 }
 
 // Walks the associated AutoGenerateInfo entries of a name to find the root Nopde from which the name should be generated.
 func (c *EmitContext) GetNodeForGeneratedName(name *ast.MemberName) *ast.Node {
-	if autoGenerate := c.autoGenerate[name]; autoGenerate != nil && autoGenerate.Flags.IsNode() {
+	if autoGenerate := c.GetAutoGenerateInfo(name); autoGenerate != nil && autoGenerate.Flags.IsNode() {
 		return c.getNodeForGeneratedNameWorker(autoGenerate.Node, autoGenerate.Id)
 	}
 	return name
@@ -420,7 +471,7 @@ func (c *EmitContext) getNodeForGeneratedNameWorker(node *ast.Node, autoGenerate
 		node = original
 		if ast.IsMemberName(node) {
 			// if "node" is a different generated name (having a different "autoGenerateId"), use it and stop traversing.
-			autoGenerate := c.autoGenerate[node]
+			autoGenerate := c.GetAutoGenerateInfo(node)
 			if autoGenerate == nil || autoGenerate.Flags.IsNode() && autoGenerate.Id != autoGenerateId {
 				break
 			}
@@ -464,7 +515,7 @@ func (c *EmitContext) SetOriginal(node *ast.Node, original *ast.Node) {
 }
 
 func (c *EmitContext) UnsetOriginal(node *ast.Node) {
-	delete(c.original, node)
+	delete(c.original, c.NodeIdentity(node))
 }
 
 func (c *EmitContext) SetOriginalEx(node *ast.Node, original *ast.Node, allowOverwrite bool) {
@@ -473,19 +524,21 @@ func (c *EmitContext) SetOriginalEx(node *ast.Node, original *ast.Node, allowOve
 	}
 
 	if c.original == nil {
-		c.original = make(map[*ast.Node]*ast.Node)
+		c.original = make(map[ast.GlobalRef]ast.GlobalRef)
 	}
 
-	existing, ok := c.original[node]
+	nodeIdentity := c.NodeIdentity(node)
+	originalIdentity := c.NodeIdentity(original)
+	existing, ok := c.original[nodeIdentity]
 	if !ok {
-		c.original[node] = original
-		if emitNode := c.emitNodes.TryGet(original); emitNode != nil {
-			c.emitNodes.Get(node).copyFrom(emitNode)
+		c.original[nodeIdentity] = originalIdentity
+		if emitNode := c.emitNodes.TryGet(originalIdentity); emitNode != nil {
+			c.emitNodes.Get(nodeIdentity).copyFrom(emitNode)
 		}
-	} else if !allowOverwrite && existing != original {
+	} else if !allowOverwrite && existing != originalIdentity {
 		panic("Original node already set.")
 	} else if allowOverwrite {
-		c.original[node] = original
+		c.original[nodeIdentity] = originalIdentity
 	}
 }
 
@@ -493,7 +546,7 @@ func (c *EmitContext) SetOriginalEx(node *ast.Node, original *ast.Node, allowOve
 //
 // NOTE: This is the equivalent to reading `node.original` in Strada.
 func (c *EmitContext) Original(node *ast.Node) *ast.Node {
-	return c.original[node]
+	return c.nodeForIdentity(c.original[c.NodeIdentity(node)])
 }
 
 // Gets the most original node associated with this node by walking Original pointers.
@@ -590,34 +643,34 @@ func (e *emitNode) copyFrom(source *emitNode) {
 }
 
 func (c *EmitContext) EmitFlags(node *ast.Node) EmitFlags {
-	if emitNode := c.emitNodes.TryGet(node); emitNode != nil {
+	if emitNode := c.tryEmitNode(node); emitNode != nil {
 		return emitNode.emitFlags
 	}
 	return EFNone
 }
 
 func (c *EmitContext) SetEmitFlags(node *ast.Node, flags EmitFlags) {
-	c.emitNodes.Get(node).emitFlags = flags
+	c.emitNode(node).emitFlags = flags
 }
 
 func (c *EmitContext) AddEmitFlags(node *ast.Node, flags EmitFlags) {
-	c.emitNodes.Get(node).emitFlags |= flags
+	c.emitNode(node).emitFlags |= flags
 }
 
 func (c *EmitContext) SnippetElement(node *ast.Node) *SnippetElement {
-	if emitNode := c.emitNodes.TryGet(node); emitNode != nil {
+	if emitNode := c.tryEmitNode(node); emitNode != nil {
 		return emitNode.snippetElement
 	}
 	return nil
 }
 
 func (c *EmitContext) SetSnippetElement(node *ast.Node, snippetElement SnippetElement) {
-	c.emitNodes.Get(node).snippetElement = &snippetElement
+	c.emitNode(node).snippetElement = &snippetElement
 }
 
 // Gets the range to use for a node when emitting comments.
 func (c *EmitContext) CommentRange(node *ast.Node) core.TextRange {
-	if emitNode := c.emitNodes.TryGet(node); emitNode != nil && emitNode.flags&hasCommentRange != 0 {
+	if emitNode := c.tryEmitNode(node); emitNode != nil && emitNode.flags&hasCommentRange != 0 {
 		return emitNode.commentRange
 	}
 	return node.Loc
@@ -625,7 +678,7 @@ func (c *EmitContext) CommentRange(node *ast.Node) core.TextRange {
 
 // Sets the range to use for a node when emitting comments.
 func (c *EmitContext) SetCommentRange(node *ast.Node, loc core.TextRange) {
-	emitNode := c.emitNodes.Get(node)
+	emitNode := c.emitNode(node)
 	emitNode.commentRange = loc
 	emitNode.flags |= hasCommentRange
 }
@@ -637,7 +690,7 @@ func (c *EmitContext) AssignCommentRange(to *ast.Node, from *ast.Node) {
 
 // Gets the range to use for a node when emitting source maps.
 func (c *EmitContext) SourceMapRange(node *ast.Node) core.TextRange {
-	if emitNode := c.emitNodes.TryGet(node); emitNode != nil && emitNode.flags&hasSourceMapRange != 0 {
+	if emitNode := c.tryEmitNode(node); emitNode != nil && emitNode.flags&hasSourceMapRange != 0 {
 		return emitNode.sourceMapRange
 	}
 	return node.Loc
@@ -645,7 +698,7 @@ func (c *EmitContext) SourceMapRange(node *ast.Node) core.TextRange {
 
 // Sets the range to use for a node when emitting source maps.
 func (c *EmitContext) SetSourceMapRange(node *ast.Node, loc core.TextRange) {
-	emitNode := c.emitNodes.Get(node)
+	emitNode := c.emitNode(node)
 	emitNode.sourceMapRange = loc
 	emitNode.flags |= hasSourceMapRange
 }
@@ -657,7 +710,7 @@ func (c *EmitContext) AssignSourceMapRange(to *ast.Node, from *ast.Node) {
 
 // Sets the range to use for a node when emitting comments and source maps.
 func (c *EmitContext) AssignCommentAndSourceMapRanges(to *ast.Node, from *ast.Node) {
-	emitNode := c.emitNodes.Get(to)
+	emitNode := c.emitNode(to)
 	commentRange := c.CommentRange(from)
 	sourceMapRange := c.SourceMapRange(from)
 	emitNode.commentRange = commentRange
@@ -667,7 +720,7 @@ func (c *EmitContext) AssignCommentAndSourceMapRanges(to *ast.Node, from *ast.No
 
 // Gets the range for a token of a node when emitting source maps.
 func (c *EmitContext) TokenSourceMapRange(node *ast.Node, kind ast.Kind) (core.TextRange, bool) {
-	if emitNode := c.emitNodes.TryGet(node); emitNode != nil && emitNode.tokenSourceMapRanges != nil {
+	if emitNode := c.tryEmitNode(node); emitNode != nil && emitNode.tokenSourceMapRanges != nil {
 		if loc, ok := emitNode.tokenSourceMapRanges[kind]; ok {
 			return loc, true
 		}
@@ -677,7 +730,7 @@ func (c *EmitContext) TokenSourceMapRange(node *ast.Node, kind ast.Kind) (core.T
 
 // Sets the range for a token of a node when emitting source maps.
 func (c *EmitContext) SetTokenSourceMapRange(node *ast.Node, kind ast.Kind, loc core.TextRange) {
-	emitNode := c.emitNodes.Get(node)
+	emitNode := c.emitNode(node)
 	if emitNode.tokenSourceMapRanges == nil {
 		emitNode.tokenSourceMapRanges = make(map[ast.Kind]core.TextRange)
 	}
@@ -685,29 +738,36 @@ func (c *EmitContext) SetTokenSourceMapRange(node *ast.Node, kind ast.Kind, loc 
 }
 
 func (c *EmitContext) AssignedName(node *ast.Node) *ast.Expression {
-	return c.assignedName[node]
+	return c.nodeForIdentity(c.assignedName[c.NodeIdentity(node)])
 }
 
 func (c *EmitContext) TextSource(node *ast.StringLiteralNode) *ast.Node {
-	return c.textSource[node]
+	return c.nodeForIdentity(c.textSource[c.NodeIdentity(node)])
+}
+
+func (c *EmitContext) SetTextSource(node *ast.StringLiteralNode, source *ast.Node) {
+	if c.textSource == nil {
+		c.textSource = make(map[ast.GlobalRef]ast.GlobalRef)
+	}
+	c.textSource[c.NodeIdentity(node)] = c.NodeIdentity(source)
 }
 
 func (c *EmitContext) SetAssignedName(node *ast.Node, name *ast.Expression) {
 	if c.assignedName == nil {
-		c.assignedName = make(map[*ast.Node]*ast.Expression)
+		c.assignedName = make(map[ast.GlobalRef]ast.GlobalRef)
 	}
-	c.assignedName[node] = name
+	c.assignedName[c.NodeIdentity(node)] = c.NodeIdentity(name)
 }
 
 func (c *EmitContext) ClassThis(node *ast.Node) *ast.Expression {
-	return c.classThis[node]
+	return c.nodeForIdentity(c.classThis[c.NodeIdentity(node)])
 }
 
 func (c *EmitContext) SetClassThis(node *ast.Node, classThis *ast.IdentifierNode) {
 	if c.classThis == nil {
-		c.classThis = make(map[*ast.Node]*ast.Expression)
+		c.classThis = make(map[ast.GlobalRef]ast.GlobalRef)
 	}
-	c.classThis[node] = classThis
+	c.classThis[c.NodeIdentity(node)] = c.NodeIdentity(classThis)
 }
 
 func (c *EmitContext) RequestEmitHelper(helper *EmitHelper) {
@@ -727,14 +787,14 @@ func (c *EmitContext) ReadEmitHelpers() []*EmitHelper {
 }
 
 func (c *EmitContext) AddEmitHelper(node *ast.Node, helper ...*EmitHelper) {
-	emitNode := c.emitNodes.Get(node)
+	emitNode := c.emitNode(node)
 	for _, h := range helper {
 		emitNode.helpers = core.AppendIfUnique(emitNode.helpers, h)
 	}
 }
 
 func (c *EmitContext) MoveEmitHelpers(source *ast.Node, target *ast.Node, predicate func(helper *EmitHelper) bool) {
-	sourceEmitNode := c.emitNodes.TryGet(source)
+	sourceEmitNode := c.tryEmitNode(source)
 	if sourceEmitNode == nil {
 		return
 	}
@@ -743,7 +803,7 @@ func (c *EmitContext) MoveEmitHelpers(source *ast.Node, target *ast.Node, predic
 		return
 	}
 
-	targetEmitNode := c.emitNodes.Get(target)
+	targetEmitNode := c.emitNode(target)
 	helpersRemoved := 0
 	for i := range sourceEmitHelpers {
 		helper := sourceEmitHelpers[i]
@@ -762,7 +822,7 @@ func (c *EmitContext) MoveEmitHelpers(source *ast.Node, target *ast.Node, predic
 }
 
 func (c *EmitContext) GetEmitHelpers(node *ast.Node) []*EmitHelper {
-	emitNode := c.emitNodes.TryGet(node)
+	emitNode := c.tryEmitNode(node)
 	if emitNode != nil {
 		return emitNode.helpers
 	}
@@ -771,7 +831,7 @@ func (c *EmitContext) GetEmitHelpers(node *ast.Node) []*EmitHelper {
 
 func (c *EmitContext) GetExternalHelpersModuleName(node *ast.SourceFile) *ast.IdentifierNode {
 	if parseNode := c.ParseNode(node.AsNode()); parseNode != nil {
-		if emitNode := c.emitNodes.TryGet(parseNode); emitNode != nil {
+		if emitNode := c.tryEmitNode(parseNode); emitNode != nil {
 			return emitNode.externalHelpersModuleName
 		}
 	}
@@ -784,13 +844,13 @@ func (c *EmitContext) SetExternalHelpersModuleName(node *ast.SourceFile, name *a
 		panic("Node must be a parse tree node or have an Original pointer to a parse tree node.")
 	}
 
-	emitNode := c.emitNodes.Get(parseNode)
+	emitNode := c.emitNode(parseNode)
 	emitNode.externalHelpersModuleName = name
 }
 
 func (c *EmitContext) HasRecordedExternalHelpers(node *ast.SourceFile) bool {
 	if parseNode := c.ParseNode(node.AsNode()); parseNode != nil {
-		emitNode := c.emitNodes.TryGet(parseNode)
+		emitNode := c.tryEmitNode(parseNode)
 		return emitNode != nil && (emitNode.externalHelpersModuleName != nil || emitNode.emitFlags&EFExternalHelpers != 0)
 	}
 	return false
@@ -1027,35 +1087,35 @@ func (c *EmitContext) VisitEmbeddedStatement(node *ast.Statement, visitor *ast.N
 }
 
 func (c *EmitContext) SetSyntheticLeadingComments(node *ast.Node, comments []SynthesizedComment) *ast.Node {
-	c.emitNodes.Get(node).leadingComments = comments
+	c.emitNode(node).leadingComments = comments
 	return node
 }
 
 func (c *EmitContext) AddSyntheticLeadingComment(node *ast.Node, kind ast.Kind, text string, hasTrailingNewLine bool) *ast.Node {
-	c.emitNodes.Get(node).leadingComments = append(c.emitNodes.Get(node).leadingComments, SynthesizedComment{Kind: kind, Loc: core.NewTextRange(-1, -1), HasTrailingNewLine: hasTrailingNewLine, Text: text})
+	c.emitNode(node).leadingComments = append(c.emitNode(node).leadingComments, SynthesizedComment{Kind: kind, Loc: core.NewTextRange(-1, -1), HasTrailingNewLine: hasTrailingNewLine, Text: text})
 	return node
 }
 
 func (c *EmitContext) GetSyntheticLeadingComments(node *ast.Node) []SynthesizedComment {
-	if c.emitNodes.Has(node) {
-		return c.emitNodes.Get(node).leadingComments
+	if c.hasEmitNode(node) {
+		return c.emitNode(node).leadingComments
 	}
 	return nil
 }
 
 func (c *EmitContext) SetSyntheticTrailingComments(node *ast.Node, comments []SynthesizedComment) *ast.Node {
-	c.emitNodes.Get(node).trailingComments = comments
+	c.emitNode(node).trailingComments = comments
 	return node
 }
 
 func (c *EmitContext) AddSyntheticTrailingComment(node *ast.Node, kind ast.Kind, text string, hasTrailingNewLine bool) *ast.Node {
-	c.emitNodes.Get(node).trailingComments = append(c.emitNodes.Get(node).trailingComments, SynthesizedComment{Kind: kind, Loc: core.NewTextRange(-1, -1), HasTrailingNewLine: hasTrailingNewLine, Text: text})
+	c.emitNode(node).trailingComments = append(c.emitNode(node).trailingComments, SynthesizedComment{Kind: kind, Loc: core.NewTextRange(-1, -1), HasTrailingNewLine: hasTrailingNewLine, Text: text})
 	return node
 }
 
 func (c *EmitContext) GetSyntheticTrailingComments(node *ast.Node) []SynthesizedComment {
-	if c.emitNodes.Has(node) {
-		return c.emitNodes.Get(node).trailingComments
+	if c.hasEmitNode(node) {
+		return c.emitNode(node).trailingComments
 	}
 	return nil
 }
@@ -1063,12 +1123,12 @@ func (c *EmitContext) GetSyntheticTrailingComments(node *ast.Node) []Synthesized
 // SetTypeNode stores the original type node on a name node when the type is erased,
 // so the emitter can use the type's position for comment preservation.
 func (c *EmitContext) SetTypeNode(node *ast.Node, typeNode *ast.TypeNode) {
-	c.emitNodes.Get(node).typeNode = typeNode
+	c.emitNode(node).typeNode = typeNode
 }
 
 // GetTypeNode gets the type node stored on a name node by the type eraser.
 func (c *EmitContext) GetTypeNode(node *ast.Node) *ast.TypeNode {
-	if emitNode := c.emitNodes.TryGet(node); emitNode != nil {
+	if emitNode := c.tryEmitNode(node); emitNode != nil {
 		return emitNode.typeNode
 	}
 	return nil

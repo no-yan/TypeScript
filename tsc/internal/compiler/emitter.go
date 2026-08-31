@@ -574,7 +574,10 @@ func getDeclarationDiagnostics(host EmitHost, file *ast.SourceFile) []*ast.Diagn
 		return []*ast.Diagnostic{}
 	}
 	options := host.Options()
-	transform := declarations.NewDeclarationTransformer(host, nil, options, "", "")
+	emitContext := printer.NewEmitContext()
+	releaseStore := emitContext.AttachStore(file)
+	defer releaseStore()
+	transform := declarations.NewDeclarationTransformer(host, emitContext, options, "", "")
 	transform.TransformSourceFile(file)
 	return transform.GetDiagnostics()
 }

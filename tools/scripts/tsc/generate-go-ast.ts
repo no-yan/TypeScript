@@ -596,6 +596,9 @@ function generateUpdateFactory(w: CodeWriter, node: NodeType) {
     // Build comparison (all update members)
     const comparisons = updateMembers.map(m => {
         const type = m.type;
+        if (m.isChild() && m.listKind === undefined) {
+            return `!f.storeNodesEqual(${m.goParamName()}, node.${m.name})`;
+        }
         // Slices can't be compared with != in Go
         if (type.kind === "list" && type.listKind === "raw") {
             return `!core.Same(${m.goParamName()}, node.${m.name})`;

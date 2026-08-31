@@ -2991,6 +2991,18 @@ func (f *NodeFactory) UpdateSourceFile(node *SourceFile, statements *StatementLi
 	if statements != node.Statements || endOfFileToken != node.EndOfFileToken {
 		updated := f.NewSourceFile(node.parseOptions, node.text, statements, endOfFileToken).AsSourceFile()
 		updated.copyFrom(node)
+		if store := node.ParseStore(); store != nil {
+			handle := f.HandleOf(updated.AsNode())
+			if handle.Ref() != 0 {
+				refs := node.ParseNodeRef()
+				if refs == nil {
+					refs = make(map[*Node]NodeRef)
+				}
+				refs[updated.AsNode()] = handle.Ref()
+				updated.SetParseStore(store, handle)
+				updated.SetParseNodeRef(refs)
+			}
+		}
 		return updateNode(updated.AsNode(), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
