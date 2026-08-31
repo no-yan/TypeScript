@@ -58,11 +58,10 @@ func (ss *StoreSet) Add(s *Store) StoreID {
 	}
 	ss.mu.Lock()
 	defer ss.mu.Unlock()
-	if s.id != 0 {
+	id := StoreID(len(ss.stores) + 1)
+	if !s.id.CompareAndSwap(0, uint32(id)) {
 		panic("ast: Store already registered")
 	}
-	id := StoreID(len(ss.stores) + 1)
-	s.id = id
 	ss.stores = append(ss.stores, s)
 	ss.files = append(ss.files, nil)
 	return id
@@ -85,12 +84,12 @@ func (ss *StoreSet) BindFile(file *SourceFile) {
 }
 
 func (ss *StoreSet) adopt(s *Store) {
-	if s == nil || s.id == 0 {
+	if s == nil || s.id.Load() == 0 {
 		return
 	}
 	ss.mu.Lock()
 	defer ss.mu.Unlock()
-	idx := int(s.id - 1)
+	idx := int(s.id.Load() - 1)
 	for len(ss.stores) <= idx {
 		ss.stores = append(ss.stores, nil)
 		ss.files = append(ss.files, nil)
@@ -158,7 +157,7 @@ func (s *Store) ID() StoreID {
 	if s == nil {
 		return 0
 	}
-	return s.id
+	return StoreID(s.id.Load())
 }
 
 // Global returns the process-wide identity of the node. It panics on a
@@ -168,8 +167,9 @@ func (h Handle) Global() GlobalRef {
 	if h.id == 0 || h.s == nil {
 		return 0
 	}
-	if h.s.id == 0 {
+	id := StoreID(h.s.id.Load())
+	if id == 0 {
 		panic("ast: Global on unregistered Store")
 	}
-	return MakeGlobalRef(h.s.id, h.id)
+	return MakeGlobalRef(id, h.id)
 }

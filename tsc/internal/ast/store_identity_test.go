@@ -1,6 +1,7 @@
 package ast_test
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
@@ -92,4 +93,53 @@ func TestStoreSetFile(t *testing.T) {
 	ss.SetFile(id, sf)
 	assert.Equal(t, sf, ss.File(id))
 	assert.Assert(t, ss.File(0) == nil)
+}
+
+// TestSourceFileRefsAreSafeAcrossParallelCheckers is intended to run under
+// -race. Each checker owns its NodeFactory map, then merges newly allocated
+// nodes into the SourceFile index while other checkers resolve GlobalRefs.
+func TestSourceFileRefsAreSafeAcrossParallelCheckers(t *testing.T) {
+	t.Parallel()
+	store := ast.NewStore(64)
+	parseFactory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	parseFactory.AttachStore(store)
+	opts := ast.SourceFileParseOptions{FileName: "/index.ts", Path: "/index.ts"}
+	root := parseFactory.NewSourceFile(opts, "", nil, nil)
+	file := root.AsSourceFile()
+	rootHandle := parseFactory.HandleOf(root)
+	file.SetParseStore(store, rootHandle)
+	file.SetParseNodeRef(parseFactory.TakeNodeRef())
+
+	stores := ast.NewStoreSet()
+	id := stores.Add(store)
+	stores.SetFile(id, file)
+
+	const checkers = 16
+	nodes := make([]*ast.Node, checkers)
+	refs := make([]ast.NodeRef, checkers)
+	plainFactory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	for i := range checkers {
+		nodes[i] = plainFactory.NewIdentifier("synthetic")
+		refs[i] = store.Alloc(ast.KindIdentifier, ast.NodeFlagsSynthesized, core.UndefinedTextRange(), 0).Ref()
+	}
+
+	var wg sync.WaitGroup
+	for i := range checkers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			private := file.ParseNodeRef()
+			private[nodes[i]] = refs[i]
+			file.AbsorbNodeRef(private)
+			assert.Equal(t, nodes[i], file.NodeFor(refs[i]))
+			assert.Equal(t, refs[i], file.HandleOf(nodes[i]).Ref())
+			assert.Equal(t, nodes[i], stores.NodeOf(ast.MakeGlobalRef(id, refs[i])))
+			assert.Equal(t, root, file.NodeFor(rootHandle.Ref()))
+		}()
+	}
+	wg.Wait()
+
+	for i := range checkers {
+		assert.Equal(t, nodes[i], file.NodeFor(refs[i]))
+	}
 }

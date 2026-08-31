@@ -2505,6 +2505,7 @@ type SourceFile struct {
 	// to be an external module (previously "true").
 	ExternalModuleIndicator *Node
 
+	parseStoreMu sync.RWMutex
 	parseStore   *Store
 	parseRoot    NodeRef
 	parseNodeRef map[*Node]NodeRef
@@ -2563,16 +2564,34 @@ func (node *SourceFile) ParseOptions() SourceFileParseOptions {
 	return node.parseOptions
 }
 
-func (node *SourceFile) ParseStore() *Store { return node.parseStore }
+func (node *SourceFile) ParseStore() *Store {
+	if node == nil {
+		return nil
+	}
+	node.parseStoreMu.RLock()
+	defer node.parseStoreMu.RUnlock()
+	return node.parseStore
+}
 
 func (node *SourceFile) ParseNodeRef() map[*Node]NodeRef {
 	if node == nil {
 		return nil
 	}
-	return node.parseNodeRef
+	node.parseStoreMu.RLock()
+	defer node.parseStoreMu.RUnlock()
+	if node.parseNodeRef == nil {
+		return nil
+	}
+	result := make(map[*Node]NodeRef, len(node.parseNodeRef))
+	for n, ref := range node.parseNodeRef {
+		result[n] = ref
+	}
+	return result
 }
 
 func (node *SourceFile) ParseRoot() Handle {
+	node.parseStoreMu.RLock()
+	defer node.parseStoreMu.RUnlock()
 	if node.parseStore == nil || node.parseRoot == 0 {
 		return Handle{}
 	}
@@ -2580,6 +2599,8 @@ func (node *SourceFile) ParseRoot() Handle {
 }
 
 func (node *SourceFile) SetParseStore(s *Store, root Handle) {
+	node.parseStoreMu.Lock()
+	defer node.parseStoreMu.Unlock()
 	node.parseStore = s
 	if s != nil {
 		s.SetSourceFile(node)
@@ -2590,6 +2611,12 @@ func (node *SourceFile) SetParseStore(s *Store, root Handle) {
 }
 
 func (node *SourceFile) SetParseNodeRef(m map[*Node]NodeRef) {
+	node.parseStoreMu.Lock()
+	defer node.parseStoreMu.Unlock()
+	node.setParseNodeRefLocked(m)
+}
+
+func (node *SourceFile) setParseNodeRefLocked(m map[*Node]NodeRef) {
 	node.parseNodeRef = m
 	if m == nil {
 		node.parseRefNode = nil
@@ -2603,6 +2630,8 @@ func (node *SourceFile) SetParseNodeRef(m map[*Node]NodeRef) {
 }
 
 func (node *SourceFile) HandleOf(n *Node) Handle {
+	node.parseStoreMu.RLock()
+	defer node.parseStoreMu.RUnlock()
 	if node.parseStore == nil || node.parseNodeRef == nil || n == nil {
 		return Handle{}
 	}
@@ -2617,21 +2646,9 @@ func (node *SourceFile) NodeFor(ref NodeRef) *Node {
 	if node == nil || ref == 0 {
 		return nil
 	}
-	if node.parseRefNode != nil {
-		if n := node.parseRefNode[ref]; n != nil {
-			return n
-		}
-	}
-	for n, r := range node.parseNodeRef {
-		if r == ref {
-			if node.parseRefNode == nil {
-				node.parseRefNode = make(map[NodeRef]*Node)
-			}
-			node.parseRefNode[ref] = n
-			return n
-		}
-	}
-	return nil
+	node.parseStoreMu.RLock()
+	defer node.parseStoreMu.RUnlock()
+	return node.parseRefNode[ref]
 }
 
 func (node *SourceFile) RefOf(n *Node) GlobalRef {
@@ -2649,7 +2666,7 @@ func (file *SourceFile) NodeOf(g GlobalRef) *Node {
 	if file == nil || g == 0 {
 		return nil
 	}
-	if file.parseStore != nil && file.parseStore.id == g.StoreID() {
+	if store := file.ParseStore(); store != nil && store.ID() == g.StoreID() {
 		return file.NodeFor(g.Ref())
 	}
 	return NodeOf(g)
@@ -2659,8 +2676,10 @@ func (node *SourceFile) AbsorbNodeRef(m map[*Node]NodeRef) {
 	if node == nil || m == nil {
 		return
 	}
+	node.parseStoreMu.Lock()
+	defer node.parseStoreMu.Unlock()
 	if node.parseNodeRef == nil {
-		node.SetParseNodeRef(m)
+		node.setParseNodeRefLocked(m)
 		return
 	}
 	if node.parseRefNode == nil {

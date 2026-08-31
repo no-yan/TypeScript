@@ -75,11 +75,13 @@ different file Stores. `NewFactoryOn` means "append under the current phase's
 ownership", not that two factories may append concurrently. This keeps locks
 out of the per-node allocation and access path.
 
-`StoreSet` is the synchronized cross-file identity and metadata index.
-SourceFile bridge maps that are shared by checker workers require their own
-synchronization; Store's single-writer rule does not make those maps safe.
-`TestStoreParallelFileWriters` exercises the allowed topology under `-race`.
-Peak memory for the one-Store-per-file policy is **unmeasured**.
+`StoreSet` is the synchronized cross-file identity and metadata index, and a
+Store ID is published atomically. SourceFile's pointer↔`NodeRef` bridge is
+guarded independently: each checker receives a private snapshot and atomically
+merges its factory map after checking. Store's single-writer rule does not make
+those maps safe by itself. `TestStoreParallelFileWriters` and
+`TestSourceFileRefsAreSafeAcrossParallelCheckers` exercise the allowed topology
+under `-race`. Peak memory for the one-Store-per-file policy is **unmeasured**.
 
 ## Migration sketch (backcast)
 

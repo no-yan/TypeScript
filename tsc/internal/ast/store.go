@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"sync/atomic"
 	"unsafe"
 
 	"github.com/microsoft/TypeScript/tsc/internal/core"
@@ -58,7 +59,7 @@ type listHeader struct {
 // Sparse side maps (symbols) remain scannable on purpose: only declaration
 // nodes use them.
 type Store struct {
-	id            StoreID // assigned by StoreSet.Add; 0 until registered
+	id            atomic.Uint32 // StoreID assigned by StoreSet.Add; 0 until registered
 	nodes         []nodeHeader
 	lists         []listHeader
 	children      []NodeRef
