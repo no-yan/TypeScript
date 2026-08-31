@@ -5,6 +5,19 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
 
+// ParseJSONStore parses strict JSON directly into Store. Inputs requiring the
+// compiler's JSON error recovery return false so callers can use ParseSourceFile.
+func ParseJSONStore(opts ast.SourceFileParseOptions, sourceText string) (ast.Handle, bool) {
+	p := getParser()
+	defer putParser(p)
+	p.initializeState(opts, sourceText, core.ScriptKindJSON)
+	p.nextToken()
+	factory := ast.NewFactoryHint(ast.FactoryHooks{}, max(64, len(sourceText)/10))
+	root, ok := p.tryParseJSONTextHandle(factory)
+	factory.Seal()
+	return root, ok
+}
+
 func (p *Parser) tryParseJSONTextHandle(factory *ast.Factory) (ast.Handle, bool) {
 	state := p.mark()
 	diagnosticsLen := len(p.diagnostics)
@@ -107,7 +120,7 @@ func (p *Parser) parseJSONObjectHandle(factory *ast.Factory) (ast.Handle, bool) 
 
 	for p.token != ast.KindCloseBraceToken {
 		propertyPos := p.nodePos()
-		if p.token != ast.KindStringLiteral && p.token != ast.KindNumericLiteral {
+		if p.token != ast.KindStringLiteral {
 			return ast.Handle{}, false
 		}
 		name := p.parseJSONLiteralHandle(factory)
