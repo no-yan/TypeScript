@@ -41,6 +41,8 @@ func TestNativeExpressionProducerRejectsMalformedAndUnsupportedSyntax(t *testing
 		`1 = value`,
 		`const value = 1`,
 		`({ method() {} })`,
+		`a<T>(b)`,
+		`/** @type {string} */`,
 	} {
 		p := getParser()
 		p.initializeState(opts, sourceText, core.ScriptKindTS)

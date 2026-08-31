@@ -48,6 +48,10 @@ func (p *Parser) parseExpressionSourceHandle(factory *ast.Factory) (ast.Handle, 
 		statement := factory.NewExpressionStatement(expression)
 		statements = append(statements, p.finishNativeHandle(factory, statement, statementPos))
 	}
+	// JSDoc can attach to the EOF token in comment-only files.
+	if p.jsdocScannerInfo() != 0 {
+		return ast.Handle{}, false
+	}
 
 	list := factory.List(core.NewTextRange(pos, p.nodePos()), statements...)
 	eof := p.parseNativeToken(factory)
@@ -124,6 +128,12 @@ func (p *Parser) parseNativeBinaryExpression(factory *ast.Factory, precedence as
 		// of the expression slice.
 		if operator == ast.KindAsKeyword || operator == ast.KindSatisfiesKeyword {
 			break
+		}
+		// In TypeScript, relational angle brackets are ambiguous with generic
+		// calls and tagged templates. Conservatively retain the full parser for
+		// those two operators until type arguments are Handle-native.
+		if operator == ast.KindLessThanToken || operator == ast.KindGreaterThanToken {
+			return ast.Handle{}, false
 		}
 		operatorToken := p.parseNativeToken(factory)
 		right, ok := p.parseNativeBinaryExpression(factory, newPrecedence)
