@@ -2916,7 +2916,7 @@ func (tx *DeclarationTransformer) transformExpandoHost(name *ast.Node, declarati
 	}
 }
 
-func (tx *DeclarationTransformer) createFullExpandoBlock(id ast.NodeId) *ast.Node {
+func (tx *DeclarationTransformer) createFullExpandoBlock(id ast.GlobalRef) *ast.Node {
 	// Process any expando assignments on this host that were skipped because it wasn't
 	// visible when they were collected - if it's still not visible, they simply get
 	// re-deferred, and are dropped if the host is never late-marked visible.
