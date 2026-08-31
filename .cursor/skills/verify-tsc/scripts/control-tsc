@@ -226,6 +226,7 @@ TS
     "target": "es2020",
     "module": "commonjs",
     "outDir": "dist",
+    "rootDir": "src",
     "skipLibCheck": true
   },
   "include": ["src"]
@@ -248,6 +249,7 @@ TS
     "module": "commonjs",
     "declaration": true,
     "outDir": "dist",
+    "rootDir": "src",
     "skipLibCheck": true
   },
   "include": ["src"]

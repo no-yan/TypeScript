@@ -26,7 +26,7 @@ Preconditions:
 
 - **Create fixture.** Run `control-tsc fixture emit-javascript`. The fixture
   `src/index.ts` exports `greet`, and `tsconfig.json` sets `"outDir": "dist"`,
-  `"module": "commonjs"`, `"target": "es2020"`, and does not set `noEmit`.
+  `"rootDir": "src"`, `"module": "commonjs"`, `"target": "es2020"`, and does not set `noEmit`.
 - **Emit project.** Run `control-tsc cli -- -p /tmp/verify-tsc-$VERIFY_TSC_RUN_ID/emit-javascript`. Exit code is `0`.
 - **Read output.** Open
   `/tmp/verify-tsc-$VERIFY_TSC_RUN_ID/emit-javascript/dist/index.js`. The file
