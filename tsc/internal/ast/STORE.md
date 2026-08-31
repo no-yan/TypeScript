@@ -66,11 +66,20 @@ Parse would build a Store. `Seal` drops the intern map only. Binder writes flags
 
 `CopySubtree` today walks child `NodeRef`s only. It does not remap `ListRef` payloads hung off kinds, because β has no kind that stores a `ListRef` in the header. Migration A/B must close that gap before list-bearing kinds ship.
 
-## Concurrency (intent)
+## Concurrency
 
-One `Factory` / `Store` per file parse. Concurrent parsers do not share a Store. Peak memory for that policy is **unmeasured**.
+A `Store` is single-writer. Parse, bind, check, and emit transfer exclusive
+ownership of a file's Store in phase order; readers may overlap only while no
+phase is mutating it. Concurrent parsers and checker workers may write
+different file Stores. `NewFactoryOn` means "append under the current phase's
+ownership", not that two factories may append concurrently. This keeps locks
+out of the per-node allocation and access path.
 
-`symbols` is an ordinary map with no ownership or locking story. Whether parallel checker work can race on `SetSymbol` is **unproven** as a concrete path, and still a design gap: the map admits unsynchronized writers.
+`StoreSet` is the synchronized cross-file identity and metadata index.
+SourceFile bridge maps that are shared by checker workers require their own
+synchronization; Store's single-writer rule does not make those maps safe.
+`TestStoreParallelFileWriters` exercises the allowed topology under `-race`.
+Peak memory for the one-Store-per-file policy is **unmeasured**.
 
 ## Migration sketch (backcast)
 
@@ -90,13 +99,13 @@ Temporary bridges such as `FlattenNode` are **measurement-only**. They keep Kind
 
 | Path | Role |
 | --- | --- |
-| `store.go` | `Store`, `NodeRef`, `ListRef`, `Handle`, walk, parents, symbol/flow/locals/nextContainer side maps, packed `listSlots` |
+| `store.go` | `Store`, `NodeRef`, `ListRef`, `Handle`, walk, parents, Symbol/LocalSymbol/FlowNode/EndFlowNode/ReturnFlowNode/Locals/NextContainer side maps, packed `listSlots` |
 | `store_identity.go` | `StoreID`, `GlobalRef`, `StoreSet` (cross-store identity, SourceFile metadata) |
 | `store_schema.go` | BinaryExpression, Parameter, ArrayLiteral slot layout (β slice) |
-| `store_schema_generated.go` | Slot constants from `ast.json` (`npx hereby generate`) |
+| `store_schema_generated.go` | Generated child, list, and kind-specific value slots for every factory kind |
 | `store_factory.go` | Store-only `Factory`, `NewFactoryOn` |
 | `store_bridge.go` | `NodeFactory.AttachStore` dual-write into Store during parse |
-| `store_expand.go` | Temporary Store → `*Node` copy at the parse boundary (delete in PR-6) |
+| `store_expand.go`, `store_expand_generated.go` | Exhaustive temporary Store → `*Node` copy; unknown non-token kinds panic (delete in PR-6) |
 | `store_copy.go` | `Factory.CopySubtree` (cross-store remap) |
 | `store_flatten.go` | Lossy `*Node` → Store copy for benches |
 | `store_*_test.go`, `store_*_bench_test.go` | Unit, copy, adversarial, and e2e benches |
@@ -115,16 +124,19 @@ Use e2e numbers only for pointer-tree vs Store layout on a flattened file. They 
 
 ## cmd/tsc GOGC baseline
 
-`TestTsgoGOGCBaseline` shells `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts` (noembed CI binary, no `FlattenNode`). Five runs per environment, median wall time, 2026-08-27 on the PR-1 worktree:
+`TestTsgoGOGCBaseline` rebuilds the noembed CI binary, generates a
+self-contained strict TypeScript workload, and shells `./built/local/tsc
+--noEmit --strict` five times per environment without `FlattenNode`. Runs are
+interleaved and rotated across default GOGC, `GOGC=off`, `GOGC=200`, and
+`GOMEMLIMIT=8GiB`; every child must exit 0.
 
-| Environment | median |
-| --- | --- |
-| default GOGC | 641ms |
-| `GOGC=off` | 581ms |
-| `GOGC=200` | 633ms |
-| `GOMEMLIMIT=8GiB` | 587ms |
-
-Each child exits 2. The fixture imports `./_namespaces/ts.js`, which is not next to `checker.ts`, so this is module-resolution failure rather than a finished check. default / `GOGC=off` is 1.10. `GOMEMLIMIT` / `GOGC=off` is 1.01. The PR-1 perf rule fails on the second ratio (limit 0.95). Tunables already ate the GC gap on this harness. A later PR-7 table for Store versus trunk belongs next to this one.
+The earlier 2026-08-27 numbers are discarded. That harness accepted exit 2
+while compiling `tsc/testdata/fixtures/compiler/checker.ts`, whose unresolved
+`./_namespaces/ts.js` import stopped the run in module resolution. It therefore
+did not measure a completed check and could not support the recorded perf
+verdict. Fresh medians must be recorded from the corrected harness before
+applying the PR-1 stop rule. A later PR-7 table for Store versus trunk belongs
+next to them.
 
 ## Open questions
 
@@ -168,7 +180,7 @@ Checked against the live `*Node` pipeline (parser, binder, checker, printer). No
 
 1. **`NodeRef(0)` is optional-absent, not a missing token.** `NodeIsMissing` (`utilities.go:66`) treats a real node with zero-width loc as present-but-missing (error recovery). Optional fields are `nil`. Those are different states. Allocating a zero-width node for the latter, using `0` only for the former.
 
-2. **Kind-specific payload is not all children.** `nodeHeader` has kind, flags, loc, parent, child range, intern id. Live nodes also carry `TokenFlags` (`tokenflags.go`), `ModifierList.ModifierFlags`, `LiteralLike` text beyond the five kinds `FlattenNode` copies, `DeclarationBase.Symbol`, `ExportableBase.LocalSymbol`, `LocalsContainerBase.Locals` + `NextContainer`, `FlowNodeBase.FlowNode`, and `CompositeBase` subtree facts. Pointer payloads go in side maps (already true for `symbols`). Scalar extras (`TokenFlags`, `ModifierFlags`, subtree facts) need columns or packed extra words. Dropping them is a functional break, not a later optimization.
+2. **Kind-specific payload is not all children.** `nodeHeader` has kind, flags, loc, parent, child range, intern id. Live nodes also carry `TokenFlags` (`tokenflags.go`), `ModifierList.ModifierFlags`, `LiteralLike` text beyond the five kinds `FlattenNode` copies, `DeclarationBase.Symbol`, `ExportableBase.LocalSymbol`, `LocalsContainerBase.Locals` + `NextContainer`, `FlowNodeBase.FlowNode`, and `CompositeBase` subtree facts. Generated value slots preserve every factory argument: integer-like scalars use a pointer-free `map[uint64]uint64`, strings use Store intern ids, and the few pointer/slice values use a sparse side map. Token flags remain in the packed header. Dropping any generated value is a functional break.
 
 3. **Lists have their own loc.** `NodeList.HasTrailingComma` is `last.End() < list.End()` (`ast.go:138`). `listHeader` already stores loc. Copy and schema must preserve it.
 
@@ -203,11 +215,11 @@ Checked against the live `*Node` pipeline (parser, binder, checker, printer). No
 | Layout bet has package-level evidence | done |
 | Cross-store identity exists in code | done (`store_identity.go`) |
 | Functional constraints written from live parser/binder/checker | done (this section) |
-| Header/side-map split implemented for TokenFlags, Locals, FlowNode, NextContainer, extra intern kinds | TokenFlags on header, FlowNode / Locals / NextContainer side maps, Intern after Seal |
+| Header/side-map split implemented for TokenFlags, Locals, FlowNode, NextContainer, extra intern kinds | TokenFlags on header; generated scalar/string/object value slots; FlowNode / Locals / NextContainer side maps; Intern after Seal |
 | Child slots and lists remain writable after the host exists (JSDoc reparse + lazy TS JSDoc) | done (`SetChild`, `SetList`, Intern after Seal) |
 | Synthetics and emit updates append into the parse Store (no cross-store child edges) | `NewFactoryOn` |
-| Store-to-SourceFile metadata map | `StoreSet.SetFile` / `File` |
+| Store-to-SourceFile metadata map | `Store.SetSourceFile` keeps the per-file metadata owner; `StoreSet.SetFile` / `File` resolves it across stores |
 | `ListRef` in schema + `CopySubtree` remaps lists | done (`list0`, ArrayLiteral, FunctionExpression params, `copyList`) |
-| `GOGC` / `GOMEMLIMIT`-only baseline on a large `tsgo` run | measured. FAIL-PERF on this harness (see [cmd/tsc GOGC baseline](#cmdtsc-gogc-baseline)). abandons the **perf** bet, not the functional one |
+| `GOGC` / `GOMEMLIMIT`-only baseline on a large `tsgo` run | corrected harness ready; fresh medians pending (see [cmd/tsc GOGC baseline](#cmdtsc-gogc-baseline)) |
 
 `BenchmarkNewProgram` (`compiler/program_test.go:308`) is too small for the perf baseline.

@@ -16,7 +16,15 @@ func (f *Factory) CopySubtree(src Handle) Handle {
 		remap: make(map[NodeRef]NodeRef),
 		lists: make(map[ListRef]ListRef),
 	}
-	return c.copy(src.Ref())
+	result := c.copy(src.Ref())
+	for srcRef, dstRef := range c.remap {
+		if next := c.src.NextContainer(srcRef); next != 0 {
+			if remapped, ok := c.remap[next]; ok {
+				c.dst.store.SetNextContainer(dstRef, remapped)
+			}
+		}
+	}
+	return result
 }
 
 type subtreeCopier struct {
@@ -39,6 +47,27 @@ func (c *subtreeCopier) copy(ref NodeRef) Handle {
 	dst := c.dst.createSlots(src.Kind(), src.Flags(), src.Loc(), n, listN)
 	dst.SetTokenFlags(src.TokenFlags())
 	c.remap[ref] = dst.Ref()
+	dst.SetSymbol(src.Symbol())
+	dst.SetLocalSymbol(src.LocalSymbol())
+	dst.SetFlowNode(src.FlowNode())
+	dst.SetEndFlowNode(src.EndFlowNode())
+	dst.SetReturnFlowNode(src.ReturnFlowNode())
+	dst.SetLocals(src.Locals())
+	for key, value := range c.src.scalarValues {
+		if NodeRef(key>>32) == ref {
+			dst.SetUintValue(int(uint32(key)), value)
+		}
+	}
+	for key, value := range c.src.stringValues {
+		if NodeRef(key>>32) == ref {
+			dst.SetStringValue(int(uint32(key)), c.src.internText(value))
+		}
+	}
+	for key, value := range c.src.objectValues {
+		if NodeRef(key>>32) == ref {
+			dst.SetObjectValue(int(uint32(key)), value)
+		}
+	}
 	if text := src.Ident(); text != "" {
 		dst.SetIdent(c.dst.store.Intern(text))
 	}

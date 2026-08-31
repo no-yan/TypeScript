@@ -9,7 +9,8 @@ type FactoryHooks struct {
 
 // Factory allocates exclusively into one Store. NewFactory owns a new Store.
 // NewFactoryOn appends into an existing Store so checker synthetics and emit
-// updates can share parse children.
+// updates can share parse children. Factories on the same Store must not be
+// used concurrently; ownership transfers between compiler phases.
 type Factory struct {
 	hooks FactoryHooks
 	store *Store

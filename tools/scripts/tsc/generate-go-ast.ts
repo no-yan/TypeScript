@@ -425,6 +425,7 @@ type StoreLayout = {
     children: MemberInfo[];
     lists: MemberInfo[];
     strings: MemberInfo[];
+    values: MemberInfo[];
 };
 
 function memberSuffix(m: MemberInfo): string {
@@ -439,10 +440,15 @@ function listSlotConst(nodeName: string, memberName: string): string {
     return `listSlot${nodeName}${memberName}`;
 }
 
+function valueSlotConst(nodeName: string, memberName: string): string {
+    return `valueSlot${nodeName}${memberName}`;
+}
+
 function storeLayout(node: NodeType): StoreLayout {
     const children: MemberInfo[] = [];
     const lists: MemberInfo[] = [];
     const strings: MemberInfo[] = [];
+    const values: MemberInfo[] = [];
     for (const m of schemaMembers(node)) {
         if (m.isKindParam()) continue;
         if (isNodeFlagsMember(m)) continue;
@@ -457,9 +463,13 @@ function storeLayout(node: NodeType): StoreLayout {
         }
         else if (m.type.kind === "primitive" && m.type.name === "string") {
             strings.push(m);
+            values.push(m);
+        }
+        else {
+            values.push(m);
         }
     }
-    return { children, lists, strings };
+    return { children, lists, strings, values };
 }
 
 function emitStorePut(w: CodeWriter, node: NodeType) {
@@ -479,6 +489,26 @@ function emitStorePut(w: CodeWriter, node: NodeType) {
         }
         else {
             w.write(`h.SetListSlot(${slot}, f.storeList(${m.goParamName()}))`);
+        }
+    }
+    for (const m of layout.values) {
+        const value = m.bitmask ? `${m.goParamName()} & ${m.bitmask}` : m.goParamName();
+        const slot = valueSlotConst(node.name, memberSuffix(m));
+        const ref = m.type.formatGoReference();
+        if (ref === "TokenFlags") {
+            w.write(`h.SetTokenFlags(${value})`);
+        }
+        else if (ref === "string") {
+            w.write(`h.SetStringValue(${slot}, ${value})`);
+        }
+        else if (ref === "bool") {
+            w.write(`if ${value} { h.SetUintValue(${slot}, 1) }`);
+        }
+        else if (ref === "any" || ref.startsWith("*") || ref.startsWith("[]")) {
+            w.write(`h.SetObjectValue(${slot}, ${value})`);
+        }
+        else {
+            w.write(`h.SetUintValue(${slot}, uint64(${value}))`);
         }
     }
     if (layout.strings.length > 0) {
@@ -503,30 +533,31 @@ function expandArg(node: NodeType, m: MemberInfo): string {
     if (m.isChild()) {
         const lk = m.listKind;
         if (lk === "ModifierList") {
-            return `expandModifierList(f, h.Store(), h.ListSlot(${listSlotConst(node.name, memberSuffix(m))}))`;
+            return `expandModifierList(e, h.Store(), h.ListSlot(${listSlotConst(node.name, memberSuffix(m))}))`;
         }
         if (lk === "raw") {
-            return `expandRawList(f, h.Store(), h.ListSlot(${listSlotConst(node.name, memberSuffix(m))}))`;
+            return `expandRawList(e, h.Store(), h.ListSlot(${listSlotConst(node.name, memberSuffix(m))}))`;
         }
         if (lk === "NodeList") {
-            return `expandNodeList(f, h.Store(), h.ListSlot(${listSlotConst(node.name, memberSuffix(m))}))`;
+            return `expandNodeList(e, h.Store(), h.ListSlot(${listSlotConst(node.name, memberSuffix(m))}))`;
         }
-        return `expandStored(f, h.Child(${slotConst(node.name, memberSuffix(m))}))`;
-    }
-    if (m.type.kind === "primitive" && m.type.name === "string") {
-        return "h.Ident()";
+        return `expandStored(e, h.Child(${slotConst(node.name, memberSuffix(m))}))`;
     }
     const ref = m.type.formatGoReference();
-    if (ref === "bool") {
-        return "false";
+    if (ref === "TokenFlags") {
+        return "h.TokenFlags()";
     }
+    const slot = valueSlotConst(node.name, memberSuffix(m));
     if (ref === "string") {
-        return `""`;
+        return `h.StringValue(${slot})`;
     }
-    if (ref.startsWith("*") || ref.startsWith("[]")) {
-        return "nil";
+    if (ref === "bool") {
+        return `h.UintValue(${slot}) != 0`;
     }
-    return "0";
+    if (ref === "any" || ref.startsWith("*") || ref.startsWith("[]")) {
+        return `storeObjectValue[${ref}](h, ${slot})`;
+    }
+    return `${ref}(h.UintValue(${slot}))`;
 }
 
 function generateStoreSchema(): string {
@@ -561,6 +592,18 @@ function generateStoreSchema(): string {
             w.write(")");
             w.write("");
         }
+        if (layout.values.length > 0) {
+            w.write("const (");
+            w.push();
+            layout.values.forEach((m, i) => {
+                const name = valueSlotConst(node.name, memberSuffix(m));
+                w.write(i === 0 ? `${name} = iota` : name);
+            });
+            w.write(`${valueSlotConst(node.name, "Count")}`);
+            w.pop();
+            w.write(")");
+            w.write("");
+        }
     }
     return w.toString();
 }
@@ -571,11 +614,16 @@ function generateExpandStore(): string {
     w.write("");
     w.write("package ast");
     w.write("");
-    w.write("func expandStored(f *NodeFactory, h Handle) *Node {");
+    w.write("func expandStored(e *storeExpander, h Handle) *Node {");
     w.push();
     w.write("if h.Ref() == 0 {");
     w.push();
     w.write("return nil");
+    w.pop();
+    w.write("}");
+    w.write("if n := e.nodes[h.Ref()]; n != nil {");
+    w.push();
+    w.write("return n");
     w.pop();
     w.write("}");
     w.write("switch h.Kind() {");
@@ -591,7 +639,8 @@ function generateExpandStore(): string {
         const args = members.map(m => expandArg(node, m));
         w.write(`case ${kinds.join(", ")}:`);
         w.push();
-        w.write(`n := f.New${node.name}(${args.join(", ")})`);
+        w.write(`n := e.f.New${node.name}(${args.join(", ")})`);
+        w.write("e.nodes[h.Ref()] = n");
         w.write("applyStoreHeader(n, h)");
         w.write("return n");
         w.pop();
@@ -600,15 +649,13 @@ function generateExpandStore(): string {
     w.push();
     w.write("if IsTokenKind(h.Kind()) {");
     w.push();
-    w.write("n := f.NewToken(h.Kind())");
+    w.write("n := e.f.NewToken(h.Kind())");
+    w.write("e.nodes[h.Ref()] = n");
     w.write("applyStoreHeader(n, h)");
     w.write("return n");
     w.pop();
     w.write("}");
-    w.write("n := f.NewEmptyStatement()");
-    w.write("n.Kind = h.Kind()");
-    w.write("applyStoreHeader(n, h)");
-    w.write("return n");
+    w.write(`panic("ast: no Store expander for " + h.Kind().String())`);
     w.pop();
     w.write("}");
     w.pop();
