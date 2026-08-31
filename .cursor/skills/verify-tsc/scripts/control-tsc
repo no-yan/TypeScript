@@ -1,0 +1,461 @@
+#!/usr/bin/env bash
+# control-tsc — launch, doctor, fixture, drive, and cleanup the native tsc CLI.
+set -euo pipefail
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+SKILL_DIR=$(cd "$SCRIPT_DIR/.." && pwd)
+
+die() {
+  echo "control-tsc: $*" >&2
+  exit 1
+}
+
+find_repo_root() {
+  local dir="$SKILL_DIR"
+  while [[ "$dir" != "/" ]]; do
+    if [[ -f "$dir/Herebyfile.mjs" && -f "$dir/tsc/go.mod" ]]; then
+      printf '%s\n' "$dir"
+      return 0
+    fi
+    dir=$(cd "$dir/.." && pwd)
+  done
+  die "could not find repository root (Herebyfile.mjs + tsc/go.mod) above $SKILL_DIR"
+}
+
+REPO_ROOT=$(find_repo_root)
+RUN_ID=${VERIFY_TSC_RUN_ID:-}
+STATE_DIR=""
+SCRATCH=""
+ARTIFACTS=""
+TSC_BIN=""
+PIDS_FILE=""
+
+usage() {
+  cat <<'EOF'
+Usage: control-tsc <command> [args]
+
+Commands:
+  launch                 Build built/local/tsc and record run state
+  doctor                 Read-only health check of this checkout's binary
+  fixture <feature-id>   Write an isolated project under scratch
+  cli [--cwd DIR] -- [tsc args...]
+                         Run built/local/tsc and record a transcript
+  cleanup                Delete scratch and recorded child PIDs; keep artifacts
+
+Environment:
+  VERIFY_TSC_RUN_ID      Isolate concurrent runs (default: timestamp-pid)
+EOF
+}
+
+load_paths() {
+  if [[ -z "$RUN_ID" ]]; then
+    if [[ -f "$SKILL_DIR/.last-run-id" ]]; then
+      RUN_ID=$(cat "$SKILL_DIR/.last-run-id")
+    else
+      RUN_ID="$(date +%Y%m%dT%H%M%S)-$$"
+    fi
+  fi
+  STATE_DIR="/tmp/verify-tsc-${RUN_ID}"
+  SCRATCH="$STATE_DIR"
+  ARTIFACTS="$SKILL_DIR/artifacts/${RUN_ID}"
+  TSC_BIN="$REPO_ROOT/built/local/tsc"
+  PIDS_FILE="$STATE_DIR/pids"
+}
+
+write_last_run_id() {
+  mkdir -p "$STATE_DIR" "$ARTIFACTS"
+  printf '%s\n' "$RUN_ID" >"$SKILL_DIR/.last-run-id"
+  printf '%s\n' "$RUN_ID" >"$STATE_DIR/run-id"
+}
+
+ensure_go() {
+  local required
+  required=$(awk '/^go / { print $2; exit }' "$REPO_ROOT/tsc/go.mod")
+  [[ -n "$required" ]] || die "could not read go version from tsc/go.mod"
+
+  local candidate version
+  for candidate in \
+    "/tmp/go${required}/bin/go" \
+    "/tmp/go${required}.0/bin/go" \
+    "$HOME/sdk/go${required}/bin/go" \
+    "$(command -v go || true)"; do
+    if [[ -x "$candidate" ]]; then
+      version=$("$candidate" env GOVERSION 2>/dev/null || true)
+      if [[ "$version" == "go${required}"* || "$version" == "go${required}."* ]]; then
+        export PATH="$(dirname "$candidate"):$PATH"
+        export GOTOOLCHAIN=local
+        return 0
+      fi
+    fi
+  done
+
+  if command -v go >/dev/null 2>&1; then
+    version=$(go env GOVERSION 2>/dev/null || go version)
+    die "Go $required is required (tsc/go.mod); found $version. Install it or put it on PATH (example: /tmp/go${required}/bin)."
+  fi
+  die "Go $required is required and no go binary was found"
+}
+
+record_state() {
+  local sha version
+  sha=$(git -C "$REPO_ROOT" rev-parse HEAD)
+  version=$(sed -n 's/^var version = "\(.*\)"/\1/p' "$REPO_ROOT/tsc/internal/core/version.go" | head -n 1)
+  cat >"$STATE_DIR/state.env" <<EOF
+REPO_ROOT=$REPO_ROOT
+TSC_BIN=$TSC_BIN
+GIT_SHA=$sha
+CORE_VERSION=$version
+RUN_ID=$RUN_ID
+SCRATCH=$SCRATCH
+ARTIFACTS=$ARTIFACTS
+EOF
+}
+
+cmd_launch() {
+  load_paths
+  write_last_run_id
+  ensure_go
+  if [[ ! -d "$REPO_ROOT/node_modules" ]]; then
+    (cd "$REPO_ROOT" && npm ci)
+  fi
+  (cd "$REPO_ROOT" && npx hereby build)
+  [[ -x "$TSC_BIN" ]] || die "build finished but $TSC_BIN is missing or not executable"
+  [[ -f "$REPO_ROOT/built/local/lib.es5.d.ts" ]] || die "build finished but built/local/lib.es5.d.ts is missing (noembed libs)"
+  record_state
+  echo "LAUNCH_OK run_id=$RUN_ID tsc=$TSC_BIN sha=$(git -C "$REPO_ROOT" rev-parse --short HEAD)"
+}
+
+cmd_doctor() {
+  load_paths
+  local failed=0
+  check() {
+    local name="$1" ok="$2" detail="$3"
+    if [[ "$ok" == "1" ]]; then
+      echo "PASS  $name  $detail"
+    else
+      echo "FAIL  $name  $detail"
+      failed=1
+    fi
+  }
+
+  check "repo-root" "$([[ -f "$REPO_ROOT/Herebyfile.mjs" && -f "$REPO_ROOT/tsc/go.mod" ]] && echo 1 || echo 0)" "$REPO_ROOT"
+
+  ensure_go
+  local required gover
+  required=$(awk '/^go / { print $2; exit }' "$REPO_ROOT/tsc/go.mod")
+  gover=$(go env GOVERSION)
+  check "go-version" "$([[ "$gover" == "go${required}"* ]] && echo 1 || echo 0)" "$gover (need go${required})"
+
+  check "tsc-bin" "$([[ -x "$TSC_BIN" && -f "$TSC_BIN" ]] && echo 1 || echo 0)" "$TSC_BIN"
+  check "lib-es5" "$([[ -f "$REPO_ROOT/built/local/lib.es5.d.ts" ]] && echo 1 || echo 0)" "$REPO_ROOT/built/local/lib.es5.d.ts"
+
+  local expected_version version_out help_out
+  expected_version=$(sed -n 's/^var version = "\(.*\)"/\1/p' "$REPO_ROOT/tsc/internal/core/version.go" | head -n 1)
+  if [[ -x "$TSC_BIN" ]]; then
+    version_out=$("$TSC_BIN" --version 2>&1 || true)
+    help_out=$("$TSC_BIN" --help 2>&1 || true)
+  else
+    version_out=""
+    help_out=""
+  fi
+  check "tsc-version" "$([[ "$version_out" == "Version ${expected_version}"* ]] && echo 1 || echo 0)" "$(echo "$version_out" | head -n 1)"
+  check "tsc-help" "$([[ "$help_out" == *"tsc: The TypeScript Compiler"* ]] && echo 1 || echo 0)" "help contains compiler banner"
+
+  local head_sha recorded_sha
+  head_sha=$(git -C "$REPO_ROOT" rev-parse HEAD)
+  recorded_sha=""
+  if [[ -f "$STATE_DIR/state.env" ]]; then
+    # shellcheck disable=SC1090
+    recorded_sha=$(awk -F= '/^GIT_SHA=/ { print $2 }' "$STATE_DIR/state.env")
+  fi
+  if [[ -n "$recorded_sha" ]]; then
+    check "git-sha" "$([[ "$recorded_sha" == "$head_sha" ]] && echo 1 || echo 0)" "$head_sha"
+  else
+    echo "WARN  git-sha  no launch state yet; recorded HEAD $head_sha"
+  fi
+
+  local which_tsc
+  which_tsc=$(command -v tsc || true)
+  if [[ -n "$which_tsc" && "$which_tsc" != "$TSC_BIN" ]]; then
+    echo "WARN  path-tsc  $which_tsc is on PATH; doctor and cli ignore it"
+  fi
+
+  echo "DOCTOR run_id=$RUN_ID"
+  [[ "$failed" == "0" ]] || die "doctor failed"
+}
+
+write_file() {
+  local path="$1"
+  mkdir -p "$(dirname "$path")"
+  cat >"$path"
+}
+
+cmd_fixture() {
+  load_paths
+  [[ $# -ge 1 ]] || die "fixture requires a feature-id"
+  local id="$1"
+  local dest="$SCRATCH/$id"
+  mkdir -p "$dest"
+  case "$id" in
+    type-check)
+      write_file "$dest/tsconfig.json" <<'JSON'
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "target": "es2020",
+    "module": "commonjs",
+    "skipLibCheck": true
+  },
+  "include": ["src"]
+}
+JSON
+      write_file "$dest/src/index.ts" <<'TS'
+export function add(a: number, b: number): number {
+  return a + b;
+}
+
+export const total: number = add(1, 2);
+TS
+      ;;
+    emit-javascript)
+      write_file "$dest/tsconfig.json" <<'JSON'
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "es2020",
+    "module": "commonjs",
+    "outDir": "dist",
+    "skipLibCheck": true
+  },
+  "include": ["src"]
+}
+JSON
+      write_file "$dest/src/index.ts" <<'TS'
+export function greet(name: string): string {
+  return "Hello, " + name;
+}
+
+export const message = greet("world");
+TS
+      ;;
+    emit-declarations)
+      write_file "$dest/tsconfig.json" <<'JSON'
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "es2020",
+    "module": "commonjs",
+    "declaration": true,
+    "outDir": "dist",
+    "skipLibCheck": true
+  },
+  "include": ["src"]
+}
+JSON
+      write_file "$dest/src/index.ts" <<'TS'
+export function greet(name: string): string {
+  return "Hello, " + name;
+}
+TS
+      ;;
+    report-diagnostics)
+      write_file "$dest/tsconfig.json" <<'JSON'
+{
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "target": "es2020",
+    "module": "commonjs",
+    "skipLibCheck": true
+  },
+  "include": ["src"]
+}
+JSON
+      write_file "$dest/src/index.ts" <<'TS'
+const x: number = "hello";
+export { x };
+TS
+      ;;
+    project-mode)
+      write_file "$dest/tsconfig.json" <<'JSON'
+{
+  "files": [],
+  "references": [
+    { "path": "./pkg-a" },
+    { "path": "./pkg-b" }
+  ]
+}
+JSON
+      write_file "$dest/pkg-a/tsconfig.json" <<'JSON'
+{
+  "compilerOptions": {
+    "strict": true,
+    "composite": true,
+    "target": "es2020",
+    "module": "commonjs",
+    "outDir": "dist",
+    "rootDir": ".",
+    "skipLibCheck": true
+  },
+  "include": ["index.ts"]
+}
+JSON
+      write_file "$dest/pkg-a/index.ts" <<'TS'
+export function id(n: number): number {
+  return n;
+}
+TS
+      write_file "$dest/pkg-b/tsconfig.json" <<'JSON'
+{
+  "compilerOptions": {
+    "strict": true,
+    "composite": true,
+    "target": "es2020",
+    "module": "commonjs",
+    "outDir": "dist",
+    "rootDir": ".",
+    "skipLibCheck": true
+  },
+  "include": ["index.ts"],
+  "references": [{ "path": "../pkg-a" }]
+}
+JSON
+      write_file "$dest/pkg-b/index.ts" <<'TS'
+import { id } from "../pkg-a/index";
+export const n = id(1);
+TS
+      mkdir -p "$dest/empty"
+      ;;
+    *)
+      die "unknown fixture id '$id' (see features/README.md)"
+      ;;
+  esac
+  echo "SCRATCH=$dest"
+}
+
+next_artifact_dir() {
+  local slug="$1"
+  mkdir -p "$ARTIFACTS"
+  local n=1
+  local dir
+  while true; do
+    dir=$(printf '%s/%02d-%s' "$ARTIFACTS" "$n" "$slug")
+    if [[ ! -e "$dir" ]]; then
+      mkdir -p "$dir"
+      printf '%s\n' "$dir"
+      return 0
+    fi
+    n=$((n + 1))
+  done
+}
+
+cmd_cli() {
+  load_paths
+  [[ -x "$TSC_BIN" ]] || die "tsc is not built; run control-tsc launch"
+  local cwd="$PWD"
+  local slug="cli"
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --cwd)
+        cwd="$2"
+        shift 2
+        ;;
+      --slug)
+        slug="$2"
+        shift 2
+        ;;
+      --)
+        shift
+        break
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
+  [[ $# -gt 0 ]] || die "cli requires tsc arguments after --"
+
+  local joined=" $* "
+  if [[ "$joined" == *" --watch "* || "$joined" == *" -w "* || "$1" == "--watch" || "$1" == "-w" ]]; then
+    if [[ "${VERIFY_TSC_ALLOW_WATCH:-}" != "1" ]]; then
+      die "refusing --watch (set VERIFY_TSC_ALLOW_WATCH=1 and record the PID); watch is long-running"
+    fi
+  fi
+
+  mkdir -p "$cwd"
+  local art
+  art=$(next_artifact_dir "$slug")
+  local start end elapsed status
+  start=$(date +%s)
+  set +e
+  (
+    cd "$cwd"
+    "$TSC_BIN" "$@"
+  ) >"$art/stdout.txt" 2>"$art/stderr.txt"
+  status=$?
+  set -e
+  end=$(date +%s)
+  elapsed=$((end - start))
+
+  {
+    echo "run_id=$RUN_ID"
+    echo "git_sha=$(git -C "$REPO_ROOT" rev-parse HEAD)"
+    echo "tsc_bin=$TSC_BIN"
+    echo "cwd=$cwd"
+    echo "argv=$TSC_BIN $*"
+    echo "exit=$status"
+    echo "duration_s=$elapsed"
+    echo "started_unix=$start"
+  } >"$art/meta.txt"
+
+  if [[ -d "$cwd" ]]; then
+    (cd "$cwd" && find . -type f \( -name '*.js' -o -name '*.d.ts' -o -name '*.tsbuildinfo' -o -name 'tsconfig.json' \) | sort) >"$art/outputs.txt" || true
+  fi
+
+  echo "ARTIFACT=$art"
+  echo "EXIT=$status"
+  return "$status"
+}
+
+cmd_cleanup() {
+  load_paths
+  if [[ -f "$PIDS_FILE" ]]; then
+    local pid
+    while read -r pid; do
+      [[ -n "$pid" ]] || continue
+      if kill -0 "$pid" 2>/dev/null; then
+        kill -TERM "$pid" 2>/dev/null || true
+        sleep 0.2
+      fi
+      if kill -0 "$pid" 2>/dev/null; then
+        kill -KILL "$pid" 2>/dev/null || true
+      fi
+    done <"$PIDS_FILE"
+  fi
+  if [[ -n "$STATE_DIR" && -d "$STATE_DIR" && "$STATE_DIR" == /tmp/verify-tsc-* ]]; then
+    rm -rf "$STATE_DIR"
+  fi
+  if [[ -d "$ARTIFACTS" ]]; then
+    echo "CLEANUP_OK artifacts=$ARTIFACTS (preserved)"
+  else
+    echo "CLEANUP_OK artifacts missing at $ARTIFACTS"
+  fi
+}
+
+main() {
+  [[ $# -ge 1 ]] || { usage; exit 2; }
+  local cmd="$1"
+  shift
+  case "$cmd" in
+    launch) cmd_launch "$@" ;;
+    doctor) cmd_doctor "$@" ;;
+    fixture) cmd_fixture "$@" ;;
+    cli) cmd_cli "$@" ;;
+    cleanup) cmd_cleanup "$@" ;;
+    -h|--help|help) usage ;;
+    *) usage; die "unknown command '$cmd'" ;;
+  esac
+}
+
+main "$@"
