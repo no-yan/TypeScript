@@ -51,3 +51,5 @@ ts	phase	decision	why	evidence	result
 2026-08-31T08:35:00Z	6A	Freeze GitHub #6 at 049214aa25; unit+race+generate+live+perf vs PR-5 all hold	Do not add statement/type/binding/generator grammar to #6; 6B owns native parse; 6C owns materialize delete	STORE.md 6A freeze; verify-tsc pr6a-6a-20260831T083220	PASS-FREEZE
 2026-08-31T08:35:00Z	6A	checker.ts --noEmit medians PR5=0.7903s 6A=0.6125s trunk=0.2919s; 6A/PR5=0.775 PASS-PERF	Plan metric; both heads exit 2 on TS2307; not a completed check	five interleaved runs; SHA 049214aa25 vs 21fced2ca1	PASS-PERF
 2026-08-31T08:35:00Z	6A	CI smoke --noEmit medians PR5=0.3949s 6A=0.2676s trunk=0.1470s; 6A/PR5=0.678 PASS-PERF	Authoritative live workload; 6A/trunk=1.820 recorded miss of PR-7 1.05	five interleaved TypeScript v6.0.3 compiler checks exit=0	PASS-PERF
+2026-08-31T10:00:00Z	PR-7	Reject 6B/6C materialize split; remaining GitHub ids increment 6, 7, 8, 9, 10	A second parser plus MaterializeSourceFile is a dual tree; the reviewable diff must be the Store data structure plus in-place parser/checker rewrite	store-upstream-plan.md PR-7 one-shot; STORE.md status	COURSE-CORRECT
+

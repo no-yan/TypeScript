@@ -14,6 +14,7 @@ func TestStoreAllocRefIsNonZero(t *testing.T) {
 	s := ast.NewStore(8)
 	h := s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
 	assert.Assert(t, h.Ref() != 0)
+	assert.Assert(t, !h.IsNil())
 	assert.Equal(t, ast.KindIdentifier, h.Kind())
 }
 
@@ -21,6 +22,7 @@ func TestStoreZeroRefIsMissing(t *testing.T) {
 	t.Parallel()
 	var h ast.Handle
 	assert.Equal(t, ast.NodeRef(0), h.Ref())
+	assert.Assert(t, h.IsNil())
 	assert.Equal(t, 0, h.NumChildren())
 	assert.Equal(t, ast.NodeRef(0), h.Parent().Ref())
 }

@@ -6,12 +6,12 @@ Motivation and early sketch: [TypeScript#63807](https://github.com/microsoft/Typ
 
 ## Status
 
-Safe to keep on a branch as a **package-local experiment**. Structurally valid
-JSON/JSONC now parses into Store first and materializes a temporary `*Node`
-view for legacy consumers; malformed JSON recovery and TypeScript parsing
-still dual-write. Binding, checking, transformation, and printing mirror their
-nodes and side data into one Store per file. Production visitors still consume
-`*Node` while their Handle callers are migrated.
+Safe to keep on a branch as a **package-local experiment**. PR-6 froze emit on
+Store and deleted `ExpandStore`. The 6B/6C split (native parse that keeps
+`MaterializeSourceFile`, then a later Handle consumer PR) is rejected: that is
+a dual tree, and the reviewable diff becomes the bridge. PR-7 rewrites parser,
+binder, checker, and printer onto Store in one shot. GitHub ids increment 6,
+7, 8, 9, 10. Production visitors still consume `*Node` until that PR lands.
 
 Do **not** treat this document as a merged, settled design for the whole compiler until the [Open questions](#open-questions) below have written answers. The layout bet (packed header, noscan columns) has package-level evidence. Identity across files, mutation rules, incremental parse, emit sharing, and an end-to-end stop criterion do not.
 
@@ -253,7 +253,7 @@ Checked against the live `*Node` pipeline (parser, binder, checker, printer). No
 
 ## 6A freeze (emit on Store, delete expand)
 
-GitHub `#6` (`cursor/store-pr-6-a9c9`) is frozen as 6A at SHA `049214aa25`. Do not add statement, type, binding, or generator grammar to that branch. 6B owns production Handle-native parse. 6C owns materialize deletion.
+GitHub `#6` (`cursor/store-pr-6-a9c9`) is frozen as PR-6 at SHA `049214aa25`. Do not add statement, type, binding, or generator grammar to that branch. PR-7 is the one-shot Store compile path: one parser, Handle consumers, delete materialize and dual-write together. Do not verify a materialize-keeping native parse as a destination.
 
 Standalone `tsc/testdata/fixtures/compiler/checker.ts --noEmit` still exits 2 (`TS2307` missing `./_namespaces/ts.js`). That is not a completed check. The live compile is the TypeScript v6.0.3 CI smoke project. `--outFile` was removed (`TS5102`); JavaScript emit proof is the `emit-javascript` fixture.
 
@@ -285,11 +285,11 @@ Standalone `tsc/testdata/fixtures/compiler/checker.ts --noEmit` still exits 2 (`
 
 ### Perf vs PR-5 (`21fced2ca1`) and trunk binary
 
-Five interleaved timed runs after one warmup per head. Wall time of `built/local/tsc`. Gate is 6A median ≤ 1.10× PR-5. The PR-7 1.05× trunk rule is recorded, not applied.
+Five interleaved timed runs after one warmup per head. Wall time of `built/local/tsc`. Gate is PR-6 median ≤ 1.10× PR-5. The PR-8 1.05× trunk rule is recorded, not applied.
 
 | Workload | PR-5 median | 6A median | trunk median | 6A/PR-5 | 6A/trunk |
 | --- | --- | --- | --- | --- | --- |
 | `--noEmit checker.ts` (exit 2 all heads) | 0.7903s | 0.6125s | 0.2919s | 0.775 PASS | 2.098 record |
 | `-p typescript-6.0/src/compiler --noEmit` (exit 0) | 0.3949s | 0.2676s | 0.1470s | 0.678 PASS | 1.820 record |
 
-Deleting `ExpandStore` did not slow the check versus PR-5. Dual-write plus materialize still miss the trunk 1.05× gate, as expected until 6C.
+Deleting `ExpandStore` did not slow the check versus PR-5. Dual-write plus materialize still miss the trunk 1.05× gate, as expected until PR-7 deletes the pointer tree.

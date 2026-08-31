@@ -7,7 +7,7 @@ import (
 
 // tryParseSourceHandle parses a complete TypeScript or JavaScript source file
 // into Store. Unsupported or malformed syntax returns false so ParseSourceFile
-// can rewind into the pointer recovery parser.
+// can rewind into the recovery parser.
 func (p *Parser) tryParseSourceHandle(factory *ast.Factory) (ast.Handle, bool) {
 	state := p.mark()
 	identifierCount := p.identifierCount

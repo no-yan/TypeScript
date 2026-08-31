@@ -588,6 +588,9 @@ func (h Handle) Ref() NodeRef { return h.id }
 
 func (h Handle) Store() *Store { return h.s }
 
+// IsNil reports the absent node. NodeRef 0 is optional-absent, not NodeIsMissing.
+func (h Handle) IsNil() bool { return h.s == nil || h.id == 0 }
+
 func (h Handle) Kind() Kind {
 	h.mustLive()
 	return h.s.nodes[h.id].kind

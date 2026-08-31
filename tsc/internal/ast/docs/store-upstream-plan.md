@@ -1,12 +1,12 @@
 # Ship Store AST upstream plan
 
-This program replaces the pointer AST with a Store-backed tree through parser, binder, checker, and printer. It is for the engineer who will open a pull request on microsoft/TypeScript. The rule is that microsoft/main never receives a dual tree, and the upstream PR opens only after a real `cmd/tsc` compile and `npx hereby test` match trunk diagnostics. PR ids in order are PR-1, PR-2, PR-3, PR-4, PR-5, PR-6, PR-7, and PR-8.
+This program replaces the pointer AST with a Store-backed tree through parser, binder, checker, and printer. It is for the engineer who will open a pull request on microsoft/TypeScript. The rule is that microsoft/main never receives a dual tree, and the upstream PR opens only after a real `cmd/tsc` compile and `npx hereby test` match trunk diagnostics. PR ids in order are PR-1, PR-2, PR-3, PR-4, PR-5, then GitHub PRs 6, 7, 8, 9, and 10.
 
 ## How to read this
 
 One box is one unit of work. Every box names the evidence that checks it. A nested box is a sub-step of the box above it. Check a box only when its evidence exists, a file, a log line, a screenshot, a test run, or a SHA. The body is a how-to. The appendices explain and record.
 
-The program runs `pstack/skills/poteto-mode/playbooks/autopilot-stack.md`. The operator lands PR-1 and PR-2 on the working branch. Owners stop at merge-ready. No owner squash-merges. The operator does not land PR-3 through PR-6 on microsoft/main. She opens PR-8 against microsoft/TypeScript from the PR-7 tip.
+The program runs `pstack/skills/poteto-mode/playbooks/autopilot-stack.md`. The operator lands PR-1 and PR-2 on the working branch. Owners stop at merge-ready. No owner squash-merges. The operator does not land PR-3 through PR-6 on microsoft/main. She opens PR-10 against microsoft/TypeScript from the PR-8 tip. Parser and checker rewrite as one shot on PR-7: no materialize bridge, no dual-write parser, no long-lived *Node facade.
 
 Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
@@ -36,11 +36,13 @@ Tests alone are not sufficient verification. A PR is verified only when its unit
   - [ ] PR-3 after PR-2.
   - [ ] PR-4 after PR-3.
   - [ ] PR-5 after PR-4.
-  - [ ] PR-6 after PR-5. PR-6 is three stacked GitHub PRs, in order: 6A, then 6B, then 6C. Do not start 6B until 6A's unit, live, and perf boxes are checked. Do not start 6C until 6B's are checked. Do not start PR-7 until 6C's are checked.
-  - [ ] PR-7 after PR-6C.
-  - [ ] PR-8 after PR-7.
-- [ ] Hold the file boundaries. PR-1 touches `tsc/internal/ast/**` and `tsc/.audit/**`. PR-2 touches `tsc/internal/ast/store*.go`, `tsc/internal/ast/STORE.md`, and `tsc/.audit/store-open-questions.tsv`. PR-3 touches `tsc/internal/ast/**`, `tsc/internal/parser/**`, and `tools/scripts/tsc/**`. PR-4 touches `tsc/internal/binder/**` and `tsc/internal/ast/**`. PR-5 touches `tsc/internal/checker/**` and `tsc/internal/ast/**`. PR-6A touches `tsc/internal/printer/**`, `tsc/internal/transformers/**`, `tsc/internal/compiler/emitter.go`, and `tsc/internal/ast/**` only to delete expand. PR-6B touches `tsc/internal/parser/**`, `tsc/internal/ast/store_materialize*.go`, `tsc/internal/tsoptions/**`, and `tools/scripts/tsc/**`. PR-6C touches `tsc/internal/binder/**`, `tsc/internal/checker/**`, `tsc/internal/printer/**`, `tsc/internal/transformers/**`, and `tsc/internal/ast/**` to delete materialize and unused `*Node` factory paths. PR-7 touches test harness files under `tsc/internal/ast/**` and `tsc/internal/execute/**`. PR-8 touches `tsc/internal/ast/STORE.md` only.
-- [ ] Hold the review gate. PR-7 and PR-8 change compile output and the public PR. They wait for the operator's review in chat with screenshots and a video before merge.
+  - [ ] PR-6 after PR-5. GitHub `#6` is emit-on-Store and delete expand. Freeze it. Do not add statement grammar or keep a materialize bridge on that branch.
+  - [ ] PR-7 after PR-6. One-shot: parser, binder, checker, and printer on Store. No `MaterializeSourceFile`, no `AttachStore` dual-write, no second parser. The reviewable diff is the data structure plus the in-place parser/checker rewrite.
+  - [ ] PR-8 after PR-7. e2e compile, diagnostic equality, and the 1.05× trunk gate.
+  - [ ] PR-9 after PR-8. Delete leftover `*Node` from LS/format if PR-7 left any. Skip if PR-7 already deleted them.
+  - [ ] PR-10 after PR-8 (and PR-9 if it exists). The microsoft/TypeScript pull request. Cite PR-8 e2e receipts.
+- [ ] Hold the file boundaries. PR-1 touches `tsc/internal/ast/**` and `tsc/.audit/**`. PR-2 touches `tsc/internal/ast/store*.go`, `tsc/internal/ast/STORE.md`, and `tsc/.audit/store-open-questions.tsv`. PR-3 touches `tsc/internal/ast/**`, `tsc/internal/parser/**`, and `tools/scripts/tsc/**`. PR-4 touches `tsc/internal/binder/**` and `tsc/internal/ast/**`. PR-5 touches `tsc/internal/checker/**` and `tsc/internal/ast/**`. PR-6 touches `tsc/internal/printer/**`, `tsc/internal/transformers/**`, `tsc/internal/compiler/emitter.go`, and `tsc/internal/ast/**` only to delete expand. PR-7 touches `tsc/internal/parser/**`, `tsc/internal/binder/**`, `tsc/internal/checker/**`, `tsc/internal/printer/**`, `tsc/internal/transformers/**`, `tsc/internal/ast/**`, and `tools/scripts/tsc/**` to make Store the only production tree. PR-8 touches test harness files under `tsc/internal/ast/**` and `tsc/internal/execute/**`. PR-9 touches remaining LS/format `*Node` callers if any remain. PR-10 touches `tsc/internal/ast/STORE.md` only.
+- [ ] Hold the review gate. PR-8 and PR-10 change compile output and the public PR. They wait for the operator's review in chat with screenshots and a video before merge.
 
 ### PR mechanics, for every PR
 
@@ -54,7 +56,7 @@ Tests alone are not sufficient verification. A PR is verified only when its unit
 
 - [ ] At the merge-ready head SHA, run the swarm per `pstack/skills/swarm/SKILL.md`. One gates lane. The ten live lanes from the PR's **Verify, live** block. The perf lane from its **Verify, perf** block. One audit lane that reads the diff and the receipts and distrusts the PR body.
 - [ ] Clean only when every lane is `PASS`. Findings go back to the owner. A new head gets a fresh swarm and a fresh verdict.
-- [ ] The root appends the PR to the Graphite stack. Compare `git patch-id` at the verdict SHA against the new head per `playbooks/shipping.md`. The operator lands PR-1 and PR-2. She does not land PR-3 through PR-6 on microsoft/main. PR-8 is the microsoft/TypeScript pull request.
+- [ ] The root appends the PR to the Graphite stack. Compare `git patch-id` at the verdict SHA against the new head per `playbooks/shipping.md`. The operator lands PR-1 and PR-2. She does not land PR-3 through PR-9 on microsoft/main. PR-10 is the microsoft/TypeScript pull request.
 
 ### Boot recipe, for every live lane
 
@@ -350,11 +352,9 @@ Each live lane runs on its own cloud VM at the PR head. Drive through the shell 
 
 **Depends on.** PR-5.
 
-PR-6 is one program phase and three stacked GitHub PRs. The original box mixed "delete expand" with "delete every remaining production `*Node`". The second sentence is the rest of the compiler. One GitHub PR cannot carry that and still have a checkable unit, live, and perf gate.
+PR-6 is GitHub `#6` (`cursor/store-pr-6-a9c9`): emit on Store and delete expand, plus the JSON and expression-only native slices that already landed on it. Freeze `#6`. Do not add statement, type, binding, or generator grammar to that branch.
 
-Program ids stay PR-1 through PR-8. Microsoft/main still does not receive 6A, 6B, or 6C. PR-7 still opens only after 6C is verified. Do not add a PR-9.
-
-GitHub `#6` (`cursor/store-pr-6-a9c9`) is 6A plus the JSON and expression-only native slices that already landed on it. Freeze `#6`. Do not add statement, type, binding, or generator grammar to that branch. Uncommitted statement/type work belongs on a new 6B branch from the 6A tip.
+The 6B/6C split (native parse that keeps `MaterializeSourceFile`, then a later Handle consumer PR) is rejected. A second parser plus a pointer materializer is a dual tree. Reviewers then read migration machinery instead of the data structure. Parser and checker rewrite together on PR-7 with no bridge. Remaining GitHub ids increment 6, 7, 8, 9, 10. Microsoft/main still does not receive PR-6 through PR-9.
 
 ### 6A. Emit on Store and delete expand
 
@@ -416,123 +416,76 @@ JSON Handle-native parse, expression-only Handle-native parse, and `tsoptions` S
 - [ ] Rebased onto current trunk after the verdict, patch-id unchanged.
 - [ ] The root appends 6A to the Graphite stack. The operator does not land it on microsoft/main.
 
-### 6B. Parse production files into Store
+### PR-7. One-shot Store compile path
 
-**Depends on.** 6A.
+**Depends on.** PR-6.
 
-**Files.**
-
-- [ ] Edit `tsc/internal/parser/**`.
-- [ ] Edit `tsc/internal/ast/store_materialize*.go`.
-- [ ] Edit `tsc/internal/tsoptions/**` only if config JSON still dual-writes.
-- [ ] Edit `tools/scripts/tsc/generate-go-ast.ts` only if a produced kind lacks a Handle constructor.
-
-**Build.**
-
-- [ ] Parse TypeScript and JavaScript source files into Store without allocating production `*Node` in the parser. Unsupported or malformed syntax may rewind into the recovery parser.
-- [ ] Keep `MaterializeSourceFile` as the single pointer boundary for binder, checker, and printer.
-- [ ] Cover `tsc/testdata/fixtures/compiler/checker.ts` on the native path, or record the first rejected construct and the dual-write fallback in `STORE.md`. A JSON-only or expression-only producer is not 6B done.
-- [ ] Do not delete materialize in this PR.
-
-**You see.**
-
-- [ ] `go -C ./tsc test ./internal/parser ./internal/ast -count=1` passes.
-- [ ] `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts` still exits 0.
-- [ ] Native parse of that fixture either succeeds (`ParseStore().Len()` matches the materialized tree) or `STORE.md` names the rejected construct.
-
-**Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
-
-- [ ] Parser package tests including the native statement and type producers. Run `go -C ./tsc test ./internal/parser ./internal/ast -count=1`.
-
-**Verify, live.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on `grok-4.6-fast-xhigh` at the PR head, per the boot recipe.
-
-- [ ] Lane 1. Run parser tests. Save `pr6b-lane1-parser.png`. Pass when the last line contains `ok`.
-- [ ] Lane 2. From the repo root, run `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts`. Save `pr6b-lane2-tsc.png`. Pass when the process exits 0.
-- [ ] Lane 3. From the repo root, run `./built/local/tsc tsc/testdata/fixtures/compiler/checker.ts --outFile /tmp/store-6b-emit.js`. Save `pr6b-lane3-emit.png`. Pass when the outfile is nonempty.
-- [ ] Lane 4. Confirm `ExpandStore` is still gone. Save `pr6b-lane4-no-expand.png`. Pass when `git grep ExpandStore tsc` is empty.
-- [ ] Lane 5. Confirm materialize still exists. Save `pr6b-lane5-materialize.png`. Pass when `git grep MaterializeSourceFile tsc/internal` hits.
-- [ ] Lane 6. Run a testrunner local case. Save `pr6b-lane6-local.png`. Pass when the last line contains `ok` or `PASS`.
-- [ ] Lane 7. Drive `control-tsc` type-check and emit-javascript features. Save `pr6b-lane7-verify-tsc.png`. Pass when both artifacts show the expected exit and output files.
-- [ ] Lane 8. Run binder tests. Save `pr6b-lane8-binder.png`. Pass when the last line contains `ok`.
-- [ ] Lane 9. From the repo root, run `./built/local/tsc --help`. Save `pr6b-lane9-help.png`. Pass when the process prints usage or exits 0.
-- [ ] Lane 10. Run `gofmt -l tsc/internal/parser tsc/internal/ast`. Save `pr6b-lane10-fmt.png`. Pass when the output is empty.
-
-**Verify, perf.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
-
-- [ ] Metric. Wall time of `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts`.
-- [ ] Probe. Three runs at 6A HEAD, then three at 6B HEAD, interleaved. Also record trunk on the same machine. Do not hide a trunk miss.
-- [ ] Baseline. Record the 6A median first.
-- [ ] Rule. Fail if 6B median is more than 1.10 times 6A. Native parse must not lose to dual-write on the same branch. The PR-7 1.05× trunk rule is not 6B's gate.
-
-**Review gate.** None. 6B is not review-gated.
-
-**Merge.**
-
-- [ ] Root's clean verdict at the exact 6B head SHA.
-- [ ] Bugbot triage done.
-- [ ] Rebased onto current trunk after the verdict, patch-id unchanged.
-- [ ] The root appends 6B onto 6A. The operator does not land it on microsoft/main.
-
-### 6C. Delete materialize; print and transform on Handle
-
-**Depends on.** 6B.
+Do not keep `MaterializeSourceFile`. Do not keep `NodeFactory.AttachStore` dual-write as a production path. Do not keep a second parser beside `parser.go`. Rewrite the existing parser, binder, checker, and printer so Store is the tree. The reviewable diff is packed `nodeHeader` / `Handle` / `NodeRef` plus in-place call-site changes (`node.Kind` to `node.Kind()`, maps to `GlobalRef`). A `*Node` facade over Store is the rejected dual tree.
 
 **Files.**
 
-- [ ] Edit `tsc/internal/printer/**`.
-- [ ] Edit `tsc/internal/transformers/**/*.go`.
-- [ ] Edit `tsc/internal/binder/**` and `tsc/internal/checker/**` for remaining `*Node` production walks.
+- [ ] Edit `tsc/internal/parser/parser.go` so production TypeScript and JavaScript parse into Store through `Factory`, not through a parallel `parser_*_store.go` plus materialize.
+- [ ] Edit `tsc/internal/binder/**` and `tsc/internal/checker/**` to walk `Handle`.
+- [ ] Edit `tsc/internal/printer/**` and `tsc/internal/transformers/**/*.go` to consume `Handle` / `NodeRef` without a pointer spine.
 - [ ] Delete `tsc/internal/ast/store_materialize*.go` from the compile path.
+- [ ] Delete `tsc/internal/ast/store_bridge.go` production dual-write.
 - [ ] Delete unused `*Node` factory paths in `tsc/internal/ast` that production no longer calls.
+- [ ] Fold or delete `parser_statement_store.go`, `parser_type_store.go`, and `parser_expression_store.go` so there is one parser.
+- [ ] Edit `tools/scripts/tsc/generate-go-ast.ts` so generated constructors and guards match the Store API.
 
 **Build.**
 
-- [ ] Binder, checker, printer, and transformers consume `Handle` / `NodeRef` on the compile path.
-- [ ] Delete `MaterializeSourceFile` and every remaining production `*Node` allocation on that path.
-- [ ] Keep `FlattenNode` only under `store_flatten.go` for benches.
+- [ ] `ParseSourceFile` returns file metadata whose tree is the parse Store. No parallel `*Node` child graph.
+- [ ] Binder, checker, printer, and transformers consume `Handle` / `NodeRef` / `GlobalRef` on the compile path.
+- [ ] Cover `tsc/testdata/fixtures/compiler/checker.ts` on that path. A JSON-only or expression-only producer is not PR-7 done.
+- [ ] Malformed recovery may use a diagnostic parser. That parser still allocates into Store. It does not rebuild a pointer tree for the checker.
 
 **You see.**
 
 - [ ] `git grep MaterializeSourceFile tsc` is empty outside benches and deleted-file history.
-- [ ] `git grep ExpandStore tsc` is still empty.
-- [ ] `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts` still exits 0.
+- [ ] `git grep ExpandStore tsc` is empty.
+- [ ] `git grep AttachStore tsc/internal` is empty on the compile path.
+- [ ] `go -C ./tsc test ./internal/parser ./internal/ast ./internal/binder ./internal/checker ./internal/printer ./internal/transformers/... -count=1` passes.
+- [ ] `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts` still exits 0 or matches trunk diagnostics.
 
 **Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
-- [ ] Printer, transformer, binder, and checker tests. Run `go -C ./tsc test ./internal/printer ./internal/transformers/... ./internal/binder ./internal/checker -count=1`.
+- [ ] Parser, binder, checker, printer, and transformer tests. Run `go -C ./tsc test ./internal/parser ./internal/ast ./internal/binder ./internal/checker ./internal/printer ./internal/transformers/... -count=1`.
+- [ ] Race on those packages. Run `go -C ./tsc test -race ./internal/parser ./internal/ast ./internal/binder ./internal/checker ./internal/printer ./internal/compiler -count=1`.
+- [ ] Generated output is reproducible. Run `node --experimental-strip-types tools/scripts/tsc/generate-go-ast.ts` then `gofmt` then `git diff --exit-code`.
 
 **Verify, live.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on `grok-4.6-fast-xhigh` at the PR head, per the boot recipe.
 
-- [ ] Lane 1. Run printer tests. Save `pr6c-lane1-printer.png`. Pass when the last line contains `ok`.
-- [ ] Lane 2. From the repo root, run `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts`. Save `pr6c-lane2-tsc.png`. Pass when the process exits 0.
-- [ ] Lane 3. From the repo root, run `./built/local/tsc tsc/testdata/fixtures/compiler/checker.ts --outFile /tmp/store-6c-emit.js`. Save `pr6c-lane3-emit.png`. Pass when the outfile is nonempty.
-- [ ] Lane 4. Confirm materialize is gone from production. Save `pr6c-lane4-no-materialize.png`. Pass when `git grep MaterializeSourceFile tsc/internal -- ':!tsc/internal/ast/store_*bench*'` is empty.
-- [ ] Lane 5. Confirm `FlattenNode` lives only in `store_flatten.go`. Save `pr6c-lane5-flatten.png`. Pass when `git grep FlattenNode tsc/internal -- ':!tsc/internal/ast/store_flatten.go' ':!tsc/internal/ast/store_*bench*' ':!tsc/internal/ast/store_e2e*'` is empty.
-- [ ] Lane 6. Run a testrunner local case. Save `pr6c-lane6-local.png`. Pass when the last line contains `ok` or `PASS`.
-- [ ] Lane 7. Run checker tests. Save `pr6c-lane7-checker.png`. Pass when the last line contains `ok`.
-- [ ] Lane 8. Run binder tests. Save `pr6c-lane8-binder.png`. Pass when the last line contains `ok`.
-- [ ] Lane 9. From the repo root, run `./built/local/tsc --help`. Save `pr6c-lane9-help.png`. Pass when the process prints usage or exits 0.
-- [ ] Lane 10. Run `gofmt -l tsc/internal/printer tsc/internal/ast tsc/internal/binder tsc/internal/checker`. Save `pr6c-lane10-fmt.png`. Pass when the output is empty.
+- [ ] Lane 1. Run parser tests. Save `pr7-lane1-parser.png`. Pass when the last line contains `ok`.
+- [ ] Lane 2. CI smoke `./built/local/tsc -p /tmp/typescript-6.0/src/compiler --noEmit` exits 0. Save `pr7-lane2-tsc.png`.
+- [ ] Lane 3. Drive `control-tsc` type-check and emit-javascript features. Save `pr7-lane3-emit.png`. Pass when both artifacts show the expected exit and output files.
+- [ ] Lane 4. Confirm `MaterializeSourceFile` is gone from production. Save `pr7-lane4-no-materialize.png`. Pass when `git grep MaterializeSourceFile tsc/internal -- ':!tsc/internal/ast/store_*bench*'` is empty.
+- [ ] Lane 5. Confirm `ExpandStore` is gone. Save `pr7-lane5-no-expand.png`. Pass when `git grep ExpandStore tsc` is empty.
+- [ ] Lane 6. Run a testrunner local case. Save `pr7-lane6-local.png`. Pass when the last line contains `ok` or `PASS`.
+- [ ] Lane 7. Run checker tests. Save `pr7-lane7-checker.png`. Pass when the last line contains `ok`.
+- [ ] Lane 8. Run binder tests. Save `pr7-lane8-binder.png`. Pass when the last line contains `ok`.
+- [ ] Lane 9. From the repo root, run `./built/local/tsc --help`. Save `pr7-lane9-help.png`. Pass when the process prints usage or exits 0.
+- [ ] Lane 10. Run `gofmt -l tsc/internal/parser tsc/internal/ast tsc/internal/binder tsc/internal/checker tsc/internal/printer`. Save `pr7-lane10-fmt.png`. Pass when the output is empty.
 
 **Verify, perf.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
-- [ ] Metric. Wall time of `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts`.
-- [ ] Probe. Three runs at 6B HEAD, then three at 6C HEAD, interleaved. Record trunk on the same machine. Do not hide a trunk miss.
-- [ ] Baseline. Record the 6B median first.
-- [ ] Rule. Fail if 6C median is more than 1.10 times 6B. Deleting materialize should not slow the check. Record HEAD versus trunk, but the 1.05× trunk fail stays PR-7's gate.
+- [ ] Metric. Wall time of CI smoke `./built/local/tsc -p /tmp/typescript-6.0/src/compiler --noEmit`.
+- [ ] Probe. Three runs at PR-6 HEAD, then three at PR-7 HEAD, interleaved. Also record trunk on the same machine. Do not hide a trunk miss.
+- [ ] Baseline. Record the PR-6 median first.
+- [ ] Rule. Fail if PR-7 median is more than 1.10 times PR-6. Native Store parse and Handle check must not lose to the dual tree they replace. The PR-8 1.05× trunk rule is not PR-7's gate.
 
-**Review gate.** None. 6C is not review-gated.
+**Review gate.** None. PR-7 is not review-gated.
 
 **Merge.**
 
-- [ ] Root's clean verdict at the exact 6C head SHA.
+- [ ] Root's clean verdict at the exact PR-7 head SHA.
 - [ ] Bugbot triage done.
 - [ ] Rebased onto current trunk after the verdict, patch-id unchanged.
-- [ ] The root appends 6C onto 6B. The operator does not land it on microsoft/main. PR-6 as a program phase is complete only when 6A, 6B, and 6C are each verified.
+- [ ] The root appends PR-7 onto PR-6. The operator does not land it on microsoft/main.
 
-## Run e2e compile and tests (PR-7)
+## Run e2e compile and tests (PR-8)
 
-**Depends on.** PR-6C.
+**Depends on.** PR-7.
 
 **Files.**
 
@@ -557,28 +510,28 @@ JSON Handle-native parse, expression-only Handle-native parse, and `tsoptions` S
 
 **Verify, live.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on `grok-4.6-fast-xhigh` at the PR head, per the boot recipe.
 
-- [ ] Lane 1. Run `TestTsgoStoreE2E`. Save `pr7-lane1-e2e.png`. Pass when the log contains `PASS`.
-- [ ] Lane 2. From the repo root, run `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts`. Save `pr7-lane2-check.png`. Pass when the process exits 0.
-- [ ] Lane 3. From the repo root, run `./built/local/tsc tsc/testdata/fixtures/compiler/checker.ts --outFile /tmp/store-e2e.js`. Save `pr7-lane3-emit.png`. Pass when the outfile is nonempty.
-- [ ] Lane 4. Run `go -C ./tsc test ./internal/testrunner -count=1 -run TestLocal`. Save `pr7-lane4-local.png`. Pass when the last line contains `ok` and no parent-pointer failures from `verifyParentPointers` in `compiler_runner.go`.
-- [ ] Lane 5. Run `npx hereby test:tsc` from repo root. Save `pr7-lane5-hereby-tsc.png`. Pass when hereby reports success.
-- [ ] Lane 6. Diff diagnostics of lane 2 against trunk on the same file. Save `pr7-lane6-diag.png`. Pass when diagnostic text matches trunk.
-- [ ] Lane 7. Confirm `ExpandStore` is still gone. Save `pr7-lane7-no-expand.png`. Pass when `git grep ExpandStore tsc` is empty.
-- [ ] Lane 8. Confirm production parse does not call `FlattenNode`. Save `pr7-lane8-no-flatten.png`. Pass when `git grep FlattenNode tsc/internal/parser tsc/internal/compiler` is empty.
-- [ ] Lane 9. From the repo root, run `./built/local/tsc -p ./smoke/typescript-6.0/src/compiler --noEmit`. Save `pr7-lane9-smoke.png`. Pass when the process exits 0. This is the CI smoke project from `.github/workflows/ci.yml`.
-- [ ] Lane 10. Open `STORE.md` e2e table. Save `pr7-lane10-table.png`. Pass when Store and trunk wall times are both present.
+- [ ] Lane 1. Run `TestTsgoStoreE2E`. Save `pr8-lane1-e2e.png`. Pass when the log contains `PASS`.
+- [ ] Lane 2. From the repo root, run `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts`. Save `pr8-lane2-check.png`. Pass when the process exits 0.
+- [ ] Lane 3. From the repo root, run `./built/local/tsc tsc/testdata/fixtures/compiler/checker.ts --outFile /tmp/store-e2e.js`. Save `pr8-lane3-emit.png`. Pass when the outfile is nonempty.
+- [ ] Lane 4. Run `go -C ./tsc test ./internal/testrunner -count=1 -run TestLocal`. Save `pr8-lane4-local.png`. Pass when the last line contains `ok` and no parent-pointer failures from `verifyParentPointers` in `compiler_runner.go`.
+- [ ] Lane 5. Run `npx hereby test:tsc` from repo root. Save `pr8-lane5-hereby-tsc.png`. Pass when hereby reports success.
+- [ ] Lane 6. Diff diagnostics of lane 2 against trunk on the same file. Save `pr8-lane6-diag.png`. Pass when diagnostic text matches trunk.
+- [ ] Lane 7. Confirm `ExpandStore` is still gone. Save `pr8-lane7-no-expand.png`. Pass when `git grep ExpandStore tsc` is empty.
+- [ ] Lane 8. Confirm production parse does not call `FlattenNode`. Save `pr8-lane8-no-flatten.png`. Pass when `git grep FlattenNode tsc/internal/parser tsc/internal/compiler` is empty.
+- [ ] Lane 9. From the repo root, run `./built/local/tsc -p ./smoke/typescript-6.0/src/compiler --noEmit`. Save `pr8-lane9-smoke.png`. Pass when the process exits 0. This is the CI smoke project from `.github/workflows/ci.yml`.
+- [ ] Lane 10. Open `STORE.md` e2e table. Save `pr8-lane10-table.png`. Pass when Store and trunk wall times are both present.
 
 **Verify, perf.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
 - [ ] Metric. Wall time of `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts` under default GOGC.
-- [ ] Probe. Five runs at origin/main, then five at PR-7 HEAD, interleaved.
+- [ ] Probe. Five runs at origin/main, then five at PR-8 HEAD, interleaved.
 - [ ] Baseline. Record the origin/main median from the same machine as PR-1.
 - [ ] Rule. Fail if HEAD median is more than 1.05 times trunk, or if HEAD default-GOGC divided by HEAD `GOGC=off` is not at least 0.05 lower than trunk's same ratio. Store must not lose wall time. It must shrink the GC gap.
 
 **Review gate.** The operator reviews before merge.
 
-- [ ] Copy lane 2 and lane 6 screenshots into `tsc/internal/ast/docs/media/pr-7-review-check.png` and `tsc/internal/ast/docs/media/pr-7-review-diag.png`.
-- [ ] Record a 30 to 60 second video of `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts` on a lane VM. Save it as `tsc/internal/ast/docs/media/pr-7-review.mp4`.
+- [ ] Copy lane 2 and lane 6 screenshots into `tsc/internal/ast/docs/media/pr-8-review-check.png` and `tsc/internal/ast/docs/media/pr-8-review-diag.png`.
+- [ ] Record a 30 to 60 second video of `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts` on a lane VM. Save it as `tsc/internal/ast/docs/media/pr-8-review.mp4`.
 - [ ] Post the screenshots and the video in chat. Stop at merge-ready. Wait for the operator's click.
 
 **Merge.**
@@ -586,11 +539,48 @@ JSON Handle-native parse, expression-only Handle-native parse, and `tsoptions` S
 - [ ] Root's clean verdict at the exact head SHA.
 - [ ] Bugbot triage done.
 - [ ] Rebased onto current trunk after the verdict, patch-id unchanged.
-- [ ] The root appends PR-7 to the Graphite stack. The operator does not land it on microsoft/main.
+- [ ] The root appends PR-8 to the Graphite stack. The operator does not land it on microsoft/main.
 
-## Open the upstream pull request (PR-8)
+## Delete leftover pointer AST (PR-9)
 
-**Depends on.** PR-7.
+**Depends on.** PR-8.
+
+If PR-7 still left `*Node` in `tsc/internal/ls`, `tsc/internal/format`, or fourslash, delete those paths here. If production `*Node` is already gone, skip this PR.
+
+**Files.**
+
+- [ ] Edit remaining `*ast.Node` callers under `tsc/internal/ls/**` and `tsc/internal/format/**`.
+
+**Build.**
+
+- [ ] Delete leftover pointer AST from language service and formatter, or record that PR-7 already did.
+
+**You see.**
+
+- [ ] `git grep -n '*ast.Node' tsc/internal -- ':!tsc/internal/ast/store_*bench*'` is empty, or STORE.md names the remaining test-only uses.
+
+**Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
+
+- [ ] Package tests for the packages touched.
+
+**Verify, live.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
+
+- [ ] Drive `control-tsc` type-check and emit-javascript. Save `pr9-lane-verify-tsc.png`. Pass when both artifacts show the expected exit and output files.
+
+**Verify, perf.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
+
+- [ ] Repeat the PR-8 smoke probe. Fail if median exceeds PR-8 by more than 1.02 times.
+
+**Review gate.** None.
+
+**Merge.**
+
+- [ ] The operator does not land it on microsoft/main.
+
+## Open the upstream pull request (PR-10)
+
+**Depends on.** PR-8. If PR-9 exists, depend on PR-9.
+
 
 **Files.**
 
@@ -599,8 +589,8 @@ JSON Handle-native parse, expression-only Handle-native parse, and `tsoptions` S
 
 **Build.**
 
-- [ ] Mark STORE.md as the experiment that landed in the compile path. Cite PR-7 receipts.
-- [ ] Open one pull request against `microsoft/TypeScript` from the PR-7 tip with `gh pr create`. Title and body follow CONTRIBUTING.md. Include the problem, the Store layout, the tests, and the e2e numbers.
+- [ ] Mark STORE.md as the experiment that landed in the compile path. Cite PR-8 receipts.
+- [ ] Open one pull request against `microsoft/TypeScript` from the PR-8 tip with `gh pr create`. Title and body follow CONTRIBUTING.md. Include the problem, the Store layout, the tests, and the e2e numbers.
 
 **You see.**
 
@@ -609,32 +599,32 @@ JSON Handle-native parse, expression-only Handle-native parse, and `tsoptions` S
 
 **Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
-- [ ] `npx hereby lint` and `npx hereby check:format` at the PR-7 tip. Run `npx hereby lint && npx hereby check:format`.
+- [ ] `npx hereby lint` and `npx hereby check:format` at the PR-8 tip. Run `npx hereby lint && npx hereby check:format`.
 
 **Verify, live.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on `grok-4.6-fast-xhigh` at the PR head, per the boot recipe.
 
-- [ ] Lane 1. `gh pr view --json url,title,baseRepository`. Save `pr8-lane1-pr.png`. Pass when the URL contains `microsoft/TypeScript`.
-- [ ] Lane 2. Confirm the PR is not draft. Save `pr8-lane2-ready.png`. Pass when `isDraft` is false.
-- [ ] Lane 3. Confirm the base branch is `main`. Save `pr8-lane3-base.png`. Pass when base is `main`.
-- [ ] Lane 4. Re-run `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts` from the repo root. Save `pr8-lane4-tsc.png`. Pass when the process exits 0.
-- [ ] Lane 5. Re-run `TestTsgoStoreE2E`. Save `pr8-lane5-e2e.png`. Pass when the log contains `PASS`.
-- [ ] Lane 6. Confirm CLA bot or CONTRIBUTING checklist is mentioned in the body. Save `pr8-lane6-cla.png`. Pass when the body mentions tests and the problem.
-- [ ] Lane 7. Confirm `ExpandStore` is absent at the tip. Save `pr8-lane7-no-expand.png`. Pass when `git grep ExpandStore tsc` is empty.
-- [ ] Lane 8. Confirm production still does not call `FlattenNode`. Save `pr8-lane8-no-flatten.png`. Pass when parser and compiler greps are empty.
-- [ ] Lane 9. Run `npx hereby check:format`. Save `pr8-lane9-format.png`. Pass when the command exits 0.
-- [ ] Lane 10. Run `git diff --exit-code` after format. Save `pr8-lane10-clean.png`. Pass when the worktree is clean.
+- [ ] Lane 1. `gh pr view --json url,title,baseRepository`. Save `pr10-lane1-pr.png`. Pass when the URL contains `microsoft/TypeScript`.
+- [ ] Lane 2. Confirm the PR is not draft. Save `pr10-lane2-ready.png`. Pass when `isDraft` is false.
+- [ ] Lane 3. Confirm the base branch is `main`. Save `pr10-lane3-base.png`. Pass when base is `main`.
+- [ ] Lane 4. Re-run `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts` from the repo root. Save `pr10-lane4-tsc.png`. Pass when the process exits 0.
+- [ ] Lane 5. Re-run `TestTsgoStoreE2E`. Save `pr10-lane5-e2e.png`. Pass when the log contains `PASS`.
+- [ ] Lane 6. Confirm CLA bot or CONTRIBUTING checklist is mentioned in the body. Save `pr10-lane6-cla.png`. Pass when the body mentions tests and the problem.
+- [ ] Lane 7. Confirm `ExpandStore` is absent at the tip. Save `pr10-lane7-no-expand.png`. Pass when `git grep ExpandStore tsc` is empty.
+- [ ] Lane 8. Confirm production still does not call `FlattenNode`. Save `pr10-lane8-no-flatten.png`. Pass when parser and compiler greps are empty.
+- [ ] Lane 9. Run `npx hereby check:format`. Save `pr10-lane9-format.png`. Pass when the command exits 0.
+- [ ] Lane 10. Run `git diff --exit-code` after format. Save `pr10-lane10-clean.png`. Pass when the worktree is clean.
 
 **Verify, perf.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
 - [ ] Metric. Wall time of `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts`.
-- [ ] Probe. Repeat the PR-7 probe at the exact SHA used for `gh pr create`.
-- [ ] Baseline. Use the PR-7 recorded trunk median.
-- [ ] Rule. Fail if this SHA's median differs from the PR-7 HEAD median by more than 1.02 times. The upstream tip must be the verified tip.
+- [ ] Probe. Repeat the PR-8 probe at the exact SHA used for `gh pr create`.
+- [ ] Baseline. Use the PR-8 recorded trunk median.
+- [ ] Rule. Fail if this SHA's median differs from the PR-8 HEAD median by more than 1.02 times. The upstream tip must be the verified tip.
 
 **Review gate.** The operator reviews before merge.
 
-- [ ] Copy lane 1 and lane 4 screenshots into `tsc/internal/ast/docs/media/pr-8-review-url.png` and `tsc/internal/ast/docs/media/pr-8-review-tsc.png`.
-- [ ] Record a 30 to 60 second video of opening the GitHub PR page and the `cmd/tsc` run. Save it as `tsc/internal/ast/docs/media/pr-8-review.mp4`.
+- [ ] Copy lane 1 and lane 4 screenshots into `tsc/internal/ast/docs/media/pr-10-review-url.png` and `tsc/internal/ast/docs/media/pr-10-review-tsc.png`.
+- [ ] Record a 30 to 60 second video of opening the GitHub PR page and the `cmd/tsc` run. Save it as `tsc/internal/ast/docs/media/pr-10-review.mp4`.
 - [ ] Post the screenshots and the video in chat. Stop at merge-ready. Wait for the operator's click.
 
 **Merge.**
@@ -665,13 +655,13 @@ Emit `Update*` reuses unchanged nodes. Evidence in `ast_generated.go` Update met
 
 Unproven until PR-1. Default GOGC versus `GOGC=off` versus `GOMEMLIMIT` on `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts`. `BenchmarkNewProgram` in `compiler/program_test.go` is one `index.ts` and skips without embedded libs. Do not use it. `TestE2ELayoutReport` is parse plus forced GC, not a full check.
 
-Unproven until PR-7. Diagnostic equality versus trunk on that same command, `TestLocal` (includes `verifyParentPointers` in `compiler_runner.go`), and CI smoke `./built/local/tsc -p ./smoke/typescript-6.0/src/compiler`.
+Unproven until PR-8. Diagnostic equality versus trunk on that same command, `TestLocal` (includes `verifyParentPointers` in `compiler_runner.go`), and CI smoke `./built/local/tsc -p ./smoke/typescript-6.0/src/compiler`.
 
 ## Appendix B. Alternatives rejected
 
 JSON-only first wave. `Parser.parseJSONText` shares expression parsers and `NodeFactory`. The old path cannot die in one wave.
 
-Landing PR-3 through PR-6 on microsoft/main. Each would ship a dual tree or a broken binder. The stack stays off microsoft/main until PR-8.
+Landing PR-3 through PR-9 on microsoft/main. Each would ship a dual tree or a broken binder. The stack stays off microsoft/main until PR-10.
 
 Second emit Store plus mandatory `CopySubtree` of the file. `Update*` reuses parse nodes. Child edges are `NodeRef` and cannot cross stores.
 
@@ -689,17 +679,17 @@ No `control-cli` skill is in this repo. Live lanes drive `npx hereby build` and 
 
 PR-1 may stop the program. If tunables match `GOGC=off`, do not start PR-2.
 
-`ExpandStore` in PR-3 through PR-5 is a dual tree. If it leaks into PR-8, the GC bet is already lost. Watch 6A lane 4 and PR-8 lane 7.
+`ExpandStore` in PR-3 through PR-5 is a dual tree. If it leaks into PR-10, the GC bet is already lost. Watch PR-6 lane 4 and PR-10 lane 7.
 
-Stuffing Handle-native statement grammar, binder/checker Handle migration, and the 1.05× trunk gate into one GitHub PR makes the unit/live/perf boxes uncheckable. Watch that 6A stays frozen, 6B owns parser, and 6C owns materialize deletion.
+The 6B/6C materialize split made the reviewable diff the bridge, not the data structure. PR-7 is the one-shot Store compile path. Watch that PR-6 stays frozen and that PR-7 deletes materialize, dual-write, and the second parser together. The 1.05× trunk gate stays PR-8.
 
 `NewFactoryOn` races if two checkers append to one Store. `program.go` documents not mixing types across checkers. Watch PR-5.
 
 Kind schema in PR-3 must cover every parser `New*` kind or expand will drop nodes. Generate from `tools/scripts/tsc/ast.json` (about 102 node types, 193 `New*` methods). Do not hand-write slots. Watch `npx hereby generate` in PR-3.
 
-`npx hereby test` is slow. PR-7 lane 5 may substitute package tests. The owner still runs full hereby once for the PR body.
+`npx hereby test` is slow. PR-8 lane 5 may substitute package tests. The owner still runs full hereby once for the PR body.
 
-microsoft/TypeScript requires CLA, `npx hereby generate`, `npx hereby build`, `npx hereby test`, and `npx hereby lint` per CONTRIBUTING.md. Watch PR-8.
+microsoft/TypeScript requires CLA, `npx hereby generate`, `npx hereby build`, `npx hereby test`, and `npx hereby lint` per CONTRIBUTING.md. Watch PR-10.
 
 ## Appendix D. Links and reading list
 
