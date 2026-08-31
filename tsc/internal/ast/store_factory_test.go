@@ -199,3 +199,33 @@ func TestGeneratedHandleFactoryAccessorsAndFinish(t *testing.T) {
 	declaration.SetVariableDeclarationType(typ)
 	assert.Equal(t, typ.Ref(), declaration.VariableDeclarationType().Ref())
 }
+
+func TestFactoryUpdateReusesHandleAndListRef(t *testing.T) {
+	t.Parallel()
+	f := ast.NewFactory(ast.FactoryHooks{})
+	left := f.Identifier("a")
+	right := f.Identifier("b")
+	op := f.Token(ast.KindPlusToken)
+	bin := f.NewBinaryExpression(0, left, ast.Handle{}, op, right)
+	same := f.UpdateBinaryExpression(bin, 0, left, ast.Handle{}, op, right)
+	assert.Equal(t, bin.Ref(), same.Ref())
+
+	other := f.Identifier("c")
+	changed := f.UpdateBinaryExpression(bin, 0, left, ast.Handle{}, op, other)
+	assert.Assert(t, changed.Ref() != bin.Ref())
+	assert.Equal(t, other.Ref(), changed.BinaryExpressionRight().Ref())
+	assert.Equal(t, bin.Loc(), changed.Loc())
+	assert.Equal(t, bin.Flags(), changed.Flags())
+
+	a := f.Identifier("x")
+	b := f.Identifier("y")
+	list := f.List(core.NewTextRange(0, 3), a, b)
+	block := f.NewBlock(list, true)
+	sameBlock := f.UpdateBlock(block, list, true)
+	assert.Equal(t, block.Ref(), sameBlock.Ref())
+
+	list2 := f.List(core.NewTextRange(0, 3), a, b)
+	newBlock := f.UpdateBlock(block, list2, true)
+	assert.Assert(t, newBlock.Ref() != block.Ref())
+	assert.Equal(t, list2, newBlock.BlockStatements())
+}

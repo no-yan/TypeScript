@@ -211,7 +211,7 @@ func (p *Parser) isJavaScript() bool {
 func (p *Parser) parseJSONText() *ast.SourceFile {
 	pos := p.nodePos()
 	var statements *ast.NodeList
-	var eof *ast.TokenNode
+	var eof *ast.Node
 
 	if p.token == ast.KindEndOfFile {
 		statements = p.newNodeList(core.NewTextRange(pos, p.nodePos()), nil)

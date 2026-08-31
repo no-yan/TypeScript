@@ -234,7 +234,7 @@ function generateStructDef(w: CodeWriter, node: NodeType) {
         for (const m of node.members) {
             if (m.inherited || m.isKindParam() || m.noGo) continue;
             const fieldName = m.name;
-            const goType = m.goOnly ? m.rawType as string : m.type.formatGoReference();
+            const goType = m.goOnly ? m.rawType as string : pointerGoRef(m.type);
             const comment = buildFieldComment(m);
             if (comment) {
                 w.write(`${fieldName} ${goType} ${comment}`);
@@ -326,7 +326,7 @@ function generateBaseStructDefs(w: CodeWriter) {
         if (base.fields.length > 0) {
             for (const field of base.fields) {
                 if (field.noGo) continue;
-                const goType = field.goOnly ? field.rawType as string : field.type.formatGoReference();
+                const goType = field.goOnly ? field.rawType as string : pointerGoRef(field.type);
                 const comment = field.optional ? " // Optional" : "";
                 w.write(`${field.name} ${goType}${comment}`);
             }
@@ -367,7 +367,7 @@ function emitNewFactory(
     kindMember: MemberInfo | undefined,
     nodeFlagsMembers: MemberInfo[],
 ) {
-    const params = members.map(m => `${m.goParamName()} ${m.type.formatGoReference()}`).join(", ");
+    const params = members.map(m => `${m.goParamName()} ${pointerGoRef(m.type)}`).join(", ");
 
     w.write(`func (f *NodeFactory) ${funcName}(${params}) *Node {`);
     w.push();
@@ -520,6 +520,25 @@ function storeParamType(m: MemberInfo): string {
     return m.listKind === undefined ? "Handle" : "ListRef";
 }
 
+// Concrete FooNode aliases are Handle. Pointer AST fields stay *Node.
+function pointerGoRef(type: Type): string {
+    const ref = type.formatGoReference();
+    if (ref.startsWith("*") && ref.endsWith("Node")) {
+        const concrete = ref.slice(1, -"Node".length);
+        if (api.hasNode(concrete)) {
+            return "*Node";
+        }
+    }
+    return ref;
+}
+
+function storeMemberGetter(node: NodeType, m: MemberInfo): string {
+    if (isNodeFlagsMember(m)) {
+        return m.bitmask ? `node.Flags() & ${m.bitmask}` : "node.Flags()";
+    }
+    return `node.${node.name}${memberSuffix(m)}()`;
+}
+
 function emitStoreValuePut(w: CodeWriter, m: MemberInfo, handle: string) {
     const value = m.bitmask ? `${m.goParamName()} & ${m.bitmask}` : m.goParamName();
     const slot = valueSlotConst(m.node!.name, memberSuffix(m));
@@ -590,6 +609,117 @@ function generateStoreFactory(w: CodeWriter, node: NodeType) {
     }
 }
 
+function generateStoreUpdateFactory(w: CodeWriter, node: NodeType) {
+    if (node.handWritten) return;
+    const members = schemaMembers(node);
+    const updateMembers = members.filter(m => !m.isKindParam());
+    if (updateMembers.length === 0) return;
+    if (!updateMembers.some(m => m.isChild())) return;
+
+    const params = [
+        "node Handle",
+        ...updateMembers.map(m => `${m.goParamName()} ${storeParamType(m)}`),
+    ].join(", ");
+
+    w.write(`func (f Factory) Update${node.name}(${params}) Handle {`);
+    w.push();
+
+    const comparisons = updateMembers.map(m => {
+        const getter = storeMemberGetter(node, m);
+        if (m.isChild() && m.listKind === undefined) {
+            return `!handlesEqual(${m.goParamName()}, ${getter})`;
+        }
+        if (!m.isChild() && m.type.kind === "list" && m.type.listKind === "raw") {
+            return `!core.Same(${m.goParamName()}, ${getter})`;
+        }
+        return `${m.goParamName()} != ${getter}`;
+    });
+
+    w.write(`if ${comparisons.join(" || ")} {`);
+    w.push();
+
+    const newArgs = members.map(m => {
+        if (m.isKindParam()) {
+            return "node.Kind()";
+        }
+        return m.goParamName();
+    }).join(", ");
+
+    if (node.kindAliases.length > 0) {
+        w.write("switch node.Kind() {");
+        w.push();
+        w.write(`case ${api.kindType(`SyntaxKind.${node.syntaxKindName}`).formatGoConstant()}:`);
+        w.push();
+        w.write(`return updateHandle(f.New${node.name}(${newArgs}), node)`);
+        w.pop();
+        for (const alias of node.kindAliases) {
+            w.write(`case Kind${alias}:`);
+            w.push();
+            w.write(`return updateHandle(f.New${alias}(${newArgs}), node)`);
+            w.pop();
+        }
+        w.write("default:");
+        w.push();
+        w.write(`panic("unexpected kind in Update${node.name}: " + node.Kind().String())`);
+        w.pop();
+        w.pop();
+        w.write("}");
+    }
+    else {
+        w.write(`return updateHandle(f.New${node.name}(${newArgs}), node)`);
+    }
+    w.pop();
+    w.write("}");
+    w.write("return node");
+    w.pop();
+    w.write("}");
+    w.write("");
+}
+
+function storeVisitArg(node: NodeType, m: MemberInfo): string {
+    const getter = storeMemberGetter(node, m);
+    if (!m.isChild()) {
+        return getter;
+    }
+    if (m.listKind !== undefined) {
+        return `v.VisitNodes(${getter})`;
+    }
+    return `v.VisitNode(${getter})`;
+}
+
+function generateStoreVisitEachChild(w: CodeWriter) {
+    w.write("func (node Handle) VisitEachChild(v *HandleVisitor) Handle {");
+    w.push();
+    w.write("if node.IsNil() || v == nil || v.Visit == nil || v.Factory == nil {");
+    w.push();
+    w.write("return node");
+    w.pop();
+    w.write("}");
+    w.write("switch node.Kind() {");
+    for (const n of api.nodes()) {
+        if (n.handWritten) continue;
+        const members = schemaMembers(n);
+        const updateMembers = members.filter(m => !m.isKindParam());
+        if (updateMembers.length === 0) continue;
+        if (!updateMembers.some(m => m.isChild())) continue;
+        const kinds = n.allKinds().map(k => k.formatGoConstant());
+        if (kinds.length === 0) continue;
+        w.write(`case ${kinds.join(", ")}:`);
+        w.push();
+        const args = updateMembers.map(m => storeVisitArg(n, m)).join(", ");
+        w.write(`return v.Factory.Update${n.name}(node, ${args})`);
+        w.pop();
+    }
+    w.write("default:");
+    w.push();
+    w.write("return node");
+    w.pop();
+    w.write("}");
+    w.pop();
+    w.write("}");
+    w.write("");
+}
+
 function emitStoreAccessor(w: CodeWriter, node: NodeType, m: MemberInfo) {
     const method = `${node.name}${memberSuffix(m)}`;
     if (m.isChild()) {
@@ -657,10 +787,12 @@ function generateStoreHandles(): string {
     w.write("");
     for (const node of api.nodes()) {
         generateStoreFactory(w, node);
+        generateStoreUpdateFactory(w, node);
         for (const m of storeLayout(node).children) emitStoreAccessor(w, node, m);
         for (const m of storeLayout(node).lists) emitStoreAccessor(w, node, m);
         for (const m of storeLayout(node).values) emitStoreAccessor(w, node, m);
     }
+    generateStoreVisitEachChild(w);
     return w.toString();
 }
 
@@ -749,7 +881,7 @@ function generateUpdateFactory(w: CodeWriter, node: NodeType) {
     // Build parameter list
     const params = [
         `node *${structName}`,
-        ...updateMembers.map(m => `${m.goParamName()} ${m.type.formatGoReference()}`),
+        ...updateMembers.map(m => `${m.goParamName()} ${pointerGoRef(m.type)}`),
     ].join(", ");
 
     w.write(`func (f *NodeFactory) Update${node.name}(${params}) *Node {`);
@@ -1168,7 +1300,7 @@ function generate(): string {
     // Generate base struct definitions
     generateBaseStructDefs(w);
 
-    // Generate node type aliases (FooNode = Node for every concrete node type)
+    // Generate node type aliases (FooNode = Handle for every concrete node type)
     w.write("// ──────────────────────────────────────────────────────────────────────");
     w.write("// Node type aliases");
     w.write("// ──────────────────────────────────────────────────────────────────────");
@@ -1176,7 +1308,7 @@ function generate(): string {
     w.write("type (");
     w.push();
     for (const node of api.nodes()) {
-        w.write(`${node.name}Node = Node`);
+        w.write(`${node.name}Node = Handle`);
     }
     // Instantiation aliases (e.g. EndOfFile = Node, AbstractKeyword = Node)
     for (const node of api.nodes()) {

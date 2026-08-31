@@ -70,6 +70,67 @@ func (f *Factory) Token(kind Kind) Handle {
 	return f.NewToken(kind)
 }
 
+func updateHandle(updated, original Handle) Handle {
+	if updated != original {
+		updated.SetFlags(original.Flags())
+		updated.SetLoc(original.Loc())
+	}
+	return updated
+}
+
+func handlesEqual(a, b Handle) bool {
+	if a.IsNil() || b.IsNil() {
+		return a.IsNil() && b.IsNil()
+	}
+	return a == b
+}
+
+// HandleVisitor walks Store nodes and rebuilds via Factory.Update*.
+type HandleVisitor struct {
+	Visit   func(Handle) Handle
+	Factory *Factory
+}
+
+func (v *HandleVisitor) VisitEachChild(node Handle) Handle {
+	if node.IsNil() || v == nil || v.Visit == nil {
+		return node
+	}
+	return node.VisitEachChild(v)
+}
+
+func (v *HandleVisitor) VisitNode(node Handle) Handle {
+	if node.IsNil() || v.Visit == nil {
+		return node
+	}
+	return v.Visit(node)
+}
+
+func (v *HandleVisitor) VisitNodes(list ListRef) ListRef {
+	if list == 0 || v.Visit == nil || v.Factory == nil {
+		return list
+	}
+	s := v.Factory.Store()
+	n := s.ListLen(list)
+	changed := false
+	elems := make([]Handle, 0, n)
+	for i := 0; i < n; i++ {
+		old := s.ListAt(list, i)
+		visited := v.VisitNode(old)
+		if visited != old {
+			changed = true
+		}
+		if !visited.IsNil() {
+			elems = append(elems, visited)
+		} else {
+			changed = true
+		}
+	}
+	if !changed {
+		return list
+	}
+	return v.Factory.List(s.ListLoc(list), elems...)
+}
+
 func (f *Factory) BinaryExpression(p BinaryParts) Handle {
 	h := f.NewBinaryExpression(0, p.Left, Handle{}, p.Operator, p.Right)
 	h.SetLoc(p.Loc)

@@ -45,6 +45,13 @@ func (f *Factory) NewQualifiedName(left Handle, right Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateQualifiedName(node Handle, left Handle, right Handle) Handle {
+	if !handlesEqual(left, node.QualifiedNameLeft()) || !handlesEqual(right, node.QualifiedNameRight()) {
+		return updateHandle(f.NewQualifiedName(left, right), node)
+	}
+	return node
+}
+
 func (h Handle) QualifiedNameLeft() Handle         { return h.Child(slotQualifiedNameLeft) }
 func (h Handle) SetQualifiedNameLeft(value Handle) { h.SetChild(slotQualifiedNameLeft, value) }
 
@@ -55,6 +62,13 @@ func (f *Factory) NewComputedPropertyName(expression Handle) Handle {
 	h := f.createSlots(KindComputedPropertyName, 0, core.UndefinedTextRange(), 1, 0)
 	h.SetChild(slotComputedPropertyNameExpression, expression)
 	return h
+}
+
+func (f Factory) UpdateComputedPropertyName(node Handle, expression Handle) Handle {
+	if !handlesEqual(expression, node.ComputedPropertyNameExpression()) {
+		return updateHandle(f.NewComputedPropertyName(expression), node)
+	}
+	return node
 }
 
 func (h Handle) ComputedPropertyNameExpression() Handle {
@@ -68,6 +82,13 @@ func (f *Factory) NewDecorator(expression Handle) Handle {
 	h := f.createSlots(KindDecorator, 0, core.UndefinedTextRange(), 1, 0)
 	h.SetChild(slotDecoratorExpression, expression)
 	return h
+}
+
+func (f Factory) UpdateDecorator(node Handle, expression Handle) Handle {
+	if !handlesEqual(expression, node.DecoratorExpression()) {
+		return updateHandle(f.NewDecorator(expression), node)
+	}
+	return node
 }
 
 func (h Handle) DecoratorExpression() Handle         { return h.Child(slotDecoratorExpression) }
@@ -84,6 +105,13 @@ func (f *Factory) NewIfStatement(expression Handle, thenStatement Handle, elseSt
 	h.SetChild(slotIfStatementThenStatement, thenStatement)
 	h.SetChild(slotIfStatementElseStatement, elseStatement)
 	return h
+}
+
+func (f Factory) UpdateIfStatement(node Handle, expression Handle, thenStatement Handle, elseStatement Handle) Handle {
+	if !handlesEqual(expression, node.IfStatementExpression()) || !handlesEqual(thenStatement, node.IfStatementThenStatement()) || !handlesEqual(elseStatement, node.IfStatementElseStatement()) {
+		return updateHandle(f.NewIfStatement(expression, thenStatement, elseStatement), node)
+	}
+	return node
 }
 
 func (h Handle) IfStatementExpression() Handle         { return h.Child(slotIfStatementExpression) }
@@ -106,6 +134,13 @@ func (f *Factory) NewDoStatement(statement Handle, expression Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateDoStatement(node Handle, statement Handle, expression Handle) Handle {
+	if !handlesEqual(statement, node.DoStatementStatement()) || !handlesEqual(expression, node.DoStatementExpression()) {
+		return updateHandle(f.NewDoStatement(statement, expression), node)
+	}
+	return node
+}
+
 func (h Handle) DoStatementStatement() Handle         { return h.Child(slotDoStatementStatement) }
 func (h Handle) SetDoStatementStatement(value Handle) { h.SetChild(slotDoStatementStatement, value) }
 
@@ -117,6 +152,13 @@ func (f *Factory) NewWhileStatement(expression Handle, statement Handle) Handle 
 	h.SetChild(slotWhileStatementExpression, expression)
 	h.SetChild(slotWhileStatementStatement, statement)
 	return h
+}
+
+func (f Factory) UpdateWhileStatement(node Handle, expression Handle, statement Handle) Handle {
+	if !handlesEqual(expression, node.WhileStatementExpression()) || !handlesEqual(statement, node.WhileStatementStatement()) {
+		return updateHandle(f.NewWhileStatement(expression, statement), node)
+	}
+	return node
 }
 
 func (h Handle) WhileStatementExpression() Handle { return h.Child(slotWhileStatementExpression) }
@@ -136,6 +178,13 @@ func (f *Factory) NewForStatement(initializer Handle, condition Handle, incremen
 	h.SetChild(slotForStatementIncrementor, incrementor)
 	h.SetChild(slotForStatementStatement, statement)
 	return h
+}
+
+func (f Factory) UpdateForStatement(node Handle, initializer Handle, condition Handle, incrementor Handle, statement Handle) Handle {
+	if !handlesEqual(initializer, node.ForStatementInitializer()) || !handlesEqual(condition, node.ForStatementCondition()) || !handlesEqual(incrementor, node.ForStatementIncrementor()) || !handlesEqual(statement, node.ForStatementStatement()) {
+		return updateHandle(f.NewForStatement(initializer, condition, incrementor, statement), node)
+	}
+	return node
 }
 
 func (h Handle) ForStatementInitializer() Handle { return h.Child(slotForStatementInitializer) }
@@ -161,6 +210,13 @@ func (f *Factory) NewForInOrOfStatement(kind Kind, awaitModifier Handle, initial
 	h.SetChild(slotForInOrOfStatementExpression, expression)
 	h.SetChild(slotForInOrOfStatementStatement, statement)
 	return h
+}
+
+func (f Factory) UpdateForInOrOfStatement(node Handle, awaitModifier Handle, initializer Handle, expression Handle, statement Handle) Handle {
+	if !handlesEqual(awaitModifier, node.ForInOrOfStatementAwaitModifier()) || !handlesEqual(initializer, node.ForInOrOfStatementInitializer()) || !handlesEqual(expression, node.ForInOrOfStatementExpression()) || !handlesEqual(statement, node.ForInOrOfStatementStatement()) {
+		return updateHandle(f.NewForInOrOfStatement(node.Kind(), awaitModifier, initializer, expression, statement), node)
+	}
+	return node
 }
 
 func (h Handle) ForInOrOfStatementAwaitModifier() Handle {
@@ -195,6 +251,13 @@ func (f *Factory) NewBreakStatement(label Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateBreakStatement(node Handle, label Handle) Handle {
+	if !handlesEqual(label, node.BreakStatementLabel()) {
+		return updateHandle(f.NewBreakStatement(label), node)
+	}
+	return node
+}
+
 func (h Handle) BreakStatementLabel() Handle         { return h.Child(slotBreakStatementLabel) }
 func (h Handle) SetBreakStatementLabel(value Handle) { h.SetChild(slotBreakStatementLabel, value) }
 
@@ -202,6 +265,13 @@ func (f *Factory) NewContinueStatement(label Handle) Handle {
 	h := f.createSlots(KindContinueStatement, 0, core.UndefinedTextRange(), 1, 0)
 	h.SetChild(slotContinueStatementLabel, label)
 	return h
+}
+
+func (f Factory) UpdateContinueStatement(node Handle, label Handle) Handle {
+	if !handlesEqual(label, node.ContinueStatementLabel()) {
+		return updateHandle(f.NewContinueStatement(label), node)
+	}
+	return node
 }
 
 func (h Handle) ContinueStatementLabel() Handle { return h.Child(slotContinueStatementLabel) }
@@ -215,6 +285,13 @@ func (f *Factory) NewReturnStatement(expression Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateReturnStatement(node Handle, expression Handle) Handle {
+	if !handlesEqual(expression, node.ReturnStatementExpression()) {
+		return updateHandle(f.NewReturnStatement(expression), node)
+	}
+	return node
+}
+
 func (h Handle) ReturnStatementExpression() Handle { return h.Child(slotReturnStatementExpression) }
 func (h Handle) SetReturnStatementExpression(value Handle) {
 	h.SetChild(slotReturnStatementExpression, value)
@@ -225,6 +302,13 @@ func (f *Factory) NewWithStatement(expression Handle, statement Handle) Handle {
 	h.SetChild(slotWithStatementExpression, expression)
 	h.SetChild(slotWithStatementStatement, statement)
 	return h
+}
+
+func (f Factory) UpdateWithStatement(node Handle, expression Handle, statement Handle) Handle {
+	if !handlesEqual(expression, node.WithStatementExpression()) || !handlesEqual(statement, node.WithStatementStatement()) {
+		return updateHandle(f.NewWithStatement(expression, statement), node)
+	}
+	return node
 }
 
 func (h Handle) WithStatementExpression() Handle { return h.Child(slotWithStatementExpression) }
@@ -244,6 +328,13 @@ func (f *Factory) NewSwitchStatement(expression Handle, caseBlock Handle) Handle
 	return h
 }
 
+func (f Factory) UpdateSwitchStatement(node Handle, expression Handle, caseBlock Handle) Handle {
+	if !handlesEqual(expression, node.SwitchStatementExpression()) || !handlesEqual(caseBlock, node.SwitchStatementCaseBlock()) {
+		return updateHandle(f.NewSwitchStatement(expression, caseBlock), node)
+	}
+	return node
+}
+
 func (h Handle) SwitchStatementExpression() Handle { return h.Child(slotSwitchStatementExpression) }
 func (h Handle) SetSwitchStatementExpression(value Handle) {
 	h.SetChild(slotSwitchStatementExpression, value)
@@ -260,6 +351,13 @@ func (f *Factory) NewCaseBlock(clauses ListRef) Handle {
 	return h
 }
 
+func (f Factory) UpdateCaseBlock(node Handle, clauses ListRef) Handle {
+	if clauses != node.CaseBlockClauses() {
+		return updateHandle(f.NewCaseBlock(clauses), node)
+	}
+	return node
+}
+
 func (h Handle) CaseBlockClauses() ListRef         { return h.ListSlot(listSlotCaseBlockClauses) }
 func (h Handle) SetCaseBlockClauses(value ListRef) { h.SetListSlot(listSlotCaseBlockClauses, value) }
 
@@ -268,6 +366,13 @@ func (f *Factory) NewCaseOrDefaultClause(kind Kind, expression Handle, statement
 	h.SetChild(slotCaseOrDefaultClauseExpression, expression)
 	h.SetListSlot(listSlotCaseOrDefaultClauseStatements, statements)
 	return h
+}
+
+func (f Factory) UpdateCaseOrDefaultClause(node Handle, expression Handle, statements ListRef) Handle {
+	if !handlesEqual(expression, node.CaseOrDefaultClauseExpression()) || statements != node.CaseOrDefaultClauseStatements() {
+		return updateHandle(f.NewCaseOrDefaultClause(node.Kind(), expression, statements), node)
+	}
+	return node
 }
 
 func (h Handle) CaseOrDefaultClauseExpression() Handle {
@@ -290,6 +395,13 @@ func (f *Factory) NewThrowStatement(expression Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateThrowStatement(node Handle, expression Handle) Handle {
+	if !handlesEqual(expression, node.ThrowStatementExpression()) {
+		return updateHandle(f.NewThrowStatement(expression), node)
+	}
+	return node
+}
+
 func (h Handle) ThrowStatementExpression() Handle { return h.Child(slotThrowStatementExpression) }
 func (h Handle) SetThrowStatementExpression(value Handle) {
 	h.SetChild(slotThrowStatementExpression, value)
@@ -301,6 +413,13 @@ func (f *Factory) NewTryStatement(tryBlock Handle, catchClause Handle, finallyBl
 	h.SetChild(slotTryStatementCatchClause, catchClause)
 	h.SetChild(slotTryStatementFinallyBlock, finallyBlock)
 	return h
+}
+
+func (f Factory) UpdateTryStatement(node Handle, tryBlock Handle, catchClause Handle, finallyBlock Handle) Handle {
+	if !handlesEqual(tryBlock, node.TryStatementTryBlock()) || !handlesEqual(catchClause, node.TryStatementCatchClause()) || !handlesEqual(finallyBlock, node.TryStatementFinallyBlock()) {
+		return updateHandle(f.NewTryStatement(tryBlock, catchClause, finallyBlock), node)
+	}
+	return node
 }
 
 func (h Handle) TryStatementTryBlock() Handle         { return h.Child(slotTryStatementTryBlock) }
@@ -321,6 +440,13 @@ func (f *Factory) NewCatchClause(variableDeclaration Handle, block Handle) Handl
 	h.SetChild(slotCatchClauseVariableDeclaration, variableDeclaration)
 	h.SetChild(slotCatchClauseBlock, block)
 	return h
+}
+
+func (f Factory) UpdateCatchClause(node Handle, variableDeclaration Handle, block Handle) Handle {
+	if !handlesEqual(variableDeclaration, node.CatchClauseVariableDeclaration()) || !handlesEqual(block, node.CatchClauseBlock()) {
+		return updateHandle(f.NewCatchClause(variableDeclaration, block), node)
+	}
+	return node
 }
 
 func (h Handle) CatchClauseVariableDeclaration() Handle {
@@ -345,6 +471,13 @@ func (f *Factory) NewLabeledStatement(label Handle, statement Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateLabeledStatement(node Handle, label Handle, statement Handle) Handle {
+	if !handlesEqual(label, node.LabeledStatementLabel()) || !handlesEqual(statement, node.LabeledStatementStatement()) {
+		return updateHandle(f.NewLabeledStatement(label, statement), node)
+	}
+	return node
+}
+
 func (h Handle) LabeledStatementLabel() Handle         { return h.Child(slotLabeledStatementLabel) }
 func (h Handle) SetLabeledStatementLabel(value Handle) { h.SetChild(slotLabeledStatementLabel, value) }
 
@@ -357,6 +490,13 @@ func (f *Factory) NewExpressionStatement(expression Handle) Handle {
 	h := f.createSlots(KindExpressionStatement, 0, core.UndefinedTextRange(), 1, 0)
 	h.SetChild(slotExpressionStatementExpression, expression)
 	return h
+}
+
+func (f Factory) UpdateExpressionStatement(node Handle, expression Handle) Handle {
+	if !handlesEqual(expression, node.ExpressionStatementExpression()) {
+		return updateHandle(f.NewExpressionStatement(expression), node)
+	}
+	return node
 }
 
 func (h Handle) ExpressionStatementExpression() Handle {
@@ -373,6 +513,13 @@ func (f *Factory) NewBlock(statements ListRef, multiLine bool) Handle {
 		h.SetUintValue(valueSlotBlockMultiLine, 1)
 	}
 	return h
+}
+
+func (f Factory) UpdateBlock(node Handle, statements ListRef, multiLine bool) Handle {
+	if statements != node.BlockStatements() || multiLine != node.BlockMultiLine() {
+		return updateHandle(f.NewBlock(statements, multiLine), node)
+	}
+	return node
 }
 
 func (h Handle) BlockStatements() ListRef         { return h.ListSlot(listSlotBlockStatements) }
@@ -392,6 +539,13 @@ func (f *Factory) NewVariableStatement(modifiers ListRef, declarationList Handle
 	h.SetChild(slotVariableStatementDeclarationList, declarationList)
 	h.SetListSlot(listSlotVariableStatementModifiers, modifiers)
 	return h
+}
+
+func (f Factory) UpdateVariableStatement(node Handle, modifiers ListRef, declarationList Handle) Handle {
+	if modifiers != node.VariableStatementModifiers() || !handlesEqual(declarationList, node.VariableStatementDeclarationList()) {
+		return updateHandle(f.NewVariableStatement(modifiers, declarationList), node)
+	}
+	return node
 }
 
 func (h Handle) VariableStatementDeclarationList() Handle {
@@ -415,6 +569,13 @@ func (f *Factory) NewVariableDeclaration(name Handle, exclamationToken Handle, t
 	h.SetChild(slotVariableDeclarationType, typeNode)
 	h.SetChild(slotVariableDeclarationInitializer, initializer)
 	return h
+}
+
+func (f Factory) UpdateVariableDeclaration(node Handle, name Handle, exclamationToken Handle, typeNode Handle, initializer Handle) Handle {
+	if !handlesEqual(name, node.VariableDeclarationName()) || !handlesEqual(exclamationToken, node.VariableDeclarationExclamationToken()) || !handlesEqual(typeNode, node.VariableDeclarationType()) || !handlesEqual(initializer, node.VariableDeclarationInitializer()) {
+		return updateHandle(f.NewVariableDeclaration(name, exclamationToken, typeNode, initializer), node)
+	}
+	return node
 }
 
 func (h Handle) VariableDeclarationName() Handle { return h.Child(slotVariableDeclarationName) }
@@ -447,6 +608,13 @@ func (f *Factory) NewVariableDeclarationList(declarations ListRef, flags NodeFla
 	return h
 }
 
+func (f Factory) UpdateVariableDeclarationList(node Handle, declarations ListRef, flags NodeFlags) Handle {
+	if declarations != node.VariableDeclarationListDeclarations() || flags != node.Flags() {
+		return updateHandle(f.NewVariableDeclarationList(declarations, flags), node)
+	}
+	return node
+}
+
 func (h Handle) VariableDeclarationListDeclarations() ListRef {
 	return h.ListSlot(listSlotVariableDeclarationListDeclarations)
 }
@@ -458,6 +626,13 @@ func (f *Factory) NewBindingPattern(kind Kind, elements ListRef) Handle {
 	h := f.createSlots(kind, 0, core.UndefinedTextRange(), 0, 1)
 	h.SetListSlot(listSlotBindingPatternElements, elements)
 	return h
+}
+
+func (f Factory) UpdateBindingPattern(node Handle, elements ListRef) Handle {
+	if elements != node.BindingPatternElements() {
+		return updateHandle(f.NewBindingPattern(node.Kind(), elements), node)
+	}
+	return node
 }
 
 func (h Handle) BindingPatternElements() ListRef { return h.ListSlot(listSlotBindingPatternElements) }
@@ -474,6 +649,13 @@ func (f *Factory) NewParameterDeclaration(modifiers ListRef, dotDotDotToken Hand
 	h.SetChild(slotParameterDeclarationInitializer, initializer)
 	h.SetListSlot(listSlotParameterDeclarationModifiers, modifiers)
 	return h
+}
+
+func (f Factory) UpdateParameterDeclaration(node Handle, modifiers ListRef, dotDotDotToken Handle, name Handle, questionToken Handle, typeNode Handle, initializer Handle) Handle {
+	if modifiers != node.ParameterDeclarationModifiers() || !handlesEqual(dotDotDotToken, node.ParameterDeclarationDotDotDotToken()) || !handlesEqual(name, node.ParameterDeclarationName()) || !handlesEqual(questionToken, node.ParameterDeclarationQuestionToken()) || !handlesEqual(typeNode, node.ParameterDeclarationType()) || !handlesEqual(initializer, node.ParameterDeclarationInitializer()) {
+		return updateHandle(f.NewParameterDeclaration(modifiers, dotDotDotToken, name, questionToken, typeNode, initializer), node)
+	}
+	return node
 }
 
 func (h Handle) ParameterDeclarationDotDotDotToken() Handle {
@@ -523,6 +705,13 @@ func (f *Factory) NewBindingElement(dotDotDotToken Handle, propertyName Handle, 
 	return h
 }
 
+func (f Factory) UpdateBindingElement(node Handle, dotDotDotToken Handle, propertyName Handle, name Handle, initializer Handle) Handle {
+	if !handlesEqual(dotDotDotToken, node.BindingElementDotDotDotToken()) || !handlesEqual(propertyName, node.BindingElementPropertyName()) || !handlesEqual(name, node.BindingElementName()) || !handlesEqual(initializer, node.BindingElementInitializer()) {
+		return updateHandle(f.NewBindingElement(dotDotDotToken, propertyName, name, initializer), node)
+	}
+	return node
+}
+
 func (h Handle) BindingElementDotDotDotToken() Handle {
 	return h.Child(slotBindingElementDotDotDotToken)
 }
@@ -549,6 +738,13 @@ func (f *Factory) NewMissingDeclaration(modifiers ListRef) Handle {
 	return h
 }
 
+func (f Factory) UpdateMissingDeclaration(node Handle, modifiers ListRef) Handle {
+	if modifiers != node.MissingDeclarationModifiers() {
+		return updateHandle(f.NewMissingDeclaration(modifiers), node)
+	}
+	return node
+}
+
 func (h Handle) MissingDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotMissingDeclarationModifiers)
 }
@@ -567,6 +763,13 @@ func (f *Factory) NewFunctionDeclaration(modifiers ListRef, asteriskToken Handle
 	h.SetListSlot(listSlotFunctionDeclarationTypeParameters, typeParameters)
 	h.SetListSlot(listSlotFunctionDeclarationParameters, parameters)
 	return h
+}
+
+func (f Factory) UpdateFunctionDeclaration(node Handle, modifiers ListRef, asteriskToken Handle, name Handle, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, body Handle) Handle {
+	if modifiers != node.FunctionDeclarationModifiers() || !handlesEqual(asteriskToken, node.FunctionDeclarationAsteriskToken()) || !handlesEqual(name, node.FunctionDeclarationName()) || typeParameters != node.FunctionDeclarationTypeParameters() || parameters != node.FunctionDeclarationParameters() || !handlesEqual(typeNode, node.FunctionDeclarationType()) || !handlesEqual(fullSignature, node.FunctionDeclarationFullSignature()) || !handlesEqual(body, node.FunctionDeclarationBody()) {
+		return updateHandle(f.NewFunctionDeclaration(modifiers, asteriskToken, name, typeParameters, parameters, typeNode, fullSignature, body), node)
+	}
+	return node
 }
 
 func (h Handle) FunctionDeclarationAsteriskToken() Handle {
@@ -629,6 +832,13 @@ func (f *Factory) NewClassDeclaration(modifiers ListRef, name Handle, typeParame
 	return h
 }
 
+func (f Factory) UpdateClassDeclaration(node Handle, modifiers ListRef, name Handle, typeParameters ListRef, heritageClauses ListRef, members ListRef) Handle {
+	if modifiers != node.ClassDeclarationModifiers() || !handlesEqual(name, node.ClassDeclarationName()) || typeParameters != node.ClassDeclarationTypeParameters() || heritageClauses != node.ClassDeclarationHeritageClauses() || members != node.ClassDeclarationMembers() {
+		return updateHandle(f.NewClassDeclaration(modifiers, name, typeParameters, heritageClauses, members), node)
+	}
+	return node
+}
+
 func (h Handle) ClassDeclarationName() Handle         { return h.Child(slotClassDeclarationName) }
 func (h Handle) SetClassDeclarationName(value Handle) { h.SetChild(slotClassDeclarationName, value) }
 
@@ -668,6 +878,13 @@ func (f *Factory) NewClassExpression(modifiers ListRef, name Handle, typeParamet
 	return h
 }
 
+func (f Factory) UpdateClassExpression(node Handle, modifiers ListRef, name Handle, typeParameters ListRef, heritageClauses ListRef, members ListRef) Handle {
+	if modifiers != node.ClassExpressionModifiers() || !handlesEqual(name, node.ClassExpressionName()) || typeParameters != node.ClassExpressionTypeParameters() || heritageClauses != node.ClassExpressionHeritageClauses() || members != node.ClassExpressionMembers() {
+		return updateHandle(f.NewClassExpression(modifiers, name, typeParameters, heritageClauses, members), node)
+	}
+	return node
+}
+
 func (h Handle) ClassExpressionName() Handle         { return h.Child(slotClassExpressionName) }
 func (h Handle) SetClassExpressionName(value Handle) { h.SetChild(slotClassExpressionName, value) }
 
@@ -704,6 +921,13 @@ func (f *Factory) NewHeritageClause(token Kind, types ListRef) Handle {
 	return h
 }
 
+func (f Factory) UpdateHeritageClause(node Handle, token Kind, types ListRef) Handle {
+	if token != node.HeritageClauseToken() || types != node.HeritageClauseTypes() {
+		return updateHandle(f.NewHeritageClause(token, types), node)
+	}
+	return node
+}
+
 func (h Handle) HeritageClauseTypes() ListRef { return h.ListSlot(listSlotHeritageClauseTypes) }
 func (h Handle) SetHeritageClauseTypes(value ListRef) {
 	h.SetListSlot(listSlotHeritageClauseTypes, value)
@@ -722,6 +946,13 @@ func (f *Factory) NewInterfaceDeclaration(modifiers ListRef, name Handle, typePa
 	h.SetListSlot(listSlotInterfaceDeclarationHeritageClauses, heritageClauses)
 	h.SetListSlot(listSlotInterfaceDeclarationMembers, members)
 	return h
+}
+
+func (f Factory) UpdateInterfaceDeclaration(node Handle, modifiers ListRef, name Handle, typeParameters ListRef, heritageClauses ListRef, members ListRef) Handle {
+	if modifiers != node.InterfaceDeclarationModifiers() || !handlesEqual(name, node.InterfaceDeclarationName()) || typeParameters != node.InterfaceDeclarationTypeParameters() || heritageClauses != node.InterfaceDeclarationHeritageClauses() || members != node.InterfaceDeclarationMembers() {
+		return updateHandle(f.NewInterfaceDeclaration(modifiers, name, typeParameters, heritageClauses, members), node)
+	}
+	return node
 }
 
 func (h Handle) InterfaceDeclarationName() Handle { return h.Child(slotInterfaceDeclarationName) }
@@ -775,6 +1006,20 @@ func (f *Factory) NewJSTypeAliasDeclaration(modifiers ListRef, name Handle, type
 	return h
 }
 
+func (f Factory) UpdateTypeAliasDeclaration(node Handle, modifiers ListRef, name Handle, typeParameters ListRef, typeNode Handle) Handle {
+	if modifiers != node.TypeAliasDeclarationModifiers() || !handlesEqual(name, node.TypeAliasDeclarationName()) || typeParameters != node.TypeAliasDeclarationTypeParameters() || !handlesEqual(typeNode, node.TypeAliasDeclarationType()) {
+		switch node.Kind() {
+		case KindTypeAliasDeclaration:
+			return updateHandle(f.NewTypeAliasDeclaration(modifiers, name, typeParameters, typeNode), node)
+		case KindJSTypeAliasDeclaration:
+			return updateHandle(f.NewJSTypeAliasDeclaration(modifiers, name, typeParameters, typeNode), node)
+		default:
+			panic("unexpected kind in UpdateTypeAliasDeclaration: " + node.Kind().String())
+		}
+	}
+	return node
+}
+
 func (h Handle) TypeAliasDeclarationName() Handle { return h.Child(slotTypeAliasDeclarationName) }
 func (h Handle) SetTypeAliasDeclarationName(value Handle) {
 	h.SetChild(slotTypeAliasDeclarationName, value)
@@ -806,6 +1051,13 @@ func (f *Factory) NewEnumMember(name Handle, initializer Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateEnumMember(node Handle, name Handle, initializer Handle) Handle {
+	if !handlesEqual(name, node.EnumMemberName()) || !handlesEqual(initializer, node.EnumMemberInitializer()) {
+		return updateHandle(f.NewEnumMember(name, initializer), node)
+	}
+	return node
+}
+
 func (h Handle) EnumMemberName() Handle         { return h.Child(slotEnumMemberName) }
 func (h Handle) SetEnumMemberName(value Handle) { h.SetChild(slotEnumMemberName, value) }
 
@@ -818,6 +1070,13 @@ func (f *Factory) NewEnumDeclaration(modifiers ListRef, name Handle, members Lis
 	h.SetListSlot(listSlotEnumDeclarationModifiers, modifiers)
 	h.SetListSlot(listSlotEnumDeclarationMembers, members)
 	return h
+}
+
+func (f Factory) UpdateEnumDeclaration(node Handle, modifiers ListRef, name Handle, members ListRef) Handle {
+	if modifiers != node.EnumDeclarationModifiers() || !handlesEqual(name, node.EnumDeclarationName()) || members != node.EnumDeclarationMembers() {
+		return updateHandle(f.NewEnumDeclaration(modifiers, name, members), node)
+	}
+	return node
 }
 
 func (h Handle) EnumDeclarationName() Handle         { return h.Child(slotEnumDeclarationName) }
@@ -839,6 +1098,13 @@ func (f *Factory) NewModuleBlock(statements ListRef) Handle {
 	h := f.createSlots(KindModuleBlock, 0, core.UndefinedTextRange(), 0, 1)
 	h.SetListSlot(listSlotModuleBlockStatements, statements)
 	return h
+}
+
+func (f Factory) UpdateModuleBlock(node Handle, statements ListRef) Handle {
+	if statements != node.ModuleBlockStatements() {
+		return updateHandle(f.NewModuleBlock(statements), node)
+	}
+	return node
 }
 
 func (h Handle) ModuleBlockStatements() ListRef { return h.ListSlot(listSlotModuleBlockStatements) }
@@ -874,6 +1140,20 @@ func (f *Factory) NewJSImportDeclaration(modifiers ListRef, importClause Handle,
 	return h
 }
 
+func (f Factory) UpdateImportDeclaration(node Handle, modifiers ListRef, importClause Handle, moduleSpecifier Handle, attributes Handle) Handle {
+	if modifiers != node.ImportDeclarationModifiers() || !handlesEqual(importClause, node.ImportDeclarationImportClause()) || !handlesEqual(moduleSpecifier, node.ImportDeclarationModuleSpecifier()) || !handlesEqual(attributes, node.ImportDeclarationAttributes()) {
+		switch node.Kind() {
+		case KindImportDeclaration:
+			return updateHandle(f.NewImportDeclaration(modifiers, importClause, moduleSpecifier, attributes), node)
+		case KindJSImportDeclaration:
+			return updateHandle(f.NewJSImportDeclaration(modifiers, importClause, moduleSpecifier, attributes), node)
+		default:
+			panic("unexpected kind in UpdateImportDeclaration: " + node.Kind().String())
+		}
+	}
+	return node
+}
+
 func (h Handle) ImportDeclarationImportClause() Handle {
 	return h.Child(slotImportDeclarationImportClause)
 }
@@ -906,6 +1186,13 @@ func (f *Factory) NewExternalModuleReference(expression Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateExternalModuleReference(node Handle, expression Handle) Handle {
+	if !handlesEqual(expression, node.ExternalModuleReferenceExpression()) {
+		return updateHandle(f.NewExternalModuleReference(expression), node)
+	}
+	return node
+}
+
 func (h Handle) ExternalModuleReferenceExpression() Handle {
 	return h.Child(slotExternalModuleReferenceExpression)
 }
@@ -919,6 +1206,13 @@ func (f *Factory) NewNamespaceImport(name Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateNamespaceImport(node Handle, name Handle) Handle {
+	if !handlesEqual(name, node.NamespaceImportName()) {
+		return updateHandle(f.NewNamespaceImport(name), node)
+	}
+	return node
+}
+
 func (h Handle) NamespaceImportName() Handle         { return h.Child(slotNamespaceImportName) }
 func (h Handle) SetNamespaceImportName(value Handle) { h.SetChild(slotNamespaceImportName, value) }
 
@@ -926,6 +1220,13 @@ func (f *Factory) NewNamedImports(elements ListRef) Handle {
 	h := f.createSlots(KindNamedImports, 0, core.UndefinedTextRange(), 0, 1)
 	h.SetListSlot(listSlotNamedImportsElements, elements)
 	return h
+}
+
+func (f Factory) UpdateNamedImports(node Handle, elements ListRef) Handle {
+	if elements != node.NamedImportsElements() {
+		return updateHandle(f.NewNamedImports(elements), node)
+	}
+	return node
 }
 
 func (h Handle) NamedImportsElements() ListRef { return h.ListSlot(listSlotNamedImportsElements) }
@@ -942,6 +1243,13 @@ func (f *Factory) NewExportAssignment(modifiers ListRef, isExportEquals bool, ty
 		h.SetUintValue(valueSlotExportAssignmentIsExportEquals, 1)
 	}
 	return h
+}
+
+func (f Factory) UpdateExportAssignment(node Handle, modifiers ListRef, isExportEquals bool, typeNode Handle, expression Handle) Handle {
+	if modifiers != node.ExportAssignmentModifiers() || isExportEquals != node.ExportAssignmentIsExportEquals() || !handlesEqual(typeNode, node.ExportAssignmentType()) || !handlesEqual(expression, node.ExportAssignmentExpression()) {
+		return updateHandle(f.NewExportAssignment(modifiers, isExportEquals, typeNode, expression), node)
+	}
+	return node
 }
 
 func (h Handle) ExportAssignmentType() Handle         { return h.Child(slotExportAssignmentType) }
@@ -977,6 +1285,13 @@ func (f *Factory) NewNamespaceExportDeclaration(modifiers ListRef, name Handle) 
 	return h
 }
 
+func (f Factory) UpdateNamespaceExportDeclaration(node Handle, modifiers ListRef, name Handle) Handle {
+	if modifiers != node.NamespaceExportDeclarationModifiers() || !handlesEqual(name, node.NamespaceExportDeclarationName()) {
+		return updateHandle(f.NewNamespaceExportDeclaration(modifiers, name), node)
+	}
+	return node
+}
+
 func (h Handle) NamespaceExportDeclarationName() Handle {
 	return h.Child(slotNamespaceExportDeclarationName)
 }
@@ -997,6 +1312,13 @@ func (f *Factory) NewNamespaceExport(name Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateNamespaceExport(node Handle, name Handle) Handle {
+	if !handlesEqual(name, node.NamespaceExportName()) {
+		return updateHandle(f.NewNamespaceExport(name), node)
+	}
+	return node
+}
+
 func (h Handle) NamespaceExportName() Handle         { return h.Child(slotNamespaceExportName) }
 func (h Handle) SetNamespaceExportName(value Handle) { h.SetChild(slotNamespaceExportName, value) }
 
@@ -1004,6 +1326,13 @@ func (f *Factory) NewNamedExports(elements ListRef) Handle {
 	h := f.createSlots(KindNamedExports, 0, core.UndefinedTextRange(), 0, 1)
 	h.SetListSlot(listSlotNamedExportsElements, elements)
 	return h
+}
+
+func (f Factory) UpdateNamedExports(node Handle, elements ListRef) Handle {
+	if elements != node.NamedExportsElements() {
+		return updateHandle(f.NewNamedExports(elements), node)
+	}
+	return node
 }
 
 func (h Handle) NamedExportsElements() ListRef { return h.ListSlot(listSlotNamedExportsElements) }
@@ -1019,6 +1348,13 @@ func (f *Factory) NewExportSpecifier(isTypeOnly bool, propertyName Handle, name 
 		h.SetUintValue(valueSlotExportSpecifierIsTypeOnly, 1)
 	}
 	return h
+}
+
+func (f Factory) UpdateExportSpecifier(node Handle, isTypeOnly bool, propertyName Handle, name Handle) Handle {
+	if isTypeOnly != node.ExportSpecifierIsTypeOnly() || !handlesEqual(propertyName, node.ExportSpecifierPropertyName()) || !handlesEqual(name, node.ExportSpecifierName()) {
+		return updateHandle(f.NewExportSpecifier(isTypeOnly, propertyName, name), node)
+	}
+	return node
 }
 
 func (h Handle) ExportSpecifierPropertyName() Handle { return h.Child(slotExportSpecifierPropertyName) }
@@ -1048,6 +1384,13 @@ func (f *Factory) NewCallSignatureDeclaration(typeParameters ListRef, parameters
 	return h
 }
 
+func (f Factory) UpdateCallSignatureDeclaration(node Handle, typeParameters ListRef, parameters ListRef, typeNode Handle) Handle {
+	if typeParameters != node.CallSignatureDeclarationTypeParameters() || parameters != node.CallSignatureDeclarationParameters() || !handlesEqual(typeNode, node.CallSignatureDeclarationType()) {
+		return updateHandle(f.NewCallSignatureDeclaration(typeParameters, parameters, typeNode), node)
+	}
+	return node
+}
+
 func (h Handle) CallSignatureDeclarationType() Handle {
 	return h.Child(slotCallSignatureDeclarationType)
 }
@@ -1075,6 +1418,13 @@ func (f *Factory) NewConstructSignatureDeclaration(typeParameters ListRef, param
 	h.SetListSlot(listSlotConstructSignatureDeclarationTypeParameters, typeParameters)
 	h.SetListSlot(listSlotConstructSignatureDeclarationParameters, parameters)
 	return h
+}
+
+func (f Factory) UpdateConstructSignatureDeclaration(node Handle, typeParameters ListRef, parameters ListRef, typeNode Handle) Handle {
+	if typeParameters != node.ConstructSignatureDeclarationTypeParameters() || parameters != node.ConstructSignatureDeclarationParameters() || !handlesEqual(typeNode, node.ConstructSignatureDeclarationType()) {
+		return updateHandle(f.NewConstructSignatureDeclaration(typeParameters, parameters, typeNode), node)
+	}
+	return node
 }
 
 func (h Handle) ConstructSignatureDeclarationType() Handle {
@@ -1107,6 +1457,13 @@ func (f *Factory) NewConstructorDeclaration(modifiers ListRef, typeParameters Li
 	h.SetListSlot(listSlotConstructorDeclarationTypeParameters, typeParameters)
 	h.SetListSlot(listSlotConstructorDeclarationParameters, parameters)
 	return h
+}
+
+func (f Factory) UpdateConstructorDeclaration(node Handle, modifiers ListRef, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, body Handle) Handle {
+	if modifiers != node.ConstructorDeclarationModifiers() || typeParameters != node.ConstructorDeclarationTypeParameters() || parameters != node.ConstructorDeclarationParameters() || !handlesEqual(typeNode, node.ConstructorDeclarationType()) || !handlesEqual(fullSignature, node.ConstructorDeclarationFullSignature()) || !handlesEqual(body, node.ConstructorDeclarationBody()) {
+		return updateHandle(f.NewConstructorDeclaration(modifiers, typeParameters, parameters, typeNode, fullSignature, body), node)
+	}
+	return node
 }
 
 func (h Handle) ConstructorDeclarationType() Handle { return h.Child(slotConstructorDeclarationType) }
@@ -1157,6 +1514,13 @@ func (f *Factory) NewGetAccessorDeclaration(modifiers ListRef, name Handle, type
 	h.SetListSlot(listSlotGetAccessorDeclarationTypeParameters, typeParameters)
 	h.SetListSlot(listSlotGetAccessorDeclarationParameters, parameters)
 	return h
+}
+
+func (f Factory) UpdateGetAccessorDeclaration(node Handle, modifiers ListRef, name Handle, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, body Handle) Handle {
+	if modifiers != node.GetAccessorDeclarationModifiers() || !handlesEqual(name, node.GetAccessorDeclarationName()) || typeParameters != node.GetAccessorDeclarationTypeParameters() || parameters != node.GetAccessorDeclarationParameters() || !handlesEqual(typeNode, node.GetAccessorDeclarationType()) || !handlesEqual(fullSignature, node.GetAccessorDeclarationFullSignature()) || !handlesEqual(body, node.GetAccessorDeclarationBody()) {
+		return updateHandle(f.NewGetAccessorDeclaration(modifiers, name, typeParameters, parameters, typeNode, fullSignature, body), node)
+	}
+	return node
 }
 
 func (h Handle) GetAccessorDeclarationName() Handle { return h.Child(slotGetAccessorDeclarationName) }
@@ -1214,6 +1578,13 @@ func (f *Factory) NewSetAccessorDeclaration(modifiers ListRef, name Handle, type
 	return h
 }
 
+func (f Factory) UpdateSetAccessorDeclaration(node Handle, modifiers ListRef, name Handle, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, body Handle) Handle {
+	if modifiers != node.SetAccessorDeclarationModifiers() || !handlesEqual(name, node.SetAccessorDeclarationName()) || typeParameters != node.SetAccessorDeclarationTypeParameters() || parameters != node.SetAccessorDeclarationParameters() || !handlesEqual(typeNode, node.SetAccessorDeclarationType()) || !handlesEqual(fullSignature, node.SetAccessorDeclarationFullSignature()) || !handlesEqual(body, node.SetAccessorDeclarationBody()) {
+		return updateHandle(f.NewSetAccessorDeclaration(modifiers, name, typeParameters, parameters, typeNode, fullSignature, body), node)
+	}
+	return node
+}
+
 func (h Handle) SetAccessorDeclarationName() Handle { return h.Child(slotSetAccessorDeclarationName) }
 func (h Handle) SetSetAccessorDeclarationName(value Handle) {
 	h.SetChild(slotSetAccessorDeclarationName, value)
@@ -1265,6 +1636,13 @@ func (f *Factory) NewIndexSignatureDeclaration(modifiers ListRef, parameters Lis
 	return h
 }
 
+func (f Factory) UpdateIndexSignatureDeclaration(node Handle, modifiers ListRef, parameters ListRef, typeNode Handle) Handle {
+	if modifiers != node.IndexSignatureDeclarationModifiers() || parameters != node.IndexSignatureDeclarationParameters() || !handlesEqual(typeNode, node.IndexSignatureDeclarationType()) {
+		return updateHandle(f.NewIndexSignatureDeclaration(modifiers, parameters, typeNode), node)
+	}
+	return node
+}
+
 func (h Handle) IndexSignatureDeclarationType() Handle {
 	return h.Child(slotIndexSignatureDeclarationType)
 }
@@ -1295,6 +1673,13 @@ func (f *Factory) NewMethodSignatureDeclaration(modifiers ListRef, name Handle, 
 	h.SetListSlot(listSlotMethodSignatureDeclarationTypeParameters, typeParameters)
 	h.SetListSlot(listSlotMethodSignatureDeclarationParameters, parameters)
 	return h
+}
+
+func (f Factory) UpdateMethodSignatureDeclaration(node Handle, modifiers ListRef, name Handle, postfixToken Handle, typeParameters ListRef, parameters ListRef, typeNode Handle) Handle {
+	if modifiers != node.MethodSignatureDeclarationModifiers() || !handlesEqual(name, node.MethodSignatureDeclarationName()) || !handlesEqual(postfixToken, node.MethodSignatureDeclarationPostfixToken()) || typeParameters != node.MethodSignatureDeclarationTypeParameters() || parameters != node.MethodSignatureDeclarationParameters() || !handlesEqual(typeNode, node.MethodSignatureDeclarationType()) {
+		return updateHandle(f.NewMethodSignatureDeclaration(modifiers, name, postfixToken, typeParameters, parameters, typeNode), node)
+	}
+	return node
 }
 
 func (h Handle) MethodSignatureDeclarationName() Handle {
@@ -1351,6 +1736,13 @@ func (f *Factory) NewMethodDeclaration(modifiers ListRef, asteriskToken Handle, 
 	h.SetListSlot(listSlotMethodDeclarationTypeParameters, typeParameters)
 	h.SetListSlot(listSlotMethodDeclarationParameters, parameters)
 	return h
+}
+
+func (f Factory) UpdateMethodDeclaration(node Handle, modifiers ListRef, asteriskToken Handle, name Handle, postfixToken Handle, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, body Handle) Handle {
+	if modifiers != node.MethodDeclarationModifiers() || !handlesEqual(asteriskToken, node.MethodDeclarationAsteriskToken()) || !handlesEqual(name, node.MethodDeclarationName()) || !handlesEqual(postfixToken, node.MethodDeclarationPostfixToken()) || typeParameters != node.MethodDeclarationTypeParameters() || parameters != node.MethodDeclarationParameters() || !handlesEqual(typeNode, node.MethodDeclarationType()) || !handlesEqual(fullSignature, node.MethodDeclarationFullSignature()) || !handlesEqual(body, node.MethodDeclarationBody()) {
+		return updateHandle(f.NewMethodDeclaration(modifiers, asteriskToken, name, postfixToken, typeParameters, parameters, typeNode, fullSignature, body), node)
+	}
+	return node
 }
 
 func (h Handle) MethodDeclarationAsteriskToken() Handle {
@@ -1414,6 +1806,13 @@ func (f *Factory) NewPropertySignatureDeclaration(modifiers ListRef, name Handle
 	return h
 }
 
+func (f Factory) UpdatePropertySignatureDeclaration(node Handle, modifiers ListRef, name Handle, postfixToken Handle, typeNode Handle, initializer Handle) Handle {
+	if modifiers != node.PropertySignatureDeclarationModifiers() || !handlesEqual(name, node.PropertySignatureDeclarationName()) || !handlesEqual(postfixToken, node.PropertySignatureDeclarationPostfixToken()) || !handlesEqual(typeNode, node.PropertySignatureDeclarationType()) || !handlesEqual(initializer, node.PropertySignatureDeclarationInitializer()) {
+		return updateHandle(f.NewPropertySignatureDeclaration(modifiers, name, postfixToken, typeNode, initializer), node)
+	}
+	return node
+}
+
 func (h Handle) PropertySignatureDeclarationName() Handle {
 	return h.Child(slotPropertySignatureDeclarationName)
 }
@@ -1459,6 +1858,13 @@ func (f *Factory) NewPropertyDeclaration(modifiers ListRef, name Handle, postfix
 	return h
 }
 
+func (f Factory) UpdatePropertyDeclaration(node Handle, modifiers ListRef, name Handle, postfixToken Handle, typeNode Handle, initializer Handle) Handle {
+	if modifiers != node.PropertyDeclarationModifiers() || !handlesEqual(name, node.PropertyDeclarationName()) || !handlesEqual(postfixToken, node.PropertyDeclarationPostfixToken()) || !handlesEqual(typeNode, node.PropertyDeclarationType()) || !handlesEqual(initializer, node.PropertyDeclarationInitializer()) {
+		return updateHandle(f.NewPropertyDeclaration(modifiers, name, postfixToken, typeNode, initializer), node)
+	}
+	return node
+}
+
 func (h Handle) PropertyDeclarationName() Handle { return h.Child(slotPropertyDeclarationName) }
 func (h Handle) SetPropertyDeclarationName(value Handle) {
 	h.SetChild(slotPropertyDeclarationName, value)
@@ -1500,6 +1906,13 @@ func (f *Factory) NewClassStaticBlockDeclaration(modifiers ListRef, body Handle)
 	h.SetChild(slotClassStaticBlockDeclarationBody, body)
 	h.SetListSlot(listSlotClassStaticBlockDeclarationModifiers, modifiers)
 	return h
+}
+
+func (f Factory) UpdateClassStaticBlockDeclaration(node Handle, modifiers ListRef, body Handle) Handle {
+	if modifiers != node.ClassStaticBlockDeclarationModifiers() || !handlesEqual(body, node.ClassStaticBlockDeclarationBody()) {
+		return updateHandle(f.NewClassStaticBlockDeclaration(modifiers, body), node)
+	}
+	return node
 }
 
 func (h Handle) ClassStaticBlockDeclarationBody() Handle {
@@ -1632,6 +2045,13 @@ func (f *Factory) NewBinaryExpression(modifiers ListRef, left Handle, typeNode H
 	return h
 }
 
+func (f Factory) UpdateBinaryExpression(node Handle, modifiers ListRef, left Handle, typeNode Handle, operatorToken Handle, right Handle) Handle {
+	if modifiers != node.BinaryExpressionModifiers() || !handlesEqual(left, node.BinaryExpressionLeft()) || !handlesEqual(typeNode, node.BinaryExpressionType()) || !handlesEqual(operatorToken, node.BinaryExpressionOperatorToken()) || !handlesEqual(right, node.BinaryExpressionRight()) {
+		return updateHandle(f.NewBinaryExpression(modifiers, left, typeNode, operatorToken, right), node)
+	}
+	return node
+}
+
 func (h Handle) BinaryExpressionLeft() Handle         { return h.Child(slotBinaryExpressionLeft) }
 func (h Handle) SetBinaryExpressionLeft(value Handle) { h.SetChild(slotBinaryExpressionLeft, value) }
 
@@ -1662,6 +2082,13 @@ func (f *Factory) NewPrefixUnaryExpression(operator Kind, operand Handle) Handle
 	return h
 }
 
+func (f Factory) UpdatePrefixUnaryExpression(node Handle, operator Kind, operand Handle) Handle {
+	if operator != node.PrefixUnaryExpressionOperator() || !handlesEqual(operand, node.PrefixUnaryExpressionOperand()) {
+		return updateHandle(f.NewPrefixUnaryExpression(operator, operand), node)
+	}
+	return node
+}
+
 func (h Handle) PrefixUnaryExpressionOperand() Handle {
 	return h.Child(slotPrefixUnaryExpressionOperand)
 }
@@ -1683,6 +2110,13 @@ func (f *Factory) NewPostfixUnaryExpression(operand Handle, operator Kind) Handl
 	return h
 }
 
+func (f Factory) UpdatePostfixUnaryExpression(node Handle, operand Handle, operator Kind) Handle {
+	if !handlesEqual(operand, node.PostfixUnaryExpressionOperand()) || operator != node.PostfixUnaryExpressionOperator() {
+		return updateHandle(f.NewPostfixUnaryExpression(operand, operator), node)
+	}
+	return node
+}
+
 func (h Handle) PostfixUnaryExpressionOperand() Handle {
 	return h.Child(slotPostfixUnaryExpressionOperand)
 }
@@ -1702,6 +2136,13 @@ func (f *Factory) NewYieldExpression(asteriskToken Handle, expression Handle) Ha
 	h.SetChild(slotYieldExpressionAsteriskToken, asteriskToken)
 	h.SetChild(slotYieldExpressionExpression, expression)
 	return h
+}
+
+func (f Factory) UpdateYieldExpression(node Handle, asteriskToken Handle, expression Handle) Handle {
+	if !handlesEqual(asteriskToken, node.YieldExpressionAsteriskToken()) || !handlesEqual(expression, node.YieldExpressionExpression()) {
+		return updateHandle(f.NewYieldExpression(asteriskToken, expression), node)
+	}
+	return node
 }
 
 func (h Handle) YieldExpressionAsteriskToken() Handle {
@@ -1726,6 +2167,13 @@ func (f *Factory) NewArrowFunction(modifiers ListRef, typeParameters ListRef, pa
 	h.SetListSlot(listSlotArrowFunctionTypeParameters, typeParameters)
 	h.SetListSlot(listSlotArrowFunctionParameters, parameters)
 	return h
+}
+
+func (f Factory) UpdateArrowFunction(node Handle, modifiers ListRef, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, equalsGreaterThanToken Handle, body Handle) Handle {
+	if modifiers != node.ArrowFunctionModifiers() || typeParameters != node.ArrowFunctionTypeParameters() || parameters != node.ArrowFunctionParameters() || !handlesEqual(typeNode, node.ArrowFunctionType()) || !handlesEqual(fullSignature, node.ArrowFunctionFullSignature()) || !handlesEqual(equalsGreaterThanToken, node.ArrowFunctionEqualsGreaterThanToken()) || !handlesEqual(body, node.ArrowFunctionBody()) {
+		return updateHandle(f.NewArrowFunction(modifiers, typeParameters, parameters, typeNode, fullSignature, equalsGreaterThanToken, body), node)
+	}
+	return node
 }
 
 func (h Handle) ArrowFunctionType() Handle         { return h.Child(slotArrowFunctionType) }
@@ -1774,6 +2222,13 @@ func (f *Factory) NewFunctionExpression(modifiers ListRef, asteriskToken Handle,
 	h.SetListSlot(listSlotFunctionExpressionTypeParameters, typeParameters)
 	h.SetListSlot(listSlotFunctionExpressionParameters, parameters)
 	return h
+}
+
+func (f Factory) UpdateFunctionExpression(node Handle, modifiers ListRef, asteriskToken Handle, name Handle, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, body Handle) Handle {
+	if modifiers != node.FunctionExpressionModifiers() || !handlesEqual(asteriskToken, node.FunctionExpressionAsteriskToken()) || !handlesEqual(name, node.FunctionExpressionName()) || typeParameters != node.FunctionExpressionTypeParameters() || parameters != node.FunctionExpressionParameters() || !handlesEqual(typeNode, node.FunctionExpressionType()) || !handlesEqual(fullSignature, node.FunctionExpressionFullSignature()) || !handlesEqual(body, node.FunctionExpressionBody()) {
+		return updateHandle(f.NewFunctionExpression(modifiers, asteriskToken, name, typeParameters, parameters, typeNode, fullSignature, body), node)
+	}
+	return node
 }
 
 func (h Handle) FunctionExpressionAsteriskToken() Handle {
@@ -1833,6 +2288,13 @@ func (f *Factory) NewAsExpression(expression Handle, typeNode Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateAsExpression(node Handle, expression Handle, typeNode Handle) Handle {
+	if !handlesEqual(expression, node.AsExpressionExpression()) || !handlesEqual(typeNode, node.AsExpressionType()) {
+		return updateHandle(f.NewAsExpression(expression, typeNode), node)
+	}
+	return node
+}
+
 func (h Handle) AsExpressionExpression() Handle { return h.Child(slotAsExpressionExpression) }
 func (h Handle) SetAsExpressionExpression(value Handle) {
 	h.SetChild(slotAsExpressionExpression, value)
@@ -1846,6 +2308,13 @@ func (f *Factory) NewSatisfiesExpression(expression Handle, typeNode Handle) Han
 	h.SetChild(slotSatisfiesExpressionExpression, expression)
 	h.SetChild(slotSatisfiesExpressionType, typeNode)
 	return h
+}
+
+func (f Factory) UpdateSatisfiesExpression(node Handle, expression Handle, typeNode Handle) Handle {
+	if !handlesEqual(expression, node.SatisfiesExpressionExpression()) || !handlesEqual(typeNode, node.SatisfiesExpressionType()) {
+		return updateHandle(f.NewSatisfiesExpression(expression, typeNode), node)
+	}
+	return node
 }
 
 func (h Handle) SatisfiesExpressionExpression() Handle {
@@ -1868,6 +2337,13 @@ func (f *Factory) NewConditionalExpression(condition Handle, questionToken Handl
 	h.SetChild(slotConditionalExpressionColonToken, colonToken)
 	h.SetChild(slotConditionalExpressionWhenFalse, whenFalse)
 	return h
+}
+
+func (f Factory) UpdateConditionalExpression(node Handle, condition Handle, questionToken Handle, whenTrue Handle, colonToken Handle, whenFalse Handle) Handle {
+	if !handlesEqual(condition, node.ConditionalExpressionCondition()) || !handlesEqual(questionToken, node.ConditionalExpressionQuestionToken()) || !handlesEqual(whenTrue, node.ConditionalExpressionWhenTrue()) || !handlesEqual(colonToken, node.ConditionalExpressionColonToken()) || !handlesEqual(whenFalse, node.ConditionalExpressionWhenFalse()) {
+		return updateHandle(f.NewConditionalExpression(condition, questionToken, whenTrue, colonToken, whenFalse), node)
+	}
+	return node
 }
 
 func (h Handle) ConditionalExpressionCondition() Handle {
@@ -1913,6 +2389,13 @@ func (f *Factory) NewPropertyAccessExpression(expression Handle, questionDotToke
 	return h
 }
 
+func (f Factory) UpdatePropertyAccessExpression(node Handle, expression Handle, questionDotToken Handle, name Handle, flags NodeFlags) Handle {
+	if !handlesEqual(expression, node.PropertyAccessExpressionExpression()) || !handlesEqual(questionDotToken, node.PropertyAccessExpressionQuestionDotToken()) || !handlesEqual(name, node.PropertyAccessExpressionName()) || flags != node.Flags()&NodeFlagsOptionalChain {
+		return updateHandle(f.NewPropertyAccessExpression(expression, questionDotToken, name, flags), node)
+	}
+	return node
+}
+
 func (h Handle) PropertyAccessExpressionExpression() Handle {
 	return h.Child(slotPropertyAccessExpressionExpression)
 }
@@ -1940,6 +2423,13 @@ func (f *Factory) NewElementAccessExpression(expression Handle, questionDotToken
 	h.SetChild(slotElementAccessExpressionQuestionDotToken, questionDotToken)
 	h.SetChild(slotElementAccessExpressionArgumentExpression, argumentExpression)
 	return h
+}
+
+func (f Factory) UpdateElementAccessExpression(node Handle, expression Handle, questionDotToken Handle, argumentExpression Handle, flags NodeFlags) Handle {
+	if !handlesEqual(expression, node.ElementAccessExpressionExpression()) || !handlesEqual(questionDotToken, node.ElementAccessExpressionQuestionDotToken()) || !handlesEqual(argumentExpression, node.ElementAccessExpressionArgumentExpression()) || flags != node.Flags()&NodeFlagsOptionalChain {
+		return updateHandle(f.NewElementAccessExpression(expression, questionDotToken, argumentExpression, flags), node)
+	}
+	return node
 }
 
 func (h Handle) ElementAccessExpressionExpression() Handle {
@@ -1970,6 +2460,13 @@ func (f *Factory) NewCallExpression(expression Handle, questionDotToken Handle, 
 	h.SetListSlot(listSlotCallExpressionTypeArguments, typeArguments)
 	h.SetListSlot(listSlotCallExpressionArguments, arguments)
 	return h
+}
+
+func (f Factory) UpdateCallExpression(node Handle, expression Handle, questionDotToken Handle, typeArguments ListRef, arguments ListRef, flags NodeFlags) Handle {
+	if !handlesEqual(expression, node.CallExpressionExpression()) || !handlesEqual(questionDotToken, node.CallExpressionQuestionDotToken()) || typeArguments != node.CallExpressionTypeArguments() || arguments != node.CallExpressionArguments() || flags != node.Flags()&NodeFlagsOptionalChain {
+		return updateHandle(f.NewCallExpression(expression, questionDotToken, typeArguments, arguments, flags), node)
+	}
+	return node
 }
 
 func (h Handle) CallExpressionExpression() Handle { return h.Child(slotCallExpressionExpression) }
@@ -2004,6 +2501,13 @@ func (f *Factory) NewNewExpression(expression Handle, typeArguments ListRef, arg
 	return h
 }
 
+func (f Factory) UpdateNewExpression(node Handle, expression Handle, typeArguments ListRef, arguments ListRef) Handle {
+	if !handlesEqual(expression, node.NewExpressionExpression()) || typeArguments != node.NewExpressionTypeArguments() || arguments != node.NewExpressionArguments() {
+		return updateHandle(f.NewNewExpression(expression, typeArguments, arguments), node)
+	}
+	return node
+}
+
 func (h Handle) NewExpressionExpression() Handle { return h.Child(slotNewExpressionExpression) }
 func (h Handle) SetNewExpressionExpression(value Handle) {
 	h.SetChild(slotNewExpressionExpression, value)
@@ -2028,6 +2532,13 @@ func (f *Factory) NewMetaProperty(keywordToken Kind, name Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateMetaProperty(node Handle, keywordToken Kind, name Handle) Handle {
+	if keywordToken != node.MetaPropertyKeywordToken() || !handlesEqual(name, node.MetaPropertyName()) {
+		return updateHandle(f.NewMetaProperty(keywordToken, name), node)
+	}
+	return node
+}
+
 func (h Handle) MetaPropertyName() Handle         { return h.Child(slotMetaPropertyName) }
 func (h Handle) SetMetaPropertyName(value Handle) { h.SetChild(slotMetaPropertyName, value) }
 
@@ -2044,6 +2555,13 @@ func (f *Factory) NewNonNullExpression(expression Handle, flags NodeFlags) Handl
 	return h
 }
 
+func (f Factory) UpdateNonNullExpression(node Handle, expression Handle, flags NodeFlags) Handle {
+	if !handlesEqual(expression, node.NonNullExpressionExpression()) || flags != node.Flags()&NodeFlagsOptionalChain {
+		return updateHandle(f.NewNonNullExpression(expression, flags), node)
+	}
+	return node
+}
+
 func (h Handle) NonNullExpressionExpression() Handle { return h.Child(slotNonNullExpressionExpression) }
 func (h Handle) SetNonNullExpressionExpression(value Handle) {
 	h.SetChild(slotNonNullExpressionExpression, value)
@@ -2053,6 +2571,13 @@ func (f *Factory) NewSpreadElement(expression Handle) Handle {
 	h := f.createSlots(KindSpreadElement, 0, core.UndefinedTextRange(), 1, 0)
 	h.SetChild(slotSpreadElementExpression, expression)
 	return h
+}
+
+func (f Factory) UpdateSpreadElement(node Handle, expression Handle) Handle {
+	if !handlesEqual(expression, node.SpreadElementExpression()) {
+		return updateHandle(f.NewSpreadElement(expression), node)
+	}
+	return node
 }
 
 func (h Handle) SpreadElementExpression() Handle { return h.Child(slotSpreadElementExpression) }
@@ -2065,6 +2590,13 @@ func (f *Factory) NewTemplateExpression(head Handle, templateSpans ListRef) Hand
 	h.SetChild(slotTemplateExpressionHead, head)
 	h.SetListSlot(listSlotTemplateExpressionTemplateSpans, templateSpans)
 	return h
+}
+
+func (f Factory) UpdateTemplateExpression(node Handle, head Handle, templateSpans ListRef) Handle {
+	if !handlesEqual(head, node.TemplateExpressionHead()) || templateSpans != node.TemplateExpressionTemplateSpans() {
+		return updateHandle(f.NewTemplateExpression(head, templateSpans), node)
+	}
+	return node
 }
 
 func (h Handle) TemplateExpressionHead() Handle { return h.Child(slotTemplateExpressionHead) }
@@ -2086,6 +2618,13 @@ func (f *Factory) NewTemplateSpan(expression Handle, literal Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateTemplateSpan(node Handle, expression Handle, literal Handle) Handle {
+	if !handlesEqual(expression, node.TemplateSpanExpression()) || !handlesEqual(literal, node.TemplateSpanLiteral()) {
+		return updateHandle(f.NewTemplateSpan(expression, literal), node)
+	}
+	return node
+}
+
 func (h Handle) TemplateSpanExpression() Handle { return h.Child(slotTemplateSpanExpression) }
 func (h Handle) SetTemplateSpanExpression(value Handle) {
 	h.SetChild(slotTemplateSpanExpression, value)
@@ -2101,6 +2640,13 @@ func (f *Factory) NewTaggedTemplateExpression(tag Handle, questionDotToken Handl
 	h.SetChild(slotTaggedTemplateExpressionTemplate, template)
 	h.SetListSlot(listSlotTaggedTemplateExpressionTypeArguments, typeArguments)
 	return h
+}
+
+func (f Factory) UpdateTaggedTemplateExpression(node Handle, tag Handle, questionDotToken Handle, typeArguments ListRef, template Handle, flags NodeFlags) Handle {
+	if !handlesEqual(tag, node.TaggedTemplateExpressionTag()) || !handlesEqual(questionDotToken, node.TaggedTemplateExpressionQuestionDotToken()) || typeArguments != node.TaggedTemplateExpressionTypeArguments() || !handlesEqual(template, node.TaggedTemplateExpressionTemplate()) || flags != node.Flags()&NodeFlagsOptionalChain {
+		return updateHandle(f.NewTaggedTemplateExpression(tag, questionDotToken, typeArguments, template, flags), node)
+	}
+	return node
 }
 
 func (h Handle) TaggedTemplateExpressionTag() Handle { return h.Child(slotTaggedTemplateExpressionTag) }
@@ -2135,6 +2681,13 @@ func (f *Factory) NewParenthesizedExpression(expression Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateParenthesizedExpression(node Handle, expression Handle) Handle {
+	if !handlesEqual(expression, node.ParenthesizedExpressionExpression()) {
+		return updateHandle(f.NewParenthesizedExpression(expression), node)
+	}
+	return node
+}
+
 func (h Handle) ParenthesizedExpressionExpression() Handle {
 	return h.Child(slotParenthesizedExpressionExpression)
 }
@@ -2149,6 +2702,13 @@ func (f *Factory) NewArrayLiteralExpression(elements ListRef, multiLine bool) Ha
 		h.SetUintValue(valueSlotArrayLiteralExpressionMultiLine, 1)
 	}
 	return h
+}
+
+func (f Factory) UpdateArrayLiteralExpression(node Handle, elements ListRef, multiLine bool) Handle {
+	if elements != node.ArrayLiteralExpressionElements() || multiLine != node.ArrayLiteralExpressionMultiLine() {
+		return updateHandle(f.NewArrayLiteralExpression(elements, multiLine), node)
+	}
+	return node
 }
 
 func (h Handle) ArrayLiteralExpressionElements() ListRef {
@@ -2178,6 +2738,13 @@ func (f *Factory) NewObjectLiteralExpression(properties ListRef, multiLine bool)
 	return h
 }
 
+func (f Factory) UpdateObjectLiteralExpression(node Handle, properties ListRef, multiLine bool) Handle {
+	if properties != node.ObjectLiteralExpressionProperties() || multiLine != node.ObjectLiteralExpressionMultiLine() {
+		return updateHandle(f.NewObjectLiteralExpression(properties, multiLine), node)
+	}
+	return node
+}
+
 func (h Handle) ObjectLiteralExpressionProperties() ListRef {
 	return h.ListSlot(listSlotObjectLiteralExpressionProperties)
 }
@@ -2202,6 +2769,13 @@ func (f *Factory) NewSpreadAssignment(expression Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateSpreadAssignment(node Handle, expression Handle) Handle {
+	if !handlesEqual(expression, node.SpreadAssignmentExpression()) {
+		return updateHandle(f.NewSpreadAssignment(expression), node)
+	}
+	return node
+}
+
 func (h Handle) SpreadAssignmentExpression() Handle { return h.Child(slotSpreadAssignmentExpression) }
 func (h Handle) SetSpreadAssignmentExpression(value Handle) {
 	h.SetChild(slotSpreadAssignmentExpression, value)
@@ -2215,6 +2789,13 @@ func (f *Factory) NewPropertyAssignment(modifiers ListRef, name Handle, postfixT
 	h.SetChild(slotPropertyAssignmentInitializer, initializer)
 	h.SetListSlot(listSlotPropertyAssignmentModifiers, modifiers)
 	return h
+}
+
+func (f Factory) UpdatePropertyAssignment(node Handle, modifiers ListRef, name Handle, postfixToken Handle, typeNode Handle, initializer Handle) Handle {
+	if modifiers != node.PropertyAssignmentModifiers() || !handlesEqual(name, node.PropertyAssignmentName()) || !handlesEqual(postfixToken, node.PropertyAssignmentPostfixToken()) || !handlesEqual(typeNode, node.PropertyAssignmentType()) || !handlesEqual(initializer, node.PropertyAssignmentInitializer()) {
+		return updateHandle(f.NewPropertyAssignment(modifiers, name, postfixToken, typeNode, initializer), node)
+	}
+	return node
 }
 
 func (h Handle) PropertyAssignmentName() Handle { return h.Child(slotPropertyAssignmentName) }
@@ -2257,6 +2838,13 @@ func (f *Factory) NewShorthandPropertyAssignment(modifiers ListRef, name Handle,
 	h.SetChild(slotShorthandPropertyAssignmentObjectAssignmentInitializer, objectAssignmentInitializer)
 	h.SetListSlot(listSlotShorthandPropertyAssignmentModifiers, modifiers)
 	return h
+}
+
+func (f Factory) UpdateShorthandPropertyAssignment(node Handle, modifiers ListRef, name Handle, postfixToken Handle, typeNode Handle, equalsToken Handle, objectAssignmentInitializer Handle) Handle {
+	if modifiers != node.ShorthandPropertyAssignmentModifiers() || !handlesEqual(name, node.ShorthandPropertyAssignmentName()) || !handlesEqual(postfixToken, node.ShorthandPropertyAssignmentPostfixToken()) || !handlesEqual(typeNode, node.ShorthandPropertyAssignmentType()) || !handlesEqual(equalsToken, node.ShorthandPropertyAssignmentEqualsToken()) || !handlesEqual(objectAssignmentInitializer, node.ShorthandPropertyAssignmentObjectAssignmentInitializer()) {
+		return updateHandle(f.NewShorthandPropertyAssignment(modifiers, name, postfixToken, typeNode, equalsToken, objectAssignmentInitializer), node)
+	}
+	return node
 }
 
 func (h Handle) ShorthandPropertyAssignmentName() Handle {
@@ -2307,6 +2895,13 @@ func (f *Factory) NewDeleteExpression(expression Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateDeleteExpression(node Handle, expression Handle) Handle {
+	if !handlesEqual(expression, node.DeleteExpressionExpression()) {
+		return updateHandle(f.NewDeleteExpression(expression), node)
+	}
+	return node
+}
+
 func (h Handle) DeleteExpressionExpression() Handle { return h.Child(slotDeleteExpressionExpression) }
 func (h Handle) SetDeleteExpressionExpression(value Handle) {
 	h.SetChild(slotDeleteExpressionExpression, value)
@@ -2316,6 +2911,13 @@ func (f *Factory) NewTypeOfExpression(expression Handle) Handle {
 	h := f.createSlots(KindTypeOfExpression, 0, core.UndefinedTextRange(), 1, 0)
 	h.SetChild(slotTypeOfExpressionExpression, expression)
 	return h
+}
+
+func (f Factory) UpdateTypeOfExpression(node Handle, expression Handle) Handle {
+	if !handlesEqual(expression, node.TypeOfExpressionExpression()) {
+		return updateHandle(f.NewTypeOfExpression(expression), node)
+	}
+	return node
 }
 
 func (h Handle) TypeOfExpressionExpression() Handle { return h.Child(slotTypeOfExpressionExpression) }
@@ -2329,6 +2931,13 @@ func (f *Factory) NewVoidExpression(expression Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateVoidExpression(node Handle, expression Handle) Handle {
+	if !handlesEqual(expression, node.VoidExpressionExpression()) {
+		return updateHandle(f.NewVoidExpression(expression), node)
+	}
+	return node
+}
+
 func (h Handle) VoidExpressionExpression() Handle { return h.Child(slotVoidExpressionExpression) }
 func (h Handle) SetVoidExpressionExpression(value Handle) {
 	h.SetChild(slotVoidExpressionExpression, value)
@@ -2338,6 +2947,13 @@ func (f *Factory) NewAwaitExpression(expression Handle) Handle {
 	h := f.createSlots(KindAwaitExpression, 0, core.UndefinedTextRange(), 1, 0)
 	h.SetChild(slotAwaitExpressionExpression, expression)
 	return h
+}
+
+func (f Factory) UpdateAwaitExpression(node Handle, expression Handle) Handle {
+	if !handlesEqual(expression, node.AwaitExpressionExpression()) {
+		return updateHandle(f.NewAwaitExpression(expression), node)
+	}
+	return node
 }
 
 func (h Handle) AwaitExpressionExpression() Handle { return h.Child(slotAwaitExpressionExpression) }
@@ -2350,6 +2966,13 @@ func (f *Factory) NewTypeAssertion(typeNode Handle, expression Handle) Handle {
 	h.SetChild(slotTypeAssertionType, typeNode)
 	h.SetChild(slotTypeAssertionExpression, expression)
 	return h
+}
+
+func (f Factory) UpdateTypeAssertion(node Handle, typeNode Handle, expression Handle) Handle {
+	if !handlesEqual(typeNode, node.TypeAssertionType()) || !handlesEqual(expression, node.TypeAssertionExpression()) {
+		return updateHandle(f.NewTypeAssertion(typeNode, expression), node)
+	}
+	return node
 }
 
 func (h Handle) TypeAssertionType() Handle         { return h.Child(slotTypeAssertionType) }
@@ -2371,6 +2994,13 @@ func (f *Factory) NewUnionTypeNode(types ListRef) Handle {
 	return h
 }
 
+func (f Factory) UpdateUnionTypeNode(node Handle, types ListRef) Handle {
+	if types != node.UnionTypeNodeTypes() {
+		return updateHandle(f.NewUnionTypeNode(types), node)
+	}
+	return node
+}
+
 func (h Handle) UnionTypeNodeTypes() ListRef { return h.ListSlot(listSlotUnionTypeNodeTypes) }
 func (h Handle) SetUnionTypeNodeTypes(value ListRef) {
 	h.SetListSlot(listSlotUnionTypeNodeTypes, value)
@@ -2380,6 +3010,13 @@ func (f *Factory) NewIntersectionTypeNode(types ListRef) Handle {
 	h := f.createSlots(KindIntersectionType, 0, core.UndefinedTextRange(), 0, 1)
 	h.SetListSlot(listSlotIntersectionTypeNodeTypes, types)
 	return h
+}
+
+func (f Factory) UpdateIntersectionTypeNode(node Handle, types ListRef) Handle {
+	if types != node.IntersectionTypeNodeTypes() {
+		return updateHandle(f.NewIntersectionTypeNode(types), node)
+	}
+	return node
 }
 
 func (h Handle) IntersectionTypeNodeTypes() ListRef {
@@ -2396,6 +3033,13 @@ func (f *Factory) NewConditionalTypeNode(checkType Handle, extendsType Handle, t
 	h.SetChild(slotConditionalTypeNodeTrueType, trueType)
 	h.SetChild(slotConditionalTypeNodeFalseType, falseType)
 	return h
+}
+
+func (f Factory) UpdateConditionalTypeNode(node Handle, checkType Handle, extendsType Handle, trueType Handle, falseType Handle) Handle {
+	if !handlesEqual(checkType, node.ConditionalTypeNodeCheckType()) || !handlesEqual(extendsType, node.ConditionalTypeNodeExtendsType()) || !handlesEqual(trueType, node.ConditionalTypeNodeTrueType()) || !handlesEqual(falseType, node.ConditionalTypeNodeFalseType()) {
+		return updateHandle(f.NewConditionalTypeNode(checkType, extendsType, trueType, falseType), node)
+	}
+	return node
 }
 
 func (h Handle) ConditionalTypeNodeCheckType() Handle {
@@ -2431,6 +3075,13 @@ func (f *Factory) NewTypeOperatorNode(operator Kind, typeNode Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateTypeOperatorNode(node Handle, operator Kind, typeNode Handle) Handle {
+	if operator != node.TypeOperatorNodeOperator() || !handlesEqual(typeNode, node.TypeOperatorNodeType()) {
+		return updateHandle(f.NewTypeOperatorNode(operator, typeNode), node)
+	}
+	return node
+}
+
 func (h Handle) TypeOperatorNodeType() Handle         { return h.Child(slotTypeOperatorNodeType) }
 func (h Handle) SetTypeOperatorNodeType(value Handle) { h.SetChild(slotTypeOperatorNodeType, value) }
 
@@ -2447,6 +3098,13 @@ func (f *Factory) NewInferTypeNode(typeParameter Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateInferTypeNode(node Handle, typeParameter Handle) Handle {
+	if !handlesEqual(typeParameter, node.InferTypeNodeTypeParameter()) {
+		return updateHandle(f.NewInferTypeNode(typeParameter), node)
+	}
+	return node
+}
+
 func (h Handle) InferTypeNodeTypeParameter() Handle { return h.Child(slotInferTypeNodeTypeParameter) }
 func (h Handle) SetInferTypeNodeTypeParameter(value Handle) {
 	h.SetChild(slotInferTypeNodeTypeParameter, value)
@@ -2456,6 +3114,13 @@ func (f *Factory) NewArrayTypeNode(elementType Handle) Handle {
 	h := f.createSlots(KindArrayType, 0, core.UndefinedTextRange(), 1, 0)
 	h.SetChild(slotArrayTypeNodeElementType, elementType)
 	return h
+}
+
+func (f Factory) UpdateArrayTypeNode(node Handle, elementType Handle) Handle {
+	if !handlesEqual(elementType, node.ArrayTypeNodeElementType()) {
+		return updateHandle(f.NewArrayTypeNode(elementType), node)
+	}
+	return node
 }
 
 func (h Handle) ArrayTypeNodeElementType() Handle { return h.Child(slotArrayTypeNodeElementType) }
@@ -2468,6 +3133,13 @@ func (f *Factory) NewIndexedAccessTypeNode(objectType Handle, indexType Handle) 
 	h.SetChild(slotIndexedAccessTypeNodeObjectType, objectType)
 	h.SetChild(slotIndexedAccessTypeNodeIndexType, indexType)
 	return h
+}
+
+func (f Factory) UpdateIndexedAccessTypeNode(node Handle, objectType Handle, indexType Handle) Handle {
+	if !handlesEqual(objectType, node.IndexedAccessTypeNodeObjectType()) || !handlesEqual(indexType, node.IndexedAccessTypeNodeIndexType()) {
+		return updateHandle(f.NewIndexedAccessTypeNode(objectType, indexType), node)
+	}
+	return node
 }
 
 func (h Handle) IndexedAccessTypeNodeObjectType() Handle {
@@ -2491,6 +3163,13 @@ func (f *Factory) NewTypeReferenceNode(typeName Handle, typeArguments ListRef) H
 	return h
 }
 
+func (f Factory) UpdateTypeReferenceNode(node Handle, typeName Handle, typeArguments ListRef) Handle {
+	if !handlesEqual(typeName, node.TypeReferenceNodeTypeName()) || typeArguments != node.TypeReferenceNodeTypeArguments() {
+		return updateHandle(f.NewTypeReferenceNode(typeName, typeArguments), node)
+	}
+	return node
+}
+
 func (h Handle) TypeReferenceNodeTypeName() Handle { return h.Child(slotTypeReferenceNodeTypeName) }
 func (h Handle) SetTypeReferenceNodeTypeName(value Handle) {
 	h.SetChild(slotTypeReferenceNodeTypeName, value)
@@ -2508,6 +3187,13 @@ func (f *Factory) NewExpressionWithTypeArguments(expression Handle, typeArgument
 	h.SetChild(slotExpressionWithTypeArgumentsExpression, expression)
 	h.SetListSlot(listSlotExpressionWithTypeArgumentsTypeArguments, typeArguments)
 	return h
+}
+
+func (f Factory) UpdateExpressionWithTypeArguments(node Handle, expression Handle, typeArguments ListRef) Handle {
+	if !handlesEqual(expression, node.ExpressionWithTypeArgumentsExpression()) || typeArguments != node.ExpressionWithTypeArgumentsTypeArguments() {
+		return updateHandle(f.NewExpressionWithTypeArguments(expression, typeArguments), node)
+	}
+	return node
 }
 
 func (h Handle) ExpressionWithTypeArgumentsExpression() Handle {
@@ -2530,6 +3216,13 @@ func (f *Factory) NewLiteralTypeNode(literal Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateLiteralTypeNode(node Handle, literal Handle) Handle {
+	if !handlesEqual(literal, node.LiteralTypeNodeLiteral()) {
+		return updateHandle(f.NewLiteralTypeNode(literal), node)
+	}
+	return node
+}
+
 func (h Handle) LiteralTypeNodeLiteral() Handle { return h.Child(slotLiteralTypeNodeLiteral) }
 func (h Handle) SetLiteralTypeNodeLiteral(value Handle) {
 	h.SetChild(slotLiteralTypeNodeLiteral, value)
@@ -2546,6 +3239,13 @@ func (f *Factory) NewTypePredicateNode(assertsModifier Handle, parameterName Han
 	h.SetChild(slotTypePredicateNodeParameterName, parameterName)
 	h.SetChild(slotTypePredicateNodeType, typeNode)
 	return h
+}
+
+func (f Factory) UpdateTypePredicateNode(node Handle, assertsModifier Handle, parameterName Handle, typeNode Handle) Handle {
+	if !handlesEqual(assertsModifier, node.TypePredicateNodeAssertsModifier()) || !handlesEqual(parameterName, node.TypePredicateNodeParameterName()) || !handlesEqual(typeNode, node.TypePredicateNodeType()) {
+		return updateHandle(f.NewTypePredicateNode(assertsModifier, parameterName, typeNode), node)
+	}
+	return node
 }
 
 func (h Handle) TypePredicateNodeAssertsModifier() Handle {
@@ -2572,6 +3272,13 @@ func (f *Factory) NewImportAttribute(name Handle, value Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateImportAttribute(node Handle, name Handle, value Handle) Handle {
+	if !handlesEqual(name, node.ImportAttributeName()) || !handlesEqual(value, node.ImportAttributeValue()) {
+		return updateHandle(f.NewImportAttribute(name, value), node)
+	}
+	return node
+}
+
 func (h Handle) ImportAttributeName() Handle         { return h.Child(slotImportAttributeName) }
 func (h Handle) SetImportAttributeName(value Handle) { h.SetChild(slotImportAttributeName, value) }
 
@@ -2586,6 +3293,13 @@ func (f *Factory) NewImportAttributes(token Kind, attributes ListRef, multiLine 
 		h.SetUintValue(valueSlotImportAttributesMultiLine, 1)
 	}
 	return h
+}
+
+func (f Factory) UpdateImportAttributes(node Handle, token Kind, attributes ListRef, multiLine bool) Handle {
+	if token != node.ImportAttributesToken() || attributes != node.ImportAttributesAttributes() || multiLine != node.ImportAttributesMultiLine() {
+		return updateHandle(f.NewImportAttributes(token, attributes, multiLine), node)
+	}
+	return node
 }
 
 func (h Handle) ImportAttributesAttributes() ListRef {
@@ -2620,6 +3334,13 @@ func (f *Factory) NewTypeQueryNode(exprName Handle, typeArguments ListRef) Handl
 	return h
 }
 
+func (f Factory) UpdateTypeQueryNode(node Handle, exprName Handle, typeArguments ListRef) Handle {
+	if !handlesEqual(exprName, node.TypeQueryNodeExprName()) || typeArguments != node.TypeQueryNodeTypeArguments() {
+		return updateHandle(f.NewTypeQueryNode(exprName, typeArguments), node)
+	}
+	return node
+}
+
 func (h Handle) TypeQueryNodeExprName() Handle         { return h.Child(slotTypeQueryNodeExprName) }
 func (h Handle) SetTypeQueryNodeExprName(value Handle) { h.SetChild(slotTypeQueryNodeExprName, value) }
 
@@ -2639,6 +3360,13 @@ func (f *Factory) NewMappedTypeNode(readonlyToken Handle, typeParameter Handle, 
 	h.SetChild(slotMappedTypeNodeType, typeNode)
 	h.SetListSlot(listSlotMappedTypeNodeMembers, members)
 	return h
+}
+
+func (f Factory) UpdateMappedTypeNode(node Handle, readonlyToken Handle, typeParameter Handle, nameType Handle, questionToken Handle, typeNode Handle, members ListRef) Handle {
+	if !handlesEqual(readonlyToken, node.MappedTypeNodeReadonlyToken()) || !handlesEqual(typeParameter, node.MappedTypeNodeTypeParameter()) || !handlesEqual(nameType, node.MappedTypeNodeNameType()) || !handlesEqual(questionToken, node.MappedTypeNodeQuestionToken()) || !handlesEqual(typeNode, node.MappedTypeNodeType()) || members != node.MappedTypeNodeMembers() {
+		return updateHandle(f.NewMappedTypeNode(readonlyToken, typeParameter, nameType, questionToken, typeNode, members), node)
+	}
+	return node
 }
 
 func (h Handle) MappedTypeNodeReadonlyToken() Handle { return h.Child(slotMappedTypeNodeReadonlyToken) }
@@ -2675,6 +3403,13 @@ func (f *Factory) NewTypeLiteralNode(members ListRef) Handle {
 	return h
 }
 
+func (f Factory) UpdateTypeLiteralNode(node Handle, members ListRef) Handle {
+	if members != node.TypeLiteralNodeMembers() {
+		return updateHandle(f.NewTypeLiteralNode(members), node)
+	}
+	return node
+}
+
 func (h Handle) TypeLiteralNodeMembers() ListRef { return h.ListSlot(listSlotTypeLiteralNodeMembers) }
 func (h Handle) SetTypeLiteralNodeMembers(value ListRef) {
 	h.SetListSlot(listSlotTypeLiteralNodeMembers, value)
@@ -2684,6 +3419,13 @@ func (f *Factory) NewTupleTypeNode(elements ListRef) Handle {
 	h := f.createSlots(KindTupleType, 0, core.UndefinedTextRange(), 0, 1)
 	h.SetListSlot(listSlotTupleTypeNodeElements, elements)
 	return h
+}
+
+func (f Factory) UpdateTupleTypeNode(node Handle, elements ListRef) Handle {
+	if elements != node.TupleTypeNodeElements() {
+		return updateHandle(f.NewTupleTypeNode(elements), node)
+	}
+	return node
 }
 
 func (h Handle) TupleTypeNodeElements() ListRef { return h.ListSlot(listSlotTupleTypeNodeElements) }
@@ -2698,6 +3440,13 @@ func (f *Factory) NewNamedTupleMember(dotDotDotToken Handle, name Handle, questi
 	h.SetChild(slotNamedTupleMemberQuestionToken, questionToken)
 	h.SetChild(slotNamedTupleMemberType, typeNode)
 	return h
+}
+
+func (f Factory) UpdateNamedTupleMember(node Handle, dotDotDotToken Handle, name Handle, questionToken Handle, typeNode Handle) Handle {
+	if !handlesEqual(dotDotDotToken, node.NamedTupleMemberDotDotDotToken()) || !handlesEqual(name, node.NamedTupleMemberName()) || !handlesEqual(questionToken, node.NamedTupleMemberQuestionToken()) || !handlesEqual(typeNode, node.NamedTupleMemberType()) {
+		return updateHandle(f.NewNamedTupleMember(dotDotDotToken, name, questionToken, typeNode), node)
+	}
+	return node
 }
 
 func (h Handle) NamedTupleMemberDotDotDotToken() Handle {
@@ -2726,6 +3475,13 @@ func (f *Factory) NewOptionalTypeNode(typeNode Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateOptionalTypeNode(node Handle, typeNode Handle) Handle {
+	if !handlesEqual(typeNode, node.OptionalTypeNodeType()) {
+		return updateHandle(f.NewOptionalTypeNode(typeNode), node)
+	}
+	return node
+}
+
 func (h Handle) OptionalTypeNodeType() Handle         { return h.Child(slotOptionalTypeNodeType) }
 func (h Handle) SetOptionalTypeNodeType(value Handle) { h.SetChild(slotOptionalTypeNodeType, value) }
 
@@ -2735,6 +3491,13 @@ func (f *Factory) NewRestTypeNode(typeNode Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateRestTypeNode(node Handle, typeNode Handle) Handle {
+	if !handlesEqual(typeNode, node.RestTypeNodeType()) {
+		return updateHandle(f.NewRestTypeNode(typeNode), node)
+	}
+	return node
+}
+
 func (h Handle) RestTypeNodeType() Handle         { return h.Child(slotRestTypeNodeType) }
 func (h Handle) SetRestTypeNodeType(value Handle) { h.SetChild(slotRestTypeNodeType, value) }
 
@@ -2742,6 +3505,13 @@ func (f *Factory) NewParenthesizedTypeNode(typeNode Handle) Handle {
 	h := f.createSlots(KindParenthesizedType, 0, core.UndefinedTextRange(), 1, 0)
 	h.SetChild(slotParenthesizedTypeNodeType, typeNode)
 	return h
+}
+
+func (f Factory) UpdateParenthesizedTypeNode(node Handle, typeNode Handle) Handle {
+	if !handlesEqual(typeNode, node.ParenthesizedTypeNodeType()) {
+		return updateHandle(f.NewParenthesizedTypeNode(typeNode), node)
+	}
+	return node
 }
 
 func (h Handle) ParenthesizedTypeNodeType() Handle { return h.Child(slotParenthesizedTypeNodeType) }
@@ -2755,6 +3525,13 @@ func (f *Factory) NewFunctionTypeNode(typeParameters ListRef, parameters ListRef
 	h.SetListSlot(listSlotFunctionTypeNodeTypeParameters, typeParameters)
 	h.SetListSlot(listSlotFunctionTypeNodeParameters, parameters)
 	return h
+}
+
+func (f Factory) UpdateFunctionTypeNode(node Handle, typeParameters ListRef, parameters ListRef, typeNode Handle) Handle {
+	if typeParameters != node.FunctionTypeNodeTypeParameters() || parameters != node.FunctionTypeNodeParameters() || !handlesEqual(typeNode, node.FunctionTypeNodeType()) {
+		return updateHandle(f.NewFunctionTypeNode(typeParameters, parameters, typeNode), node)
+	}
+	return node
 }
 
 func (h Handle) FunctionTypeNodeType() Handle         { return h.Child(slotFunctionTypeNodeType) }
@@ -2781,6 +3558,13 @@ func (f *Factory) NewConstructorTypeNode(modifiers ListRef, typeParameters ListR
 	h.SetListSlot(listSlotConstructorTypeNodeTypeParameters, typeParameters)
 	h.SetListSlot(listSlotConstructorTypeNodeParameters, parameters)
 	return h
+}
+
+func (f Factory) UpdateConstructorTypeNode(node Handle, modifiers ListRef, typeParameters ListRef, parameters ListRef, typeNode Handle) Handle {
+	if modifiers != node.ConstructorTypeNodeModifiers() || typeParameters != node.ConstructorTypeNodeTypeParameters() || parameters != node.ConstructorTypeNodeParameters() || !handlesEqual(typeNode, node.ConstructorTypeNodeType()) {
+		return updateHandle(f.NewConstructorTypeNode(modifiers, typeParameters, parameters, typeNode), node)
+	}
+	return node
 }
 
 func (h Handle) ConstructorTypeNodeType() Handle { return h.Child(slotConstructorTypeNodeType) }
@@ -2884,6 +3668,13 @@ func (f *Factory) NewTemplateLiteralTypeNode(head Handle, templateSpans ListRef)
 	return h
 }
 
+func (f Factory) UpdateTemplateLiteralTypeNode(node Handle, head Handle, templateSpans ListRef) Handle {
+	if !handlesEqual(head, node.TemplateLiteralTypeNodeHead()) || templateSpans != node.TemplateLiteralTypeNodeTemplateSpans() {
+		return updateHandle(f.NewTemplateLiteralTypeNode(head, templateSpans), node)
+	}
+	return node
+}
+
 func (h Handle) TemplateLiteralTypeNodeHead() Handle { return h.Child(slotTemplateLiteralTypeNodeHead) }
 func (h Handle) SetTemplateLiteralTypeNodeHead(value Handle) {
 	h.SetChild(slotTemplateLiteralTypeNodeHead, value)
@@ -2901,6 +3692,13 @@ func (f *Factory) NewTemplateLiteralTypeSpan(typeNode Handle, literal Handle) Ha
 	h.SetChild(slotTemplateLiteralTypeSpanType, typeNode)
 	h.SetChild(slotTemplateLiteralTypeSpanLiteral, literal)
 	return h
+}
+
+func (f Factory) UpdateTemplateLiteralTypeSpan(node Handle, typeNode Handle, literal Handle) Handle {
+	if !handlesEqual(typeNode, node.TemplateLiteralTypeSpanType()) || !handlesEqual(literal, node.TemplateLiteralTypeSpanLiteral()) {
+		return updateHandle(f.NewTemplateLiteralTypeSpan(typeNode, literal), node)
+	}
+	return node
 }
 
 func (h Handle) TemplateLiteralTypeSpanType() Handle { return h.Child(slotTemplateLiteralTypeSpanType) }
@@ -2923,6 +3721,13 @@ func (f *Factory) NewSyntheticExpression(typeNode any, isSpread bool, tupleNameS
 		h.SetUintValue(valueSlotSyntheticExpressionIsSpread, 1)
 	}
 	return h
+}
+
+func (f Factory) UpdateSyntheticExpression(node Handle, typeNode any, isSpread bool, tupleNameSource Handle) Handle {
+	if typeNode != node.SyntheticExpressionType() || isSpread != node.SyntheticExpressionIsSpread() || !handlesEqual(tupleNameSource, node.SyntheticExpressionTupleNameSource()) {
+		return updateHandle(f.NewSyntheticExpression(typeNode, isSpread, tupleNameSource), node)
+	}
+	return node
 }
 
 func (h Handle) SyntheticExpressionTupleNameSource() Handle {
@@ -2956,6 +3761,13 @@ func (f *Factory) NewPartiallyEmittedExpression(expression Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdatePartiallyEmittedExpression(node Handle, expression Handle) Handle {
+	if !handlesEqual(expression, node.PartiallyEmittedExpressionExpression()) {
+		return updateHandle(f.NewPartiallyEmittedExpression(expression), node)
+	}
+	return node
+}
+
 func (h Handle) PartiallyEmittedExpressionExpression() Handle {
 	return h.Child(slotPartiallyEmittedExpressionExpression)
 }
@@ -2969,6 +3781,13 @@ func (f *Factory) NewJsxElement(openingElement Handle, children ListRef, closing
 	h.SetChild(slotJsxElementClosingElement, closingElement)
 	h.SetListSlot(listSlotJsxElementChildren, children)
 	return h
+}
+
+func (f Factory) UpdateJsxElement(node Handle, openingElement Handle, children ListRef, closingElement Handle) Handle {
+	if !handlesEqual(openingElement, node.JsxElementOpeningElement()) || children != node.JsxElementChildren() || !handlesEqual(closingElement, node.JsxElementClosingElement()) {
+		return updateHandle(f.NewJsxElement(openingElement, children, closingElement), node)
+	}
+	return node
 }
 
 func (h Handle) JsxElementOpeningElement() Handle { return h.Child(slotJsxElementOpeningElement) }
@@ -2992,6 +3811,13 @@ func (f *Factory) NewJsxAttributes(properties ListRef) Handle {
 	return h
 }
 
+func (f Factory) UpdateJsxAttributes(node Handle, properties ListRef) Handle {
+	if properties != node.JsxAttributesProperties() {
+		return updateHandle(f.NewJsxAttributes(properties), node)
+	}
+	return node
+}
+
 func (h Handle) JsxAttributesProperties() ListRef { return h.ListSlot(listSlotJsxAttributesProperties) }
 func (h Handle) SetJsxAttributesProperties(value ListRef) {
 	h.SetListSlot(listSlotJsxAttributesProperties, value)
@@ -3002,6 +3828,13 @@ func (f *Factory) NewJsxNamespacedName(namespace Handle, name Handle) Handle {
 	h.SetChild(slotJsxNamespacedNameNamespace, namespace)
 	h.SetChild(slotJsxNamespacedNameName, name)
 	return h
+}
+
+func (f Factory) UpdateJsxNamespacedName(node Handle, namespace Handle, name Handle) Handle {
+	if !handlesEqual(namespace, node.JsxNamespacedNameNamespace()) || !handlesEqual(name, node.JsxNamespacedNameName()) {
+		return updateHandle(f.NewJsxNamespacedName(namespace, name), node)
+	}
+	return node
 }
 
 func (h Handle) JsxNamespacedNameNamespace() Handle { return h.Child(slotJsxNamespacedNameNamespace) }
@@ -3018,6 +3851,13 @@ func (f *Factory) NewJsxOpeningElement(tagName Handle, typeArguments ListRef, at
 	h.SetChild(slotJsxOpeningElementAttributes, attributes)
 	h.SetListSlot(listSlotJsxOpeningElementTypeArguments, typeArguments)
 	return h
+}
+
+func (f Factory) UpdateJsxOpeningElement(node Handle, tagName Handle, typeArguments ListRef, attributes Handle) Handle {
+	if !handlesEqual(tagName, node.JsxOpeningElementTagName()) || typeArguments != node.JsxOpeningElementTypeArguments() || !handlesEqual(attributes, node.JsxOpeningElementAttributes()) {
+		return updateHandle(f.NewJsxOpeningElement(tagName, typeArguments, attributes), node)
+	}
+	return node
 }
 
 func (h Handle) JsxOpeningElementTagName() Handle { return h.Child(slotJsxOpeningElementTagName) }
@@ -3043,6 +3883,13 @@ func (f *Factory) NewJsxSelfClosingElement(tagName Handle, typeArguments ListRef
 	h.SetChild(slotJsxSelfClosingElementAttributes, attributes)
 	h.SetListSlot(listSlotJsxSelfClosingElementTypeArguments, typeArguments)
 	return h
+}
+
+func (f Factory) UpdateJsxSelfClosingElement(node Handle, tagName Handle, typeArguments ListRef, attributes Handle) Handle {
+	if !handlesEqual(tagName, node.JsxSelfClosingElementTagName()) || typeArguments != node.JsxSelfClosingElementTypeArguments() || !handlesEqual(attributes, node.JsxSelfClosingElementAttributes()) {
+		return updateHandle(f.NewJsxSelfClosingElement(tagName, typeArguments, attributes), node)
+	}
+	return node
 }
 
 func (h Handle) JsxSelfClosingElementTagName() Handle {
@@ -3072,6 +3919,13 @@ func (f *Factory) NewJsxFragment(openingFragment Handle, children ListRef, closi
 	h.SetChild(slotJsxFragmentClosingFragment, closingFragment)
 	h.SetListSlot(listSlotJsxFragmentChildren, children)
 	return h
+}
+
+func (f Factory) UpdateJsxFragment(node Handle, openingFragment Handle, children ListRef, closingFragment Handle) Handle {
+	if !handlesEqual(openingFragment, node.JsxFragmentOpeningFragment()) || children != node.JsxFragmentChildren() || !handlesEqual(closingFragment, node.JsxFragmentClosingFragment()) {
+		return updateHandle(f.NewJsxFragment(openingFragment, children, closingFragment), node)
+	}
+	return node
 }
 
 func (h Handle) JsxFragmentOpeningFragment() Handle { return h.Child(slotJsxFragmentOpeningFragment) }
@@ -3106,6 +3960,13 @@ func (f *Factory) NewJsxAttribute(name Handle, initializer Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateJsxAttribute(node Handle, name Handle, initializer Handle) Handle {
+	if !handlesEqual(name, node.JsxAttributeName()) || !handlesEqual(initializer, node.JsxAttributeInitializer()) {
+		return updateHandle(f.NewJsxAttribute(name, initializer), node)
+	}
+	return node
+}
+
 func (h Handle) JsxAttributeName() Handle         { return h.Child(slotJsxAttributeName) }
 func (h Handle) SetJsxAttributeName(value Handle) { h.SetChild(slotJsxAttributeName, value) }
 
@@ -3118,6 +3979,13 @@ func (f *Factory) NewJsxSpreadAttribute(expression Handle) Handle {
 	h := f.createSlots(KindJsxSpreadAttribute, 0, core.UndefinedTextRange(), 1, 0)
 	h.SetChild(slotJsxSpreadAttributeExpression, expression)
 	return h
+}
+
+func (f Factory) UpdateJsxSpreadAttribute(node Handle, expression Handle) Handle {
+	if !handlesEqual(expression, node.JsxSpreadAttributeExpression()) {
+		return updateHandle(f.NewJsxSpreadAttribute(expression), node)
+	}
+	return node
 }
 
 func (h Handle) JsxSpreadAttributeExpression() Handle {
@@ -3133,6 +4001,13 @@ func (f *Factory) NewJsxClosingElement(tagName Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateJsxClosingElement(node Handle, tagName Handle) Handle {
+	if !handlesEqual(tagName, node.JsxClosingElementTagName()) {
+		return updateHandle(f.NewJsxClosingElement(tagName), node)
+	}
+	return node
+}
+
 func (h Handle) JsxClosingElementTagName() Handle { return h.Child(slotJsxClosingElementTagName) }
 func (h Handle) SetJsxClosingElementTagName(value Handle) {
 	h.SetChild(slotJsxClosingElementTagName, value)
@@ -3143,6 +4018,13 @@ func (f *Factory) NewJsxExpression(dotDotDotToken Handle, expression Handle) Han
 	h.SetChild(slotJsxExpressionDotDotDotToken, dotDotDotToken)
 	h.SetChild(slotJsxExpressionExpression, expression)
 	return h
+}
+
+func (f Factory) UpdateJsxExpression(node Handle, dotDotDotToken Handle, expression Handle) Handle {
+	if !handlesEqual(dotDotDotToken, node.JsxExpressionDotDotDotToken()) || !handlesEqual(expression, node.JsxExpressionExpression()) {
+		return updateHandle(f.NewJsxExpression(dotDotDotToken, expression), node)
+	}
+	return node
 }
 
 func (h Handle) JsxExpressionDotDotDotToken() Handle { return h.Child(slotJsxExpressionDotDotDotToken) }
@@ -3187,6 +4069,13 @@ func (f *Factory) NewSyntaxList(children ListRef) Handle {
 	return h
 }
 
+func (f Factory) UpdateSyntaxList(node Handle, children ListRef) Handle {
+	if children != node.SyntaxListChildren() {
+		return updateHandle(f.NewSyntaxList(children), node)
+	}
+	return node
+}
+
 func (h Handle) SyntaxListChildren() ListRef { return h.ListSlot(listSlotSyntaxListChildren) }
 func (h Handle) SetSyntaxListChildren(value ListRef) {
 	h.SetListSlot(listSlotSyntaxListChildren, value)
@@ -3197,6 +4086,13 @@ func (f *Factory) NewJSDoc(comment ListRef, tags ListRef) Handle {
 	h.SetListSlot(listSlotJSDocComment, comment)
 	h.SetListSlot(listSlotJSDocTags, tags)
 	return h
+}
+
+func (f Factory) UpdateJSDoc(node Handle, comment ListRef, tags ListRef) Handle {
+	if comment != node.JSDocComment() || tags != node.JSDocTags() {
+		return updateHandle(f.NewJSDoc(comment, tags), node)
+	}
+	return node
 }
 
 func (h Handle) JSDocComment() ListRef         { return h.ListSlot(listSlotJSDocComment) }
@@ -3211,6 +4107,13 @@ func (f *Factory) NewJSDocTypeExpression(typeNode Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateJSDocTypeExpression(node Handle, typeNode Handle) Handle {
+	if !handlesEqual(typeNode, node.JSDocTypeExpressionType()) {
+		return updateHandle(f.NewJSDocTypeExpression(typeNode), node)
+	}
+	return node
+}
+
 func (h Handle) JSDocTypeExpressionType() Handle { return h.Child(slotJSDocTypeExpressionType) }
 func (h Handle) SetJSDocTypeExpressionType(value Handle) {
 	h.SetChild(slotJSDocTypeExpressionType, value)
@@ -3222,6 +4125,13 @@ func (f *Factory) NewJSDocNonNullableType(typeNode Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateJSDocNonNullableType(node Handle, typeNode Handle) Handle {
+	if !handlesEqual(typeNode, node.JSDocNonNullableTypeType()) {
+		return updateHandle(f.NewJSDocNonNullableType(typeNode), node)
+	}
+	return node
+}
+
 func (h Handle) JSDocNonNullableTypeType() Handle { return h.Child(slotJSDocNonNullableTypeType) }
 func (h Handle) SetJSDocNonNullableTypeType(value Handle) {
 	h.SetChild(slotJSDocNonNullableTypeType, value)
@@ -3231,6 +4141,13 @@ func (f *Factory) NewJSDocNullableType(typeNode Handle) Handle {
 	h := f.createSlots(KindJSDocNullableType, 0, core.UndefinedTextRange(), 1, 0)
 	h.SetChild(slotJSDocNullableTypeType, typeNode)
 	return h
+}
+
+func (f Factory) UpdateJSDocNullableType(node Handle, typeNode Handle) Handle {
+	if !handlesEqual(typeNode, node.JSDocNullableTypeType()) {
+		return updateHandle(f.NewJSDocNullableType(typeNode), node)
+	}
+	return node
 }
 
 func (h Handle) JSDocNullableTypeType() Handle         { return h.Child(slotJSDocNullableTypeType) }
@@ -3247,6 +4164,13 @@ func (f *Factory) NewJSDocVariadicType(typeNode Handle) Handle {
 	return h
 }
 
+func (f Factory) UpdateJSDocVariadicType(node Handle, typeNode Handle) Handle {
+	if !handlesEqual(typeNode, node.JSDocVariadicTypeType()) {
+		return updateHandle(f.NewJSDocVariadicType(typeNode), node)
+	}
+	return node
+}
+
 func (h Handle) JSDocVariadicTypeType() Handle         { return h.Child(slotJSDocVariadicTypeType) }
 func (h Handle) SetJSDocVariadicTypeType(value Handle) { h.SetChild(slotJSDocVariadicTypeType, value) }
 
@@ -3254,6 +4178,13 @@ func (f *Factory) NewJSDocOptionalType(typeNode Handle) Handle {
 	h := f.createSlots(KindJSDocOptionalType, 0, core.UndefinedTextRange(), 1, 0)
 	h.SetChild(slotJSDocOptionalTypeType, typeNode)
 	return h
+}
+
+func (f Factory) UpdateJSDocOptionalType(node Handle, typeNode Handle) Handle {
+	if !handlesEqual(typeNode, node.JSDocOptionalTypeType()) {
+		return updateHandle(f.NewJSDocOptionalType(typeNode), node)
+	}
+	return node
 }
 
 func (h Handle) JSDocOptionalTypeType() Handle         { return h.Child(slotJSDocOptionalTypeType) }
@@ -3265,6 +4196,13 @@ func (f *Factory) NewJSDocTypeTag(tagName Handle, typeExpression Handle, comment
 	h.SetChild(slotJSDocTypeTagTypeExpression, typeExpression)
 	h.SetListSlot(listSlotJSDocTypeTagComment, comment)
 	return h
+}
+
+func (f Factory) UpdateJSDocTypeTag(node Handle, tagName Handle, typeExpression Handle, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocTypeTagTagName()) || !handlesEqual(typeExpression, node.JSDocTypeTagTypeExpression()) || comment != node.JSDocTypeTagComment() {
+		return updateHandle(f.NewJSDocTypeTag(tagName, typeExpression, comment), node)
+	}
+	return node
 }
 
 func (h Handle) JSDocTypeTagTagName() Handle         { return h.Child(slotJSDocTypeTagTagName) }
@@ -3287,6 +4225,13 @@ func (f *Factory) NewJSDocUnknownTag(tagName Handle, comment ListRef) Handle {
 	return h
 }
 
+func (f Factory) UpdateJSDocUnknownTag(node Handle, tagName Handle, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocUnknownTagTagName()) || comment != node.JSDocUnknownTagComment() {
+		return updateHandle(f.NewJSDocUnknownTag(tagName, comment), node)
+	}
+	return node
+}
+
 func (h Handle) JSDocUnknownTagTagName() Handle { return h.Child(slotJSDocUnknownTagTagName) }
 func (h Handle) SetJSDocUnknownTagTagName(value Handle) {
 	h.SetChild(slotJSDocUnknownTagTagName, value)
@@ -3304,6 +4249,13 @@ func (f *Factory) NewJSDocTemplateTag(tagName Handle, constraint Handle, typePar
 	h.SetListSlot(listSlotJSDocTemplateTagTypeParameters, typeParameters)
 	h.SetListSlot(listSlotJSDocTemplateTagComment, comment)
 	return h
+}
+
+func (f Factory) UpdateJSDocTemplateTag(node Handle, tagName Handle, constraint Handle, typeParameters ListRef, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocTemplateTagTagName()) || !handlesEqual(constraint, node.JSDocTemplateTagConstraint()) || typeParameters != node.JSDocTemplateTagTypeParameters() || comment != node.JSDocTemplateTagComment() {
+		return updateHandle(f.NewJSDocTemplateTag(tagName, constraint, typeParameters, comment), node)
+	}
+	return node
 }
 
 func (h Handle) JSDocTemplateTagTagName() Handle { return h.Child(slotJSDocTemplateTagTagName) }
@@ -3336,6 +4288,13 @@ func (f *Factory) NewJSDocReturnTag(tagName Handle, typeExpression Handle, comme
 	return h
 }
 
+func (f Factory) UpdateJSDocReturnTag(node Handle, tagName Handle, typeExpression Handle, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocReturnTagTagName()) || !handlesEqual(typeExpression, node.JSDocReturnTagTypeExpression()) || comment != node.JSDocReturnTagComment() {
+		return updateHandle(f.NewJSDocReturnTag(tagName, typeExpression, comment), node)
+	}
+	return node
+}
+
 func (h Handle) JSDocReturnTagTagName() Handle         { return h.Child(slotJSDocReturnTagTagName) }
 func (h Handle) SetJSDocReturnTagTagName(value Handle) { h.SetChild(slotJSDocReturnTagTagName, value) }
 
@@ -3358,6 +4317,13 @@ func (f *Factory) NewJSDocPublicTag(tagName Handle, comment ListRef) Handle {
 	return h
 }
 
+func (f Factory) UpdateJSDocPublicTag(node Handle, tagName Handle, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocPublicTagTagName()) || comment != node.JSDocPublicTagComment() {
+		return updateHandle(f.NewJSDocPublicTag(tagName, comment), node)
+	}
+	return node
+}
+
 func (h Handle) JSDocPublicTagTagName() Handle         { return h.Child(slotJSDocPublicTagTagName) }
 func (h Handle) SetJSDocPublicTagTagName(value Handle) { h.SetChild(slotJSDocPublicTagTagName, value) }
 
@@ -3371,6 +4337,13 @@ func (f *Factory) NewJSDocPrivateTag(tagName Handle, comment ListRef) Handle {
 	h.SetChild(slotJSDocPrivateTagTagName, tagName)
 	h.SetListSlot(listSlotJSDocPrivateTagComment, comment)
 	return h
+}
+
+func (f Factory) UpdateJSDocPrivateTag(node Handle, tagName Handle, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocPrivateTagTagName()) || comment != node.JSDocPrivateTagComment() {
+		return updateHandle(f.NewJSDocPrivateTag(tagName, comment), node)
+	}
+	return node
 }
 
 func (h Handle) JSDocPrivateTagTagName() Handle { return h.Child(slotJSDocPrivateTagTagName) }
@@ -3388,6 +4361,13 @@ func (f *Factory) NewJSDocProtectedTag(tagName Handle, comment ListRef) Handle {
 	h.SetChild(slotJSDocProtectedTagTagName, tagName)
 	h.SetListSlot(listSlotJSDocProtectedTagComment, comment)
 	return h
+}
+
+func (f Factory) UpdateJSDocProtectedTag(node Handle, tagName Handle, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocProtectedTagTagName()) || comment != node.JSDocProtectedTagComment() {
+		return updateHandle(f.NewJSDocProtectedTag(tagName, comment), node)
+	}
+	return node
 }
 
 func (h Handle) JSDocProtectedTagTagName() Handle { return h.Child(slotJSDocProtectedTagTagName) }
@@ -3409,6 +4389,13 @@ func (f *Factory) NewJSDocReadonlyTag(tagName Handle, comment ListRef) Handle {
 	return h
 }
 
+func (f Factory) UpdateJSDocReadonlyTag(node Handle, tagName Handle, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocReadonlyTagTagName()) || comment != node.JSDocReadonlyTagComment() {
+		return updateHandle(f.NewJSDocReadonlyTag(tagName, comment), node)
+	}
+	return node
+}
+
 func (h Handle) JSDocReadonlyTagTagName() Handle { return h.Child(slotJSDocReadonlyTagTagName) }
 func (h Handle) SetJSDocReadonlyTagTagName(value Handle) {
 	h.SetChild(slotJSDocReadonlyTagTagName, value)
@@ -3426,6 +4413,13 @@ func (f *Factory) NewJSDocOverrideTag(tagName Handle, comment ListRef) Handle {
 	return h
 }
 
+func (f Factory) UpdateJSDocOverrideTag(node Handle, tagName Handle, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocOverrideTagTagName()) || comment != node.JSDocOverrideTagComment() {
+		return updateHandle(f.NewJSDocOverrideTag(tagName, comment), node)
+	}
+	return node
+}
+
 func (h Handle) JSDocOverrideTagTagName() Handle { return h.Child(slotJSDocOverrideTagTagName) }
 func (h Handle) SetJSDocOverrideTagTagName(value Handle) {
 	h.SetChild(slotJSDocOverrideTagTagName, value)
@@ -3441,6 +4435,13 @@ func (f *Factory) NewJSDocDeprecatedTag(tagName Handle, comment ListRef) Handle 
 	h.SetChild(slotJSDocDeprecatedTagTagName, tagName)
 	h.SetListSlot(listSlotJSDocDeprecatedTagComment, comment)
 	return h
+}
+
+func (f Factory) UpdateJSDocDeprecatedTag(node Handle, tagName Handle, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocDeprecatedTagTagName()) || comment != node.JSDocDeprecatedTagComment() {
+		return updateHandle(f.NewJSDocDeprecatedTag(tagName, comment), node)
+	}
+	return node
 }
 
 func (h Handle) JSDocDeprecatedTagTagName() Handle { return h.Child(slotJSDocDeprecatedTagTagName) }
@@ -3463,6 +4464,13 @@ func (f *Factory) NewJSDocSeeTag(tagName Handle, nameExpression Handle, comment 
 	return h
 }
 
+func (f Factory) UpdateJSDocSeeTag(node Handle, tagName Handle, nameExpression Handle, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocSeeTagTagName()) || !handlesEqual(nameExpression, node.JSDocSeeTagNameExpression()) || comment != node.JSDocSeeTagComment() {
+		return updateHandle(f.NewJSDocSeeTag(tagName, nameExpression, comment), node)
+	}
+	return node
+}
+
 func (h Handle) JSDocSeeTagTagName() Handle         { return h.Child(slotJSDocSeeTagTagName) }
 func (h Handle) SetJSDocSeeTagTagName(value Handle) { h.SetChild(slotJSDocSeeTagTagName, value) }
 
@@ -3482,6 +4490,13 @@ func (f *Factory) NewJSDocImplementsTag(tagName Handle, className Handle, commen
 	h.SetChild(slotJSDocImplementsTagClassName, className)
 	h.SetListSlot(listSlotJSDocImplementsTagComment, comment)
 	return h
+}
+
+func (f Factory) UpdateJSDocImplementsTag(node Handle, tagName Handle, className Handle, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocImplementsTagTagName()) || !handlesEqual(className, node.JSDocImplementsTagClassName()) || comment != node.JSDocImplementsTagComment() {
+		return updateHandle(f.NewJSDocImplementsTag(tagName, className, comment), node)
+	}
+	return node
 }
 
 func (h Handle) JSDocImplementsTagTagName() Handle { return h.Child(slotJSDocImplementsTagTagName) }
@@ -3509,6 +4524,13 @@ func (f *Factory) NewJSDocAugmentsTag(tagName Handle, className Handle, comment 
 	return h
 }
 
+func (f Factory) UpdateJSDocAugmentsTag(node Handle, tagName Handle, className Handle, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocAugmentsTagTagName()) || !handlesEqual(className, node.JSDocAugmentsTagClassName()) || comment != node.JSDocAugmentsTagComment() {
+		return updateHandle(f.NewJSDocAugmentsTag(tagName, className, comment), node)
+	}
+	return node
+}
+
 func (h Handle) JSDocAugmentsTagTagName() Handle { return h.Child(slotJSDocAugmentsTagTagName) }
 func (h Handle) SetJSDocAugmentsTagTagName(value Handle) {
 	h.SetChild(slotJSDocAugmentsTagTagName, value)
@@ -3530,6 +4552,13 @@ func (f *Factory) NewJSDocSatisfiesTag(tagName Handle, typeExpression Handle, co
 	h.SetChild(slotJSDocSatisfiesTagTypeExpression, typeExpression)
 	h.SetListSlot(listSlotJSDocSatisfiesTagComment, comment)
 	return h
+}
+
+func (f Factory) UpdateJSDocSatisfiesTag(node Handle, tagName Handle, typeExpression Handle, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocSatisfiesTagTagName()) || !handlesEqual(typeExpression, node.JSDocSatisfiesTagTypeExpression()) || comment != node.JSDocSatisfiesTagComment() {
+		return updateHandle(f.NewJSDocSatisfiesTag(tagName, typeExpression, comment), node)
+	}
+	return node
 }
 
 func (h Handle) JSDocSatisfiesTagTagName() Handle { return h.Child(slotJSDocSatisfiesTagTagName) }
@@ -3559,6 +4588,13 @@ func (f *Factory) NewJSDocThrowsTag(tagName Handle, typeExpression Handle, comme
 	return h
 }
 
+func (f Factory) UpdateJSDocThrowsTag(node Handle, tagName Handle, typeExpression Handle, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocThrowsTagTagName()) || !handlesEqual(typeExpression, node.JSDocThrowsTagTypeExpression()) || comment != node.JSDocThrowsTagComment() {
+		return updateHandle(f.NewJSDocThrowsTag(tagName, typeExpression, comment), node)
+	}
+	return node
+}
+
 func (h Handle) JSDocThrowsTagTagName() Handle         { return h.Child(slotJSDocThrowsTagTagName) }
 func (h Handle) SetJSDocThrowsTagTagName(value Handle) { h.SetChild(slotJSDocThrowsTagTagName, value) }
 
@@ -3582,6 +4618,13 @@ func (f *Factory) NewJSDocThisTag(tagName Handle, typeExpression Handle, comment
 	return h
 }
 
+func (f Factory) UpdateJSDocThisTag(node Handle, tagName Handle, typeExpression Handle, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocThisTagTagName()) || !handlesEqual(typeExpression, node.JSDocThisTagTypeExpression()) || comment != node.JSDocThisTagComment() {
+		return updateHandle(f.NewJSDocThisTag(tagName, typeExpression, comment), node)
+	}
+	return node
+}
+
 func (h Handle) JSDocThisTagTagName() Handle         { return h.Child(slotJSDocThisTagTagName) }
 func (h Handle) SetJSDocThisTagTagName(value Handle) { h.SetChild(slotJSDocThisTagTagName, value) }
 
@@ -3603,6 +4646,13 @@ func (f *Factory) NewJSDocImportTag(tagName Handle, importClause Handle, moduleS
 	h.SetChild(slotJSDocImportTagAttributes, attributes)
 	h.SetListSlot(listSlotJSDocImportTagComment, comment)
 	return h
+}
+
+func (f Factory) UpdateJSDocImportTag(node Handle, tagName Handle, importClause Handle, moduleSpecifier Handle, attributes Handle, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocImportTagTagName()) || !handlesEqual(importClause, node.JSDocImportTagImportClause()) || !handlesEqual(moduleSpecifier, node.JSDocImportTagModuleSpecifier()) || !handlesEqual(attributes, node.JSDocImportTagAttributes()) || comment != node.JSDocImportTagComment() {
+		return updateHandle(f.NewJSDocImportTag(tagName, importClause, moduleSpecifier, attributes, comment), node)
+	}
+	return node
 }
 
 func (h Handle) JSDocImportTagTagName() Handle         { return h.Child(slotJSDocImportTagTagName) }
@@ -3639,6 +4689,13 @@ func (f *Factory) NewJSDocCallbackTag(tagName Handle, typeExpression Handle, nam
 	return h
 }
 
+func (f Factory) UpdateJSDocCallbackTag(node Handle, tagName Handle, typeExpression Handle, name Handle, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocCallbackTagTagName()) || !handlesEqual(typeExpression, node.JSDocCallbackTagTypeExpression()) || !handlesEqual(name, node.JSDocCallbackTagName()) || comment != node.JSDocCallbackTagComment() {
+		return updateHandle(f.NewJSDocCallbackTag(tagName, typeExpression, name, comment), node)
+	}
+	return node
+}
+
 func (h Handle) JSDocCallbackTagTagName() Handle { return h.Child(slotJSDocCallbackTagTagName) }
 func (h Handle) SetJSDocCallbackTagTagName(value Handle) {
 	h.SetChild(slotJSDocCallbackTagTagName, value)
@@ -3667,6 +4724,13 @@ func (f *Factory) NewJSDocOverloadTag(tagName Handle, typeExpression Handle, com
 	return h
 }
 
+func (f Factory) UpdateJSDocOverloadTag(node Handle, tagName Handle, typeExpression Handle, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocOverloadTagTagName()) || !handlesEqual(typeExpression, node.JSDocOverloadTagTypeExpression()) || comment != node.JSDocOverloadTagComment() {
+		return updateHandle(f.NewJSDocOverloadTag(tagName, typeExpression, comment), node)
+	}
+	return node
+}
+
 func (h Handle) JSDocOverloadTagTagName() Handle { return h.Child(slotJSDocOverloadTagTagName) }
 func (h Handle) SetJSDocOverloadTagTagName(value Handle) {
 	h.SetChild(slotJSDocOverloadTagTagName, value)
@@ -3691,6 +4755,13 @@ func (f *Factory) NewJSDocTypedefTag(tagName Handle, typeExpression Handle, name
 	h.SetChild(slotJSDocTypedefTagName, name)
 	h.SetListSlot(listSlotJSDocTypedefTagComment, comment)
 	return h
+}
+
+func (f Factory) UpdateJSDocTypedefTag(node Handle, tagName Handle, typeExpression Handle, name Handle, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocTypedefTagTagName()) || !handlesEqual(typeExpression, node.JSDocTypedefTagTypeExpression()) || !handlesEqual(name, node.JSDocTypedefTagName()) || comment != node.JSDocTypedefTagComment() {
+		return updateHandle(f.NewJSDocTypedefTag(tagName, typeExpression, name, comment), node)
+	}
+	return node
 }
 
 func (h Handle) JSDocTypedefTagTagName() Handle { return h.Child(slotJSDocTypedefTagTagName) }
@@ -3721,6 +4792,13 @@ func (f *Factory) NewJSDocSignature(typeParameters ListRef, parameters ListRef, 
 	return h
 }
 
+func (f Factory) UpdateJSDocSignature(node Handle, typeParameters ListRef, parameters ListRef, typeNode Handle) Handle {
+	if typeParameters != node.JSDocSignatureTypeParameters() || parameters != node.JSDocSignatureParameters() || !handlesEqual(typeNode, node.JSDocSignatureType()) {
+		return updateHandle(f.NewJSDocSignature(typeParameters, parameters, typeNode), node)
+	}
+	return node
+}
+
 func (h Handle) JSDocSignatureType() Handle         { return h.Child(slotJSDocSignatureType) }
 func (h Handle) SetJSDocSignatureType(value Handle) { h.SetChild(slotJSDocSignatureType, value) }
 
@@ -3742,6 +4820,13 @@ func (f *Factory) NewJSDocNameReference(name Handle) Handle {
 	h := f.createSlots(KindJSDocNameReference, 0, core.UndefinedTextRange(), 1, 0)
 	h.SetChild(slotJSDocNameReferenceName, name)
 	return h
+}
+
+func (f Factory) UpdateJSDocNameReference(node Handle, name Handle) Handle {
+	if !handlesEqual(name, node.JSDocNameReferenceName()) {
+		return updateHandle(f.NewJSDocNameReference(name), node)
+	}
+	return node
 }
 
 func (h Handle) JSDocNameReferenceName() Handle { return h.Child(slotJSDocNameReferenceName) }
@@ -3766,6 +4851,13 @@ func (f *Factory) NewModuleDeclaration(modifiers ListRef, keyword Kind, name Han
 	h.SetListSlot(listSlotModuleDeclarationModifiers, modifiers)
 	h.SetUintValue(valueSlotModuleDeclarationKeyword, uint64(keyword))
 	return h
+}
+
+func (f Factory) UpdateModuleDeclaration(node Handle, modifiers ListRef, keyword Kind, name Handle, body Handle) Handle {
+	if modifiers != node.ModuleDeclarationModifiers() || keyword != node.ModuleDeclarationKeyword() || !handlesEqual(name, node.ModuleDeclarationName()) || !handlesEqual(body, node.ModuleDeclarationBody()) {
+		return updateHandle(f.NewModuleDeclaration(modifiers, keyword, name, body), node)
+	}
+	return node
 }
 
 func (h Handle) ModuleDeclarationName() Handle         { return h.Child(slotModuleDeclarationName) }
@@ -3797,6 +4889,13 @@ func (f *Factory) NewImportEqualsDeclaration(modifiers ListRef, isTypeOnly bool,
 		h.SetUintValue(valueSlotImportEqualsDeclarationIsTypeOnly, 1)
 	}
 	return h
+}
+
+func (f Factory) UpdateImportEqualsDeclaration(node Handle, modifiers ListRef, isTypeOnly bool, name Handle, moduleReference Handle) Handle {
+	if modifiers != node.ImportEqualsDeclarationModifiers() || isTypeOnly != node.ImportEqualsDeclarationIsTypeOnly() || !handlesEqual(name, node.ImportEqualsDeclarationName()) || !handlesEqual(moduleReference, node.ImportEqualsDeclarationModuleReference()) {
+		return updateHandle(f.NewImportEqualsDeclaration(modifiers, isTypeOnly, name, moduleReference), node)
+	}
+	return node
 }
 
 func (h Handle) ImportEqualsDeclarationName() Handle { return h.Child(slotImportEqualsDeclarationName) }
@@ -3839,6 +4938,13 @@ func (f *Factory) NewExportDeclaration(modifiers ListRef, isTypeOnly bool, expor
 		h.SetUintValue(valueSlotExportDeclarationIsTypeOnly, 1)
 	}
 	return h
+}
+
+func (f Factory) UpdateExportDeclaration(node Handle, modifiers ListRef, isTypeOnly bool, exportClause Handle, moduleSpecifier Handle, attributes Handle) Handle {
+	if modifiers != node.ExportDeclarationModifiers() || isTypeOnly != node.ExportDeclarationIsTypeOnly() || !handlesEqual(exportClause, node.ExportDeclarationExportClause()) || !handlesEqual(moduleSpecifier, node.ExportDeclarationModuleSpecifier()) || !handlesEqual(attributes, node.ExportDeclarationAttributes()) {
+		return updateHandle(f.NewExportDeclaration(modifiers, isTypeOnly, exportClause, moduleSpecifier, attributes), node)
+	}
+	return node
 }
 
 func (h Handle) ExportDeclarationExportClause() Handle {
@@ -3890,6 +4996,13 @@ func (f *Factory) NewImportTypeNode(isTypeOf bool, argument Handle, attributes H
 	return h
 }
 
+func (f Factory) UpdateImportTypeNode(node Handle, isTypeOf bool, argument Handle, attributes Handle, qualifier Handle, typeArguments ListRef) Handle {
+	if isTypeOf != node.ImportTypeNodeIsTypeOf() || !handlesEqual(argument, node.ImportTypeNodeArgument()) || !handlesEqual(attributes, node.ImportTypeNodeAttributes()) || !handlesEqual(qualifier, node.ImportTypeNodeQualifier()) || typeArguments != node.ImportTypeNodeTypeArguments() {
+		return updateHandle(f.NewImportTypeNode(isTypeOf, argument, attributes, qualifier, typeArguments), node)
+	}
+	return node
+}
+
 func (h Handle) ImportTypeNodeArgument() Handle { return h.Child(slotImportTypeNodeArgument) }
 func (h Handle) SetImportTypeNodeArgument(value Handle) {
 	h.SetChild(slotImportTypeNodeArgument, value)
@@ -3931,6 +5044,13 @@ func (f *Factory) NewImportClause(phaseModifier ImportPhaseModifierSyntaxKind, n
 	return h
 }
 
+func (f Factory) UpdateImportClause(node Handle, phaseModifier ImportPhaseModifierSyntaxKind, name Handle, namedBindings Handle) Handle {
+	if phaseModifier != node.ImportClausePhaseModifier() || !handlesEqual(name, node.ImportClauseName()) || !handlesEqual(namedBindings, node.ImportClauseNamedBindings()) {
+		return updateHandle(f.NewImportClause(phaseModifier, name, namedBindings), node)
+	}
+	return node
+}
+
 func (h Handle) ImportClauseName() Handle         { return h.Child(slotImportClauseName) }
 func (h Handle) SetImportClauseName(value Handle) { h.SetChild(slotImportClauseName, value) }
 
@@ -3954,6 +5074,13 @@ func (f *Factory) NewImportSpecifier(isTypeOnly bool, propertyName Handle, name 
 		h.SetUintValue(valueSlotImportSpecifierIsTypeOnly, 1)
 	}
 	return h
+}
+
+func (f Factory) UpdateImportSpecifier(node Handle, isTypeOnly bool, propertyName Handle, name Handle) Handle {
+	if isTypeOnly != node.ImportSpecifierIsTypeOnly() || !handlesEqual(propertyName, node.ImportSpecifierPropertyName()) || !handlesEqual(name, node.ImportSpecifierName()) {
+		return updateHandle(f.NewImportSpecifier(isTypeOnly, propertyName, name), node)
+	}
+	return node
 }
 
 func (h Handle) ImportSpecifierPropertyName() Handle { return h.Child(slotImportSpecifierPropertyName) }
@@ -3993,6 +5120,13 @@ func (f *Factory) NewJSDocLink(name Handle, text []string) Handle {
 	return h
 }
 
+func (f Factory) UpdateJSDocLink(node Handle, name Handle, text []string) Handle {
+	if !handlesEqual(name, node.JSDocLinkName()) || !core.Same(text, node.JSDocLinkText()) {
+		return updateHandle(f.NewJSDocLink(name, text), node)
+	}
+	return node
+}
+
 func (h Handle) JSDocLinkName() Handle         { return h.Child(slotJSDocLinkName) }
 func (h Handle) SetJSDocLinkName(value Handle) { h.SetChild(slotJSDocLinkName, value) }
 
@@ -4006,6 +5140,13 @@ func (f *Factory) NewJSDocLinkPlain(name Handle, text []string) Handle {
 	h.SetChild(slotJSDocLinkPlainName, name)
 	h.SetObjectValue(valueSlotJSDocLinkPlainText, text)
 	return h
+}
+
+func (f Factory) UpdateJSDocLinkPlain(node Handle, name Handle, text []string) Handle {
+	if !handlesEqual(name, node.JSDocLinkPlainName()) || !core.Same(text, node.JSDocLinkPlainText()) {
+		return updateHandle(f.NewJSDocLinkPlain(name, text), node)
+	}
+	return node
 }
 
 func (h Handle) JSDocLinkPlainName() Handle         { return h.Child(slotJSDocLinkPlainName) }
@@ -4023,6 +5164,13 @@ func (f *Factory) NewJSDocLinkCode(name Handle, text []string) Handle {
 	h.SetChild(slotJSDocLinkCodeName, name)
 	h.SetObjectValue(valueSlotJSDocLinkCodeText, text)
 	return h
+}
+
+func (f Factory) UpdateJSDocLinkCode(node Handle, name Handle, text []string) Handle {
+	if !handlesEqual(name, node.JSDocLinkCodeName()) || !core.Same(text, node.JSDocLinkCodeText()) {
+		return updateHandle(f.NewJSDocLinkCode(name, text), node)
+	}
+	return node
 }
 
 func (h Handle) JSDocLinkCodeName() Handle         { return h.Child(slotJSDocLinkCodeName) }
@@ -4043,6 +5191,13 @@ func (f *Factory) NewTypeParameterDeclaration(modifiers ListRef, name Handle, co
 	h.SetChild(slotTypeParameterDeclarationDefaultType, defaultType)
 	h.SetListSlot(listSlotTypeParameterDeclarationModifiers, modifiers)
 	return h
+}
+
+func (f Factory) UpdateTypeParameterDeclaration(node Handle, modifiers ListRef, name Handle, constraint Handle, expression Handle, defaultType Handle) Handle {
+	if modifiers != node.TypeParameterDeclarationModifiers() || !handlesEqual(name, node.TypeParameterDeclarationName()) || !handlesEqual(constraint, node.TypeParameterDeclarationConstraint()) || !handlesEqual(expression, node.TypeParameterDeclarationExpression()) || !handlesEqual(defaultType, node.TypeParameterDeclarationDefaultType()) {
+		return updateHandle(f.NewTypeParameterDeclaration(modifiers, name, constraint, expression, defaultType), node)
+	}
+	return node
 }
 
 func (h Handle) TypeParameterDeclarationName() Handle {
@@ -4087,6 +5242,13 @@ func (f *Factory) NewSyntheticReferenceExpression(expression Handle, thisArg Han
 	return h
 }
 
+func (f Factory) UpdateSyntheticReferenceExpression(node Handle, expression Handle, thisArg Handle) Handle {
+	if !handlesEqual(expression, node.SyntheticReferenceExpressionExpression()) || !handlesEqual(thisArg, node.SyntheticReferenceExpressionThisArg()) {
+		return updateHandle(f.NewSyntheticReferenceExpression(expression, thisArg), node)
+	}
+	return node
+}
+
 func (h Handle) SyntheticReferenceExpressionExpression() Handle {
 	return h.Child(slotSyntheticReferenceExpressionExpression)
 }
@@ -4108,6 +5270,13 @@ func (f *Factory) NewJSDocTypeLiteral(jsdocPropertyTags ListRef, isArrayType boo
 		h.SetUintValue(valueSlotJSDocTypeLiteralIsArrayType, 1)
 	}
 	return h
+}
+
+func (f Factory) UpdateJSDocTypeLiteral(node Handle, jsdocPropertyTags ListRef, isArrayType bool) Handle {
+	if jsdocPropertyTags != node.JSDocTypeLiteralJSDocPropertyTags() || isArrayType != node.JSDocTypeLiteralIsArrayType() {
+		return updateHandle(f.NewJSDocTypeLiteral(jsdocPropertyTags, isArrayType), node)
+	}
+	return node
 }
 
 func (h Handle) JSDocTypeLiteralJSDocPropertyTags() ListRef {
@@ -4141,6 +5310,13 @@ func (f *Factory) NewJSDocParameterOrPropertyTag(kind Kind, tagName Handle, name
 		h.SetUintValue(valueSlotJSDocParameterOrPropertyTagIsNameFirst, 1)
 	}
 	return h
+}
+
+func (f Factory) UpdateJSDocParameterOrPropertyTag(node Handle, tagName Handle, name Handle, isBracketed bool, typeExpression Handle, isNameFirst bool, comment ListRef) Handle {
+	if !handlesEqual(tagName, node.JSDocParameterOrPropertyTagTagName()) || !handlesEqual(name, node.JSDocParameterOrPropertyTagName()) || isBracketed != node.JSDocParameterOrPropertyTagIsBracketed() || !handlesEqual(typeExpression, node.JSDocParameterOrPropertyTagTypeExpression()) || isNameFirst != node.JSDocParameterOrPropertyTagIsNameFirst() || comment != node.JSDocParameterOrPropertyTagComment() {
+		return updateHandle(f.NewJSDocParameterOrPropertyTag(node.Kind(), tagName, name, isBracketed, typeExpression, isNameFirst, comment), node)
+	}
+	return node
 }
 
 func (h Handle) JSDocParameterOrPropertyTagTagName() Handle {
@@ -4190,5 +5366,347 @@ func (h Handle) SetJSDocParameterOrPropertyTagIsNameFirst(value bool) {
 		h.SetUintValue(valueSlotJSDocParameterOrPropertyTagIsNameFirst, 1)
 	} else {
 		h.SetUintValue(valueSlotJSDocParameterOrPropertyTagIsNameFirst, 0)
+	}
+}
+
+func (node Handle) VisitEachChild(v *HandleVisitor) Handle {
+	if node.IsNil() || v == nil || v.Visit == nil || v.Factory == nil {
+		return node
+	}
+	switch node.Kind() {
+	case KindQualifiedName:
+		return v.Factory.UpdateQualifiedName(node, v.VisitNode(node.QualifiedNameLeft()), v.VisitNode(node.QualifiedNameRight()))
+	case KindComputedPropertyName:
+		return v.Factory.UpdateComputedPropertyName(node, v.VisitNode(node.ComputedPropertyNameExpression()))
+	case KindDecorator:
+		return v.Factory.UpdateDecorator(node, v.VisitNode(node.DecoratorExpression()))
+	case KindIfStatement:
+		return v.Factory.UpdateIfStatement(node, v.VisitNode(node.IfStatementExpression()), v.VisitNode(node.IfStatementThenStatement()), v.VisitNode(node.IfStatementElseStatement()))
+	case KindDoStatement:
+		return v.Factory.UpdateDoStatement(node, v.VisitNode(node.DoStatementStatement()), v.VisitNode(node.DoStatementExpression()))
+	case KindWhileStatement:
+		return v.Factory.UpdateWhileStatement(node, v.VisitNode(node.WhileStatementExpression()), v.VisitNode(node.WhileStatementStatement()))
+	case KindForStatement:
+		return v.Factory.UpdateForStatement(node, v.VisitNode(node.ForStatementInitializer()), v.VisitNode(node.ForStatementCondition()), v.VisitNode(node.ForStatementIncrementor()), v.VisitNode(node.ForStatementStatement()))
+	case KindForInStatement, KindForOfStatement:
+		return v.Factory.UpdateForInOrOfStatement(node, v.VisitNode(node.ForInOrOfStatementAwaitModifier()), v.VisitNode(node.ForInOrOfStatementInitializer()), v.VisitNode(node.ForInOrOfStatementExpression()), v.VisitNode(node.ForInOrOfStatementStatement()))
+	case KindBreakStatement:
+		return v.Factory.UpdateBreakStatement(node, v.VisitNode(node.BreakStatementLabel()))
+	case KindContinueStatement:
+		return v.Factory.UpdateContinueStatement(node, v.VisitNode(node.ContinueStatementLabel()))
+	case KindReturnStatement:
+		return v.Factory.UpdateReturnStatement(node, v.VisitNode(node.ReturnStatementExpression()))
+	case KindWithStatement:
+		return v.Factory.UpdateWithStatement(node, v.VisitNode(node.WithStatementExpression()), v.VisitNode(node.WithStatementStatement()))
+	case KindSwitchStatement:
+		return v.Factory.UpdateSwitchStatement(node, v.VisitNode(node.SwitchStatementExpression()), v.VisitNode(node.SwitchStatementCaseBlock()))
+	case KindCaseBlock:
+		return v.Factory.UpdateCaseBlock(node, v.VisitNodes(node.CaseBlockClauses()))
+	case KindCaseClause, KindDefaultClause:
+		return v.Factory.UpdateCaseOrDefaultClause(node, v.VisitNode(node.CaseOrDefaultClauseExpression()), v.VisitNodes(node.CaseOrDefaultClauseStatements()))
+	case KindThrowStatement:
+		return v.Factory.UpdateThrowStatement(node, v.VisitNode(node.ThrowStatementExpression()))
+	case KindTryStatement:
+		return v.Factory.UpdateTryStatement(node, v.VisitNode(node.TryStatementTryBlock()), v.VisitNode(node.TryStatementCatchClause()), v.VisitNode(node.TryStatementFinallyBlock()))
+	case KindCatchClause:
+		return v.Factory.UpdateCatchClause(node, v.VisitNode(node.CatchClauseVariableDeclaration()), v.VisitNode(node.CatchClauseBlock()))
+	case KindLabeledStatement:
+		return v.Factory.UpdateLabeledStatement(node, v.VisitNode(node.LabeledStatementLabel()), v.VisitNode(node.LabeledStatementStatement()))
+	case KindExpressionStatement:
+		return v.Factory.UpdateExpressionStatement(node, v.VisitNode(node.ExpressionStatementExpression()))
+	case KindBlock:
+		return v.Factory.UpdateBlock(node, v.VisitNodes(node.BlockStatements()), node.BlockMultiLine())
+	case KindVariableStatement:
+		return v.Factory.UpdateVariableStatement(node, v.VisitNodes(node.VariableStatementModifiers()), v.VisitNode(node.VariableStatementDeclarationList()))
+	case KindVariableDeclaration:
+		return v.Factory.UpdateVariableDeclaration(node, v.VisitNode(node.VariableDeclarationName()), v.VisitNode(node.VariableDeclarationExclamationToken()), v.VisitNode(node.VariableDeclarationType()), v.VisitNode(node.VariableDeclarationInitializer()))
+	case KindVariableDeclarationList:
+		return v.Factory.UpdateVariableDeclarationList(node, v.VisitNodes(node.VariableDeclarationListDeclarations()), node.Flags())
+	case KindObjectBindingPattern, KindArrayBindingPattern:
+		return v.Factory.UpdateBindingPattern(node, v.VisitNodes(node.BindingPatternElements()))
+	case KindParameter:
+		return v.Factory.UpdateParameterDeclaration(node, v.VisitNodes(node.ParameterDeclarationModifiers()), v.VisitNode(node.ParameterDeclarationDotDotDotToken()), v.VisitNode(node.ParameterDeclarationName()), v.VisitNode(node.ParameterDeclarationQuestionToken()), v.VisitNode(node.ParameterDeclarationType()), v.VisitNode(node.ParameterDeclarationInitializer()))
+	case KindBindingElement:
+		return v.Factory.UpdateBindingElement(node, v.VisitNode(node.BindingElementDotDotDotToken()), v.VisitNode(node.BindingElementPropertyName()), v.VisitNode(node.BindingElementName()), v.VisitNode(node.BindingElementInitializer()))
+	case KindMissingDeclaration:
+		return v.Factory.UpdateMissingDeclaration(node, v.VisitNodes(node.MissingDeclarationModifiers()))
+	case KindFunctionDeclaration:
+		return v.Factory.UpdateFunctionDeclaration(node, v.VisitNodes(node.FunctionDeclarationModifiers()), v.VisitNode(node.FunctionDeclarationAsteriskToken()), v.VisitNode(node.FunctionDeclarationName()), v.VisitNodes(node.FunctionDeclarationTypeParameters()), v.VisitNodes(node.FunctionDeclarationParameters()), v.VisitNode(node.FunctionDeclarationType()), v.VisitNode(node.FunctionDeclarationFullSignature()), v.VisitNode(node.FunctionDeclarationBody()))
+	case KindClassDeclaration:
+		return v.Factory.UpdateClassDeclaration(node, v.VisitNodes(node.ClassDeclarationModifiers()), v.VisitNode(node.ClassDeclarationName()), v.VisitNodes(node.ClassDeclarationTypeParameters()), v.VisitNodes(node.ClassDeclarationHeritageClauses()), v.VisitNodes(node.ClassDeclarationMembers()))
+	case KindClassExpression:
+		return v.Factory.UpdateClassExpression(node, v.VisitNodes(node.ClassExpressionModifiers()), v.VisitNode(node.ClassExpressionName()), v.VisitNodes(node.ClassExpressionTypeParameters()), v.VisitNodes(node.ClassExpressionHeritageClauses()), v.VisitNodes(node.ClassExpressionMembers()))
+	case KindHeritageClause:
+		return v.Factory.UpdateHeritageClause(node, node.HeritageClauseToken(), v.VisitNodes(node.HeritageClauseTypes()))
+	case KindInterfaceDeclaration:
+		return v.Factory.UpdateInterfaceDeclaration(node, v.VisitNodes(node.InterfaceDeclarationModifiers()), v.VisitNode(node.InterfaceDeclarationName()), v.VisitNodes(node.InterfaceDeclarationTypeParameters()), v.VisitNodes(node.InterfaceDeclarationHeritageClauses()), v.VisitNodes(node.InterfaceDeclarationMembers()))
+	case KindTypeAliasDeclaration, KindJSTypeAliasDeclaration:
+		return v.Factory.UpdateTypeAliasDeclaration(node, v.VisitNodes(node.TypeAliasDeclarationModifiers()), v.VisitNode(node.TypeAliasDeclarationName()), v.VisitNodes(node.TypeAliasDeclarationTypeParameters()), v.VisitNode(node.TypeAliasDeclarationType()))
+	case KindEnumMember:
+		return v.Factory.UpdateEnumMember(node, v.VisitNode(node.EnumMemberName()), v.VisitNode(node.EnumMemberInitializer()))
+	case KindEnumDeclaration:
+		return v.Factory.UpdateEnumDeclaration(node, v.VisitNodes(node.EnumDeclarationModifiers()), v.VisitNode(node.EnumDeclarationName()), v.VisitNodes(node.EnumDeclarationMembers()))
+	case KindModuleBlock:
+		return v.Factory.UpdateModuleBlock(node, v.VisitNodes(node.ModuleBlockStatements()))
+	case KindImportDeclaration, KindJSImportDeclaration:
+		return v.Factory.UpdateImportDeclaration(node, v.VisitNodes(node.ImportDeclarationModifiers()), v.VisitNode(node.ImportDeclarationImportClause()), v.VisitNode(node.ImportDeclarationModuleSpecifier()), v.VisitNode(node.ImportDeclarationAttributes()))
+	case KindExternalModuleReference:
+		return v.Factory.UpdateExternalModuleReference(node, v.VisitNode(node.ExternalModuleReferenceExpression()))
+	case KindNamespaceImport:
+		return v.Factory.UpdateNamespaceImport(node, v.VisitNode(node.NamespaceImportName()))
+	case KindNamedImports:
+		return v.Factory.UpdateNamedImports(node, v.VisitNodes(node.NamedImportsElements()))
+	case KindExportAssignment:
+		return v.Factory.UpdateExportAssignment(node, v.VisitNodes(node.ExportAssignmentModifiers()), node.ExportAssignmentIsExportEquals(), v.VisitNode(node.ExportAssignmentType()), v.VisitNode(node.ExportAssignmentExpression()))
+	case KindNamespaceExportDeclaration:
+		return v.Factory.UpdateNamespaceExportDeclaration(node, v.VisitNodes(node.NamespaceExportDeclarationModifiers()), v.VisitNode(node.NamespaceExportDeclarationName()))
+	case KindNamespaceExport:
+		return v.Factory.UpdateNamespaceExport(node, v.VisitNode(node.NamespaceExportName()))
+	case KindNamedExports:
+		return v.Factory.UpdateNamedExports(node, v.VisitNodes(node.NamedExportsElements()))
+	case KindExportSpecifier:
+		return v.Factory.UpdateExportSpecifier(node, node.ExportSpecifierIsTypeOnly(), v.VisitNode(node.ExportSpecifierPropertyName()), v.VisitNode(node.ExportSpecifierName()))
+	case KindCallSignature:
+		return v.Factory.UpdateCallSignatureDeclaration(node, v.VisitNodes(node.CallSignatureDeclarationTypeParameters()), v.VisitNodes(node.CallSignatureDeclarationParameters()), v.VisitNode(node.CallSignatureDeclarationType()))
+	case KindConstructSignature:
+		return v.Factory.UpdateConstructSignatureDeclaration(node, v.VisitNodes(node.ConstructSignatureDeclarationTypeParameters()), v.VisitNodes(node.ConstructSignatureDeclarationParameters()), v.VisitNode(node.ConstructSignatureDeclarationType()))
+	case KindConstructor:
+		return v.Factory.UpdateConstructorDeclaration(node, v.VisitNodes(node.ConstructorDeclarationModifiers()), v.VisitNodes(node.ConstructorDeclarationTypeParameters()), v.VisitNodes(node.ConstructorDeclarationParameters()), v.VisitNode(node.ConstructorDeclarationType()), v.VisitNode(node.ConstructorDeclarationFullSignature()), v.VisitNode(node.ConstructorDeclarationBody()))
+	case KindGetAccessor:
+		return v.Factory.UpdateGetAccessorDeclaration(node, v.VisitNodes(node.GetAccessorDeclarationModifiers()), v.VisitNode(node.GetAccessorDeclarationName()), v.VisitNodes(node.GetAccessorDeclarationTypeParameters()), v.VisitNodes(node.GetAccessorDeclarationParameters()), v.VisitNode(node.GetAccessorDeclarationType()), v.VisitNode(node.GetAccessorDeclarationFullSignature()), v.VisitNode(node.GetAccessorDeclarationBody()))
+	case KindSetAccessor:
+		return v.Factory.UpdateSetAccessorDeclaration(node, v.VisitNodes(node.SetAccessorDeclarationModifiers()), v.VisitNode(node.SetAccessorDeclarationName()), v.VisitNodes(node.SetAccessorDeclarationTypeParameters()), v.VisitNodes(node.SetAccessorDeclarationParameters()), v.VisitNode(node.SetAccessorDeclarationType()), v.VisitNode(node.SetAccessorDeclarationFullSignature()), v.VisitNode(node.SetAccessorDeclarationBody()))
+	case KindIndexSignature:
+		return v.Factory.UpdateIndexSignatureDeclaration(node, v.VisitNodes(node.IndexSignatureDeclarationModifiers()), v.VisitNodes(node.IndexSignatureDeclarationParameters()), v.VisitNode(node.IndexSignatureDeclarationType()))
+	case KindMethodSignature:
+		return v.Factory.UpdateMethodSignatureDeclaration(node, v.VisitNodes(node.MethodSignatureDeclarationModifiers()), v.VisitNode(node.MethodSignatureDeclarationName()), v.VisitNode(node.MethodSignatureDeclarationPostfixToken()), v.VisitNodes(node.MethodSignatureDeclarationTypeParameters()), v.VisitNodes(node.MethodSignatureDeclarationParameters()), v.VisitNode(node.MethodSignatureDeclarationType()))
+	case KindMethodDeclaration:
+		return v.Factory.UpdateMethodDeclaration(node, v.VisitNodes(node.MethodDeclarationModifiers()), v.VisitNode(node.MethodDeclarationAsteriskToken()), v.VisitNode(node.MethodDeclarationName()), v.VisitNode(node.MethodDeclarationPostfixToken()), v.VisitNodes(node.MethodDeclarationTypeParameters()), v.VisitNodes(node.MethodDeclarationParameters()), v.VisitNode(node.MethodDeclarationType()), v.VisitNode(node.MethodDeclarationFullSignature()), v.VisitNode(node.MethodDeclarationBody()))
+	case KindPropertySignature:
+		return v.Factory.UpdatePropertySignatureDeclaration(node, v.VisitNodes(node.PropertySignatureDeclarationModifiers()), v.VisitNode(node.PropertySignatureDeclarationName()), v.VisitNode(node.PropertySignatureDeclarationPostfixToken()), v.VisitNode(node.PropertySignatureDeclarationType()), v.VisitNode(node.PropertySignatureDeclarationInitializer()))
+	case KindPropertyDeclaration:
+		return v.Factory.UpdatePropertyDeclaration(node, v.VisitNodes(node.PropertyDeclarationModifiers()), v.VisitNode(node.PropertyDeclarationName()), v.VisitNode(node.PropertyDeclarationPostfixToken()), v.VisitNode(node.PropertyDeclarationType()), v.VisitNode(node.PropertyDeclarationInitializer()))
+	case KindClassStaticBlockDeclaration:
+		return v.Factory.UpdateClassStaticBlockDeclaration(node, v.VisitNodes(node.ClassStaticBlockDeclarationModifiers()), v.VisitNode(node.ClassStaticBlockDeclarationBody()))
+	case KindBinaryExpression:
+		return v.Factory.UpdateBinaryExpression(node, v.VisitNodes(node.BinaryExpressionModifiers()), v.VisitNode(node.BinaryExpressionLeft()), v.VisitNode(node.BinaryExpressionType()), v.VisitNode(node.BinaryExpressionOperatorToken()), v.VisitNode(node.BinaryExpressionRight()))
+	case KindPrefixUnaryExpression:
+		return v.Factory.UpdatePrefixUnaryExpression(node, node.PrefixUnaryExpressionOperator(), v.VisitNode(node.PrefixUnaryExpressionOperand()))
+	case KindPostfixUnaryExpression:
+		return v.Factory.UpdatePostfixUnaryExpression(node, v.VisitNode(node.PostfixUnaryExpressionOperand()), node.PostfixUnaryExpressionOperator())
+	case KindYieldExpression:
+		return v.Factory.UpdateYieldExpression(node, v.VisitNode(node.YieldExpressionAsteriskToken()), v.VisitNode(node.YieldExpressionExpression()))
+	case KindArrowFunction:
+		return v.Factory.UpdateArrowFunction(node, v.VisitNodes(node.ArrowFunctionModifiers()), v.VisitNodes(node.ArrowFunctionTypeParameters()), v.VisitNodes(node.ArrowFunctionParameters()), v.VisitNode(node.ArrowFunctionType()), v.VisitNode(node.ArrowFunctionFullSignature()), v.VisitNode(node.ArrowFunctionEqualsGreaterThanToken()), v.VisitNode(node.ArrowFunctionBody()))
+	case KindFunctionExpression:
+		return v.Factory.UpdateFunctionExpression(node, v.VisitNodes(node.FunctionExpressionModifiers()), v.VisitNode(node.FunctionExpressionAsteriskToken()), v.VisitNode(node.FunctionExpressionName()), v.VisitNodes(node.FunctionExpressionTypeParameters()), v.VisitNodes(node.FunctionExpressionParameters()), v.VisitNode(node.FunctionExpressionType()), v.VisitNode(node.FunctionExpressionFullSignature()), v.VisitNode(node.FunctionExpressionBody()))
+	case KindAsExpression:
+		return v.Factory.UpdateAsExpression(node, v.VisitNode(node.AsExpressionExpression()), v.VisitNode(node.AsExpressionType()))
+	case KindSatisfiesExpression:
+		return v.Factory.UpdateSatisfiesExpression(node, v.VisitNode(node.SatisfiesExpressionExpression()), v.VisitNode(node.SatisfiesExpressionType()))
+	case KindConditionalExpression:
+		return v.Factory.UpdateConditionalExpression(node, v.VisitNode(node.ConditionalExpressionCondition()), v.VisitNode(node.ConditionalExpressionQuestionToken()), v.VisitNode(node.ConditionalExpressionWhenTrue()), v.VisitNode(node.ConditionalExpressionColonToken()), v.VisitNode(node.ConditionalExpressionWhenFalse()))
+	case KindPropertyAccessExpression:
+		return v.Factory.UpdatePropertyAccessExpression(node, v.VisitNode(node.PropertyAccessExpressionExpression()), v.VisitNode(node.PropertyAccessExpressionQuestionDotToken()), v.VisitNode(node.PropertyAccessExpressionName()), node.Flags()&NodeFlagsOptionalChain)
+	case KindElementAccessExpression:
+		return v.Factory.UpdateElementAccessExpression(node, v.VisitNode(node.ElementAccessExpressionExpression()), v.VisitNode(node.ElementAccessExpressionQuestionDotToken()), v.VisitNode(node.ElementAccessExpressionArgumentExpression()), node.Flags()&NodeFlagsOptionalChain)
+	case KindCallExpression:
+		return v.Factory.UpdateCallExpression(node, v.VisitNode(node.CallExpressionExpression()), v.VisitNode(node.CallExpressionQuestionDotToken()), v.VisitNodes(node.CallExpressionTypeArguments()), v.VisitNodes(node.CallExpressionArguments()), node.Flags()&NodeFlagsOptionalChain)
+	case KindNewExpression:
+		return v.Factory.UpdateNewExpression(node, v.VisitNode(node.NewExpressionExpression()), v.VisitNodes(node.NewExpressionTypeArguments()), v.VisitNodes(node.NewExpressionArguments()))
+	case KindMetaProperty:
+		return v.Factory.UpdateMetaProperty(node, node.MetaPropertyKeywordToken(), v.VisitNode(node.MetaPropertyName()))
+	case KindNonNullExpression:
+		return v.Factory.UpdateNonNullExpression(node, v.VisitNode(node.NonNullExpressionExpression()), node.Flags()&NodeFlagsOptionalChain)
+	case KindSpreadElement:
+		return v.Factory.UpdateSpreadElement(node, v.VisitNode(node.SpreadElementExpression()))
+	case KindTemplateExpression:
+		return v.Factory.UpdateTemplateExpression(node, v.VisitNode(node.TemplateExpressionHead()), v.VisitNodes(node.TemplateExpressionTemplateSpans()))
+	case KindTemplateSpan:
+		return v.Factory.UpdateTemplateSpan(node, v.VisitNode(node.TemplateSpanExpression()), v.VisitNode(node.TemplateSpanLiteral()))
+	case KindTaggedTemplateExpression:
+		return v.Factory.UpdateTaggedTemplateExpression(node, v.VisitNode(node.TaggedTemplateExpressionTag()), v.VisitNode(node.TaggedTemplateExpressionQuestionDotToken()), v.VisitNodes(node.TaggedTemplateExpressionTypeArguments()), v.VisitNode(node.TaggedTemplateExpressionTemplate()), node.Flags()&NodeFlagsOptionalChain)
+	case KindParenthesizedExpression:
+		return v.Factory.UpdateParenthesizedExpression(node, v.VisitNode(node.ParenthesizedExpressionExpression()))
+	case KindArrayLiteralExpression:
+		return v.Factory.UpdateArrayLiteralExpression(node, v.VisitNodes(node.ArrayLiteralExpressionElements()), node.ArrayLiteralExpressionMultiLine())
+	case KindObjectLiteralExpression:
+		return v.Factory.UpdateObjectLiteralExpression(node, v.VisitNodes(node.ObjectLiteralExpressionProperties()), node.ObjectLiteralExpressionMultiLine())
+	case KindSpreadAssignment:
+		return v.Factory.UpdateSpreadAssignment(node, v.VisitNode(node.SpreadAssignmentExpression()))
+	case KindPropertyAssignment:
+		return v.Factory.UpdatePropertyAssignment(node, v.VisitNodes(node.PropertyAssignmentModifiers()), v.VisitNode(node.PropertyAssignmentName()), v.VisitNode(node.PropertyAssignmentPostfixToken()), v.VisitNode(node.PropertyAssignmentType()), v.VisitNode(node.PropertyAssignmentInitializer()))
+	case KindShorthandPropertyAssignment:
+		return v.Factory.UpdateShorthandPropertyAssignment(node, v.VisitNodes(node.ShorthandPropertyAssignmentModifiers()), v.VisitNode(node.ShorthandPropertyAssignmentName()), v.VisitNode(node.ShorthandPropertyAssignmentPostfixToken()), v.VisitNode(node.ShorthandPropertyAssignmentType()), v.VisitNode(node.ShorthandPropertyAssignmentEqualsToken()), v.VisitNode(node.ShorthandPropertyAssignmentObjectAssignmentInitializer()))
+	case KindDeleteExpression:
+		return v.Factory.UpdateDeleteExpression(node, v.VisitNode(node.DeleteExpressionExpression()))
+	case KindTypeOfExpression:
+		return v.Factory.UpdateTypeOfExpression(node, v.VisitNode(node.TypeOfExpressionExpression()))
+	case KindVoidExpression:
+		return v.Factory.UpdateVoidExpression(node, v.VisitNode(node.VoidExpressionExpression()))
+	case KindAwaitExpression:
+		return v.Factory.UpdateAwaitExpression(node, v.VisitNode(node.AwaitExpressionExpression()))
+	case KindTypeAssertionExpression:
+		return v.Factory.UpdateTypeAssertion(node, v.VisitNode(node.TypeAssertionType()), v.VisitNode(node.TypeAssertionExpression()))
+	case KindUnionType:
+		return v.Factory.UpdateUnionTypeNode(node, v.VisitNodes(node.UnionTypeNodeTypes()))
+	case KindIntersectionType:
+		return v.Factory.UpdateIntersectionTypeNode(node, v.VisitNodes(node.IntersectionTypeNodeTypes()))
+	case KindConditionalType:
+		return v.Factory.UpdateConditionalTypeNode(node, v.VisitNode(node.ConditionalTypeNodeCheckType()), v.VisitNode(node.ConditionalTypeNodeExtendsType()), v.VisitNode(node.ConditionalTypeNodeTrueType()), v.VisitNode(node.ConditionalTypeNodeFalseType()))
+	case KindTypeOperator:
+		return v.Factory.UpdateTypeOperatorNode(node, node.TypeOperatorNodeOperator(), v.VisitNode(node.TypeOperatorNodeType()))
+	case KindInferType:
+		return v.Factory.UpdateInferTypeNode(node, v.VisitNode(node.InferTypeNodeTypeParameter()))
+	case KindArrayType:
+		return v.Factory.UpdateArrayTypeNode(node, v.VisitNode(node.ArrayTypeNodeElementType()))
+	case KindIndexedAccessType:
+		return v.Factory.UpdateIndexedAccessTypeNode(node, v.VisitNode(node.IndexedAccessTypeNodeObjectType()), v.VisitNode(node.IndexedAccessTypeNodeIndexType()))
+	case KindTypeReference:
+		return v.Factory.UpdateTypeReferenceNode(node, v.VisitNode(node.TypeReferenceNodeTypeName()), v.VisitNodes(node.TypeReferenceNodeTypeArguments()))
+	case KindExpressionWithTypeArguments:
+		return v.Factory.UpdateExpressionWithTypeArguments(node, v.VisitNode(node.ExpressionWithTypeArgumentsExpression()), v.VisitNodes(node.ExpressionWithTypeArgumentsTypeArguments()))
+	case KindLiteralType:
+		return v.Factory.UpdateLiteralTypeNode(node, v.VisitNode(node.LiteralTypeNodeLiteral()))
+	case KindTypePredicate:
+		return v.Factory.UpdateTypePredicateNode(node, v.VisitNode(node.TypePredicateNodeAssertsModifier()), v.VisitNode(node.TypePredicateNodeParameterName()), v.VisitNode(node.TypePredicateNodeType()))
+	case KindImportAttribute:
+		return v.Factory.UpdateImportAttribute(node, v.VisitNode(node.ImportAttributeName()), v.VisitNode(node.ImportAttributeValue()))
+	case KindImportAttributes:
+		return v.Factory.UpdateImportAttributes(node, node.ImportAttributesToken(), v.VisitNodes(node.ImportAttributesAttributes()), node.ImportAttributesMultiLine())
+	case KindTypeQuery:
+		return v.Factory.UpdateTypeQueryNode(node, v.VisitNode(node.TypeQueryNodeExprName()), v.VisitNodes(node.TypeQueryNodeTypeArguments()))
+	case KindMappedType:
+		return v.Factory.UpdateMappedTypeNode(node, v.VisitNode(node.MappedTypeNodeReadonlyToken()), v.VisitNode(node.MappedTypeNodeTypeParameter()), v.VisitNode(node.MappedTypeNodeNameType()), v.VisitNode(node.MappedTypeNodeQuestionToken()), v.VisitNode(node.MappedTypeNodeType()), v.VisitNodes(node.MappedTypeNodeMembers()))
+	case KindTypeLiteral:
+		return v.Factory.UpdateTypeLiteralNode(node, v.VisitNodes(node.TypeLiteralNodeMembers()))
+	case KindTupleType:
+		return v.Factory.UpdateTupleTypeNode(node, v.VisitNodes(node.TupleTypeNodeElements()))
+	case KindNamedTupleMember:
+		return v.Factory.UpdateNamedTupleMember(node, v.VisitNode(node.NamedTupleMemberDotDotDotToken()), v.VisitNode(node.NamedTupleMemberName()), v.VisitNode(node.NamedTupleMemberQuestionToken()), v.VisitNode(node.NamedTupleMemberType()))
+	case KindOptionalType:
+		return v.Factory.UpdateOptionalTypeNode(node, v.VisitNode(node.OptionalTypeNodeType()))
+	case KindRestType:
+		return v.Factory.UpdateRestTypeNode(node, v.VisitNode(node.RestTypeNodeType()))
+	case KindParenthesizedType:
+		return v.Factory.UpdateParenthesizedTypeNode(node, v.VisitNode(node.ParenthesizedTypeNodeType()))
+	case KindFunctionType:
+		return v.Factory.UpdateFunctionTypeNode(node, v.VisitNodes(node.FunctionTypeNodeTypeParameters()), v.VisitNodes(node.FunctionTypeNodeParameters()), v.VisitNode(node.FunctionTypeNodeType()))
+	case KindConstructorType:
+		return v.Factory.UpdateConstructorTypeNode(node, v.VisitNodes(node.ConstructorTypeNodeModifiers()), v.VisitNodes(node.ConstructorTypeNodeTypeParameters()), v.VisitNodes(node.ConstructorTypeNodeParameters()), v.VisitNode(node.ConstructorTypeNodeType()))
+	case KindTemplateLiteralType:
+		return v.Factory.UpdateTemplateLiteralTypeNode(node, v.VisitNode(node.TemplateLiteralTypeNodeHead()), v.VisitNodes(node.TemplateLiteralTypeNodeTemplateSpans()))
+	case KindTemplateLiteralTypeSpan:
+		return v.Factory.UpdateTemplateLiteralTypeSpan(node, v.VisitNode(node.TemplateLiteralTypeSpanType()), v.VisitNode(node.TemplateLiteralTypeSpanLiteral()))
+	case KindSyntheticExpression:
+		return v.Factory.UpdateSyntheticExpression(node, node.SyntheticExpressionType(), node.SyntheticExpressionIsSpread(), v.VisitNode(node.SyntheticExpressionTupleNameSource()))
+	case KindPartiallyEmittedExpression:
+		return v.Factory.UpdatePartiallyEmittedExpression(node, v.VisitNode(node.PartiallyEmittedExpressionExpression()))
+	case KindJsxElement:
+		return v.Factory.UpdateJsxElement(node, v.VisitNode(node.JsxElementOpeningElement()), v.VisitNodes(node.JsxElementChildren()), v.VisitNode(node.JsxElementClosingElement()))
+	case KindJsxAttributes:
+		return v.Factory.UpdateJsxAttributes(node, v.VisitNodes(node.JsxAttributesProperties()))
+	case KindJsxNamespacedName:
+		return v.Factory.UpdateJsxNamespacedName(node, v.VisitNode(node.JsxNamespacedNameNamespace()), v.VisitNode(node.JsxNamespacedNameName()))
+	case KindJsxOpeningElement:
+		return v.Factory.UpdateJsxOpeningElement(node, v.VisitNode(node.JsxOpeningElementTagName()), v.VisitNodes(node.JsxOpeningElementTypeArguments()), v.VisitNode(node.JsxOpeningElementAttributes()))
+	case KindJsxSelfClosingElement:
+		return v.Factory.UpdateJsxSelfClosingElement(node, v.VisitNode(node.JsxSelfClosingElementTagName()), v.VisitNodes(node.JsxSelfClosingElementTypeArguments()), v.VisitNode(node.JsxSelfClosingElementAttributes()))
+	case KindJsxFragment:
+		return v.Factory.UpdateJsxFragment(node, v.VisitNode(node.JsxFragmentOpeningFragment()), v.VisitNodes(node.JsxFragmentChildren()), v.VisitNode(node.JsxFragmentClosingFragment()))
+	case KindJsxAttribute:
+		return v.Factory.UpdateJsxAttribute(node, v.VisitNode(node.JsxAttributeName()), v.VisitNode(node.JsxAttributeInitializer()))
+	case KindJsxSpreadAttribute:
+		return v.Factory.UpdateJsxSpreadAttribute(node, v.VisitNode(node.JsxSpreadAttributeExpression()))
+	case KindJsxClosingElement:
+		return v.Factory.UpdateJsxClosingElement(node, v.VisitNode(node.JsxClosingElementTagName()))
+	case KindJsxExpression:
+		return v.Factory.UpdateJsxExpression(node, v.VisitNode(node.JsxExpressionDotDotDotToken()), v.VisitNode(node.JsxExpressionExpression()))
+	case KindSyntaxList:
+		return v.Factory.UpdateSyntaxList(node, v.VisitNodes(node.SyntaxListChildren()))
+	case KindJSDoc:
+		return v.Factory.UpdateJSDoc(node, v.VisitNodes(node.JSDocComment()), v.VisitNodes(node.JSDocTags()))
+	case KindJSDocTypeExpression:
+		return v.Factory.UpdateJSDocTypeExpression(node, v.VisitNode(node.JSDocTypeExpressionType()))
+	case KindJSDocNonNullableType:
+		return v.Factory.UpdateJSDocNonNullableType(node, v.VisitNode(node.JSDocNonNullableTypeType()))
+	case KindJSDocNullableType:
+		return v.Factory.UpdateJSDocNullableType(node, v.VisitNode(node.JSDocNullableTypeType()))
+	case KindJSDocVariadicType:
+		return v.Factory.UpdateJSDocVariadicType(node, v.VisitNode(node.JSDocVariadicTypeType()))
+	case KindJSDocOptionalType:
+		return v.Factory.UpdateJSDocOptionalType(node, v.VisitNode(node.JSDocOptionalTypeType()))
+	case KindJSDocTypeTag:
+		return v.Factory.UpdateJSDocTypeTag(node, v.VisitNode(node.JSDocTypeTagTagName()), v.VisitNode(node.JSDocTypeTagTypeExpression()), v.VisitNodes(node.JSDocTypeTagComment()))
+	case KindJSDocUnknownTag:
+		return v.Factory.UpdateJSDocUnknownTag(node, v.VisitNode(node.JSDocUnknownTagTagName()), v.VisitNodes(node.JSDocUnknownTagComment()))
+	case KindJSDocTemplateTag:
+		return v.Factory.UpdateJSDocTemplateTag(node, v.VisitNode(node.JSDocTemplateTagTagName()), v.VisitNode(node.JSDocTemplateTagConstraint()), v.VisitNodes(node.JSDocTemplateTagTypeParameters()), v.VisitNodes(node.JSDocTemplateTagComment()))
+	case KindJSDocReturnTag:
+		return v.Factory.UpdateJSDocReturnTag(node, v.VisitNode(node.JSDocReturnTagTagName()), v.VisitNode(node.JSDocReturnTagTypeExpression()), v.VisitNodes(node.JSDocReturnTagComment()))
+	case KindJSDocPublicTag:
+		return v.Factory.UpdateJSDocPublicTag(node, v.VisitNode(node.JSDocPublicTagTagName()), v.VisitNodes(node.JSDocPublicTagComment()))
+	case KindJSDocPrivateTag:
+		return v.Factory.UpdateJSDocPrivateTag(node, v.VisitNode(node.JSDocPrivateTagTagName()), v.VisitNodes(node.JSDocPrivateTagComment()))
+	case KindJSDocProtectedTag:
+		return v.Factory.UpdateJSDocProtectedTag(node, v.VisitNode(node.JSDocProtectedTagTagName()), v.VisitNodes(node.JSDocProtectedTagComment()))
+	case KindJSDocReadonlyTag:
+		return v.Factory.UpdateJSDocReadonlyTag(node, v.VisitNode(node.JSDocReadonlyTagTagName()), v.VisitNodes(node.JSDocReadonlyTagComment()))
+	case KindJSDocOverrideTag:
+		return v.Factory.UpdateJSDocOverrideTag(node, v.VisitNode(node.JSDocOverrideTagTagName()), v.VisitNodes(node.JSDocOverrideTagComment()))
+	case KindJSDocDeprecatedTag:
+		return v.Factory.UpdateJSDocDeprecatedTag(node, v.VisitNode(node.JSDocDeprecatedTagTagName()), v.VisitNodes(node.JSDocDeprecatedTagComment()))
+	case KindJSDocSeeTag:
+		return v.Factory.UpdateJSDocSeeTag(node, v.VisitNode(node.JSDocSeeTagTagName()), v.VisitNode(node.JSDocSeeTagNameExpression()), v.VisitNodes(node.JSDocSeeTagComment()))
+	case KindJSDocImplementsTag:
+		return v.Factory.UpdateJSDocImplementsTag(node, v.VisitNode(node.JSDocImplementsTagTagName()), v.VisitNode(node.JSDocImplementsTagClassName()), v.VisitNodes(node.JSDocImplementsTagComment()))
+	case KindJSDocAugmentsTag:
+		return v.Factory.UpdateJSDocAugmentsTag(node, v.VisitNode(node.JSDocAugmentsTagTagName()), v.VisitNode(node.JSDocAugmentsTagClassName()), v.VisitNodes(node.JSDocAugmentsTagComment()))
+	case KindJSDocSatisfiesTag:
+		return v.Factory.UpdateJSDocSatisfiesTag(node, v.VisitNode(node.JSDocSatisfiesTagTagName()), v.VisitNode(node.JSDocSatisfiesTagTypeExpression()), v.VisitNodes(node.JSDocSatisfiesTagComment()))
+	case KindJSDocThrowsTag:
+		return v.Factory.UpdateJSDocThrowsTag(node, v.VisitNode(node.JSDocThrowsTagTagName()), v.VisitNode(node.JSDocThrowsTagTypeExpression()), v.VisitNodes(node.JSDocThrowsTagComment()))
+	case KindJSDocThisTag:
+		return v.Factory.UpdateJSDocThisTag(node, v.VisitNode(node.JSDocThisTagTagName()), v.VisitNode(node.JSDocThisTagTypeExpression()), v.VisitNodes(node.JSDocThisTagComment()))
+	case KindJSDocImportTag:
+		return v.Factory.UpdateJSDocImportTag(node, v.VisitNode(node.JSDocImportTagTagName()), v.VisitNode(node.JSDocImportTagImportClause()), v.VisitNode(node.JSDocImportTagModuleSpecifier()), v.VisitNode(node.JSDocImportTagAttributes()), v.VisitNodes(node.JSDocImportTagComment()))
+	case KindJSDocCallbackTag:
+		return v.Factory.UpdateJSDocCallbackTag(node, v.VisitNode(node.JSDocCallbackTagTagName()), v.VisitNode(node.JSDocCallbackTagTypeExpression()), v.VisitNode(node.JSDocCallbackTagName()), v.VisitNodes(node.JSDocCallbackTagComment()))
+	case KindJSDocOverloadTag:
+		return v.Factory.UpdateJSDocOverloadTag(node, v.VisitNode(node.JSDocOverloadTagTagName()), v.VisitNode(node.JSDocOverloadTagTypeExpression()), v.VisitNodes(node.JSDocOverloadTagComment()))
+	case KindJSDocTypedefTag:
+		return v.Factory.UpdateJSDocTypedefTag(node, v.VisitNode(node.JSDocTypedefTagTagName()), v.VisitNode(node.JSDocTypedefTagTypeExpression()), v.VisitNode(node.JSDocTypedefTagName()), v.VisitNodes(node.JSDocTypedefTagComment()))
+	case KindJSDocSignature:
+		return v.Factory.UpdateJSDocSignature(node, v.VisitNodes(node.JSDocSignatureTypeParameters()), v.VisitNodes(node.JSDocSignatureParameters()), v.VisitNode(node.JSDocSignatureType()))
+	case KindJSDocNameReference:
+		return v.Factory.UpdateJSDocNameReference(node, v.VisitNode(node.JSDocNameReferenceName()))
+	case KindModuleDeclaration:
+		return v.Factory.UpdateModuleDeclaration(node, v.VisitNodes(node.ModuleDeclarationModifiers()), node.ModuleDeclarationKeyword(), v.VisitNode(node.ModuleDeclarationName()), v.VisitNode(node.ModuleDeclarationBody()))
+	case KindImportEqualsDeclaration:
+		return v.Factory.UpdateImportEqualsDeclaration(node, v.VisitNodes(node.ImportEqualsDeclarationModifiers()), node.ImportEqualsDeclarationIsTypeOnly(), v.VisitNode(node.ImportEqualsDeclarationName()), v.VisitNode(node.ImportEqualsDeclarationModuleReference()))
+	case KindExportDeclaration:
+		return v.Factory.UpdateExportDeclaration(node, v.VisitNodes(node.ExportDeclarationModifiers()), node.ExportDeclarationIsTypeOnly(), v.VisitNode(node.ExportDeclarationExportClause()), v.VisitNode(node.ExportDeclarationModuleSpecifier()), v.VisitNode(node.ExportDeclarationAttributes()))
+	case KindImportType:
+		return v.Factory.UpdateImportTypeNode(node, node.ImportTypeNodeIsTypeOf(), v.VisitNode(node.ImportTypeNodeArgument()), v.VisitNode(node.ImportTypeNodeAttributes()), v.VisitNode(node.ImportTypeNodeQualifier()), v.VisitNodes(node.ImportTypeNodeTypeArguments()))
+	case KindImportClause:
+		return v.Factory.UpdateImportClause(node, node.ImportClausePhaseModifier(), v.VisitNode(node.ImportClauseName()), v.VisitNode(node.ImportClauseNamedBindings()))
+	case KindImportSpecifier:
+		return v.Factory.UpdateImportSpecifier(node, node.ImportSpecifierIsTypeOnly(), v.VisitNode(node.ImportSpecifierPropertyName()), v.VisitNode(node.ImportSpecifierName()))
+	case KindJSDocLink:
+		return v.Factory.UpdateJSDocLink(node, v.VisitNode(node.JSDocLinkName()), node.JSDocLinkText())
+	case KindJSDocLinkPlain:
+		return v.Factory.UpdateJSDocLinkPlain(node, v.VisitNode(node.JSDocLinkPlainName()), node.JSDocLinkPlainText())
+	case KindJSDocLinkCode:
+		return v.Factory.UpdateJSDocLinkCode(node, v.VisitNode(node.JSDocLinkCodeName()), node.JSDocLinkCodeText())
+	case KindTypeParameter:
+		return v.Factory.UpdateTypeParameterDeclaration(node, v.VisitNodes(node.TypeParameterDeclarationModifiers()), v.VisitNode(node.TypeParameterDeclarationName()), v.VisitNode(node.TypeParameterDeclarationConstraint()), v.VisitNode(node.TypeParameterDeclarationExpression()), v.VisitNode(node.TypeParameterDeclarationDefaultType()))
+	case KindSyntheticReferenceExpression:
+		return v.Factory.UpdateSyntheticReferenceExpression(node, v.VisitNode(node.SyntheticReferenceExpressionExpression()), v.VisitNode(node.SyntheticReferenceExpressionThisArg()))
+	case KindJSDocTypeLiteral:
+		return v.Factory.UpdateJSDocTypeLiteral(node, v.VisitNodes(node.JSDocTypeLiteralJSDocPropertyTags()), node.JSDocTypeLiteralIsArrayType())
+	case KindJSDocParameterTag, KindJSDocPropertyTag:
+		return v.Factory.UpdateJSDocParameterOrPropertyTag(node, v.VisitNode(node.JSDocParameterOrPropertyTagTagName()), v.VisitNode(node.JSDocParameterOrPropertyTagName()), node.JSDocParameterOrPropertyTagIsBracketed(), v.VisitNode(node.JSDocParameterOrPropertyTagTypeExpression()), node.JSDocParameterOrPropertyTagIsNameFirst(), v.VisitNodes(node.JSDocParameterOrPropertyTagComment()))
+	default:
+		return node
 	}
 }

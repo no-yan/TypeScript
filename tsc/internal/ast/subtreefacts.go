@@ -94,7 +94,7 @@ func propagateEraseableSyntaxSubtreeFacts(child *TypeNode) SubtreeFacts {
 	return core.IfElse(child != nil, SubtreeContainsTypeScript, SubtreeFactsNone)
 }
 
-func propagateObjectBindingElementSubtreeFacts(child *BindingElementNode) SubtreeFacts {
+func propagateObjectBindingElementSubtreeFacts(child *Node) SubtreeFacts {
 	facts := propagateSubtreeFacts(child)
 	if facts&SubtreeContainsRestOrSpread != 0 {
 		facts &^= SubtreeContainsRestOrSpread
@@ -103,7 +103,7 @@ func propagateObjectBindingElementSubtreeFacts(child *BindingElementNode) Subtre
 	return facts
 }
 
-func propagateBindingElementSubtreeFacts(child *BindingElementNode) SubtreeFacts {
+func propagateBindingElementSubtreeFacts(child *Node) SubtreeFacts {
 	return propagateSubtreeFacts(child) & ^SubtreeContainsRestOrSpread
 }
 
