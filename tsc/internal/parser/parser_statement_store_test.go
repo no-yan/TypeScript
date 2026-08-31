@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
+	"github.com/microsoft/TypeScript/tsc/internal/binder"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"gotest.tools/v3/assert"
 )
@@ -97,6 +98,56 @@ func TestParseSourceFileUsesNativeStatementPathForJavaScript(t *testing.T) {
 	assert.Equal(t, 1, len(file.Statements.Nodes))
 	assert.Equal(t, ast.KindFunctionDeclaration, file.Statements.Nodes[0].Kind)
 	assert.Equal(t, 0, len(file.Diagnostics()))
+}
+
+func TestNativeExportTypeAliasShape(t *testing.T) {
+	opts := ast.SourceFileParseOptions{FileName: "/main.ts", Path: "/main.ts"}
+	file := ParseSourceFile(opts, "export type x = any;\n", core.ScriptKindTS)
+	assert.Assert(t, file != nil)
+	assert.Equal(t, 1, len(file.Statements.Nodes))
+	stmt := file.Statements.Nodes[0]
+	t.Logf("kind=%v modifierFlags=%v external=%v", stmt.Kind, stmt.ModifierFlags(), file.ExternalModuleIndicator != nil)
+	for i, m := range stmt.ModifierNodes() {
+		t.Logf("mod[%d]=%v", i, m.Kind)
+	}
+	assert.Equal(t, ast.KindTypeAliasDeclaration, stmt.Kind)
+	assert.Assert(t, stmt.ModifierFlags()&ast.ModifierFlagsExport != 0)
+	assert.Assert(t, file.ExternalModuleIndicator != nil)
+	alias := stmt.AsTypeAliasDeclaration()
+	assert.Equal(t, ast.KindAnyKeyword, alias.Type.Kind)
+	assert.Equal(t, "x", alias.Name().Text())
+	binder.BindSourceFile(file)
+	assert.Assert(t, file.Symbol != nil)
+	if file.Symbol.Exports != nil {
+		for name, sym := range file.Symbol.Exports {
+			t.Logf("export %q flags=%v", name, sym.Flags)
+		}
+	} else {
+		t.Log("exports table is nil")
+	}
+	_, hasX := file.Symbol.Exports["x"]
+	assert.Assert(t, hasX, "module exports should contain x")
+}
+
+func TestNativeReexportModuleSpecifierText(t *testing.T) {
+	opts := ast.SourceFileParseOptions{FileName: "/main.ts", Path: "/main.ts"}
+	file := ParseSourceFile(opts, "export { x } from \"other\";\n", core.ScriptKindTS)
+	stmt := file.Statements.Nodes[0]
+	assert.Equal(t, ast.KindExportDeclaration, stmt.Kind)
+	assert.Assert(t, stmt.Modifiers() == nil || len(stmt.ModifierNodes()) == 0, "export { } must not treat export as a modifier")
+	spec := stmt.AsExportDeclaration().ModuleSpecifier
+	assert.Assert(t, spec != nil)
+	t.Logf("specifier kind=%v text=%q", spec.Kind, spec.Text())
+	assert.Equal(t, "other", spec.Text())
+	assert.Assert(t, len(file.Imports()) > 0, "external module references should be collected")
+	t.Logf("imports[0] text=%q", file.Imports()[0].Text())
+	clause := stmt.AsExportDeclaration().ExportClause
+	assert.Assert(t, clause != nil)
+	el := clause.AsNamedExports().Elements.Nodes[0]
+	t.Logf("specifier parent=%v grandparent=%v", el.Parent.Kind, el.Parent.Parent.Kind)
+	sf := ast.GetSourceFileOfNode(el)
+	assert.Assert(t, sf != nil, "export specifier must reach SourceFile")
+	assert.Equal(t, file, sf)
 }
 
 func TestCheckerTsNativeRejectSite(t *testing.T) {

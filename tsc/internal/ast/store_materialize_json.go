@@ -75,7 +75,7 @@ func MaterializeSourceFile(root Handle, opts SourceFileParseOptions, text string
 			KindExportKeyword, KindDefaultKeyword, KindDeclareKeyword, KindAsyncKeyword,
 			KindPublicKeyword, KindPrivateKeyword, KindProtectedKeyword, KindReadonlyKeyword,
 			KindStaticKeyword, KindAbstractKeyword, KindOverrideKeyword, KindAccessorKeyword,
-			KindLetKeyword, KindVarKeyword, KindAssertsKeyword:
+			KindLetKeyword, KindVarKeyword, KindAssertsKeyword, KindOutKeyword:
 			node = factory.NewToken(h.Kind())
 		case KindIdentifier:
 			node = factory.NewIdentifier(h.IdentifierText())
@@ -512,6 +512,11 @@ func MaterializeSourceFile(root Handle, opts SourceFileParseOptions, text string
 				h.ExportAssignmentIsExportEquals(),
 				materialize(h.ExportAssignmentType()),
 				materialize(h.ExportAssignmentExpression()),
+			)
+		case KindNamespaceExportDeclaration:
+			node = factory.NewNamespaceExportDeclaration(
+				materializeModifiers(h.NamespaceExportDeclarationModifiers()),
+				materialize(h.NamespaceExportDeclarationName()),
 			)
 		case KindTypeParameter:
 			node = factory.NewTypeParameterDeclaration(

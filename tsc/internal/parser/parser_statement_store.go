@@ -124,7 +124,9 @@ func (p *Parser) parseNativeStatement(factory *ast.Factory) (ast.Handle, bool) {
 		ast.KindPublicKeyword, ast.KindPrivateKeyword, ast.KindProtectedKeyword,
 		ast.KindReadonlyKeyword, ast.KindStaticKeyword, ast.KindAbstractKeyword,
 		ast.KindOverrideKeyword, ast.KindAccessorKeyword, ast.KindDefaultKeyword:
-		return p.parseNativeDeclarationStatement(factory)
+		if p.lookAhead((*Parser).isStartOfDeclaration) {
+			return p.parseNativeDeclarationStatement(factory)
+		}
 	}
 	return p.parseNativeExpressionOrLabeledStatement(factory)
 }
@@ -158,6 +160,9 @@ func (p *Parser) parseNativeDeclarationStatement(factory *ast.Factory) (ast.Hand
 		return p.parseNativeModuleDeclarationAt(factory, pos, modifiers)
 	case ast.KindImportKeyword:
 		return p.parseNativeImportDeclarationAt(factory, pos, modifiers)
+	case ast.KindExportKeyword:
+		p.nextToken()
+		return p.parseNativeExportAfterModifiers(factory, pos, modifiers)
 	default:
 		if modifiers != 0 {
 			return p.parseNativeExportAfterModifiers(factory, pos, modifiers)
@@ -167,14 +172,14 @@ func (p *Parser) parseNativeDeclarationStatement(factory *ast.Factory) (ast.Hand
 }
 
 func (p *Parser) parseNativeModifiers(factory *ast.Factory) (ast.ListRef, bool) {
-	if !isNativeModifierStart(p.token) {
-		return 0, true
-	}
 	pos := p.nodePos()
 	mods := make([]ast.Handle, 0, 4)
-	for isNativeModifierStart(p.token) {
+	for {
 		if p.token == ast.KindAtToken {
 			return 0, false
+		}
+		if !p.lookAhead((*Parser).nativeTokenIsModifier) {
+			break
 		}
 		mods = append(mods, p.parseNativeToken(factory))
 	}
@@ -182,6 +187,10 @@ func (p *Parser) parseNativeModifiers(factory *ast.Factory) (ast.ListRef, bool) 
 		return 0, true
 	}
 	return factory.List(core.NewTextRange(pos, p.nodePos()), mods...), true
+}
+
+func (p *Parser) nativeTokenIsModifier() bool {
+	return ast.IsModifierKind(p.token) && p.nextTokenCanFollowModifier()
 }
 
 func isNativeModifierStart(kind ast.Kind) bool {
@@ -368,7 +377,7 @@ func (p *Parser) parseNativeBindingPattern(factory *ast.Factory) (ast.Handle, bo
 	elems := make([]ast.Handle, 0, 4)
 	for p.token != close && p.token != ast.KindEndOfFile {
 		if kind == ast.KindArrayBindingPattern && p.token == ast.KindCommaToken {
-			elems = append(elems, p.finishNativeHandle(factory, factory.NewOmittedExpression(), p.nodePos()))
+			elems = append(elems, p.finishNativeHandle(factory, factory.NewBindingElement(ast.Handle{}, ast.Handle{}, ast.Handle{}, ast.Handle{}), p.nodePos()))
 			p.nextToken()
 			continue
 		}
@@ -1370,26 +1379,47 @@ func (p *Parser) parseNativeModuleDeclarationAt(factory *ast.Factory, pos int, m
 	}
 	keyword := p.token
 	p.nextToken()
-	if !p.isIdentifier() && p.token != ast.KindStringLiteral {
-		return ast.Handle{}, false
-	}
-	var name ast.Handle
 	if p.token == ast.KindStringLiteral {
-		name = p.parseNativeLiteral(factory)
-	} else {
-		name = p.parseNativeIdentifier(factory)
-		for p.token == ast.KindDotToken {
-			p.nextToken()
-			right, ok := p.parseNativeIdentifierName(factory)
-			if !ok {
-				return ast.Handle{}, false
-			}
-			name = p.finishNativeHandle(factory, factory.NewQualifiedName(name, right), name.Loc().Pos())
+		name := p.parseNativeLiteral(factory)
+		body, ok := p.parseNativeModuleBlock(factory)
+		if !ok {
+			return ast.Handle{}, false
 		}
+		return p.finishNativeHandle(factory, factory.NewModuleDeclaration(modifiers, keyword, name, body), pos), true
 	}
-	body, ok := p.parseNativeModuleBlock(factory)
-	if !ok {
-		return ast.Handle{}, false
+	return p.parseNativeModuleOrNamespaceDeclarationAt(factory, pos, modifiers, false, keyword)
+}
+
+func (p *Parser) parseNativeModuleOrNamespaceDeclarationAt(factory *ast.Factory, pos int, modifiers ast.ListRef, nested bool, keyword ast.Kind) (ast.Handle, bool) {
+	var name ast.Handle
+	if nested {
+		var ok bool
+		name, ok = p.parseNativeIdentifierName(factory)
+		if !ok {
+			return ast.Handle{}, false
+		}
+	} else {
+		if !p.isIdentifier() {
+			return ast.Handle{}, false
+		}
+		name = p.parseNativeIdentifier(factory)
+	}
+	var body ast.Handle
+	var ok bool
+	if p.token == ast.KindDotToken {
+		p.nextToken()
+		exportPos := p.nodePos()
+		exportTok := p.finishNativeHandle(factory, factory.NewToken(ast.KindExportKeyword), exportPos)
+		implicitMods := factory.List(core.NewTextRange(exportPos, exportPos), exportTok)
+		body, ok = p.parseNativeModuleOrNamespaceDeclarationAt(factory, p.nodePos(), implicitMods, true, keyword)
+		if !ok {
+			return ast.Handle{}, false
+		}
+	} else {
+		body, ok = p.parseNativeModuleBlock(factory)
+		if !ok {
+			return ast.Handle{}, false
+		}
 	}
 	return p.finishNativeHandle(factory, factory.NewModuleDeclaration(modifiers, keyword, name, body), pos), true
 }
@@ -1555,6 +1585,14 @@ func (p *Parser) parseNativeExportAfterModifiers(factory *ast.Factory, pos int, 
 		}
 		return p.finishNativeHandle(factory, factory.NewExportAssignment(modifiers, false, ast.Handle{}, expr), pos), true
 	}
+	if p.token == ast.KindDefaultKeyword {
+		p.nextToken()
+		expr, ok := p.parseNativeAssignmentExpression(factory)
+		if !ok || !p.tryParseNativeSemicolon() {
+			return ast.Handle{}, false
+		}
+		return p.finishNativeHandle(factory, factory.NewExportAssignment(modifiers, false, ast.Handle{}, expr), pos), true
+	}
 	if p.token == ast.KindEqualsToken {
 		p.nextToken()
 		expr, ok := p.parseNativeAssignmentExpression(factory)
@@ -1562,6 +1600,26 @@ func (p *Parser) parseNativeExportAfterModifiers(factory *ast.Factory, pos int, 
 			return ast.Handle{}, false
 		}
 		return p.finishNativeHandle(factory, factory.NewExportAssignment(modifiers, true, ast.Handle{}, expr), pos), true
+	}
+	if p.token == ast.KindAsKeyword {
+		p.nextToken()
+		if p.token != ast.KindNamespaceKeyword {
+			return ast.Handle{}, false
+		}
+		p.nextToken()
+		if !p.isIdentifier() {
+			return ast.Handle{}, false
+		}
+		name := p.parseNativeIdentifier(factory)
+		if !p.tryParseNativeSemicolon() {
+			return ast.Handle{}, false
+		}
+		return p.finishNativeHandle(factory, factory.NewNamespaceExportDeclaration(modifiers, name), pos), true
+	}
+	isTypeOnly := false
+	if p.token == ast.KindTypeKeyword {
+		isTypeOnly = true
+		p.nextToken()
 	}
 	if p.token == ast.KindAsteriskToken {
 		p.nextToken()
@@ -1584,7 +1642,7 @@ func (p *Parser) parseNativeExportAfterModifiers(factory *ast.Factory, pos int, 
 		if !p.tryParseNativeSemicolon() {
 			return ast.Handle{}, false
 		}
-		return p.finishNativeHandle(factory, factory.NewExportDeclaration(modifiers, false, clause, spec, ast.Handle{}), pos), true
+		return p.finishNativeHandle(factory, factory.NewExportDeclaration(modifiers, isTypeOnly, clause, spec, ast.Handle{}), pos), true
 	}
 	if p.token == ast.KindOpenBraceToken {
 		clause, ok := p.parseNativeNamedExports(factory)
@@ -1602,7 +1660,7 @@ func (p *Parser) parseNativeExportAfterModifiers(factory *ast.Factory, pos int, 
 		if !p.tryParseNativeSemicolon() {
 			return ast.Handle{}, false
 		}
-		return p.finishNativeHandle(factory, factory.NewExportDeclaration(modifiers, false, clause, spec, ast.Handle{}), pos), true
+		return p.finishNativeHandle(factory, factory.NewExportDeclaration(modifiers, isTypeOnly, clause, spec, ast.Handle{}), pos), true
 	}
 	return ast.Handle{}, false
 }
