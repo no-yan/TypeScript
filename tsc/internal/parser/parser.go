@@ -135,7 +135,10 @@ func putParser(p *Parser) {
 func ParseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptKind core.ScriptKind) *ast.SourceFile {
 	p := getParser()
 	defer putParser(p)
-	storeHint := max(256, len(sourceText)/24)
+	// Parsed TypeScript averages just under one Store node per ten source
+	// bytes on the large compiler fixture. A source-sized hint avoids growing
+	// all packed columns in lockstep while leaving headroom for dense syntax.
+	storeHint := max(256, len(sourceText)/10)
 	storeFactory := ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
 	p.factory.AttachStore(storeFactory.Store())
 	p.initializeState(opts, sourceText, scriptKind)
