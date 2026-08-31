@@ -14,21 +14,27 @@ const nativeExpressionBenchmarkText = `client?.users[index + 1].map(
 	...extras,
 ) ? total * rate + fee : fallback;`
 
+const expandedNativeExpressionBenchmarkText = "new Registry<Map<string, Entry[]>>({\n" +
+	"\t[/^user-/.source]: tag<string>`hello ${++index}: ${items[index++]?.name}`,\n" +
+	"}).build();"
+
 func TestNativeExpressionProducerAcceptsCompleteSubset(t *testing.T) {
 	t.Parallel()
 	opts := ast.SourceFileParseOptions{FileName: "/expression.ts", Path: "/expression.ts"}
-	p := getParser()
-	defer putParser(p)
-	p.initializeState(opts, nativeExpressionBenchmarkText, core.ScriptKindTS)
-	p.nextToken()
+	for _, sourceText := range []string{nativeExpressionBenchmarkText, expandedNativeExpressionBenchmarkText} {
+		p := getParser()
+		p.initializeState(opts, sourceText, core.ScriptKindTS)
+		p.nextToken()
 
-	created := 0
-	factory := ast.NewFactory(ast.FactoryHooks{OnCreate: func(ast.Handle) { created++ }})
-	root, ok := p.tryParseExpressionSourceHandle(factory)
-	assert.Assert(t, ok)
-	assert.Equal(t, ast.KindSourceFile, root.Kind())
-	assert.Equal(t, factory.Store().Len(), created)
-	assert.Equal(t, 0, len(p.diagnostics))
+		created := 0
+		factory := ast.NewFactory(ast.FactoryHooks{OnCreate: func(ast.Handle) { created++ }})
+		root, ok := p.tryParseExpressionSourceHandle(factory)
+		assert.Assert(t, ok, sourceText)
+		assert.Equal(t, ast.KindSourceFile, root.Kind())
+		assert.Equal(t, factory.Store().Len(), created)
+		assert.Equal(t, 0, len(p.diagnostics))
+		putParser(p)
+	}
 }
 
 func TestNativeExpressionProducerRejectsMalformedAndUnsupportedSyntax(t *testing.T) {
@@ -41,7 +47,11 @@ func TestNativeExpressionProducerRejectsMalformedAndUnsupportedSyntax(t *testing
 		`1 = value`,
 		`const value = 1`,
 		`({ method() {} })`,
-		`a<T>(b)`,
+		`a<T`,
+		`a<T,>(b)`,
+		`new.target`,
+		"optional?.`template`",
+		"({ [name]() {} })",
 		`/** @type {string} */`,
 	} {
 		p := getParser()
@@ -57,12 +67,13 @@ func TestNativeExpressionProducerRejectsMalformedAndUnsupportedSyntax(t *testing
 
 func BenchmarkParseExpressionHandleNative(b *testing.B) {
 	opts := ast.SourceFileParseOptions{FileName: "/expression.ts", Path: "/expression.ts"}
+	sourceText := expandedNativeExpressionBenchmarkText
 
 	b.Run("HandleOnly", func(b *testing.B) {
 		b.ReportAllocs()
 		for b.Loop() {
 			p := getParser()
-			p.initializeState(opts, nativeExpressionBenchmarkText, core.ScriptKindTS)
+			p.initializeState(opts, sourceText, core.ScriptKindTS)
 			p.nextToken()
 			factory := ast.NewFactoryHint(ast.FactoryHooks{}, 64)
 			root, ok := p.tryParseExpressionSourceHandle(factory)
@@ -79,14 +90,14 @@ func BenchmarkParseExpressionHandleNative(b *testing.B) {
 		b.ReportAllocs()
 		for b.Loop() {
 			p := getParser()
-			p.initializeState(opts, nativeExpressionBenchmarkText, core.ScriptKindTS)
+			p.initializeState(opts, sourceText, core.ScriptKindTS)
 			p.nextToken()
 			factory := ast.NewFactoryHint(ast.FactoryHooks{}, 64)
 			root, ok := p.tryParseExpressionSourceHandle(factory)
 			if !ok {
 				b.Fatal("native expression benchmark input was not accepted")
 			}
-			file, refs, _ := ast.MaterializeSourceFile(root, opts, nativeExpressionBenchmarkText)
+			file, refs, _ := ast.MaterializeSourceFile(root, opts, sourceText)
 			factory.Seal()
 			putParser(p)
 			runtime.KeepAlive(file)
@@ -98,7 +109,7 @@ func BenchmarkParseExpressionHandleNative(b *testing.B) {
 		b.ReportAllocs()
 		for b.Loop() {
 			p := getParser()
-			p.initializeState(opts, nativeExpressionBenchmarkText, core.ScriptKindTS)
+			p.initializeState(opts, sourceText, core.ScriptKindTS)
 			p.nextToken()
 			factory := ast.NewFactoryHint(ast.FactoryHooks{}, 64)
 			p.factory.AttachStore(factory.Store())

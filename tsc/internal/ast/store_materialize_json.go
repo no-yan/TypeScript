@@ -55,6 +55,13 @@ func MaterializeSourceFile(root Handle, opts SourceFileParseOptions, text string
 			node = factory.NewToken(h.Kind())
 		case KindIdentifier:
 			node = factory.NewIdentifier(h.IdentifierText())
+		case KindQualifiedName:
+			node = factory.NewQualifiedName(
+				materialize(h.QualifiedNameLeft()),
+				materialize(h.QualifiedNameRight()),
+			)
+		case KindComputedPropertyName:
+			node = factory.NewComputedPropertyName(materialize(h.ComputedPropertyNameExpression()))
 		case KindStringLiteral:
 			node = factory.NewStringLiteral(h.StringLiteralText(), h.StringLiteralTokenFlags())
 		case KindNumericLiteral:
@@ -66,10 +73,20 @@ func MaterializeSourceFile(root Handle, opts SourceFileParseOptions, text string
 				h.NoSubstitutionTemplateLiteralText(),
 				h.NoSubstitutionTemplateLiteralTemplateFlags(),
 			)
+		case KindRegularExpressionLiteral:
+			node = factory.NewRegularExpressionLiteral(
+				h.RegularExpressionLiteralText(),
+				h.RegularExpressionLiteralTokenFlags(),
+			)
 		case KindPrefixUnaryExpression:
 			node = factory.NewPrefixUnaryExpression(
 				h.PrefixUnaryExpressionOperator(),
 				materialize(h.PrefixUnaryExpressionOperand()),
+			)
+		case KindPostfixUnaryExpression:
+			node = factory.NewPostfixUnaryExpression(
+				materialize(h.PostfixUnaryExpressionOperand()),
+				h.PostfixUnaryExpressionOperator(),
 			)
 		case KindBinaryExpression:
 			node = factory.NewBinaryExpression(
@@ -113,6 +130,48 @@ func MaterializeSourceFile(root Handle, opts SourceFileParseOptions, text string
 				materializeList(h.CallExpressionArguments()),
 				h.Flags(),
 			)
+		case KindNewExpression:
+			node = factory.NewNewExpression(
+				materialize(h.NewExpressionExpression()),
+				materializeList(h.NewExpressionTypeArguments()),
+				materializeList(h.NewExpressionArguments()),
+			)
+		case KindTemplateExpression:
+			node = factory.NewTemplateExpression(
+				materialize(h.TemplateExpressionHead()),
+				materializeList(h.TemplateExpressionTemplateSpans()),
+			)
+		case KindTemplateSpan:
+			node = factory.NewTemplateSpan(
+				materialize(h.TemplateSpanExpression()),
+				materialize(h.TemplateSpanLiteral()),
+			)
+		case KindTaggedTemplateExpression:
+			node = factory.NewTaggedTemplateExpression(
+				materialize(h.TaggedTemplateExpressionTag()),
+				materialize(h.TaggedTemplateExpressionQuestionDotToken()),
+				materializeList(h.TaggedTemplateExpressionTypeArguments()),
+				materialize(h.TaggedTemplateExpressionTemplate()),
+				h.Flags(),
+			)
+		case KindTemplateHead:
+			node = factory.NewTemplateHead(
+				h.TemplateHeadText(),
+				h.TemplateHeadRawText(),
+				h.TemplateHeadTemplateFlags(),
+			)
+		case KindTemplateMiddle:
+			node = factory.NewTemplateMiddle(
+				h.TemplateMiddleText(),
+				h.TemplateMiddleRawText(),
+				h.TemplateMiddleTemplateFlags(),
+			)
+		case KindTemplateTail:
+			node = factory.NewTemplateTail(
+				h.TemplateTailText(),
+				h.TemplateTailRawText(),
+				h.TemplateTailTemplateFlags(),
+			)
 		case KindArrayLiteralExpression:
 			node = factory.NewArrayLiteralExpression(
 				materializeList(h.ArrayLiteralExpressionElements()),
@@ -146,6 +205,18 @@ func MaterializeSourceFile(root Handle, opts SourceFileParseOptions, text string
 				materialize(h.ShorthandPropertyAssignmentEqualsToken()),
 				materialize(h.ShorthandPropertyAssignmentObjectAssignmentInitializer()),
 			)
+		case KindAnyKeyword, KindBigIntKeyword, KindBooleanKeyword,
+			KindIntrinsicKeyword, KindNeverKeyword, KindNumberKeyword,
+			KindObjectKeyword, KindStringKeyword, KindSymbolKeyword,
+			KindUndefinedKeyword, KindUnknownKeyword, KindVoidKeyword:
+			node = factory.NewKeywordTypeNode(h.Kind())
+		case KindTypeReference:
+			node = factory.NewTypeReferenceNode(
+				materialize(h.TypeReferenceNodeTypeName()),
+				materializeList(h.TypeReferenceNodeTypeArguments()),
+			)
+		case KindArrayType:
+			node = factory.NewArrayTypeNode(materialize(h.ArrayTypeNodeElementType()))
 		case KindExpressionStatement:
 			node = factory.NewExpressionStatement(materialize(h.ExpressionStatementExpression()))
 		case KindSourceFile:

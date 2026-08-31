@@ -91,6 +91,10 @@ func TestTypeScriptExpressionHandleNativeProductionIntegration(t *testing.T) {
 		base,
 		...extra,
 		answer: client?.items[index + 1]?.(arg) ? [1, , ...rest] : { fallback: true },
+		pattern: /^user-/gi,
+		created: new Registry<Map<string, Entry[]>>().build(),
+		message: tag<string>` + "`hello ${++index}: ${items[index++]?.name}`" + `,
+		[key + suffix]: value,
 	});`
 	opts := ast.SourceFileParseOptions{FileName: "/expression.ts", Path: "/expression.ts"}
 	file := parser.ParseSourceFile(opts, sourceText, core.ScriptKindTS)
@@ -137,6 +141,20 @@ func TestTypeScriptExpressionHandleNativeProductionIntegration(t *testing.T) {
 		ast.KindSpreadAssignment,
 		ast.KindPropertyAssignment,
 		ast.KindShorthandPropertyAssignment,
+		ast.KindComputedPropertyName,
+		ast.KindRegularExpressionLiteral,
+		ast.KindNewExpression,
+		ast.KindPrefixUnaryExpression,
+		ast.KindPostfixUnaryExpression,
+		ast.KindTemplateExpression,
+		ast.KindTemplateSpan,
+		ast.KindTemplateHead,
+		ast.KindTemplateMiddle,
+		ast.KindTemplateTail,
+		ast.KindTaggedTemplateExpression,
+		ast.KindTypeReference,
+		ast.KindArrayType,
+		ast.KindStringKeyword,
 	} {
 		assert.Assert(t, seen[kind], "missing native kind %s", kind)
 	}
