@@ -642,7 +642,17 @@ func (p *Parser) scanNativeTypeArguments() bool {
 			return false
 		}
 	}
-	if p.reScanGreaterThanToken() != ast.KindGreaterThanToken {
+	if !p.consumeNativeGreaterThan() {
+		return false
+	}
+	return true
+}
+
+func (p *Parser) consumeNativeGreaterThan() bool {
+	// Scan emits one GreaterThanToken per `>`. ReScanGreaterThanToken would
+	// merge the inner and outer closes of nested arguments such as
+	// Map<string, Entry[]>.
+	if p.token != ast.KindGreaterThanToken {
 		return false
 	}
 	p.nextToken()
@@ -697,11 +707,10 @@ func (p *Parser) parseNativeTypeArguments(factory *ast.Factory) (ast.ListRef, bo
 		}
 		p.nextToken()
 	}
-	if p.reScanGreaterThanToken() != ast.KindGreaterThanToken {
+	if !p.consumeNativeGreaterThan() {
 		return 0, false
 	}
 	list := factory.List(core.NewTextRange(listPos, p.nodePos()), types...)
-	p.nextToken()
 	return list, true
 }
 
