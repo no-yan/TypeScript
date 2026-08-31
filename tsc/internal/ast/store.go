@@ -88,9 +88,11 @@ func NewStore(hint int) *Store {
 	}
 	return &Store{
 		nodes:     make([]nodeHeader, 1, hint+1),
-		lists:     make([]listHeader, 1, 8),
-		internOff: []uint32{0, 0},
-		internIdx: make(map[string]uint32),
+		lists:     make([]listHeader, 1, max(8, hint/3)),
+		children:  make([]NodeRef, 0, hint*4),
+		listSlots: make([]ListRef, 0, hint*2),
+		internOff: make([]uint32, 2, max(2, hint/3)),
+		internIdx: make(map[string]uint32, hint/3),
 	}
 }
 
