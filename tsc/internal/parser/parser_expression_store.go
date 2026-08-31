@@ -13,7 +13,7 @@ func (p *Parser) tryParseExpressionSourceHandle(factory *ast.Factory) (ast.Handl
 	state := p.mark()
 	identifierCount := p.identifierCount
 	root, ok := p.parseExpressionSourceHandle(factory)
-	if !ok || len(p.diagnostics) != state.diagnosticsLen {
+	if !ok || state.diagnosticsLen != 0 || len(p.diagnostics) != 0 {
 		p.rewind(state)
 		p.identifierCount = identifierCount
 		return ast.Handle{}, false

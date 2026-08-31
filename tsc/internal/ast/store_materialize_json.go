@@ -40,8 +40,9 @@ func MaterializeSourceFile(root Handle, opts SourceFileParseOptions, text string
 		}
 		var node *Node
 		switch h.Kind() {
-		case KindEndOfFile, KindTrueKeyword, KindFalseKeyword, KindNullKeyword,
-			KindThisKeyword, KindQuestionToken, KindColonToken, KindCommaToken,
+		case KindTrueKeyword, KindFalseKeyword, KindNullKeyword, KindThisKeyword:
+			node = factory.NewKeywordExpression(h.Kind())
+		case KindEndOfFile, KindQuestionToken, KindColonToken, KindCommaToken,
 			KindQuestionDotToken, KindEqualsEqualsToken, KindExclamationEqualsToken,
 			KindEqualsEqualsEqualsToken, KindExclamationEqualsEqualsToken,
 			KindLessThanToken, KindGreaterThanToken, KindLessThanEqualsToken,
