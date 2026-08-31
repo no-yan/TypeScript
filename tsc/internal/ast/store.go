@@ -498,39 +498,6 @@ func (h Handle) StringValue(slot int) string {
 	return h.s.internText(id)
 }
 
-// primaryStringSlot identifies string payloads whose canonical text already
-// has a packed nodeHeader column. Avoiding a map entry for these values keeps
-// the generated value-slot API exact without duplicating every identifier and
-// literal in stringValues.
-func primaryStringSlot(kind Kind) int {
-	switch kind {
-	case KindIdentifier:
-		return valueSlotIdentifierText
-	case KindPrivateIdentifier:
-		return valueSlotPrivateIdentifierText
-	case KindStringLiteral:
-		return valueSlotStringLiteralText
-	case KindNumericLiteral:
-		return valueSlotNumericLiteralText
-	case KindBigIntLiteral:
-		return valueSlotBigIntLiteralText
-	case KindRegularExpressionLiteral:
-		return valueSlotRegularExpressionLiteralText
-	case KindNoSubstitutionTemplateLiteral:
-		return valueSlotNoSubstitutionTemplateLiteralText
-	case KindTemplateHead:
-		return valueSlotTemplateHeadText
-	case KindTemplateMiddle:
-		return valueSlotTemplateMiddleText
-	case KindTemplateTail:
-		return valueSlotTemplateTailText
-	case KindJsxText:
-		return valueSlotJsxTextText
-	default:
-		return -1
-	}
-}
-
 func (h Handle) SetObjectValue(slot int, value any) {
 	key := h.valueKey(slot)
 	if value == nil {

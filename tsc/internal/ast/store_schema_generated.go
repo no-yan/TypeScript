@@ -1563,3 +1563,32 @@ const (
 	valueSlotJSDocParameterOrPropertyTagIsNameFirst
 	valueSlotJSDocParameterOrPropertyTagCount
 )
+
+func primaryStringSlot(kind Kind) int {
+	switch kind {
+	case KindIdentifier:
+		return valueSlotIdentifierText
+	case KindPrivateIdentifier:
+		return valueSlotPrivateIdentifierText
+	case KindStringLiteral:
+		return valueSlotStringLiteralText
+	case KindNumericLiteral:
+		return valueSlotNumericLiteralText
+	case KindBigIntLiteral:
+		return valueSlotBigIntLiteralText
+	case KindRegularExpressionLiteral:
+		return valueSlotRegularExpressionLiteralText
+	case KindNoSubstitutionTemplateLiteral:
+		return valueSlotNoSubstitutionTemplateLiteralText
+	case KindTemplateHead:
+		return valueSlotTemplateHeadText
+	case KindTemplateMiddle:
+		return valueSlotTemplateMiddleText
+	case KindTemplateTail:
+		return valueSlotTemplateTailText
+	case KindJsxText:
+		return valueSlotJsxTextText
+	default:
+		return -1
+	}
+}
