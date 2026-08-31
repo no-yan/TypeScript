@@ -511,14 +511,6 @@ function emitStorePut(w: CodeWriter, node: NodeType) {
             w.write(`h.SetUintValue(${slot}, uint64(${value}))`);
         }
     }
-    if (layout.strings.length > 0) {
-        const p = layout.strings[0].goParamName();
-        w.write(`if ${p} != "" {`);
-        w.push();
-        w.write(`h.SetIdent(f.store.Intern(${p}))`);
-        w.pop();
-        w.write("}");
-    }
     w.pop();
     w.write("}");
 }

@@ -71,6 +71,7 @@ func TestStoreBridgePreservesCrossFileChildrenAsGlobalRefs(t *testing.T) {
 	sourceFile := sourceNode.AsSourceFile()
 	sourceFile.SetParseStore(storeA, factoryA.HandleOf(sourceNode))
 	sourceFile.SetParseNodeRef(factoryA.TakeNodeRef())
+	assert.Assert(t, sourceFile.NodeFor(NodeRef(storeA.Len()+100)) == nil)
 	RegisterFile(sourceFile)
 
 	storeB := NewStore(4)
@@ -109,4 +110,20 @@ func TestStoreAwareUpdateReusesEquivalentNodeRefs(t *testing.T) {
 
 	updated := factory.UpdateQualifiedName(original.AsQualifiedName(), equivalentLeft, right)
 	assert.Equal(t, original, updated)
+}
+
+func TestPrimaryStringValueUsesCanonicalTextColumn(t *testing.T) {
+	t.Parallel()
+	store := NewStore(2)
+	identifier := store.Alloc(KindIdentifier, 0, core.UndefinedTextRange(), 0)
+
+	identifier.SetStringValue(valueSlotIdentifierText, "first")
+	assert.Equal(t, "first", identifier.StringValue(valueSlotIdentifierText))
+	assert.Equal(t, "first", identifier.Ident())
+
+	identifier.SetStringValue(valueSlotIdentifierText, "second")
+	assert.Equal(t, "second", identifier.StringValue(valueSlotIdentifierText))
+	identifier.SetStringValue(valueSlotIdentifierText, "")
+	assert.Equal(t, "", identifier.StringValue(valueSlotIdentifierText))
+	assert.Equal(t, "", identifier.Ident())
 }

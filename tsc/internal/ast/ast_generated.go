@@ -639,9 +639,6 @@ func (f *NodeFactory) NewIdentifier(text string) *Node {
 	node := f.newNode(KindIdentifier, data)
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
 		h.SetStringValue(valueSlotIdentifierText, text)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -670,9 +667,6 @@ func (f *NodeFactory) NewPrivateIdentifier(text string) *Node {
 	node := f.newNode(KindPrivateIdentifier, data)
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
 		h.SetStringValue(valueSlotPrivateIdentifierText, text)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -4007,9 +4001,6 @@ func (f *NodeFactory) NewStringLiteral(text string, tokenFlags TokenFlags) *Node
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
 		h.SetStringValue(valueSlotStringLiteralText, text)
 		h.SetTokenFlags(tokenFlags & TokenFlagsStringLiteralFlags)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -4039,9 +4030,6 @@ func (f *NodeFactory) NewNumericLiteral(text string, tokenFlags TokenFlags) *Nod
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
 		h.SetStringValue(valueSlotNumericLiteralText, text)
 		h.SetTokenFlags(tokenFlags & TokenFlagsNumericLiteralFlags)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -4071,9 +4059,6 @@ func (f *NodeFactory) NewBigIntLiteral(text string, tokenFlags TokenFlags) *Node
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
 		h.SetStringValue(valueSlotBigIntLiteralText, text)
 		h.SetTokenFlags(tokenFlags & TokenFlagsNumericLiteralFlags)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -4103,9 +4088,6 @@ func (f *NodeFactory) NewRegularExpressionLiteral(text string, tokenFlags TokenF
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
 		h.SetStringValue(valueSlotRegularExpressionLiteralText, text)
 		h.SetTokenFlags(tokenFlags & TokenFlagsRegularExpressionLiteralFlags)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -4137,9 +4119,6 @@ func (f *NodeFactory) NewNoSubstitutionTemplateLiteral(text string, templateFlag
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
 		h.SetStringValue(valueSlotNoSubstitutionTemplateLiteralText, text)
 		h.SetTokenFlags(templateFlags & TokenFlagsTemplateLiteralLikeFlags)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -6857,9 +6836,6 @@ func (f *NodeFactory) NewTemplateHead(text string, rawText string, templateFlags
 		h.SetStringValue(valueSlotTemplateHeadText, text)
 		h.SetStringValue(valueSlotTemplateHeadRawText, rawText)
 		h.SetTokenFlags(templateFlags & TokenFlagsTemplateLiteralLikeFlags)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -6892,9 +6868,6 @@ func (f *NodeFactory) NewTemplateMiddle(text string, rawText string, templateFla
 		h.SetStringValue(valueSlotTemplateMiddleText, text)
 		h.SetStringValue(valueSlotTemplateMiddleRawText, rawText)
 		h.SetTokenFlags(templateFlags & TokenFlagsTemplateLiteralLikeFlags)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -6927,9 +6900,6 @@ func (f *NodeFactory) NewTemplateTail(text string, rawText string, templateFlags
 		h.SetStringValue(valueSlotTemplateTailText, text)
 		h.SetStringValue(valueSlotTemplateTailRawText, rawText)
 		h.SetTokenFlags(templateFlags & TokenFlagsTemplateLiteralLikeFlags)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -7667,9 +7637,6 @@ func (f *NodeFactory) NewJsxText(text string, containsOnlyTriviaWhiteSpaces bool
 		h.SetStringValue(valueSlotJsxTextText, text)
 		if containsOnlyTriviaWhiteSpaces {
 			h.SetUintValue(valueSlotJsxTextContainsOnlyTriviaWhiteSpaces, 1)
-		}
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
 		}
 	}
 	return node

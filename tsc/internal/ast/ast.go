@@ -2510,7 +2510,7 @@ type SourceFile struct {
 	parseStore        *Store
 	parseRoot         NodeRef
 	parseNodeRef      map[*Node]NodeRef
-	parseRefNode      map[NodeRef]*Node
+	parseRefNode      []*Node
 
 	// Fields set by binder
 
@@ -2631,8 +2631,11 @@ func (node *SourceFile) setParseNodeRefLocked(m map[*Node]NodeRef) {
 		node.parseRefNode = nil
 		return
 	}
-	rev := make(map[NodeRef]*Node, len(m))
+	rev := make([]*Node, len(m)+1)
 	for n, ref := range m {
+		if int(ref) >= len(rev) {
+			rev = append(rev, make([]*Node, int(ref)-len(rev)+1)...)
+		}
 		rev[ref] = n
 	}
 	node.parseRefNode = rev
@@ -2657,6 +2660,9 @@ func (node *SourceFile) NodeFor(ref NodeRef) *Node {
 	}
 	node.parseStoreMu.RLock()
 	defer node.parseStoreMu.RUnlock()
+	if int(ref) >= len(node.parseRefNode) {
+		return nil
+	}
 	return node.parseRefNode[ref]
 }
 
@@ -2692,14 +2698,20 @@ func (node *SourceFile) AbsorbNodeRef(m map[*Node]NodeRef) {
 		return
 	}
 	if node.parseRefNode == nil {
-		node.parseRefNode = make(map[NodeRef]*Node, len(node.parseNodeRef)+len(m))
+		node.parseRefNode = make([]*Node, len(node.parseNodeRef)+1)
 		for n, ref := range node.parseNodeRef {
+			if int(ref) >= len(node.parseRefNode) {
+				node.parseRefNode = append(node.parseRefNode, make([]*Node, int(ref)-len(node.parseRefNode)+1)...)
+			}
 			node.parseRefNode[ref] = n
 		}
 	}
 	for n, ref := range m {
 		if node.parseNodeRef[n] == 0 {
 			node.parseNodeRef[n] = ref
+		}
+		if int(ref) >= len(node.parseRefNode) {
+			node.parseRefNode = append(node.parseRefNode, make([]*Node, int(ref)-len(node.parseRefNode)+1)...)
 		}
 		node.parseRefNode[ref] = n
 	}
