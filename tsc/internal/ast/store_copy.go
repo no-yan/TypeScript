@@ -39,6 +39,21 @@ func (c *subtreeCopier) copy(ref NodeRef) Handle {
 	dst := c.dst.createSlots(src.Kind(), src.Flags(), src.Loc(), n, listN)
 	dst.SetTokenFlags(src.TokenFlags())
 	c.remap[ref] = dst.Ref()
+	for key, value := range c.src.scalarValues {
+		if NodeRef(key>>32) == ref {
+			dst.SetUintValue(int(uint32(key)), value)
+		}
+	}
+	for key, value := range c.src.stringValues {
+		if NodeRef(key>>32) == ref {
+			dst.SetStringValue(int(uint32(key)), c.src.internText(value))
+		}
+	}
+	for key, value := range c.src.objectValues {
+		if NodeRef(key>>32) == ref {
+			dst.SetObjectValue(int(uint32(key)), value)
+		}
+	}
 	if text := src.Ident(); text != "" {
 		dst.SetIdent(c.dst.store.Intern(text))
 	}

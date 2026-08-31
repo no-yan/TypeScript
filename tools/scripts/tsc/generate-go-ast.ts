@@ -425,6 +425,7 @@ type StoreLayout = {
     children: MemberInfo[];
     lists: MemberInfo[];
     strings: MemberInfo[];
+    values: MemberInfo[];
 };
 
 function memberSuffix(m: MemberInfo): string {
@@ -439,10 +440,15 @@ function listSlotConst(nodeName: string, memberName: string): string {
     return `listSlot${nodeName}${memberName}`;
 }
 
+function valueSlotConst(nodeName: string, memberName: string): string {
+    return `valueSlot${nodeName}${memberName}`;
+}
+
 function storeLayout(node: NodeType): StoreLayout {
     const children: MemberInfo[] = [];
     const lists: MemberInfo[] = [];
     const strings: MemberInfo[] = [];
+    const values: MemberInfo[] = [];
     for (const m of schemaMembers(node)) {
         if (m.isKindParam()) continue;
         if (isNodeFlagsMember(m)) continue;
@@ -457,9 +463,13 @@ function storeLayout(node: NodeType): StoreLayout {
         }
         else if (m.type.kind === "primitive" && m.type.name === "string") {
             strings.push(m);
+            values.push(m);
+        }
+        else {
+            values.push(m);
         }
     }
-    return { children, lists, strings };
+    return { children, lists, strings, values };
 }
 
 function emitStorePut(w: CodeWriter, node: NodeType) {
@@ -479,6 +489,26 @@ function emitStorePut(w: CodeWriter, node: NodeType) {
         }
         else {
             w.write(`h.SetListSlot(${slot}, f.storeList(${m.goParamName()}))`);
+        }
+    }
+    for (const m of layout.values) {
+        const value = m.bitmask ? `${m.goParamName()} & ${m.bitmask}` : m.goParamName();
+        const slot = valueSlotConst(node.name, memberSuffix(m));
+        const ref = m.type.formatGoReference();
+        if (ref === "TokenFlags") {
+            w.write(`h.SetTokenFlags(${value})`);
+        }
+        else if (ref === "string") {
+            w.write(`h.SetStringValue(${slot}, ${value})`);
+        }
+        else if (ref === "bool") {
+            w.write(`if ${value} { h.SetUintValue(${slot}, 1) }`);
+        }
+        else if (ref === "any" || ref.startsWith("*") || ref.startsWith("[]")) {
+            w.write(`h.SetObjectValue(${slot}, ${value})`);
+        }
+        else {
+            w.write(`h.SetUintValue(${slot}, uint64(${value}))`);
         }
     }
     if (layout.strings.length > 0) {
@@ -513,20 +543,21 @@ function expandArg(node: NodeType, m: MemberInfo): string {
         }
         return `expandStored(f, h.Child(${slotConst(node.name, memberSuffix(m))}))`;
     }
-    if (m.type.kind === "primitive" && m.type.name === "string") {
-        return "h.Ident()";
-    }
     const ref = m.type.formatGoReference();
-    if (ref === "bool") {
-        return "false";
+    if (ref === "TokenFlags") {
+        return "h.TokenFlags()";
     }
+    const slot = valueSlotConst(node.name, memberSuffix(m));
     if (ref === "string") {
-        return `""`;
+        return `h.StringValue(${slot})`;
     }
-    if (ref.startsWith("*") || ref.startsWith("[]")) {
-        return "nil";
+    if (ref === "bool") {
+        return `h.UintValue(${slot}) != 0`;
     }
-    return "0";
+    if (ref === "any" || ref.startsWith("*") || ref.startsWith("[]")) {
+        return `storeObjectValue[${ref}](h, ${slot})`;
+    }
+    return `${ref}(h.UintValue(${slot}))`;
 }
 
 function generateStoreSchema(): string {
@@ -557,6 +588,18 @@ function generateStoreSchema(): string {
                 w.write(i === 0 ? `${name} = iota` : name);
             });
             w.write(`${listSlotConst(node.name, "Count")}`);
+            w.pop();
+            w.write(")");
+            w.write("");
+        }
+        if (layout.values.length > 0) {
+            w.write("const (");
+            w.push();
+            layout.values.forEach((m, i) => {
+                const name = valueSlotConst(node.name, memberSuffix(m));
+                w.write(i === 0 ? `${name} = iota` : name);
+            });
+            w.write(`${valueSlotConst(node.name, "Count")}`);
             w.pop();
             w.write(")");
             w.write("");
@@ -605,10 +648,7 @@ function generateExpandStore(): string {
     w.write("return n");
     w.pop();
     w.write("}");
-    w.write("n := f.NewEmptyStatement()");
-    w.write("n.Kind = h.Kind()");
-    w.write("applyStoreHeader(n, h)");
-    w.write("return n");
+    w.write(`panic("ast: no Store expander for " + h.Kind().String())`);
     w.pop();
     w.write("}");
     w.pop();

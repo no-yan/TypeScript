@@ -3,6 +3,16 @@
 package ast
 
 const (
+	valueSlotIdentifierText = iota
+	valueSlotIdentifierCount
+)
+
+const (
+	valueSlotPrivateIdentifierText = iota
+	valueSlotPrivateIdentifierCount
+)
+
+const (
 	slotQualifiedNameLeft = iota
 	slotQualifiedNameRight
 	slotQualifiedNameCount
@@ -130,6 +140,11 @@ const (
 )
 
 const (
+	valueSlotBlockMultiLine = iota
+	valueSlotBlockCount
+)
+
+const (
 	slotVariableStatementDeclarationList = iota
 	slotVariableStatementCount
 )
@@ -232,6 +247,11 @@ const (
 )
 
 const (
+	valueSlotHeritageClauseToken = iota
+	valueSlotHeritageClauseCount
+)
+
+const (
 	slotInterfaceDeclarationName = iota
 	slotInterfaceDeclarationCount
 )
@@ -317,6 +337,11 @@ const (
 )
 
 const (
+	valueSlotExportAssignmentIsExportEquals = iota
+	valueSlotExportAssignmentCount
+)
+
+const (
 	slotNamespaceExportDeclarationName = iota
 	slotNamespaceExportDeclarationCount
 )
@@ -340,6 +365,11 @@ const (
 	slotExportSpecifierPropertyName = iota
 	slotExportSpecifierName
 	slotExportSpecifierCount
+)
+
+const (
+	valueSlotExportSpecifierIsTypeOnly = iota
+	valueSlotExportSpecifierCount
 )
 
 const (
@@ -487,6 +517,36 @@ const (
 )
 
 const (
+	valueSlotStringLiteralText = iota
+	valueSlotStringLiteralTokenFlags
+	valueSlotStringLiteralCount
+)
+
+const (
+	valueSlotNumericLiteralText = iota
+	valueSlotNumericLiteralTokenFlags
+	valueSlotNumericLiteralCount
+)
+
+const (
+	valueSlotBigIntLiteralText = iota
+	valueSlotBigIntLiteralTokenFlags
+	valueSlotBigIntLiteralCount
+)
+
+const (
+	valueSlotRegularExpressionLiteralText = iota
+	valueSlotRegularExpressionLiteralTokenFlags
+	valueSlotRegularExpressionLiteralCount
+)
+
+const (
+	valueSlotNoSubstitutionTemplateLiteralText = iota
+	valueSlotNoSubstitutionTemplateLiteralTemplateFlags
+	valueSlotNoSubstitutionTemplateLiteralCount
+)
+
+const (
 	slotBinaryExpressionLeft = iota
 	slotBinaryExpressionType
 	slotBinaryExpressionOperatorToken
@@ -505,8 +565,18 @@ const (
 )
 
 const (
+	valueSlotPrefixUnaryExpressionOperator = iota
+	valueSlotPrefixUnaryExpressionCount
+)
+
+const (
 	slotPostfixUnaryExpressionOperand = iota
 	slotPostfixUnaryExpressionCount
+)
+
+const (
+	valueSlotPostfixUnaryExpressionOperator = iota
+	valueSlotPostfixUnaryExpressionCount
 )
 
 const (
@@ -610,6 +680,11 @@ const (
 )
 
 const (
+	valueSlotMetaPropertyKeywordToken = iota
+	valueSlotMetaPropertyCount
+)
+
+const (
 	slotNonNullExpressionExpression = iota
 	slotNonNullExpressionCount
 )
@@ -658,8 +733,18 @@ const (
 )
 
 const (
+	valueSlotArrayLiteralExpressionMultiLine = iota
+	valueSlotArrayLiteralExpressionCount
+)
+
+const (
 	listSlotObjectLiteralExpressionProperties = iota
 	listSlotObjectLiteralExpressionCount
+)
+
+const (
+	valueSlotObjectLiteralExpressionMultiLine = iota
+	valueSlotObjectLiteralExpressionCount
 )
 
 const (
@@ -744,6 +829,11 @@ const (
 )
 
 const (
+	valueSlotTypeOperatorNodeOperator = iota
+	valueSlotTypeOperatorNodeCount
+)
+
+const (
 	slotInferTypeNodeTypeParameter = iota
 	slotInferTypeNodeCount
 )
@@ -800,6 +890,12 @@ const (
 const (
 	listSlotImportAttributesAttributes = iota
 	listSlotImportAttributesCount
+)
+
+const (
+	valueSlotImportAttributesToken = iota
+	valueSlotImportAttributesMultiLine
+	valueSlotImportAttributesCount
 )
 
 const (
@@ -883,6 +979,27 @@ const (
 )
 
 const (
+	valueSlotTemplateHeadText = iota
+	valueSlotTemplateHeadRawText
+	valueSlotTemplateHeadTemplateFlags
+	valueSlotTemplateHeadCount
+)
+
+const (
+	valueSlotTemplateMiddleText = iota
+	valueSlotTemplateMiddleRawText
+	valueSlotTemplateMiddleTemplateFlags
+	valueSlotTemplateMiddleCount
+)
+
+const (
+	valueSlotTemplateTailText = iota
+	valueSlotTemplateTailRawText
+	valueSlotTemplateTailTemplateFlags
+	valueSlotTemplateTailCount
+)
+
+const (
 	slotTemplateLiteralTypeNodeHead = iota
 	slotTemplateLiteralTypeNodeCount
 )
@@ -901,6 +1018,12 @@ const (
 const (
 	slotSyntheticExpressionTupleNameSource = iota
 	slotSyntheticExpressionCount
+)
+
+const (
+	valueSlotSyntheticExpressionType = iota
+	valueSlotSyntheticExpressionIsSpread
+	valueSlotSyntheticExpressionCount
 )
 
 const (
@@ -983,6 +1106,12 @@ const (
 	slotJsxExpressionDotDotDotToken = iota
 	slotJsxExpressionExpression
 	slotJsxExpressionCount
+)
+
+const (
+	valueSlotJsxTextText = iota
+	valueSlotJsxTextContainsOnlyTriviaWhiteSpaces
+	valueSlotJsxTextCount
 )
 
 const (
@@ -1277,6 +1406,11 @@ const (
 )
 
 const (
+	valueSlotModuleDeclarationKeyword = iota
+	valueSlotModuleDeclarationCount
+)
+
+const (
 	slotImportEqualsDeclarationName = iota
 	slotImportEqualsDeclarationModuleReference
 	slotImportEqualsDeclarationCount
@@ -1285,6 +1419,11 @@ const (
 const (
 	listSlotImportEqualsDeclarationModifiers = iota
 	listSlotImportEqualsDeclarationCount
+)
+
+const (
+	valueSlotImportEqualsDeclarationIsTypeOnly = iota
+	valueSlotImportEqualsDeclarationCount
 )
 
 const (
@@ -1300,6 +1439,11 @@ const (
 )
 
 const (
+	valueSlotExportDeclarationIsTypeOnly = iota
+	valueSlotExportDeclarationCount
+)
+
+const (
 	slotImportTypeNodeArgument = iota
 	slotImportTypeNodeAttributes
 	slotImportTypeNodeQualifier
@@ -1312,9 +1456,19 @@ const (
 )
 
 const (
+	valueSlotImportTypeNodeIsTypeOf = iota
+	valueSlotImportTypeNodeCount
+)
+
+const (
 	slotImportClauseName = iota
 	slotImportClauseNamedBindings
 	slotImportClauseCount
+)
+
+const (
+	valueSlotImportClausePhaseModifier = iota
+	valueSlotImportClauseCount
 )
 
 const (
@@ -1324,8 +1478,23 @@ const (
 )
 
 const (
+	valueSlotImportSpecifierIsTypeOnly = iota
+	valueSlotImportSpecifierCount
+)
+
+const (
+	valueSlotJSDocTextText = iota
+	valueSlotJSDocTextCount
+)
+
+const (
 	slotJSDocLinkName = iota
 	slotJSDocLinkCount
+)
+
+const (
+	valueSlotJSDocLinkText = iota
+	valueSlotJSDocLinkCount
 )
 
 const (
@@ -1334,8 +1503,18 @@ const (
 )
 
 const (
+	valueSlotJSDocLinkPlainText = iota
+	valueSlotJSDocLinkPlainCount
+)
+
+const (
 	slotJSDocLinkCodeName = iota
 	slotJSDocLinkCodeCount
+)
+
+const (
+	valueSlotJSDocLinkCodeText = iota
+	valueSlotJSDocLinkCodeCount
 )
 
 const (
@@ -1363,6 +1542,11 @@ const (
 )
 
 const (
+	valueSlotJSDocTypeLiteralIsArrayType = iota
+	valueSlotJSDocTypeLiteralCount
+)
+
+const (
 	slotJSDocParameterOrPropertyTagTagName = iota
 	slotJSDocParameterOrPropertyTagName
 	slotJSDocParameterOrPropertyTagTypeExpression
@@ -1372,4 +1556,10 @@ const (
 const (
 	listSlotJSDocParameterOrPropertyTagComment = iota
 	listSlotJSDocParameterOrPropertyTagCount
+)
+
+const (
+	valueSlotJSDocParameterOrPropertyTagIsBracketed = iota
+	valueSlotJSDocParameterOrPropertyTagIsNameFirst
+	valueSlotJSDocParameterOrPropertyTagCount
 )

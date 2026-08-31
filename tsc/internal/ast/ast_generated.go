@@ -638,6 +638,7 @@ func (f *NodeFactory) NewIdentifier(text string) *Node {
 	f.textCount++
 	node := f.newNode(KindIdentifier, data)
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
+		h.SetStringValue(valueSlotIdentifierText, text)
 		if text != "" {
 			h.SetIdent(f.store.Intern(text))
 		}
@@ -668,6 +669,7 @@ func (f *NodeFactory) NewPrivateIdentifier(text string) *Node {
 	f.textCount++
 	node := f.newNode(KindPrivateIdentifier, data)
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
+		h.SetStringValue(valueSlotPrivateIdentifierText, text)
 		if text != "" {
 			h.SetIdent(f.store.Intern(text))
 		}
@@ -1747,6 +1749,9 @@ func (f *NodeFactory) NewBlock(statements *StatementList, multiLine bool) *Node 
 	node := f.newNode(KindBlock, data)
 	if h := f.storeAlloc(node, 0, 1); h.Ref() != 0 {
 		h.SetListSlot(listSlotBlockStatements, f.storeList(statements))
+		if multiLine {
+			h.SetUintValue(valueSlotBlockMultiLine, 1)
+		}
 	}
 	return node
 }
@@ -2358,6 +2363,7 @@ func (f *NodeFactory) NewHeritageClause(token Kind, types *HeritageClauseElement
 	node := f.newNode(KindHeritageClause, data)
 	if h := f.storeAlloc(node, 0, 1); h.Ref() != 0 {
 		h.SetListSlot(listSlotHeritageClauseTypes, f.storeList(types))
+		h.SetUintValue(valueSlotHeritageClauseToken, uint64(token))
 	}
 	return node
 }
@@ -3015,6 +3021,9 @@ func (f *NodeFactory) NewExportAssignment(modifiers *ModifierList, isExportEqual
 		h.SetChild(slotExportAssignmentType, f.storeHandle(typeNode))
 		h.SetChild(slotExportAssignmentExpression, f.storeHandle(expression))
 		h.SetListSlot(listSlotExportAssignmentModifiers, f.storeModifierList(modifiers))
+		if isExportEquals {
+			h.SetUintValue(valueSlotExportAssignmentIsExportEquals, 1)
+		}
 	}
 	return node
 }
@@ -3214,6 +3223,9 @@ func (f *NodeFactory) NewExportSpecifier(isTypeOnly bool, propertyName *ModuleEx
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
 		h.SetChild(slotExportSpecifierPropertyName, f.storeHandle(propertyName))
 		h.SetChild(slotExportSpecifierName, f.storeHandle(name))
+		if isTypeOnly {
+			h.SetUintValue(valueSlotExportSpecifierIsTypeOnly, 1)
+		}
 	}
 	return node
 }
@@ -3993,6 +4005,8 @@ func (f *NodeFactory) NewStringLiteral(text string, tokenFlags TokenFlags) *Node
 	f.textCount++
 	node := f.newNode(KindStringLiteral, data)
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
+		h.SetStringValue(valueSlotStringLiteralText, text)
+		h.SetTokenFlags(tokenFlags & TokenFlagsStringLiteralFlags)
 		if text != "" {
 			h.SetIdent(f.store.Intern(text))
 		}
@@ -4023,6 +4037,8 @@ func (f *NodeFactory) NewNumericLiteral(text string, tokenFlags TokenFlags) *Nod
 	f.textCount++
 	node := f.newNode(KindNumericLiteral, data)
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
+		h.SetStringValue(valueSlotNumericLiteralText, text)
+		h.SetTokenFlags(tokenFlags & TokenFlagsNumericLiteralFlags)
 		if text != "" {
 			h.SetIdent(f.store.Intern(text))
 		}
@@ -4053,6 +4069,8 @@ func (f *NodeFactory) NewBigIntLiteral(text string, tokenFlags TokenFlags) *Node
 	f.textCount++
 	node := f.newNode(KindBigIntLiteral, data)
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
+		h.SetStringValue(valueSlotBigIntLiteralText, text)
+		h.SetTokenFlags(tokenFlags & TokenFlagsNumericLiteralFlags)
 		if text != "" {
 			h.SetIdent(f.store.Intern(text))
 		}
@@ -4083,6 +4101,8 @@ func (f *NodeFactory) NewRegularExpressionLiteral(text string, tokenFlags TokenF
 	f.textCount++
 	node := f.newNode(KindRegularExpressionLiteral, data)
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
+		h.SetStringValue(valueSlotRegularExpressionLiteralText, text)
+		h.SetTokenFlags(tokenFlags & TokenFlagsRegularExpressionLiteralFlags)
 		if text != "" {
 			h.SetIdent(f.store.Intern(text))
 		}
@@ -4115,6 +4135,8 @@ func (f *NodeFactory) NewNoSubstitutionTemplateLiteral(text string, templateFlag
 	f.textCount++
 	node := f.newNode(KindNoSubstitutionTemplateLiteral, data)
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
+		h.SetStringValue(valueSlotNoSubstitutionTemplateLiteralText, text)
+		h.SetTokenFlags(templateFlags & TokenFlagsTemplateLiteralLikeFlags)
 		if text != "" {
 			h.SetIdent(f.store.Intern(text))
 		}
@@ -4207,6 +4229,7 @@ func (f *NodeFactory) NewPrefixUnaryExpression(operator Kind, operand *Expressio
 	node := f.newNode(KindPrefixUnaryExpression, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
 		h.SetChild(slotPrefixUnaryExpressionOperand, f.storeHandle(operand))
+		h.SetUintValue(valueSlotPrefixUnaryExpressionOperator, uint64(operator))
 	}
 	return node
 }
@@ -4255,6 +4278,7 @@ func (f *NodeFactory) NewPostfixUnaryExpression(operand *Expression, operator Ki
 	node := f.newNode(KindPostfixUnaryExpression, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
 		h.SetChild(slotPostfixUnaryExpressionOperand, f.storeHandle(operand))
+		h.SetUintValue(valueSlotPostfixUnaryExpressionOperator, uint64(operator))
 	}
 	return node
 }
@@ -4863,6 +4887,7 @@ func (f *NodeFactory) NewMetaProperty(keywordToken Kind, name *IdentifierNode) *
 	node := f.newNode(KindMetaProperty, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
 		h.SetChild(slotMetaPropertyName, f.storeHandle(name))
+		h.SetUintValue(valueSlotMetaPropertyKeywordToken, uint64(keywordToken))
 	}
 	return node
 }
@@ -5200,6 +5225,9 @@ func (f *NodeFactory) NewArrayLiteralExpression(elements *ElementList, multiLine
 	node := f.newNode(KindArrayLiteralExpression, data)
 	if h := f.storeAlloc(node, 0, 1); h.Ref() != 0 {
 		h.SetListSlot(listSlotArrayLiteralExpressionElements, f.storeList(elements))
+		if multiLine {
+			h.SetUintValue(valueSlotArrayLiteralExpressionMultiLine, 1)
+		}
 	}
 	return node
 }
@@ -5250,6 +5278,9 @@ func (f *NodeFactory) NewObjectLiteralExpression(properties *NodeList, multiLine
 	node := f.newNode(KindObjectLiteralExpression, data)
 	if h := f.storeAlloc(node, 0, 1); h.Ref() != 0 {
 		h.SetListSlot(listSlotObjectLiteralExpressionProperties, f.storeList(properties))
+		if multiLine {
+			h.SetUintValue(valueSlotObjectLiteralExpressionMultiLine, 1)
+		}
 	}
 	return node
 }
@@ -5862,6 +5893,7 @@ func (f *NodeFactory) NewTypeOperatorNode(operator Kind, typeNode *TypeNode) *No
 	node := f.newNode(KindTypeOperator, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
 		h.SetChild(slotTypeOperatorNodeType, f.storeHandle(typeNode))
+		h.SetUintValue(valueSlotTypeOperatorNodeOperator, uint64(operator))
 	}
 	return node
 }
@@ -6297,6 +6329,10 @@ func (f *NodeFactory) NewImportAttributes(token Kind, attributes *ImportAttribut
 	node := f.newNode(KindImportAttributes, data)
 	if h := f.storeAlloc(node, 0, 1); h.Ref() != 0 {
 		h.SetListSlot(listSlotImportAttributesAttributes, f.storeList(attributes))
+		h.SetUintValue(valueSlotImportAttributesToken, uint64(token))
+		if multiLine {
+			h.SetUintValue(valueSlotImportAttributesMultiLine, 1)
+		}
 	}
 	return node
 }
@@ -6818,6 +6854,9 @@ func (f *NodeFactory) NewTemplateHead(text string, rawText string, templateFlags
 	f.textCount++
 	node := f.newNode(KindTemplateHead, data)
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
+		h.SetStringValue(valueSlotTemplateHeadText, text)
+		h.SetStringValue(valueSlotTemplateHeadRawText, rawText)
+		h.SetTokenFlags(templateFlags & TokenFlagsTemplateLiteralLikeFlags)
 		if text != "" {
 			h.SetIdent(f.store.Intern(text))
 		}
@@ -6850,6 +6889,9 @@ func (f *NodeFactory) NewTemplateMiddle(text string, rawText string, templateFla
 	f.textCount++
 	node := f.newNode(KindTemplateMiddle, data)
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
+		h.SetStringValue(valueSlotTemplateMiddleText, text)
+		h.SetStringValue(valueSlotTemplateMiddleRawText, rawText)
+		h.SetTokenFlags(templateFlags & TokenFlagsTemplateLiteralLikeFlags)
 		if text != "" {
 			h.SetIdent(f.store.Intern(text))
 		}
@@ -6882,6 +6924,9 @@ func (f *NodeFactory) NewTemplateTail(text string, rawText string, templateFlags
 	f.textCount++
 	node := f.newNode(KindTemplateTail, data)
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
+		h.SetStringValue(valueSlotTemplateTailText, text)
+		h.SetStringValue(valueSlotTemplateTailRawText, rawText)
+		h.SetTokenFlags(templateFlags & TokenFlagsTemplateLiteralLikeFlags)
 		if text != "" {
 			h.SetIdent(f.store.Intern(text))
 		}
@@ -7006,6 +7051,10 @@ func (f *NodeFactory) NewSyntheticExpression(typeNode any, isSpread bool, tupleN
 	node := f.newNode(KindSyntheticExpression, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
 		h.SetChild(slotSyntheticExpressionTupleNameSource, f.storeHandle(tupleNameSource))
+		h.SetObjectValue(valueSlotSyntheticExpressionType, typeNode)
+		if isSpread {
+			h.SetUintValue(valueSlotSyntheticExpressionIsSpread, 1)
+		}
 	}
 	return node
 }
@@ -7615,6 +7664,10 @@ func (f *NodeFactory) NewJsxText(text string, containsOnlyTriviaWhiteSpaces bool
 	f.textCount++
 	node := f.newNode(KindJsxText, data)
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
+		h.SetStringValue(valueSlotJsxTextText, text)
+		if containsOnlyTriviaWhiteSpaces {
+			h.SetUintValue(valueSlotJsxTextContainsOnlyTriviaWhiteSpaces, 1)
+		}
 		if text != "" {
 			h.SetIdent(f.store.Intern(text))
 		}
@@ -9016,6 +9069,7 @@ func (f *NodeFactory) NewModuleDeclaration(modifiers *ModifierList, keyword Kind
 		h.SetChild(slotModuleDeclarationName, f.storeHandle(name))
 		h.SetChild(slotModuleDeclarationBody, f.storeHandle(body))
 		h.SetListSlot(listSlotModuleDeclarationModifiers, f.storeModifierList(modifiers))
+		h.SetUintValue(valueSlotModuleDeclarationKeyword, uint64(keyword))
 	}
 	return node
 }
@@ -9073,6 +9127,9 @@ func (f *NodeFactory) NewImportEqualsDeclaration(modifiers *ModifierList, isType
 		h.SetChild(slotImportEqualsDeclarationName, f.storeHandle(name))
 		h.SetChild(slotImportEqualsDeclarationModuleReference, f.storeHandle(moduleReference))
 		h.SetListSlot(listSlotImportEqualsDeclarationModifiers, f.storeModifierList(modifiers))
+		if isTypeOnly {
+			h.SetUintValue(valueSlotImportEqualsDeclarationIsTypeOnly, 1)
+		}
 	}
 	return node
 }
@@ -9132,6 +9189,9 @@ func (f *NodeFactory) NewExportDeclaration(modifiers *ModifierList, isTypeOnly b
 		h.SetChild(slotExportDeclarationModuleSpecifier, f.storeHandle(moduleSpecifier))
 		h.SetChild(slotExportDeclarationAttributes, f.storeHandle(attributes))
 		h.SetListSlot(listSlotExportDeclarationModifiers, f.storeModifierList(modifiers))
+		if isTypeOnly {
+			h.SetUintValue(valueSlotExportDeclarationIsTypeOnly, 1)
+		}
 	}
 	return node
 }
@@ -9187,6 +9247,9 @@ func (f *NodeFactory) NewImportTypeNode(isTypeOf bool, argument *TypeNode, attri
 		h.SetChild(slotImportTypeNodeAttributes, f.storeHandle(attributes))
 		h.SetChild(slotImportTypeNodeQualifier, f.storeHandle(qualifier))
 		h.SetListSlot(listSlotImportTypeNodeTypeArguments, f.storeList(typeArguments))
+		if isTypeOf {
+			h.SetUintValue(valueSlotImportTypeNodeIsTypeOf, 1)
+		}
 	}
 	return node
 }
@@ -9240,6 +9303,7 @@ func (f *NodeFactory) NewImportClause(phaseModifier ImportPhaseModifierSyntaxKin
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
 		h.SetChild(slotImportClauseName, f.storeHandle(name))
 		h.SetChild(slotImportClauseNamedBindings, f.storeHandle(namedBindings))
+		h.SetUintValue(valueSlotImportClausePhaseModifier, uint64(phaseModifier))
 	}
 	return node
 }
@@ -9294,6 +9358,9 @@ func (f *NodeFactory) NewImportSpecifier(isTypeOnly bool, propertyName *ModuleEx
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
 		h.SetChild(slotImportSpecifierPropertyName, f.storeHandle(propertyName))
 		h.SetChild(slotImportSpecifierName, f.storeHandle(name))
+		if isTypeOnly {
+			h.SetUintValue(valueSlotImportSpecifierIsTypeOnly, 1)
+		}
 	}
 	return node
 }
@@ -9339,6 +9406,7 @@ func (f *NodeFactory) NewJSDocText(text []string) *Node {
 	f.textCount++
 	node := f.newNode(KindJSDocText, data)
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
+		h.SetObjectValue(valueSlotJSDocTextText, text)
 	}
 	return node
 }
@@ -9368,6 +9436,7 @@ func (f *NodeFactory) NewJSDocLink(name *EntityName, text []string) *Node {
 	node := f.newNode(KindJSDocLink, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
 		h.SetChild(slotJSDocLinkName, f.storeHandle(name))
+		h.SetObjectValue(valueSlotJSDocLinkText, text)
 	}
 	return node
 }
@@ -9416,6 +9485,7 @@ func (f *NodeFactory) NewJSDocLinkPlain(name *EntityName, text []string) *Node {
 	node := f.newNode(KindJSDocLinkPlain, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
 		h.SetChild(slotJSDocLinkPlainName, f.storeHandle(name))
+		h.SetObjectValue(valueSlotJSDocLinkPlainText, text)
 	}
 	return node
 }
@@ -9464,6 +9534,7 @@ func (f *NodeFactory) NewJSDocLinkCode(name *EntityName, text []string) *Node {
 	node := f.newNode(KindJSDocLinkCode, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
 		h.SetChild(slotJSDocLinkCodeName, f.storeHandle(name))
+		h.SetObjectValue(valueSlotJSDocLinkCodeText, text)
 	}
 	return node
 }
@@ -9627,6 +9698,9 @@ func (f *NodeFactory) NewJSDocTypeLiteral(jsdocPropertyTags []*Node, isArrayType
 	node := f.newNode(KindJSDocTypeLiteral, data)
 	if h := f.storeAlloc(node, 0, 1); h.Ref() != 0 {
 		h.SetListSlot(listSlotJSDocTypeLiteralJSDocPropertyTags, f.storeRawList(jsdocPropertyTags))
+		if isArrayType {
+			h.SetUintValue(valueSlotJSDocTypeLiteralIsArrayType, 1)
+		}
 	}
 	return node
 }
@@ -9681,6 +9755,12 @@ func (f *NodeFactory) NewJSDocParameterOrPropertyTag(kind Kind, tagName *Identif
 		h.SetChild(slotJSDocParameterOrPropertyTagName, f.storeHandle(name))
 		h.SetChild(slotJSDocParameterOrPropertyTagTypeExpression, f.storeHandle(typeExpression))
 		h.SetListSlot(listSlotJSDocParameterOrPropertyTagComment, f.storeList(comment))
+		if isBracketed {
+			h.SetUintValue(valueSlotJSDocParameterOrPropertyTagIsBracketed, 1)
+		}
+		if isNameFirst {
+			h.SetUintValue(valueSlotJSDocParameterOrPropertyTagIsNameFirst, 1)
+		}
 	}
 	return node
 }

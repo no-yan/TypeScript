@@ -8,11 +8,11 @@ func expandStored(f *NodeFactory, h Handle) *Node {
 	}
 	switch h.Kind() {
 	case KindIdentifier:
-		n := f.NewIdentifier(h.Ident())
+		n := f.NewIdentifier(h.StringValue(valueSlotIdentifierText))
 		applyStoreHeader(n, h)
 		return n
 	case KindPrivateIdentifier:
-		n := f.NewPrivateIdentifier(h.Ident())
+		n := f.NewPrivateIdentifier(h.StringValue(valueSlotPrivateIdentifierText))
 		applyStoreHeader(n, h)
 		return n
 	case KindQualifiedName:
@@ -104,7 +104,7 @@ func expandStored(f *NodeFactory, h Handle) *Node {
 		applyStoreHeader(n, h)
 		return n
 	case KindBlock:
-		n := f.NewBlock(expandNodeList(f, h.Store(), h.ListSlot(listSlotBlockStatements)), false)
+		n := f.NewBlock(expandNodeList(f, h.Store(), h.ListSlot(listSlotBlockStatements)), h.UintValue(valueSlotBlockMultiLine) != 0)
 		applyStoreHeader(n, h)
 		return n
 	case KindVariableStatement:
@@ -148,7 +148,7 @@ func expandStored(f *NodeFactory, h Handle) *Node {
 		applyStoreHeader(n, h)
 		return n
 	case KindHeritageClause:
-		n := f.NewHeritageClause(0, expandNodeList(f, h.Store(), h.ListSlot(listSlotHeritageClauseTypes)))
+		n := f.NewHeritageClause(Kind(h.UintValue(valueSlotHeritageClauseToken)), expandNodeList(f, h.Store(), h.ListSlot(listSlotHeritageClauseTypes)))
 		applyStoreHeader(n, h)
 		return n
 	case KindInterfaceDeclaration:
@@ -196,7 +196,7 @@ func expandStored(f *NodeFactory, h Handle) *Node {
 		applyStoreHeader(n, h)
 		return n
 	case KindExportAssignment:
-		n := f.NewExportAssignment(expandModifierList(f, h.Store(), h.ListSlot(listSlotExportAssignmentModifiers)), false, expandStored(f, h.Child(slotExportAssignmentType)), expandStored(f, h.Child(slotExportAssignmentExpression)))
+		n := f.NewExportAssignment(expandModifierList(f, h.Store(), h.ListSlot(listSlotExportAssignmentModifiers)), h.UintValue(valueSlotExportAssignmentIsExportEquals) != 0, expandStored(f, h.Child(slotExportAssignmentType)), expandStored(f, h.Child(slotExportAssignmentExpression)))
 		applyStoreHeader(n, h)
 		return n
 	case KindNamespaceExportDeclaration:
@@ -212,7 +212,7 @@ func expandStored(f *NodeFactory, h Handle) *Node {
 		applyStoreHeader(n, h)
 		return n
 	case KindExportSpecifier:
-		n := f.NewExportSpecifier(false, expandStored(f, h.Child(slotExportSpecifierPropertyName)), expandStored(f, h.Child(slotExportSpecifierName)))
+		n := f.NewExportSpecifier(h.UintValue(valueSlotExportSpecifierIsTypeOnly) != 0, expandStored(f, h.Child(slotExportSpecifierPropertyName)), expandStored(f, h.Child(slotExportSpecifierName)))
 		applyStoreHeader(n, h)
 		return n
 	case KindCallSignature:
@@ -272,23 +272,23 @@ func expandStored(f *NodeFactory, h Handle) *Node {
 		applyStoreHeader(n, h)
 		return n
 	case KindStringLiteral:
-		n := f.NewStringLiteral(h.Ident(), 0)
+		n := f.NewStringLiteral(h.StringValue(valueSlotStringLiteralText), h.TokenFlags())
 		applyStoreHeader(n, h)
 		return n
 	case KindNumericLiteral:
-		n := f.NewNumericLiteral(h.Ident(), 0)
+		n := f.NewNumericLiteral(h.StringValue(valueSlotNumericLiteralText), h.TokenFlags())
 		applyStoreHeader(n, h)
 		return n
 	case KindBigIntLiteral:
-		n := f.NewBigIntLiteral(h.Ident(), 0)
+		n := f.NewBigIntLiteral(h.StringValue(valueSlotBigIntLiteralText), h.TokenFlags())
 		applyStoreHeader(n, h)
 		return n
 	case KindRegularExpressionLiteral:
-		n := f.NewRegularExpressionLiteral(h.Ident(), 0)
+		n := f.NewRegularExpressionLiteral(h.StringValue(valueSlotRegularExpressionLiteralText), h.TokenFlags())
 		applyStoreHeader(n, h)
 		return n
 	case KindNoSubstitutionTemplateLiteral:
-		n := f.NewNoSubstitutionTemplateLiteral(h.Ident(), 0)
+		n := f.NewNoSubstitutionTemplateLiteral(h.StringValue(valueSlotNoSubstitutionTemplateLiteralText), h.TokenFlags())
 		applyStoreHeader(n, h)
 		return n
 	case KindBinaryExpression:
@@ -296,11 +296,11 @@ func expandStored(f *NodeFactory, h Handle) *Node {
 		applyStoreHeader(n, h)
 		return n
 	case KindPrefixUnaryExpression:
-		n := f.NewPrefixUnaryExpression(0, expandStored(f, h.Child(slotPrefixUnaryExpressionOperand)))
+		n := f.NewPrefixUnaryExpression(Kind(h.UintValue(valueSlotPrefixUnaryExpressionOperator)), expandStored(f, h.Child(slotPrefixUnaryExpressionOperand)))
 		applyStoreHeader(n, h)
 		return n
 	case KindPostfixUnaryExpression:
-		n := f.NewPostfixUnaryExpression(expandStored(f, h.Child(slotPostfixUnaryExpressionOperand)), 0)
+		n := f.NewPostfixUnaryExpression(expandStored(f, h.Child(slotPostfixUnaryExpressionOperand)), Kind(h.UintValue(valueSlotPostfixUnaryExpressionOperator)))
 		applyStoreHeader(n, h)
 		return n
 	case KindYieldExpression:
@@ -344,7 +344,7 @@ func expandStored(f *NodeFactory, h Handle) *Node {
 		applyStoreHeader(n, h)
 		return n
 	case KindMetaProperty:
-		n := f.NewMetaProperty(0, expandStored(f, h.Child(slotMetaPropertyName)))
+		n := f.NewMetaProperty(Kind(h.UintValue(valueSlotMetaPropertyKeywordToken)), expandStored(f, h.Child(slotMetaPropertyName)))
 		applyStoreHeader(n, h)
 		return n
 	case KindNonNullExpression:
@@ -372,11 +372,11 @@ func expandStored(f *NodeFactory, h Handle) *Node {
 		applyStoreHeader(n, h)
 		return n
 	case KindArrayLiteralExpression:
-		n := f.NewArrayLiteralExpression(expandNodeList(f, h.Store(), h.ListSlot(listSlotArrayLiteralExpressionElements)), false)
+		n := f.NewArrayLiteralExpression(expandNodeList(f, h.Store(), h.ListSlot(listSlotArrayLiteralExpressionElements)), h.UintValue(valueSlotArrayLiteralExpressionMultiLine) != 0)
 		applyStoreHeader(n, h)
 		return n
 	case KindObjectLiteralExpression:
-		n := f.NewObjectLiteralExpression(expandNodeList(f, h.Store(), h.ListSlot(listSlotObjectLiteralExpressionProperties)), false)
+		n := f.NewObjectLiteralExpression(expandNodeList(f, h.Store(), h.ListSlot(listSlotObjectLiteralExpressionProperties)), h.UintValue(valueSlotObjectLiteralExpressionMultiLine) != 0)
 		applyStoreHeader(n, h)
 		return n
 	case KindSpreadAssignment:
@@ -428,7 +428,7 @@ func expandStored(f *NodeFactory, h Handle) *Node {
 		applyStoreHeader(n, h)
 		return n
 	case KindTypeOperator:
-		n := f.NewTypeOperatorNode(0, expandStored(f, h.Child(slotTypeOperatorNodeType)))
+		n := f.NewTypeOperatorNode(Kind(h.UintValue(valueSlotTypeOperatorNodeOperator)), expandStored(f, h.Child(slotTypeOperatorNodeType)))
 		applyStoreHeader(n, h)
 		return n
 	case KindInferType:
@@ -468,7 +468,7 @@ func expandStored(f *NodeFactory, h Handle) *Node {
 		applyStoreHeader(n, h)
 		return n
 	case KindImportAttributes:
-		n := f.NewImportAttributes(0, expandNodeList(f, h.Store(), h.ListSlot(listSlotImportAttributesAttributes)), false)
+		n := f.NewImportAttributes(Kind(h.UintValue(valueSlotImportAttributesToken)), expandNodeList(f, h.Store(), h.ListSlot(listSlotImportAttributesAttributes)), h.UintValue(valueSlotImportAttributesMultiLine) != 0)
 		applyStoreHeader(n, h)
 		return n
 	case KindTypeQuery:
@@ -512,15 +512,15 @@ func expandStored(f *NodeFactory, h Handle) *Node {
 		applyStoreHeader(n, h)
 		return n
 	case KindTemplateHead:
-		n := f.NewTemplateHead(h.Ident(), h.Ident(), 0)
+		n := f.NewTemplateHead(h.StringValue(valueSlotTemplateHeadText), h.StringValue(valueSlotTemplateHeadRawText), h.TokenFlags())
 		applyStoreHeader(n, h)
 		return n
 	case KindTemplateMiddle:
-		n := f.NewTemplateMiddle(h.Ident(), h.Ident(), 0)
+		n := f.NewTemplateMiddle(h.StringValue(valueSlotTemplateMiddleText), h.StringValue(valueSlotTemplateMiddleRawText), h.TokenFlags())
 		applyStoreHeader(n, h)
 		return n
 	case KindTemplateTail:
-		n := f.NewTemplateTail(h.Ident(), h.Ident(), 0)
+		n := f.NewTemplateTail(h.StringValue(valueSlotTemplateTailText), h.StringValue(valueSlotTemplateTailRawText), h.TokenFlags())
 		applyStoreHeader(n, h)
 		return n
 	case KindTemplateLiteralType:
@@ -532,7 +532,7 @@ func expandStored(f *NodeFactory, h Handle) *Node {
 		applyStoreHeader(n, h)
 		return n
 	case KindSyntheticExpression:
-		n := f.NewSyntheticExpression(0, false, expandStored(f, h.Child(slotSyntheticExpressionTupleNameSource)))
+		n := f.NewSyntheticExpression(storeObjectValue[any](h, valueSlotSyntheticExpressionType), h.UintValue(valueSlotSyntheticExpressionIsSpread) != 0, expandStored(f, h.Child(slotSyntheticExpressionTupleNameSource)))
 		applyStoreHeader(n, h)
 		return n
 	case KindPartiallyEmittedExpression:
@@ -588,7 +588,7 @@ func expandStored(f *NodeFactory, h Handle) *Node {
 		applyStoreHeader(n, h)
 		return n
 	case KindJsxText:
-		n := f.NewJsxText(h.Ident(), false)
+		n := f.NewJsxText(h.StringValue(valueSlotJsxTextText), h.UintValue(valueSlotJsxTextContainsOnlyTriviaWhiteSpaces) != 0)
 		applyStoreHeader(n, h)
 		return n
 	case KindSyntaxList:
@@ -712,43 +712,43 @@ func expandStored(f *NodeFactory, h Handle) *Node {
 		applyStoreHeader(n, h)
 		return n
 	case KindModuleDeclaration:
-		n := f.NewModuleDeclaration(expandModifierList(f, h.Store(), h.ListSlot(listSlotModuleDeclarationModifiers)), 0, expandStored(f, h.Child(slotModuleDeclarationName)), expandStored(f, h.Child(slotModuleDeclarationBody)))
+		n := f.NewModuleDeclaration(expandModifierList(f, h.Store(), h.ListSlot(listSlotModuleDeclarationModifiers)), Kind(h.UintValue(valueSlotModuleDeclarationKeyword)), expandStored(f, h.Child(slotModuleDeclarationName)), expandStored(f, h.Child(slotModuleDeclarationBody)))
 		applyStoreHeader(n, h)
 		return n
 	case KindImportEqualsDeclaration:
-		n := f.NewImportEqualsDeclaration(expandModifierList(f, h.Store(), h.ListSlot(listSlotImportEqualsDeclarationModifiers)), false, expandStored(f, h.Child(slotImportEqualsDeclarationName)), expandStored(f, h.Child(slotImportEqualsDeclarationModuleReference)))
+		n := f.NewImportEqualsDeclaration(expandModifierList(f, h.Store(), h.ListSlot(listSlotImportEqualsDeclarationModifiers)), h.UintValue(valueSlotImportEqualsDeclarationIsTypeOnly) != 0, expandStored(f, h.Child(slotImportEqualsDeclarationName)), expandStored(f, h.Child(slotImportEqualsDeclarationModuleReference)))
 		applyStoreHeader(n, h)
 		return n
 	case KindExportDeclaration:
-		n := f.NewExportDeclaration(expandModifierList(f, h.Store(), h.ListSlot(listSlotExportDeclarationModifiers)), false, expandStored(f, h.Child(slotExportDeclarationExportClause)), expandStored(f, h.Child(slotExportDeclarationModuleSpecifier)), expandStored(f, h.Child(slotExportDeclarationAttributes)))
+		n := f.NewExportDeclaration(expandModifierList(f, h.Store(), h.ListSlot(listSlotExportDeclarationModifiers)), h.UintValue(valueSlotExportDeclarationIsTypeOnly) != 0, expandStored(f, h.Child(slotExportDeclarationExportClause)), expandStored(f, h.Child(slotExportDeclarationModuleSpecifier)), expandStored(f, h.Child(slotExportDeclarationAttributes)))
 		applyStoreHeader(n, h)
 		return n
 	case KindImportType:
-		n := f.NewImportTypeNode(false, expandStored(f, h.Child(slotImportTypeNodeArgument)), expandStored(f, h.Child(slotImportTypeNodeAttributes)), expandStored(f, h.Child(slotImportTypeNodeQualifier)), expandNodeList(f, h.Store(), h.ListSlot(listSlotImportTypeNodeTypeArguments)))
+		n := f.NewImportTypeNode(h.UintValue(valueSlotImportTypeNodeIsTypeOf) != 0, expandStored(f, h.Child(slotImportTypeNodeArgument)), expandStored(f, h.Child(slotImportTypeNodeAttributes)), expandStored(f, h.Child(slotImportTypeNodeQualifier)), expandNodeList(f, h.Store(), h.ListSlot(listSlotImportTypeNodeTypeArguments)))
 		applyStoreHeader(n, h)
 		return n
 	case KindImportClause:
-		n := f.NewImportClause(0, expandStored(f, h.Child(slotImportClauseName)), expandStored(f, h.Child(slotImportClauseNamedBindings)))
+		n := f.NewImportClause(ImportPhaseModifierSyntaxKind(h.UintValue(valueSlotImportClausePhaseModifier)), expandStored(f, h.Child(slotImportClauseName)), expandStored(f, h.Child(slotImportClauseNamedBindings)))
 		applyStoreHeader(n, h)
 		return n
 	case KindImportSpecifier:
-		n := f.NewImportSpecifier(false, expandStored(f, h.Child(slotImportSpecifierPropertyName)), expandStored(f, h.Child(slotImportSpecifierName)))
+		n := f.NewImportSpecifier(h.UintValue(valueSlotImportSpecifierIsTypeOnly) != 0, expandStored(f, h.Child(slotImportSpecifierPropertyName)), expandStored(f, h.Child(slotImportSpecifierName)))
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocText:
-		n := f.NewJSDocText(nil)
+		n := f.NewJSDocText(storeObjectValue[[]string](h, valueSlotJSDocTextText))
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocLink:
-		n := f.NewJSDocLink(expandStored(f, h.Child(slotJSDocLinkName)), nil)
+		n := f.NewJSDocLink(expandStored(f, h.Child(slotJSDocLinkName)), storeObjectValue[[]string](h, valueSlotJSDocLinkText))
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocLinkPlain:
-		n := f.NewJSDocLinkPlain(expandStored(f, h.Child(slotJSDocLinkPlainName)), nil)
+		n := f.NewJSDocLinkPlain(expandStored(f, h.Child(slotJSDocLinkPlainName)), storeObjectValue[[]string](h, valueSlotJSDocLinkPlainText))
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocLinkCode:
-		n := f.NewJSDocLinkCode(expandStored(f, h.Child(slotJSDocLinkCodeName)), nil)
+		n := f.NewJSDocLinkCode(expandStored(f, h.Child(slotJSDocLinkCodeName)), storeObjectValue[[]string](h, valueSlotJSDocLinkCodeText))
 		applyStoreHeader(n, h)
 		return n
 	case KindTypeParameter:
@@ -760,11 +760,11 @@ func expandStored(f *NodeFactory, h Handle) *Node {
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocTypeLiteral:
-		n := f.NewJSDocTypeLiteral(expandRawList(f, h.Store(), h.ListSlot(listSlotJSDocTypeLiteralJSDocPropertyTags)), false)
+		n := f.NewJSDocTypeLiteral(expandRawList(f, h.Store(), h.ListSlot(listSlotJSDocTypeLiteralJSDocPropertyTags)), h.UintValue(valueSlotJSDocTypeLiteralIsArrayType) != 0)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocParameterTag, KindJSDocPropertyTag:
-		n := f.NewJSDocParameterOrPropertyTag(h.Kind(), expandStored(f, h.Child(slotJSDocParameterOrPropertyTagTagName)), expandStored(f, h.Child(slotJSDocParameterOrPropertyTagName)), false, expandStored(f, h.Child(slotJSDocParameterOrPropertyTagTypeExpression)), false, expandNodeList(f, h.Store(), h.ListSlot(listSlotJSDocParameterOrPropertyTagComment)))
+		n := f.NewJSDocParameterOrPropertyTag(h.Kind(), expandStored(f, h.Child(slotJSDocParameterOrPropertyTagTagName)), expandStored(f, h.Child(slotJSDocParameterOrPropertyTagName)), h.UintValue(valueSlotJSDocParameterOrPropertyTagIsBracketed) != 0, expandStored(f, h.Child(slotJSDocParameterOrPropertyTagTypeExpression)), h.UintValue(valueSlotJSDocParameterOrPropertyTagIsNameFirst) != 0, expandNodeList(f, h.Store(), h.ListSlot(listSlotJSDocParameterOrPropertyTagComment)))
 		applyStoreHeader(n, h)
 		return n
 	default:
@@ -773,9 +773,6 @@ func expandStored(f *NodeFactory, h Handle) *Node {
 			applyStoreHeader(n, h)
 			return n
 		}
-		n := f.NewEmptyStatement()
-		n.Kind = h.Kind()
-		applyStoreHeader(n, h)
-		return n
+		panic("ast: no Store expander for " + h.Kind().String())
 	}
 }

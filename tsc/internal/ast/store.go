@@ -47,9 +47,16 @@ type listHeader struct {
 	len   uint32
 }
 
-// Store owns the long-lived tree. After Seal, node/list/intern backing
-// arrays are pointer-free (noscan). Sparse side maps (symbols) remain
-// scannable on purpose: only declaration nodes use them.
+// Store owns the long-lived tree. A Store has one writer at a time and does
+// not synchronize its node, list, intern, or side-map mutations. Compiler
+// phases transfer exclusive ownership of a file's Store; parallel work must
+// write different Stores. Readers may run concurrently only while no writer
+// is active. NewFactoryOn does not relax this rule.
+//
+// StoreSet is separately synchronized for cross-file registration and lookup.
+// After Seal, node/list/intern backing arrays are pointer-free (noscan).
+// Sparse side maps (symbols) remain scannable on purpose: only declaration
+// nodes use them.
 type Store struct {
 	id            StoreID // assigned by StoreSet.Add; 0 until registered
 	nodes         []nodeHeader
@@ -63,6 +70,10 @@ type Store struct {
 	flows         map[NodeRef]*FlowNode
 	locals        map[NodeRef]SymbolTable
 	nextContainer map[NodeRef]NodeRef
+	scalarValues  map[uint64]uint64 // packed NodeRef/value-slot key; pointer-free
+	stringValues  map[uint64]uint32 // intern ids keyed by NodeRef/value-slot
+	objectValues  map[uint64]any    // sparse pointer/slice kind-specific values
+	sourceFile    *SourceFile       // metadata owner; SourceFile fields stay outside Store
 }
 
 func NewStore(hint int) *Store {
@@ -169,6 +180,20 @@ func (s *Store) Len() int {
 
 func (s *Store) At(ref NodeRef) Handle {
 	return Handle{s: s, id: ref}
+}
+
+func (s *Store) SetSourceFile(file *SourceFile) {
+	if s == nil {
+		panic("ast: SetSourceFile on nil Store")
+	}
+	s.sourceFile = file
+}
+
+func (s *Store) SourceFile() *SourceFile {
+	if s == nil {
+		return nil
+	}
+	return s.sourceFile
 }
 
 func (s *Store) ListLen(list ListRef) int {
@@ -314,6 +339,71 @@ func (s *Store) NextContainer(ref NodeRef) NodeRef {
 		return 0
 	}
 	return s.nextContainer[ref]
+}
+
+func (h Handle) valueKey(slot int) uint64 {
+	h.mustLive()
+	if slot < 0 {
+		panic("ast: negative value slot")
+	}
+	return uint64(h.id)<<32 | uint64(uint32(slot))
+}
+
+func (h Handle) SetUintValue(slot int, value uint64) {
+	key := h.valueKey(slot)
+	if h.s.scalarValues == nil {
+		h.s.scalarValues = make(map[uint64]uint64)
+	}
+	h.s.scalarValues[key] = value
+}
+
+func (h Handle) UintValue(slot int) uint64 {
+	return h.s.scalarValues[h.valueKey(slot)]
+}
+
+func (h Handle) SetStringValue(slot int, value string) {
+	key := h.valueKey(slot)
+	if value == "" {
+		delete(h.s.stringValues, key)
+		return
+	}
+	if h.s.stringValues == nil {
+		h.s.stringValues = make(map[uint64]uint32)
+	}
+	h.s.stringValues[key] = h.s.Intern(value)
+}
+
+func (h Handle) StringValue(slot int) string {
+	id := h.s.stringValues[h.valueKey(slot)]
+	if id == 0 {
+		return ""
+	}
+	return h.s.internText(id)
+}
+
+func (h Handle) SetObjectValue(slot int, value any) {
+	key := h.valueKey(slot)
+	if value == nil {
+		delete(h.s.objectValues, key)
+		return
+	}
+	if h.s.objectValues == nil {
+		h.s.objectValues = make(map[uint64]any)
+	}
+	h.s.objectValues[key] = value
+}
+
+func storeObjectValue[T any](h Handle, slot int) T {
+	var zero T
+	value := h.s.objectValues[h.valueKey(slot)]
+	if value == nil {
+		return zero
+	}
+	result, ok := value.(T)
+	if !ok {
+		panic("ast: Store value slot type mismatch")
+	}
+	return result
 }
 
 func (s *Store) internText(id uint32) string {
