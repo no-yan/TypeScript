@@ -32,6 +32,14 @@ func (f *NodeFactory) AttachStoreMap(s *Store, m map[*Node]NodeRef) {
 	}
 }
 
+func (f *NodeFactory) DetachStore() {
+	if f == nil {
+		return
+	}
+	f.store = nil
+	f.nodeRef = nil
+}
+
 func (f *NodeFactory) Store() *Store {
 	if f == nil {
 		return nil

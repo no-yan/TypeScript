@@ -62,7 +62,7 @@ Identifier interning inside Store is allowed. Owning the file’s full source st
 
 ## Transforms and printers (intent)
 
-Parse would build a Store. `Seal` drops the intern map only. Binder writes flags and side maps on that Store. Checker synthetics and emit updates that share parse children also **append into the same Store** (see constraints 7 and 9). A second emit Store plus `CopySubtree` of the whole file is incompatible with `Update*` reuse. `CopySubtree` remains the primitive for the rare deep clone across files (`deepclone.go` comment). Slot reuse and in-place delete remain out of scope.
+Parse builds a Store. `Seal` drops the intern map only. Binder writes flags and side maps on that Store. Checker synthetics and emit updates that share parse children also **append into the same Store** (see constraints 7 and 9). `EmitContext.AttachStore` holds the per-file writer lease across transform and print, then publishes generated NodeRefs before returning the context to its pool. A second emit Store plus `CopySubtree` of the whole file is incompatible with `Update*` reuse. `CopySubtree` remains the primitive for the rare deep clone across files (`deepclone.go` comment). Slot reuse and in-place delete remain out of scope.
 
 `CopySubtree` today walks child `NodeRef`s only. It does not remap `ListRef` payloads hung off kinds, because β has no kind that stores a `ListRef` in the header. Migration A/B must close that gap before list-bearing kinds ship.
 

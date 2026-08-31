@@ -68,6 +68,22 @@ func (c *EmitContext) Reset() {
 	}
 }
 
+// AttachStore routes transformer and printer allocations into the source
+// file's parse Store for the duration of one emit.
+func (c *EmitContext) AttachStore(file *ast.SourceFile) func() {
+	if file == nil || file.ParseStore() == nil {
+		c.Factory.DetachStore()
+		return func() {}
+	}
+	unlock := file.LockParseStoreWriter()
+	c.Factory.AttachStoreMap(file.ParseStore(), file.ParseNodeRef())
+	return func() {
+		file.AbsorbNodeRef(c.Factory.TakeNodeRef())
+		c.Factory.DetachStore()
+		unlock()
+	}
+}
+
 func (c *EmitContext) onCreate(node *ast.Node) {
 	node.Flags |= ast.NodeFlagsSynthesized
 }
