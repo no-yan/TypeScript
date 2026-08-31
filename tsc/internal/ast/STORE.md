@@ -126,9 +126,20 @@ did not measure a completed check and could not support its recorded verdict.
 
 The generated-workload medians recorded earlier on 2026-08-31 are also
 superseded: that workload completed successfully but did not represent the CI
-compiler check. Fresh smoke-project medians are required before applying the
-stop rule. The harness now enforces both ratios rather than recording a passing
-Go test beside a markdown-only `FAIL-PERF`.
+compiler check.
+
+CI smoke-project medians on 2026-08-31:
+
+| Environment | median |
+| --- | --- |
+| default GOGC | 146ms |
+| `GOGC=off` | 94ms |
+| `GOGC=200` | 128ms |
+| `GOMEMLIMIT=8GiB` | 149ms |
+
+Default / `GOGC=off` is 1.55, and `GOMEMLIMIT` / `GOGC=off` is 1.58.
+`GOMEMLIMIT` does not recover the GC-off gap, so the corrected PR-1 rule passes.
+The harness enforces both ratios.
 
 ## Open questions
 
@@ -212,6 +223,6 @@ Checked against the live `*Node` pipeline (parser, binder, checker, printer). No
 | Synthetics and emit updates append into the parse Store (no cross-store child edges) | policy written; no Factory-on-existing-Store helper yet |
 | Store-to-SourceFile metadata map | not started |
 | `ListRef` in schema + `CopySubtree` remaps lists | done (`list0`, ArrayLiteral, FunctionExpression params, `copyList`) |
-| `GOGC` / `GOMEMLIMIT`-only baseline on a large `tsgo` run | CI smoke harness ready; fresh enforced run pending (see [cmd/tsc GOGC baseline](#cmdtsc-gogc-baseline)) |
+| `GOGC` / `GOMEMLIMIT`-only baseline on a large `tsgo` run | PASS-PERF on the TypeScript v6.0.3 CI smoke project (see [cmd/tsc GOGC baseline](#cmdtsc-gogc-baseline)) |
 
 `BenchmarkNewProgram` (`compiler/program_test.go:308`) is too small for the perf baseline.
