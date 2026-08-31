@@ -156,6 +156,28 @@ func TestParseConfigFileTextToJson(t *testing.T) {
 	}
 }
 
+func BenchmarkParseConfigFileTextToJsonStore(b *testing.B) {
+	const config = `{
+		"compilerOptions": {
+			"strict": true,
+			"target": "esnext",
+			"paths": { "@app/*": ["src/*", "generated/*"] }
+		},
+		"include": ["src/**/*.ts", "tests/**/*.ts"],
+		"exclude": ["dist", "node_modules"]
+	}`
+	b.ReportAllocs()
+	for b.Loop() {
+		value, diagnostics := tsoptions.ParseConfigFileTextToJson("/tsconfig.json", "/", config)
+		if len(diagnostics) != 0 {
+			b.Fatal(diagnostics)
+		}
+		if value == nil {
+			b.Fatal("missing config")
+		}
+	}
+}
+
 type parseJsonConfigTestCase struct {
 	title                  string
 	includeCompilerOptions bool
