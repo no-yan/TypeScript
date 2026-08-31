@@ -47,9 +47,16 @@ type listHeader struct {
 	len   uint32
 }
 
-// Store owns the long-lived tree. After Seal, node/list/intern backing
-// arrays are pointer-free (noscan). Sparse side maps (symbols) remain
-// scannable on purpose: only declaration nodes use them.
+// Store owns the long-lived tree. A Store has one writer at a time and does
+// not synchronize its node, list, intern, or side-map mutations. Compiler
+// phases transfer exclusive ownership of a file's Store; parallel work must
+// write different Stores. Readers may run concurrently only while no writer
+// is active. NewFactoryOn does not relax this rule.
+//
+// StoreSet is separately synchronized for cross-file registration and lookup.
+// After Seal, node/list/intern backing arrays are pointer-free (noscan).
+// Sparse side maps (symbols) remain scannable on purpose: only declaration
+// nodes use them.
 type Store struct {
 	id            StoreID // assigned by StoreSet.Add; 0 until registered
 	nodes         []nodeHeader
