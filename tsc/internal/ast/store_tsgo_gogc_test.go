@@ -3,7 +3,6 @@ package ast_test
 import (
 	"bytes"
 	"flag"
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -51,12 +50,23 @@ func TestTsgoGOGCBaseline(t *testing.T) {
 		t.Fatalf("built/local/tsc missing after hereby build: %v", err)
 	}
 
-	workload := writeGOGCWorkload(t)
+	project := os.Getenv("STORE_TSGO_PROJECT")
+	if project == "" {
+		project = filepath.Join(repoRoot, "smoke", "typescript-6.0", "src", "compiler")
+	}
+	if _, err := os.Stat(filepath.Join(project, "tsconfig.json")); err != nil {
+		t.Skipf("TypeScript 6.0 smoke checkout missing at %s: %v", project, err)
+	}
+
 	cases := []gogcCase{
 		{name: "default"},
 		{name: "GOGC=off", env: []string{"GOGC=off"}},
 		{name: "GOGC=200", env: []string{"GOGC=200"}},
 		{name: "GOMEMLIMIT=8GiB", env: []string{"GOMEMLIMIT=8GiB"}},
+	}
+
+	if elapsed := runTsgoGOGCCase(t, tscBin, repoRoot, project, cases[0], 0); elapsed < time.Second {
+		t.Fatalf("smoke preflight finished too quickly (%s); expected a completed compiler check", elapsed)
 	}
 
 	samples := make([][]time.Duration, len(cases))
@@ -66,45 +76,50 @@ func TestTsgoGOGCBaseline(t *testing.T) {
 		for offset := range len(cases) {
 			caseIndex := (round + offset) % len(cases)
 			c := cases[caseIndex]
-			cmd := exec.Command(tscBin, "--noEmit", "--strict", workload)
-			cmd.Dir = repoRoot
-			cmd.Env = gogcChildEnv(c.env)
-			cmd.Stdout = io.Discard
-			var stderr bytes.Buffer
-			cmd.Stderr = &stderr
-			start := time.Now()
-			err := cmd.Run()
-			elapsed := time.Since(start)
-			if err != nil {
-				t.Fatalf("%s round %d: %v\n%s", c.name, round+1, err, stderr.Bytes())
-			}
+			elapsed := runTsgoGOGCCase(t, tscBin, repoRoot, project, c, round+1)
 			samples[caseIndex] = append(samples[caseIndex], elapsed)
 		}
 	}
+	medians := make([]time.Duration, len(cases))
 	for i, c := range cases {
-		t.Logf("%s median=%s exit=0", c.name, medianDuration(samples[i]))
+		medians[i] = medianDuration(samples[i])
+		t.Logf("%s median=%s exit=0", c.name, medians[i])
+	}
+
+	defaultOverOff := float64(medians[0]) / float64(medians[1])
+	memLimitOverOff := float64(medians[3]) / float64(medians[1])
+	t.Logf("default/off=%.3f memlimit/off=%.3f", defaultOverOff, memLimitOverOff)
+	if defaultOverOff < 1.10 || memLimitOverOff > 0.95 {
+		t.Errorf(
+			"FAIL-PERF: require default/off >= 1.10 and memlimit/off <= 0.95; got %.3f and %.3f",
+			defaultOverOff,
+			memLimitOverOff,
+		)
 	}
 }
 
-func writeGOGCWorkload(t *testing.T) string {
+func runTsgoGOGCCase(
+	t *testing.T,
+	tscBin string,
+	repoRoot string,
+	project string,
+	c gogcCase,
+	round int,
+) time.Duration {
 	t.Helper()
-
-	const declarations = 8_000
-	var source strings.Builder
-	source.Grow(declarations * 400)
-	source.WriteString("type Box<T> = { value: T; next?: Box<T> };\n")
-	for i := range declarations {
-		fmt.Fprintf(&source, "interface Item%d extends Box<{ id: %d; name: string }> { tag: \"item%d\" }\n", i, i, i)
-		fmt.Fprintf(&source, "declare const item%d: Item%d;\n", i, i)
-		fmt.Fprintf(&source, "type Result%d = Item%d extends Box<infer U> ? Readonly<U> : never;\n", i, i)
-		fmt.Fprintf(&source, "const result%d: Result%d = item%d.value;\n", i, i, i)
+	cmd := exec.Command(tscBin, "-p", project, "--noEmit")
+	cmd.Dir = repoRoot
+	cmd.Env = gogcChildEnv(c.env)
+	cmd.Stdout = io.Discard
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	start := time.Now()
+	err := cmd.Run()
+	elapsed := time.Since(start)
+	if err != nil {
+		t.Fatalf("%s round %d: %v\n%s", c.name, round, err, stderr.Bytes())
 	}
-
-	file := filepath.Join(t.TempDir(), "checker-workload.ts")
-	if err := os.WriteFile(file, []byte(source.String()), 0o600); err != nil {
-		t.Fatal(err)
-	}
-	return file
+	return elapsed
 }
 
 func gogcChildEnv(extra []string) []string {
