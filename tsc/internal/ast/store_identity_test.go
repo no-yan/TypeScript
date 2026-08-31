@@ -143,3 +143,38 @@ func TestSourceFileRefsAreSafeAcrossParallelCheckers(t *testing.T) {
 		assert.Equal(t, nodes[i], file.NodeFor(refs[i]))
 	}
 }
+
+func TestSourceFileSerializesParseStoreWriters(t *testing.T) {
+	t.Parallel()
+	store := ast.NewStore(512)
+	parseFactory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	parseFactory.AttachStore(store)
+	opts := ast.SourceFileParseOptions{FileName: "/index.ts", Path: "/index.ts"}
+	root := parseFactory.NewSourceFile(opts, "", nil, nil)
+	file := root.AsSourceFile()
+	file.SetParseStore(store, parseFactory.HandleOf(root))
+	file.SetParseNodeRef(parseFactory.TakeNodeRef())
+
+	const writers = 4
+	const nodesPerWriter = 128
+	var wg sync.WaitGroup
+	for writer := range writers {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			unlock := file.LockParseStoreWriter()
+			defer unlock()
+
+			factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+			factory.AttachStoreMap(store, file.ParseNodeRef())
+			for node := range nodesPerWriter {
+				factory.NewIdentifier(string(rune('a' + (writer+node)%26)))
+			}
+			file.AbsorbNodeRef(factory.TakeNodeRef())
+		}()
+	}
+	wg.Wait()
+
+	assert.Equal(t, 1+writers*nodesPerWriter, store.Len())
+	assert.Equal(t, store.Len(), len(file.ParseNodeRef()))
+}

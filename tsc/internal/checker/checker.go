@@ -2216,6 +2216,8 @@ func (c *Checker) storeFactory(file *ast.SourceFile) *ast.Factory {
 func (c *Checker) checkSourceFile(ctx context.Context, sourceFile *ast.SourceFile, checkUnused bool) {
 	c.ctx = ctx
 	if s := sourceFile.ParseStore(); s != nil {
+		unlockStore := sourceFile.LockParseStoreWriter()
+		defer unlockStore()
 		if c.storeFactory(sourceFile).Store() != s {
 			panic("checker: storeFactory Store mismatch")
 		}

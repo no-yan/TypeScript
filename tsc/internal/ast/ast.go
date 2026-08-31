@@ -2505,11 +2505,12 @@ type SourceFile struct {
 	// to be an external module (previously "true").
 	ExternalModuleIndicator *Node
 
-	parseStoreMu sync.RWMutex
-	parseStore   *Store
-	parseRoot    NodeRef
-	parseNodeRef map[*Node]NodeRef
-	parseRefNode map[NodeRef]*Node
+	parseStoreWriteMu sync.Mutex
+	parseStoreMu      sync.RWMutex
+	parseStore        *Store
+	parseRoot         NodeRef
+	parseNodeRef      map[*Node]NodeRef
+	parseRefNode      map[NodeRef]*Node
 
 	// Fields set by binder
 
@@ -2571,6 +2572,14 @@ func (node *SourceFile) ParseStore() *Store {
 	node.parseStoreMu.RLock()
 	defer node.parseStoreMu.RUnlock()
 	return node.parseStore
+}
+
+// LockParseStoreWriter acquires the per-file Store writer lease. Parser,
+// binder, checker, and emit phases transfer this lease in order. A checker
+// must hold it while appending synthetics and publishing their NodeRefs.
+func (node *SourceFile) LockParseStoreWriter() func() {
+	node.parseStoreWriteMu.Lock()
+	return node.parseStoreWriteMu.Unlock
 }
 
 func (node *SourceFile) ParseNodeRef() map[*Node]NodeRef {

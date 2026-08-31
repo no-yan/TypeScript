@@ -78,10 +78,13 @@ out of the per-node allocation and access path.
 `StoreSet` is the synchronized cross-file identity and metadata index, and a
 Store ID is published atomically. SourceFile's pointer↔`NodeRef` bridge is
 guarded independently: each checker receives a private snapshot and atomically
-merges its factory map after checking. Store's single-writer rule does not make
-those maps safe by itself. `TestStoreParallelFileWriters` and
-`TestSourceFileRefsAreSafeAcrossParallelCheckers` exercise the allowed topology
-under `-race`. Peak memory for the one-Store-per-file policy is **unmeasured**.
+merges its factory map after checking. A per-SourceFile writer lease serializes
+the complete checker mutation window, including Store append; different file
+Stores remain parallel. Store's single-writer rule does not make the bridge
+maps safe by itself. `TestStoreParallelFileWriters`,
+`TestSourceFileRefsAreSafeAcrossParallelCheckers`, and
+`TestSourceFileSerializesParseStoreWriters` exercise the allowed topology under
+`-race`. Peak memory for the one-Store-per-file policy is **unmeasured**.
 
 ## Migration sketch (backcast)
 
