@@ -4,9 +4,11 @@ This program replaces the pointer AST with a Store-backed tree through parser, b
 
 ## How to read this
 
+Resume parser/checker work from `tsc/internal/ast/STORE.md` §PR-7 resume, not from the 6B/6C boxes (those are deleted). The armed /goal numbering (PR-8 = microsoft) is superseded: remaining GitHub ids are 6, 7, 8, 9, 10.
+
 One box is one unit of work. Every box names the evidence that checks it. A nested box is a sub-step of the box above it. Check a box only when its evidence exists, a file, a log line, a screenshot, a test run, or a SHA. The body is a how-to. The appendices explain and record.
 
-The program runs `pstack/skills/poteto-mode/playbooks/autopilot-stack.md`. The operator lands PR-1 and PR-2 on the working branch. Owners stop at merge-ready. No owner squash-merges. The operator does not land PR-3 through PR-6 on microsoft/main. She opens PR-10 against microsoft/TypeScript from the PR-8 tip. Parser and checker rewrite as one shot on PR-7: no materialize bridge, no dual-write parser, no long-lived *Node facade.
+The program runs `pstack/skills/poteto-mode/playbooks/autopilot-stack.md`. The operator lands PR-1 and PR-2 on the working branch. Owners stop at merge-ready. No owner squash-merges. The operator does not land PR-3 through PR-9 on microsoft/main. She opens PR-10 against microsoft/TypeScript from the PR-8 tip. Parser and checker rewrite as one shot on PR-7: no materialize bridge, no dual-write parser, no long-lived *Node facade.
 
 Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
