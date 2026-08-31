@@ -100,7 +100,7 @@ Each live lane runs on its own cloud VM at the PR head. Drive through the shell 
 - [ ] Metric. Factory forced-GC median on `checker.ts` from `TestGOGCBaseline`.
 - [ ] Probe. `cd tsc && go test ./internal/ast -count=1 -run TestGOGCBaseline -v`, once per env, interleaved with a trunk checkout of the same test if trunk lacks it, else record HEAD-only and mark Appendix A.
 - [ ] Baseline. Record the trunk default-GOGC median first. If trunk has no test, record HEAD default-GOGC as the baseline and say so in the PR body.
-- [ ] Rule. Fail if default-GOGC median divided by `GOGC=off` median is under 1.10, or if `GOMEMLIMIT` median divided by `GOGC=off` median is over 0.95.
+- [ ] Rule. Fail if default-GOGC median divided by `GOGC=off` median is under 1.10, or if `GOMEMLIMIT` median divided by `GOGC=off` median is at most 1.05.
 
 **Review gate.** None. PR-1 is not review-gated.
 
