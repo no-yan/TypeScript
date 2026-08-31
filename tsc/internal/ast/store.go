@@ -67,7 +67,10 @@ type Store struct {
 	internOff     []uint32 // intern id i occupies internBuf[internOff[i]:internOff[i+1]]
 	internIdx     map[string]uint32
 	symbols       map[NodeRef]*Symbol
+	localSymbols  map[NodeRef]*Symbol
 	flows         map[NodeRef]*FlowNode
+	endFlows      map[NodeRef]*FlowNode
+	returnFlows   map[NodeRef]*FlowNode
 	locals        map[NodeRef]SymbolTable
 	nextContainer map[NodeRef]NodeRef
 	scalarValues  map[uint64]uint64 // packed NodeRef/value-slot key; pointer-free
@@ -278,6 +281,27 @@ func (s *Store) Symbol(ref NodeRef) *Symbol {
 	return s.symbols[ref]
 }
 
+func (s *Store) SetLocalSymbol(ref NodeRef, sym *Symbol) {
+	if s == nil || ref == 0 {
+		return
+	}
+	if sym == nil {
+		delete(s.localSymbols, ref)
+		return
+	}
+	if s.localSymbols == nil {
+		s.localSymbols = make(map[NodeRef]*Symbol)
+	}
+	s.localSymbols[ref] = sym
+}
+
+func (s *Store) LocalSymbol(ref NodeRef) *Symbol {
+	if s == nil || ref == 0 {
+		return nil
+	}
+	return s.localSymbols[ref]
+}
+
 func (s *Store) SetFlow(ref NodeRef, flow *FlowNode) {
 	if s == nil || ref == 0 {
 		return
@@ -297,6 +321,48 @@ func (s *Store) Flow(ref NodeRef) *FlowNode {
 		return nil
 	}
 	return s.flows[ref]
+}
+
+func (s *Store) SetEndFlow(ref NodeRef, flow *FlowNode) {
+	if s == nil || ref == 0 {
+		return
+	}
+	if flow == nil {
+		delete(s.endFlows, ref)
+		return
+	}
+	if s.endFlows == nil {
+		s.endFlows = make(map[NodeRef]*FlowNode)
+	}
+	s.endFlows[ref] = flow
+}
+
+func (s *Store) EndFlow(ref NodeRef) *FlowNode {
+	if s == nil || ref == 0 {
+		return nil
+	}
+	return s.endFlows[ref]
+}
+
+func (s *Store) SetReturnFlow(ref NodeRef, flow *FlowNode) {
+	if s == nil || ref == 0 {
+		return
+	}
+	if flow == nil {
+		delete(s.returnFlows, ref)
+		return
+	}
+	if s.returnFlows == nil {
+		s.returnFlows = make(map[NodeRef]*FlowNode)
+	}
+	s.returnFlows[ref] = flow
+}
+
+func (s *Store) ReturnFlow(ref NodeRef) *FlowNode {
+	if s == nil || ref == 0 {
+		return nil
+	}
+	return s.returnFlows[ref]
 }
 
 func (s *Store) SetLocals(ref NodeRef, locals SymbolTable) {
@@ -521,6 +587,18 @@ func (h Handle) SetSymbol(sym *Symbol) {
 	h.s.SetSymbol(h.id, sym)
 }
 
+func (h Handle) LocalSymbol() *Symbol {
+	if h.id == 0 || h.s == nil {
+		return nil
+	}
+	return h.s.LocalSymbol(h.id)
+}
+
+func (h Handle) SetLocalSymbol(sym *Symbol) {
+	h.mustLive()
+	h.s.SetLocalSymbol(h.id, sym)
+}
+
 func (h Handle) FlowNode() *FlowNode {
 	if h.id == 0 || h.s == nil {
 		return nil
@@ -531,6 +609,30 @@ func (h Handle) FlowNode() *FlowNode {
 func (h Handle) SetFlowNode(flow *FlowNode) {
 	h.mustLive()
 	h.s.SetFlow(h.id, flow)
+}
+
+func (h Handle) EndFlowNode() *FlowNode {
+	if h.id == 0 || h.s == nil {
+		return nil
+	}
+	return h.s.EndFlow(h.id)
+}
+
+func (h Handle) SetEndFlowNode(flow *FlowNode) {
+	h.mustLive()
+	h.s.SetEndFlow(h.id, flow)
+}
+
+func (h Handle) ReturnFlowNode() *FlowNode {
+	if h.id == 0 || h.s == nil {
+		return nil
+	}
+	return h.s.ReturnFlow(h.id)
+}
+
+func (h Handle) SetReturnFlowNode(flow *FlowNode) {
+	h.mustLive()
+	h.s.SetReturnFlow(h.id, flow)
 }
 
 func (h Handle) Locals() SymbolTable {

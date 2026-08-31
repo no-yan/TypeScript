@@ -15,21 +15,34 @@ func bindStore(file *ast.SourceFile) {
 			return false
 		}
 		h.SetFlags(n.Flags)
-		if sym := n.Symbol(); sym != nil {
-			h.SetSymbol(sym)
+		h.SetSymbol(n.Symbol())
+		if exportable := n.ExportableData(); exportable != nil {
+			h.SetLocalSymbol(exportable.LocalSymbol)
 		}
 		if loc := n.LocalsContainerData(); loc != nil {
-			if loc.Locals != nil {
-				h.SetLocals(loc.Locals)
-			}
+			h.SetLocals(loc.Locals)
+			h.SetNextContainer(ast.Handle{})
 			if loc.NextContainer != nil {
 				if next := file.HandleOf(loc.NextContainer); next.Ref() != 0 {
 					h.SetNextContainer(next)
 				}
 			}
 		}
-		if flow := n.FlowNodeData(); flow != nil && flow.FlowNode != nil {
+		if flow := n.FlowNodeData(); flow != nil {
 			h.SetFlowNode(flow.FlowNode)
+		}
+		if body := n.BodyData(); body != nil {
+			h.SetEndFlowNode(body.EndFlowNode)
+		}
+		switch n.Kind {
+		case ast.KindConstructor:
+			h.SetReturnFlowNode(n.AsConstructorDeclaration().ReturnFlowNode)
+		case ast.KindFunctionDeclaration:
+			h.SetReturnFlowNode(n.AsFunctionDeclaration().ReturnFlowNode)
+		case ast.KindFunctionExpression:
+			h.SetReturnFlowNode(n.AsFunctionExpression().ReturnFlowNode)
+		case ast.KindClassStaticBlockDeclaration:
+			h.SetReturnFlowNode(n.AsClassStaticBlockDeclaration().ReturnFlowNode)
 		}
 		return false
 	})

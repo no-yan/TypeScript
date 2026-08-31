@@ -133,14 +133,23 @@ func TestStoreLocalsAndNextContainer(t *testing.T) {
 	fn := s.Alloc(ast.KindFunctionExpression, 0, core.UndefinedTextRange(), 0)
 	body := s.Alloc(ast.KindBlock, 0, core.UndefinedTextRange(), 0)
 	sym := &ast.Symbol{Name: "x"}
+	local := &ast.Symbol{Name: "local"}
 	table := ast.SymbolTable{"x": sym}
+	endFlow := &ast.FlowNode{Flags: ast.FlowFlagsStart}
+	returnFlow := &ast.FlowNode{Flags: ast.FlowFlagsBranchLabel}
+	fn.SetLocalSymbol(local)
 	fn.SetLocals(table)
 	fn.SetNextContainer(body)
+	fn.SetEndFlowNode(endFlow)
+	fn.SetReturnFlowNode(returnFlow)
+	assert.Equal(t, local, fn.LocalSymbol())
 	got := fn.Locals()
 	assert.Equal(t, 1, len(got))
 	assert.Equal(t, sym, got["x"])
 	assert.Equal(t, body.Ref(), fn.NextContainer().Ref())
 	assert.Equal(t, s, fn.NextContainer().Store())
+	assert.Equal(t, endFlow, fn.EndFlowNode())
+	assert.Equal(t, returnFlow, fn.ReturnFlowNode())
 }
 
 // TestStoreParallelFileWriters is intended to run under -race. The Store

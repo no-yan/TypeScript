@@ -533,15 +533,15 @@ function expandArg(node: NodeType, m: MemberInfo): string {
     if (m.isChild()) {
         const lk = m.listKind;
         if (lk === "ModifierList") {
-            return `expandModifierList(f, h.Store(), h.ListSlot(${listSlotConst(node.name, memberSuffix(m))}))`;
+            return `expandModifierList(e, h.Store(), h.ListSlot(${listSlotConst(node.name, memberSuffix(m))}))`;
         }
         if (lk === "raw") {
-            return `expandRawList(f, h.Store(), h.ListSlot(${listSlotConst(node.name, memberSuffix(m))}))`;
+            return `expandRawList(e, h.Store(), h.ListSlot(${listSlotConst(node.name, memberSuffix(m))}))`;
         }
         if (lk === "NodeList") {
-            return `expandNodeList(f, h.Store(), h.ListSlot(${listSlotConst(node.name, memberSuffix(m))}))`;
+            return `expandNodeList(e, h.Store(), h.ListSlot(${listSlotConst(node.name, memberSuffix(m))}))`;
         }
-        return `expandStored(f, h.Child(${slotConst(node.name, memberSuffix(m))}))`;
+        return `expandStored(e, h.Child(${slotConst(node.name, memberSuffix(m))}))`;
     }
     const ref = m.type.formatGoReference();
     if (ref === "TokenFlags") {
@@ -614,11 +614,16 @@ function generateExpandStore(): string {
     w.write("");
     w.write("package ast");
     w.write("");
-    w.write("func expandStored(f *NodeFactory, h Handle) *Node {");
+    w.write("func expandStored(e *storeExpander, h Handle) *Node {");
     w.push();
     w.write("if h.Ref() == 0 {");
     w.push();
     w.write("return nil");
+    w.pop();
+    w.write("}");
+    w.write("if n := e.nodes[h.Ref()]; n != nil {");
+    w.push();
+    w.write("return n");
     w.pop();
     w.write("}");
     w.write("switch h.Kind() {");
@@ -634,7 +639,8 @@ function generateExpandStore(): string {
         const args = members.map(m => expandArg(node, m));
         w.write(`case ${kinds.join(", ")}:`);
         w.push();
-        w.write(`n := f.New${node.name}(${args.join(", ")})`);
+        w.write(`n := e.f.New${node.name}(${args.join(", ")})`);
+        w.write("e.nodes[h.Ref()] = n");
         w.write("applyStoreHeader(n, h)");
         w.write("return n");
         w.pop();
@@ -643,7 +649,8 @@ function generateExpandStore(): string {
     w.push();
     w.write("if IsTokenKind(h.Kind()) {");
     w.push();
-    w.write("n := f.NewToken(h.Kind())");
+    w.write("n := e.f.NewToken(h.Kind())");
+    w.write("e.nodes[h.Ref()] = n");
     w.write("applyStoreHeader(n, h)");
     w.write("return n");
     w.pop();
