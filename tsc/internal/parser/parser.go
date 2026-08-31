@@ -139,21 +139,43 @@ func ParseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptK
 	// bytes on the large compiler fixture. A source-sized hint avoids growing
 	// all packed columns in lockstep while leaving headroom for dense syntax.
 	storeHint := max(256, len(sourceText)/10)
-	storeFactory := ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
-	p.factory.AttachStore(storeFactory.Store())
 	p.initializeState(opts, sourceText, scriptKind)
 	p.nextToken()
 	var result *ast.SourceFile
+	var root ast.Handle
+	var nodeRefs map[*ast.Node]ast.NodeRef
+	var storeFactory *ast.Factory
 	if p.scriptKind == core.ScriptKindJSON {
-		result = p.parseJSONText()
+		nativeFactory := ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
+		if nativeRoot, ok := p.tryParseJSONTextHandle(nativeFactory); ok {
+			storeFactory = nativeFactory
+			var materialized ast.MaterializeStats
+			result, nodeRefs, materialized = ast.MaterializeJSONSourceFile(nativeRoot, p.opts, p.sourceText)
+			root = nativeRoot
+			if len(result.Statements.Nodes) > 0 {
+				p.validateJsonValue(result, result.Statements.Nodes[0].Expression())
+			}
+			p.finishSourceFile(result, false)
+			result.NodeCount = materialized.NodeCount
+			result.TextCount = materialized.TextCount
+		} else {
+			storeFactory = ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
+			p.factory.AttachStore(storeFactory.Store())
+			result = p.parseJSONText()
+		}
 	} else {
+		storeFactory = ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
+		p.factory.AttachStore(storeFactory.Store())
 		result = p.parseSourceFileWorker()
 	}
 	if result != nil {
-		root := p.factory.HandleOf(result.AsNode())
-		p.factory.StoreSync(result.AsNode())
+		if root.Ref() == 0 {
+			root = p.factory.HandleOf(result.AsNode())
+			p.factory.StoreSync(result.AsNode())
+			nodeRefs = p.factory.TakeNodeRef()
+		}
 		result.SetParseStore(storeFactory.Store(), root)
-		result.SetParseNodeRef(p.factory.TakeNodeRef())
+		result.SetParseNodeRef(nodeRefs)
 	}
 	storeFactory.Seal()
 	return result

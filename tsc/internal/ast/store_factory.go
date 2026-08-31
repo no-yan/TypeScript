@@ -103,6 +103,15 @@ func (f *Factory) FunctionExpression(loc core.TextRange, params ListRef) Handle 
 	return h
 }
 
+// NewSourceFile creates the Store-owned SourceFile syntax root. File metadata
+// is initialized when a pointer view is materialized for legacy consumers.
+func (f *Factory) NewSourceFile(statements ListRef, endOfFileToken Handle) Handle {
+	h := f.createSlots(KindSourceFile, 0, core.UndefinedTextRange(), slotSourceFileCount, listSlotSourceFileCount)
+	h.SetSourceFileEndOfFileToken(endOfFileToken)
+	h.SetSourceFileStatements(statements)
+	return h
+}
+
 func (h Handle) ParamType() Handle {
 	h.requireKind(KindParameter)
 	return h.ParameterDeclarationType()

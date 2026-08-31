@@ -43,6 +43,48 @@ func BenchmarkParse(b *testing.B) {
 	}
 }
 
+func TestJSONHandleNativeParseBridgeIsDenseAndFaithful(t *testing.T) {
+	t.Parallel()
+	const sourceText = `{
+		"name": "tsgo",
+		"values": [1, -2, true, null,],
+	}`
+	opts := ast.SourceFileParseOptions{FileName: "/config.json", Path: "/config.json"}
+	file := parser.ParseSourceFile(opts, sourceText, core.ScriptKindJSON)
+
+	assert.Equal(t, 0, len(file.Diagnostics()))
+	assert.Equal(t, file.NodeCount, file.ParseStore().Len())
+	assert.Equal(t, file.NodeCount, len(file.ParseNodeRef()))
+
+	count := 0
+	var visit func(*ast.Node)
+	visit = func(node *ast.Node) {
+		count++
+		handle := file.HandleOf(node)
+		assert.Assert(t, handle.Ref() != 0)
+		assert.Equal(t, node.Kind, handle.Kind())
+		assert.Equal(t, node.Loc, handle.Loc())
+		assert.Equal(t, node.Flags, handle.Flags())
+		node.ForEachChild(func(child *ast.Node) bool {
+			assert.Equal(t, node, child.Parent)
+			visit(child)
+			return false
+		})
+	}
+	visit(file.AsNode())
+	assert.Equal(t, file.NodeCount, count)
+}
+
+func TestMalformedJSONFallsBackWithoutNativeStoreOrphans(t *testing.T) {
+	t.Parallel()
+	const sourceText = `{"name": }`
+	opts := ast.SourceFileParseOptions{FileName: "/config.json", Path: "/config.json"}
+	file := parser.ParseSourceFile(opts, sourceText, core.ScriptKindJSON)
+
+	assert.Assert(t, len(file.Diagnostics()) > 0)
+	assert.Equal(t, len(file.ParseNodeRef()), file.ParseStore().Len())
+}
+
 type parsableFile struct {
 	path string
 	name string

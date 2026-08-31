@@ -6,11 +6,12 @@ Motivation and early sketch: [TypeScript#63807](https://github.com/microsoft/Typ
 
 ## Status
 
-Safe to keep on a branch as a **package-local experiment**. Parsing, binding,
-checking, transformation, and printing now mirror their nodes and side data
-into one Store per file. The temporary Store-to-`*Node` expansion bridge is
-deleted. The production visitors still consume `*Node` while their Handle
-callers are migrated.
+Safe to keep on a branch as a **package-local experiment**. Structurally valid
+JSON/JSONC now parses into Store first and materializes a temporary `*Node`
+view for legacy consumers; malformed JSON recovery and TypeScript parsing
+still dual-write. Binding, checking, transformation, and printing mirror their
+nodes and side data into one Store per file. Production visitors still consume
+`*Node` while their Handle callers are migrated.
 
 Do **not** treat this document as a merged, settled design for the whole compiler until the [Open questions](#open-questions) below have written answers. The layout bet (packed header, noscan columns) has package-level evidence. Identity across files, mutation rules, incremental parse, emit sharing, and an end-to-end stop criterion do not.
 
@@ -115,6 +116,7 @@ Temporary bridges such as `FlattenNode` are **measurement-only**. They keep Kind
 | `store_handles_generated.go` | Generated Store-native `Factory.New*` constructors and named Handle getters/setters for every schema factory kind |
 | `store_factory.go` | Store-only `Factory`, `NewFactoryOn` |
 | `store_bridge.go` | `NodeFactory.AttachStore` dual-write into Store during parse |
+| `store_materialize_json.go` | Temporary full-fidelity Store-to-pointer bridge for the Handle-native JSON parser |
 | `store_copy.go` | `Factory.CopySubtree` (cross-store remap) |
 | `store_flatten.go` | Lossy `*Node` → Store copy for benches |
 | `store_*_test.go`, `store_*_bench_test.go` | Unit, copy, adversarial, and e2e benches |
