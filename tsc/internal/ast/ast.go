@@ -214,7 +214,7 @@ func (n *Node) ExportableData() *ExportableBase           { return n.data.Export
 func (n *Node) LocalsContainerData() *LocalsContainerBase { return n.data.LocalsContainerData() }
 func (n *Node) FunctionLikeData() *FunctionLikeBase       { return n.data.FunctionLikeData() }
 func (n *Node) ParameterList() *ParameterList             { return n.data.FunctionLikeData().Parameters }
-func (n *Node) Parameters() []*Node                       { return n.ParameterList().Nodes }
+func (n *Node) Parameters() []*ParameterDeclarationNode   { return n.ParameterList().Nodes }
 func (n *Node) ClassLikeData() *ClassLikeBase             { return n.data.ClassLikeData() }
 func (n *Node) BodyData() *BodyBase                       { return n.data.BodyData() }
 func (n *Node) SubtreeFacts() SubtreeFacts                { return n.data.SubtreeFacts() }
@@ -1088,7 +1088,7 @@ func (n *Node) PostfixToken() *Node {
 	return nil
 }
 
-func (n *Node) QuestionToken() *Node {
+func (n *Node) QuestionToken() *TokenNode {
 	switch n.Kind {
 	case KindParameter:
 		return n.AsParameterDeclaration().QuestionToken
@@ -2211,7 +2211,7 @@ func (node *ExpressionWithTypeArguments) computeSubtreeFacts() SubtreeFacts {
 		propagateEraseableSyntaxListSubtreeFacts(node.TypeArguments)
 }
 
-func (node *Node) GetResolutionModeOverride( /* !!! grammarErrorOnNode?: (node: Node, diagnostic: DiagnosticMessage) => void*/ ) (core.ResolutionMode, bool) {
+func (node *ImportAttributesNode) GetResolutionModeOverride( /* !!! grammarErrorOnNode?: (node: Node, diagnostic: DiagnosticMessage) => void*/ ) (core.ResolutionMode, bool) {
 	if node == nil {
 		return core.ResolutionModeNone, false
 	}
@@ -2467,8 +2467,8 @@ type SourceFile struct {
 	parseOptions      SourceFileParseOptions
 	text              string
 	contentMapperInfo *ContentMapperSourceFileInfo
-	Statements        *NodeList // NodeList[*Statement]
-	EndOfFileToken    *Node     // TokenNode[*EndOfFileToken]
+	Statements        *NodeList  // NodeList[*Statement]
+	EndOfFileToken    *TokenNode // TokenNode[*EndOfFileToken]
 
 	// Fields for lazily-computed data owned by packages outside ast.
 	dataMu sync.Mutex
@@ -2543,7 +2543,7 @@ type SourceFile struct {
 	positionMap     *PositionMap
 }
 
-func (f *NodeFactory) NewSourceFile(opts SourceFileParseOptions, text string, statements *NodeList, endOfFileToken *Node) *Node {
+func (f *NodeFactory) NewSourceFile(opts SourceFileParseOptions, text string, statements *NodeList, endOfFileToken *TokenNode) *Node {
 	if tspath.GetEncodedRootLength(opts.FileName) == 0 || opts.FileName != tspath.NormalizePath(opts.FileName) {
 		panic(fmt.Sprintf("fileName should be normalized and absolute: %q", opts.FileName))
 	}
@@ -2999,7 +2999,7 @@ func (node *SourceFile) computeSubtreeFacts() SubtreeFacts {
 	return propagateNodeListSubtreeFacts(node.Statements, propagateSubtreeFacts)
 }
 
-func (f *NodeFactory) UpdateSourceFile(node *SourceFile, statements *StatementList, endOfFileToken *Node) *Node {
+func (f *NodeFactory) UpdateSourceFile(node *SourceFile, statements *StatementList, endOfFileToken *TokenNode) *Node {
 	if statements != node.Statements || endOfFileToken != node.EndOfFileToken {
 		updated := f.NewSourceFile(node.parseOptions, node.text, statements, endOfFileToken).AsSourceFile()
 		updated.copyFrom(node)
@@ -3096,7 +3096,7 @@ func (node *SourceFile) GetOrCreateToken(
 	end int,
 	parent *Node,
 	flags TokenFlags,
-) *Node {
+) *TokenNode {
 	node.tokenCacheMu.Lock()
 	defer node.tokenCacheMu.Unlock()
 	loc := core.NewTextRange(pos, end)

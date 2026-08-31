@@ -1300,7 +1300,7 @@ function generate(): string {
     // Generate base struct definitions
     generateBaseStructDefs(w);
 
-    // Generate node type aliases (FooNode = Handle for every concrete node type)
+    // Generate node type aliases (FooNode = Node while the pointer path still materializes)
     w.write("// ──────────────────────────────────────────────────────────────────────");
     w.write("// Node type aliases");
     w.write("// ──────────────────────────────────────────────────────────────────────");
@@ -1308,7 +1308,7 @@ function generate(): string {
     w.write("type (");
     w.push();
     for (const node of api.nodes()) {
-        w.write(`${node.name}Node = Handle`);
+        w.write(`${node.name}Node = Node`);
     }
     // Instantiation aliases (e.g. EndOfFile = Node, AbstractKeyword = Node)
     for (const node of api.nodes()) {

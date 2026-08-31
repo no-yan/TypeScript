@@ -354,7 +354,7 @@ func IsOptionalChain(node *Node) bool {
 	return false
 }
 
-func getQuestionDotToken(node *Expression) *Node {
+func getQuestionDotToken(node *Expression) *TokenNode {
 	return node.QuestionDotToken()
 }
 
@@ -3095,7 +3095,7 @@ func IsClassOrTypeElement(node *Node) bool {
 	return IsClassElement(node) || IsTypeElement(node)
 }
 
-func GetClassExtendsHeritageElement(node *Node) *Node {
+func GetClassExtendsHeritageElement(node *Node) *ExpressionWithTypeArgumentsNode {
 	heritageElements := GetHeritageElements(node, KindExtendsKeyword)
 	if len(heritageElements) > 0 {
 		return heritageElements[0]
@@ -3226,7 +3226,7 @@ func HasResolutionModeOverride(node *Node) bool {
 	if node == nil {
 		return false
 	}
-	var attributes *Node
+	var attributes *ImportAttributesNode
 	switch node.Kind {
 	case KindImportType:
 		attributes = node.AsImportTypeNode().Attributes
@@ -4460,7 +4460,7 @@ func IsAsyncFunction(node *Node) bool {
  *
  * @internal
  */
-func GetRestParameterElementType(node *Node) *Node {
+func GetRestParameterElementType(node *ParameterDeclarationNode) *Node {
 	if node == nil {
 		return node
 	}
