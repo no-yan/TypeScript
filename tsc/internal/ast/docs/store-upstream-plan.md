@@ -107,7 +107,7 @@ Each live lane runs on its own cloud VM at the PR head. Drive through the shell 
 - [ ] Metric. Wall time of `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts`.
 - [ ] Probe. `TestTsgoGOGCBaseline` once per env, interleaved with a trunk checkout of the same command.
 - [ ] Baseline. Record the trunk default-GOGC median first.
-- [ ] Rule. Fail if default-GOGC median divided by `GOGC=off` median is under 1.10, or if `GOMEMLIMIT` median divided by `GOGC=off` median is over 0.95. Stop the program on fail. Tunables already ate the GC gap.
+- [ ] Rule. Fail if default-GOGC median divided by `GOGC=off` median is under 1.10, or if `GOMEMLIMIT` median divided by `GOGC=off` median is at most 1.05. Stop the program on fail. A memory limit within 5% of `GOGC=off` means tunables already ate the GC gap.
 
 **Review gate.** None. PR-1 is not review-gated.
 
