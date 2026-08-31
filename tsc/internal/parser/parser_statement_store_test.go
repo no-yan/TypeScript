@@ -100,6 +100,87 @@ func TestParseSourceFileUsesNativeStatementPathForJavaScript(t *testing.T) {
 	assert.Equal(t, 0, len(file.Diagnostics()))
 }
 
+func TestParseSourceFileRecoveryWritesStoreAndMaterializes(t *testing.T) {
+	t.Parallel()
+	opts := ast.SourceFileParseOptions{FileName: "/recovery.ts", Path: "/recovery.ts"}
+	sourceText := "const x = ;\n"
+	p := getParser()
+	p.initializeState(opts, sourceText, core.ScriptKindTS)
+	p.nextToken()
+	_, nativeOK := p.tryParseSourceHandle(ast.NewFactory(ast.FactoryHooks{}))
+	assert.Assert(t, !nativeOK, "native must reject so recovery owns this file")
+	putParser(p)
+
+	file := ParseSourceFile(opts, sourceText, core.ScriptKindTS)
+	assert.Assert(t, file != nil)
+	assert.Assert(t, file.ParseStore() != nil)
+	assert.Assert(t, file.ParseStore().Len() > 0)
+	root := file.ParseRoot()
+	assert.Equal(t, ast.KindSourceFile, root.Kind())
+	assert.Assert(t, file.Statements != nil)
+	assert.Assert(t, len(file.Statements.Nodes) >= 1)
+	assert.Assert(t, len(file.Diagnostics()) > 0)
+	foundError := false
+	var walk func(n *ast.Node)
+	walk = func(n *ast.Node) {
+		if n == nil {
+			return
+		}
+		if n.Flags&ast.NodeFlagsThisNodeHasError != 0 {
+			foundError = true
+		}
+		n.ForEachChild(func(child *ast.Node) bool {
+			walk(child)
+			return false
+		})
+	}
+	walk(file.AsNode())
+	assert.Assert(t, foundError, "recovery must set ThisNodeHasError on the node finished after a diagnostic")
+}
+
+func TestParseSourceFileJSDocJavaScriptFallsBackToPointerWorker(t *testing.T) {
+	t.Parallel()
+	opts := ast.SourceFileParseOptions{FileName: "/mod.js", Path: "/mod.js"}
+	sourceText := "/** @type {number} */\nvar x = 1;\n"
+	file := ParseSourceFile(opts, sourceText, core.ScriptKindJS)
+	assert.Assert(t, file != nil)
+	assert.Assert(t, file.ParseStore() != nil)
+	assert.Equal(t, 1, len(file.Statements.Nodes))
+	stmt := file.Statements.Nodes[0]
+	assert.Equal(t, ast.KindVariableStatement, stmt.Kind)
+	assert.Assert(t, stmt.Flags&ast.NodeFlagsHasJSDoc != 0)
+	docs := stmt.JSDoc(file)
+	assert.Assert(t, len(docs) > 0, "JS reparseTags must run via the pointer worker, not flags-only Handle recovery")
+}
+
+func TestParseSourceFileRecoveryDeclarationFileIsAmbient(t *testing.T) {
+	t.Parallel()
+	opts := ast.SourceFileParseOptions{FileName: "/mod.d.ts", Path: "/mod.d.ts"}
+	sourceText := "declare const x: ;\n"
+	p := getParser()
+	p.initializeState(opts, sourceText, core.ScriptKindTS)
+	p.nextToken()
+	_, nativeOK := p.tryParseSourceHandle(ast.NewFactory(ast.FactoryHooks{}))
+	assert.Assert(t, !nativeOK, "native must reject so recovery owns this .d.ts file")
+	putParser(p)
+
+	file := ParseSourceFile(opts, sourceText, core.ScriptKindTS)
+	assert.Assert(t, file != nil)
+	assert.Assert(t, file.IsDeclarationFile)
+	assert.Assert(t, len(file.Statements.Nodes) >= 1)
+	stmt := file.Statements.Nodes[0]
+	assert.Assert(t, stmt.Flags&ast.NodeFlagsAmbient != 0, "file-wide Ambient from IsDeclarationFileName")
+	mods := stmt.ModifierNodes()
+	foundDeclare := false
+	for _, m := range mods {
+		if m.Kind == ast.KindDeclareKeyword {
+			foundDeclare = true
+			assert.Assert(t, m.Flags&ast.NodeFlagsAmbient != 0)
+		}
+	}
+	assert.Assert(t, foundDeclare)
+}
+
 func TestNativeExportTypeAliasShape(t *testing.T) {
 	opts := ast.SourceFileParseOptions{FileName: "/main.ts", Path: "/main.ts"}
 	file := ParseSourceFile(opts, "export type x = any;\n", core.ScriptKindTS)

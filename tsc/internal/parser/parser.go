@@ -164,20 +164,53 @@ func ParseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptK
 			result = p.parseJSONText()
 		}
 	} else if p.scriptKind == core.ScriptKindTS || p.scriptKind == core.ScriptKindJS {
+		isDeclarationFile := tspath.IsDeclarationFileName(p.opts.FileName)
+		if isDeclarationFile {
+			p.contextFlags |= ast.NodeFlagsAmbient
+		}
 		nativeFactory := ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
 		if nativeRoot, ok := p.tryParseSourceHandle(nativeFactory); ok {
 			storeFactory = nativeFactory
 			var materialized ast.MaterializeStats
 			result, nodeRefs, materialized = ast.MaterializeSourceFile(nativeRoot, p.opts, p.sourceText)
 			root = nativeRoot
-			p.finishSourceFile(result, false)
+			p.finishSourceFile(result, isDeclarationFile)
 			result.NodeCount = materialized.NodeCount
 			result.TextCount = materialized.TextCount
 			collectExternalModuleReferences(result)
+			if p.isJavaScript() {
+				p.checkJSSyntaxTree(result.AsNode())
+				result.SetJSDiagnostics(attachFileToDiagnostics(p.jsDiagnostics, result))
+			}
 		} else {
 			storeFactory = ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
-			p.factory.AttachStore(storeFactory.Store())
-			result = p.parseSourceFileWorker()
+			state := p.mark()
+			identCount := p.identifierCount
+			sourceFlags := p.sourceFlags
+			hp := &handleParser{Parser: p, f: storeFactory}
+			handleRoot := hp.parseSourceFileWorkerHandle()
+			if hp.fallback != storeFallbackNone {
+				p.rewind(state)
+				p.identifierCount = identCount
+				p.sourceFlags = sourceFlags
+				p.possibleAwaitSpans = nil
+				p.reparseList = nil
+				storeFactory = ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
+				p.factory.AttachStore(storeFactory.Store())
+				result = p.parseSourceFileWorker()
+			} else {
+				var materialized ast.MaterializeStats
+				result, nodeRefs, materialized = ast.MaterializeSourceFile(handleRoot, p.opts, p.sourceText)
+				root = handleRoot
+				p.finishSourceFile(result, isDeclarationFile)
+				result.NodeCount = materialized.NodeCount
+				result.TextCount = materialized.TextCount
+				collectExternalModuleReferences(result)
+				if p.isJavaScript() {
+					p.checkJSSyntaxTree(result.AsNode())
+					result.SetJSDiagnostics(attachFileToDiagnostics(p.jsDiagnostics, result))
+				}
+			}
 		}
 	} else {
 		storeFactory = ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
@@ -6902,4 +6935,15 @@ func (p *Parser) checkJSSyntax(node *ast.Node) *ast.Node {
 		}
 	}
 	return node
+}
+
+func (p *Parser) checkJSSyntaxTree(node *ast.Node) {
+	if node == nil {
+		return
+	}
+	p.checkJSSyntax(node)
+	node.ForEachChild(func(child *ast.Node) bool {
+		p.checkJSSyntaxTree(child)
+		return false
+	})
 }

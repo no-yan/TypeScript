@@ -733,8 +733,55 @@ func MaterializeSourceFile(root Handle, opts SourceFileParseOptions, text string
 				materializeList(h.SourceFileStatements()),
 				materialize(h.SourceFileEndOfFileToken()),
 			)
+		case KindWithStatement:
+			node = factory.NewWithStatement(
+				materialize(h.WithStatementExpression()),
+				materialize(h.WithStatementStatement()),
+			)
+		case KindImportAttributes:
+			node = factory.NewImportAttributes(
+				h.ImportAttributesToken(),
+				materializeList(h.ImportAttributesAttributes()),
+				h.ImportAttributesMultiLine(),
+			)
+		case KindImportAttribute:
+			node = factory.NewImportAttribute(
+				materialize(h.ImportAttributeName()),
+				materialize(h.ImportAttributeValue()),
+			)
+		case KindMissingDeclaration:
+			node = factory.NewMissingDeclaration(materializeModifiers(h.MissingDeclarationModifiers()))
+		case KindClassStaticBlockDeclaration:
+			node = factory.NewClassStaticBlockDeclaration(
+				materializeModifiers(h.ClassStaticBlockDeclarationModifiers()),
+				materialize(h.ClassStaticBlockDeclarationBody()),
+			)
+		case KindImportEqualsDeclaration:
+			node = factory.NewImportEqualsDeclaration(
+				materializeModifiers(h.ImportEqualsDeclarationModifiers()),
+				h.ImportEqualsDeclarationIsTypeOnly(),
+				materialize(h.ImportEqualsDeclarationName()),
+				materialize(h.ImportEqualsDeclarationModuleReference()),
+			)
+		case KindExternalModuleReference:
+			node = factory.NewExternalModuleReference(materialize(h.ExternalModuleReferenceExpression()))
+		case KindPrivateIdentifier:
+			node = factory.NewPrivateIdentifier(h.PrivateIdentifierText())
+		case KindDecorator:
+			node = factory.NewDecorator(materialize(h.DecoratorExpression()))
+		case KindJSDocAllType:
+			node = factory.NewJSDocAllType()
+		case KindJSDocNullableType:
+			node = factory.NewJSDocNullableType(materialize(h.JSDocNullableTypeType()))
+		case KindJSDocNonNullableType:
+			node = factory.NewJSDocNonNullableType(materialize(h.JSDocNonNullableTypeType()))
 		default:
-			panic(fmt.Sprintf("ast: unsupported parse materialization kind %s", h.Kind()))
+			k := h.Kind()
+			if k >= KindFirstPunctuation && k <= KindLastToken && k != KindIdentifier && k != KindPrivateIdentifier && k != KindJSDocCommentTextToken {
+				node = factory.NewToken(k)
+			} else {
+				panic(fmt.Sprintf("ast: unsupported parse materialization kind %s", k))
+			}
 		}
 
 		node.Loc = h.Loc()
