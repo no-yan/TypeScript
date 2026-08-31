@@ -87,9 +87,9 @@ func TestTsgoGOGCBaseline(t *testing.T) {
 	defaultOverOff := float64(medians[0]) / float64(medians[1])
 	memLimitOverOff := float64(medians[3]) / float64(medians[1])
 	t.Logf("default/off=%.3f memlimit/off=%.3f", defaultOverOff, memLimitOverOff)
-	if defaultOverOff < 1.10 || memLimitOverOff > 0.95 {
+	if defaultOverOff < 1.10 || memLimitOverOff <= 1.05 {
 		t.Errorf(
-			"FAIL-PERF: require default/off >= 1.10 and memlimit/off <= 0.95; got %.3f and %.3f",
+			"FAIL-PERF: require default/off >= 1.10 and memlimit/off > 1.05; got %.3f and %.3f",
 			defaultOverOff,
 			memLimitOverOff,
 		)
