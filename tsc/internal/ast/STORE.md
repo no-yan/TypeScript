@@ -66,11 +66,20 @@ Parse would build a Store. `Seal` drops the intern map only. Binder writes flags
 
 `CopySubtree` today walks child `NodeRef`s only. It does not remap `ListRef` payloads hung off kinds, because β has no kind that stores a `ListRef` in the header. Migration A/B must close that gap before list-bearing kinds ship.
 
-## Concurrency (intent)
+## Concurrency
 
-One `Factory` / `Store` per file parse. Concurrent parsers do not share a Store. Peak memory for that policy is **unmeasured**.
+A `Store` is single-writer. Parse, bind, check, and emit transfer exclusive
+ownership of a file's Store in phase order; readers may overlap only while no
+phase is mutating it. Concurrent parsers and checker workers may write
+different file Stores. `NewFactoryOn` means "append under the current phase's
+ownership", not that two factories may append concurrently. This keeps locks
+out of the per-node allocation and access path.
 
-`symbols` is an ordinary map with no ownership or locking story. Whether parallel checker work can race on `SetSymbol` is **unproven** as a concrete path, and still a design gap: the map admits unsynchronized writers.
+`StoreSet` is the synchronized cross-file identity and metadata index.
+SourceFile bridge maps that are shared by checker workers require their own
+synchronization; Store's single-writer rule does not make those maps safe.
+`TestStoreParallelFileWriters` exercises the allowed topology under `-race`.
+Peak memory for the one-Store-per-file policy is **unmeasured**.
 
 ## Migration sketch (backcast)
 
