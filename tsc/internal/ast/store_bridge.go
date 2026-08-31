@@ -13,7 +13,7 @@ func (f *NodeFactory) AttachStore(s *Store) {
 		panic("ast: AttachStore nil Store")
 	}
 	f.store = s
-	f.nodeRef = make(map[*Node]NodeRef)
+	f.nodeRef = make(map[*Node]NodeRef, max(0, cap(s.nodes)-1))
 }
 
 // Parser AttachStore wipes; checker reuses the parse map so parse children keep their refs.
