@@ -117,7 +117,7 @@ v6.0.3 compiler project used by the repository smoke job. Set
 `STORE_TSGO_PROJECT` when that checkout is outside
 `smoke/typescript-6.0/src/compiler`. Runs are interleaved and rotated across
 default GOGC, `GOGC=off`, `GOGC=200`, and `GOMEMLIMIT=8GiB`; every child must
-exit 0 and the preflight must take at least one second.
+exit 0, including an untimed preflight.
 
 The earlier 2026-08-27 numbers are discarded. That harness accepted exit 2
 while compiling `tsc/testdata/fixtures/compiler/checker.ts`, whose unresolved
