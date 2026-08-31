@@ -105,6 +105,9 @@ func TestTypeScriptExpressionHandleNativeProductionIntegration(t *testing.T) {
 	visit = func(node *ast.Node) {
 		count++
 		seen[node.Kind] = true
+		if node.Kind == ast.KindTrueKeyword {
+			assert.Assert(t, node.AsKeywordExpression() != nil)
+		}
 		handle := file.HandleOf(node)
 		assert.Assert(t, handle.Ref() != 0)
 		assert.Equal(t, node.Kind, handle.Kind())
