@@ -110,8 +110,9 @@ Temporary bridges such as `FlattenNode` are **measurement-only**. They keep Kind
 | --- | --- |
 | `store.go` | `Store`, `NodeRef`, `ListRef`, `Handle`, walk, parents, Symbol/LocalSymbol/FlowNode/EndFlowNode/ReturnFlowNode/Locals/NextContainer side maps, packed `listSlots` |
 | `store_identity.go` | `StoreID`, `GlobalRef`, `StoreSet` (cross-store identity, SourceFile metadata) |
-| `store_schema.go` | BinaryExpression, Parameter, ArrayLiteral slot layout (β slice) |
+| `store_schema.go` | Compatibility argument structs for the first Store-native factory experiments |
 | `store_schema_generated.go` | Generated child, list, and kind-specific value slots for every factory kind |
+| `store_handles_generated.go` | Generated Store-native `Factory.New*` constructors and named Handle getters/setters for every schema factory kind |
 | `store_factory.go` | Store-only `Factory`, `NewFactoryOn` |
 | `store_bridge.go` | `NodeFactory.AttachStore` dual-write into Store during parse |
 | `store_copy.go` | `Factory.CopySubtree` (cross-store remap) |
@@ -126,6 +127,7 @@ From `tsc/`:
 go test ./internal/ast -run 'TestStore|TestFactory|TestFlatten' 
 go test ./internal/ast -run TestE2ELayoutReport -v
 go test ./internal/ast -run '^$' -bench E2E -count 3
+go test ./internal/ast -run '^$' -bench ParserShapedConstruction -benchmem -count 5
 ```
 
 Use e2e numbers only for pointer-tree vs Store layout on a flattened file. They do not prove parser wiring, offset interning, or compile wall-time wins.

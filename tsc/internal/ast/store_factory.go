@@ -35,6 +35,21 @@ func (f *Factory) Store() *Store { return f.store }
 
 func (f *Factory) Seal() { f.store.Seal() }
 
+// Finish sets parser-owned source locations and parent edges after a native
+// constructor has populated the node. It mirrors the Store work performed by
+// Parser.finishNode on the dual-write NodeFactory path.
+func (f *Factory) Finish(h Handle, loc core.TextRange) Handle {
+	if h.Store() != f.store || h.Ref() == 0 {
+		panic("ast: Finish Handle from a different Store")
+	}
+	h.SetLoc(loc)
+	h.ForEachChild(func(child Handle) bool {
+		child.SetParent(h)
+		return false
+	})
+	return h
+}
+
 func (f *Factory) create(kind Kind, flags NodeFlags, loc core.TextRange, childLen int) Handle {
 	return f.createSlots(kind, flags, loc, childLen, 0)
 }
@@ -48,22 +63,16 @@ func (f *Factory) createSlots(kind Kind, flags NodeFlags, loc core.TextRange, ch
 }
 
 func (f *Factory) Identifier(text string) Handle {
-	h := f.create(KindIdentifier, 0, core.UndefinedTextRange(), 0)
-	if text != "" {
-		h.SetIdent(f.store.Intern(text))
-	}
-	return h
+	return f.NewIdentifier(text)
 }
 
 func (f *Factory) Token(kind Kind) Handle {
-	return f.create(kind, 0, core.UndefinedTextRange(), 0)
+	return f.NewToken(kind)
 }
 
 func (f *Factory) BinaryExpression(p BinaryParts) Handle {
-	h := f.create(KindBinaryExpression, 0, p.Loc, binSlotCount)
-	h.SetChild(binSlotLeft, p.Left)
-	h.SetChild(binSlotOperator, p.Operator)
-	h.SetChild(binSlotRight, p.Right)
+	h := f.NewBinaryExpression(0, p.Left, Handle{}, p.Operator, p.Right)
+	h.SetLoc(p.Loc)
 	return h
 }
 
@@ -77,66 +86,62 @@ func (f *Factory) List(loc core.TextRange, elems ...Handle) ListRef {
 }
 
 func (f *Factory) ArrayLiteral(p ArrayLiteralParts) Handle {
-	h := f.createSlots(KindArrayLiteralExpression, 0, p.Loc, 0, 1)
-	h.SetList(p.Elements)
+	h := f.NewArrayLiteralExpression(p.Elements, false)
+	h.SetLoc(p.Loc)
 	return h
 }
 
 func (f *Factory) Parameter(p ParameterParts) Handle {
-	h := f.create(KindParameter, 0, p.Loc, paramSlotCount)
-	h.SetChild(paramSlotDotDotDot, p.DotDotDot)
-	h.SetChild(paramSlotName, p.Name)
-	h.SetChild(paramSlotQuestion, p.Question)
-	h.SetChild(paramSlotType, p.Type)
-	h.SetChild(paramSlotInitializer, p.Initializer)
+	h := f.NewParameterDeclaration(0, p.DotDotDot, p.Name, p.Question, p.Type, p.Initializer)
+	h.SetLoc(p.Loc)
 	return h
 }
 
 func (f *Factory) FunctionExpression(loc core.TextRange, params ListRef) Handle {
-	h := f.createSlots(KindFunctionExpression, 0, loc, 0, 1)
-	h.SetList(params)
+	h := f.NewFunctionExpression(0, Handle{}, Handle{}, 0, params, Handle{}, Handle{}, Handle{})
+	h.SetLoc(loc)
 	return h
 }
 
 func (h Handle) ParamType() Handle {
 	h.requireKind(KindParameter)
-	return h.Child(paramSlotType)
+	return h.ParameterDeclarationType()
 }
 
 func (h Handle) SetParamType(typ Handle) {
 	h.requireKind(KindParameter)
-	h.SetChild(paramSlotType, typ)
+	h.SetParameterDeclarationType(typ)
 }
 
 func (h Handle) ParamQuestion() Handle {
 	h.requireKind(KindParameter)
-	return h.Child(paramSlotQuestion)
+	return h.ParameterDeclarationQuestionToken()
 }
 
 func (h Handle) SetParamQuestion(q Handle) {
 	h.requireKind(KindParameter)
-	h.SetChild(paramSlotQuestion, q)
+	h.SetParameterDeclarationQuestionToken(q)
 }
 
 func (h Handle) Elements() ListRef {
 	h.requireKind(KindArrayLiteralExpression)
-	return h.List()
+	return h.ArrayLiteralExpressionElements()
 }
 
 // Left / Operator / Right are named BinaryExpression slot accessors.
 func (h Handle) Left() Handle {
 	h.requireKind(KindBinaryExpression)
-	return h.Child(binSlotLeft)
+	return h.BinaryExpressionLeft()
 }
 
 func (h Handle) Operator() Handle {
 	h.requireKind(KindBinaryExpression)
-	return h.Child(binSlotOperator)
+	return h.BinaryExpressionOperatorToken()
 }
 
 func (h Handle) Right() Handle {
 	h.requireKind(KindBinaryExpression)
-	return h.Child(binSlotRight)
+	return h.BinaryExpressionRight()
 }
 
 func (h Handle) requireKind(k Kind) {
