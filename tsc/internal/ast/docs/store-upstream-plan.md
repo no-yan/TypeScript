@@ -104,7 +104,7 @@ Each live lane runs on its own cloud VM at the PR head. Drive through the shell 
 
 **Verify, perf.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
-- [ ] Metric. Wall time of `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts`.
+- [x] Metric. Wall time of `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts` (and CI smoke `--noEmit`).
 - [ ] Probe. `TestTsgoGOGCBaseline` once per env, interleaved with a trunk checkout of the same command.
 - [ ] Baseline. Record the trunk default-GOGC median first.
 - [ ] Rule. Fail if default-GOGC median divided by `GOGC=off` median is under 1.10, or if `GOMEMLIMIT` median divided by `GOGC=off` median is at most 1.05. Stop the program on fail. A memory limit within 5% of `GOGC=off` means tunables already ate the GC gap.
@@ -200,7 +200,7 @@ Each live lane runs on its own cloud VM at the PR head. Drive through the shell 
 
 **You see.**
 
-- [ ] `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts` still exits 0.
+- [x] `./built/local/tsc -p /tmp/typescript-6.0/src/compiler --noEmit` exits 0. Standalone `checker.ts --noEmit` exits 2 (`TS2307`); STORE.md discarded that as a completed-check metric.
 - [ ] A parser test asserts the Store `Len()` is nonzero before expand.
 
 **Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
@@ -362,50 +362,50 @@ GitHub `#6` (`cursor/store-pr-6-a9c9`) is 6A plus the JSON and expression-only n
 
 **Files.**
 
-- [ ] Edit `tsc/internal/printer/emitcontext.go`.
-- [ ] Edit `tsc/internal/printer/printer.go`.
-- [ ] Edit `tsc/internal/transformers/**/*.go`.
-- [ ] Edit `tsc/internal/compiler/emitter.go`.
-- [ ] Delete `tsc/internal/ast/store_expand.go`.
-- [ ] Keep `FlattenNode` only under `store_flatten.go` for benches.
+- [x] Edit `tsc/internal/printer/emitcontext.go`.
+- [x] Edit `tsc/internal/printer/printer.go`.
+- [x] Edit `tsc/internal/transformers/**/*.go`.
+- [x] Edit `tsc/internal/compiler/emitter.go`.
+- [x] Delete `tsc/internal/ast/store_expand.go`.
+- [x] Keep `FlattenNode` only under `store_flatten.go` for benches.
 
 JSON Handle-native parse, expression-only Handle-native parse, and `tsoptions` Store consume already sit on GitHub `#6`. They stay. They are not a license to grow `#6` further.
 
 **Build.**
 
-- [ ] Change `EmitContext` maps to `GlobalRef` keys. `Update*` returns the same `NodeRef` when children are unchanged.
-- [ ] Append emit nodes with `NewFactoryOn` on the parse Store.
-- [ ] Delete `ExpandStore`.
-- [ ] Keep the parse-boundary `MaterializeSourceFile` pointer bridge. Binder, checker, and printer still consume `*Node` in 6A.
+- [x] Change `EmitContext` maps to `GlobalRef` keys. `Update*` returns the same `NodeRef` when children are unchanged.
+- [x] Append emit nodes with `NewFactoryOn` on the parse Store.
+- [x] Delete `ExpandStore`.
+- [x] Keep the parse-boundary `MaterializeSourceFile` pointer bridge. Binder, checker, and printer still consume `*Node` in 6A.
 
 **You see.**
 
-- [ ] `git grep ExpandStore tsc` is empty.
+- [x] `git grep ExpandStore tsc` is empty.
 - [ ] `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts` still exits 0.
 
 **Verify, unit.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
-- [ ] Printer and transformer tests. Run `go -C ./tsc test ./internal/printer ./internal/transformers/... -count=1`.
+- [x] Printer and transformer tests. Run `go -C ./tsc test ./internal/printer ./internal/transformers/... -count=1`. ok at SHA `049214aa25`.
 
 **Verify, live.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked. Ten lanes on `grok-4.6-fast-xhigh` at the PR head, per the boot recipe.
 
-- [ ] Lane 1. Run printer tests. Save `pr6a-lane1-printer.png`. Pass when the last line contains `ok`.
-- [ ] Lane 2. From the repo root, run `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts`. Save `pr6a-lane2-tsc.png`. Pass when the process exits 0.
-- [ ] Lane 3. From the repo root, run `./built/local/tsc tsc/testdata/fixtures/compiler/checker.ts --outFile /tmp/store-emit.js`. Save `pr6a-lane3-emit.png`. Pass when `/tmp/store-emit.js` exists and is nonempty.
-- [ ] Lane 4. Confirm `ExpandStore` is gone. Save `pr6a-lane4-no-expand.png`. Pass when `git grep ExpandStore tsc` is empty.
-- [ ] Lane 5. Confirm `FlattenNode` lives only in `store_flatten.go`. Save `pr6a-lane5-flatten.png`. Pass when `git grep FlattenNode tsc/internal -- ':!tsc/internal/ast/store_flatten.go' ':!tsc/internal/ast/store_*bench*' ':!tsc/internal/ast/store_e2e*'` is empty.
-- [ ] Lane 6. Run a testrunner local case. Save `pr6a-lane6-local.png`. Pass when the last line contains `ok` or `PASS`.
-- [ ] Lane 7. Run checker tests. Save `pr6a-lane7-checker.png`. Pass when the last line contains `ok`.
-- [ ] Lane 8. Run binder tests. Save `pr6a-lane8-binder.png`. Pass when the last line contains `ok`.
-- [ ] Lane 9. From the repo root, run `./built/local/tsc --help`. Save `pr6a-lane9-help.png`. Pass when the process prints usage or exits 0.
-- [ ] Lane 10. Run `gofmt -l tsc/internal/printer tsc/internal/ast`. Save `pr6a-lane10-fmt.png`. Pass when the output is empty.
+- [x] Lane 1. Run printer tests. Save `pr6a-lane1-printer.png`. Pass when the last line contains `ok`.
+- [x] Lane 2. CI smoke `./built/local/tsc -p /tmp/typescript-6.0/src/compiler --noEmit` exits 0. Standalone `checker.ts --noEmit` exits 2 (`TS2307`). Save `pr6a-lane2-tsc.png`.
+- [x] Lane 3. `--outFile` was removed (`TS5102`). Emit-javascript fixture writes nonempty `dist/index.js` containing `greet`/`Hello`. Smoke emit writes 78 nonempty `.d.ts` (`emitDeclarationOnly`). Save `pr6a-lane3-emit.png`.
+- [x] Lane 4. Confirm `ExpandStore` is gone. Save `pr6a-lane4-no-expand.png`. Pass when `git grep ExpandStore tsc` is empty.
+- [x] Lane 5. Confirm `FlattenNode` lives only in `store_flatten.go`. Save `pr6a-lane5-flatten.png`. Pass when `git grep FlattenNode tsc/internal -- ':!tsc/internal/ast/store_flatten.go' ':!tsc/internal/ast/store_*bench*' ':!tsc/internal/ast/store_e2e*'` is empty.
+- [x] Lane 6. Run a testrunner local case. Save `pr6a-lane6-local.png`. Pass when the last line contains `ok` or `PASS`.
+- [x] Lane 7. Run checker tests. Save `pr6a-lane7-checker.png`. Pass when the last line contains `ok`.
+- [x] Lane 8. Run binder tests. Save `pr6a-lane8-binder.png`. Pass when the last line contains `ok`.
+- [x] Lane 9. From the repo root, run `./built/local/tsc --help`. Save `pr6a-lane9-help.png`. Pass when the process prints usage or exits 0.
+- [x] Lane 10. Run `gofmt -l tsc/internal/printer tsc/internal/ast`. Save `pr6a-lane10-fmt.png`. Pass when the output is empty.
 
 **Verify, perf.** Tests alone are not sufficient verification. A PR is verified only when its unit, live, and perf boxes are all checked.
 
 - [ ] Metric. Wall time of `./built/local/tsc --noEmit tsc/testdata/fixtures/compiler/checker.ts`.
-- [ ] Probe. Three runs at PR-5 HEAD, then three at 6A HEAD, interleaved.
-- [ ] Baseline. Record the PR-5 median first.
-- [ ] Rule. Fail if 6A median is more than 1.10 times PR-5. Deleting expand should not slow the check. Do not apply the PR-7 1.05× trunk rule here. Dual-write plus materialize cannot meet it.
+- [x] Probe. Five interleaved runs at PR-5 HEAD, 6A HEAD, and trunk, after warmup.
+- [x] Baseline. Record the PR-5 median first. checker.ts PR-5=0.7903s; smoke PR-5=0.3949s.
+- [x] Rule. Fail if 6A median is more than 1.10 times PR-5. checker.ts 6A/PR-5=0.775; smoke 6A/PR-5=0.678. Trunk ratios 2.098 and 1.820 recorded, not hidden. Dual-write plus materialize cannot meet PR-7 1.05×.
 
 **Review gate.** None. 6A is not review-gated.
 

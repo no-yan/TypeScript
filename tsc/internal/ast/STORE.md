@@ -250,3 +250,46 @@ Checked against the live `*Node` pipeline (parser, binder, checker, printer). No
 | `GOGC` / `GOMEMLIMIT`-only baseline on a large `tsgo` run | PASS-PERF on the TypeScript v6.0.3 CI smoke project (see [cmd/tsc GOGC baseline](#cmdtsc-gogc-baseline)) |
 
 `BenchmarkNewProgram` (`compiler/program_test.go:308`) is too small for the perf baseline.
+
+## 6A freeze (emit on Store, delete expand)
+
+GitHub `#6` (`cursor/store-pr-6-a9c9`) is frozen as 6A at SHA `049214aa25`. Do not add statement, type, binding, or generator grammar to that branch. 6B owns production Handle-native parse. 6C owns materialize deletion.
+
+Standalone `tsc/testdata/fixtures/compiler/checker.ts --noEmit` still exits 2 (`TS2307` missing `./_namespaces/ts.js`). That is not a completed check. The live compile is the TypeScript v6.0.3 CI smoke project. `--outFile` was removed (`TS5102`); JavaScript emit proof is the `emit-javascript` fixture.
+
+### Unit / race / generate
+
+| Gate | Result |
+| --- | --- |
+| `go -C ./tsc test ./internal/printer ./internal/transformers/... -count=1` | ok (`printer`, `tstransforms`; other transformer packages have no tests) |
+| `./internal/parser ./internal/ast ./internal/binder ./internal/checker ./internal/compiler ./internal/tsoptions` | ok |
+| `./internal/testrunner -run TestLocal/alias` | ok |
+| `-race` parser, ast, printer, binder, checker, compiler, tsoptions | ok |
+| `node --experimental-strip-types tools/scripts/tsc/generate-go-ast.ts` + `gofmt` + `git diff --exit-code` | GENERATE_OK |
+| `git grep ExpandStore -- 'tsc/**/*.go'` | empty |
+| production `FlattenNode` grep | empty |
+
+### Live (`VERIFY_TSC_RUN_ID=pr6a-6a-20260831T083220`, SHA `049214aa25`)
+
+| Drive | Result |
+| --- | --- |
+| `control-tsc doctor` | PASS, `Version 7.1.0-dev` |
+| `tsc --help` | exit 0 |
+| type-check fixture `-p … --noEmit` | exit 0 |
+| emit-javascript fixture `-p …` | exit 0, nonempty `dist/index.js` contains `greet` / `Hello` |
+| emit from file list `--outDir …/from-files` | exit 0, `index.js` contains `greet`, no `.d.ts` |
+| emit-declarations fixture | exit 0, nonempty `index.js` and `index.d.ts` |
+| CI smoke `-p /tmp/typescript-6.0/src/compiler --noEmit` | exit 0 |
+| CI smoke `--outDir /tmp/store-smoke-out` | exit 0, 78 nonempty `.d.ts` (`emitDeclarationOnly` in that tsconfig) |
+| `checker.ts --noEmit` | exit 2, `error TS2307` |
+
+### Perf vs PR-5 (`21fced2ca1`) and trunk binary
+
+Five interleaved timed runs after one warmup per head. Wall time of `built/local/tsc`. Gate is 6A median ≤ 1.10× PR-5. The PR-7 1.05× trunk rule is recorded, not applied.
+
+| Workload | PR-5 median | 6A median | trunk median | 6A/PR-5 | 6A/trunk |
+| --- | --- | --- | --- | --- | --- |
+| `--noEmit checker.ts` (exit 2 all heads) | 0.7903s | 0.6125s | 0.2919s | 0.775 PASS | 2.098 record |
+| `-p typescript-6.0/src/compiler --noEmit` (exit 0) | 0.3949s | 0.2676s | 0.1470s | 0.678 PASS | 1.820 record |
+
+Deleting `ExpandStore` did not slow the check versus PR-5. Dual-write plus materialize still miss the trunk 1.05× gate, as expected until 6C.
