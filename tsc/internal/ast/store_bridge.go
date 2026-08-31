@@ -86,6 +86,30 @@ func (f *NodeFactory) storeHandle(n *Node) Handle {
 	return file.HandleOf(n)
 }
 
+func (f *NodeFactory) storeSetChild(parent Handle, slot int, child *Node) {
+	if child == nil {
+		parent.SetChild(slot, Handle{})
+		return
+	}
+	handle := f.storeHandle(child)
+	if handle.Ref() == 0 {
+		return
+	}
+	if handle.Store() == parent.Store() {
+		parent.SetChild(slot, handle)
+		return
+	}
+	file := GetSourceFileOfNode(child)
+	if file == nil {
+		panic("ast: cross-Store child has no SourceFile")
+	}
+	global := file.RefOf(child)
+	if global == 0 {
+		panic("ast: cross-Store child has no GlobalRef")
+	}
+	parent.SetExternalChild(slot, global)
+}
+
 func (f *NodeFactory) storeList(list *NodeList) ListRef {
 	if f == nil || f.store == nil || list == nil {
 		return 0
@@ -114,7 +138,26 @@ func (f *NodeFactory) storeRawList(nodes []*Node) ListRef {
 func (f *NodeFactory) allocListFromNodes(loc core.TextRange, nodes []*Node) ListRef {
 	list := f.store.AllocList(loc, len(nodes))
 	for i, n := range nodes {
-		f.store.SetListAt(list, i, f.storeHandle(n))
+		if n == nil {
+			continue
+		}
+		handle := f.storeHandle(n)
+		if handle.Ref() == 0 {
+			continue
+		}
+		if handle.Store() == f.store {
+			f.store.SetListAt(list, i, handle)
+			continue
+		}
+		file := GetSourceFileOfNode(n)
+		if file == nil {
+			panic("ast: cross-Store list child has no SourceFile")
+		}
+		global := file.RefOf(n)
+		if global == 0 {
+			panic("ast: cross-Store list child has no GlobalRef")
+		}
+		f.store.SetExternalListAt(list, i, global)
 	}
 	return list
 }

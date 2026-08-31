@@ -24,7 +24,7 @@ Each node is one packed, pointer-free header row (`kind`, `flags`, `pos`, `end`,
 
 `Seal` drops only the construction-time `internIdx` map. It does **not** freeze the tree: `SetChild`, `SetFlags`, `SetSymbol`, and similar mutators still run. Binder today mutates `Node.Flags` heavily on the pointer AST; a Store-backed binder would need an explicit mutation story (who may write, when, and with what synchronization).
 
-`Factory` allocates only into its owned `Store` and returns `Handle` values. `CopySubtree` deep-copies a subtree into another (unsealed) `Factory`/`Store` and remaps `NodeRef`. Cross-store `SetChild` panics via `refInStore`.
+`Factory` allocates only into its owned `Store` and returns `Handle` values. `CopySubtree` deep-copies a subtree into another (unsealed) `Factory`/`Store` and remaps `NodeRef`. Direct cross-store `SetChild` still panics via `refInStore`. The generated NodeFactory bridge records the exceptional cross-file children used by checker synthetics in sparse, pointer-free `GlobalRef` side tables; ordinary tree edges remain dense `NodeRef`s.
 
 `NodeRef` and `NodeId` (`uint64` on `*Node`) are different types. Do not cast between them.
 
@@ -207,7 +207,7 @@ Checked against the live `*Node` pipeline (parser, binder, checker, printer). No
 
 6. **Binder mutates flags and side data, not the tree shape.** Flags are cleared and reset (`binder.go:1546`). `Symbol` / `LocalSymbol` / `Locals` / `NextContainer` / `FlowNode` / `EndFlowNode` / `ReturnFlowNode` are written on existing nodes (`binder.go:598`, `binder.go:2534`). Parent and child lists are not rewritten. `BindSourceFiles` queues one bind per unbound file (`compiler/program.go:554`), gated by `SourceFile.BindOnce`. Side maps plus mutable header flags are enough. `Seal` dropping `internIdx` is fine. Flow also allocates `KindUnknown` payload nodes (`FlowSwitchClauseData`, `flow.go:50`) that hang off `FlowNode.Node` and never enter statement lists.
 
-7. **Checker synthetics share children with the parse tree, not only identity space.** `isPropertyInitializedInConstructor` builds a synthetic access whose name child is the parse-tree `propName` (or `propName.Expression()`), then sets `reference.Parent = constructor` (`checker.go:5053`). The same pattern is used for static blocks (`checker.go:5040`). `children []NodeRef` is store-local, and `SetChild` panics across stores. A separate checker Store cannot hold those edges without deep-copying the shared parse nodes (changes `==` used in flow) or encoding `GlobalRef` in the child column (abandons dense `NodeRef`). The shape that preserves today's semantics is: synthetics **append into the parse Store**. `Checker.factory` is a per-checker value `NodeFactory` (`checker.go:673`). Up to four checkers run in parallel (`checkerpool.go`) and must not mix types (`program.go:583`). Parallel append into one parse Store needs a policy.
+7. **Checker synthetics share children with the parse tree, not only identity space.** `isPropertyInitializedInConstructor` builds a synthetic access whose name child is a parse-tree node, and effective call arguments can carry a tuple-name source from another file. Synthetics append into the checked file's parse Store. Same-file children stay dense `NodeRef`s; exceptional cross-file child and list edges use sparse `GlobalRef` side tables. Direct `SetChild` remains strict and panics across stores. A per-file writer lease serializes parallel checker append.
 
 8. **Flow is a second pointer graph.** `FlowNode` holds `*Node` plus `*FlowNode` antecedents (`flow.go:27`). Noscan headers do not remove it. Putting `*FlowNode` in `nodeHeader` would make `[]nodeHeader` scannable and erase the layout bet. Side map `map[NodeRef]*FlowNode` is the only shape that keeps headers noscan. Abandon "every node field lives in the packed header" if that claim is still in play.
 
@@ -234,7 +234,7 @@ Checked against the live `*Node` pipeline (parser, binder, checker, printer). No
 | Functional constraints written from live parser/binder/checker | done (this section) |
 | Header/side-map split implemented for TokenFlags, Locals, FlowNode, NextContainer, extra intern kinds | TokenFlags on header; generated scalar/string/object value slots; FlowNode / Locals / NextContainer side maps; Intern after Seal |
 | Child slots and lists remain writable after the host exists (JSDoc reparse + lazy TS JSDoc) | done (`SetChild`, `SetList`, Intern after Seal) |
-| Synthetics and emit updates append into the parse Store (no cross-store child edges) | `NewFactoryOn` |
+| Synthetics and emit updates append into the parse Store | `NewFactoryOn`; cross-file shared children use sparse `GlobalRef` edge tables |
 | Store-to-SourceFile metadata map | `Store.SetSourceFile` keeps the per-file metadata owner; `StoreSet.SetFile` / `File` resolves it across stores |
 | `ListRef` in schema + `CopySubtree` remaps lists | done (`list0`, ArrayLiteral, FunctionExpression params, `copyList`) |
 | `GOGC` / `GOMEMLIMIT`-only baseline on a large `tsgo` run | corrected run complete; FAIL-PERF (see [cmd/tsc GOGC baseline](#cmdtsc-gogc-baseline)) |

@@ -477,7 +477,7 @@ function emitStorePut(w: CodeWriter, node: NodeType) {
     w.write(`if h := f.storeAlloc(node, ${layout.children.length}, ${layout.lists.length}); h.Ref() != 0 {`);
     w.push();
     for (const m of layout.children) {
-        w.write(`h.SetChild(${slotConst(node.name, memberSuffix(m))}, f.storeHandle(${m.goParamName()}))`);
+        w.write(`f.storeSetChild(h, ${slotConst(node.name, memberSuffix(m))}, ${m.goParamName()})`);
     }
     for (const m of layout.lists) {
         const slot = listSlotConst(node.name, memberSuffix(m));
@@ -541,7 +541,7 @@ function expandArg(node: NodeType, m: MemberInfo): string {
         if (lk === "NodeList") {
             return `expandNodeList(e, h.Store(), h.ListSlot(${listSlotConst(node.name, memberSuffix(m))}))`;
         }
-        return `expandStored(e, h.Child(${slotConst(node.name, memberSuffix(m))}))`;
+        return `expandStoredChild(e, h, ${slotConst(node.name, memberSuffix(m))})`;
     }
     const ref = m.type.formatGoReference();
     if (ref === "TokenFlags") {
@@ -640,7 +640,7 @@ function generateExpandStore(): string {
         w.write(`case ${kinds.join(", ")}:`);
         w.push();
         w.write(`n := e.f.New${node.name}(${args.join(", ")})`);
-        w.write("e.nodes[h.Ref()] = n");
+        w.write("e.remember(h.Ref(), n)");
         w.write("applyStoreHeader(n, h)");
         w.write("return n");
         w.pop();
@@ -650,7 +650,7 @@ function generateExpandStore(): string {
     w.write("if IsTokenKind(h.Kind()) {");
     w.push();
     w.write("n := e.f.NewToken(h.Kind())");
-    w.write("e.nodes[h.Ref()] = n");
+    w.write("e.remember(h.Ref(), n)");
     w.write("applyStoreHeader(n, h)");
     w.write("return n");
     w.pop();

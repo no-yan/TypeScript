@@ -12,958 +12,958 @@ func expandStored(e *storeExpander, h Handle) *Node {
 	switch h.Kind() {
 	case KindIdentifier:
 		n := e.f.NewIdentifier(h.StringValue(valueSlotIdentifierText))
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindPrivateIdentifier:
 		n := e.f.NewPrivateIdentifier(h.StringValue(valueSlotPrivateIdentifierText))
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindQualifiedName:
-		n := e.f.NewQualifiedName(expandStored(e, h.Child(slotQualifiedNameLeft)), expandStored(e, h.Child(slotQualifiedNameRight)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewQualifiedName(expandStoredChild(e, h, slotQualifiedNameLeft), expandStoredChild(e, h, slotQualifiedNameRight))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindComputedPropertyName:
-		n := e.f.NewComputedPropertyName(expandStored(e, h.Child(slotComputedPropertyNameExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewComputedPropertyName(expandStoredChild(e, h, slotComputedPropertyNameExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindDecorator:
-		n := e.f.NewDecorator(expandStored(e, h.Child(slotDecoratorExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewDecorator(expandStoredChild(e, h, slotDecoratorExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindEmptyStatement:
 		n := e.f.NewEmptyStatement()
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindIfStatement:
-		n := e.f.NewIfStatement(expandStored(e, h.Child(slotIfStatementExpression)), expandStored(e, h.Child(slotIfStatementThenStatement)), expandStored(e, h.Child(slotIfStatementElseStatement)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewIfStatement(expandStoredChild(e, h, slotIfStatementExpression), expandStoredChild(e, h, slotIfStatementThenStatement), expandStoredChild(e, h, slotIfStatementElseStatement))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindDoStatement:
-		n := e.f.NewDoStatement(expandStored(e, h.Child(slotDoStatementStatement)), expandStored(e, h.Child(slotDoStatementExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewDoStatement(expandStoredChild(e, h, slotDoStatementStatement), expandStoredChild(e, h, slotDoStatementExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindWhileStatement:
-		n := e.f.NewWhileStatement(expandStored(e, h.Child(slotWhileStatementExpression)), expandStored(e, h.Child(slotWhileStatementStatement)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewWhileStatement(expandStoredChild(e, h, slotWhileStatementExpression), expandStoredChild(e, h, slotWhileStatementStatement))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindForStatement:
-		n := e.f.NewForStatement(expandStored(e, h.Child(slotForStatementInitializer)), expandStored(e, h.Child(slotForStatementCondition)), expandStored(e, h.Child(slotForStatementIncrementor)), expandStored(e, h.Child(slotForStatementStatement)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewForStatement(expandStoredChild(e, h, slotForStatementInitializer), expandStoredChild(e, h, slotForStatementCondition), expandStoredChild(e, h, slotForStatementIncrementor), expandStoredChild(e, h, slotForStatementStatement))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindForInStatement, KindForOfStatement:
-		n := e.f.NewForInOrOfStatement(h.Kind(), expandStored(e, h.Child(slotForInOrOfStatementAwaitModifier)), expandStored(e, h.Child(slotForInOrOfStatementInitializer)), expandStored(e, h.Child(slotForInOrOfStatementExpression)), expandStored(e, h.Child(slotForInOrOfStatementStatement)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewForInOrOfStatement(h.Kind(), expandStoredChild(e, h, slotForInOrOfStatementAwaitModifier), expandStoredChild(e, h, slotForInOrOfStatementInitializer), expandStoredChild(e, h, slotForInOrOfStatementExpression), expandStoredChild(e, h, slotForInOrOfStatementStatement))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindBreakStatement:
-		n := e.f.NewBreakStatement(expandStored(e, h.Child(slotBreakStatementLabel)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewBreakStatement(expandStoredChild(e, h, slotBreakStatementLabel))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindContinueStatement:
-		n := e.f.NewContinueStatement(expandStored(e, h.Child(slotContinueStatementLabel)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewContinueStatement(expandStoredChild(e, h, slotContinueStatementLabel))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindReturnStatement:
-		n := e.f.NewReturnStatement(expandStored(e, h.Child(slotReturnStatementExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewReturnStatement(expandStoredChild(e, h, slotReturnStatementExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindWithStatement:
-		n := e.f.NewWithStatement(expandStored(e, h.Child(slotWithStatementExpression)), expandStored(e, h.Child(slotWithStatementStatement)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewWithStatement(expandStoredChild(e, h, slotWithStatementExpression), expandStoredChild(e, h, slotWithStatementStatement))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindSwitchStatement:
-		n := e.f.NewSwitchStatement(expandStored(e, h.Child(slotSwitchStatementExpression)), expandStored(e, h.Child(slotSwitchStatementCaseBlock)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewSwitchStatement(expandStoredChild(e, h, slotSwitchStatementExpression), expandStoredChild(e, h, slotSwitchStatementCaseBlock))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindCaseBlock:
 		n := e.f.NewCaseBlock(expandNodeList(e, h.Store(), h.ListSlot(listSlotCaseBlockClauses)))
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindCaseClause, KindDefaultClause:
-		n := e.f.NewCaseOrDefaultClause(h.Kind(), expandStored(e, h.Child(slotCaseOrDefaultClauseExpression)), expandNodeList(e, h.Store(), h.ListSlot(listSlotCaseOrDefaultClauseStatements)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewCaseOrDefaultClause(h.Kind(), expandStoredChild(e, h, slotCaseOrDefaultClauseExpression), expandNodeList(e, h.Store(), h.ListSlot(listSlotCaseOrDefaultClauseStatements)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindThrowStatement:
-		n := e.f.NewThrowStatement(expandStored(e, h.Child(slotThrowStatementExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewThrowStatement(expandStoredChild(e, h, slotThrowStatementExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindTryStatement:
-		n := e.f.NewTryStatement(expandStored(e, h.Child(slotTryStatementTryBlock)), expandStored(e, h.Child(slotTryStatementCatchClause)), expandStored(e, h.Child(slotTryStatementFinallyBlock)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewTryStatement(expandStoredChild(e, h, slotTryStatementTryBlock), expandStoredChild(e, h, slotTryStatementCatchClause), expandStoredChild(e, h, slotTryStatementFinallyBlock))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindCatchClause:
-		n := e.f.NewCatchClause(expandStored(e, h.Child(slotCatchClauseVariableDeclaration)), expandStored(e, h.Child(slotCatchClauseBlock)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewCatchClause(expandStoredChild(e, h, slotCatchClauseVariableDeclaration), expandStoredChild(e, h, slotCatchClauseBlock))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindDebuggerStatement:
 		n := e.f.NewDebuggerStatement()
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindLabeledStatement:
-		n := e.f.NewLabeledStatement(expandStored(e, h.Child(slotLabeledStatementLabel)), expandStored(e, h.Child(slotLabeledStatementStatement)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewLabeledStatement(expandStoredChild(e, h, slotLabeledStatementLabel), expandStoredChild(e, h, slotLabeledStatementStatement))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindExpressionStatement:
-		n := e.f.NewExpressionStatement(expandStored(e, h.Child(slotExpressionStatementExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewExpressionStatement(expandStoredChild(e, h, slotExpressionStatementExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindBlock:
 		n := e.f.NewBlock(expandNodeList(e, h.Store(), h.ListSlot(listSlotBlockStatements)), h.UintValue(valueSlotBlockMultiLine) != 0)
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindVariableStatement:
-		n := e.f.NewVariableStatement(expandModifierList(e, h.Store(), h.ListSlot(listSlotVariableStatementModifiers)), expandStored(e, h.Child(slotVariableStatementDeclarationList)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewVariableStatement(expandModifierList(e, h.Store(), h.ListSlot(listSlotVariableStatementModifiers)), expandStoredChild(e, h, slotVariableStatementDeclarationList))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindVariableDeclaration:
-		n := e.f.NewVariableDeclaration(expandStored(e, h.Child(slotVariableDeclarationName)), expandStored(e, h.Child(slotVariableDeclarationExclamationToken)), expandStored(e, h.Child(slotVariableDeclarationType)), expandStored(e, h.Child(slotVariableDeclarationInitializer)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewVariableDeclaration(expandStoredChild(e, h, slotVariableDeclarationName), expandStoredChild(e, h, slotVariableDeclarationExclamationToken), expandStoredChild(e, h, slotVariableDeclarationType), expandStoredChild(e, h, slotVariableDeclarationInitializer))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindVariableDeclarationList:
 		n := e.f.NewVariableDeclarationList(expandNodeList(e, h.Store(), h.ListSlot(listSlotVariableDeclarationListDeclarations)), h.Flags())
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindObjectBindingPattern, KindArrayBindingPattern:
 		n := e.f.NewBindingPattern(h.Kind(), expandNodeList(e, h.Store(), h.ListSlot(listSlotBindingPatternElements)))
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindParameter:
-		n := e.f.NewParameterDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotParameterDeclarationModifiers)), expandStored(e, h.Child(slotParameterDeclarationDotDotDotToken)), expandStored(e, h.Child(slotParameterDeclarationName)), expandStored(e, h.Child(slotParameterDeclarationQuestionToken)), expandStored(e, h.Child(slotParameterDeclarationType)), expandStored(e, h.Child(slotParameterDeclarationInitializer)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewParameterDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotParameterDeclarationModifiers)), expandStoredChild(e, h, slotParameterDeclarationDotDotDotToken), expandStoredChild(e, h, slotParameterDeclarationName), expandStoredChild(e, h, slotParameterDeclarationQuestionToken), expandStoredChild(e, h, slotParameterDeclarationType), expandStoredChild(e, h, slotParameterDeclarationInitializer))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindBindingElement:
-		n := e.f.NewBindingElement(expandStored(e, h.Child(slotBindingElementDotDotDotToken)), expandStored(e, h.Child(slotBindingElementPropertyName)), expandStored(e, h.Child(slotBindingElementName)), expandStored(e, h.Child(slotBindingElementInitializer)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewBindingElement(expandStoredChild(e, h, slotBindingElementDotDotDotToken), expandStoredChild(e, h, slotBindingElementPropertyName), expandStoredChild(e, h, slotBindingElementName), expandStoredChild(e, h, slotBindingElementInitializer))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindMissingDeclaration:
 		n := e.f.NewMissingDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotMissingDeclarationModifiers)))
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindFunctionDeclaration:
-		n := e.f.NewFunctionDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotFunctionDeclarationModifiers)), expandStored(e, h.Child(slotFunctionDeclarationAsteriskToken)), expandStored(e, h.Child(slotFunctionDeclarationName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotFunctionDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotFunctionDeclarationParameters)), expandStored(e, h.Child(slotFunctionDeclarationType)), expandStored(e, h.Child(slotFunctionDeclarationFullSignature)), expandStored(e, h.Child(slotFunctionDeclarationBody)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewFunctionDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotFunctionDeclarationModifiers)), expandStoredChild(e, h, slotFunctionDeclarationAsteriskToken), expandStoredChild(e, h, slotFunctionDeclarationName), expandNodeList(e, h.Store(), h.ListSlot(listSlotFunctionDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotFunctionDeclarationParameters)), expandStoredChild(e, h, slotFunctionDeclarationType), expandStoredChild(e, h, slotFunctionDeclarationFullSignature), expandStoredChild(e, h, slotFunctionDeclarationBody))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindClassDeclaration:
-		n := e.f.NewClassDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotClassDeclarationModifiers)), expandStored(e, h.Child(slotClassDeclarationName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotClassDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotClassDeclarationHeritageClauses)), expandNodeList(e, h.Store(), h.ListSlot(listSlotClassDeclarationMembers)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewClassDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotClassDeclarationModifiers)), expandStoredChild(e, h, slotClassDeclarationName), expandNodeList(e, h.Store(), h.ListSlot(listSlotClassDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotClassDeclarationHeritageClauses)), expandNodeList(e, h.Store(), h.ListSlot(listSlotClassDeclarationMembers)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindClassExpression:
-		n := e.f.NewClassExpression(expandModifierList(e, h.Store(), h.ListSlot(listSlotClassExpressionModifiers)), expandStored(e, h.Child(slotClassExpressionName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotClassExpressionTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotClassExpressionHeritageClauses)), expandNodeList(e, h.Store(), h.ListSlot(listSlotClassExpressionMembers)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewClassExpression(expandModifierList(e, h.Store(), h.ListSlot(listSlotClassExpressionModifiers)), expandStoredChild(e, h, slotClassExpressionName), expandNodeList(e, h.Store(), h.ListSlot(listSlotClassExpressionTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotClassExpressionHeritageClauses)), expandNodeList(e, h.Store(), h.ListSlot(listSlotClassExpressionMembers)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindHeritageClause:
 		n := e.f.NewHeritageClause(Kind(h.UintValue(valueSlotHeritageClauseToken)), expandNodeList(e, h.Store(), h.ListSlot(listSlotHeritageClauseTypes)))
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindInterfaceDeclaration:
-		n := e.f.NewInterfaceDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotInterfaceDeclarationModifiers)), expandStored(e, h.Child(slotInterfaceDeclarationName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotInterfaceDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotInterfaceDeclarationHeritageClauses)), expandNodeList(e, h.Store(), h.ListSlot(listSlotInterfaceDeclarationMembers)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewInterfaceDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotInterfaceDeclarationModifiers)), expandStoredChild(e, h, slotInterfaceDeclarationName), expandNodeList(e, h.Store(), h.ListSlot(listSlotInterfaceDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotInterfaceDeclarationHeritageClauses)), expandNodeList(e, h.Store(), h.ListSlot(listSlotInterfaceDeclarationMembers)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindTypeAliasDeclaration, KindJSTypeAliasDeclaration:
-		n := e.f.NewTypeAliasDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotTypeAliasDeclarationModifiers)), expandStored(e, h.Child(slotTypeAliasDeclarationName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotTypeAliasDeclarationTypeParameters)), expandStored(e, h.Child(slotTypeAliasDeclarationType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewTypeAliasDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotTypeAliasDeclarationModifiers)), expandStoredChild(e, h, slotTypeAliasDeclarationName), expandNodeList(e, h.Store(), h.ListSlot(listSlotTypeAliasDeclarationTypeParameters)), expandStoredChild(e, h, slotTypeAliasDeclarationType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindEnumMember:
-		n := e.f.NewEnumMember(expandStored(e, h.Child(slotEnumMemberName)), expandStored(e, h.Child(slotEnumMemberInitializer)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewEnumMember(expandStoredChild(e, h, slotEnumMemberName), expandStoredChild(e, h, slotEnumMemberInitializer))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindEnumDeclaration:
-		n := e.f.NewEnumDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotEnumDeclarationModifiers)), expandStored(e, h.Child(slotEnumDeclarationName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotEnumDeclarationMembers)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewEnumDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotEnumDeclarationModifiers)), expandStoredChild(e, h, slotEnumDeclarationName), expandNodeList(e, h.Store(), h.ListSlot(listSlotEnumDeclarationMembers)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindModuleBlock:
 		n := e.f.NewModuleBlock(expandNodeList(e, h.Store(), h.ListSlot(listSlotModuleBlockStatements)))
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindNotEmittedStatement:
 		n := e.f.NewNotEmittedStatement()
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindNotEmittedTypeElement:
 		n := e.f.NewNotEmittedTypeElement()
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindImportDeclaration, KindJSImportDeclaration:
-		n := e.f.NewImportDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotImportDeclarationModifiers)), expandStored(e, h.Child(slotImportDeclarationImportClause)), expandStored(e, h.Child(slotImportDeclarationModuleSpecifier)), expandStored(e, h.Child(slotImportDeclarationAttributes)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewImportDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotImportDeclarationModifiers)), expandStoredChild(e, h, slotImportDeclarationImportClause), expandStoredChild(e, h, slotImportDeclarationModuleSpecifier), expandStoredChild(e, h, slotImportDeclarationAttributes))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindExternalModuleReference:
-		n := e.f.NewExternalModuleReference(expandStored(e, h.Child(slotExternalModuleReferenceExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewExternalModuleReference(expandStoredChild(e, h, slotExternalModuleReferenceExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindNamespaceImport:
-		n := e.f.NewNamespaceImport(expandStored(e, h.Child(slotNamespaceImportName)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewNamespaceImport(expandStoredChild(e, h, slotNamespaceImportName))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindNamedImports:
 		n := e.f.NewNamedImports(expandNodeList(e, h.Store(), h.ListSlot(listSlotNamedImportsElements)))
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindExportAssignment:
-		n := e.f.NewExportAssignment(expandModifierList(e, h.Store(), h.ListSlot(listSlotExportAssignmentModifiers)), h.UintValue(valueSlotExportAssignmentIsExportEquals) != 0, expandStored(e, h.Child(slotExportAssignmentType)), expandStored(e, h.Child(slotExportAssignmentExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewExportAssignment(expandModifierList(e, h.Store(), h.ListSlot(listSlotExportAssignmentModifiers)), h.UintValue(valueSlotExportAssignmentIsExportEquals) != 0, expandStoredChild(e, h, slotExportAssignmentType), expandStoredChild(e, h, slotExportAssignmentExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindNamespaceExportDeclaration:
-		n := e.f.NewNamespaceExportDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotNamespaceExportDeclarationModifiers)), expandStored(e, h.Child(slotNamespaceExportDeclarationName)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewNamespaceExportDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotNamespaceExportDeclarationModifiers)), expandStoredChild(e, h, slotNamespaceExportDeclarationName))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindNamespaceExport:
-		n := e.f.NewNamespaceExport(expandStored(e, h.Child(slotNamespaceExportName)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewNamespaceExport(expandStoredChild(e, h, slotNamespaceExportName))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindNamedExports:
 		n := e.f.NewNamedExports(expandNodeList(e, h.Store(), h.ListSlot(listSlotNamedExportsElements)))
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindExportSpecifier:
-		n := e.f.NewExportSpecifier(h.UintValue(valueSlotExportSpecifierIsTypeOnly) != 0, expandStored(e, h.Child(slotExportSpecifierPropertyName)), expandStored(e, h.Child(slotExportSpecifierName)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewExportSpecifier(h.UintValue(valueSlotExportSpecifierIsTypeOnly) != 0, expandStoredChild(e, h, slotExportSpecifierPropertyName), expandStoredChild(e, h, slotExportSpecifierName))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindCallSignature:
-		n := e.f.NewCallSignatureDeclaration(expandNodeList(e, h.Store(), h.ListSlot(listSlotCallSignatureDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotCallSignatureDeclarationParameters)), expandStored(e, h.Child(slotCallSignatureDeclarationType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewCallSignatureDeclaration(expandNodeList(e, h.Store(), h.ListSlot(listSlotCallSignatureDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotCallSignatureDeclarationParameters)), expandStoredChild(e, h, slotCallSignatureDeclarationType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindConstructSignature:
-		n := e.f.NewConstructSignatureDeclaration(expandNodeList(e, h.Store(), h.ListSlot(listSlotConstructSignatureDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotConstructSignatureDeclarationParameters)), expandStored(e, h.Child(slotConstructSignatureDeclarationType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewConstructSignatureDeclaration(expandNodeList(e, h.Store(), h.ListSlot(listSlotConstructSignatureDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotConstructSignatureDeclarationParameters)), expandStoredChild(e, h, slotConstructSignatureDeclarationType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindConstructor:
-		n := e.f.NewConstructorDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotConstructorDeclarationModifiers)), expandNodeList(e, h.Store(), h.ListSlot(listSlotConstructorDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotConstructorDeclarationParameters)), expandStored(e, h.Child(slotConstructorDeclarationType)), expandStored(e, h.Child(slotConstructorDeclarationFullSignature)), expandStored(e, h.Child(slotConstructorDeclarationBody)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewConstructorDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotConstructorDeclarationModifiers)), expandNodeList(e, h.Store(), h.ListSlot(listSlotConstructorDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotConstructorDeclarationParameters)), expandStoredChild(e, h, slotConstructorDeclarationType), expandStoredChild(e, h, slotConstructorDeclarationFullSignature), expandStoredChild(e, h, slotConstructorDeclarationBody))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindGetAccessor:
-		n := e.f.NewGetAccessorDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotGetAccessorDeclarationModifiers)), expandStored(e, h.Child(slotGetAccessorDeclarationName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotGetAccessorDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotGetAccessorDeclarationParameters)), expandStored(e, h.Child(slotGetAccessorDeclarationType)), expandStored(e, h.Child(slotGetAccessorDeclarationFullSignature)), expandStored(e, h.Child(slotGetAccessorDeclarationBody)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewGetAccessorDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotGetAccessorDeclarationModifiers)), expandStoredChild(e, h, slotGetAccessorDeclarationName), expandNodeList(e, h.Store(), h.ListSlot(listSlotGetAccessorDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotGetAccessorDeclarationParameters)), expandStoredChild(e, h, slotGetAccessorDeclarationType), expandStoredChild(e, h, slotGetAccessorDeclarationFullSignature), expandStoredChild(e, h, slotGetAccessorDeclarationBody))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindSetAccessor:
-		n := e.f.NewSetAccessorDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotSetAccessorDeclarationModifiers)), expandStored(e, h.Child(slotSetAccessorDeclarationName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotSetAccessorDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotSetAccessorDeclarationParameters)), expandStored(e, h.Child(slotSetAccessorDeclarationType)), expandStored(e, h.Child(slotSetAccessorDeclarationFullSignature)), expandStored(e, h.Child(slotSetAccessorDeclarationBody)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewSetAccessorDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotSetAccessorDeclarationModifiers)), expandStoredChild(e, h, slotSetAccessorDeclarationName), expandNodeList(e, h.Store(), h.ListSlot(listSlotSetAccessorDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotSetAccessorDeclarationParameters)), expandStoredChild(e, h, slotSetAccessorDeclarationType), expandStoredChild(e, h, slotSetAccessorDeclarationFullSignature), expandStoredChild(e, h, slotSetAccessorDeclarationBody))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindIndexSignature:
-		n := e.f.NewIndexSignatureDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotIndexSignatureDeclarationModifiers)), expandNodeList(e, h.Store(), h.ListSlot(listSlotIndexSignatureDeclarationParameters)), expandStored(e, h.Child(slotIndexSignatureDeclarationType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewIndexSignatureDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotIndexSignatureDeclarationModifiers)), expandNodeList(e, h.Store(), h.ListSlot(listSlotIndexSignatureDeclarationParameters)), expandStoredChild(e, h, slotIndexSignatureDeclarationType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindMethodSignature:
-		n := e.f.NewMethodSignatureDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotMethodSignatureDeclarationModifiers)), expandStored(e, h.Child(slotMethodSignatureDeclarationName)), expandStored(e, h.Child(slotMethodSignatureDeclarationPostfixToken)), expandNodeList(e, h.Store(), h.ListSlot(listSlotMethodSignatureDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotMethodSignatureDeclarationParameters)), expandStored(e, h.Child(slotMethodSignatureDeclarationType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewMethodSignatureDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotMethodSignatureDeclarationModifiers)), expandStoredChild(e, h, slotMethodSignatureDeclarationName), expandStoredChild(e, h, slotMethodSignatureDeclarationPostfixToken), expandNodeList(e, h.Store(), h.ListSlot(listSlotMethodSignatureDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotMethodSignatureDeclarationParameters)), expandStoredChild(e, h, slotMethodSignatureDeclarationType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindMethodDeclaration:
-		n := e.f.NewMethodDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotMethodDeclarationModifiers)), expandStored(e, h.Child(slotMethodDeclarationAsteriskToken)), expandStored(e, h.Child(slotMethodDeclarationName)), expandStored(e, h.Child(slotMethodDeclarationPostfixToken)), expandNodeList(e, h.Store(), h.ListSlot(listSlotMethodDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotMethodDeclarationParameters)), expandStored(e, h.Child(slotMethodDeclarationType)), expandStored(e, h.Child(slotMethodDeclarationFullSignature)), expandStored(e, h.Child(slotMethodDeclarationBody)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewMethodDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotMethodDeclarationModifiers)), expandStoredChild(e, h, slotMethodDeclarationAsteriskToken), expandStoredChild(e, h, slotMethodDeclarationName), expandStoredChild(e, h, slotMethodDeclarationPostfixToken), expandNodeList(e, h.Store(), h.ListSlot(listSlotMethodDeclarationTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotMethodDeclarationParameters)), expandStoredChild(e, h, slotMethodDeclarationType), expandStoredChild(e, h, slotMethodDeclarationFullSignature), expandStoredChild(e, h, slotMethodDeclarationBody))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindPropertySignature:
-		n := e.f.NewPropertySignatureDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotPropertySignatureDeclarationModifiers)), expandStored(e, h.Child(slotPropertySignatureDeclarationName)), expandStored(e, h.Child(slotPropertySignatureDeclarationPostfixToken)), expandStored(e, h.Child(slotPropertySignatureDeclarationType)), expandStored(e, h.Child(slotPropertySignatureDeclarationInitializer)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewPropertySignatureDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotPropertySignatureDeclarationModifiers)), expandStoredChild(e, h, slotPropertySignatureDeclarationName), expandStoredChild(e, h, slotPropertySignatureDeclarationPostfixToken), expandStoredChild(e, h, slotPropertySignatureDeclarationType), expandStoredChild(e, h, slotPropertySignatureDeclarationInitializer))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindPropertyDeclaration:
-		n := e.f.NewPropertyDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotPropertyDeclarationModifiers)), expandStored(e, h.Child(slotPropertyDeclarationName)), expandStored(e, h.Child(slotPropertyDeclarationPostfixToken)), expandStored(e, h.Child(slotPropertyDeclarationType)), expandStored(e, h.Child(slotPropertyDeclarationInitializer)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewPropertyDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotPropertyDeclarationModifiers)), expandStoredChild(e, h, slotPropertyDeclarationName), expandStoredChild(e, h, slotPropertyDeclarationPostfixToken), expandStoredChild(e, h, slotPropertyDeclarationType), expandStoredChild(e, h, slotPropertyDeclarationInitializer))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindSemicolonClassElement:
 		n := e.f.NewSemicolonClassElement()
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindClassStaticBlockDeclaration:
-		n := e.f.NewClassStaticBlockDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotClassStaticBlockDeclarationModifiers)), expandStored(e, h.Child(slotClassStaticBlockDeclarationBody)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewClassStaticBlockDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotClassStaticBlockDeclarationModifiers)), expandStoredChild(e, h, slotClassStaticBlockDeclarationBody))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindOmittedExpression:
 		n := e.f.NewOmittedExpression()
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindNullKeyword, KindTrueKeyword, KindFalseKeyword, KindThisKeyword, KindSuperKeyword, KindImportKeyword:
 		n := e.f.NewKeywordExpression(h.Kind())
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindStringLiteral:
 		n := e.f.NewStringLiteral(h.StringValue(valueSlotStringLiteralText), h.TokenFlags())
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindNumericLiteral:
 		n := e.f.NewNumericLiteral(h.StringValue(valueSlotNumericLiteralText), h.TokenFlags())
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindBigIntLiteral:
 		n := e.f.NewBigIntLiteral(h.StringValue(valueSlotBigIntLiteralText), h.TokenFlags())
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindRegularExpressionLiteral:
 		n := e.f.NewRegularExpressionLiteral(h.StringValue(valueSlotRegularExpressionLiteralText), h.TokenFlags())
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindNoSubstitutionTemplateLiteral:
 		n := e.f.NewNoSubstitutionTemplateLiteral(h.StringValue(valueSlotNoSubstitutionTemplateLiteralText), h.TokenFlags())
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindBinaryExpression:
-		n := e.f.NewBinaryExpression(expandModifierList(e, h.Store(), h.ListSlot(listSlotBinaryExpressionModifiers)), expandStored(e, h.Child(slotBinaryExpressionLeft)), expandStored(e, h.Child(slotBinaryExpressionType)), expandStored(e, h.Child(slotBinaryExpressionOperatorToken)), expandStored(e, h.Child(slotBinaryExpressionRight)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewBinaryExpression(expandModifierList(e, h.Store(), h.ListSlot(listSlotBinaryExpressionModifiers)), expandStoredChild(e, h, slotBinaryExpressionLeft), expandStoredChild(e, h, slotBinaryExpressionType), expandStoredChild(e, h, slotBinaryExpressionOperatorToken), expandStoredChild(e, h, slotBinaryExpressionRight))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindPrefixUnaryExpression:
-		n := e.f.NewPrefixUnaryExpression(Kind(h.UintValue(valueSlotPrefixUnaryExpressionOperator)), expandStored(e, h.Child(slotPrefixUnaryExpressionOperand)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewPrefixUnaryExpression(Kind(h.UintValue(valueSlotPrefixUnaryExpressionOperator)), expandStoredChild(e, h, slotPrefixUnaryExpressionOperand))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindPostfixUnaryExpression:
-		n := e.f.NewPostfixUnaryExpression(expandStored(e, h.Child(slotPostfixUnaryExpressionOperand)), Kind(h.UintValue(valueSlotPostfixUnaryExpressionOperator)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewPostfixUnaryExpression(expandStoredChild(e, h, slotPostfixUnaryExpressionOperand), Kind(h.UintValue(valueSlotPostfixUnaryExpressionOperator)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindYieldExpression:
-		n := e.f.NewYieldExpression(expandStored(e, h.Child(slotYieldExpressionAsteriskToken)), expandStored(e, h.Child(slotYieldExpressionExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewYieldExpression(expandStoredChild(e, h, slotYieldExpressionAsteriskToken), expandStoredChild(e, h, slotYieldExpressionExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindArrowFunction:
-		n := e.f.NewArrowFunction(expandModifierList(e, h.Store(), h.ListSlot(listSlotArrowFunctionModifiers)), expandNodeList(e, h.Store(), h.ListSlot(listSlotArrowFunctionTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotArrowFunctionParameters)), expandStored(e, h.Child(slotArrowFunctionType)), expandStored(e, h.Child(slotArrowFunctionFullSignature)), expandStored(e, h.Child(slotArrowFunctionEqualsGreaterThanToken)), expandStored(e, h.Child(slotArrowFunctionBody)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewArrowFunction(expandModifierList(e, h.Store(), h.ListSlot(listSlotArrowFunctionModifiers)), expandNodeList(e, h.Store(), h.ListSlot(listSlotArrowFunctionTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotArrowFunctionParameters)), expandStoredChild(e, h, slotArrowFunctionType), expandStoredChild(e, h, slotArrowFunctionFullSignature), expandStoredChild(e, h, slotArrowFunctionEqualsGreaterThanToken), expandStoredChild(e, h, slotArrowFunctionBody))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindFunctionExpression:
-		n := e.f.NewFunctionExpression(expandModifierList(e, h.Store(), h.ListSlot(listSlotFunctionExpressionModifiers)), expandStored(e, h.Child(slotFunctionExpressionAsteriskToken)), expandStored(e, h.Child(slotFunctionExpressionName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotFunctionExpressionTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotFunctionExpressionParameters)), expandStored(e, h.Child(slotFunctionExpressionType)), expandStored(e, h.Child(slotFunctionExpressionFullSignature)), expandStored(e, h.Child(slotFunctionExpressionBody)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewFunctionExpression(expandModifierList(e, h.Store(), h.ListSlot(listSlotFunctionExpressionModifiers)), expandStoredChild(e, h, slotFunctionExpressionAsteriskToken), expandStoredChild(e, h, slotFunctionExpressionName), expandNodeList(e, h.Store(), h.ListSlot(listSlotFunctionExpressionTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotFunctionExpressionParameters)), expandStoredChild(e, h, slotFunctionExpressionType), expandStoredChild(e, h, slotFunctionExpressionFullSignature), expandStoredChild(e, h, slotFunctionExpressionBody))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindAsExpression:
-		n := e.f.NewAsExpression(expandStored(e, h.Child(slotAsExpressionExpression)), expandStored(e, h.Child(slotAsExpressionType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewAsExpression(expandStoredChild(e, h, slotAsExpressionExpression), expandStoredChild(e, h, slotAsExpressionType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindSatisfiesExpression:
-		n := e.f.NewSatisfiesExpression(expandStored(e, h.Child(slotSatisfiesExpressionExpression)), expandStored(e, h.Child(slotSatisfiesExpressionType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewSatisfiesExpression(expandStoredChild(e, h, slotSatisfiesExpressionExpression), expandStoredChild(e, h, slotSatisfiesExpressionType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindConditionalExpression:
-		n := e.f.NewConditionalExpression(expandStored(e, h.Child(slotConditionalExpressionCondition)), expandStored(e, h.Child(slotConditionalExpressionQuestionToken)), expandStored(e, h.Child(slotConditionalExpressionWhenTrue)), expandStored(e, h.Child(slotConditionalExpressionColonToken)), expandStored(e, h.Child(slotConditionalExpressionWhenFalse)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewConditionalExpression(expandStoredChild(e, h, slotConditionalExpressionCondition), expandStoredChild(e, h, slotConditionalExpressionQuestionToken), expandStoredChild(e, h, slotConditionalExpressionWhenTrue), expandStoredChild(e, h, slotConditionalExpressionColonToken), expandStoredChild(e, h, slotConditionalExpressionWhenFalse))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindPropertyAccessExpression:
-		n := e.f.NewPropertyAccessExpression(expandStored(e, h.Child(slotPropertyAccessExpressionExpression)), expandStored(e, h.Child(slotPropertyAccessExpressionQuestionDotToken)), expandStored(e, h.Child(slotPropertyAccessExpressionName)), h.Flags())
-		e.nodes[h.Ref()] = n
+		n := e.f.NewPropertyAccessExpression(expandStoredChild(e, h, slotPropertyAccessExpressionExpression), expandStoredChild(e, h, slotPropertyAccessExpressionQuestionDotToken), expandStoredChild(e, h, slotPropertyAccessExpressionName), h.Flags())
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindElementAccessExpression:
-		n := e.f.NewElementAccessExpression(expandStored(e, h.Child(slotElementAccessExpressionExpression)), expandStored(e, h.Child(slotElementAccessExpressionQuestionDotToken)), expandStored(e, h.Child(slotElementAccessExpressionArgumentExpression)), h.Flags())
-		e.nodes[h.Ref()] = n
+		n := e.f.NewElementAccessExpression(expandStoredChild(e, h, slotElementAccessExpressionExpression), expandStoredChild(e, h, slotElementAccessExpressionQuestionDotToken), expandStoredChild(e, h, slotElementAccessExpressionArgumentExpression), h.Flags())
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindCallExpression:
-		n := e.f.NewCallExpression(expandStored(e, h.Child(slotCallExpressionExpression)), expandStored(e, h.Child(slotCallExpressionQuestionDotToken)), expandNodeList(e, h.Store(), h.ListSlot(listSlotCallExpressionTypeArguments)), expandNodeList(e, h.Store(), h.ListSlot(listSlotCallExpressionArguments)), h.Flags())
-		e.nodes[h.Ref()] = n
+		n := e.f.NewCallExpression(expandStoredChild(e, h, slotCallExpressionExpression), expandStoredChild(e, h, slotCallExpressionQuestionDotToken), expandNodeList(e, h.Store(), h.ListSlot(listSlotCallExpressionTypeArguments)), expandNodeList(e, h.Store(), h.ListSlot(listSlotCallExpressionArguments)), h.Flags())
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindNewExpression:
-		n := e.f.NewNewExpression(expandStored(e, h.Child(slotNewExpressionExpression)), expandNodeList(e, h.Store(), h.ListSlot(listSlotNewExpressionTypeArguments)), expandNodeList(e, h.Store(), h.ListSlot(listSlotNewExpressionArguments)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewNewExpression(expandStoredChild(e, h, slotNewExpressionExpression), expandNodeList(e, h.Store(), h.ListSlot(listSlotNewExpressionTypeArguments)), expandNodeList(e, h.Store(), h.ListSlot(listSlotNewExpressionArguments)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindMetaProperty:
-		n := e.f.NewMetaProperty(Kind(h.UintValue(valueSlotMetaPropertyKeywordToken)), expandStored(e, h.Child(slotMetaPropertyName)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewMetaProperty(Kind(h.UintValue(valueSlotMetaPropertyKeywordToken)), expandStoredChild(e, h, slotMetaPropertyName))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindNonNullExpression:
-		n := e.f.NewNonNullExpression(expandStored(e, h.Child(slotNonNullExpressionExpression)), h.Flags())
-		e.nodes[h.Ref()] = n
+		n := e.f.NewNonNullExpression(expandStoredChild(e, h, slotNonNullExpressionExpression), h.Flags())
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindSpreadElement:
-		n := e.f.NewSpreadElement(expandStored(e, h.Child(slotSpreadElementExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewSpreadElement(expandStoredChild(e, h, slotSpreadElementExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindTemplateExpression:
-		n := e.f.NewTemplateExpression(expandStored(e, h.Child(slotTemplateExpressionHead)), expandNodeList(e, h.Store(), h.ListSlot(listSlotTemplateExpressionTemplateSpans)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewTemplateExpression(expandStoredChild(e, h, slotTemplateExpressionHead), expandNodeList(e, h.Store(), h.ListSlot(listSlotTemplateExpressionTemplateSpans)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindTemplateSpan:
-		n := e.f.NewTemplateSpan(expandStored(e, h.Child(slotTemplateSpanExpression)), expandStored(e, h.Child(slotTemplateSpanLiteral)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewTemplateSpan(expandStoredChild(e, h, slotTemplateSpanExpression), expandStoredChild(e, h, slotTemplateSpanLiteral))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindTaggedTemplateExpression:
-		n := e.f.NewTaggedTemplateExpression(expandStored(e, h.Child(slotTaggedTemplateExpressionTag)), expandStored(e, h.Child(slotTaggedTemplateExpressionQuestionDotToken)), expandNodeList(e, h.Store(), h.ListSlot(listSlotTaggedTemplateExpressionTypeArguments)), expandStored(e, h.Child(slotTaggedTemplateExpressionTemplate)), h.Flags())
-		e.nodes[h.Ref()] = n
+		n := e.f.NewTaggedTemplateExpression(expandStoredChild(e, h, slotTaggedTemplateExpressionTag), expandStoredChild(e, h, slotTaggedTemplateExpressionQuestionDotToken), expandNodeList(e, h.Store(), h.ListSlot(listSlotTaggedTemplateExpressionTypeArguments)), expandStoredChild(e, h, slotTaggedTemplateExpressionTemplate), h.Flags())
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindParenthesizedExpression:
-		n := e.f.NewParenthesizedExpression(expandStored(e, h.Child(slotParenthesizedExpressionExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewParenthesizedExpression(expandStoredChild(e, h, slotParenthesizedExpressionExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindArrayLiteralExpression:
 		n := e.f.NewArrayLiteralExpression(expandNodeList(e, h.Store(), h.ListSlot(listSlotArrayLiteralExpressionElements)), h.UintValue(valueSlotArrayLiteralExpressionMultiLine) != 0)
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindObjectLiteralExpression:
 		n := e.f.NewObjectLiteralExpression(expandNodeList(e, h.Store(), h.ListSlot(listSlotObjectLiteralExpressionProperties)), h.UintValue(valueSlotObjectLiteralExpressionMultiLine) != 0)
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindSpreadAssignment:
-		n := e.f.NewSpreadAssignment(expandStored(e, h.Child(slotSpreadAssignmentExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewSpreadAssignment(expandStoredChild(e, h, slotSpreadAssignmentExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindPropertyAssignment:
-		n := e.f.NewPropertyAssignment(expandModifierList(e, h.Store(), h.ListSlot(listSlotPropertyAssignmentModifiers)), expandStored(e, h.Child(slotPropertyAssignmentName)), expandStored(e, h.Child(slotPropertyAssignmentPostfixToken)), expandStored(e, h.Child(slotPropertyAssignmentType)), expandStored(e, h.Child(slotPropertyAssignmentInitializer)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewPropertyAssignment(expandModifierList(e, h.Store(), h.ListSlot(listSlotPropertyAssignmentModifiers)), expandStoredChild(e, h, slotPropertyAssignmentName), expandStoredChild(e, h, slotPropertyAssignmentPostfixToken), expandStoredChild(e, h, slotPropertyAssignmentType), expandStoredChild(e, h, slotPropertyAssignmentInitializer))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindShorthandPropertyAssignment:
-		n := e.f.NewShorthandPropertyAssignment(expandModifierList(e, h.Store(), h.ListSlot(listSlotShorthandPropertyAssignmentModifiers)), expandStored(e, h.Child(slotShorthandPropertyAssignmentName)), expandStored(e, h.Child(slotShorthandPropertyAssignmentPostfixToken)), expandStored(e, h.Child(slotShorthandPropertyAssignmentType)), expandStored(e, h.Child(slotShorthandPropertyAssignmentEqualsToken)), expandStored(e, h.Child(slotShorthandPropertyAssignmentObjectAssignmentInitializer)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewShorthandPropertyAssignment(expandModifierList(e, h.Store(), h.ListSlot(listSlotShorthandPropertyAssignmentModifiers)), expandStoredChild(e, h, slotShorthandPropertyAssignmentName), expandStoredChild(e, h, slotShorthandPropertyAssignmentPostfixToken), expandStoredChild(e, h, slotShorthandPropertyAssignmentType), expandStoredChild(e, h, slotShorthandPropertyAssignmentEqualsToken), expandStoredChild(e, h, slotShorthandPropertyAssignmentObjectAssignmentInitializer))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindDeleteExpression:
-		n := e.f.NewDeleteExpression(expandStored(e, h.Child(slotDeleteExpressionExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewDeleteExpression(expandStoredChild(e, h, slotDeleteExpressionExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindTypeOfExpression:
-		n := e.f.NewTypeOfExpression(expandStored(e, h.Child(slotTypeOfExpressionExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewTypeOfExpression(expandStoredChild(e, h, slotTypeOfExpressionExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindVoidExpression:
-		n := e.f.NewVoidExpression(expandStored(e, h.Child(slotVoidExpressionExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewVoidExpression(expandStoredChild(e, h, slotVoidExpressionExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindAwaitExpression:
-		n := e.f.NewAwaitExpression(expandStored(e, h.Child(slotAwaitExpressionExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewAwaitExpression(expandStoredChild(e, h, slotAwaitExpressionExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindTypeAssertionExpression:
-		n := e.f.NewTypeAssertion(expandStored(e, h.Child(slotTypeAssertionType)), expandStored(e, h.Child(slotTypeAssertionExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewTypeAssertion(expandStoredChild(e, h, slotTypeAssertionType), expandStoredChild(e, h, slotTypeAssertionExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindAnyKeyword, KindBigIntKeyword, KindBooleanKeyword, KindIntrinsicKeyword, KindNeverKeyword, KindNumberKeyword, KindObjectKeyword, KindStringKeyword, KindSymbolKeyword, KindUndefinedKeyword, KindUnknownKeyword, KindVoidKeyword:
 		n := e.f.NewKeywordTypeNode(h.Kind())
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindUnionType:
 		n := e.f.NewUnionTypeNode(expandNodeList(e, h.Store(), h.ListSlot(listSlotUnionTypeNodeTypes)))
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindIntersectionType:
 		n := e.f.NewIntersectionTypeNode(expandNodeList(e, h.Store(), h.ListSlot(listSlotIntersectionTypeNodeTypes)))
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindConditionalType:
-		n := e.f.NewConditionalTypeNode(expandStored(e, h.Child(slotConditionalTypeNodeCheckType)), expandStored(e, h.Child(slotConditionalTypeNodeExtendsType)), expandStored(e, h.Child(slotConditionalTypeNodeTrueType)), expandStored(e, h.Child(slotConditionalTypeNodeFalseType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewConditionalTypeNode(expandStoredChild(e, h, slotConditionalTypeNodeCheckType), expandStoredChild(e, h, slotConditionalTypeNodeExtendsType), expandStoredChild(e, h, slotConditionalTypeNodeTrueType), expandStoredChild(e, h, slotConditionalTypeNodeFalseType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindTypeOperator:
-		n := e.f.NewTypeOperatorNode(Kind(h.UintValue(valueSlotTypeOperatorNodeOperator)), expandStored(e, h.Child(slotTypeOperatorNodeType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewTypeOperatorNode(Kind(h.UintValue(valueSlotTypeOperatorNodeOperator)), expandStoredChild(e, h, slotTypeOperatorNodeType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindInferType:
-		n := e.f.NewInferTypeNode(expandStored(e, h.Child(slotInferTypeNodeTypeParameter)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewInferTypeNode(expandStoredChild(e, h, slotInferTypeNodeTypeParameter))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindArrayType:
-		n := e.f.NewArrayTypeNode(expandStored(e, h.Child(slotArrayTypeNodeElementType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewArrayTypeNode(expandStoredChild(e, h, slotArrayTypeNodeElementType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindIndexedAccessType:
-		n := e.f.NewIndexedAccessTypeNode(expandStored(e, h.Child(slotIndexedAccessTypeNodeObjectType)), expandStored(e, h.Child(slotIndexedAccessTypeNodeIndexType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewIndexedAccessTypeNode(expandStoredChild(e, h, slotIndexedAccessTypeNodeObjectType), expandStoredChild(e, h, slotIndexedAccessTypeNodeIndexType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindTypeReference:
-		n := e.f.NewTypeReferenceNode(expandStored(e, h.Child(slotTypeReferenceNodeTypeName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotTypeReferenceNodeTypeArguments)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewTypeReferenceNode(expandStoredChild(e, h, slotTypeReferenceNodeTypeName), expandNodeList(e, h.Store(), h.ListSlot(listSlotTypeReferenceNodeTypeArguments)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindExpressionWithTypeArguments:
-		n := e.f.NewExpressionWithTypeArguments(expandStored(e, h.Child(slotExpressionWithTypeArgumentsExpression)), expandNodeList(e, h.Store(), h.ListSlot(listSlotExpressionWithTypeArgumentsTypeArguments)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewExpressionWithTypeArguments(expandStoredChild(e, h, slotExpressionWithTypeArgumentsExpression), expandNodeList(e, h.Store(), h.ListSlot(listSlotExpressionWithTypeArgumentsTypeArguments)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindLiteralType:
-		n := e.f.NewLiteralTypeNode(expandStored(e, h.Child(slotLiteralTypeNodeLiteral)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewLiteralTypeNode(expandStoredChild(e, h, slotLiteralTypeNodeLiteral))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindThisType:
 		n := e.f.NewThisTypeNode()
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindTypePredicate:
-		n := e.f.NewTypePredicateNode(expandStored(e, h.Child(slotTypePredicateNodeAssertsModifier)), expandStored(e, h.Child(slotTypePredicateNodeParameterName)), expandStored(e, h.Child(slotTypePredicateNodeType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewTypePredicateNode(expandStoredChild(e, h, slotTypePredicateNodeAssertsModifier), expandStoredChild(e, h, slotTypePredicateNodeParameterName), expandStoredChild(e, h, slotTypePredicateNodeType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindImportAttribute:
-		n := e.f.NewImportAttribute(expandStored(e, h.Child(slotImportAttributeName)), expandStored(e, h.Child(slotImportAttributeValue)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewImportAttribute(expandStoredChild(e, h, slotImportAttributeName), expandStoredChild(e, h, slotImportAttributeValue))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindImportAttributes:
 		n := e.f.NewImportAttributes(Kind(h.UintValue(valueSlotImportAttributesToken)), expandNodeList(e, h.Store(), h.ListSlot(listSlotImportAttributesAttributes)), h.UintValue(valueSlotImportAttributesMultiLine) != 0)
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindTypeQuery:
-		n := e.f.NewTypeQueryNode(expandStored(e, h.Child(slotTypeQueryNodeExprName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotTypeQueryNodeTypeArguments)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewTypeQueryNode(expandStoredChild(e, h, slotTypeQueryNodeExprName), expandNodeList(e, h.Store(), h.ListSlot(listSlotTypeQueryNodeTypeArguments)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindMappedType:
-		n := e.f.NewMappedTypeNode(expandStored(e, h.Child(slotMappedTypeNodeReadonlyToken)), expandStored(e, h.Child(slotMappedTypeNodeTypeParameter)), expandStored(e, h.Child(slotMappedTypeNodeNameType)), expandStored(e, h.Child(slotMappedTypeNodeQuestionToken)), expandStored(e, h.Child(slotMappedTypeNodeType)), expandNodeList(e, h.Store(), h.ListSlot(listSlotMappedTypeNodeMembers)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewMappedTypeNode(expandStoredChild(e, h, slotMappedTypeNodeReadonlyToken), expandStoredChild(e, h, slotMappedTypeNodeTypeParameter), expandStoredChild(e, h, slotMappedTypeNodeNameType), expandStoredChild(e, h, slotMappedTypeNodeQuestionToken), expandStoredChild(e, h, slotMappedTypeNodeType), expandNodeList(e, h.Store(), h.ListSlot(listSlotMappedTypeNodeMembers)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindTypeLiteral:
 		n := e.f.NewTypeLiteralNode(expandNodeList(e, h.Store(), h.ListSlot(listSlotTypeLiteralNodeMembers)))
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindTupleType:
 		n := e.f.NewTupleTypeNode(expandNodeList(e, h.Store(), h.ListSlot(listSlotTupleTypeNodeElements)))
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindNamedTupleMember:
-		n := e.f.NewNamedTupleMember(expandStored(e, h.Child(slotNamedTupleMemberDotDotDotToken)), expandStored(e, h.Child(slotNamedTupleMemberName)), expandStored(e, h.Child(slotNamedTupleMemberQuestionToken)), expandStored(e, h.Child(slotNamedTupleMemberType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewNamedTupleMember(expandStoredChild(e, h, slotNamedTupleMemberDotDotDotToken), expandStoredChild(e, h, slotNamedTupleMemberName), expandStoredChild(e, h, slotNamedTupleMemberQuestionToken), expandStoredChild(e, h, slotNamedTupleMemberType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindOptionalType:
-		n := e.f.NewOptionalTypeNode(expandStored(e, h.Child(slotOptionalTypeNodeType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewOptionalTypeNode(expandStoredChild(e, h, slotOptionalTypeNodeType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindRestType:
-		n := e.f.NewRestTypeNode(expandStored(e, h.Child(slotRestTypeNodeType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewRestTypeNode(expandStoredChild(e, h, slotRestTypeNodeType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindParenthesizedType:
-		n := e.f.NewParenthesizedTypeNode(expandStored(e, h.Child(slotParenthesizedTypeNodeType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewParenthesizedTypeNode(expandStoredChild(e, h, slotParenthesizedTypeNodeType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindFunctionType:
-		n := e.f.NewFunctionTypeNode(expandNodeList(e, h.Store(), h.ListSlot(listSlotFunctionTypeNodeTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotFunctionTypeNodeParameters)), expandStored(e, h.Child(slotFunctionTypeNodeType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewFunctionTypeNode(expandNodeList(e, h.Store(), h.ListSlot(listSlotFunctionTypeNodeTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotFunctionTypeNodeParameters)), expandStoredChild(e, h, slotFunctionTypeNodeType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindConstructorType:
-		n := e.f.NewConstructorTypeNode(expandModifierList(e, h.Store(), h.ListSlot(listSlotConstructorTypeNodeModifiers)), expandNodeList(e, h.Store(), h.ListSlot(listSlotConstructorTypeNodeTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotConstructorTypeNodeParameters)), expandStored(e, h.Child(slotConstructorTypeNodeType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewConstructorTypeNode(expandModifierList(e, h.Store(), h.ListSlot(listSlotConstructorTypeNodeModifiers)), expandNodeList(e, h.Store(), h.ListSlot(listSlotConstructorTypeNodeTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotConstructorTypeNodeParameters)), expandStoredChild(e, h, slotConstructorTypeNodeType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindTemplateHead:
 		n := e.f.NewTemplateHead(h.StringValue(valueSlotTemplateHeadText), h.StringValue(valueSlotTemplateHeadRawText), h.TokenFlags())
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindTemplateMiddle:
 		n := e.f.NewTemplateMiddle(h.StringValue(valueSlotTemplateMiddleText), h.StringValue(valueSlotTemplateMiddleRawText), h.TokenFlags())
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindTemplateTail:
 		n := e.f.NewTemplateTail(h.StringValue(valueSlotTemplateTailText), h.StringValue(valueSlotTemplateTailRawText), h.TokenFlags())
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindTemplateLiteralType:
-		n := e.f.NewTemplateLiteralTypeNode(expandStored(e, h.Child(slotTemplateLiteralTypeNodeHead)), expandNodeList(e, h.Store(), h.ListSlot(listSlotTemplateLiteralTypeNodeTemplateSpans)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewTemplateLiteralTypeNode(expandStoredChild(e, h, slotTemplateLiteralTypeNodeHead), expandNodeList(e, h.Store(), h.ListSlot(listSlotTemplateLiteralTypeNodeTemplateSpans)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindTemplateLiteralTypeSpan:
-		n := e.f.NewTemplateLiteralTypeSpan(expandStored(e, h.Child(slotTemplateLiteralTypeSpanType)), expandStored(e, h.Child(slotTemplateLiteralTypeSpanLiteral)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewTemplateLiteralTypeSpan(expandStoredChild(e, h, slotTemplateLiteralTypeSpanType), expandStoredChild(e, h, slotTemplateLiteralTypeSpanLiteral))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindSyntheticExpression:
-		n := e.f.NewSyntheticExpression(storeObjectValue[any](h, valueSlotSyntheticExpressionType), h.UintValue(valueSlotSyntheticExpressionIsSpread) != 0, expandStored(e, h.Child(slotSyntheticExpressionTupleNameSource)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewSyntheticExpression(storeObjectValue[any](h, valueSlotSyntheticExpressionType), h.UintValue(valueSlotSyntheticExpressionIsSpread) != 0, expandStoredChild(e, h, slotSyntheticExpressionTupleNameSource))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindPartiallyEmittedExpression:
-		n := e.f.NewPartiallyEmittedExpression(expandStored(e, h.Child(slotPartiallyEmittedExpressionExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewPartiallyEmittedExpression(expandStoredChild(e, h, slotPartiallyEmittedExpressionExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJsxElement:
-		n := e.f.NewJsxElement(expandStored(e, h.Child(slotJsxElementOpeningElement)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJsxElementChildren)), expandStored(e, h.Child(slotJsxElementClosingElement)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJsxElement(expandStoredChild(e, h, slotJsxElementOpeningElement), expandNodeList(e, h.Store(), h.ListSlot(listSlotJsxElementChildren)), expandStoredChild(e, h, slotJsxElementClosingElement))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJsxAttributes:
 		n := e.f.NewJsxAttributes(expandNodeList(e, h.Store(), h.ListSlot(listSlotJsxAttributesProperties)))
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJsxNamespacedName:
-		n := e.f.NewJsxNamespacedName(expandStored(e, h.Child(slotJsxNamespacedNameNamespace)), expandStored(e, h.Child(slotJsxNamespacedNameName)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJsxNamespacedName(expandStoredChild(e, h, slotJsxNamespacedNameNamespace), expandStoredChild(e, h, slotJsxNamespacedNameName))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJsxOpeningElement:
-		n := e.f.NewJsxOpeningElement(expandStored(e, h.Child(slotJsxOpeningElementTagName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJsxOpeningElementTypeArguments)), expandStored(e, h.Child(slotJsxOpeningElementAttributes)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJsxOpeningElement(expandStoredChild(e, h, slotJsxOpeningElementTagName), expandNodeList(e, h.Store(), h.ListSlot(listSlotJsxOpeningElementTypeArguments)), expandStoredChild(e, h, slotJsxOpeningElementAttributes))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJsxSelfClosingElement:
-		n := e.f.NewJsxSelfClosingElement(expandStored(e, h.Child(slotJsxSelfClosingElementTagName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJsxSelfClosingElementTypeArguments)), expandStored(e, h.Child(slotJsxSelfClosingElementAttributes)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJsxSelfClosingElement(expandStoredChild(e, h, slotJsxSelfClosingElementTagName), expandNodeList(e, h.Store(), h.ListSlot(listSlotJsxSelfClosingElementTypeArguments)), expandStoredChild(e, h, slotJsxSelfClosingElementAttributes))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJsxFragment:
-		n := e.f.NewJsxFragment(expandStored(e, h.Child(slotJsxFragmentOpeningFragment)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJsxFragmentChildren)), expandStored(e, h.Child(slotJsxFragmentClosingFragment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJsxFragment(expandStoredChild(e, h, slotJsxFragmentOpeningFragment), expandNodeList(e, h.Store(), h.ListSlot(listSlotJsxFragmentChildren)), expandStoredChild(e, h, slotJsxFragmentClosingFragment))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJsxOpeningFragment:
 		n := e.f.NewJsxOpeningFragment()
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJsxClosingFragment:
 		n := e.f.NewJsxClosingFragment()
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJsxAttribute:
-		n := e.f.NewJsxAttribute(expandStored(e, h.Child(slotJsxAttributeName)), expandStored(e, h.Child(slotJsxAttributeInitializer)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJsxAttribute(expandStoredChild(e, h, slotJsxAttributeName), expandStoredChild(e, h, slotJsxAttributeInitializer))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJsxSpreadAttribute:
-		n := e.f.NewJsxSpreadAttribute(expandStored(e, h.Child(slotJsxSpreadAttributeExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJsxSpreadAttribute(expandStoredChild(e, h, slotJsxSpreadAttributeExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJsxClosingElement:
-		n := e.f.NewJsxClosingElement(expandStored(e, h.Child(slotJsxClosingElementTagName)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJsxClosingElement(expandStoredChild(e, h, slotJsxClosingElementTagName))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJsxExpression:
-		n := e.f.NewJsxExpression(expandStored(e, h.Child(slotJsxExpressionDotDotDotToken)), expandStored(e, h.Child(slotJsxExpressionExpression)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJsxExpression(expandStoredChild(e, h, slotJsxExpressionDotDotDotToken), expandStoredChild(e, h, slotJsxExpressionExpression))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJsxText:
 		n := e.f.NewJsxText(h.StringValue(valueSlotJsxTextText), h.UintValue(valueSlotJsxTextContainsOnlyTriviaWhiteSpaces) != 0)
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindSyntaxList:
 		n := e.f.NewSyntaxList(expandRawList(e, h.Store(), h.ListSlot(listSlotSyntaxListChildren)))
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDoc:
 		n := e.f.NewJSDoc(expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocComment)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocTags)))
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocTypeExpression:
-		n := e.f.NewJSDocTypeExpression(expandStored(e, h.Child(slotJSDocTypeExpressionType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocTypeExpression(expandStoredChild(e, h, slotJSDocTypeExpressionType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocNonNullableType:
-		n := e.f.NewJSDocNonNullableType(expandStored(e, h.Child(slotJSDocNonNullableTypeType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocNonNullableType(expandStoredChild(e, h, slotJSDocNonNullableTypeType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocNullableType:
-		n := e.f.NewJSDocNullableType(expandStored(e, h.Child(slotJSDocNullableTypeType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocNullableType(expandStoredChild(e, h, slotJSDocNullableTypeType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocAllType:
 		n := e.f.NewJSDocAllType()
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocVariadicType:
-		n := e.f.NewJSDocVariadicType(expandStored(e, h.Child(slotJSDocVariadicTypeType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocVariadicType(expandStoredChild(e, h, slotJSDocVariadicTypeType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocOptionalType:
-		n := e.f.NewJSDocOptionalType(expandStored(e, h.Child(slotJSDocOptionalTypeType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocOptionalType(expandStoredChild(e, h, slotJSDocOptionalTypeType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocTypeTag:
-		n := e.f.NewJSDocTypeTag(expandStored(e, h.Child(slotJSDocTypeTagTagName)), expandStored(e, h.Child(slotJSDocTypeTagTypeExpression)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocTypeTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocTypeTag(expandStoredChild(e, h, slotJSDocTypeTagTagName), expandStoredChild(e, h, slotJSDocTypeTagTypeExpression), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocTypeTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocUnknownTag:
-		n := e.f.NewJSDocUnknownTag(expandStored(e, h.Child(slotJSDocUnknownTagTagName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocUnknownTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocUnknownTag(expandStoredChild(e, h, slotJSDocUnknownTagTagName), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocUnknownTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocTemplateTag:
-		n := e.f.NewJSDocTemplateTag(expandStored(e, h.Child(slotJSDocTemplateTagTagName)), expandStored(e, h.Child(slotJSDocTemplateTagConstraint)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocTemplateTagTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocTemplateTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocTemplateTag(expandStoredChild(e, h, slotJSDocTemplateTagTagName), expandStoredChild(e, h, slotJSDocTemplateTagConstraint), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocTemplateTagTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocTemplateTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocReturnTag:
-		n := e.f.NewJSDocReturnTag(expandStored(e, h.Child(slotJSDocReturnTagTagName)), expandStored(e, h.Child(slotJSDocReturnTagTypeExpression)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocReturnTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocReturnTag(expandStoredChild(e, h, slotJSDocReturnTagTagName), expandStoredChild(e, h, slotJSDocReturnTagTypeExpression), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocReturnTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocPublicTag:
-		n := e.f.NewJSDocPublicTag(expandStored(e, h.Child(slotJSDocPublicTagTagName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocPublicTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocPublicTag(expandStoredChild(e, h, slotJSDocPublicTagTagName), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocPublicTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocPrivateTag:
-		n := e.f.NewJSDocPrivateTag(expandStored(e, h.Child(slotJSDocPrivateTagTagName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocPrivateTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocPrivateTag(expandStoredChild(e, h, slotJSDocPrivateTagTagName), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocPrivateTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocProtectedTag:
-		n := e.f.NewJSDocProtectedTag(expandStored(e, h.Child(slotJSDocProtectedTagTagName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocProtectedTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocProtectedTag(expandStoredChild(e, h, slotJSDocProtectedTagTagName), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocProtectedTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocReadonlyTag:
-		n := e.f.NewJSDocReadonlyTag(expandStored(e, h.Child(slotJSDocReadonlyTagTagName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocReadonlyTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocReadonlyTag(expandStoredChild(e, h, slotJSDocReadonlyTagTagName), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocReadonlyTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocOverrideTag:
-		n := e.f.NewJSDocOverrideTag(expandStored(e, h.Child(slotJSDocOverrideTagTagName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocOverrideTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocOverrideTag(expandStoredChild(e, h, slotJSDocOverrideTagTagName), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocOverrideTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocDeprecatedTag:
-		n := e.f.NewJSDocDeprecatedTag(expandStored(e, h.Child(slotJSDocDeprecatedTagTagName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocDeprecatedTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocDeprecatedTag(expandStoredChild(e, h, slotJSDocDeprecatedTagTagName), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocDeprecatedTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocSeeTag:
-		n := e.f.NewJSDocSeeTag(expandStored(e, h.Child(slotJSDocSeeTagTagName)), expandStored(e, h.Child(slotJSDocSeeTagNameExpression)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocSeeTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocSeeTag(expandStoredChild(e, h, slotJSDocSeeTagTagName), expandStoredChild(e, h, slotJSDocSeeTagNameExpression), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocSeeTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocImplementsTag:
-		n := e.f.NewJSDocImplementsTag(expandStored(e, h.Child(slotJSDocImplementsTagTagName)), expandStored(e, h.Child(slotJSDocImplementsTagClassName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocImplementsTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocImplementsTag(expandStoredChild(e, h, slotJSDocImplementsTagTagName), expandStoredChild(e, h, slotJSDocImplementsTagClassName), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocImplementsTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocAugmentsTag:
-		n := e.f.NewJSDocAugmentsTag(expandStored(e, h.Child(slotJSDocAugmentsTagTagName)), expandStored(e, h.Child(slotJSDocAugmentsTagClassName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocAugmentsTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocAugmentsTag(expandStoredChild(e, h, slotJSDocAugmentsTagTagName), expandStoredChild(e, h, slotJSDocAugmentsTagClassName), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocAugmentsTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocSatisfiesTag:
-		n := e.f.NewJSDocSatisfiesTag(expandStored(e, h.Child(slotJSDocSatisfiesTagTagName)), expandStored(e, h.Child(slotJSDocSatisfiesTagTypeExpression)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocSatisfiesTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocSatisfiesTag(expandStoredChild(e, h, slotJSDocSatisfiesTagTagName), expandStoredChild(e, h, slotJSDocSatisfiesTagTypeExpression), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocSatisfiesTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocThrowsTag:
-		n := e.f.NewJSDocThrowsTag(expandStored(e, h.Child(slotJSDocThrowsTagTagName)), expandStored(e, h.Child(slotJSDocThrowsTagTypeExpression)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocThrowsTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocThrowsTag(expandStoredChild(e, h, slotJSDocThrowsTagTagName), expandStoredChild(e, h, slotJSDocThrowsTagTypeExpression), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocThrowsTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocThisTag:
-		n := e.f.NewJSDocThisTag(expandStored(e, h.Child(slotJSDocThisTagTagName)), expandStored(e, h.Child(slotJSDocThisTagTypeExpression)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocThisTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocThisTag(expandStoredChild(e, h, slotJSDocThisTagTagName), expandStoredChild(e, h, slotJSDocThisTagTypeExpression), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocThisTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocImportTag:
-		n := e.f.NewJSDocImportTag(expandStored(e, h.Child(slotJSDocImportTagTagName)), expandStored(e, h.Child(slotJSDocImportTagImportClause)), expandStored(e, h.Child(slotJSDocImportTagModuleSpecifier)), expandStored(e, h.Child(slotJSDocImportTagAttributes)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocImportTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocImportTag(expandStoredChild(e, h, slotJSDocImportTagTagName), expandStoredChild(e, h, slotJSDocImportTagImportClause), expandStoredChild(e, h, slotJSDocImportTagModuleSpecifier), expandStoredChild(e, h, slotJSDocImportTagAttributes), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocImportTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocCallbackTag:
-		n := e.f.NewJSDocCallbackTag(expandStored(e, h.Child(slotJSDocCallbackTagTagName)), expandStored(e, h.Child(slotJSDocCallbackTagTypeExpression)), expandStored(e, h.Child(slotJSDocCallbackTagName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocCallbackTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocCallbackTag(expandStoredChild(e, h, slotJSDocCallbackTagTagName), expandStoredChild(e, h, slotJSDocCallbackTagTypeExpression), expandStoredChild(e, h, slotJSDocCallbackTagName), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocCallbackTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocOverloadTag:
-		n := e.f.NewJSDocOverloadTag(expandStored(e, h.Child(slotJSDocOverloadTagTagName)), expandStored(e, h.Child(slotJSDocOverloadTagTypeExpression)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocOverloadTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocOverloadTag(expandStoredChild(e, h, slotJSDocOverloadTagTagName), expandStoredChild(e, h, slotJSDocOverloadTagTypeExpression), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocOverloadTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocTypedefTag:
-		n := e.f.NewJSDocTypedefTag(expandStored(e, h.Child(slotJSDocTypedefTagTagName)), expandStored(e, h.Child(slotJSDocTypedefTagTypeExpression)), expandStored(e, h.Child(slotJSDocTypedefTagName)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocTypedefTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocTypedefTag(expandStoredChild(e, h, slotJSDocTypedefTagTagName), expandStoredChild(e, h, slotJSDocTypedefTagTypeExpression), expandStoredChild(e, h, slotJSDocTypedefTagName), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocTypedefTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocSignature:
-		n := e.f.NewJSDocSignature(expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocSignatureTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocSignatureParameters)), expandStored(e, h.Child(slotJSDocSignatureType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocSignature(expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocSignatureTypeParameters)), expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocSignatureParameters)), expandStoredChild(e, h, slotJSDocSignatureType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocNameReference:
-		n := e.f.NewJSDocNameReference(expandStored(e, h.Child(slotJSDocNameReferenceName)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocNameReference(expandStoredChild(e, h, slotJSDocNameReferenceName))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindModuleDeclaration:
-		n := e.f.NewModuleDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotModuleDeclarationModifiers)), Kind(h.UintValue(valueSlotModuleDeclarationKeyword)), expandStored(e, h.Child(slotModuleDeclarationName)), expandStored(e, h.Child(slotModuleDeclarationBody)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewModuleDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotModuleDeclarationModifiers)), Kind(h.UintValue(valueSlotModuleDeclarationKeyword)), expandStoredChild(e, h, slotModuleDeclarationName), expandStoredChild(e, h, slotModuleDeclarationBody))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindImportEqualsDeclaration:
-		n := e.f.NewImportEqualsDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotImportEqualsDeclarationModifiers)), h.UintValue(valueSlotImportEqualsDeclarationIsTypeOnly) != 0, expandStored(e, h.Child(slotImportEqualsDeclarationName)), expandStored(e, h.Child(slotImportEqualsDeclarationModuleReference)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewImportEqualsDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotImportEqualsDeclarationModifiers)), h.UintValue(valueSlotImportEqualsDeclarationIsTypeOnly) != 0, expandStoredChild(e, h, slotImportEqualsDeclarationName), expandStoredChild(e, h, slotImportEqualsDeclarationModuleReference))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindExportDeclaration:
-		n := e.f.NewExportDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotExportDeclarationModifiers)), h.UintValue(valueSlotExportDeclarationIsTypeOnly) != 0, expandStored(e, h.Child(slotExportDeclarationExportClause)), expandStored(e, h.Child(slotExportDeclarationModuleSpecifier)), expandStored(e, h.Child(slotExportDeclarationAttributes)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewExportDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotExportDeclarationModifiers)), h.UintValue(valueSlotExportDeclarationIsTypeOnly) != 0, expandStoredChild(e, h, slotExportDeclarationExportClause), expandStoredChild(e, h, slotExportDeclarationModuleSpecifier), expandStoredChild(e, h, slotExportDeclarationAttributes))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindImportType:
-		n := e.f.NewImportTypeNode(h.UintValue(valueSlotImportTypeNodeIsTypeOf) != 0, expandStored(e, h.Child(slotImportTypeNodeArgument)), expandStored(e, h.Child(slotImportTypeNodeAttributes)), expandStored(e, h.Child(slotImportTypeNodeQualifier)), expandNodeList(e, h.Store(), h.ListSlot(listSlotImportTypeNodeTypeArguments)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewImportTypeNode(h.UintValue(valueSlotImportTypeNodeIsTypeOf) != 0, expandStoredChild(e, h, slotImportTypeNodeArgument), expandStoredChild(e, h, slotImportTypeNodeAttributes), expandStoredChild(e, h, slotImportTypeNodeQualifier), expandNodeList(e, h.Store(), h.ListSlot(listSlotImportTypeNodeTypeArguments)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindImportClause:
-		n := e.f.NewImportClause(ImportPhaseModifierSyntaxKind(h.UintValue(valueSlotImportClausePhaseModifier)), expandStored(e, h.Child(slotImportClauseName)), expandStored(e, h.Child(slotImportClauseNamedBindings)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewImportClause(ImportPhaseModifierSyntaxKind(h.UintValue(valueSlotImportClausePhaseModifier)), expandStoredChild(e, h, slotImportClauseName), expandStoredChild(e, h, slotImportClauseNamedBindings))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindImportSpecifier:
-		n := e.f.NewImportSpecifier(h.UintValue(valueSlotImportSpecifierIsTypeOnly) != 0, expandStored(e, h.Child(slotImportSpecifierPropertyName)), expandStored(e, h.Child(slotImportSpecifierName)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewImportSpecifier(h.UintValue(valueSlotImportSpecifierIsTypeOnly) != 0, expandStoredChild(e, h, slotImportSpecifierPropertyName), expandStoredChild(e, h, slotImportSpecifierName))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocText:
 		n := e.f.NewJSDocText(storeObjectValue[[]string](h, valueSlotJSDocTextText))
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocLink:
-		n := e.f.NewJSDocLink(expandStored(e, h.Child(slotJSDocLinkName)), storeObjectValue[[]string](h, valueSlotJSDocLinkText))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocLink(expandStoredChild(e, h, slotJSDocLinkName), storeObjectValue[[]string](h, valueSlotJSDocLinkText))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocLinkPlain:
-		n := e.f.NewJSDocLinkPlain(expandStored(e, h.Child(slotJSDocLinkPlainName)), storeObjectValue[[]string](h, valueSlotJSDocLinkPlainText))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocLinkPlain(expandStoredChild(e, h, slotJSDocLinkPlainName), storeObjectValue[[]string](h, valueSlotJSDocLinkPlainText))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocLinkCode:
-		n := e.f.NewJSDocLinkCode(expandStored(e, h.Child(slotJSDocLinkCodeName)), storeObjectValue[[]string](h, valueSlotJSDocLinkCodeText))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocLinkCode(expandStoredChild(e, h, slotJSDocLinkCodeName), storeObjectValue[[]string](h, valueSlotJSDocLinkCodeText))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindTypeParameter:
-		n := e.f.NewTypeParameterDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotTypeParameterDeclarationModifiers)), expandStored(e, h.Child(slotTypeParameterDeclarationName)), expandStored(e, h.Child(slotTypeParameterDeclarationConstraint)), expandStored(e, h.Child(slotTypeParameterDeclarationExpression)), expandStored(e, h.Child(slotTypeParameterDeclarationDefaultType)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewTypeParameterDeclaration(expandModifierList(e, h.Store(), h.ListSlot(listSlotTypeParameterDeclarationModifiers)), expandStoredChild(e, h, slotTypeParameterDeclarationName), expandStoredChild(e, h, slotTypeParameterDeclarationConstraint), expandStoredChild(e, h, slotTypeParameterDeclarationExpression), expandStoredChild(e, h, slotTypeParameterDeclarationDefaultType))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindSyntheticReferenceExpression:
-		n := e.f.NewSyntheticReferenceExpression(expandStored(e, h.Child(slotSyntheticReferenceExpressionExpression)), expandStored(e, h.Child(slotSyntheticReferenceExpressionThisArg)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewSyntheticReferenceExpression(expandStoredChild(e, h, slotSyntheticReferenceExpressionExpression), expandStoredChild(e, h, slotSyntheticReferenceExpressionThisArg))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocTypeLiteral:
 		n := e.f.NewJSDocTypeLiteral(expandRawList(e, h.Store(), h.ListSlot(listSlotJSDocTypeLiteralJSDocPropertyTags)), h.UintValue(valueSlotJSDocTypeLiteralIsArrayType) != 0)
-		e.nodes[h.Ref()] = n
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	case KindJSDocParameterTag, KindJSDocPropertyTag:
-		n := e.f.NewJSDocParameterOrPropertyTag(h.Kind(), expandStored(e, h.Child(slotJSDocParameterOrPropertyTagTagName)), expandStored(e, h.Child(slotJSDocParameterOrPropertyTagName)), h.UintValue(valueSlotJSDocParameterOrPropertyTagIsBracketed) != 0, expandStored(e, h.Child(slotJSDocParameterOrPropertyTagTypeExpression)), h.UintValue(valueSlotJSDocParameterOrPropertyTagIsNameFirst) != 0, expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocParameterOrPropertyTagComment)))
-		e.nodes[h.Ref()] = n
+		n := e.f.NewJSDocParameterOrPropertyTag(h.Kind(), expandStoredChild(e, h, slotJSDocParameterOrPropertyTagTagName), expandStoredChild(e, h, slotJSDocParameterOrPropertyTagName), h.UintValue(valueSlotJSDocParameterOrPropertyTagIsBracketed) != 0, expandStoredChild(e, h, slotJSDocParameterOrPropertyTagTypeExpression), h.UintValue(valueSlotJSDocParameterOrPropertyTagIsNameFirst) != 0, expandNodeList(e, h.Store(), h.ListSlot(listSlotJSDocParameterOrPropertyTagComment)))
+		e.remember(h.Ref(), n)
 		applyStoreHeader(n, h)
 		return n
 	default:
 		if IsTokenKind(h.Kind()) {
 			n := e.f.NewToken(h.Kind())
-			e.nodes[h.Ref()] = n
+			e.remember(h.Ref(), n)
 			applyStoreHeader(n, h)
 			return n
 		}

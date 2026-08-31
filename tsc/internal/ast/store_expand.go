@@ -10,6 +10,7 @@ func ExpandStore(root Handle, opts SourceFileParseOptions, text string) *Node {
 	e := &storeExpander{
 		f:     NewNodeFactory(NodeFactoryHooks{}),
 		nodes: make(map[NodeRef]*Node),
+		local: make(map[*Node]struct{}),
 	}
 	var result *Node
 	if root.Kind() == KindSourceFile {
@@ -17,7 +18,7 @@ func ExpandStore(root Handle, opts SourceFileParseOptions, text string) *Node {
 	} else {
 		result = expandStored(e, root)
 	}
-	SetParentInChildren(result)
+	setExpandedParents(result, nil, e)
 	applyStoreSideData(root, e)
 	return result
 }
@@ -25,6 +26,12 @@ func ExpandStore(root Handle, opts SourceFileParseOptions, text string) *Node {
 type storeExpander struct {
 	f     *NodeFactory
 	nodes map[NodeRef]*Node
+	local map[*Node]struct{}
+}
+
+func (e *storeExpander) remember(ref NodeRef, node *Node) {
+	e.nodes[ref] = node
+	e.local[node] = struct{}{}
 }
 
 func expandSourceFile(e *storeExpander, h Handle, opts SourceFileParseOptions, text string) *Node {
@@ -37,7 +44,7 @@ func expandSourceFile(e *storeExpander, h Handle, opts SourceFileParseOptions, t
 		eof = expandStored(e, h.Child(slotSourceFileEndOfFileToken))
 	}
 	n := e.f.NewSourceFile(opts, text, stmts, eof)
-	e.nodes[h.Ref()] = n
+	e.remember(h.Ref(), n)
 	applyStoreHeader(n, h)
 	return n
 }
@@ -48,6 +55,19 @@ func applyStoreHeader(n *Node, h Handle) {
 	}
 	n.Loc = h.Loc()
 	n.Flags = h.Flags()
+}
+
+func setExpandedParents(node *Node, parent *Node, e *storeExpander) {
+	if node == nil {
+		return
+	}
+	node.Parent = parent
+	node.ForEachChild(func(child *Node) bool {
+		if _, local := e.local[child]; local {
+			setExpandedParents(child, node, e)
+		}
+		return false
+	})
 }
 
 func applyStoreSideData(root Handle, e *storeExpander) {
@@ -86,6 +106,34 @@ func applyStoreSideData(root Handle, e *storeExpander) {
 	})
 }
 
+func expandStoredChild(e *storeExpander, parent Handle, slot int) *Node {
+	if child := parent.Child(slot); child.Ref() != 0 {
+		return expandStored(e, child)
+	}
+	if child := parent.ExternalChild(slot); child != 0 {
+		node := NodeOf(child)
+		if node == nil {
+			panic("ast: unresolved external Store child")
+		}
+		return node
+	}
+	return nil
+}
+
+func expandStoredListChild(e *storeExpander, store *Store, list ListRef, index int) *Node {
+	if child := store.ListAt(list, index); child.Ref() != 0 {
+		return expandStored(e, child)
+	}
+	if child := store.ExternalListAt(list, index); child != 0 {
+		node := NodeOf(child)
+		if node == nil {
+			panic("ast: unresolved external Store list child")
+		}
+		return node
+	}
+	return nil
+}
+
 func expandNodeList(e *storeExpander, s *Store, list ListRef) *NodeList {
 	if list == 0 || s == nil {
 		return nil
@@ -93,7 +141,7 @@ func expandNodeList(e *storeExpander, s *Store, list ListRef) *NodeList {
 	n := s.ListLen(list)
 	nodes := make([]*Node, n)
 	for i := range n {
-		nodes[i] = expandStored(e, s.ListAt(list, i))
+		nodes[i] = expandStoredListChild(e, s, list, i)
 	}
 	out := e.f.NewNodeList(nodes)
 	out.Loc = s.ListLoc(list)
@@ -107,7 +155,7 @@ func expandModifierList(e *storeExpander, s *Store, list ListRef) *ModifierList 
 	n := s.ListLen(list)
 	nodes := make([]*Node, n)
 	for i := range n {
-		nodes[i] = expandStored(e, s.ListAt(list, i))
+		nodes[i] = expandStoredListChild(e, s, list, i)
 	}
 	out := e.f.NewModifierList(nodes)
 	out.Loc = s.ListLoc(list)
@@ -121,7 +169,7 @@ func expandRawList(e *storeExpander, s *Store, list ListRef) []*Node {
 	n := s.ListLen(list)
 	nodes := make([]*Node, n)
 	for i := range n {
-		nodes[i] = expandStored(e, s.ListAt(list, i))
+		nodes[i] = expandStoredListChild(e, s, list, i)
 	}
 	return nodes
 }
