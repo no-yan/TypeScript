@@ -560,6 +560,27 @@ function generateStoreSchema(): string {
             w.write("");
         }
     }
+    w.write("func primaryStringSlot(kind Kind) int {");
+    w.push();
+    w.write("switch kind {");
+    w.push();
+    for (const node of api.nodes()) {
+        const primary = storeLayout(node).strings[0];
+        if (primary !== undefined) {
+            w.write(`case Kind${node.name}:`);
+            w.push();
+            w.write(`return ${valueSlotConst(node.name, memberSuffix(primary))}`);
+            w.pop();
+        }
+    }
+    w.write("default:");
+    w.push();
+    w.write("return -1");
+    w.pop();
+    w.pop();
+    w.write("}");
+    w.pop();
+    w.write("}");
     return w.toString();
 }
 
