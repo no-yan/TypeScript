@@ -9,12 +9,12 @@ type MaterializeStats struct {
 	TextCount int
 }
 
-// MaterializeJSONSourceFile builds the legacy pointer view of a SourceFile
-// parsed natively into Store. It is intentionally limited to the JSON parser's
-// closed kind set; adding a kind to that producer requires adding it here.
-func MaterializeJSONSourceFile(root Handle, opts SourceFileParseOptions, text string) (*SourceFile, map[*Node]NodeRef, MaterializeStats) {
+// MaterializeSourceFile is the single pointer boundary for Store-native parse
+// producers. It is intentionally limited to their closed kind set; adding a
+// produced kind requires adding its fidelity mapping here.
+func MaterializeSourceFile(root Handle, opts SourceFileParseOptions, text string) (*SourceFile, map[*Node]NodeRef, MaterializeStats) {
 	if root.Kind() != KindSourceFile {
-		panic("ast: JSON materializer root is not a SourceFile")
+		panic("ast: materializer root is not a SourceFile")
 	}
 
 	factory := NewNodeFactory(NodeFactoryHooks{})
@@ -40,27 +40,94 @@ func MaterializeJSONSourceFile(root Handle, opts SourceFileParseOptions, text st
 		}
 		var node *Node
 		switch h.Kind() {
-		case KindEndOfFile, KindTrueKeyword, KindFalseKeyword, KindNullKeyword:
+		case KindEndOfFile, KindTrueKeyword, KindFalseKeyword, KindNullKeyword,
+			KindThisKeyword, KindQuestionToken, KindColonToken, KindCommaToken,
+			KindQuestionDotToken, KindEqualsEqualsToken, KindExclamationEqualsToken,
+			KindEqualsEqualsEqualsToken, KindExclamationEqualsEqualsToken,
+			KindLessThanToken, KindGreaterThanToken, KindLessThanEqualsToken,
+			KindGreaterThanEqualsToken, KindInstanceOfKeyword, KindInKeyword,
+			KindLessThanLessThanToken, KindGreaterThanGreaterThanToken,
+			KindGreaterThanGreaterThanGreaterThanToken, KindPlusToken, KindMinusToken,
+			KindAsteriskToken, KindSlashToken, KindPercentToken, KindAsteriskAsteriskToken,
+			KindBarToken, KindCaretToken, KindAmpersandToken, KindBarBarToken,
+			KindAmpersandAmpersandToken, KindQuestionQuestionToken:
 			node = factory.NewToken(h.Kind())
+		case KindIdentifier:
+			node = factory.NewIdentifier(h.IdentifierText())
 		case KindStringLiteral:
 			node = factory.NewStringLiteral(h.StringLiteralText(), h.StringLiteralTokenFlags())
 		case KindNumericLiteral:
 			node = factory.NewNumericLiteral(h.NumericLiteralText(), h.NumericLiteralTokenFlags())
+		case KindBigIntLiteral:
+			node = factory.NewBigIntLiteral(h.BigIntLiteralText(), h.BigIntLiteralTokenFlags())
+		case KindNoSubstitutionTemplateLiteral:
+			node = factory.NewNoSubstitutionTemplateLiteral(
+				h.NoSubstitutionTemplateLiteralText(),
+				h.NoSubstitutionTemplateLiteralTemplateFlags(),
+			)
 		case KindPrefixUnaryExpression:
 			node = factory.NewPrefixUnaryExpression(
 				h.PrefixUnaryExpressionOperator(),
 				materialize(h.PrefixUnaryExpressionOperand()),
+			)
+		case KindBinaryExpression:
+			node = factory.NewBinaryExpression(
+				nil,
+				materialize(h.BinaryExpressionLeft()),
+				materialize(h.BinaryExpressionType()),
+				materialize(h.BinaryExpressionOperatorToken()),
+				materialize(h.BinaryExpressionRight()),
+			)
+		case KindConditionalExpression:
+			node = factory.NewConditionalExpression(
+				materialize(h.ConditionalExpressionCondition()),
+				materialize(h.ConditionalExpressionQuestionToken()),
+				materialize(h.ConditionalExpressionWhenTrue()),
+				materialize(h.ConditionalExpressionColonToken()),
+				materialize(h.ConditionalExpressionWhenFalse()),
+			)
+		case KindParenthesizedExpression:
+			node = factory.NewParenthesizedExpression(
+				materialize(h.ParenthesizedExpressionExpression()),
+			)
+		case KindPropertyAccessExpression:
+			node = factory.NewPropertyAccessExpression(
+				materialize(h.PropertyAccessExpressionExpression()),
+				materialize(h.PropertyAccessExpressionQuestionDotToken()),
+				materialize(h.PropertyAccessExpressionName()),
+				h.Flags(),
+			)
+		case KindElementAccessExpression:
+			node = factory.NewElementAccessExpression(
+				materialize(h.ElementAccessExpressionExpression()),
+				materialize(h.ElementAccessExpressionQuestionDotToken()),
+				materialize(h.ElementAccessExpressionArgumentExpression()),
+				h.Flags(),
+			)
+		case KindCallExpression:
+			node = factory.NewCallExpression(
+				materialize(h.CallExpressionExpression()),
+				materialize(h.CallExpressionQuestionDotToken()),
+				materializeList(h.CallExpressionTypeArguments()),
+				materializeList(h.CallExpressionArguments()),
+				h.Flags(),
 			)
 		case KindArrayLiteralExpression:
 			node = factory.NewArrayLiteralExpression(
 				materializeList(h.ArrayLiteralExpressionElements()),
 				h.ArrayLiteralExpressionMultiLine(),
 			)
+		case KindOmittedExpression:
+			node = factory.NewOmittedExpression()
+		case KindSpreadElement:
+			node = factory.NewSpreadElement(materialize(h.SpreadElementExpression()))
 		case KindObjectLiteralExpression:
 			node = factory.NewObjectLiteralExpression(
 				materializeList(h.ObjectLiteralExpressionProperties()),
 				h.ObjectLiteralExpressionMultiLine(),
 			)
+		case KindSpreadAssignment:
+			node = factory.NewSpreadAssignment(materialize(h.SpreadAssignmentExpression()))
 		case KindPropertyAssignment:
 			node = factory.NewPropertyAssignment(
 				nil,
@@ -68,6 +135,15 @@ func MaterializeJSONSourceFile(root Handle, opts SourceFileParseOptions, text st
 				materialize(h.PropertyAssignmentPostfixToken()),
 				materialize(h.PropertyAssignmentType()),
 				materialize(h.PropertyAssignmentInitializer()),
+			)
+		case KindShorthandPropertyAssignment:
+			node = factory.NewShorthandPropertyAssignment(
+				nil,
+				materialize(h.ShorthandPropertyAssignmentName()),
+				materialize(h.ShorthandPropertyAssignmentPostfixToken()),
+				materialize(h.ShorthandPropertyAssignmentType()),
+				materialize(h.ShorthandPropertyAssignmentEqualsToken()),
+				materialize(h.ShorthandPropertyAssignmentObjectAssignmentInitializer()),
 			)
 		case KindExpressionStatement:
 			node = factory.NewExpressionStatement(materialize(h.ExpressionStatementExpression()))
@@ -79,7 +155,7 @@ func MaterializeJSONSourceFile(root Handle, opts SourceFileParseOptions, text st
 				materialize(h.SourceFileEndOfFileToken()),
 			)
 		default:
-			panic(fmt.Sprintf("ast: unsupported JSON materialization kind %s", h.Kind()))
+			panic(fmt.Sprintf("ast: unsupported parse materialization kind %s", h.Kind()))
 		}
 
 		node.Loc = h.Loc()
@@ -97,4 +173,10 @@ func MaterializeJSONSourceFile(root Handle, opts SourceFileParseOptions, text st
 		NodeCount: factory.NodeCount(),
 		TextCount: factory.TextCount(),
 	}
+}
+
+// MaterializeJSONSourceFile is retained for callers that name the JSON
+// producer; all native parsers share MaterializeSourceFile above.
+func MaterializeJSONSourceFile(root Handle, opts SourceFileParseOptions, text string) (*SourceFile, map[*Node]NodeRef, MaterializeStats) {
+	return MaterializeSourceFile(root, opts, text)
 }

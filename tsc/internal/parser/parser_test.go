@@ -85,6 +85,70 @@ func TestMalformedJSONFallsBackWithoutNativeStoreOrphans(t *testing.T) {
 	assert.Equal(t, len(file.ParseNodeRef()), file.ParseStore().Len())
 }
 
+func TestTypeScriptExpressionHandleNativeProductionIntegration(t *testing.T) {
+	t.Parallel()
+	const sourceText = `({
+		base,
+		...extra,
+		answer: client?.items[index + 1]?.(arg) ? [1, , ...rest] : { fallback: true },
+	});`
+	opts := ast.SourceFileParseOptions{FileName: "/expression.ts", Path: "/expression.ts"}
+	file := parser.ParseSourceFile(opts, sourceText, core.ScriptKindTS)
+
+	assert.Equal(t, 0, len(file.Diagnostics()))
+	assert.Equal(t, file.NodeCount, file.ParseStore().Len())
+	assert.Equal(t, file.NodeCount, len(file.ParseNodeRef()))
+
+	seen := make(map[ast.Kind]bool)
+	count := 0
+	var visit func(*ast.Node)
+	visit = func(node *ast.Node) {
+		count++
+		seen[node.Kind] = true
+		handle := file.HandleOf(node)
+		assert.Assert(t, handle.Ref() != 0)
+		assert.Equal(t, node.Kind, handle.Kind())
+		assert.Equal(t, node.Loc, handle.Loc())
+		assert.Equal(t, node.Flags, handle.Flags())
+		node.ForEachChild(func(child *ast.Node) bool {
+			assert.Equal(t, node, child.Parent)
+			visit(child)
+			return false
+		})
+	}
+	visit(file.AsNode())
+	assert.Equal(t, file.NodeCount, count)
+
+	for _, kind := range []ast.Kind{
+		ast.KindIdentifier,
+		ast.KindNumericLiteral,
+		ast.KindTrueKeyword,
+		ast.KindPropertyAccessExpression,
+		ast.KindElementAccessExpression,
+		ast.KindCallExpression,
+		ast.KindBinaryExpression,
+		ast.KindConditionalExpression,
+		ast.KindArrayLiteralExpression,
+		ast.KindObjectLiteralExpression,
+		ast.KindSpreadElement,
+		ast.KindSpreadAssignment,
+		ast.KindPropertyAssignment,
+		ast.KindShorthandPropertyAssignment,
+	} {
+		assert.Assert(t, seen[kind], "missing native kind %s", kind)
+	}
+}
+
+func TestMalformedTypeScriptExpressionFallsBackToRecoveryParser(t *testing.T) {
+	t.Parallel()
+	const sourceText = `value ? yes`
+	opts := ast.SourceFileParseOptions{FileName: "/malformed.ts", Path: "/malformed.ts"}
+	file := parser.ParseSourceFile(opts, sourceText, core.ScriptKindTS)
+
+	assert.Assert(t, len(file.Diagnostics()) > 0)
+	assert.Equal(t, len(file.ParseNodeRef()), file.ParseStore().Len())
+}
+
 type parsableFile struct {
 	path string
 	name string

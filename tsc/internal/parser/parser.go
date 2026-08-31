@@ -150,7 +150,7 @@ func ParseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptK
 		if nativeRoot, ok := p.tryParseJSONTextHandle(nativeFactory); ok {
 			storeFactory = nativeFactory
 			var materialized ast.MaterializeStats
-			result, nodeRefs, materialized = ast.MaterializeJSONSourceFile(nativeRoot, p.opts, p.sourceText)
+			result, nodeRefs, materialized = ast.MaterializeSourceFile(nativeRoot, p.opts, p.sourceText)
 			root = nativeRoot
 			if len(result.Statements.Nodes) > 0 {
 				p.validateJsonValue(result, result.Statements.Nodes[0].Expression())
@@ -162,6 +162,22 @@ func ParseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptK
 			storeFactory = ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
 			p.factory.AttachStore(storeFactory.Store())
 			result = p.parseJSONText()
+		}
+	} else if p.scriptKind == core.ScriptKindTS && !tspath.IsDeclarationFileName(p.opts.FileName) {
+		nativeFactory := ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
+		if nativeRoot, ok := p.tryParseExpressionSourceHandle(nativeFactory); ok {
+			storeFactory = nativeFactory
+			var materialized ast.MaterializeStats
+			result, nodeRefs, materialized = ast.MaterializeSourceFile(nativeRoot, p.opts, p.sourceText)
+			root = nativeRoot
+			p.finishSourceFile(result, false)
+			result.NodeCount = materialized.NodeCount
+			result.TextCount = materialized.TextCount
+			collectExternalModuleReferences(result)
+		} else {
+			storeFactory = ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
+			p.factory.AttachStore(storeFactory.Store())
+			result = p.parseSourceFileWorker()
 		}
 	} else {
 		storeFactory = ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
