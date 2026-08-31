@@ -293,3 +293,70 @@ Five interleaved timed runs after one warmup per head. Wall time of `built/local
 | `-p typescript-6.0/src/compiler --noEmit` (exit 0) | 0.3949s | 0.2676s | 0.1470s | 0.678 PASS | 1.820 record |
 
 Deleting `ExpandStore` did not slow the check versus PR-5. Dual-write plus materialize still miss the trunk 1.05× gate, as expected until PR-7 deletes the pointer tree.
+
+## PR-7 resume (one-shot, no bridge)
+
+This section is the working state for the next session. The 6B/6C split is dead. Do not verify a materialize-keeping native parse as a destination. Do not add another pointer↔Store facade.
+
+### Why the split was wrong
+
+`MaterializeSourceFile` plus `parser_*_store.go` plus `parser.go` is two trees and two parsers. STORE.md's shippable unit already required one native producer, every consumer on Handle, and the old `*Node` path deleted in the same wave. A `*Node` view over Store is the rejected dual tree (it keeps the GC-scanned objects). `*Node` has a `Kind` field, so it cannot grow a `Kind()` method; Handle already uses `Kind()`. Unifying types means `node.Kind` → `node.Kind()`, `node == nil` → `node.IsNil()`, and maps keyed on `*Node` → `GlobalRef` / `NodeRef`.
+
+The reviewable microsoft diff should be packed `nodeHeader` / `Handle` / `NodeRef` plus in-place parser and checker edits, not a trail of bridges.
+
+### GitHub ids (increment 6–10)
+
+| Id | Branch | SHA | Role |
+| --- | --- | --- | --- |
+| 6 | `cursor/store-pr-6-a9c9` | compiler `049214aa25`, receipts `b1077b1663` | Frozen emit; GitHub `#6` vs `store-pr-5` |
+| 7 | `cursor/store-pr-6b-native-parse-a9c9` | `e696a835b3` | One-shot Store compile path. GitHub `#7` vs `#6`. Still contains native parse **and** materialize; delete both extra parser and materialize here |
+| 8 | not opened | | e2e, diagnostic equality, 1.05× trunk |
+| 9 | not opened | | leftover LS/format `*Node` if PR-7 left any |
+| 10 | not opened | | microsoft/TypeScript PR citing PR-8 receipts |
+
+Do not land PR-3 through PR-9 on microsoft/main. Program done when PR-10 exists against microsoft/TypeScript and its body cites PR-8 e2e receipts.
+
+### What HEAD still has
+
+Production `ParseSourceFile` for TS/JS tries `tryParseSourceHandle`, then `MaterializeSourceFile`, else `parseSourceFileWorker` dual-write via `AttachStore`. JSON is the same shape. Decorators (`@`) and JS JSDoc still fall back. TS JSDoc stays lazy (`nativeJSDocBlocksParse` is false for `ScriptKindTS`).
+
+`TestCheckerTsNativeRejectSite` (`parser_statement_store_test.go`) asserts native parse of `tsc/testdata/fixtures/compiler/checker.ts`: `Store.Len() == created == materialize NodeCount` (298047) and production `ParseSourceFile` matches. That proves the Handle producer. It does not prove a Store-only compile path.
+
+`bindStore` copies pointer binder side data onto Handles after `bind(file.AsNode())`. That is a dual bind. Delete it when binder walks `file.ParseRoot()`.
+
+`checker/links.go` `nodeLinkStore` already keys on `GlobalRef` when `HandleOf` hits. Checker walkers still take `*ast.Node` (`checker.go` is 32k lines).
+
+### Grammar that must stay true when folding the native parser into `parser.go`
+
+- Native parse must not call `parseExpected` (diagnostics). Return false and rewind.
+- `export { … }` / `export *` / `export as namespace`: `export` is syntax, not a modifier. `parseNativeModifiers` uses `lookAhead` + `nextTokenCanFollowModifier`. `export type T =` still takes export as a modifier. `export type { x }` is type-only `ExportDeclaration`.
+- Array binding holes are `BindingElement` with nil members, not `OmittedExpression` (printer panics).
+- Dotted `namespace a.b {}` nests `ModuleDeclaration`s with a synthetic export on the inner one, not `QualifiedName` (printer panics).
+- Contextual keywords (`accessor`, `async`, …) at statement start: `lookAhead(isStartOfDeclaration)` or they parse as expressions (`accessor = …` in checker.ts).
+- `tryParseNativeTypeArguments` failure must not fail the LHS (`1 << 0`).
+- Type-arg close: `consumeNativeGreaterThan()`. Do not `ReScanGreaterThanToken`.
+- Type predicates: lookAhead-only (`isNativeTypePredicateStart`). Do not Alloc then Restore.
+- Direct `SetChild` across stores still panics. Checker synthetics that share a child from another file use sparse `GlobalRef` edges.
+
+### Next edits (one PR, one compile at the end)
+
+1. Rewrite `parser.go` in place onto `ast.Factory` / Handle. Fold or delete `parser_statement_store.go`, `parser_type_store.go`, `parser_expression_store.go`. Recovery still allocates into Store.
+2. Convert binder, checker, printer, transformers to Handle. `ParseSourceFile` returns `*SourceFile` metadata whose tree is the parse Store. No `parseNodeRef` pointer map on the compile path.
+3. Delete `store_materialize_json.go` and `store_bridge.go` production dual-write. Delete unused `*Node` factory paths that production no longer calls.
+4. LS/format leftover, if any, is PR-9.
+
+Do not keep interned `*Node` shells with child pointers. That restores the dual tree.
+
+### Environment and live proof (this VM)
+
+- Go: `/tmp/go1.26`, `PATH="/tmp/go1.26/bin:$PATH"`, `GOTOOLCHAIN=local` (matches `tsc/go.mod` 1.26).
+- Frozen binaries: `/tmp/tsc-6a-freeze` (PR-6), `/tmp/ts-pr5/built/local/tsc` (PR-5 `21fced2ca1`), `/workspace/built/local/tsc-trunk`.
+- Smoke project: `/tmp/typescript-6.0/src/compiler` (TypeScript v6.0.3). Standalone `checker.ts --noEmit` exits 2 (`TS2307`). Live completed-check is CI smoke `-p /tmp/typescript-6.0/src/compiler --noEmit` exit 0. `--outFile` was removed (`TS5102`). JS emit proof is the `emit-javascript` fixture (`greet`/`Hello` in `dist/index.js`).
+- `built/local/tsc` may still be an older binary until `VERIFY_TSC_RUN_ID=… ./.cursor/skills/verify-tsc/scripts/control-tsc launch`.
+- Plan markdown is **CRLF**. Python rewrites must keep `\r\n`. `control-tsc` files stay LF.
+- Do not commit `tsc/testdata/fixtures/compiler/checker.js` if it reappears.
+- `ManagePullRequest` accepts `https://github.com/no-yan/typescript/pull/7` (lowercase). `https://github.com/no-yan/TypeScript/pull/7` is rejected as "PR URL must belong to the current repository". `git push -u origin <branch>` works. `gh` is read-only for writes.
+
+### Scale (so the rewrite is not under-scoped)
+
+`tsc/internal/checker/checker.go` ~32k lines. Compile-path `*ast.Node` hits are on the order of 2k across checker/binder/printer/compiler. `.Kind` field reads exist across checker, binder, printer, transformers, and LS. cmd/tsc verification does not require LS, but the repo must compile, so leftover `*Node` in LS is PR-9 only if PR-7 would otherwise not compile. Prefer converting LS in PR-7 if the type of `Node` changes.
