@@ -6,7 +6,11 @@ Motivation and early sketch: [TypeScript#63807](https://github.com/microsoft/Typ
 
 ## Status
 
-Safe to keep on a branch as a **package-local experiment**. PR-3 (unlanded) has `ParseSourceFile` allocate through `NewFactory` and `ExpandStore` at the parse boundary. The production tree returned to binder is still `*Node`. Do not land `ExpandStore` on microsoft/main; PR-6 deletes it.
+Safe to keep on a branch as a **package-local experiment**. Parsing, binding,
+checking, transformation, and printing now mirror their nodes and side data
+into one Store per file. The temporary Store-to-`*Node` expansion bridge is
+deleted. The production visitors still consume `*Node` while their Handle
+callers are migrated.
 
 Do **not** treat this document as a merged, settled design for the whole compiler until the [Open questions](#open-questions) below have written answers. The layout bet (packed header, noscan columns) has package-level evidence. Identity across files, mutation rules, incremental parse, emit sharing, and an end-to-end stop criterion do not.
 
@@ -110,7 +114,6 @@ Temporary bridges such as `FlattenNode` are **measurement-only**. They keep Kind
 | `store_schema_generated.go` | Generated child, list, and kind-specific value slots for every factory kind |
 | `store_factory.go` | Store-only `Factory`, `NewFactoryOn` |
 | `store_bridge.go` | `NodeFactory.AttachStore` dual-write into Store during parse |
-| `store_expand.go`, `store_expand_generated.go` | Exhaustive temporary Store → `*Node` copy; unknown non-token kinds panic (delete in PR-6) |
 | `store_copy.go` | `Factory.CopySubtree` (cross-store remap) |
 | `store_flatten.go` | Lossy `*Node` → Store copy for benches |
 | `store_*_test.go`, `store_*_bench_test.go` | Unit, copy, adversarial, and e2e benches |

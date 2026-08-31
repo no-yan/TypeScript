@@ -7,7 +7,7 @@ import (
 	"gotest.tools/v3/assert"
 )
 
-func TestExpandStorePreservesKindValuesTokenFlagsAndParents(t *testing.T) {
+func TestStorePreservesKindValuesTokenFlagsJSDocAndParents(t *testing.T) {
 	t.Parallel()
 	f := NewNodeFactory(NodeFactoryHooks{})
 	store := NewStore(8)
@@ -16,29 +16,29 @@ func TestExpandStorePreservesKindValuesTokenFlagsAndParents(t *testing.T) {
 	literal := f.NewNumericLiteral("0x10", TokenFlagsHexSpecifier)
 	template := f.NewTemplateHead("cooked", "raw\\n", TokenFlagsContainsInvalidEscape)
 	heritage := f.NewHeritageClause(KindExtendsKeyword, f.NewNodeList([]*Node{literal}))
+	jsdocText := f.NewJSDocText([]string{"first", "second"})
 	root := f.NewJSDoc(
-		f.NewNodeList([]*Node{f.NewJSDocText([]string{"first", "second"})}),
+		f.NewNodeList([]*Node{jsdocText}),
 		f.NewNodeList([]*Node{template, heritage}),
 	)
 	root.Loc = core.NewTextRange(0, 20)
+	f.StoreSync(heritage)
 	f.StoreSync(root)
-	assert.Equal(t, f.HandleOf(root).Ref(), f.HandleOf(root.AsJSDoc().Comment.Nodes[0]).Parent().Ref())
 
-	expanded := ExpandStore(f.HandleOf(root), SourceFileParseOptions{}, "")
-	assert.Equal(t, KindJSDoc, expanded.Kind)
-	assert.Equal(t, expanded, expanded.AsJSDoc().Comment.Nodes[0].Parent)
-	assert.DeepEqual(t, []string{"first", "second"}, expanded.AsJSDoc().Comment.Nodes[0].data.(*JSDocText).text)
-
-	gotTemplate := expanded.AsJSDoc().Tags.Nodes[0].AsTemplateHead()
-	assert.Equal(t, "cooked", gotTemplate.Text)
-	assert.Equal(t, "raw\\n", gotTemplate.RawText)
-	assert.Equal(t, TokenFlagsContainsInvalidEscape, gotTemplate.TemplateFlags)
-
-	gotHeritage := expanded.AsJSDoc().Tags.Nodes[1].AsHeritageClause()
-	assert.Equal(t, KindExtendsKeyword, gotHeritage.Token)
-	gotLiteral := gotHeritage.Types.Nodes[0].AsNumericLiteral()
-	assert.Equal(t, "0x10", gotLiteral.Text)
-	assert.Equal(t, TokenFlagsHexSpecifier, gotLiteral.TokenFlags)
+	rootHandle := f.HandleOf(root)
+	literalHandle := f.HandleOf(literal)
+	templateHandle := f.HandleOf(template)
+	heritageHandle := f.HandleOf(heritage)
+	textHandle := f.HandleOf(jsdocText)
+	assert.Equal(t, rootHandle.Ref(), textHandle.Parent().Ref())
+	assert.Equal(t, heritageHandle.Ref(), literalHandle.Parent().Ref())
+	assert.Equal(t, "0x10", literalHandle.StringValue(valueSlotNumericLiteralText))
+	assert.Equal(t, TokenFlagsHexSpecifier, literalHandle.TokenFlags())
+	assert.Equal(t, "cooked", templateHandle.StringValue(valueSlotTemplateHeadText))
+	assert.Equal(t, "raw\\n", templateHandle.StringValue(valueSlotTemplateHeadRawText))
+	assert.Equal(t, TokenFlagsContainsInvalidEscape, templateHandle.TokenFlags())
+	assert.Equal(t, uint64(KindExtendsKeyword), heritageHandle.UintValue(valueSlotHeritageClauseToken))
+	assert.DeepEqual(t, []string{"first", "second"}, storeObjectValue[[]string](textHandle, valueSlotJSDocTextText))
 }
 
 func TestStoreRetainsSourceFileMetadataOwner(t *testing.T) {
@@ -80,15 +80,11 @@ func TestStoreBridgePreservesCrossFileChildrenAsGlobalRefs(t *testing.T) {
 	syntheticHandle := factoryB.HandleOf(synthetic)
 
 	assert.Equal(t, sourceFile.RefOf(child), syntheticHandle.ExternalChild(slotSyntheticExpressionTupleNameSource))
-	expanded := ExpandStore(syntheticHandle, SourceFileParseOptions{}, "")
-	assert.Equal(t, child, expanded.AsSyntheticExpression().TupleNameSource)
 	assert.Equal(t, sourceNode, child.Parent)
 
 	jsdoc := factoryB.NewJSDoc(factoryB.NewNodeList([]*Node{child}), nil)
 	jsdocHandle := factoryB.HandleOf(jsdoc)
 	list := jsdocHandle.ListSlot(listSlotJSDocComment)
 	assert.Equal(t, sourceFile.RefOf(child), storeB.ExternalListAt(list, 0))
-	expandedJSDoc := ExpandStore(jsdocHandle, SourceFileParseOptions{}, "").AsJSDoc()
-	assert.Equal(t, child, expandedJSDoc.Comment.Nodes[0])
 	assert.Equal(t, sourceNode, child.Parent)
 }

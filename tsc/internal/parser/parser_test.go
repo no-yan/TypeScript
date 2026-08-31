@@ -340,8 +340,6 @@ func TestParseStoreNonempty(t *testing.T) {
 	file := parser.ParseSourceFile(opts, sourceText, core.ScriptKindTS)
 	store := file.ParseStore()
 	assert.Assert(t, store != nil, "ParseSourceFile must allocate a Store")
-	assert.Assert(t, store.Len() > 0, "Store must be nonempty before expand")
-	expanded := ast.ExpandStore(file.ParseRoot(), opts, sourceText)
-	assert.Assert(t, expanded != nil)
-	assert.Equal(t, ast.KindSourceFile, expanded.Kind)
+	assert.Assert(t, store.Len() > 0, "Store must be nonempty after parse")
+	assert.Equal(t, ast.KindSourceFile, file.ParseRoot().Kind())
 }

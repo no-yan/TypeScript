@@ -122,54 +122,6 @@ export class C {
 			sawSymbol, sawLocalSymbol, sawFlow, sawEndFlow, sawReturnFlow, sawLocals, sawNextContainer,
 		)
 	}
-
-	expanded := ast.ExpandStore(file.ParseRoot(), file.ParseOptions(), file.Text())
-	expandedByLocation := make(map[nodeLocation]*ast.Node)
-	walkNodes(expanded, func(node *ast.Node) {
-		expandedByLocation[nodeLocation{kind: node.Kind, pos: node.Pos(), end: node.End()}] = node
-	})
-	ast.Walk(file.ParseRoot(), func(h ast.Handle) bool {
-		original := file.NodeFor(h.Ref())
-		node := expandedByLocation[nodeLocation{kind: original.Kind, pos: original.Pos(), end: original.End()}]
-		if node == nil {
-			t.Fatalf("expanded tree is missing %s at %d:%d", original.Kind, original.Pos(), original.End())
-		}
-		var nodeFlow *ast.FlowNode
-		if flow := node.FlowNodeData(); flow != nil {
-			nodeFlow = flow.FlowNode
-		}
-		if node.Symbol() != h.Symbol() || node.LocalSymbol() != h.LocalSymbol() || nodeFlow != h.FlowNode() {
-			t.Fatal("expanded node lost Symbol, LocalSymbol, or FlowNode")
-		}
-		if body := node.BodyData(); body != nil && body.EndFlowNode != h.EndFlowNode() {
-			t.Fatal("expanded node lost EndFlowNode")
-		}
-		if locals := node.LocalsContainerData(); locals != nil {
-			if !sameSymbolTable(locals.Locals, h.Locals()) {
-				t.Fatal("expanded node lost Locals")
-			}
-			if h.NextContainer().Ref() != 0 && (locals.NextContainer == nil || locals.NextContainer.Kind != h.NextContainer().Kind()) {
-				t.Fatal("expanded node lost NextContainer")
-			}
-		}
-		return false
-	})
-}
-
-type nodeLocation struct {
-	kind     ast.Kind
-	pos, end int
-}
-
-func walkNodes(node *ast.Node, visit func(*ast.Node)) {
-	if node == nil {
-		return
-	}
-	visit(node)
-	node.ForEachChild(func(child *ast.Node) bool {
-		walkNodes(child, visit)
-		return false
-	})
 }
 
 func sameSymbolTable(left, right ast.SymbolTable) bool {
