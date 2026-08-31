@@ -69,7 +69,7 @@ Doctor is read-only. It fails unless:
 - `built/local/tsc --version` stdout is `Version ` followed by the string in
   `tsc/internal/core/version.go`
 - `built/local/tsc --help` stdout contains `tsc: The TypeScript Compiler`
-- the recorded git SHA in the run state matches `git rev-parse HEAD`
+- if a launch state file exists, its git SHA matches `git rev-parse HEAD`
 
 Never drive a binary from another worktree, another checkout, or `PATH`.
 
@@ -101,10 +101,12 @@ Rules:
   relying on a hidden cwd tsconfig.
 - Stable handles are compiler flags and paths: `--noEmit`, `--declaration`,
   `--outDir`, `-p`, `--init`. Do not drive by terminal coordinates.
-- Exit 0 means success. Exit 1 means diagnostics and skipped emit
-  (`ExitStatusDiagnosticsPresent_OutputsSkipped`). Exit 2 means diagnostics
-  with emit (`ExitStatusDiagnosticsPresent_OutputsGenerated`). Treat an
-  unexpected 0 on a known-bad file as failure.
+- Exit 0 means success. Nonzero means diagnostics: `1` is skipped emit
+  (`ExitStatusDiagnosticsPresent_OutputsSkipped`) and `2` is diagnostics
+  with emit (`ExitStatusDiagnosticsPresent_OutputsGenerated`). `--noEmit`
+  on a known type error is still a passing proof when the text contains
+  `error TS` and the exit is nonzero; do not require a specific `1` vs `2`.
+  Treat an unexpected 0 on a known-bad file as failure.
 - Refuse `--watch` unless the feature file says to use it. Watch is a
   long-running PTY; record its PID in scratch and kill that PID in cleanup.
 - Concurrent drives are safe when each uses its own scratch `outDir`. Do not

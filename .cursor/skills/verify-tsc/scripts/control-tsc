@@ -409,8 +409,22 @@ cmd_cli() {
     echo "started_unix=$start"
   } >"$art/meta.txt"
 
-  if [[ -d "$cwd" ]]; then
-    (cd "$cwd" && find . -type f \( -name '*.js' -o -name '*.d.ts' -o -name '*.tsbuildinfo' -o -name 'tsconfig.json' \) | sort) >"$art/outputs.txt" || true
+  : >"$art/outputs.txt"
+  if [[ -d "$SCRATCH" && "$SCRATCH" == /tmp/verify-tsc-* ]]; then
+    (
+      cd "$SCRATCH"
+      find . -type f \( -name '*.js' -o -name '*.d.ts' -o -name '*.tsbuildinfo' \) | sort
+    ) >"$art/outputs.txt" || true
+    mkdir -p "$art/emit"
+    while IFS= read -r rel; do
+      [[ -n "$rel" ]] || continue
+      case "$rel" in
+        *.tsbuildinfo) continue ;;
+      esac
+      local dest="$art/emit/${rel#./}"
+      mkdir -p "$(dirname "$dest")"
+      head -n 40 "$SCRATCH/$rel" >"$dest" || true
+    done <"$art/outputs.txt"
   fi
 
   echo "ARTIFACT=$art"

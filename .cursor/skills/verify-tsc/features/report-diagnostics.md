@@ -26,12 +26,13 @@ Preconditions:
 - **Create fixture.** Run `control-tsc fixture report-diagnostics`.
   `src/index.ts` contains `const x: number = "hello";` and tsconfig sets
   `"strict": true` and `"noEmit": true`.
-- **Type error.** Run `control-tsc cli -- -p /tmp/verify-tsc-$VERIFY_TSC_RUN_ID/report-diagnostics --noEmit`. Exit code is `1`. stdout or stderr contains `error TS` and `not assignable`.
+- **Type error.** Run `control-tsc cli -- -p /tmp/verify-tsc-$VERIFY_TSC_RUN_ID/report-diagnostics --noEmit`. Exit code is nonzero (`1` if emit was skipped, `2` if the compiler still classified outputs as generated). stdout or stderr contains `error TS` and `not assignable`.
 - **No output files.** Confirm the fixture has no new `.js`.
 - **Missing project.** Run `control-tsc cli -- -p /tmp/verify-tsc-$VERIFY_TSC_RUN_ID/does-not-exist`. Exit code is `1`. Output mentions that the specified path does not exist or that `tsconfig.json` cannot be found.
 - **Mixed -p and files.** Run `control-tsc cli -- -p /tmp/verify-tsc-$VERIFY_TSC_RUN_ID/report-diagnostics /tmp/verify-tsc-$VERIFY_TSC_RUN_ID/report-diagnostics/src/index.ts`. Exit code is `1`. Output says option `project` cannot be mixed with source files.
-- **Proof.** Keep the transcript that shows the type error text and exit `1`.
-  Exit `0` on this fixture is a failed proof, even if tests elsewhere pass.
+- **Proof.** Keep the transcript that shows the type error text and a
+  nonzero exit. Exit `0` on this fixture is a failed proof, even if tests
+  elsewhere pass.
 
 ## Gotchas
 
