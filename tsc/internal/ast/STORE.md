@@ -309,7 +309,7 @@ The reviewable microsoft diff should be packed `nodeHeader` / `Handle` / `NodeRe
 | Id | Branch | SHA | Role |
 | --- | --- | --- | --- |
 | 6 | `cursor/store-pr-6-a9c9` | compiler `049214aa25`, receipts `b1077b1663` | Frozen emit; GitHub `#6` vs `store-pr-5` |
-| 7 | `cursor/store-pr-6b-native-parse-a9c9` | `e696a835b3` | One-shot Store compile path. GitHub `#7` vs `#6`. Still contains native parse **and** materialize; delete both extra parser and materialize here |
+| 7 | `cursor/store-pr-6b-native-parse-a9c9` | branch HEAD | One-shot Store compile path. GitHub `#7` vs `#6`. Still contains native parse **and** materialize; delete both extra parser and materialize here |
 | 8 | not opened | | e2e, diagnostic equality, 1.05× trunk |
 | 9 | not opened | | leftover LS/format `*Node` if PR-7 left any |
 | 10 | not opened | | microsoft/TypeScript PR citing PR-8 receipts |
