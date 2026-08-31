@@ -12,10 +12,13 @@ func walk(n ast.Handle, e ast.Handle, id ast.Handle, list *ast.NodeList, file *a
 		_ = n.Flags
 		_ = n.Parent
 		_ = n.Loc
+		_ = e.Kind
 		_ = n.AsParameterDeclaration()
 	}
+	_ = (ast.Handle).IsJSDoc
+	_ = (ast.Handle).IsJSDoc
 	n.Flags |= 1
-	n.Parent = e
+	n.Parent = n
 	var mapper TypeMapper
 	_ = mapper.Kind()
 	var s ast.Symbol
@@ -30,4 +33,15 @@ func walk(n ast.Handle, e ast.Handle, id ast.Handle, list *ast.NodeList, file *a
 		return nil
 	}
 	return n
+}
+
+func walkExpr(e ast.Handle) ast.Handle {
+	if e == nil {
+		return nil
+	}
+	_ = e.Kind
+	_ = e.Flags
+	_ = e.Parent
+	_ = e.Loc
+	return e
 }

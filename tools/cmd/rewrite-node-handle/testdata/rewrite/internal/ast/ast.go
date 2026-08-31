@@ -13,14 +13,15 @@ type Node struct {
 	Parent *Node
 }
 
-type IdentifierNode = Node
-type Expression = Node
+type IdentifierNode = Handle
+type Expression = Handle
 
 type NodeList struct{}
 type SourceFile struct{}
 type ParameterDeclaration struct{}
 
 func (n *Node) AsParameterDeclaration() *ParameterDeclaration { return nil }
+func (n *Node) IsJSDoc() bool                                 { return false }
 
 type Handle struct{}
 
@@ -35,6 +36,7 @@ func (h Handle) SetLoc(TextRange)   {}
 func (h Handle) AsParameterDeclaration() *ParameterDeclaration {
 	return nil
 }
+func (h Handle) IsJSDoc() bool { return false }
 
 type Symbol struct {
 	Flags  SymbolFlags

@@ -197,6 +197,9 @@ func (r *rewriter) rewriteFile(pkg *packages.Package, file *ast.File) ([]byte, i
 	r.compLits = r.compLits[:0]
 	r.edits = 0
 	astutil.Apply(file, r.pre, r.post)
+	if r.edits > 0 {
+		stripFuncListClosing(file)
+	}
 	var buf bytes.Buffer
 	if err := format.Node(&buf, r.fset, file); err != nil {
 		return nil, 0, err
@@ -225,7 +228,7 @@ func (r *rewriter) pre(c *astutil.Cursor) bool {
 		r.compLits = append(r.compLits, n)
 	case *ast.StarExpr:
 		if isAstNodePointer(r.info.TypeOf(n)) {
-			c.Replace(r.handleIdent())
+			c.Replace(r.handleIdentAt(n.Pos()))
 			r.edits++
 			return false
 		}
@@ -242,12 +245,15 @@ func (r *rewriter) pre(c *astutil.Cursor) bool {
 		}
 		if tv, ok := r.info.Types[n.Fun]; ok && tv.IsType() && isAstNodePointer(tv.Type) {
 			if len(n.Args) == 1 && isNilIdent(n.Args[0]) {
-				c.Replace(r.handleLit())
+				c.Replace(r.handleLitAt(n.Pos()))
 				r.edits++
 				return false
 			}
 		}
 	case *ast.SelectorExpr:
+		if r.rewriteTypeName(c, n) {
+			return false
+		}
 		if r.typesOnly {
 			return true
 		}
@@ -262,6 +268,9 @@ func (r *rewriter) pre(c *astutil.Cursor) bool {
 			return false
 		}
 	case *ast.Ident:
+		if r.rewriteTypeName(c, n) {
+			return false
+		}
 		if r.typesOnly || n.Name != "nil" {
 			return true
 		}
@@ -300,7 +309,7 @@ func (r *rewriter) rewriteAssign(c *astutil.Cursor, as *ast.AssignStmt) bool {
 	if !ok || skipAsXxx(sel) {
 		return false
 	}
-	if !isAstNodePointer(r.info.TypeOf(sel.X)) {
+	if !isAstNodeLike(r.info.TypeOf(sel.X)) {
 		return false
 	}
 	setter, ok := nodeSetters[sel.Sel.Name]
@@ -311,7 +320,7 @@ func (r *rewriter) rewriteAssign(c *astutil.Cursor, as *ast.AssignStmt) bool {
 	fun := &ast.SelectorExpr{X: recv, Sel: ast.NewIdent(setter)}
 	arg := as.Rhs[0]
 	if isNilIdent(arg) && setter == "SetParent" {
-		arg = r.handleLit()
+		arg = r.handleLitAt(arg.Pos())
 	}
 	if as.Tok != token.ASSIGN {
 		op, ok := assignToBinary[as.Tok]
@@ -339,6 +348,19 @@ var assignToBinary = map[token.Token]token.Token{
 	token.SUB_ASSIGN: token.SUB,
 }
 
+func (r *rewriter) rewriteTypeName(c *astutil.Cursor, n ast.Expr) bool {
+	tv, ok := r.info.Types[n]
+	if !ok || !tv.IsType() || !isAstNode(tv.Type) {
+		return false
+	}
+	if _, ok := c.Parent().(*ast.StarExpr); ok {
+		return false
+	}
+	c.Replace(r.handleIdentAt(n.Pos()))
+	r.edits++
+	return true
+}
+
 func (r *rewriter) rewriteSelector(c *astutil.Cursor, sel *ast.SelectorExpr) bool {
 	if skipAsXxx(sel) {
 		return false
@@ -347,16 +369,27 @@ func (r *rewriter) rewriteSelector(c *astutil.Cursor, sel *ast.SelectorExpr) boo
 	if name != "Kind" && name != "Flags" && name != "Parent" && name != "Loc" {
 		return false
 	}
+	if !isAstNodeLike(r.info.TypeOf(sel.X)) {
+		return false
+	}
 	seln, ok := r.info.Selections[sel]
-	if !ok || seln.Kind() != types.FieldVal {
+	if !ok {
 		return false
 	}
-	if !isAstNodePointer(r.info.TypeOf(sel.X)) {
-		return false
+	switch seln.Kind() {
+	case types.FieldVal:
+		c.Replace(&ast.CallExpr{Fun: sel})
+		r.edits++
+		return true
+	case types.MethodVal:
+		if p, ok := c.Parent().(*ast.CallExpr); ok && p.Fun == sel {
+			return false
+		}
+		c.Replace(&ast.CallExpr{Fun: sel})
+		r.edits++
+		return true
 	}
-	c.Replace(&ast.CallExpr{Fun: sel})
-	r.edits++
-	return true
+	return false
 }
 
 func (r *rewriter) rewriteNilCompare(c *astutil.Cursor, bin *ast.BinaryExpr) bool {
@@ -365,9 +398,9 @@ func (r *rewriter) rewriteNilCompare(c *astutil.Cursor, bin *ast.BinaryExpr) boo
 	}
 	var node ast.Expr
 	switch {
-	case isNilIdent(bin.Y) && isAstNodePointer(r.info.TypeOf(bin.X)):
+	case isNilIdent(bin.Y) && isAstNodeLike(r.info.TypeOf(bin.X)):
 		node = bin.X
-	case isNilIdent(bin.X) && isAstNodePointer(r.info.TypeOf(bin.Y)):
+	case isNilIdent(bin.X) && isAstNodeLike(r.info.TypeOf(bin.Y)):
 		node = bin.Y
 	default:
 		return false
@@ -385,8 +418,8 @@ func (r *rewriter) rewriteNilCompare(c *astutil.Cursor, bin *ast.BinaryExpr) boo
 }
 
 func (r *rewriter) rewriteNilValue(c *astutil.Cursor, n *ast.Ident) bool {
-	if expected, ok := r.nilExpectedType(c, n); ok && isAstNodePointer(expected) {
-		c.Replace(r.handleLit())
+	if expected, ok := r.nilExpectedType(c, n); ok && isAstNodeLike(expected) {
+		c.Replace(r.handleLitAt(n.Pos()))
 		r.edits++
 		return true
 	}
@@ -484,18 +517,36 @@ func compositeElemType(t types.Type) types.Type {
 	return nil
 }
 
-func (r *rewriter) handleIdent() ast.Expr {
-	if r.astName == "." {
-		return ast.NewIdent("Handle")
+func (r *rewriter) handleIdentAt(pos token.Pos) ast.Expr {
+	if r.astName == "." || r.astName == "" {
+		id := ast.NewIdent("Handle")
+		id.NamePos = pos
+		return id
 	}
-	if r.astName == "" {
-		return ast.NewIdent("Handle")
+	return &ast.SelectorExpr{
+		X:   &ast.Ident{NamePos: pos, Name: r.astName},
+		Sel: ast.NewIdent("Handle"),
 	}
-	return &ast.SelectorExpr{X: ast.NewIdent(r.astName), Sel: ast.NewIdent("Handle")}
 }
 
-func (r *rewriter) handleLit() ast.Expr {
-	return &ast.CompositeLit{Type: r.handleIdent()}
+func (r *rewriter) handleLitAt(pos token.Pos) ast.Expr {
+	return &ast.CompositeLit{Type: r.handleIdentAt(pos)}
+}
+
+func stripFuncListClosing(file *ast.File) {
+	ast.Inspect(file, func(n ast.Node) bool {
+		ft, ok := n.(*ast.FuncType)
+		if !ok {
+			return true
+		}
+		if ft.Params != nil {
+			ft.Params.Closing = token.NoPos
+		}
+		if ft.Results != nil {
+			ft.Results.Closing = token.NoPos
+		}
+		return true
+	})
 }
 
 func skipAsXxx(sel *ast.SelectorExpr) bool {
@@ -538,6 +589,17 @@ func isAstNodePointer(t types.Type) bool {
 	return isAstNode(p.Elem())
 }
 
+func isAstNodeLike(t types.Type) bool {
+	if t == nil {
+		return false
+	}
+	t = types.Unalias(t)
+	if isAstNode(t) {
+		return true
+	}
+	return isAstNodePointer(t)
+}
+
 func isAstNode(t types.Type) bool {
 	if t == nil {
 		return false
@@ -548,7 +610,14 @@ func isAstNode(t types.Type) bool {
 		return false
 	}
 	obj := n.Obj()
-	return obj != nil && obj.Name() == "Node" && isAstPkg(obj.Pkg())
+	if obj == nil || !isAstPkg(obj.Pkg()) {
+		return false
+	}
+	switch obj.Name() {
+	case "Node", "Handle":
+		return true
+	}
+	return false
 }
 
 func astImportName(file *ast.File) string {
