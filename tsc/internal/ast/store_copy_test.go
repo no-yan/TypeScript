@@ -35,10 +35,12 @@ func TestFactoryCopySubtree(t *testing.T) {
 	copied.SetParentsInChildren()
 	assert.Equal(t, copied.Ref(), copied.Left().Parent().Ref())
 
+	ast.RegisterStore(parse.Store())
+	ast.RegisterStore(emit.Store())
 	copied.SetChild(0, left)
 	got := copied.Child(0)
-	assert.Equal(t, emit.Store(), got.Store())
-	assert.Assert(t, got.Store() != left.Store())
+	assert.Equal(t, left.Store(), got.Store())
+	assert.Equal(t, left.Ref(), got.Ref())
 	assert.Equal(t, "a", got.Text())
 }
 

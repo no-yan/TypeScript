@@ -78,9 +78,10 @@ type Store struct {
 	scalarValues  map[uint64]uint64 // packed NodeRef/value-slot key; pointer-free
 	stringValues  map[uint64]uint32 // intern ids keyed by NodeRef/value-slot
 	objectValues  map[uint64]any    // sparse pointer/slice kind-specific values
-	externalChild map[uint64]GlobalRef
-	externalList  map[uint64]GlobalRef
-	sourceFile    *SourceFile // metadata owner; SourceFile fields stay outside Store
+	externalChild  map[uint64]GlobalRef
+	externalList   map[uint64]GlobalRef
+	externalParent map[NodeRef]GlobalRef
+	sourceFile     *SourceFile // metadata owner; SourceFile fields stay outside Store
 }
 
 func NewStore(hint int) *Store {
@@ -283,7 +284,13 @@ func (s *Store) ListAt(list ListRef, i int) Handle {
 	if i < 0 || i >= int(l.len) {
 		panic("ast: list index out of range")
 	}
-	return Handle{s: s, id: s.children[int(l.start)+i]}
+	if id := s.children[int(l.start)+i]; id != 0 {
+		return Handle{s: s, id: id}
+	}
+	if g := s.ExternalListAt(list, i); g != 0 {
+		return NodeOf(g)
+	}
+	return Handle{}
 }
 
 func (s *Store) ListHasTrailingComma(list ListRef) bool {
@@ -646,12 +653,32 @@ func (h Handle) Parent() Handle {
 	if h.id == 0 || h.s == nil {
 		return Handle{}
 	}
-	return Handle{s: h.s, id: h.s.nodes[h.id].parent}
+	if id := h.s.nodes[h.id].parent; id != 0 {
+		return Handle{s: h.s, id: id}
+	}
+	if g := h.s.externalParent[h.id]; g != 0 {
+		return NodeOf(g)
+	}
+	return Handle{}
 }
 
 func (h Handle) SetParent(p Handle) {
 	h.mustLive()
-	h.s.nodes[h.id].parent = h.refInStore(p)
+	if p.id == 0 || p.s == nil {
+		h.s.nodes[h.id].parent = 0
+		delete(h.s.externalParent, h.id)
+		return
+	}
+	if p.s == h.s {
+		delete(h.s.externalParent, h.id)
+		h.s.nodes[h.id].parent = p.id
+		return
+	}
+	h.s.nodes[h.id].parent = 0
+	if h.s.externalParent == nil {
+		h.s.externalParent = make(map[NodeRef]GlobalRef)
+	}
+	h.s.externalParent[h.id] = p.Global()
 }
 
 func (h Handle) NumChildren() int {
@@ -667,7 +694,13 @@ func (h Handle) Child(i int) Handle {
 	if i < 0 || i >= int(n.childLen) {
 		panic("ast: child index out of range")
 	}
-	return Handle{s: h.s, id: h.s.children[int(n.childStart)+i]}
+	if id := h.s.children[int(n.childStart)+i]; id != 0 {
+		return Handle{s: h.s, id: id}
+	}
+	if g := h.ExternalChild(i); g != 0 {
+		return NodeOf(g)
+	}
+	return Handle{}
 }
 
 func (h Handle) SetChild(i int, c Handle) {
@@ -676,7 +709,19 @@ func (h Handle) SetChild(i int, c Handle) {
 	if i < 0 || i >= int(n.childLen) {
 		panic("ast: child index out of range")
 	}
-	h.s.children[int(n.childStart)+i] = h.refInStore(c)
+	slot := int(n.childStart) + i
+	if c.id == 0 || c.s == nil {
+		h.s.children[slot] = 0
+		h.SetExternalChild(i, 0)
+		return
+	}
+	if c.s == h.s {
+		h.SetExternalChild(i, 0)
+		h.s.children[slot] = c.id
+		return
+	}
+	h.s.children[slot] = 0
+	h.SetExternalChild(i, c.Global())
 }
 
 func (h Handle) SetExternalChild(i int, child GlobalRef) {
@@ -860,11 +905,11 @@ func (h Handle) ForEachChild(v StoreVisitor) bool {
 	}
 	n := &h.s.nodes[h.id]
 	for i := range int(n.childLen) {
-		ref := h.s.children[int(n.childStart)+i]
-		if ref == 0 {
+		c := h.Child(i)
+		if c.IsNil() {
 			continue
 		}
-		if v(Handle{s: h.s, id: ref}) {
+		if v(c) {
 			return true
 		}
 	}
@@ -873,13 +918,12 @@ func (h Handle) ForEachChild(v StoreVisitor) bool {
 		if list == 0 {
 			continue
 		}
-		l := &h.s.lists[list]
-		for i := range int(l.len) {
-			ref := h.s.children[int(l.start)+i]
-			if ref == 0 {
+		for i := range h.s.ListLen(list) {
+			c := h.s.ListAt(list, i)
+			if c.IsNil() {
 				continue
 			}
-			if v(Handle{s: h.s, id: ref}) {
+			if v(c) {
 				return true
 			}
 		}
@@ -907,6 +951,9 @@ func (h Handle) SetParentsInChildren() {
 		return
 	}
 	h.ForEachChild(func(c Handle) bool {
+		if c.Store() != h.Store() {
+			return false
+		}
 		c.SetParent(h)
 		c.SetParentsInChildren()
 		return false

@@ -55,6 +55,9 @@ func (f *Factory) Finish(h Handle, loc core.TextRange) Handle {
 	}
 	h.SetLoc(loc)
 	h.ForEachChild(func(child Handle) bool {
+		if child.Store() != h.Store() {
+			return false
+		}
 		child.SetParent(h)
 		return false
 	})
