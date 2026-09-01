@@ -619,6 +619,9 @@ func (p *Program) BindSourceFiles() {
 	for _, file := range p.files {
 		wg.Queue(func() {
 			file.WarmJSDoc()
+			if s := file.ParseStore(); s != nil {
+				s.SealForCheck()
+			}
 		})
 	}
 	wg.RunAndWait()

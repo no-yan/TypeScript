@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"sync"
 	"sync/atomic"
 	"unsafe"
 
@@ -48,12 +49,13 @@ type listHeader struct {
 	len   uint32
 }
 
-// Store owns the long-lived tree. A Store has one writer at a time and does
-// not synchronize its node, list, intern, or side-map mutations. Compiler
-// phases transfer exclusive ownership of a file's Store; parallel work must
-// write different Stores. Readers may run concurrently only while no writer
-// is active. NewFactoryOn does not relax this rule. Program.Emit is sequential
-// because declaration transform reads other files while this file AllocSlots.
+// Store owns the long-lived tree. Parse, bind, and JSDoc warmup write it
+// exclusively. SealForCheck then publishes the parse-time side maps as
+// immutable so parallel checkers can read other files while the owning
+// checker appends synthetics into the live maps. Live-map writes still
+// require the per-file writer lease; NewFactoryOn does not relax that.
+// Program.Emit is sequential because declaration transform reads other
+// files while this file AllocSlots.
 //
 // StoreSet is separately synchronized for cross-file registration and lookup.
 // After Seal, node/list/intern backing arrays are pointer-free (noscan).
@@ -82,7 +84,25 @@ type Store struct {
 	externalChild  map[uint64]GlobalRef
 	externalList   map[uint64]GlobalRef
 	externalParent map[NodeRef]GlobalRef
-	sourceFile     *SourceFile // metadata owner; SourceFile fields stay outside Store
+	// parse* maps are published by SealForCheck and then immutable.
+	// Live maps (the matching fields above) hold synthetics with id >= sealed.
+	// Tree edges (parent/child/list) stay on the original maps because emit
+	// reuses parse nodes. subtreeFacts caches parse-node SubtreeFacts without
+	// writing parseScalar.
+	sealed             NodeRef
+	sealOnce           sync.Once
+	parseSymbols       map[NodeRef]*Symbol
+	parseLocalSymbols  map[NodeRef]*Symbol
+	parseFlows         map[NodeRef]*FlowNode
+	parseEndFlows      map[NodeRef]*FlowNode
+	parseReturnFlows   map[NodeRef]*FlowNode
+	parseLocals        map[NodeRef]SymbolTable
+	parseNextContainer map[NodeRef]NodeRef
+	parseScalar        map[uint64]uint64
+	parseString        map[uint64]uint32
+	parseObject        map[uint64]any
+	subtreeFacts       []uint32
+	sourceFile         *SourceFile // metadata owner; SourceFile fields stay outside Store
 }
 
 func NewStore(hint int) *Store {
@@ -182,6 +202,61 @@ func (s *Store) Intern(text string) uint32 {
 
 func (s *Store) Seal() {
 	s.internIdx = nil
+}
+
+// SealForCheck publishes parse-time side maps as immutable. Bind and JSDoc
+// warmup must have finished. After this, writes to nodes allocated before the
+// seal panic; synthetics use the live maps. SubtreeFacts for sealed nodes
+// goes to subtreeFacts, not parseScalar.
+func (s *Store) SealForCheck() {
+	if s == nil {
+		return
+	}
+	s.sealOnce.Do(func() {
+		s.sealed = NodeRef(len(s.nodes))
+		s.parseSymbols, s.symbols = s.symbols, nil
+		s.parseLocalSymbols, s.localSymbols = s.localSymbols, nil
+		s.parseFlows, s.flows = s.flows, nil
+		s.parseEndFlows, s.endFlows = s.endFlows, nil
+		s.parseReturnFlows, s.returnFlows = s.returnFlows, nil
+		s.parseLocals, s.locals = s.locals, nil
+		s.parseNextContainer, s.nextContainer = s.nextContainer, nil
+		s.parseScalar, s.scalarValues = s.scalarValues, nil
+		s.parseString, s.stringValues = s.stringValues, nil
+		s.parseObject, s.objectValues = s.objectValues, nil
+		s.subtreeFacts = make([]uint32, len(s.nodes))
+	})
+}
+
+func (s *Store) isSealedID(id NodeRef) bool {
+	return s != nil && s.sealed != 0 && id < s.sealed
+}
+
+func (s *Store) mustMutate(id NodeRef) {
+	if s.isSealedID(id) {
+		panic("ast: write to sealed parse node")
+	}
+}
+
+func (s *Store) scalarMap(id NodeRef) map[uint64]uint64 {
+	if s.isSealedID(id) {
+		return s.parseScalar
+	}
+	return s.scalarValues
+}
+
+func (s *Store) stringMap(id NodeRef) map[uint64]uint32 {
+	if s.isSealedID(id) {
+		return s.parseString
+	}
+	return s.stringValues
+}
+
+func (s *Store) objectMap(id NodeRef) map[uint64]any {
+	if s.isSealedID(id) {
+		return s.parseObject
+	}
+	return s.objectValues
 }
 
 // StoreCheckpoint is a speculative-parse watermark. Restore truncates node,
@@ -366,6 +441,7 @@ func (s *Store) SetSymbol(ref NodeRef, sym *Symbol) {
 	if s == nil || ref == 0 {
 		return
 	}
+	s.mustMutate(ref)
 	if sym == nil {
 		delete(s.symbols, ref)
 		return
@@ -380,6 +456,9 @@ func (s *Store) Symbol(ref NodeRef) *Symbol {
 	if s == nil || ref == 0 {
 		return nil
 	}
+	if s.isSealedID(ref) {
+		return s.parseSymbols[ref]
+	}
 	return s.symbols[ref]
 }
 
@@ -387,6 +466,7 @@ func (s *Store) SetLocalSymbol(ref NodeRef, sym *Symbol) {
 	if s == nil || ref == 0 {
 		return
 	}
+	s.mustMutate(ref)
 	if sym == nil {
 		delete(s.localSymbols, ref)
 		return
@@ -401,6 +481,9 @@ func (s *Store) LocalSymbol(ref NodeRef) *Symbol {
 	if s == nil || ref == 0 {
 		return nil
 	}
+	if s.isSealedID(ref) {
+		return s.parseLocalSymbols[ref]
+	}
 	return s.localSymbols[ref]
 }
 
@@ -408,6 +491,7 @@ func (s *Store) SetFlow(ref NodeRef, flow *FlowNode) {
 	if s == nil || ref == 0 {
 		return
 	}
+	s.mustMutate(ref)
 	if flow == nil {
 		delete(s.flows, ref)
 		return
@@ -422,6 +506,9 @@ func (s *Store) Flow(ref NodeRef) *FlowNode {
 	if s == nil || ref == 0 {
 		return nil
 	}
+	if s.isSealedID(ref) {
+		return s.parseFlows[ref]
+	}
 	return s.flows[ref]
 }
 
@@ -429,6 +516,7 @@ func (s *Store) SetEndFlow(ref NodeRef, flow *FlowNode) {
 	if s == nil || ref == 0 {
 		return
 	}
+	s.mustMutate(ref)
 	if flow == nil {
 		delete(s.endFlows, ref)
 		return
@@ -443,6 +531,9 @@ func (s *Store) EndFlow(ref NodeRef) *FlowNode {
 	if s == nil || ref == 0 {
 		return nil
 	}
+	if s.isSealedID(ref) {
+		return s.parseEndFlows[ref]
+	}
 	return s.endFlows[ref]
 }
 
@@ -450,6 +541,7 @@ func (s *Store) SetReturnFlow(ref NodeRef, flow *FlowNode) {
 	if s == nil || ref == 0 {
 		return
 	}
+	s.mustMutate(ref)
 	if flow == nil {
 		delete(s.returnFlows, ref)
 		return
@@ -464,6 +556,9 @@ func (s *Store) ReturnFlow(ref NodeRef) *FlowNode {
 	if s == nil || ref == 0 {
 		return nil
 	}
+	if s.isSealedID(ref) {
+		return s.parseReturnFlows[ref]
+	}
 	return s.returnFlows[ref]
 }
 
@@ -471,6 +566,7 @@ func (s *Store) SetLocals(ref NodeRef, locals SymbolTable) {
 	if s == nil || ref == 0 {
 		return
 	}
+	s.mustMutate(ref)
 	if locals == nil {
 		delete(s.locals, ref)
 		return
@@ -485,6 +581,9 @@ func (s *Store) Locals(ref NodeRef) SymbolTable {
 	if s == nil || ref == 0 {
 		return nil
 	}
+	if s.isSealedID(ref) {
+		return s.parseLocals[ref]
+	}
 	return s.locals[ref]
 }
 
@@ -492,6 +591,7 @@ func (s *Store) SetNextContainer(ref NodeRef, next NodeRef) {
 	if s == nil || ref == 0 {
 		return
 	}
+	s.mustMutate(ref)
 	if next == 0 {
 		delete(s.nextContainer, ref)
 		return
@@ -506,6 +606,9 @@ func (s *Store) NextContainer(ref NodeRef) NodeRef {
 	if s == nil || ref == 0 {
 		return 0
 	}
+	if s.isSealedID(ref) {
+		return s.parseNextContainer[ref]
+	}
 	return s.nextContainer[ref]
 }
 
@@ -518,6 +621,7 @@ func (h Handle) valueKey(slot int) uint64 {
 }
 
 func (h Handle) SetUintValue(slot int, value uint64) {
+	h.s.mustMutate(h.id)
 	key := h.valueKey(slot)
 	if h.s.scalarValues == nil {
 		h.s.scalarValues = make(map[uint64]uint64, max(1, h.s.allocHint/16))
@@ -526,10 +630,11 @@ func (h Handle) SetUintValue(slot int, value uint64) {
 }
 
 func (h Handle) UintValue(slot int) uint64 {
-	return h.s.scalarValues[h.valueKey(slot)]
+	return h.s.scalarMap(h.id)[h.valueKey(slot)]
 }
 
 func (h Handle) SetStringValue(slot int, value string) {
+	h.s.mustMutate(h.id)
 	key := h.valueKey(slot)
 	if value == "" {
 		if primaryStringSlot(h.Kind()) == slot {
@@ -552,7 +657,7 @@ func (h Handle) StringValue(slot int) string {
 	if primaryStringSlot(h.Kind()) == slot {
 		return h.Ident()
 	}
-	id := h.s.stringValues[h.valueKey(slot)]
+	id := h.s.stringMap(h.id)[h.valueKey(slot)]
 	if id == 0 {
 		return ""
 	}
@@ -560,6 +665,7 @@ func (h Handle) StringValue(slot int) string {
 }
 
 func (h Handle) SetObjectValue(slot int, value any) {
+	h.s.mustMutate(h.id)
 	key := h.valueKey(slot)
 	if value == nil {
 		delete(h.s.objectValues, key)
@@ -573,7 +679,7 @@ func (h Handle) SetObjectValue(slot int, value any) {
 
 func storeObjectValue[T any](h Handle, slot int) T {
 	var zero T
-	value := h.s.objectValues[h.valueKey(slot)]
+	value := h.s.objectMap(h.id)[h.valueKey(slot)]
 	if value == nil {
 		return zero
 	}

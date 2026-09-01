@@ -75,12 +75,13 @@ Parse builds a Store. `Seal` drops the intern map only. Binder writes flags and 
 
 ## Concurrency
 
-A `Store` is single-writer. Parse, bind, check, and emit transfer exclusive
-ownership of a file's Store in phase order; readers may overlap only while no
-phase is mutating it. Concurrent parsers and checker workers may write
-different file Stores. `NewFactoryOn` means "append under the current phase's
-ownership", not that two factories may append concurrently. This keeps locks
-out of the per-node allocation and access path.
+A `Store` is single-writer during parse, bind, and JSDoc warmup. `SealForCheck`
+then publishes parse/bind side maps as immutable so parallel checkers can read
+other files while the owning checker appends synthetics into live maps. Parse
+`SubtreeFacts` use a dedicated column, not a write into the frozen scalar map.
+Tree edges stay on the original maps because emit reuses parse nodes.
+`NewFactoryOn` means "append under the current phase's ownership", not that
+two factories may append concurrently.
 
 `StoreSet` is the synchronized cross-file identity and metadata index, and a
 Store ID is published atomically. SourceFile's pointer↔`NodeRef` bridge is

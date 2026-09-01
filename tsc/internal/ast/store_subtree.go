@@ -1,10 +1,21 @@
 package ast
 
+import "sync/atomic"
+
 const valueSlotSubtreeFactsCache = 31
 
 func (h Handle) SubtreeFacts() SubtreeFacts {
 	if h.IsNil() {
 		return SubtreeFactsNone
+	}
+	if h.s.isSealedID(h.id) {
+		cached := atomic.LoadUint32(&h.s.subtreeFacts[h.id])
+		if SubtreeFacts(cached)&SubtreeFactsComputed != 0 {
+			return SubtreeFacts(cached) &^ SubtreeFactsComputed
+		}
+		facts := h.computeSubtreeFacts()
+		atomic.StoreUint32(&h.s.subtreeFacts[h.id], uint32(facts|SubtreeFactsComputed))
+		return facts
 	}
 	cached := h.UintValue(valueSlotSubtreeFactsCache)
 	if SubtreeFacts(cached)&SubtreeFactsComputed != 0 {
