@@ -2994,10 +2994,13 @@ func (node *SourceFile) SetHasLazyJSDoc(lazy bool) {
 }
 
 func (node *SourceFile) WarmJSDoc() {
-	if node == nil || !node.hasLazyJSDoc {
+	if node == nil {
 		return
 	}
 	node.jsdocWarmOnce.Do(func() {
+		if !node.hasLazyJSDoc {
+			return
+		}
 		unlock := node.LockParseStoreWriter()
 		defer unlock()
 		if parseJSDocForNode == nil {
