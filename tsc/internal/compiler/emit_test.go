@@ -343,3 +343,26 @@ func TestJsTypedefCommentPreservedInDts(t *testing.T) {
 	assert.Assert(t, strings.Contains(dts, "export type MyNominal"), "dts should emit the typedef alias, got:\n%s", dts)
 	assert.Assert(t, strings.Contains(dts, "@typedef"), "dts should keep the source @typedef comment, got:\n%s", dts)
 }
+
+func TestDeprecatedJSDocDoesNotPanicAcrossFiles(t *testing.T) {
+	t.Parallel()
+	if !bundled.Embedded {
+		t.Skip("bundled files are not embedded")
+	}
+
+	fs := bundled.WrapFS(vfstest.FromMap(map[string]string{
+		"/a.ts": "/** @deprecated */ export const x = 1;\n",
+		"/b.ts": "import { x } from \"./a\"; export const y = x;\n",
+		"/tsconfig.json": `{
+			"compilerOptions": { "skipLibCheck": true },
+			"files": ["a.ts", "b.ts"]
+		}`,
+	}, true))
+	host := compiler.NewCompilerHost("/", fs, bundled.LibPath(), nil, nil, nil)
+	parsed, errors := tsoptions.GetParsedCommandLineOfConfigFile("/tsconfig.json", &core.CompilerOptions{}, nil, host, nil)
+	assert.Equal(t, 0, len(errors))
+
+	p := compiler.NewProgram(compiler.ProgramOptions{Config: parsed, Host: host})
+	_ = p.GetSemanticDiagnostics(t.Context(), p.GetSourceFile("/a.ts"))
+	_ = p.GetSemanticDiagnostics(t.Context(), p.GetSourceFile("/b.ts"))
+}

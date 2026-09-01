@@ -441,6 +441,16 @@ func TestJSDocTypeCastDoesNotErrorInJavaScript(t *testing.T) {
 	assert.Assert(t, ast.IsJSDocTypeAssertion(init))
 }
 
+func TestJSDocDeprecatedTagParses(t *testing.T) {
+	t.Parallel()
+	sourceText := "/** @deprecated */ export const x = 1;\n"
+	file := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: "/index.ts", Path: "/index.ts"}, sourceText, core.ScriptKindTS)
+	file.WarmJSDoc()
+	stmt := file.ParseRoot().Statements()[0]
+	tag := ast.GetJSDocDeprecatedTag(stmt)
+	assert.Assert(t, !tag.IsNil(), "expected @deprecated tag on the export")
+}
+
 func TestSourceFilePositionMapWithNonASCIIStringLiteral(t *testing.T) {
 	t.Parallel()
 	sourceText := `const x = "─";

@@ -2591,6 +2591,7 @@ type SourceFile struct {
 	jsdocCache                  map[*Node][]*Node
 	jsdocHandleCache            map[Handle][]Handle
 	jsdocMu                     sync.RWMutex
+	jsdocWarmOnce               sync.Once
 	hasLazyJSDoc                bool
 	identifiersOnce             sync.Once
 	identifiers                 collections.Set[string]
@@ -2992,6 +2993,35 @@ func (node *SourceFile) SetHasLazyJSDoc(lazy bool) {
 	node.hasLazyJSDoc = lazy
 }
 
+func (node *SourceFile) WarmJSDoc() {
+	if node == nil || !node.hasLazyJSDoc {
+		return
+	}
+	node.jsdocWarmOnce.Do(func() {
+		unlock := node.LockParseStoreWriter()
+		defer unlock()
+		if parseJSDocForNode == nil {
+			node.hasLazyJSDoc = false
+			return
+		}
+		var walk func(Handle)
+		walk = func(h Handle) {
+			if h.IsNil() {
+				return
+			}
+			if h.Flags()&NodeFlagsHasJSDoc != 0 {
+				node.CacheJSDocHandles(h, parseJSDocForNode(node, h))
+			}
+			h.ForEachChild(func(c Handle) bool {
+				walk(c)
+				return false
+			})
+		}
+		walk(node.ParseRoot())
+		node.hasLazyJSDoc = false
+	})
+}
+
 func (node *SourceFile) resolveJSDoc(n *Node) []*Node {
 	return nil
 }
@@ -3017,7 +3047,6 @@ func (node *SourceFile) IsJS() bool {
 }
 
 func (node *SourceFile) copyFrom(other *SourceFile) {
-	// Do not copy fields set by NewSourceFile (Text, FileName, Path, or Statements)
 	if other.contentMapperInfo != nil {
 		node.SetContentMapperInfo(*other.contentMapperInfo)
 	}
