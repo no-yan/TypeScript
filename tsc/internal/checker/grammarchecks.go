@@ -568,9 +568,12 @@ func (c *Checker) checkGrammarAsyncModifier(node ast.Handle, asyncModifier ast.H
 	}
 	return c.grammarErrorOnNode(asyncModifier, diagnostics.X_0_modifier_cannot_be_used_here, "async")
 }
-func (c *Checker) checkGrammarForDisallowedTrailingComma(list ast.ListRef, diag *diagnostics.Message) bool {
-	if list != 0 && c.currentNode.Store().ListHasTrailingComma(list) {
-		return c.grammarErrorAtPos(c.currentNode.Store().ListAt(list, 0), c.currentNode.Store().ListLoc(list).End()-len(","), len(","), diag)
+func (c *Checker) checkGrammarForDisallowedTrailingComma(store *ast.Store, list ast.ListRef, diag *diagnostics.Message) bool {
+	if store == nil || list == 0 {
+		return false
+	}
+	if store.ListHasTrailingComma(list) {
+		return c.grammarErrorAtPos(store.ListAt(list, 0), store.ListLoc(list).End()-len(","), len(","), diag)
 	}
 	return false
 }
@@ -582,17 +585,20 @@ func (c *Checker) checkGrammarTypeParameterList(typeParameters ast.ListRef, file
 	}
 	return false
 }
-func (c *Checker) checkGrammarParameterList(parameters ast.ListRef) bool {
+func (c *Checker) checkGrammarParameterList(store *ast.Store, parameters ast.ListRef) bool {
+	if store == nil {
+		return false
+	}
 	seenOptionalParameter := false
-	parameterCount := c.currentNode.Store().ListLen(parameters)
+	parameterCount := store.ListLen(parameters)
 	for i := range parameterCount {
-		parameter := c.currentNode.Store().ListAt(parameters, i)
+		parameter := store.ListAt(parameters, i)
 		if !parameter.DotDotDotToken().IsNil() {
 			if i != parameterCount-1 {
 				return c.grammarErrorOnNode(parameter.DotDotDotToken(), diagnostics.A_rest_parameter_must_be_last_in_a_parameter_list)
 			}
 			if parameter.Flags()&ast.NodeFlagsAmbient == 0 {
-				c.checkGrammarForDisallowedTrailingComma(parameters, diagnostics.A_rest_parameter_or_binding_pattern_may_not_have_a_trailing_comma)
+				c.checkGrammarForDisallowedTrailingComma(store, parameters, diagnostics.A_rest_parameter_or_binding_pattern_may_not_have_a_trailing_comma)
 			}
 			if !parameter.QuestionToken().IsNil() {
 				return c.grammarErrorOnNode(parameter.QuestionToken(), diagnostics.A_rest_parameter_cannot_be_optional)
@@ -646,7 +652,7 @@ func (c *Checker) checkGrammarForUseStrictSimpleParameterList(node ast.Handle) b
 }
 func (c *Checker) checkGrammarFunctionLikeDeclaration(node ast.Handle) bool {
 	file := ast.GetSourceFileOfNode(node)
-	return c.checkGrammarModifiers(node) || c.checkGrammarTypeParameterList(node.TypeParameterList(), file) || c.checkGrammarParameterList(node.ParameterList()) || c.checkGrammarArrowFunction(node, file) || (ast.IsFunctionLikeDeclaration(node) && c.checkGrammarForUseStrictSimpleParameterList(node))
+	return c.checkGrammarModifiers(node) || c.checkGrammarTypeParameterList(node.TypeParameterList(), file) || c.checkGrammarParameterList(node.Store(), node.ParameterList()) || c.checkGrammarArrowFunction(node, file) || (ast.IsFunctionLikeDeclaration(node) && c.checkGrammarForUseStrictSimpleParameterList(node))
 }
 func (c *Checker) checkGrammarClassLikeDeclaration(node ast.Handle) bool {
 	file := ast.GetSourceFileOfNode(node)
@@ -680,7 +686,7 @@ func (c *Checker) checkGrammarIndexSignatureParameters(node ast.Handle) bool {
 	if len(paramNodes) != 1 {
 		return c.grammarErrorOnNode(parameter.Name(), diagnostics.An_index_signature_must_have_exactly_one_parameter)
 	}
-	c.checkGrammarForDisallowedTrailingComma(node.ParameterList(), diagnostics.An_index_signature_cannot_have_a_trailing_comma)
+	c.checkGrammarForDisallowedTrailingComma(node.Store(), node.ParameterList(), diagnostics.An_index_signature_cannot_have_a_trailing_comma)
 	if !parameter.DotDotDotToken().IsNil() {
 		return c.grammarErrorOnNode(parameter.DotDotDotToken(), diagnostics.An_index_signature_cannot_have_a_rest_parameter)
 	}
@@ -724,7 +730,7 @@ func (c *Checker) checkGrammarForAtLeastOneTypeArgument(node ast.Handle, typeArg
 	return false
 }
 func (c *Checker) checkGrammarTypeArguments(node ast.Handle, typeArguments ast.ListRef) bool {
-	return c.checkGrammarForDisallowedTrailingComma(typeArguments, diagnostics.Trailing_comma_not_allowed) || c.checkGrammarForAtLeastOneTypeArgument(node, typeArguments)
+	return c.checkGrammarForDisallowedTrailingComma(node.Store(), typeArguments, diagnostics.Trailing_comma_not_allowed) || c.checkGrammarForAtLeastOneTypeArgument(node, typeArguments)
 }
 func (c *Checker) checkGrammarTaggedTemplateChain(node ast.Handle) bool {
 	if !node.QuestionDotToken().IsNil() || node.Flags()&ast.NodeFlagsOptionalChain != 0 {
@@ -735,7 +741,7 @@ func (c *Checker) checkGrammarTaggedTemplateChain(node ast.Handle) bool {
 func (c *Checker) checkGrammarHeritageClause(node ast.Handle) bool {
 	types := node.HeritageClauseTypes()
 	s := node.Store()
-	if c.checkGrammarForDisallowedTrailingComma(types, diagnostics.Trailing_comma_not_allowed) {
+	if c.checkGrammarForDisallowedTrailingComma(s, types, diagnostics.Trailing_comma_not_allowed) {
 		return true
 	}
 	if types != 0 && s.ListLen(types) == 0 {
@@ -1254,7 +1260,7 @@ func (c *Checker) checkGrammarBindingElement(node ast.Handle) bool {
 		if node != core.LastOrNil(node.Store().ListSlice(elements)) {
 			return c.grammarErrorOnNode(node, diagnostics.A_rest_element_must_be_last_in_a_destructuring_pattern)
 		}
-		c.checkGrammarForDisallowedTrailingComma(elements, diagnostics.A_rest_parameter_or_binding_pattern_may_not_have_a_trailing_comma)
+		c.checkGrammarForDisallowedTrailingComma(node.Store(), elements, diagnostics.A_rest_parameter_or_binding_pattern_may_not_have_a_trailing_comma)
 		if !node.PropertyName().IsNil() {
 			return c.grammarErrorOnNode(node.Name(), diagnostics.A_rest_element_cannot_have_a_property_name)
 		}
@@ -1342,7 +1348,7 @@ func (c *Checker) checkGrammarNameInLetOrConstDeclarations(name ast.Handle) bool
 func (c *Checker) checkGrammarVariableDeclarationList(declarationList ast.Handle) bool {
 	declarations := declarationList.VariableDeclarationListDeclarations()
 	s := declarationList.Store()
-	if c.checkGrammarForDisallowedTrailingComma(declarations, diagnostics.Trailing_comma_not_allowed) {
+	if c.checkGrammarForDisallowedTrailingComma(s, declarations, diagnostics.Trailing_comma_not_allowed) {
 		return true
 	}
 	if s.ListLen(declarations) == 0 {
@@ -1772,7 +1778,7 @@ func (c *Checker) checkGrammarImportCallExpression(node ast.Handle) bool {
 	nodeArguments := nodeAsCall.ArgumentList()
 	argumentNodes := node.Store().ListSlice(nodeArguments)
 	if !(core.ModuleKindNode16 <= c.moduleKind && c.moduleKind <= core.ModuleKindNodeNext) && c.moduleKind != core.ModuleKindESNext && c.moduleKind != core.ModuleKindPreserve {
-		c.checkGrammarForDisallowedTrailingComma(nodeArguments, diagnostics.Trailing_comma_not_allowed)
+		c.checkGrammarForDisallowedTrailingComma(node.Store(), nodeArguments, diagnostics.Trailing_comma_not_allowed)
 		if len(argumentNodes) > 1 {
 			importAttributesArgument := argumentNodes[1]
 			return c.grammarErrorOnNode(importAttributesArgument, diagnostics.Dynamic_imports_only_support_a_second_argument_when_the_module_option_is_set_to_esnext_node16_node18_node20_nodenext_or_preserve)

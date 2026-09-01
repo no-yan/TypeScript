@@ -217,3 +217,21 @@ func TestScriptAmbientVarIsGlobal(t *testing.T) {
 		t.Fatalf("expected process from script .d.ts, got %v", diags)
 	}
 }
+
+func TestCrossFileTypeQueryTypeArgumentsDoNotPanic(t *testing.T) {
+	t.Parallel()
+	fs := bundled.WrapFS(vfstest.FromMap(map[string]string{
+		"/decl.ts": "export class Foo<T> { value!: T }\nexport function take<T extends typeof Foo<number>>(ctor: T) { return ctor }\n",
+		"/use.ts":  "import { take, Foo } from \"./decl\";\ntake(Foo);\n",
+		"/tsconfig.json": `{
+			"compilerOptions": { "noEmit": true, "skipLibCheck": true, "strict": true },
+			"files": ["decl.ts", "use.ts"]
+		}`,
+	}, true))
+	host := compiler.NewCompilerHost("/", fs, bundled.LibPath(), nil, nil, nil)
+	parsed, errors := tsoptions.GetParsedCommandLineOfConfigFile("/tsconfig.json", &core.CompilerOptions{}, nil, host, nil)
+	assert.Equal(t, 0, len(errors))
+	p := compiler.NewProgram(compiler.ProgramOptions{Config: parsed, Host: host})
+	_ = p.GetSemanticDiagnostics(t.Context(), p.GetSourceFile("/use.ts"))
+	_ = p.GetSemanticDiagnostics(t.Context(), p.GetSourceFile("/decl.ts"))
+}

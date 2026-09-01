@@ -10698,7 +10698,7 @@ func (c *Checker) checkObjectLiteralDestructuringPropertyAssignment(node ast.Han
 			}
 		}
 		t := c.getRestType(objectLiteralType, nonRestNames, objectLiteralType.symbol)
-		c.checkGrammarForDisallowedTrailingComma(allProperties, diagnostics.A_rest_parameter_or_binding_pattern_may_not_have_a_trailing_comma)
+		c.checkGrammarForDisallowedTrailingComma(node.Store(), allProperties, diagnostics.A_rest_parameter_or_binding_pattern_may_not_have_a_trailing_comma)
 		return c.checkDestructuringAssignment(property.Expression(), t, CheckModeNormal, false)
 	}
 	c.error(property, diagnostics.Property_assignment_expected)
@@ -10745,7 +10745,7 @@ func (c *Checker) checkArrayLiteralDestructuringElementAssignment(node ast.Handl
 			if ast.IsBinaryExpression(restExpression) && restExpression.BinaryExpressionOperatorToken().Kind() == ast.KindEqualsToken {
 				c.error(restExpression.BinaryExpressionOperatorToken(), diagnostics.A_rest_element_cannot_have_an_initializer)
 			} else {
-				c.checkGrammarForDisallowedTrailingComma(elements, diagnostics.A_rest_parameter_or_binding_pattern_may_not_have_a_trailing_comma)
+				c.checkGrammarForDisallowedTrailingComma(node.Store(), elements, diagnostics.A_rest_parameter_or_binding_pattern_may_not_have_a_trailing_comma)
 				var t *Type
 				if everyType(sourceType, isTupleType) {
 					t = c.mapType(sourceType, func(t *Type) *Type {
