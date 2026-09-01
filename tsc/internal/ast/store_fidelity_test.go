@@ -50,6 +50,28 @@ func TestStoreRetainsSourceFileMetadataOwner(t *testing.T) {
 	assert.Equal(t, 17, f.Store().SourceFile().IdentifierCount)
 }
 
+func TestCloneWrapperDoesNotRebindStoreOrProgramFlags(t *testing.T) {
+	t.Parallel()
+	f := NewFactory(FactoryHooks{})
+	opts := SourceFileParseOptions{FileName: "/index.ts", Path: "/index.ts"}
+	eof := f.NewToken(KindEndOfFile)
+	root := f.NewSourceFile(f.List(core.UndefinedTextRange()), eof)
+	file := NewSourceFileMetadata(opts, "export const x = 1")
+	file.SetParseStore(f.Store(), root)
+	file.ReferencedFiles = []*FileReference{{FileName: "keep.ts"}}
+
+	view := file.CloneWrapper()
+	view.IsDeclarationFile = true
+	view.ReferencedFiles = nil
+	view.SetParseRoot(root)
+
+	assert.Equal(t, file, f.Store().SourceFile())
+	assert.Equal(t, false, file.IsDeclarationFile)
+	assert.Equal(t, 1, len(file.ReferencedFiles))
+	assert.Equal(t, file.ParseStore(), view.ParseStore())
+	assert.Equal(t, file.ParseRoot(), view.ParseRoot())
+}
+
 func TestPrimaryStringValueUsesCanonicalTextColumn(t *testing.T) {
 	t.Parallel()
 	store := NewStore(2)

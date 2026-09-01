@@ -3028,6 +3028,25 @@ func (node *SourceFile) copyFrom(other *SourceFile) {
 	node.Flags |= other.Flags
 }
 
+// CloneWrapper copies file metadata onto a new *SourceFile that shares the
+// parse Store and root. It does not rebind Store.SourceFile. Emit uses the
+// clone as the output view so declaration flags and remapped references stay
+// off the program file.
+func (node *SourceFile) CloneWrapper() *SourceFile {
+	if node == nil {
+		return nil
+	}
+	cloned := NewSourceFileMetadata(node.parseOptions, node.text)
+	cloned.copyFrom(node)
+	cloned.Symbol = node.Symbol
+	cloned.Locals = node.Locals
+	node.parseStoreMu.RLock()
+	cloned.parseStore = node.parseStore
+	cloned.parseRoot = node.parseRoot
+	node.parseStoreMu.RUnlock()
+	return cloned
+}
+
 func (node *SourceFile) Clone(f NodeFactoryCoercible) *Node {
 	updated := f.AsNodeFactory().NewSourceFile(node.parseOptions, node.text, node.Statements, node.EndOfFileToken)
 	newFile := updated.AsSourceFile()

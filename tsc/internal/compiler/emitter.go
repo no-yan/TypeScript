@@ -178,6 +178,42 @@ func getScriptTransformers(emitContext *printer.EmitContext, host printer.EmitHo
 	return tx
 }
 
+// attachEmitView points Store.SourceFile at a metadata clone for this emit, then restores it.
+func attachEmitView(file *ast.SourceFile) (*ast.SourceFile, func()) {
+	view := file.CloneWrapper()
+	store := file.ParseStore()
+	if store == nil {
+		return view, func() {}
+	}
+	prev := store.SourceFile()
+	store.SetSourceFile(view)
+	return view, func() { store.SetSourceFile(prev) }
+}
+
+func citeProgramFile(diags []*ast.Diagnostic, view, file *ast.SourceFile) {
+	if view == file {
+		return
+	}
+	for _, d := range diags {
+		rebindDiagnosticFile(d, view, file)
+	}
+}
+
+func rebindDiagnosticFile(d *ast.Diagnostic, from, to *ast.SourceFile) {
+	if d == nil {
+		return
+	}
+	if d.File() == from {
+		d.SetFile(to)
+	}
+	for _, chain := range d.MessageChain() {
+		rebindDiagnosticFile(chain, from, to)
+	}
+	for _, info := range d.RelatedInformation() {
+		rebindDiagnosticFile(info, from, to)
+	}
+}
+
 func (e *emitter) emitJSFile(sourceFile *ast.SourceFile, jsFilePath string, sourceMapFilePath string) {
 	options := e.host.Options()
 
@@ -198,9 +234,11 @@ func (e *emitter) emitJSFile(sourceFile *ast.SourceFile, jsFilePath string, sour
 	defer putEmitContext()
 	releaseStore := emitContext.LockParseStoreWriter(sourceFile)
 	defer releaseStore()
-
-	parseRoot := sourceFile.ParseRoot()
-	defer sourceFile.SetParseRoot(parseRoot)
+	// Script transformers replace ParseRoot with the type-erased tree on the
+	// wrapper they receive. Clone metadata only so the program file keeps the
+	// parse root. The Store is shared so Update* still reuses parse nodes.
+	sourceFile, restoreView := attachEmitView(sourceFile)
+	defer restoreView()
 	sourceFile = e.runScriptTransformers(emitContext, sourceFile)
 
 	printerOptions := printer.PrinterOptions{
@@ -239,9 +277,15 @@ func (e *emitter) emitDeclarationFile(sourceFile *ast.SourceFile, declarationFil
 	defer putEmitContext()
 	releaseStore := emitContext.LockParseStoreWriter(sourceFile)
 	defer releaseStore()
-	parseRoot := sourceFile.ParseRoot()
-	defer sourceFile.SetParseRoot(parseRoot)
+	// Declaration transformers set IsDeclarationFile and remap triple-slash
+	// refs on the wrapper they receive. Clone metadata only so the program
+	// file stays a .ts and later JS emit is not skipped. The Store is shared
+	// so Update* still reuses parse nodes.
+	programFile := sourceFile
+	sourceFile, restoreView := attachEmitView(sourceFile)
+	defer restoreView()
 	sourceFile, diags := e.runDeclarationTransformers(emitContext, sourceFile, declarationFilePath, declarationMapPath)
+	citeProgramFile(diags, sourceFile, programFile)
 
 	for _, elem := range diags {
 		// Add declaration transform diagnostics to emit diagnostics
@@ -581,9 +625,15 @@ func getDeclarationDiagnostics(host EmitHost, file *ast.SourceFile) []*ast.Diagn
 	emitContext := printer.NewEmitContext()
 	releaseStore := emitContext.LockParseStoreWriter(file)
 	defer releaseStore()
-	parseRoot := file.ParseRoot()
-	defer file.SetParseRoot(parseRoot)
+	// Declaration transformers set IsDeclarationFile and remap triple-slash
+	// refs on the wrapper they receive. Clone metadata only so a --noEmit
+	// diagnostics pass cannot drop later pending JS/d.ts emit. The Store is
+	// shared so Update* still reuses parse nodes.
+	view, restoreView := attachEmitView(file)
+	defer restoreView()
 	transform := declarations.NewDeclarationTransformer(host, emitContext, options, "", "")
-	transform.TransformSourceFile(file)
-	return transform.GetDiagnostics()
+	transform.TransformSourceFile(view)
+	diags := transform.GetDiagnostics()
+	citeProgramFile(diags, view, file)
+	return diags
 }

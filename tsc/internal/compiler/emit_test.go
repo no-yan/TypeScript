@@ -11,6 +11,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
 	"github.com/microsoft/TypeScript/tsc/internal/vfs/vfstest"
+	"gotest.tools/v3/assert"
 )
 
 // generateLongLineTS generates TypeScript source code that produces a single very long line.
@@ -188,4 +189,31 @@ func BenchmarkEmitLongLinesWithLineBreaks(b *testing.B) {
 			WriteFile: nopWriteFile,
 		})
 	}
+}
+
+func TestGetDeclarationDiagnosticsDoesNotMarkProgramFileAsDeclaration(t *testing.T) {
+	t.Parallel()
+	if !bundled.Embedded {
+		t.Skip("bundled files are not embedded")
+	}
+
+	fs := bundled.WrapFS(vfstest.FromMap(map[string]string{
+		"/index.ts": "export const x = 1;\n",
+		"/tsconfig.json": `{
+			"compilerOptions": { "declaration": true, "skipLibCheck": true },
+			"files": ["index.ts"]
+		}`,
+	}, true))
+	host := compiler.NewCompilerHost("/", fs, bundled.LibPath(), nil, nil, nil)
+	parsed, errors := tsoptions.GetParsedCommandLineOfConfigFile("/tsconfig.json", &core.CompilerOptions{}, nil, host, nil)
+	assert.Equal(t, 0, len(errors))
+
+	p := compiler.NewProgram(compiler.ProgramOptions{Config: parsed, Host: host})
+	file := p.GetSourceFile("/index.ts")
+	assert.Assert(t, file != nil)
+	_ = p.GetDeclarationDiagnostics(t.Context(), file)
+
+	assert.Equal(t, false, file.IsDeclarationFile)
+	assert.Equal(t, file, file.ParseStore().SourceFile())
+	assert.Equal(t, false, file.ParseStore().SourceFile().IsDeclarationFile)
 }
