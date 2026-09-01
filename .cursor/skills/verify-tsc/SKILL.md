@@ -2,10 +2,13 @@
 name: verify-tsc
 description: >
   Drive the native TypeScript compiler CLI (built/local/tsc, also called tsgo)
-  the way a user does: build it, type-check, emit JavaScript and declarations,
-  and capture diagnostics. Use when proving compiler, parser, checker, printer,
-  or CLI changes work; after Store AST work; before claiming a PR is verified;
-  or when the user asks to launch, smoke, or demo tsc.
+  the way a user does. Open this when planning a compiler cutover whose proof
+  surface is the CLI, not only when proving a finished change. Build it,
+  type-check, emit JavaScript and declarations, and capture diagnostics. Use
+  when proving compiler, parser, checker, printer, or CLI changes work; after
+  Store AST work; before claiming a PR is verified; or when the user asks to
+  launch, smoke, or demo tsc. Type errors in secondary surfaces (LSP, API) are
+  not a reason to migrate those packages.
 ---
 
 # Verify the TypeScript compiler CLI
@@ -27,6 +30,11 @@ app under test. Those are a different compiler.
 There is no long-lived server. Launch means build the noembed CI binary once,
 then run each drive as its own short-lived process.
 
+`go build -C ./tsc ./cmd/tsc` without `-tags=noembed -o ../built/local/tsc`
+does not refresh `./built/local/tsc`. After the first `control-tsc launch`,
+rebuild with that tagged command. Do not rerun `npx hereby build` on every
+inner-loop change. hereby recopies libs.
+
 From the repository root, with Go matching `tsc/go.mod` (currently 1.26) on
 `PATH`. If the system Go cannot download that toolchain, use a local 1.26
 install (this environment keeps one at `/tmp/go1.26`) and set
@@ -36,6 +44,18 @@ install (this environment keeps one at `/tmp/go1.26`) and set
 export VERIFY_TSC_RUN_ID="${VERIFY_TSC_RUN_ID:-$(date +%Y%m%dT%H%M%S)-$$}"
 ./.cursor/skills/verify-tsc/scripts/control-tsc launch
 ```
+
+`launch` and `go test` of the tsc module compile the same packages into one
+GOCACHE. Starting both at once stalls this disk. `launch` waits out a running
+`go` whose cwd is this checkout, then holds a flock. Package tests wait on
+that same lock:
+
+```bash
+./.cursor/skills/verify-tsc/scripts/control-tsc go -- -C ./tsc test ./internal/parser -count=1
+```
+
+Do not spawn a raw `go test` or `go build` of `tsc/` in the same turn as
+`control-tsc launch`.
 
 Ready when all of these hold:
 
@@ -109,8 +129,10 @@ Rules:
   Treat an unexpected 0 on a known-bad file as failure.
 - Refuse `--watch` unless the feature file says to use it. Watch is a
   long-running PTY; record its PID in scratch and kill that PID in cleanup.
-- Concurrent drives are safe when each uses its own scratch `outDir`. Do not
-  share a watch instance or a tsbuildinfo file across runs.
+- Concurrent CLI drives are safe when each uses its own scratch `outDir`. Do
+  not share a watch instance or a tsbuildinfo file across runs.
+- Concurrent `go test` and `control-tsc launch` are not safe. They share
+  GOCACHE. Run tests through `control-tsc go --` so they wait for launch.
 - `npx hereby test` and `go test` can catch regressions. They do not replace
   a mapped user path.
 
@@ -158,10 +180,11 @@ is executable (`chmod +x`).
 
 | Command | What it does |
 | --- | --- |
-| `control-tsc launch` | Ensures Go, builds `built/local/tsc` with `npx hereby build`, records run state |
+| `control-tsc launch` | Ensures Go, builds `built/local/tsc` with `npx hereby build`, records run state. Waits if a tsc-module `go` is already compiling |
 | `control-tsc doctor` | Read-only health check of this checkout's binary and libs |
 | `control-tsc fixture <id>` | Writes an isolated project for a mapped feature id |
 | `control-tsc cli -- [tsc args]` | Runs `built/local/tsc` and writes a transcript under `artifacts/` |
+| `control-tsc go -- [go args]` | Runs `go` from the repo root under the same compile lock as `launch` |
 | `control-tsc cleanup` | Deletes scratch and recorded child PIDs; keeps artifacts |
 
 Example:

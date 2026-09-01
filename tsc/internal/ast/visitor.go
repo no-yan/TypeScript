@@ -15,7 +15,7 @@ type NodeVisitor struct {
 // These hooks are used to intercept the default behavior of the visitor
 type NodeVisitorHooks struct {
 	VisitNode               func(node *Node, v *NodeVisitor) *Node                           // Overrides visiting a Node. Only invoked by the VisitEachChild method on a given Node subtype.
-	VisitToken              func(node *TokenNode, v *NodeVisitor) *Node                      // Overrides visiting a TokenNode. Only invoked by the VisitEachChild method on a given Node subtype.
+	VisitToken              func(node *Node, v *NodeVisitor) *Node                           // Overrides visiting a TokenNode. Only invoked by the VisitEachChild method on a given Node subtype.
 	VisitNodes              func(nodes *NodeList, v *NodeVisitor) *NodeList                  // Overrides visiting a NodeList. Only invoked by the VisitEachChild method on a given Node subtype.
 	VisitModifiers          func(nodes *ModifierList, v *NodeVisitor) *ModifierList          // Overrides visiting a ModifierList. Only invoked by the VisitEachChild method on a given Node subtype.
 	VisitEmbeddedStatement  func(node *Statement, v *NodeVisitor) *Statement                 // Overrides visiting a Node when it is the embedded statement body of an iteration statement, `if` statement, or `with` statement. Only invoked by the VisitEachChild method on a given Node subtype.
@@ -40,8 +40,18 @@ func (v *NodeVisitor) VisitSourceFile(node *SourceFile) *SourceFile {
 //
 //   - If the input node is nil, then the output is nil.
 //   - If v.Visit is nil, then the output is the input.
+
 //   - If v.Visit returns nil, then the output is nil.
+
 //   - If v.Visit returns a SyntaxList Node, then the output is the only child of the SyntaxList Node.
+
+func (v *NodeVisitor) VisitEachChild(node *Node) *Node {
+	if node == nil {
+		return nil
+	}
+	return node.data.VisitEachChild(v)
+}
+
 func (v *NodeVisitor) VisitNode(node *Node) *Node {
 	if node == nil || v.Visit == nil {
 		return node
@@ -69,8 +79,11 @@ func (v *NodeVisitor) VisitNode(node *Node) *Node {
 //
 //   - If the input node is nil, then the output is nil.
 //   - If v.Visit is nil, then the output is the input.
+
 //   - If v.Visit returns nil, then the output is nil.
+
 //   - If v.Visit returns a SyntaxList Node, then the output is either the only child of the SyntaxList Node, or a Block containing the nodes in the list.
+
 func (v *NodeVisitor) VisitEmbeddedStatement(node *Statement) *Statement {
 	if node == nil || v.Visit == nil {
 		return node
@@ -87,16 +100,20 @@ func (v *NodeVisitor) VisitEmbeddedStatement(node *Statement) *Statement {
 //
 //   - If the input NodeList is nil, the output is nil.
 //   - If v.Visit is nil, then the output is the input.
+
 //   - If v.Visit returns nil, the visited Node will be absent in the output.
+
 //   - If v.Visit returns a different Node than the input, a new NodeList will be generated and returned.
+
 //   - If v.Visit returns a SyntaxList Node, then the children of that node will be merged into the output and a new NodeList will be returned.
-//   - If this method returns a new NodeList for any reason, it will have the same Loc as the input NodeList.
+
+// - If this method returns a new NodeList for any reason, it will have the same Loc as the input NodeList.
 func (v *NodeVisitor) VisitNodes(nodes *NodeList) *NodeList {
 	if nodes == nil || v.Visit == nil {
 		return nodes
 	}
 
-	if result, changed := v.VisitSlice(nodes.Nodes); changed {
+	if result, changed := v.VisitSlice(nodes.nodes); changed {
 		list := v.Factory.NewNodeList(result)
 		list.Loc = nodes.Loc
 		return list
@@ -109,16 +126,20 @@ func (v *NodeVisitor) VisitNodes(nodes *NodeList) *NodeList {
 //
 //   - If the input ModifierList is nil, the output is nil.
 //   - If v.Visit is nil, then the output is the input.
+
 //   - If v.Visit returns nil, the visited Node will be absent in the output.
+
 //   - If v.Visit returns a different Node than the input, a new ModifierList will be generated and returned.
+
 //   - If v.Visit returns a SyntaxList Node, then the children of that node will be merged into the output and a new NodeList will be returned.
-//   - If this method returns a new NodeList for any reason, it will have the same Loc as the input NodeList.
+
+// - If this method returns a new NodeList for any reason, it will have the same Loc as the input NodeList.
 func (v *NodeVisitor) VisitModifiers(nodes *ModifierList) *ModifierList {
 	if nodes == nil || v.Visit == nil {
 		return nodes
 	}
 
-	if result, changed := v.VisitSlice(nodes.Nodes); changed {
+	if result, changed := v.VisitSlice(nodes.nodes); changed {
 		list := v.Factory.NewModifierList(result)
 		list.Loc = nodes.Loc
 		return list
@@ -131,9 +152,13 @@ func (v *NodeVisitor) VisitModifiers(nodes *ModifierList) *ModifierList {
 //
 //   - If the input slice is nil, the output is nil.
 //   - If v.Visit is nil, then the output is the input.
+
 //   - If v.Visit returns nil, the visited Node will be absent in the output.
+
 //   - If v.Visit returns a different Node than the input, a new slice will be generated and returned.
+
 //   - If v.Visit returns a SyntaxList Node, then the children of that node will be merged into the output and a new slice will be returned.
+
 func (v *NodeVisitor) VisitSlice(nodes []*Node) (result []*Node, changed bool) {
 	if nodes == nil || v.Visit == nil {
 		return nodes, false
@@ -180,15 +205,6 @@ func (v *NodeVisitor) VisitSlice(nodes []*Node) (result []*Node, changed bool) {
 	}
 
 	return nodes, false
-}
-
-// Visits each child of a Node, possibly returning a new Node of the same kind in its place.
-func (v *NodeVisitor) VisitEachChild(node *Node) *Node {
-	if node == nil || v.Visit == nil {
-		return node
-	}
-
-	return node.VisitEachChild(v)
 }
 
 func (v *NodeVisitor) visitNode(node *Node) *Node {

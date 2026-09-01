@@ -1,37 +1,31 @@
 package compiler
 
 import (
-	"slices"
-	"sync"
-
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
+	"slices"
+	"sync"
 )
 
 type includeProcessor struct {
-	fileIncludeReasons    map[tspath.Path][]*FileIncludeReason
-	processingDiagnostics []*processingDiagnostic
-
+	fileIncludeReasons         map[tspath.Path][]*FileIncludeReason
+	processingDiagnostics      []*processingDiagnostic
 	reasonToReferenceLocation  collections.SyncMap[*FileIncludeReason, *referenceFileLocation]
 	includeReasonToRelatedInfo collections.SyncMap[*FileIncludeReason, *ast.Diagnostic]
 	redirectAndFileFormat      collections.SyncMap[tspath.Path, []*ast.Diagnostic]
 	computedDiagnostics        *ast.DiagnosticsCollection
 	computedDiagnosticsOnce    sync.Once
-	compilerOptionsSyntax      *ast.ObjectLiteralExpression
+	compilerOptionsSyntax      ast.Handle
 	compilerOptionsSyntaxOnce  sync.Once
 }
 
 func updateFileIncludeProcessor(p *Program) {
-	p.includeProcessor = &includeProcessor{
-		fileIncludeReasons:    p.includeProcessor.fileIncludeReasons,
-		processingDiagnostics: p.includeProcessor.processingDiagnostics,
-	}
+	p.includeProcessor = &includeProcessor{fileIncludeReasons: p.includeProcessor.fileIncludeReasons, processingDiagnostics: p.includeProcessor.processingDiagnostics}
 }
-
 func (i *includeProcessor) getDiagnostics(p *Program) *ast.DiagnosticsCollection {
 	i.computedDiagnosticsOnce.Do(func() {
 		i.computedDiagnostics = &ast.DiagnosticsCollection{}
@@ -55,76 +49,44 @@ func (i *includeProcessor) getDiagnostics(p *Program) *ast.DiagnosticsCollection
 	})
 	return i.computedDiagnostics
 }
-
 func (i *includeProcessor) addProcessingDiagnostic(d ...*processingDiagnostic) {
 	i.processingDiagnostics = append(i.processingDiagnostics, d...)
 }
-
 func (i *includeProcessor) addProcessingDiagnosticsForFileCasing(file tspath.Path, existingCasing string, currentCasing string, reason *FileIncludeReason) {
 	if !reason.isReferencedFile() && slices.ContainsFunc(i.fileIncludeReasons[file], func(r *FileIncludeReason) bool {
 		return r.isReferencedFile()
 	}) {
-		i.addProcessingDiagnostic(&processingDiagnostic{
-			kind: processingDiagnosticKindExplainingFileInclude,
-			data: &includeExplainingDiagnostic{
-				file:             file,
-				diagnosticReason: reason,
-				message:          diagnostics.Already_included_file_name_0_differs_from_file_name_1_only_in_casing,
-				args:             []any{existingCasing, currentCasing},
-			},
-		})
+		i.addProcessingDiagnostic(&processingDiagnostic{kind: processingDiagnosticKindExplainingFileInclude, data: &includeExplainingDiagnostic{file: file, diagnosticReason: reason, message: diagnostics.Already_included_file_name_0_differs_from_file_name_1_only_in_casing, args: []any{existingCasing, currentCasing}}})
 	} else {
-		i.addProcessingDiagnostic(&processingDiagnostic{
-			kind: processingDiagnosticKindExplainingFileInclude,
-			data: &includeExplainingDiagnostic{
-				file:             file,
-				diagnosticReason: reason,
-				message:          diagnostics.File_name_0_differs_from_already_included_file_name_1_only_in_casing,
-				args:             []any{currentCasing, existingCasing},
-			},
-		})
+		i.addProcessingDiagnostic(&processingDiagnostic{kind: processingDiagnosticKindExplainingFileInclude, data: &includeExplainingDiagnostic{file: file, diagnosticReason: reason, message: diagnostics.File_name_0_differs_from_already_included_file_name_1_only_in_casing, args: []any{currentCasing, existingCasing}}})
 	}
 }
-
 func (i *includeProcessor) getReferenceLocation(r *FileIncludeReason, program *Program) *referenceFileLocation {
 	if existing, ok := i.reasonToReferenceLocation.Load(r); ok {
 		return existing
 	}
-
 	loc, _ := i.reasonToReferenceLocation.LoadOrStore(r, r.getReferencedLocation(program))
 	return loc
 }
-
-func (i *includeProcessor) getCompilerOptionsObjectLiteralSyntax(program *Program) *ast.ObjectLiteralExpression {
+func (i *includeProcessor) getCompilerOptionsObjectLiteralSyntax(program *Program) ast.Handle {
 	i.compilerOptionsSyntaxOnce.Do(func() {
 		configFile := program.opts.Config.ConfigFile
 		if configFile != nil {
-			if compilerOptionsProperty := tsoptions.ForEachTsConfigPropArray(configFile.SourceFile, "compilerOptions", core.Identity); compilerOptionsProperty != nil &&
-				compilerOptionsProperty.Initializer != nil &&
-				ast.IsObjectLiteralExpression(compilerOptionsProperty.Initializer) {
-				i.compilerOptionsSyntax = compilerOptionsProperty.Initializer.AsObjectLiteralExpression()
+			if compilerOptionsProperty := tsoptions.ForEachTsConfigPropArray(configFile.SourceFile, "compilerOptions", core.Identity); !compilerOptionsProperty.IsNil() && !compilerOptionsProperty.Initializer().IsNil() && ast.IsObjectLiteralExpression(compilerOptionsProperty.Initializer()) {
+				i.compilerOptionsSyntax = compilerOptionsProperty.Initializer()
 			}
-		} else {
-			i.compilerOptionsSyntax = nil
 		}
 	})
 	return i.compilerOptionsSyntax
 }
-
 func (i *includeProcessor) getRelatedInfo(r *FileIncludeReason, program *Program) *ast.Diagnostic {
 	if existing, ok := i.includeReasonToRelatedInfo.Load(r); ok {
 		return existing
 	}
-
 	relatedInfo, _ := i.includeReasonToRelatedInfo.LoadOrStore(r, r.toRelatedInfo(program))
 	return relatedInfo
 }
-
-func (i *includeProcessor) explainRedirectAndImpliedFormat(
-	program *Program,
-	filePath tspath.Path,
-	toFileName func(fileName string) string,
-) []*ast.Diagnostic {
+func (i *includeProcessor) explainRedirectAndImpliedFormat(program *Program, filePath tspath.Path, toFileName func(fileName string) string) []*ast.Diagnostic {
 	if existing, ok := i.redirectAndFileFormat.Load(filePath); ok {
 		return existing
 	}
@@ -142,29 +104,18 @@ func (i *includeProcessor) explainRedirectAndImpliedFormat(
 	}
 	var result []*ast.Diagnostic
 	if source := program.GetSourceOfProjectReferenceIfOutputIncluded(file); source != file.FileName() {
-		result = append(result, ast.NewCompilerDiagnostic(
-			diagnostics.File_is_output_of_project_reference_source_0,
-			toFileName(source),
-		))
+		result = append(result, ast.NewCompilerDiagnostic(diagnostics.File_is_output_of_project_reference_source_0, toFileName(source)))
 	}
-
 	if redirectsFile != nil {
 		targetFile := program.GetSourceFileByPath(redirectsFile.target)
-		result = append(result, ast.NewCompilerDiagnostic(
-			diagnostics.File_redirects_to_file_0,
-			toFileName(targetFile.FileName()),
-		))
+		result = append(result, ast.NewCompilerDiagnostic(diagnostics.File_redirects_to_file_0, toFileName(targetFile.FileName())))
 	}
-
 	if sourceFile != nil && ast.IsExternalOrCommonJSModule(sourceFile) {
 		metaData := program.GetSourceFileMetaData(file.Path())
 		switch program.GetImpliedNodeFormatForEmit(file) {
 		case core.ModuleKindESNext:
 			if metaData.PackageJsonType == "module" {
-				result = append(result, ast.NewCompilerDiagnostic(
-					diagnostics.File_is_ECMAScript_module_because_0_has_field_type_with_value_module,
-					toFileName(metaData.PackageJsonDirectory+"/package.json"),
-				))
+				result = append(result, ast.NewCompilerDiagnostic(diagnostics.File_is_ECMAScript_module_because_0_has_field_type_with_value_module, toFileName(metaData.PackageJsonDirectory+"/package.json")))
 			}
 		case core.ModuleKindCommonJS:
 			if metaData.PackageJsonType != "" {
@@ -178,7 +129,6 @@ func (i *includeProcessor) explainRedirectAndImpliedFormat(
 			}
 		}
 	}
-
 	result, _ = i.redirectAndFileFormat.LoadOrStore(filePath, result)
 	return result
 }

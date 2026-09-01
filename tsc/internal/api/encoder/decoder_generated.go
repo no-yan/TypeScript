@@ -6,9 +6,10 @@ import (
 	"fmt"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
+	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
 
-func (d *astDecoder) createStringNode(kind ast.Kind, data uint32, commonData uint8) (*ast.Node, error) {
+func (d *astDecoder) createStringNode(kind ast.Kind, data uint32, commonData uint8) (ast.Handle, error) {
 	strIdx := data & NodeDataStringIndexMask
 	text := d.getString(strIdx)
 
@@ -23,17 +24,17 @@ func (d *astDecoder) createStringNode(kind ast.Kind, data uint32, commonData uin
 	case ast.KindJSDocText:
 		return d.factory.NewJSDocText([]string{text}), nil
 	case ast.KindJSDocLink:
-		return d.factory.NewJSDocLink(nil, []string{text}), nil
+		return d.factory.NewJSDocLink(ast.Handle{}, []string{text}), nil
 	case ast.KindJSDocLinkPlain:
-		return d.factory.NewJSDocLinkPlain(nil, []string{text}), nil
+		return d.factory.NewJSDocLinkPlain(ast.Handle{}, []string{text}), nil
 	case ast.KindJSDocLinkCode:
-		return d.factory.NewJSDocLinkCode(nil, []string{text}), nil
+		return d.factory.NewJSDocLinkCode(ast.Handle{}, []string{text}), nil
 	default:
-		return nil, fmt.Errorf("unknown string node kind %v", kind)
+		return ast.Handle{}, fmt.Errorf("unknown string node kind %v", kind)
 	}
 }
 
-func (d *astDecoder) createExtendedNode(kind ast.Kind, data uint32, childIndices []int, commonData uint8) (*ast.Node, error) {
+func (d *astDecoder) createExtendedNode(kind ast.Kind, data uint32, childIndices []int, commonData uint8) (ast.Handle, error) {
 	switch kind {
 	case ast.KindStringLiteral:
 		return d.decodeExtendedData_StringLiteral(data, childIndices, commonData)
@@ -54,11 +55,11 @@ func (d *astDecoder) createExtendedNode(kind ast.Kind, data uint32, childIndices
 	case ast.KindSourceFile:
 		return d.decodeExtendedData_SourceFile(data, childIndices, commonData)
 	default:
-		return nil, fmt.Errorf("unknown extended data node kind %v", kind)
+		return ast.Handle{}, fmt.Errorf("unknown extended data node kind %v", kind)
 	}
 }
 
-func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices []int, commonData uint8) (*ast.Node, error) {
+func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices []int, commonData uint8) (ast.Handle, error) {
 	mask := uint8(data & NodeDataChildMask)
 
 	switch kind {
@@ -300,7 +301,7 @@ func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices
 		return d.factory.NewExpressionStatement(d.singleChild(childIndices)), nil
 	case ast.KindBlock:
 		multiLine := commonData&1 != 0
-		var list *ast.NodeList
+		var list ast.ListRef
 		if len(childIndices) > 0 {
 			list = d.nodeListAt(childIndices[0])
 		}
@@ -338,7 +339,7 @@ func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices
 		initializer := d.nodeAt(it.nextIf(mask, 3))
 		return d.factory.NewBindingElement(dotDotDotToken, propertyName, name, initializer), nil
 	case ast.KindMissingDeclaration:
-		var mods *ast.ModifierList
+		var mods ast.ListRef
 		if len(childIndices) > 0 {
 			mods = d.modifierListAt(childIndices[0])
 		}
@@ -352,7 +353,7 @@ func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices
 		parameters := d.nodeListAt(it.nextIf(mask, 4))
 		typeNode := d.nodeAt(it.nextIf(mask, 5))
 		body := d.nodeAt(it.nextIf(mask, 6))
-		return d.factory.NewFunctionDeclaration(modifiers, asteriskToken, name, typeParameters, parameters, typeNode, nil, body), nil
+		return d.factory.NewFunctionDeclaration(modifiers, asteriskToken, name, typeParameters, parameters, typeNode, ast.Handle{}, body), nil
 	case ast.KindClassDeclaration:
 		it := newChildIter(childIndices)
 		modifiers := d.modifierListAt(it.nextIf(mask, 0))
@@ -467,7 +468,7 @@ func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices
 		parameters := d.nodeListAt(it.nextIf(mask, 2))
 		typeNode := d.nodeAt(it.nextIf(mask, 3))
 		body := d.nodeAt(it.nextIf(mask, 4))
-		return d.factory.NewConstructorDeclaration(modifiers, typeParameters, parameters, typeNode, nil, body), nil
+		return d.factory.NewConstructorDeclaration(modifiers, typeParameters, parameters, typeNode, ast.Handle{}, body), nil
 	case ast.KindGetAccessor:
 		it := newChildIter(childIndices)
 		modifiers := d.modifierListAt(it.nextIf(mask, 0))
@@ -476,7 +477,7 @@ func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices
 		parameters := d.nodeListAt(it.nextIf(mask, 3))
 		typeNode := d.nodeAt(it.nextIf(mask, 4))
 		body := d.nodeAt(it.nextIf(mask, 5))
-		return d.factory.NewGetAccessorDeclaration(modifiers, name, typeParameters, parameters, typeNode, nil, body), nil
+		return d.factory.NewGetAccessorDeclaration(modifiers, name, typeParameters, parameters, typeNode, ast.Handle{}, body), nil
 	case ast.KindSetAccessor:
 		it := newChildIter(childIndices)
 		modifiers := d.modifierListAt(it.nextIf(mask, 0))
@@ -485,7 +486,7 @@ func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices
 		parameters := d.nodeListAt(it.nextIf(mask, 3))
 		typeNode := d.nodeAt(it.nextIf(mask, 4))
 		body := d.nodeAt(it.nextIf(mask, 5))
-		return d.factory.NewSetAccessorDeclaration(modifiers, name, typeParameters, parameters, typeNode, nil, body), nil
+		return d.factory.NewSetAccessorDeclaration(modifiers, name, typeParameters, parameters, typeNode, ast.Handle{}, body), nil
 	case ast.KindIndexSignature:
 		it := newChildIter(childIndices)
 		modifiers := d.modifierListAt(it.nextIf(mask, 0))
@@ -511,7 +512,7 @@ func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices
 		parameters := d.nodeListAt(it.nextIf(mask, 5))
 		typeNode := d.nodeAt(it.nextIf(mask, 6))
 		body := d.nodeAt(it.nextIf(mask, 7))
-		return d.factory.NewMethodDeclaration(modifiers, asteriskToken, name, postfixToken, typeParameters, parameters, typeNode, nil, body), nil
+		return d.factory.NewMethodDeclaration(modifiers, asteriskToken, name, postfixToken, typeParameters, parameters, typeNode, ast.Handle{}, body), nil
 	case ast.KindPropertySignature:
 		it := newChildIter(childIndices)
 		modifiers := d.modifierListAt(it.nextIf(mask, 0))
@@ -588,7 +589,7 @@ func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices
 		typeNode := d.nodeAt(it.nextIf(mask, 3))
 		equalsGreaterThanToken := d.nodeAt(it.nextIf(mask, 4))
 		body := d.nodeAt(it.nextIf(mask, 5))
-		return d.factory.NewArrowFunction(modifiers, typeParameters, parameters, typeNode, nil, equalsGreaterThanToken, body), nil
+		return d.factory.NewArrowFunction(modifiers, typeParameters, parameters, typeNode, ast.Handle{}, equalsGreaterThanToken, body), nil
 	case ast.KindFunctionExpression:
 		it := newChildIter(childIndices)
 		modifiers := d.modifierListAt(it.nextIf(mask, 0))
@@ -598,7 +599,7 @@ func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices
 		parameters := d.nodeListAt(it.nextIf(mask, 4))
 		typeNode := d.nodeAt(it.nextIf(mask, 5))
 		body := d.nodeAt(it.nextIf(mask, 6))
-		return d.factory.NewFunctionExpression(modifiers, asteriskToken, name, typeParameters, parameters, typeNode, nil, body), nil
+		return d.factory.NewFunctionExpression(modifiers, asteriskToken, name, typeParameters, parameters, typeNode, ast.Handle{}, body), nil
 	case ast.KindAsExpression:
 		it := newChildIter(childIndices)
 		expression := d.nodeAt(it.nextIf(mask, 0))
@@ -673,14 +674,14 @@ func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices
 		return d.factory.NewParenthesizedExpression(d.singleChild(childIndices)), nil
 	case ast.KindArrayLiteralExpression:
 		multiLine := commonData&1 != 0
-		var list *ast.NodeList
+		var list ast.ListRef
 		if len(childIndices) > 0 {
 			list = d.nodeListAt(childIndices[0])
 		}
 		return d.factory.NewArrayLiteralExpression(list, multiLine), nil
 	case ast.KindObjectLiteralExpression:
 		multiLine := commonData&1 != 0
-		var list *ast.NodeList
+		var list ast.ListRef
 		if len(childIndices) > 0 {
 			list = d.nodeListAt(childIndices[0])
 		}
@@ -792,7 +793,7 @@ func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices
 		if (commonData>>1)&1 != 0 {
 			token = ast.KindAssertKeyword
 		}
-		var list *ast.NodeList
+		var list ast.ListRef
 		if len(childIndices) > 0 {
 			list = d.nodeListAt(childIndices[0])
 		}
@@ -910,7 +911,7 @@ func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices
 		for i, ci := range childIndices {
 			nodes[i] = d.nodes[ci]
 		}
-		return d.factory.NewSyntaxList(nodes), nil
+		return d.factory.NewSyntaxList(d.factory.List(core.UndefinedTextRange(), nodes...)), nil
 	case ast.KindJSDoc:
 		it := newChildIter(childIndices)
 		comment := d.nodeListAt(it.nextIf(mask, 0))
@@ -1124,7 +1125,7 @@ func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices
 		for i, ci := range childIndices {
 			nodes[i] = d.nodes[ci]
 		}
-		return d.factory.NewJSDocTypeLiteral(nodes, isArrayType), nil
+		return d.factory.NewJSDocTypeLiteral(d.factory.List(core.UndefinedTextRange(), nodes...), isArrayType), nil
 	case ast.KindJSDocParameterTag, ast.KindJSDocPropertyTag:
 		isBracketed := commonData&1 != 0
 		isNameFirst := commonData&2 != 0
@@ -1135,6 +1136,6 @@ func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices
 		comment := d.nodeListAt(it.nextIf(mask, 3))
 		return d.factory.NewJSDocParameterOrPropertyTag(kind, tagName, name, isBracketed, typeExpression, isNameFirst, comment), nil
 	default:
-		return nil, fmt.Errorf("unhandled node kind %v with %d children", kind, len(childIndices))
+		return ast.Handle{}, fmt.Errorf("unhandled node kind %v with %d children", kind, len(childIndices))
 	}
 }

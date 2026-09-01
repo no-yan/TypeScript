@@ -114,7 +114,7 @@ func getScriptTransformers(emitContext *printer.EmitContext, host printer.EmitHo
 	options := host.Options()
 
 	// JS files don't use reference calculations as they don't do import elision, no need to calculate it
-	importElisionEnabled := !options.VerbatimModuleSyntax.IsTrue() && !ast.IsInJSFile(sourceFile.AsNode())
+	importElisionEnabled := !options.VerbatimModuleSyntax.IsTrue() && !ast.IsInJSFile(sourceFile.ParseRoot())
 	jsxTransformEnabled := options.GetJSXTransformEnabled() && sourceFile.LanguageVariant == core.LanguageVariantJSX
 
 	emitResolver := host.GetEmitResolver()
@@ -196,9 +196,11 @@ func (e *emitter) emitJSFile(sourceFile *ast.SourceFile, jsFilePath string, sour
 
 	emitContext, putEmitContext := printer.GetEmitContext()
 	defer putEmitContext()
-	releaseStore := emitContext.AttachStore(sourceFile)
+	releaseStore := emitContext.LockParseStoreWriter(sourceFile)
 	defer releaseStore()
 
+	parseRoot := sourceFile.ParseRoot()
+	defer sourceFile.SetParseRoot(parseRoot)
 	sourceFile = e.runScriptTransformers(emitContext, sourceFile)
 
 	printerOptions := printer.PrinterOptions{
@@ -235,8 +237,10 @@ func (e *emitter) emitDeclarationFile(sourceFile *ast.SourceFile, declarationFil
 
 	emitContext, putEmitContext := printer.GetEmitContext()
 	defer putEmitContext()
-	releaseStore := emitContext.AttachStore(sourceFile)
+	releaseStore := emitContext.LockParseStoreWriter(sourceFile)
 	defer releaseStore()
+	parseRoot := sourceFile.ParseRoot()
+	defer sourceFile.SetParseRoot(parseRoot)
 	sourceFile, diags := e.runDeclarationTransformers(emitContext, sourceFile, declarationFilePath, declarationMapPath)
 
 	for _, elem := range diags {
@@ -331,7 +335,7 @@ func (e *emitter) printSourceFile(jsFilePath string, sourceMapFilePath string, s
 		)
 	}
 
-	printer_.Write(sourceFile.AsNode(), sourceFile, e.writer, sourceMapGenerator)
+	printer_.Write(sourceFile.ParseRoot(), sourceFile, e.writer, sourceMapGenerator)
 
 	sourceMapUrlPos := -1
 	if sourceMapGenerator != nil {
@@ -575,8 +579,10 @@ func getDeclarationDiagnostics(host EmitHost, file *ast.SourceFile) []*ast.Diagn
 	}
 	options := host.Options()
 	emitContext := printer.NewEmitContext()
-	releaseStore := emitContext.AttachStore(file)
+	releaseStore := emitContext.LockParseStoreWriter(file)
 	defer releaseStore()
+	parseRoot := file.ParseRoot()
+	defer file.SetParseRoot(parseRoot)
 	transform := declarations.NewDeclarationTransformer(host, emitContext, options, "", "")
 	transform.TransformSourceFile(file)
 	return transform.GetDiagnostics()

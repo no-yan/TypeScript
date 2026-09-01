@@ -2,29 +2,28 @@ package tsoptions
 
 import (
 	"fmt"
-	"slices"
-	"strings"
-
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
 	"github.com/microsoft/TypeScript/tsc/internal/scanner"
+	"slices"
+	"strings"
 )
 
-func createDiagnosticForInvalidEnumType(opt *CommandLineOption, sourceFile *ast.SourceFile, node *ast.Node) *ast.Diagnostic {
+func createDiagnosticForInvalidEnumType(opt *CommandLineOption, sourceFile *ast.SourceFile, node ast.Handle) *ast.Diagnostic {
 	namesOfType := slices.Collect(opt.EnumMap().Keys())
 	stringNames := formatEnumTypeKeys(opt, namesOfType)
 	optName := "--" + opt.Name
 	return CreateDiagnosticForNodeInSourceFileOrCompilerDiagnostic(sourceFile, node, diagnostics.Argument_for_0_option_must_be_Colon_1, optName, stringNames)
 }
-
 func formatEnumTypeKeys(opt *CommandLineOption, keys []string) string {
 	if opt.DeprecatedKeys() != nil {
-		keys = core.Filter(keys, func(key string) bool { return !opt.DeprecatedKeys().Has(key) })
+		keys = core.Filter(keys, func(key string) bool {
+			return !opt.DeprecatedKeys().Has(key)
+		})
 	}
 	return "'" + strings.Join(keys, "', '") + "'"
 }
-
 func getCompilerOptionValueTypeString(option *CommandLineOption) string {
 	switch option.Kind {
 	case CommandLineOptionTypeListOrElement:
@@ -35,42 +34,14 @@ func getCompilerOptionValueTypeString(option *CommandLineOption) string {
 		return string(option.Kind)
 	}
 }
-
-func (parser *commandLineParser) createUnknownOptionError(
-	unknownOption string,
-	unknownOptionErrorText string,
-	node *ast.Node,
-	sourceFile *ast.SourceFile,
-) *ast.Diagnostic {
-	return createUnknownOptionError(
-		unknownOption,
-		parser.UnknownOptionDiagnostic(),
-		unknownOptionErrorText,
-		node,
-		sourceFile,
-		parser.AlternateMode(),
-		parser.UnknownDidYouMeanDiagnostic(),
-		commandLineOptionsToMap(parser.workerDiagnostics.didYouMean.OptionDeclarations),
-	)
+func (parser *commandLineParser) createUnknownOptionError(unknownOption string, unknownOptionErrorText string, node ast.Handle, sourceFile *ast.SourceFile) *ast.Diagnostic {
+	return createUnknownOptionError(unknownOption, parser.UnknownOptionDiagnostic(), unknownOptionErrorText, node, sourceFile, parser.AlternateMode(), parser.UnknownDidYouMeanDiagnostic(), commandLineOptionsToMap(parser.workerDiagnostics.didYouMean.OptionDeclarations))
 }
 
-// createUnknownOptionError creates a diagnostic for an unknown option. If
-// unknownDidYouMeanDiagnostic and optionsNameMap are provided, it also checks
-// for a spelling suggestion and emits a "did you mean" diagnostic instead.
-func createUnknownOptionError(
-	unknownOption string,
-	unknownOptionDiagnostic *diagnostics.Message,
-	unknownOptionErrorText string, // optional
-	node *ast.Node, // optional
-	sourceFile *ast.SourceFile, // optional
-	alternateMode *AlternateModeDiagnostics, // optional
-	unknownDidYouMeanDiagnostic *diagnostics.Message, // optional; nil skips suggestion
-	optionsNameMap CommandLineOptionNameMap, // optional; nil skips suggestion
-) *ast.Diagnostic {
+func createUnknownOptionError(unknownOption string, unknownOptionDiagnostic *diagnostics.Message, unknownOptionErrorText string, node ast.Handle, sourceFile *ast.SourceFile, alternateMode *AlternateModeDiagnostics, unknownDidYouMeanDiagnostic *diagnostics.Message, optionsNameMap CommandLineOptionNameMap) *ast.Diagnostic {
 	if alternateMode != nil && alternateMode.optionsNameMap != nil {
 		otherOption := alternateMode.optionsNameMap.Get(strings.ToLower(unknownOption))
 		if otherOption != nil {
-			// tscbuildoption
 			diagnostic := alternateMode.diagnostic
 			if otherOption.Name == "build" {
 				diagnostic = diagnostics.Option_build_must_be_the_first_command_line_argument
@@ -88,18 +59,15 @@ func createUnknownOptionError(
 	}
 	return CreateDiagnosticForNodeInSourceFileOrCompilerDiagnostic(sourceFile, node, unknownOptionDiagnostic, unknownOptionErrorText)
 }
-
-func CreateDiagnosticForNodeInSourceFile(sourceFile *ast.SourceFile, node *ast.Node, message *diagnostics.Message, args ...any) *ast.Diagnostic {
-	return ast.NewDiagnostic(sourceFile, core.NewTextRange(scanner.SkipTrivia(sourceFile.Text(), node.Loc.Pos()), node.End()), message, args...)
+func CreateDiagnosticForNodeInSourceFile(sourceFile *ast.SourceFile, node ast.Handle, message *diagnostics.Message, args ...any) *ast.Diagnostic {
+	return ast.NewDiagnostic(sourceFile, core.NewTextRange(scanner.SkipTrivia(sourceFile.Text(), node.Loc().Pos()), node.End()), message, args...)
 }
-
-func CreateDiagnosticForNodeInSourceFileOrCompilerDiagnostic(sourceFile *ast.SourceFile, node *ast.Node, message *diagnostics.Message, args ...any) *ast.Diagnostic {
-	if sourceFile != nil && node != nil {
+func CreateDiagnosticForNodeInSourceFileOrCompilerDiagnostic(sourceFile *ast.SourceFile, node ast.Handle, message *diagnostics.Message, args ...any) *ast.Diagnostic {
+	if sourceFile != nil && !node.IsNil() {
 		return CreateDiagnosticForNodeInSourceFile(sourceFile, node, message, args...)
 	}
 	return ast.NewCompilerDiagnostic(message, args...)
 }
-
 func extraKeyDiagnostics(s string) *diagnostics.Message {
 	switch s {
 	case "compilerOptions":
@@ -114,7 +82,6 @@ func extraKeyDiagnostics(s string) *diagnostics.Message {
 		return nil
 	}
 }
-
 func extraKeyDidYouMeanDiagnostics(s string) *diagnostics.Message {
 	switch s {
 	case "compilerOptions":

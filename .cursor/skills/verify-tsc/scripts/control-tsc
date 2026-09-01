@@ -40,6 +40,7 @@ Commands:
   fixture <feature-id>   Write an isolated project under scratch
   cli [--cwd DIR] -- [tsc args...]
                          Run built/local/tsc and record a transcript
+  go [--] [go args...]   Run go under the tsc compile lock (waits for launch)
   cleanup                Delete scratch and recorded child PIDs; keep artifacts
 
 Environment:
@@ -96,6 +97,72 @@ ensure_go() {
   die "Go $required is required and no go binary was found"
 }
 
+compile_lock_path() {
+  local digest
+  digest=$(printf '%s' "$REPO_ROOT" | shasum -a 256 | awk '{ print substr($1, 1, 16) }')
+  printf '/tmp/verify-tsc-gocompile-%s.lock\n' "$digest"
+}
+
+# go test and hereby's go build share GOCACHE. Two compiles of this checkout
+# at once stall on a slow disk. Wait out a foreign `go` whose cwd is here,
+# then take an exclusive flock so the other control-tsc side waits too.
+wait_for_repo_go_compiles() {
+  command -v pgrep >/dev/null 2>&1 || return 0
+  command -v lsof >/dev/null 2>&1 || return 0
+  local pid cwd
+  while true; do
+    local waiting=0
+    while read -r pid; do
+      [[ -n "$pid" ]] || continue
+      cwd=$(lsof -a -p "$pid" -d cwd -Fn 2>/dev/null | awk '/^n/ { print substr($0, 2); exit }')
+      case "$cwd" in
+        "$REPO_ROOT" | "$REPO_ROOT"/*)
+          echo "control-tsc: waiting for go pid $pid (cwd $cwd) before compiling" >&2
+          waiting=1
+          ;;
+      esac
+    done < <(pgrep -x go 2>/dev/null || true)
+    [[ "$waiting" == "0" ]] && return 0
+    sleep 2
+  done
+}
+
+with_compile_lock() {
+  local lock
+  lock=$(compile_lock_path)
+  command -v python3 >/dev/null 2>&1 || die "python3 is required for the tsc compile lock"
+  python3 - "$lock" "$@" <<'PY'
+import fcntl
+import os
+import subprocess
+import sys
+
+lock_path = sys.argv[1]
+argv = sys.argv[2:]
+if not argv:
+    sys.exit("control-tsc: compile lock needs a command")
+fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o644)
+try:
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        print(
+            "control-tsc: waiting for tsc compile lock at " + lock_path,
+            file=sys.stderr,
+        )
+        fcntl.flock(fd, fcntl.LOCK_EX)
+    raise SystemExit(subprocess.call(argv))
+finally:
+    fcntl.flock(fd, fcntl.LOCK_UN)
+    os.close(fd)
+PY
+}
+
+run_serialized_compile() {
+  wait_for_repo_go_compiles
+  with_compile_lock "$@"
+}
+
 record_state() {
   local sha version
   sha=$(git -C "$REPO_ROOT" rev-parse HEAD)
@@ -118,7 +185,7 @@ cmd_launch() {
   if [[ ! -d "$REPO_ROOT/node_modules" ]]; then
     (cd "$REPO_ROOT" && npm ci)
   fi
-  (cd "$REPO_ROOT" && npx hereby build)
+  (cd "$REPO_ROOT" && run_serialized_compile npx hereby build)
   [[ -x "$TSC_BIN" ]] || die "build finished but $TSC_BIN is missing or not executable"
   [[ -f "$REPO_ROOT/built/local/lib.es5.d.ts" ]] || die "build finished but built/local/lib.es5.d.ts is missing (noembed libs)"
   record_state
@@ -434,6 +501,16 @@ cmd_cli() {
   return "$status"
 }
 
+cmd_go() {
+  load_paths
+  ensure_go
+  if [[ "${1:-}" == "--" ]]; then
+    shift
+  fi
+  [[ $# -gt 0 ]] || die "go requires arguments (example: control-tsc go -- -C ./tsc test ./internal/parser -count=1)"
+  (cd "$REPO_ROOT" && run_serialized_compile go "$@")
+}
+
 cmd_cleanup() {
   load_paths
   if [[ -f "$PIDS_FILE" ]]; then
@@ -468,6 +545,7 @@ main() {
     doctor) cmd_doctor "$@" ;;
     fixture) cmd_fixture "$@" ;;
     cli) cmd_cli "$@" ;;
+    go) cmd_go "$@" ;;
     cleanup) cmd_cleanup "$@" ;;
     -h|--help|help) usage ;;
     *) usage; die "unknown command '$cmd'" ;;

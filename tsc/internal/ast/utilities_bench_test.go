@@ -26,16 +26,16 @@ func BenchmarkGetCombinedFlags(b *testing.B) {
 				Path:     path,
 			}, sourceText, scriptKind)
 
-			var decls []*ast.Node
-			var collect ast.Visitor
-			collect = func(n *ast.Node) bool {
+			var decls []ast.Handle
+			var collect ast.StoreVisitor
+			collect = func(n ast.Handle) bool {
 				if ast.IsDeclaration(n) {
 					decls = append(decls, n)
 				}
 				n.ForEachChild(collect)
 				return false
 			}
-			sourceFile.AsNode().ForEachChild(collect)
+			sourceFile.ParseRoot().ForEachChild(collect)
 
 			for b.Loop() {
 				for _, n := range decls {

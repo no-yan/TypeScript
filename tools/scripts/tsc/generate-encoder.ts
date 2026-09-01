@@ -226,15 +226,19 @@ function goParamName(m: MemberInfo): string {
     return m.goParamName();
 }
 
-/** Get the Go accessor for a member on a cast struct (e.g., "n.IsTypeOnly", "n.Name()"). */
-function goFieldAccess(m: MemberInfo): string {
-    if (m.private) return `n.${api.capitalize(m.name)}()`;
-    return `n.${m.name}`;
+/** Get the Go accessor for a member on a Handle (e.g., "n.IfStatementThenStatement()"). */
+function goFieldAccess(node: NodeType, m: MemberInfo): string {
+    return `n.${node.name}${api.capitalize(m.name)}()`;
 }
 
 /** Get the default Go value for a non-encoded factory parameter. */
 function goDefaultValue(m: MemberInfo): string {
-    if (m.isChild()) return "nil";
+    if (m.isChild()) {
+        const ct = childType(m);
+        if (ct === "nodeList" || ct === "modifierList") return "0";
+        if (ct === "rawNodeList") return "nil";
+        return "ast.Handle{}";
+    }
     const dt = m.declaredType;
     if (dt.kind === "primitive") {
         switch (dt.name) {
@@ -364,9 +368,9 @@ function generateGoEncoder(): string {
 }
 
 function generateGoGetNodeDataType(w: CodeWriter) {
-    w.write("func getNodeDataType(node *ast.Node) uint32 {");
+    w.write("func getNodeDataType(node ast.Handle) uint32 {");
     w.push();
-    w.write("switch node.Kind {");
+    w.write("switch node.Kind() {");
 
     const stringKinds: string[] = [];
     const extendedKinds: string[] = [];
@@ -407,9 +411,9 @@ function generateGoGetNodeDataType(w: CodeWriter) {
 }
 
 function generateGoGetChildrenPropertyMask(w: CodeWriter) {
-    w.write("func getChildrenPropertyMask(node *ast.Node) uint8 {");
+    w.write("func getChildrenPropertyMask(node ast.Handle) uint8 {");
     w.push();
-    w.write("switch node.Kind {");
+    w.write("switch node.Kind() {");
 
     for (const node of api.nodes()) {
         const info = analyzeNode(node);
@@ -417,11 +421,10 @@ function generateGoGetChildrenPropertyMask(w: CodeWriter) {
         if (info.childProps.length === 0) continue;
 
         const kinds = getGoKinds(node);
-        const castName = goCastName(node);
 
         w.write(`case ${kinds.join(", ")}:`);
         w.push();
-        w.write(`n := node.${castName}()`);
+        w.write(`n := node`);
 
         const parts: string[] = [];
         for (let i = 0; i < info.childProps.length; i++) {
@@ -432,13 +435,13 @@ function generateGoGetChildrenPropertyMask(w: CodeWriter) {
                 check = `hasModifiers(n.Modifiers())`;
             }
             else if (ct === "nodeList") {
-                check = `${goFieldAccess(m)} != nil`;
+                check = `${goFieldAccess(node, m)} != 0`;
             }
             else if (ct === "rawNodeList") {
-                check = `len(${goFieldAccess(m)}) > 0`;
+                check = `len(${goFieldAccess(node, m)}) > 0`;
             }
             else {
-                check = `${goFieldAccess(m)} != nil`;
+                check = `!${goFieldAccess(node, m)}.IsNil()`;
             }
             parts.push(`(boolToByte(${check}) << ${i})`);
         }
@@ -457,9 +460,9 @@ function generateGoGetChildrenPropertyMask(w: CodeWriter) {
 }
 
 function generateGoGetNodeCommonData(w: CodeWriter) {
-    w.write("func getNodeCommonData(node *ast.Node) uint32 {");
+    w.write("func getNodeCommonData(node ast.Handle) uint32 {");
     w.push();
-    w.write("switch node.Kind {");
+    w.write("switch node.Kind() {");
 
     for (const node of api.nodes()) {
         const info = analyzeNode(node);
@@ -475,25 +478,24 @@ function generateGoGetNodeCommonData(w: CodeWriter) {
         }
         else if (hasAutoEncodedData(info)) {
             const kinds = getGoKinds(node);
-            const castName = goCastName(node);
             const layout = getAutoEncodedLayout(info);
 
             w.write(`case ${kinds.join(", ")}:`);
             w.push();
-            w.write(`n := node.${castName}()`);
+            w.write(`n := node`);
 
             const parts: string[] = [];
             for (const { member: m, bitPos, bitWidth } of layout) {
                 if (!isSyntaxKindUnion(m)) {
                     // Bool or bitmask
-                    parts.push(`uint32(boolToByte(${goFieldAccess(m)})) << ${24 + bitPos}`);
+                    parts.push(`uint32(boolToByte(${goFieldAccess(node, m)})) << ${24 + bitPos}`);
                 }
                 else {
                     // SyntaxKind union → index-based encoding
                     const kinds = unionKindValues(m.declaredType);
                     const varName = `${goParamName(m)}Idx`;
                     w.write(`var ${varName} uint32`);
-                    w.write(`switch ${goFieldAccess(m)} {`);
+                    w.write(`switch ${goFieldAccess(node, m)} {`);
                     if (m.optional) {
                         // Optional: 0 = absent, 1..N = values[0]..values[N-1]
                         for (let i = 0; i < kinds.length; i++) {
@@ -523,29 +525,26 @@ function generateGoGetNodeCommonData(w: CodeWriter) {
 }
 
 function generateGoRecordNodeStrings(w: CodeWriter) {
-    w.write("func recordNodeStrings(node *ast.Node, strs *stringTable) uint32 {");
+    w.write("func recordNodeStrings(node ast.Handle, strs *stringTable) uint32 {");
     w.push();
-    w.write("switch node.Kind {");
+    w.write("switch node.Kind() {");
 
     for (const node of api.nodes()) {
         const info = analyzeNode(node);
         if (info.dataType !== "string" || !info.textMember) continue;
 
         const kinds = getGoKinds(node);
-        const castName = goCastName(node);
-        const textAccess = info.textMember.private
-            ? `node.${castName}().${api.capitalize(info.textMember.name)}()`
-            : `node.${castName}().${info.textMember.name}`;
+        const textAccess = `node.${api.capitalize(info.textMember.name)}()`;
 
         w.write(`case ${kinds.join(", ")}:`);
         w.push();
-        w.write(`return strs.add(${textAccess}, node.Kind, node.Pos(), node.End())`);
+        w.write(`return strs.add(${textAccess}, node.Kind(), node.Pos(), node.End())`);
         w.pop();
     }
 
     w.write("default:");
     w.push();
-    w.write(`panic(fmt.Sprintf("Unexpected node kind %v", node.Kind))`);
+    w.write(`panic(fmt.Sprintf("Unexpected node kind %v", node.Kind()))`);
     w.pop();
     w.write("}");
     w.pop();
@@ -554,10 +553,10 @@ function generateGoRecordNodeStrings(w: CodeWriter) {
 }
 
 function generateGoRecordExtendedData(w: CodeWriter) {
-    w.write("func recordExtendedData(node *ast.Node, strs *stringTable, positionMap *ast.PositionMap, extendedData *[]byte, structuredData *[]byte) uint32 {");
+    w.write("func recordExtendedData(node ast.Handle, strs *stringTable, positionMap *ast.PositionMap, extendedData *[]byte, structuredData *[]byte) uint32 {");
     w.push();
     w.write("offset := uint32(len(*extendedData))");
-    w.write("switch node.Kind {");
+    w.write("switch node.Kind() {");
 
     for (const node of api.nodes()) {
         const info = analyzeNode(node);
@@ -573,7 +572,7 @@ function generateGoRecordExtendedData(w: CodeWriter) {
 
     w.write("default:");
     w.push();
-    w.write(`panic(fmt.Sprintf("unknown extended data node kind %v", node.Kind))`);
+    w.write(`panic(fmt.Sprintf("unknown extended data node kind %v", node.Kind()))`);
     w.pop();
     w.write("}");
     w.write("return offset");
@@ -609,7 +608,7 @@ function generateGoDecoder(): string {
 }
 
 function generateGoCreateStringNode(w: CodeWriter) {
-    w.write("func (d *astDecoder) createStringNode(kind ast.Kind, data uint32, commonData uint8) (*ast.Node, error) {");
+    w.write("func (d *astDecoder) createStringNode(kind ast.Kind, data uint32, commonData uint8) (ast.Handle, error) {");
     w.push();
     w.write("strIdx := data & NodeDataStringIndexMask");
     w.write("text := d.getString(strIdx)");
@@ -663,7 +662,7 @@ function generateGoCreateStringNode(w: CodeWriter) {
 
     w.write("default:");
     w.push();
-    w.write(`return nil, fmt.Errorf("unknown string node kind %v", kind)`);
+    w.write(`return ast.Handle{}, fmt.Errorf("unknown string node kind %v", kind)`);
     w.pop();
     w.write("}");
     w.pop();
@@ -672,7 +671,7 @@ function generateGoCreateStringNode(w: CodeWriter) {
 }
 
 function generateGoCreateExtendedNode(w: CodeWriter) {
-    w.write("func (d *astDecoder) createExtendedNode(kind ast.Kind, data uint32, childIndices []int, commonData uint8) (*ast.Node, error) {");
+    w.write("func (d *astDecoder) createExtendedNode(kind ast.Kind, data uint32, childIndices []int, commonData uint8) (ast.Handle, error) {");
     w.push();
     w.write("switch kind {");
 
@@ -691,7 +690,7 @@ function generateGoCreateExtendedNode(w: CodeWriter) {
 
     w.write("default:");
     w.push();
-    w.write(`return nil, fmt.Errorf("unknown extended data node kind %v", kind)`);
+    w.write(`return ast.Handle{}, fmt.Errorf("unknown extended data node kind %v", kind)`);
     w.pop();
     w.write("}");
     w.pop();
@@ -700,7 +699,7 @@ function generateGoCreateExtendedNode(w: CodeWriter) {
 }
 
 function generateGoCreateChildrenNode(w: CodeWriter) {
-    w.write("func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices []int, commonData uint8) (*ast.Node, error) {");
+    w.write("func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices []int, commonData uint8) (ast.Handle, error) {");
     w.push();
     w.write("mask := uint8(data & NodeDataChildMask)");
     w.write("");
@@ -750,7 +749,7 @@ function generateGoCreateChildrenNode(w: CodeWriter) {
     // Default: error for unhandled kinds
     w.write("default:");
     w.push();
-    w.write(`return nil, fmt.Errorf("unhandled node kind %v with %d children", kind, len(childIndices))`);
+    w.write(`return ast.Handle{}, fmt.Errorf("unhandled node kind %v with %d children", kind, len(childIndices))`);
     w.pop();
 
     w.write("}");
@@ -893,7 +892,7 @@ function emitSingleChildDecoder(w: CodeWriter, node: NodeType, info: EncoderNode
             }
             else if (ct === "nodeList") {
                 if (hasCommonData) {
-                    w.write("var list *ast.NodeList");
+                    w.write("var list ast.ListRef");
                     w.write("if len(childIndices) > 0 {");
                     w.push();
                     w.write("list = d.nodeListAt(childIndices[0])");
@@ -906,7 +905,7 @@ function emitSingleChildDecoder(w: CodeWriter, node: NodeType, info: EncoderNode
                 }
             }
             else if (ct === "modifierList") {
-                w.write("var mods *ast.ModifierList");
+                w.write("var mods ast.ListRef");
                 w.write("if len(childIndices) > 0 {");
                 w.push();
                 w.write("mods = d.modifierListAt(childIndices[0])");
@@ -958,10 +957,10 @@ function emitMultiChildDecoder(w: CodeWriter, node: NodeType, info: EncoderNodeI
         else if (ct === "rawNodeList") {
             const nlVar = `${varName}NL`;
             w.write(`${nlVar} := d.nodeListAt(it.nextIf(mask, ${i}))`);
-            w.write(`var ${varName} []*ast.Node`);
-            w.write(`if ${nlVar} != nil {`);
+            w.write(`var ${varName} []ast.Handle`);
+            w.write(`if ${nlVar} != 0 {`);
             w.push();
-            w.write(`${varName} = ${nlVar}.Nodes`);
+            w.write(`${varName} = d.factory.Store().ListSlice(${nlVar})`);
             w.pop();
             w.write("}");
             childVars.set(m, varName);

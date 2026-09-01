@@ -26,7 +26,8 @@ const (
 
 type FlowNode struct {
 	Flags       FlowFlags
-	Node        *Node     // Associated AST node
+	Node        Handle    // Associated AST node
+	Data        *Node     // Synthetic switch/reduce payload
 	Antecedent  *FlowNode // Antecedent for all but FlowLabel
 	Antecedents *FlowList // Linked list of antecedents for FlowLabel
 }
@@ -42,12 +43,12 @@ type FlowLabel = FlowNode
 
 type FlowSwitchClauseData struct {
 	NodeBase
-	SwitchStatement *Node
+	SwitchStatement Handle
 	ClauseStart     int32 // Start index of case/default clause range
 	ClauseEnd       int32 // End index of case/default clause range
 }
 
-func NewFlowSwitchClauseData(switchStatement *Node, clauseStart int, clauseEnd int) *Node {
+func NewFlowSwitchClauseData(switchStatement Handle, clauseStart int, clauseEnd int) *Node {
 	node := &FlowSwitchClauseData{}
 	node.SwitchStatement = switchStatement
 	node.ClauseStart = int32(clauseStart)

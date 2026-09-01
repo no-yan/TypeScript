@@ -35,12 +35,11 @@ func TestFactoryCopySubtree(t *testing.T) {
 	copied.SetParentsInChildren()
 	assert.Equal(t, copied.Ref(), copied.Left().Parent().Ref())
 
-	defer func() {
-		if recover() == nil {
-			t.Fatal("expected panic")
-		}
-	}()
 	copied.SetChild(0, left)
+	got := copied.Child(0)
+	assert.Equal(t, emit.Store(), got.Store())
+	assert.Assert(t, got.Store() != left.Store())
+	assert.Equal(t, "a", got.Text())
 }
 
 func TestFactoryCopySubtreeRemapsList(t *testing.T) {
@@ -60,10 +59,10 @@ func TestFactoryCopySubtreeRemapsList(t *testing.T) {
 	emit := ast.NewFactory(ast.FactoryHooks{})
 	copied := emit.CopySubtree(arr)
 	assert.Equal(t, ast.KindArrayLiteralExpression, copied.Kind())
-	assert.Equal(t, 2, emit.Store().ListLen(copied.Elements()))
-	assert.Assert(t, emit.Store().ListHasTrailingComma(copied.Elements()))
-	ca := emit.Store().ListAt(copied.Elements(), 0)
-	cb := emit.Store().ListAt(copied.Elements(), 1)
+	assert.Equal(t, 2, emit.Store().ListLen(copied.ElementList()))
+	assert.Assert(t, emit.Store().ListHasTrailingComma(copied.ElementList()))
+	ca := emit.Store().ListAt(copied.ElementList(), 0)
+	cb := emit.Store().ListAt(copied.ElementList(), 1)
 	assert.Equal(t, "a", ca.Text())
 	assert.Equal(t, "b", cb.Text())
 	assert.Equal(t, ast.TokenFlagsSingleQuote, ca.TokenFlags())

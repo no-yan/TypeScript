@@ -6,95 +6,51 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
 )
 
-func needsScopeMarker(result *ast.Node) bool {
+func needsScopeMarker(result ast.Handle) bool {
 	return !ast.IsAnyImportOrReExport(result) && !ast.IsExportAssignment(result) && !ast.HasSyntacticModifier(result, ast.ModifierFlagsExport) && !ast.IsAmbientModule(result)
 }
-
-func canHaveLiteralInitializer(host DeclarationEmitHost, node *ast.Node) bool {
-	switch node.Kind {
-	case ast.KindPropertyDeclaration,
-		ast.KindPropertySignature:
+func canHaveLiteralInitializer(host DeclarationEmitHost, node ast.Handle) bool {
+	switch node.Kind() {
+	case ast.KindPropertyDeclaration, ast.KindPropertySignature:
 		return host.GetEffectiveDeclarationFlags(node, ast.ModifierFlagsPrivate) == 0
-	case ast.KindParameter,
-		ast.KindVariableDeclaration:
+	case ast.KindParameter, ast.KindVariableDeclaration:
 		return true
 	}
 	return false
 }
-
-func canProduceDiagnostics(node *ast.Node) bool {
-	return ast.IsVariableDeclaration(node) ||
-		ast.IsPropertyDeclaration(node) ||
-		ast.IsPropertySignatureDeclaration(node) ||
-		ast.IsBindingElement(node) ||
-		ast.IsSetAccessorDeclaration(node) ||
-		ast.IsGetAccessorDeclaration(node) ||
-		ast.IsConstructSignatureDeclaration(node) ||
-		ast.IsCallSignatureDeclaration(node) ||
-		ast.IsMethodDeclaration(node) ||
-		ast.IsMethodSignatureDeclaration(node) ||
-		ast.IsFunctionDeclaration(node) ||
-		ast.IsParameterDeclaration(node) ||
-		ast.IsTypeParameterDeclaration(node) ||
-		ast.IsExpressionWithTypeArguments(node) ||
-		ast.IsImportEqualsDeclaration(node) ||
-		ast.IsTypeAliasDeclaration(node) ||
-		ast.IsJSTypeAliasDeclaration(node) ||
-		ast.IsConstructorDeclaration(node) ||
-		ast.IsIndexSignatureDeclaration(node) ||
-		ast.IsPropertyAccessExpression(node) ||
-		ast.IsElementAccessExpression(node) ||
-		ast.IsBinaryExpression(node) ||
-		ast.IsCallExpression(node) // || // !!! TODO: JSDoc support
-	/* ast.IsJSDocTypeAlias(node); */
+func canProduceDiagnostics(node ast.Handle) bool {
+	return ast.IsVariableDeclaration(node) || ast.IsPropertyDeclaration(node) || ast.IsPropertySignatureDeclaration(node) || ast.IsBindingElement(node) || ast.IsSetAccessorDeclaration(node) || ast.IsGetAccessorDeclaration(node) || ast.IsConstructSignatureDeclaration(node) || ast.IsCallSignatureDeclaration(node) || ast.IsMethodDeclaration(node) || ast.IsMethodSignatureDeclaration(node) || ast.IsFunctionDeclaration(node) || ast.IsParameterDeclaration(node) || ast.IsTypeParameterDeclaration(node) || ast.IsExpressionWithTypeArguments(node) || ast.IsImportEqualsDeclaration(node) || ast.IsTypeAliasDeclaration(node) || ast.IsJSTypeAliasDeclaration(node) || ast.IsConstructorDeclaration(node) || ast.IsIndexSignatureDeclaration(node) || ast.IsPropertyAccessExpression(node) || ast.IsElementAccessExpression(node) || ast.IsBinaryExpression(node) || ast.IsCallExpression(node)
 }
-
-func canReuseModifierNodes(nodes []*ast.Node) bool {
+func canReuseModifierNodes(nodes []ast.Handle) bool {
 	for _, node := range nodes {
-		if ast.IsModifier(node) && node.Flags&ast.NodeFlagsReparsed != 0 {
+		if ast.IsModifier(node) && node.Flags()&ast.NodeFlagsReparsed != 0 {
 			return false
 		}
 	}
 	return true
 }
-
-func isDeclarationAndNotVisible(emitContext *printer.EmitContext, resolver printer.EmitResolver, node *ast.Node) bool {
+func isDeclarationAndNotVisible(emitContext *printer.EmitContext, resolver printer.EmitResolver, node ast.Handle) bool {
 	node = emitContext.ParseNode(node)
-	switch node.Kind {
-	case ast.KindFunctionDeclaration,
-		ast.KindModuleDeclaration,
-		ast.KindInterfaceDeclaration,
-		ast.KindClassDeclaration,
-		ast.KindTypeAliasDeclaration,
-		ast.KindJSTypeAliasDeclaration,
-		ast.KindEnumDeclaration:
+	switch node.Kind() {
+	case ast.KindFunctionDeclaration, ast.KindModuleDeclaration, ast.KindInterfaceDeclaration, ast.KindClassDeclaration, ast.KindTypeAliasDeclaration, ast.KindJSTypeAliasDeclaration, ast.KindEnumDeclaration:
 		return !resolver.IsDeclarationVisible(node)
-	// The following should be doing their own visibility checks based on filtering their members
 	case ast.KindVariableDeclaration:
 		return !getBindingNameVisible(resolver, node)
-	case ast.KindImportEqualsDeclaration,
-		ast.KindImportDeclaration,
-		ast.KindJSImportDeclaration,
-		ast.KindExportDeclaration,
-		ast.KindExportAssignment:
+	case ast.KindImportEqualsDeclaration, ast.KindImportDeclaration, ast.KindJSImportDeclaration, ast.KindExportDeclaration, ast.KindExportAssignment:
 		return false
 	case ast.KindClassStaticBlockDeclaration:
 		return true
 	}
 	return false
 }
-
-func getBindingNameVisible(resolver printer.EmitResolver, elem *ast.Node) bool {
+func getBindingNameVisible(resolver printer.EmitResolver, elem ast.Handle) bool {
 	if ast.IsOmittedExpression(elem) {
 		return false
 	}
-	// TODO: parseArrayBindingElement _never_ parses out an OmittedExpression anymore, instead producing a nameless binding element
-	// Audit if OmittedExpression should be removed
-	if elem.Name() == nil {
+	if elem.Name().IsNil() {
 		return false
 	}
 	if ast.IsBindingPattern(elem.Name()) {
-		// If any child binding pattern element has been marked visible (usually by collect linked aliases), then this is visible
 		for _, elem := range elem.Name().Elements() {
 			if getBindingNameVisible(resolver, elem) {
 				return true
@@ -105,82 +61,53 @@ func getBindingNameVisible(resolver printer.EmitResolver, elem *ast.Node) bool {
 		return resolver.IsDeclarationVisible(elem)
 	}
 }
-
-func isEnclosingDeclaration(node *ast.Node) bool {
-	return ast.IsSourceFile(node) ||
-		ast.IsTypeAliasDeclaration(node) ||
-		ast.IsJSTypeAliasDeclaration(node) ||
-		ast.IsModuleDeclaration(node) ||
-		ast.IsClassDeclaration(node) ||
-		ast.IsInterfaceDeclaration(node) ||
-		ast.IsFunctionLike(node) ||
-		ast.IsIndexSignatureDeclaration(node) ||
-		ast.IsMappedTypeNode(node) ||
-		ast.IsVariableDeclaration(node)
+func isEnclosingDeclaration(node ast.Handle) bool {
+	return ast.IsSourceFile(node) || ast.IsTypeAliasDeclaration(node) || ast.IsJSTypeAliasDeclaration(node) || ast.IsModuleDeclaration(node) || ast.IsClassDeclaration(node) || ast.IsInterfaceDeclaration(node) || ast.IsFunctionLike(node) || ast.IsIndexSignatureDeclaration(node) || ast.IsMappedTypeNode(node) || ast.IsVariableDeclaration(node)
 }
-
-func isAlwaysType(node *ast.Node) bool {
-	if node.Kind == ast.KindInterfaceDeclaration {
+func isAlwaysType(node ast.Handle) bool {
+	if node.Kind() == ast.KindInterfaceDeclaration {
 		return true
 	}
 	return false
 }
-
-func maskModifierFlags(node *ast.Node, modifierMask ast.ModifierFlags, modifierAdditions ast.ModifierFlags) ast.ModifierFlags {
+func maskModifierFlags(node ast.Handle, modifierMask ast.ModifierFlags, modifierAdditions ast.ModifierFlags) ast.ModifierFlags {
 	flags := (ast.GetCombinedModifierFlags(node) & modifierMask) | modifierAdditions
 	if flags&ast.ModifierFlagsDefault != 0 && (flags&ast.ModifierFlagsExport == 0) {
-		// A non-exported default is a nonsequitor - we usually try to remove all export modifiers
-		// from statements in ambient declarations; but a default export must retain its export modifier to be syntactically valid
 		flags ^= ast.ModifierFlagsExport
 	}
 	if flags&ast.ModifierFlagsDefault != 0 && flags&ast.ModifierFlagsAmbient != 0 {
-		flags ^= ast.ModifierFlagsAmbient // `declare` is never required alongside `default` (and would be an error if printed)
+		flags ^= ast.ModifierFlagsAmbient
 	}
 	return flags
 }
-
-func unwrapParenthesizedExpression(o *ast.Node) *ast.Node {
-	for o.Kind == ast.KindParenthesizedExpression {
+func unwrapParenthesizedExpression(o ast.Handle) ast.Handle {
+	for o.Kind() == ast.KindParenthesizedExpression {
 		o = o.Expression()
 	}
 	return o
 }
-
-func isPrivateMethodTypeParameter(host DeclarationEmitHost, node *ast.TypeParameterDeclaration) bool {
-	return node.AsNode().Parent.Kind == ast.KindMethodDeclaration && host.GetEffectiveDeclarationFlags(node.AsNode().Parent, ast.ModifierFlagsPrivate) != 0
+func isPrivateMethodTypeParameter(host DeclarationEmitHost, node ast.Handle) bool {
+	return node.Parent().Kind() == ast.KindMethodDeclaration && host.GetEffectiveDeclarationFlags(node.Parent(), ast.ModifierFlagsPrivate) != 0
 }
 
-// Returns true if expando properties should be emitted for this function.
-// Properties are emitted if any overload in the symbol has a body (implementation).
-func shouldEmitFunctionProperties(input *ast.FunctionDeclaration) bool {
-	if input.Body != nil {
+func shouldEmitFunctionProperties(input ast.Handle) bool {
+	if !input.Body().IsNil() {
 		return true
 	}
-	return !ast.EveryDeclaration(input.Symbol, func(decl *ast.Node) bool {
-		return !ast.IsFunctionDeclaration(decl) || decl.AsFunctionDeclaration().Body == nil
+	return !ast.EveryDeclaration(input.Symbol(), func(decl ast.Handle) bool {
+		return !ast.IsFunctionDeclaration(decl) || decl.FunctionDeclarationBody().IsNil()
 	})
 }
-
-func getEffectiveBaseTypeNode(node *ast.Node) *ast.Node {
+func getEffectiveBaseTypeNode(node ast.Handle) ast.Handle {
 	baseType := ast.GetClassExtendsHeritageElement(node)
-	// !!! TODO: JSDoc support
-	// if (baseType && isInJSFile(node)) {
-	//     // Prefer an @augments tag because it may have type parameters.
-	//     const tag = getJSDocAugmentsTag(node);
-	//     if (tag) {
-	//         return tag.class;
-	//     }
-	// }
 	return baseType
 }
-
-func isScopeMarker(node *ast.Node) bool {
+func isScopeMarker(node ast.Handle) bool {
 	return ast.IsExportAssignment(node) || ast.IsExportDeclaration(node)
 }
-
-func hasScopeMarker(statements *ast.StatementList) bool {
-	if statements == nil {
+func hasScopeMarker(store *ast.Store, statements ast.ListRef) bool {
+	if store == nil || statements == 0 {
 		return false
 	}
-	return core.Some(statements.Nodes, isScopeMarker)
+	return core.Some(store.ListSlice(statements), isScopeMarker)
 }

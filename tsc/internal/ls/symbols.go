@@ -2,11 +2,6 @@ package ls
 
 import (
 	"context"
-	"slices"
-	"strings"
-	"unicode"
-	"unicode/utf8"
-
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/astnav"
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
@@ -20,11 +15,61 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/spanmap"
 	"github.com/microsoft/TypeScript/tsc/internal/stringutil"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
+	"slices"
+	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 func (l *LanguageService) ProvideDocumentSymbols(ctx context.Context, documentURI lsproto.DocumentUri) (lsproto.DocumentSymbolResponse, error) {
 	_, file := l.getProgramAndFile(documentURI)
-	projections := append([]*ast.SourceFile{file}, file.SupplementalSourceFiles()...)
+	projections := append([]*// Client doesn't support hierarchical document symbols, return flat SymbolInformation array
+	// getDocumentSymbolInformations converts hierarchical DocumentSymbols to a flat SymbolInformation array
+	// First get hierarchical symbols
+	// Flatten the hierarchy
+	// Recursively flatten children with this symbol as container
+	/*name*/ /*children*/ /*name*/ /*name*/ /*name*/ /*name*/ /*children*/ /*name*/ /*name*/ /*children*/ /*name*/ /*children*/ // Handle default import case e.g.:
+	//    import d from "mod";
+	/*children*/ // Handle named bindings in imports e.g.:
+	//    import * as NS from "mod";
+	//    import {a, b as B} from "mod";
+	/*name*/ /*children*/ /*name*/ /*children*/ // `module.exports = ...`` should be reparsed into a JSExportAssignment,
+	// and `exports.a = ...`` into a CommonJSExport.
+	// `A.b = ... ` or `A.prototype.b = ...`
+	// `A.b` or `A.prototype.b`
+	// `A["b"]` or `A.prototype["b"]`
+	// `Object.defineProperty(A, "b", {...})`
+	// If we see a prototype assignment, start tracking the target as an expando target.
+	/*name*/ // Target is `f.prototype`.
+	// Merges expando symbols into their target symbols, and namespaces of same name.
+	// Modifies the input slice.
+	// Collect symbols that can be an expando target.
+	// Collect namespaces.
+	// Anonymous symbols never merge.
+	// Merge expandos.
+	// Mark this symbol as merged.
+	// Merge namespaces.
+	// Mark this symbol as merged.
+	// See `getUnnamedNodeLabel`.
+	// Obtain set of non-declaration source files from all active programs.
+	// Create DeclarationInfos for all declarations in the source files.
+	// Sort the DeclarationInfos and return the top 256 matches.
+	// Use the name node's span so that VS selects just the symbol name (matching
+	// the TS5 navto behaviour). GetNameOfDeclaration is always non-nil here because
+	// computeDeclarationMap only adds declarations whose GetDeclarationName (string
+	// form) is non-empty, which implies a name node exists.
+	/*includeJsDoc*/ // The name has no counterpart in the original text, so there is nothing to navigate to.
+	// Return a score for matching `s` against `pattern`. In order to match, `s` must contain each of the characters in
+	// `pattern` in the same order. Upper case characters in `pattern` must match exactly, whereas lower case characters
+	// in `pattern` match either case in `s`. If `s` doesn't match, -1 is returned. Otherwise, the returned score is the
+	// number of characters in `s` that weren't matched. Thus, zero represents an exact match, and higher values represent
+	// increasingly less specific partial matches.
+	// Sort DeclarationInfos by ascending match score, then ascending case insensitive name, then
+	// ascending case sensitive name, and finally by source file name and position.
+	// getSymbolKindFromNode converts an AST node to an LSP SymbolKind.
+	// Combines getNodeKind with VS Code's fromProtocolScriptElementKind.
+	// String literals used as property names (e.g., in Object.defineProperty)
+	ast.SourceFile{file}, file.SupplementalSourceFiles()...)
 	var symbols []*lsproto.DocumentSymbol
 	var seen collections.Set[struct {
 		name string
@@ -32,7 +77,7 @@ func (l *LanguageService) ProvideDocumentSymbols(ctx context.Context, documentUR
 		rng  lsproto.Range
 	}]
 	for _, projection := range projections {
-		for _, symbol := range l.getDocumentSymbolsForChildren(ctx, projection.AsNode(), projection) {
+		for _, symbol := range l.getDocumentSymbolsForChildren(ctx, projection.ParseRoot(), projection) {
 			key := struct {
 				name string
 				kind lsproto.SymbolKind
@@ -46,7 +91,6 @@ func (l *LanguageService) ProvideDocumentSymbols(ctx context.Context, documentUR
 	if lsproto.GetClientCapabilities(ctx).TextDocument.DocumentSymbol.HierarchicalDocumentSymbolSupport {
 		return lsproto.SymbolInformationsOrDocumentSymbolsOrNull{DocumentSymbols: &symbols}, nil
 	}
-	// Client doesn't support hierarchical document symbols, return flat SymbolInformation array
 	symbolInfos := flattenDocumentSymbols(symbols, documentURI)
 	symbolInfoPtrs := make([]*lsproto.SymbolInformation, len(symbolInfos))
 	for i := range symbolInfos {
@@ -55,33 +99,17 @@ func (l *LanguageService) ProvideDocumentSymbols(ctx context.Context, documentUR
 	return lsproto.SymbolInformationsOrDocumentSymbolsOrNull{SymbolInformations: &symbolInfoPtrs}, nil
 }
 
-// getDocumentSymbolInformations converts hierarchical DocumentSymbols to a flat SymbolInformation array
 func (l *LanguageService) getDocumentSymbolInformations(ctx context.Context, file *ast.SourceFile, documentURI lsproto.DocumentUri) []lsproto.SymbolInformation {
-	// First get hierarchical symbols
-	docSymbols := l.getDocumentSymbolsForChildren(ctx, file.AsNode(), file)
+	docSymbols := l.getDocumentSymbolsForChildren(ctx, file.ParseRoot(), file)
 	return flattenDocumentSymbols(docSymbols, documentURI)
 }
-
 func flattenDocumentSymbols(docSymbols []*lsproto.DocumentSymbol, documentURI lsproto.DocumentUri) []lsproto.SymbolInformation {
-	// Flatten the hierarchy
 	var result []lsproto.SymbolInformation
 	var flatten func(symbols []*lsproto.DocumentSymbol, containerName *string)
 	flatten = func(symbols []*lsproto.DocumentSymbol, containerName *string) {
 		for _, symbol := range symbols {
-			info := lsproto.SymbolInformation{
-				Name: symbol.Name,
-				Kind: symbol.Kind,
-				Location: lsproto.Location{
-					Uri:   documentURI,
-					Range: symbol.Range,
-				},
-				ContainerName: containerName,
-				Tags:          symbol.Tags,
-				Deprecated:    symbol.Deprecated,
-			}
+			info := lsproto.SymbolInformation{Name: symbol.Name, Kind: symbol.Kind, Location: lsproto.Location{Uri: documentURI, Range: symbol.Range}, ContainerName: containerName, Tags: symbol.Tags, Deprecated: symbol.Deprecated}
 			result = append(result, info)
-
-			// Recursively flatten children with this symbol as container
 			if symbol.Children != nil && len(*symbol.Children) > 0 {
 				flatten(*symbol.Children, &symbol.Name)
 			}
@@ -90,22 +118,21 @@ func flattenDocumentSymbols(docSymbols []*lsproto.DocumentSymbol, documentURI ls
 	flatten(docSymbols, nil)
 	return result
 }
-
-func (l *LanguageService) getDocumentSymbolsForChildren(ctx context.Context, node *ast.Node, file *ast.SourceFile) []*lsproto.DocumentSymbol {
+func (l *LanguageService) getDocumentSymbolsForChildren(ctx context.Context, node ast.Handle, file *ast.SourceFile) []*lsproto.DocumentSymbol {
 	var symbols []*lsproto.DocumentSymbol
 	expandoTargets := collections.Set[string]{}
-	addSymbolForNode := func(node *ast.Node, name *ast.Node, children []*lsproto.DocumentSymbol) {
-		if node.Flags&ast.NodeFlagsReparsed == 0 {
+	addSymbolForNode := func(node ast.Handle, name ast.Handle, children []*lsproto.DocumentSymbol) {
+		if node.Flags()&ast.NodeFlagsReparsed == 0 {
 			symbol := l.newDocumentSymbol(node, name, children)
 			if symbol != nil {
 				symbols = append(symbols, symbol)
 			}
 		}
 	}
-	var visit func(*ast.Node) bool
-	getSymbolsForChildren := func(node *ast.Node) []*lsproto.DocumentSymbol {
+	var visit func(ast.Handle) bool
+	getSymbolsForChildren := func(node ast.Handle) []*lsproto.DocumentSymbol {
 		var result []*lsproto.DocumentSymbol
-		if node != nil {
+		if !node.IsNil() {
 			saveExpandoTargets := expandoTargets
 			expandoTargets = collections.Set[string]{}
 			saveSymbols := symbols
@@ -117,9 +144,10 @@ func (l *LanguageService) getDocumentSymbolsForChildren(ctx context.Context, nod
 		}
 		return result
 	}
-	startNode := func(node *ast.Node, name *ast.Node) func() {
-		if node == nil {
-			return func() {}
+	startNode := func(node ast.Handle, name ast.Handle) func() {
+		if node.IsNil() {
+			return func() {
+			}
 		}
 		saveExpandoTargets := expandoTargets
 		expandoTargets = collections.Set[string]{}
@@ -132,9 +160,9 @@ func (l *LanguageService) getDocumentSymbolsForChildren(ctx context.Context, nod
 			addSymbolForNode(node, name, result)
 		}
 	}
-	getSymbolsForNode := func(node *ast.Node) []*lsproto.DocumentSymbol {
+	getSymbolsForNode := func(node ast.Handle) []*lsproto.DocumentSymbol {
 		var result []*lsproto.DocumentSymbol
-		if node != nil {
+		if !node.IsNil() {
 			saveSymbols := symbols
 			symbols = nil
 			visit(node)
@@ -143,104 +171,91 @@ func (l *LanguageService) getDocumentSymbolsForChildren(ctx context.Context, nod
 		}
 		return result
 	}
-	visit = func(node *ast.Node) bool {
+	visit = func(node ast.Handle) bool {
 		if ctx.Err() != nil {
 			return true
 		}
-		if node.Flags&ast.NodeFlagsReparsed == 0 {
+		if node.Flags()&ast.NodeFlagsReparsed == 0 {
 			if jsdocs := node.JSDoc(file); len(jsdocs) > 0 {
 				for _, jsdoc := range jsdocs {
-					if tagList := jsdoc.AsJSDoc().Tags; tagList != nil {
-						for _, tag := range tagList.Nodes {
+					if tagList := jsdoc.JSDocTags(); tagList != 0 {
+						for _, tag := range node.Store().ListSlice(tagList) {
 							if ast.IsJSDocTypedefTag(tag) || ast.IsJSDocCallbackTag(tag) {
-								addSymbolForNode(tag, nil /*name*/, nil /*children*/)
+								addSymbolForNode(tag, ast.Handle{}, nil)
 							}
 						}
 					}
 				}
 			}
 		}
-		switch node.Kind {
+		switch node.Kind() {
 		case ast.KindClassDeclaration, ast.KindClassExpression, ast.KindInterfaceDeclaration, ast.KindEnumDeclaration:
 			if ast.IsClassLike(node) && ast.GetDeclarationName(node) != "" {
 				expandoTargets.Add(ast.GetDeclarationName(node))
 			}
-			addSymbolForNode(node, nil /*name*/, getSymbolsForChildren(node))
+			addSymbolForNode(node, ast.Handle{}, getSymbolsForChildren(node))
 		case ast.KindModuleDeclaration:
-			addSymbolForNode(node, nil /*name*/, getSymbolsForChildren(getInteriorModule(node)))
+			addSymbolForNode(node, ast.Handle{}, getSymbolsForChildren(getInteriorModule(node)))
 		case ast.KindConstructor:
-			addSymbolForNode(node, nil /*name*/, getSymbolsForChildren(node.Body()))
+			addSymbolForNode(node, ast.Handle{}, getSymbolsForChildren(node.Body()))
 			for _, param := range node.Parameters() {
 				if ast.IsParameterPropertyDeclaration(param, node) {
-					addSymbolForNode(param, nil /*name*/, nil /*children*/)
+					addSymbolForNode(param, ast.Handle{}, nil)
 				}
 			}
-		case ast.KindFunctionDeclaration, ast.KindFunctionExpression, ast.KindArrowFunction, ast.KindMethodDeclaration, ast.KindGetAccessor,
-			ast.KindSetAccessor:
+		case ast.KindFunctionDeclaration, ast.KindFunctionExpression, ast.KindArrowFunction, ast.KindMethodDeclaration, ast.KindGetAccessor, ast.KindSetAccessor:
 			declName := ast.GetDeclarationName(node)
 			if declName != "" {
 				expandoTargets.Add(declName)
 			}
-			addSymbolForNode(node, nil /*name*/, getSymbolsForChildren(node.Body()))
+			addSymbolForNode(node, ast.Handle{}, getSymbolsForChildren(node.Body()))
 		case ast.KindVariableDeclaration, ast.KindBindingElement, ast.KindPropertyAssignment, ast.KindPropertyDeclaration:
 			nodeName := node.Name()
-			if nodeName != nil {
+			if !nodeName.IsNil() {
 				if ast.IsBindingPattern(nodeName) {
 					visit(nodeName)
 				} else {
-					addSymbolForNode(node, nil /*name*/, getSymbolsForChildren(node.Initializer()))
+					addSymbolForNode(node, ast.Handle{}, getSymbolsForChildren(node.Initializer()))
 				}
 			}
 		case ast.KindSpreadAssignment:
-			addSymbolForNode(node, node.Expression(), nil /*children*/)
-		case ast.KindMethodSignature, ast.KindPropertySignature, ast.KindCallSignature, ast.KindConstructSignature, ast.KindIndexSignature,
-			ast.KindEnumMember, ast.KindShorthandPropertyAssignment, ast.KindTypeAliasDeclaration, ast.KindImportEqualsDeclaration, ast.KindExportSpecifier:
-			addSymbolForNode(node, nil /*name*/, nil /*children*/)
+			addSymbolForNode(node, node.Expression(), nil)
+		case ast.KindMethodSignature, ast.KindPropertySignature, ast.KindCallSignature, ast.KindConstructSignature, ast.KindIndexSignature, ast.KindEnumMember, ast.KindShorthandPropertyAssignment, ast.KindTypeAliasDeclaration, ast.KindImportEqualsDeclaration, ast.KindExportSpecifier:
+			addSymbolForNode(node, ast.Handle{}, nil)
 		case ast.KindImportClause:
-			// Handle default import case e.g.:
-			//    import d from "mod";
-			if node.Name() != nil {
-				addSymbolForNode(node.Name(), node.Name(), nil /*children*/)
+			if !node.Name().IsNil() {
+				addSymbolForNode(node.Name(), node.Name(), nil)
 			}
-			// Handle named bindings in imports e.g.:
-			//    import * as NS from "mod";
-			//    import {a, b as B} from "mod";
-			if namedBindings := node.AsImportClause().NamedBindings; namedBindings != nil {
-				if namedBindings.Kind == ast.KindNamespaceImport {
-					addSymbolForNode(namedBindings, nil /*name*/, nil /*children*/)
+			if namedBindings := node.ImportClauseNamedBindings(); !namedBindings.IsNil() {
+				if namedBindings.Kind() == ast.KindNamespaceImport {
+					addSymbolForNode(namedBindings, ast.Handle{}, nil)
 				} else {
 					for _, element := range namedBindings.Elements() {
-						addSymbolForNode(element, nil /*name*/, nil /*children*/)
+						addSymbolForNode(element, ast.Handle{}, nil)
 					}
 				}
 			}
 		case ast.KindBinaryExpression, ast.KindCallExpression:
 			assignmentKind := ast.GetAssignmentDeclarationKind(node)
 			switch assignmentKind {
-			// `module.exports = ...`` should be reparsed into a JSExportAssignment,
-			// and `exports.a = ...`` into a CommonJSExport.
-			case ast.JSDeclarationKindNone, ast.JSDeclarationKindThisProperty,
-				ast.JSDeclarationKindModuleExports, ast.JSDeclarationKindExportsProperty,
-				ast.JSDeclarationKindObjectDefinePropertyExports:
+			case ast.JSDeclarationKindNone, ast.JSDeclarationKindThisProperty, ast.JSDeclarationKindModuleExports, ast.JSDeclarationKindExportsProperty, ast.JSDeclarationKindObjectDefinePropertyExports:
 				node.ForEachChild(visit)
 			case ast.JSDeclarationKindProperty, ast.JSDeclarationKindObjectDefinePropertyValue:
-				var target *ast.Expression
-				var targetFunction *ast.Expression
-				var definition *ast.Node
-				var propertyName *ast.Node
-				// `A.b = ... ` or `A.prototype.b = ...`
+				var target ast.Handle
+				var targetFunction ast.Handle
+				var definition ast.Handle
+				var propertyName ast.Handle
 				if ast.IsBinaryExpression(node) {
-					binaryExpr := node.AsBinaryExpression()
-					target = binaryExpr.Left
+					binaryExpr := node
+					target = binaryExpr.Left()
 					targetFunction = target.Expression()
-					definition = binaryExpr.Right
-					// `A.b` or `A.prototype.b`
+					definition = binaryExpr.Right()
 					if ast.IsPropertyAccessExpression(target) {
-						propertyName = target.AsPropertyAccessExpression().Name()
-					} else { // `A["b"]` or `A.prototype["b"]`
-						propertyName = target.AsElementAccessExpression().ArgumentExpression
+						propertyName = target.PropertyAccessExpressionName()
+					} else {
+						propertyName = target.ElementAccessExpressionArgumentExpression()
 					}
-				} else { // `Object.defineProperty(A, "b", {...})`
+				} else {
 					args := node.Arguments()
 					targetFunction = args[0]
 					target = args[1]
@@ -249,13 +264,11 @@ func (l *LanguageService) getDocumentSymbolsForChildren(ctx context.Context, nod
 				}
 				if isPrototypeExpando(targetFunction) {
 					targetFunction = targetFunction.Expression()
-					// If we see a prototype assignment, start tracking the target as an expando target.
 					if ast.IsIdentifier(targetFunction) {
 						expandoTargets.Add(targetFunction.Text())
 					}
 				}
-				if ast.IsIdentifier(targetFunction) &&
-					expandoTargets.Has(targetFunction.Text()) {
+				if ast.IsIdentifier(targetFunction) && expandoTargets.Has(targetFunction.Text()) {
 					endNode := startNode(node, targetFunction)
 					addSymbolForNode(target, propertyName, getSymbolsForNode(definition))
 					endNode()
@@ -264,8 +277,8 @@ func (l *LanguageService) getDocumentSymbolsForChildren(ctx context.Context, nod
 				}
 			}
 		case ast.KindExportAssignment:
-			if node.AsExportAssignment().IsExportEquals {
-				addSymbolForNode(node, nil /*name*/, getSymbolsForNode(node.Expression()))
+			if node.ExportAssignmentIsExportEquals() {
+				addSymbolForNode(node, ast.Handle{}, getSymbolsForNode(node.Expression()))
 			} else {
 				node.ForEachChild(visit)
 			}
@@ -278,22 +291,21 @@ func (l *LanguageService) getDocumentSymbolsForChildren(ctx context.Context, nod
 	return mergeExpandos(symbols)
 }
 
-// Target is `f.prototype`.
-func isPrototypeExpando(target *ast.Node) bool {
+func isPrototypeExpando(target ast.Handle) bool {
 	if ast.IsAccessExpression(target) {
 		accessName := ast.GetElementOrPropertyAccessName(target)
-		return accessName != nil && accessName.Text() == "prototype"
+		return !accessName.IsNil() && accessName.Text() == "prototype"
 	}
 	return false
 }
 
 const maxLength = 150
 
-func (l *LanguageService) newDocumentSymbol(node *ast.Node, name *ast.Node, children []*lsproto.DocumentSymbol) *lsproto.DocumentSymbol {
+func (l *LanguageService) newDocumentSymbol(node ast.Handle, name ast.Handle, children []*lsproto.DocumentSymbol) *lsproto.DocumentSymbol {
 	result := new(lsproto.DocumentSymbol)
 	file := ast.GetSourceFileOfNode(node)
 	nodeStartPos := scanner.SkipTrivia(file.Text(), node.Pos())
-	if name == nil {
+	if name.IsNil() {
 		name = ast.GetNameOfDeclaration(node)
 	}
 	var text string
@@ -302,7 +314,7 @@ func (l *LanguageService) newDocumentSymbol(node *ast.Node, name *ast.Node, chil
 		text = getModuleName(node)
 		nameStartPos = scanner.SkipTrivia(file.Text(), name.Pos())
 		nameEndPos = getInteriorModule(node).Name().End()
-	} else if ast.IsAnyExportAssignment(node) && node.AsExportAssignment().IsExportEquals {
+	} else if ast.IsAnyExportAssignment(node) && node.ExportAssignmentIsExportEquals() {
 		text = "export="
 		if !ast.NodeIsMissing(name) {
 			nameStartPos = scanner.SkipTrivia(file.Text(), name.Pos())
@@ -311,7 +323,7 @@ func (l *LanguageService) newDocumentSymbol(node *ast.Node, name *ast.Node, chil
 			nameStartPos = nodeStartPos
 			nameEndPos = node.End()
 		}
-	} else if name != nil {
+	} else if !name.IsNil() {
 		text = getTextOfName(name)
 		nameStartPos = max(scanner.SkipTrivia(file.Text(), name.Pos()), nodeStartPos)
 		nameEndPos = max(name.End(), nodeStartPos)
@@ -346,13 +358,9 @@ func (l *LanguageService) newDocumentSymbol(node *ast.Node, name *ast.Node, chil
 	return result
 }
 
-// Merges expando symbols into their target symbols, and namespaces of same name.
-// Modifies the input slice.
 func mergeExpandos(symbols []*lsproto.DocumentSymbol) []*lsproto.DocumentSymbol {
 	mergedSymbols := make([]*lsproto.DocumentSymbol, 0, len(symbols))
-	// Collect symbols that can be an expando target.
 	nameToExpandoTargetIndex := collections.MultiMap[string, int]{}
-	// Collect namespaces.
 	nameToNamespaceIndex := map[string]int{}
 	for i, symbol := range symbols {
 		if isAnonymousName(symbol.Name) {
@@ -372,29 +380,22 @@ func mergeExpandos(symbols []*lsproto.DocumentSymbol) []*lsproto.DocumentSymbol 
 			children := mergeExpandos(*symbol.Children)
 			symbol.Children = &children
 		}
-
-		// Anonymous symbols never merge.
 		if isAnonymousName(symbol.Name) {
 			continue
 		}
-
-		// Merge expandos.
 		if symbol.Kind == lsproto.SymbolKindProperty {
 			symbolsWithSameName := nameToExpandoTargetIndex.Get(symbol.Name)
 			for j := len(symbolsWithSameName) - 1; j >= 0; j-- {
 				targetIndex := symbolsWithSameName[j]
 				targetSymbol := symbols[targetIndex]
 				mergeChildren(targetSymbol, symbol)
-				// Mark this symbol as merged.
 				symbols[i] = nil
 			}
 		}
-		// Merge namespaces.
 		if symbol.Kind == lsproto.SymbolKindNamespace {
 			if targetIndex, ok := nameToNamespaceIndex[symbol.Name]; ok && targetIndex != i {
 				targetSymbol := symbols[targetIndex]
 				mergeChildren(targetSymbol, symbol)
-				// Mark this symbol as merged.
 				symbols[i] = nil
 			}
 		}
@@ -406,7 +407,6 @@ func mergeExpandos(symbols []*lsproto.DocumentSymbol) []*lsproto.DocumentSymbol 
 	}
 	return mergedSymbols
 }
-
 func mergeChildren(target *lsproto.DocumentSymbol, source *lsproto.DocumentSymbol) {
 	if source.Children != nil {
 		if target.Children == nil {
@@ -420,14 +420,11 @@ func mergeChildren(target *lsproto.DocumentSymbol, source *lsproto.DocumentSymbo
 	}
 }
 
-// See `getUnnamedNodeLabel`.
 func isAnonymousName(name string) bool {
-	return name == "<function>" || name == "<class>" || name == "export=" || name == "default" ||
-		name == "constructor" || name == "()" || name == "new()" || name == "[]" || strings.HasSuffix(name, ") callback")
+	return name == "<function>" || name == "<class>" || name == "export=" || name == "default" || name == "constructor" || name == "()" || name == "new()" || name == "[]" || strings.HasSuffix(name, ") callback")
 }
-
-func getTextOfName(node *ast.Node) string {
-	switch node.Kind {
+func getTextOfName(node ast.Handle) string {
+	switch node.Kind() {
 	case ast.KindIdentifier, ast.KindPrivateIdentifier, ast.KindNumericLiteral:
 		return node.Text()
 	case ast.KindStringLiteral:
@@ -441,27 +438,26 @@ func getTextOfName(node *ast.Node) string {
 	}
 	return scanner.GetTextOfNode(node)
 }
-
-func getUnnamedNodeLabel(node *ast.Node) string {
-	if parent := ast.WalkUpParenthesizedExpressions(node.Parent); parent != nil && ast.IsExportAssignment(parent) {
-		if parent.AsExportAssignment().IsExportEquals {
+func getUnnamedNodeLabel(node ast.Handle) string {
+	if parent := ast.WalkUpParenthesizedExpressions(node.Parent()); !parent.IsNil() && ast.IsExportAssignment(parent) {
+		if parent.ExportAssignmentIsExportEquals() {
 			return "export="
 		}
 		return "default"
 	}
-	switch node.Kind {
+	switch node.Kind() {
 	case ast.KindFunctionDeclaration, ast.KindFunctionExpression, ast.KindArrowFunction:
 		if node.ModifierFlags()&ast.ModifierFlagsDefault != 0 {
 			return "default"
 		}
-		if ast.IsCallExpression(node.Parent) {
-			name := getCallExpressionName(node.Parent.Expression())
+		if ast.IsCallExpression(node.Parent()) {
+			name := getCallExpressionName(node.Parent().Expression())
 			if name != "" {
 				name = cleanCallbackText(name)
 				if len(name) > maxLength {
 					return name + " callback"
 				}
-				args := cleanCallbackText(getCallExpressionLiteralArgs(node.Parent))
+				args := cleanCallbackText(getCallExpressionLiteralArgs(node.Parent()))
 				return name + "(" + args + ") callback"
 			}
 		}
@@ -482,9 +478,8 @@ func getUnnamedNodeLabel(node *ast.Node) string {
 	}
 	return ""
 }
-
-func getCallExpressionName(node *ast.Node) string {
-	switch node.Kind {
+func getCallExpressionName(node ast.Handle) string {
+	switch node.Kind() {
 	case ast.KindIdentifier, ast.KindPrivateIdentifier:
 		return node.Text()
 	case ast.KindPropertyAccessExpression:
@@ -497,8 +492,7 @@ func getCallExpressionName(node *ast.Node) string {
 	}
 	return ""
 }
-
-func getCallExpressionLiteralArgs(callExpr *ast.Node) string {
+func getCallExpressionLiteralArgs(callExpr ast.Handle) string {
 	var parts []string
 	for _, arg := range callExpr.Arguments() {
 		if ast.IsStringLiteralLike(arg) || ast.IsTemplateExpression(arg) {
@@ -507,7 +501,6 @@ func getCallExpressionLiteralArgs(callExpr *ast.Node) string {
 	}
 	return strings.Join(parts, ", ")
 }
-
 func cleanCallbackText(text string) string {
 	truncated := stringutil.TruncateByRunes(text, maxLength)
 	if len(truncated) < len(text) {
@@ -520,54 +513,58 @@ func cleanCallbackText(text string) string {
 		return r
 	}, text)
 }
-
-func getInteriorModule(node *ast.Node) *ast.Node {
-	for node.Body() != nil && ast.IsModuleDeclaration(node.Body()) {
+func getInteriorModule(node ast.Handle) ast.Handle {
+	for !node.Body().IsNil() && ast.IsModuleDeclaration(node.Body()) {
 		node = node.Body()
 	}
 	return node
 }
-
-func getModuleName(node *ast.Node) string {
+func getModuleName(node ast.Handle) string {
 	result := node.Name().Text()
-	for node.Body() != nil && ast.IsModuleDeclaration(node.Body()) {
+	for !node.Body().IsNil() && ast.IsModuleDeclaration(node.Body()) {
 		node = node.Body()
 		result = result + "." + node.Name().Text()
 	}
 	return result
 }
 
+func collectNamedDeclarations(file *ast.SourceFile) map[string][]ast.Handle {
+	result := make(map[string][]ast.Handle)
+	var visit ast.StoreVisitor
+	visit = func(node ast.Handle) bool {
+		if name := ast.GetNameOfDeclaration(node); !name.IsNil() {
+			if text := ast.GetTextOfPropertyName(name); text != "" {
+				result[text] = append(result[text], node)
+			}
+		}
+		return node.ForEachChild(visit)
+	}
+	file.ParseRoot().ForEachChild(visit)
+	return result
+}
+
 type DeclarationInfo struct {
 	name        string
-	declaration *ast.Node
+	declaration ast.Handle
 	matchScore  int
 }
 
-func ProvideWorkspaceSymbols(
-	ctx context.Context,
-	programs []*compiler.Program,
-	converters *lsconv.Converters,
-	preferences lsutil.UserPreferences,
-	query string,
-) (lsproto.WorkspaceSymbolResponse, error) {
+func ProvideWorkspaceSymbols(ctx context.Context, programs []*compiler.Program, converters *lsconv.Converters, preferences lsutil.UserPreferences, query string) (lsproto.WorkspaceSymbolResponse, error) {
 	excludeLibrarySymbols := preferences.ExcludeLibrarySymbolsInNavTo.IsTrue()
-	// Obtain set of non-declaration source files from all active programs.
 	sourceFiles := map[tspath.Path]*ast.SourceFile{}
 	for _, program := range programs {
 		for _, sourceFile := range program.SourceFiles() {
-			if (program.HasTSFile() || !sourceFile.IsDeclarationFile) &&
-				!shouldExcludeFile(sourceFile, program, excludeLibrarySymbols) {
+			if (program.HasTSFile() || !sourceFile.IsDeclarationFile) && !shouldExcludeFile(sourceFile, program, excludeLibrarySymbols) {
 				sourceFiles[sourceFile.Path()] = sourceFile
 			}
 		}
 	}
-	// Create DeclarationInfos for all declarations in the source files.
 	var infos []DeclarationInfo
 	for _, sourceFile := range sourceFiles {
 		if ctx.Err() != nil {
 			return lsproto.SymbolInformationsOrWorkspaceSymbolsOrNull{}, nil
 		}
-		declarationMap := sourceFile.GetDeclarationMap()
+		declarationMap := collectNamedDeclarations(sourceFile)
 		for name, declarations := range declarationMap {
 			score := getMatchScore(name, query)
 			if score >= 0 {
@@ -577,7 +574,6 @@ func ProvideWorkspaceSymbols(
 			}
 		}
 	}
-	// Sort the DeclarationInfos and return the top 256 matches.
 	slices.SortFunc(infos, compareDeclarationInfos)
 	count := min(len(infos), 256)
 	symbols := make([]*lsproto.SymbolInformation, 0, count)
@@ -586,19 +582,14 @@ func ProvideWorkspaceSymbols(
 		sourceFile := ast.GetSourceFileOfNode(node)
 		container := getContainerNode(info.declaration)
 		var containerName *string
-		if container != nil {
+		if !container.IsNil() {
 			containerName = strPtrTo(ast.GetDeclarationName(container))
 		}
-		// Use the name node's span so that VS selects just the symbol name (matching
-		// the TS5 navto behaviour). GetNameOfDeclaration is always non-nil here because
-		// computeDeclarationMap only adds declarations whose GetDeclarationName (string
-		// form) is non-empty, which implies a name node exists.
 		nameNode := ast.GetNameOfDeclaration(node)
-		nameStart := astnav.GetStartOfNode(nameNode, sourceFile, false /*includeJsDoc*/)
+		nameStart := astnav.GetStartOfNode(nameNode, sourceFile, false)
 		nameRange := core.NewTextRange(nameStart, nameNode.End())
 		location, fidelity := converters.ToLSPLocationForFeature(sourceFile, nameRange, spanmap.FeatureDocumentSymbols)
 		if !fidelity.IsSingleSegment() {
-			// The name has no counterpart in the original text, so there is nothing to navigate to.
 			continue
 		}
 		var symbol lsproto.SymbolInformation
@@ -608,23 +599,15 @@ func ProvideWorkspaceSymbols(
 		symbol.ContainerName = containerName
 		symbols = append(symbols, &symbol)
 	}
-
 	return lsproto.SymbolInformationsOrWorkspaceSymbolsOrNull{SymbolInformations: &symbols}, nil
 }
-
 func shouldExcludeFile(file *ast.SourceFile, program *compiler.Program, excludeLibrarySymbols bool) bool {
 	return excludeLibrarySymbols && (isInsideNodeModules(file.FileName()) || program.IsLibFile(file))
 }
-
 func isInsideNodeModules(fileName string) bool {
 	return strings.Contains(fileName, "/node_modules/")
 }
 
-// Return a score for matching `s` against `pattern`. In order to match, `s` must contain each of the characters in
-// `pattern` in the same order. Upper case characters in `pattern` must match exactly, whereas lower case characters
-// in `pattern` match either case in `s`. If `s` doesn't match, -1 is returned. Otherwise, the returned score is the
-// number of characters in `s` that weren't matched. Thus, zero represents an exact match, and higher values represent
-// increasingly less specific partial matches.
 func getMatchScore(s string, pattern string) int {
 	score := 0
 	for _, p := range pattern {
@@ -644,8 +627,6 @@ func getMatchScore(s string, pattern string) int {
 	return score
 }
 
-// Sort DeclarationInfos by ascending match score, then ascending case insensitive name, then
-// ascending case sensitive name, and finally by source file name and position.
 func compareDeclarationInfos(d1, d2 DeclarationInfo) int {
 	if d1.matchScore != d2.matchScore {
 		return d1.matchScore - d2.matchScore
@@ -664,12 +645,10 @@ func compareDeclarationInfos(d1, d2 DeclarationInfo) int {
 	return d1.declaration.Pos() - d2.declaration.Pos()
 }
 
-// getSymbolKindFromNode converts an AST node to an LSP SymbolKind.
-// Combines getNodeKind with VS Code's fromProtocolScriptElementKind.
-func getSymbolKindFromNode(node *ast.Node) lsproto.SymbolKind {
-	switch node.Kind {
+func getSymbolKindFromNode(node ast.Handle) lsproto.SymbolKind {
+	switch node.Kind() {
 	case ast.KindSourceFile:
-		if ast.IsExternalModule(node.AsSourceFile()) {
+		if ast.IsExternalModule(ast.GetSourceFileOfNode(node)) {
 			return lsproto.SymbolKindModule
 		}
 		return lsproto.SymbolKindFile
@@ -691,8 +670,7 @@ func getSymbolKindFromNode(node *ast.Node) lsproto.SymbolKind {
 		return lsproto.SymbolKindProperty
 	case ast.KindMethodDeclaration, ast.KindMethodSignature:
 		return lsproto.SymbolKindMethod
-	case ast.KindPropertyDeclaration, ast.KindPropertySignature, ast.KindPropertyAssignment,
-		ast.KindShorthandPropertyAssignment, ast.KindSpreadAssignment, ast.KindIndexSignature:
+	case ast.KindPropertyDeclaration, ast.KindPropertySignature, ast.KindPropertyAssignment, ast.KindShorthandPropertyAssignment, ast.KindSpreadAssignment, ast.KindIndexSignature:
 		return lsproto.SymbolKindProperty
 	case ast.KindCallSignature:
 		return lsproto.SymbolKindMethod
@@ -716,7 +694,6 @@ func getSymbolKindFromNode(node *ast.Node) lsproto.SymbolKind {
 			return lsproto.SymbolKindProperty
 		}
 	case ast.KindStringLiteral, ast.KindNoSubstitutionTemplateLiteral, ast.KindNumericLiteral:
-		// String literals used as property names (e.g., in Object.defineProperty)
 		return lsproto.SymbolKindProperty
 	}
 	return lsproto.SymbolKindVariable

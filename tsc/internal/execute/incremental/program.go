@@ -123,53 +123,62 @@ func (p *Program) HasChangedDtsFile() bool {
 }
 
 // Options implements compiler.AnyProgram interface.
+
 func (p *Program) Options() *core.CompilerOptions {
 	return p.snapshot.options
 }
 
 // CommonSourceDirectory implements compiler.AnyProgram interface.
+
 func (p *Program) CommonSourceDirectory() string {
 	p.panicIfNoProgram("CommonSourceDirectory")
 	return p.program.CommonSourceDirectory()
 }
 
 // Program implements compiler.AnyProgram interface.
+
 func (p *Program) Program() *compiler.Program {
 	p.panicIfNoProgram("Program")
 	return p.program
 }
 
 // IsSourceFileDefaultLibrary implements compiler.AnyProgram interface.
+
 func (p *Program) IsSourceFileDefaultLibrary(path tspath.Path) bool {
 	p.panicIfNoProgram("IsSourceFileDefaultLibrary")
 	return p.program.IsSourceFileDefaultLibrary(path)
 }
 
 // GetSourceFiles implements compiler.AnyProgram interface.
+
 func (p *Program) GetSourceFiles() []*ast.SourceFile {
 	p.panicIfNoProgram("GetSourceFiles")
 	return p.program.GetSourceFiles()
 }
 
 // GetSourceFile implements compiler.AnyProgram interface.
+
 func (p *Program) GetSourceFile(path string) *ast.SourceFile {
 	p.panicIfNoProgram("GetSourceFile")
 	return p.program.GetSourceFile(path)
 }
 
 // GetConfigFileParsingDiagnostics implements compiler.AnyProgram interface.
+
 func (p *Program) GetConfigFileParsingDiagnostics() []*ast.Diagnostic {
 	p.panicIfNoProgram("GetConfigFileParsingDiagnostics")
 	return p.program.GetConfigFileParsingDiagnostics()
 }
 
 // GetSyntacticDiagnostics implements compiler.AnyProgram interface.
+
 func (p *Program) GetSyntacticDiagnostics(ctx context.Context, file *ast.SourceFile) []*ast.Diagnostic {
 	p.panicIfNoProgram("GetSyntacticDiagnostics")
 	return p.program.GetSyntacticDiagnostics(ctx, file)
 }
 
 // GetBindDiagnostics implements compiler.AnyProgram interface.
+
 func (p *Program) GetBindDiagnostics(ctx context.Context, file *ast.SourceFile) []*ast.Diagnostic {
 	p.panicIfNoProgram("GetBindDiagnostics")
 	return p.program.GetBindDiagnostics(ctx, file)
@@ -186,6 +195,7 @@ func (p *Program) GetGlobalDiagnostics(ctx context.Context) []*ast.Diagnostic {
 }
 
 // GetSemanticDiagnostics implements compiler.AnyProgram interface.
+
 func (p *Program) GetSemanticDiagnostics(ctx context.Context, file *ast.SourceFile) []*ast.Diagnostic {
 	p.panicIfNoProgram("GetSemanticDiagnostics")
 	if p.snapshot.options.NoCheck.IsTrue() {
@@ -222,6 +232,7 @@ func (p *Program) getSemanticDiagnosticsOfFile(file *ast.SourceFile) []*ast.Diag
 }
 
 // GetDeclarationDiagnostics implements compiler.AnyProgram interface.
+
 func (p *Program) GetDeclarationDiagnostics(ctx context.Context, file *ast.SourceFile) []*ast.Diagnostic {
 	p.panicIfNoProgram("GetDeclarationDiagnostics")
 	result := emitFiles(ctx, p, compiler.EmitOptions{
@@ -234,12 +245,14 @@ func (p *Program) GetDeclarationDiagnostics(ctx context.Context, file *ast.Sourc
 }
 
 // GetSuggestionDiagnostics implements compiler.AnyProgram interface.
+
 func (p *Program) GetSuggestionDiagnostics(ctx context.Context, file *ast.SourceFile) []*ast.Diagnostic {
 	p.panicIfNoProgram("GetSuggestionDiagnostics")
 	return p.program.GetSuggestionDiagnostics(ctx, file) // TODO: incremental suggestion diagnostics (only relevant in editor incremental builder?)
 }
 
 // GetModeForUsageLocation implements compiler.AnyProgram interface.
+
 func (p *Program) Emit(ctx context.Context, options compiler.EmitOptions) *compiler.EmitResult {
 	p.panicIfNoProgram("Emit")
 

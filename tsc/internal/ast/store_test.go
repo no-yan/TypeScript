@@ -115,18 +115,19 @@ func TestStoreWalkBinaryTree(t *testing.T) {
 	assert.Equal(t, 7, n)
 }
 
-func TestStoreCrossStoreChildPanics(t *testing.T) {
+func TestStoreCrossStoreChildCopies(t *testing.T) {
 	t.Parallel()
 	a := ast.NewStore(2)
 	b := ast.NewStore(2)
 	parent := a.Alloc(ast.KindBinaryExpression, 0, core.UndefinedTextRange(), 1)
 	child := b.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
-	defer func() {
-		if recover() == nil {
-			t.Fatal("expected panic")
-		}
-	}()
+	child.SetIdent(b.Intern("x"))
 	parent.SetChild(0, child)
+	got := parent.Child(0)
+	assert.Equal(t, ast.KindIdentifier, got.Kind())
+	assert.Equal(t, a, got.Store())
+	assert.Assert(t, got.Store() != child.Store())
+	assert.Equal(t, "x", got.Ident())
 }
 
 func TestStoreLocalsAndNextContainer(t *testing.T) {

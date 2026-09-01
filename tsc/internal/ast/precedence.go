@@ -186,29 +186,29 @@ const (
 	OperatorPrecedenceInvalid OperatorPrecedence = -1
 )
 
-func getOperator(expression *Expression) Kind {
-	switch expression.Kind {
+func getOperator(expression Handle) Kind {
+	switch expression.Kind() {
 	case KindBinaryExpression:
-		return expression.AsBinaryExpression().OperatorToken.Kind
+		return expression.BinaryExpressionOperatorToken().Kind()
 	case KindPrefixUnaryExpression:
-		return expression.AsPrefixUnaryExpression().Operator
+		return expression.PrefixUnaryExpressionOperator()
 	case KindPostfixUnaryExpression:
-		return expression.AsPostfixUnaryExpression().Operator
+		return expression.PostfixUnaryExpressionOperator()
 	default:
-		return expression.Kind
+		return expression.Kind()
 	}
 }
 
 // Gets the precedence of an expression
-func GetExpressionPrecedence(expression *Expression) OperatorPrecedence {
+func GetExpressionPrecedence(expression Handle) OperatorPrecedence {
 	operator := getOperator(expression)
 	var flags OperatorPrecedenceFlags
-	if expression.Kind == KindNewExpression && expression.ArgumentList() == nil {
+	if expression.Kind() == KindNewExpression && expression.ArgumentList() == 0 {
 		flags = OperatorPrecedenceFlagsNewWithoutArguments
-	} else if IsOptionalChain(expression) {
+	} else if expression.Flags()&NodeFlagsOptionalChain != 0 {
 		flags = OperatorPrecedenceFlagsOptionalChain
 	}
-	return GetOperatorPrecedence(expression.Kind, operator, flags)
+	return GetOperatorPrecedence(expression.Kind(), operator, flags)
 }
 
 type OperatorPrecedenceFlags int
@@ -367,20 +367,20 @@ func GetBinaryOperatorPrecedence(operatorKind Kind) OperatorPrecedence {
 }
 
 // Gets the leftmost expression of an expression, e.g. `a` in `a.b`, `a[b]`, `a++`, `a+b`, `a?b:c`, `a as B`, etc.
-func GetLeftmostExpression(node *Expression, stopAtCallExpressions bool) *Expression {
+func GetLeftmostExpression(node Handle, stopAtCallExpressions bool) Handle {
 	for {
-		switch node.Kind {
+		switch node.Kind() {
 		case KindPostfixUnaryExpression:
-			node = node.AsPostfixUnaryExpression().Operand
+			node = node.PostfixUnaryExpressionOperand()
 			continue
 		case KindBinaryExpression:
-			node = node.AsBinaryExpression().Left
+			node = node.BinaryExpressionLeft()
 			continue
 		case KindConditionalExpression:
-			node = node.AsConditionalExpression().Condition
+			node = node.ConditionalExpressionCondition()
 			continue
 		case KindTaggedTemplateExpression:
-			node = node.AsTaggedTemplateExpression().Tag
+			node = node.TaggedTemplateExpressionTag()
 			continue
 		case KindCallExpression:
 			if stopAtCallExpressions {
@@ -652,8 +652,8 @@ const (
 )
 
 // Gets the precedence of a TypeNode
-func GetTypeNodePrecedence(n *TypeNode) TypePrecedence {
-	switch n.Kind {
+func GetTypeNodePrecedence(n Handle) TypePrecedence {
+	switch n.Kind() {
 	case KindConditionalType:
 		return TypePrecedenceConditional
 	case KindJSDocOptionalType, KindJSDocVariadicType:
@@ -667,7 +667,7 @@ func GetTypeNodePrecedence(n *TypeNode) TypePrecedence {
 	case KindTypeOperator:
 		return TypePrecedenceTypeOperator
 	case KindInferType:
-		if n.AsInferTypeNode().TypeParameter.AsTypeParameterDeclaration().Constraint != nil {
+		if !n.InferTypeNodeTypeParameter().TypeParameterDeclarationConstraint().IsNil() {
 			// `infer T extends U` must be treated as FunctionTypeNode precedence as the `extends` clause eagerly consumes
 			// TypeNode
 			return TypePrecedenceFunction
@@ -712,6 +712,6 @@ func GetTypeNodePrecedence(n *TypeNode) TypePrecedence {
 		KindExpressionWithTypeArguments:
 		return TypePrecedenceNonArray
 	default:
-		panic(fmt.Sprintf("unhandled TypeNode: %v", n.Kind))
+		panic(fmt.Sprintf("unhandled TypeNode: %v", n.Kind()))
 	}
 }

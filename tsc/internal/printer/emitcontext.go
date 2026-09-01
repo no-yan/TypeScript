@@ -1,23 +1,18 @@
 package printer
 
 import (
+	"github.com/microsoft/TypeScript/tsc/internal/ast"
+	"github.com/microsoft/TypeScript/tsc/internal/collections"
+	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"maps"
 	"slices"
 	"sync"
 	"sync/atomic"
-
-	"github.com/microsoft/TypeScript/tsc/internal/ast"
-	"github.com/microsoft/TypeScript/tsc/internal/collections"
-	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
 
-// Stores side-table information used during transformation that can be read by the printer to customize emit
-//
-// NOTE: EmitContext is not guaranteed to be thread-safe.
 type EmitContext struct {
-	Factory       *NodeFactory // Required. The NodeFactory to use to create new nodes
+	Factory       *NodeFactory
 	storeFile     *ast.SourceFile
-	identityNodes map[ast.GlobalRef]*ast.Node
 	autoGenerate  map[ast.GlobalRef]*AutoGenerateInfo
 	textSource    map[ast.GlobalRef]ast.GlobalRef
 	original      map[ast.GlobalRef]ast.GlobalRef
@@ -28,33 +23,33 @@ type EmitContext struct {
 	letScopeStack core.Stack[*varScope]
 	emitHelpers   collections.OrderedSet[*EmitHelper]
 }
-
 type environmentFlags int
 
 const (
 	environmentFlagsNone                         environmentFlags = 0
-	environmentFlagsInParameters                 environmentFlags = 1 << 0 // currently visiting a parameter list
-	environmentFlagsVariablesHoistedInParameters environmentFlags = 1 << 1 // a temp variable was hoisted while visiting a parameter list
+	environmentFlagsInParameters                 environmentFlags = 1 << 0
+	environmentFlagsVariablesHoistedInParameters environmentFlags = 1 << 1
 )
 
 type varScope struct {
-	variables                []*ast.VariableDeclarationNode
-	functions                []*ast.FunctionDeclarationNode
+	variables                []ast.Handle
+	functions                []ast.Handle
 	flags                    environmentFlags
-	initializationStatements []*ast.Node
+	initializationStatements []ast.Handle
 }
 
 func NewEmitContext() *EmitContext {
 	c := &EmitContext{}
 	c.Factory = NewNodeFactory(c)
+	if s := c.Factory.Store(); s != nil {
+		ast.RegisterStore(s)
+	}
 	return c
 }
 
-var emitContextPool = sync.Pool{
-	New: func() any {
-		return NewEmitContext()
-	},
-}
+var emitContextPool = sync.Pool{New: func() any {
+	return NewEmitContext()
+}}
 
 func GetEmitContext() (*EmitContext, func()) {
 	c := emitContextPool.Get().(*EmitContext)
@@ -63,87 +58,64 @@ func GetEmitContext() (*EmitContext, func()) {
 		emitContextPool.Put(c)
 	}
 }
-
 func (c *EmitContext) Reset() {
-	*c = EmitContext{
-		Factory: c.Factory,
+	*c = EmitContext{Factory: c.Factory}
+}
+
+func (c *EmitContext) BindFileStore(file *ast.SourceFile) {
+	if file == nil || file.ParseStore() == nil || c.Factory == nil {
+		return
+	}
+	if c.storeFile == file && c.Factory.Store() == file.ParseStore() {
+		return
+	}
+	c.storeFile = file
+	if c.Factory.Store() != file.ParseStore() {
+		c.Factory.Factory = ast.NewFactoryOn(file.ParseStore(), ast.FactoryHooks{OnCreate: c.onCreate})
 	}
 }
 
-// AttachStore routes transformer and printer allocations into the source
-// file's parse Store for the duration of one emit.
-func (c *EmitContext) AttachStore(file *ast.SourceFile) func() {
+func (c *EmitContext) LockParseStoreWriter(file *ast.SourceFile) func() {
 	if file == nil || file.ParseStore() == nil {
-		c.Factory.DetachStore()
 		return func() {}
 	}
 	unlock := file.LockParseStoreWriter()
 	c.storeFile = file
-	c.Factory.AttachStoreMap(file.ParseStore(), file.ParseNodeRef())
+	ast.RegisterFile(file)
+	c.Factory.Factory = ast.NewFactoryOn(file.ParseStore(), ast.FactoryHooks{OnCreate: c.onCreate})
 	return func() {
-		file.AbsorbNodeRef(c.Factory.TakeNodeRef())
-		c.Factory.DetachStore()
 		c.storeFile = nil
 		unlock()
 	}
 }
-
-func (c *EmitContext) NodeIdentity(node *ast.Node) ast.GlobalRef {
-	if node == nil {
+func (c *EmitContext) NodeIdentity(node ast.Handle) ast.GlobalRef {
+	if node.IsNil() {
 		return 0
 	}
-	var identity ast.GlobalRef
-	if handle := c.Factory.HandleOf(node); handle.Ref() != 0 && handle.Store().ID() != 0 {
-		identity = handle.Global()
-	} else if c.storeFile != nil {
-		if handle := c.storeFile.HandleOf(node); handle.Ref() != 0 && handle.Store().ID() != 0 {
-			identity = handle.Global()
-		}
-	}
-	if identity == 0 {
-		identity = ast.GlobalRef(ast.GetNodeId(node))
-	}
-	if c.identityNodes == nil {
-		c.identityNodes = make(map[ast.GlobalRef]*ast.Node)
-	}
-	c.identityNodes[identity] = node
-	return identity
+	return node.Global()
 }
-
-func (c *EmitContext) nodeForIdentity(identity ast.GlobalRef) *ast.Node {
+func (c *EmitContext) nodeForIdentity(identity ast.GlobalRef) ast.Handle {
 	if identity == 0 {
-		return nil
+		return ast.Handle{}
 	}
-	if node := c.identityNodes[identity]; node != nil {
-		return node
-	}
-	if identity.StoreID() != 0 {
-		return ast.NodeOf(identity)
-	}
-	return nil
+	return ast.NodeOf(identity)
 }
-
-func (c *EmitContext) emitNode(node *ast.Node) *emitNode {
+func (c *EmitContext) emitNode(node ast.Handle) *emitNode {
 	return c.emitNodes.Get(c.NodeIdentity(node))
 }
-
-func (c *EmitContext) tryEmitNode(node *ast.Node) *emitNode {
+func (c *EmitContext) tryEmitNode(node ast.Handle) *emitNode {
 	return c.emitNodes.TryGet(c.NodeIdentity(node))
 }
-
-func (c *EmitContext) hasEmitNode(node *ast.Node) bool {
+func (c *EmitContext) hasEmitNode(node ast.Handle) bool {
 	return c.emitNodes.Has(c.NodeIdentity(node))
 }
-
-func (c *EmitContext) onCreate(node *ast.Node) {
-	node.Flags |= ast.NodeFlagsSynthesized
+func (c *EmitContext) onCreate(node ast.Handle) {
+	node.SetFlags(node.Flags() | ast.NodeFlagsSynthesized)
 }
-
-func (c *EmitContext) onUpdate(updated *ast.Node, original *ast.Node) {
+func (c *EmitContext) onUpdate(updated ast.Handle, original ast.Handle) {
 	c.SetOriginal(updated, original)
 }
-
-func (c *EmitContext) onClone(updated *ast.Node, original *ast.Node) {
+func (c *EmitContext) onClone(updated ast.Handle, original ast.Handle) {
 	c.SetOriginal(updated, original)
 	if ast.IsIdentifier(updated) || ast.IsPrivateIdentifier(updated) {
 		if autoGenerate := c.autoGenerate[c.NodeIdentity(original)]; autoGenerate != nil {
@@ -153,9 +125,19 @@ func (c *EmitContext) onClone(updated *ast.Node, original *ast.Node) {
 	}
 }
 
-// Creates a new NodeVisitor attached to this EmitContext
-func (c *EmitContext) NewNodeVisitor(visit func(node *ast.Node) *ast.Node) *ast.NodeVisitor {
-	return ast.NewNodeVisitor(visit, c.Factory.AsNodeFactory(), ast.NodeVisitorHooks{
+func (c *EmitContext) StoreFile() *ast.SourceFile {
+	return c.storeFile
+}
+
+func (c *EmitContext) StoreFactory() *ast.Factory {
+	if c.storeFile != nil && c.storeFile.ParseStore() != nil {
+		return ast.NewFactoryOn(c.storeFile.ParseStore(), ast.FactoryHooks{OnCreate: c.onCreate})
+	}
+	return c.Factory.Factory
+}
+
+func (c *EmitContext) NewNodeVisitor(visit func(node ast.Handle) ast.Handle) *ast.HandleVisitor {
+	return ast.NewHandleVisitor(visit, c.StoreFactory(), ast.HandleVisitorHooks{
 		VisitParameters:         c.VisitParameters,
 		VisitFunctionBody:       c.VisitFunctionBody,
 		VisitIterationBody:      c.VisitIterationBody,
@@ -164,32 +146,20 @@ func (c *EmitContext) NewNodeVisitor(visit func(node *ast.Node) *ast.Node) *ast.
 	})
 }
 
-//
-// Environment tracking
-//
-
-// Starts a new VariableEnvironment used to track hoisted `var` statements and function declarations.
-//
-// see: https://tc39.es/ecma262/#table-additional-state-components-for-ecmascript-code-execution-contexts
-//
-// NOTE: This is the equivalent of `transformContext.startLexicalEnvironment` in Strada.
 func (c *EmitContext) StartVariableEnvironment() {
 	c.varScopeStack.Push(&varScope{})
 	c.StartLexicalEnvironment()
 }
 
-// Ends the current VariableEnvironment, returning a list of statements that should be emitted at the start of the current scope.
-//
-// NOTE: This is the equivalent of `transformContext.endLexicalEnvironment` in Strada.
-func (c *EmitContext) EndVariableEnvironment() []*ast.Statement {
+func (c *EmitContext) EndVariableEnvironment() []ast.Handle {
 	scope := c.varScopeStack.Pop()
-	var statements []*ast.Statement
+	var statements []ast.Handle
 	if len(scope.functions) > 0 {
 		statements = slices.Clone(scope.functions)
 	}
 	if len(scope.variables) > 0 {
-		varDeclList := c.Factory.NewVariableDeclarationList(c.Factory.NewNodeList(scope.variables), ast.NodeFlagsNone)
-		varStatement := c.Factory.NewVariableStatement(nil /*modifiers*/, varDeclList)
+		varDeclList := c.Factory.NewVariableDeclarationList(c.Factory.NewList(scope.variables), ast.NodeFlagsNone)
+		varStatement := c.Factory.NewVariableStatement(0, varDeclList)
 		c.SetEmitFlags(varStatement, EFCustomPrologue)
 		statements = append(statements, varStatement)
 	}
@@ -199,37 +169,27 @@ func (c *EmitContext) EndVariableEnvironment() []*ast.Statement {
 	return append(statements, c.EndLexicalEnvironment()...)
 }
 
-// Invokes c.EndVariableEnvironment() and merges the results into `statements`
-func (c *EmitContext) EndAndMergeVariableEnvironmentList(statements *ast.StatementList) *ast.StatementList {
-	var nodes []*ast.Statement
-	if statements != nil {
-		nodes = statements.Nodes
+func (c *EmitContext) EndAndMergeVariableEnvironmentList(statements ast.ListRef) ast.ListRef {
+	var nodes []ast.Handle
+	if statements != 0 {
+		nodes = c.storeFile.ParseStore().ListSlice(statements)
 	}
-
 	if result, changed := c.endAndMergeVariableEnvironment(nodes); changed {
-		list := c.Factory.NewNodeList(result)
-		list.Loc = statements.Loc
-		return list
+		return c.StoreFactory().List(c.storeFile.ParseStore().ListLoc(statements), result...)
 	}
-
 	return statements
 }
 
-// Invokes c.EndVariableEnvironment() and merges the results into `statements`
-func (c *EmitContext) EndAndMergeVariableEnvironment(statements []*ast.Statement) []*ast.Statement {
+func (c *EmitContext) EndAndMergeVariableEnvironment(statements []ast.Handle) []ast.Handle {
 	result, _ := c.endAndMergeVariableEnvironment(statements)
 	return result
 }
-
-func (c *EmitContext) endAndMergeVariableEnvironment(statements []*ast.Statement) ([]*ast.Statement, bool) {
+func (c *EmitContext) endAndMergeVariableEnvironment(statements []ast.Handle) ([]ast.Handle, bool) {
 	return c.mergeEnvironment(statements, c.EndVariableEnvironment())
 }
 
-// Adds a `var` declaration to the current VariableEnvironment
-//
-// NOTE: This is the equivalent of `transformContext.hoistVariableDeclaration` in Strada.
-func (c *EmitContext) AddVariableDeclaration(name *ast.IdentifierNode) {
-	varDecl := c.Factory.NewVariableDeclaration(name, nil /*exclamationToken*/, nil /*typeNode*/, nil /*initializer*/)
+func (c *EmitContext) AddVariableDeclaration(name ast.Handle) {
+	varDecl := c.Factory.NewVariableDeclaration(name, ast.Handle{}, ast.Handle{}, ast.Handle{})
 	c.SetEmitFlags(varDecl, EFNoNestedSourceMaps)
 	scope := c.varScopeStack.Peek()
 	scope.variables = append(scope.variables, varDecl)
@@ -238,134 +198,74 @@ func (c *EmitContext) AddVariableDeclaration(name *ast.IdentifierNode) {
 	}
 }
 
-// Adds a hoisted function declaration to the current VariableEnvironment
-//
-// NOTE: This is the equivalent of `transformContext.hoistFunctionDeclaration` in Strada.
-func (c *EmitContext) AddHoistedFunctionDeclaration(node *ast.FunctionDeclarationNode) {
+func (c *EmitContext) AddHoistedFunctionDeclaration(node ast.Handle) {
 	c.SetEmitFlags(node, EFCustomPrologue)
 	scope := c.varScopeStack.Peek()
 	scope.functions = append(scope.functions, node)
 }
 
-// Starts a new LexicalEnvironment used to track block-scoped `let`, `const`, and `using` declarations.
-//
-// see: https://tc39.es/ecma262/#table-additional-state-components-for-ecmascript-code-execution-contexts
-//
-// NOTE: This is the equivalent of `transformContext.startBlockScope` in Strada.
-// NOTE: This is *not* the same as `startLexicalEnvironment` in Strada as that method is incorrectly named.
 func (c *EmitContext) StartLexicalEnvironment() {
 	c.letScopeStack.Push(&varScope{})
 }
 
-// Ends the current EndLexicalEnvironment, returning a list of statements that should be emitted at the start of the current scope.
-//
-// NOTE: This is the equivalent of `transformContext.endLexicalEnvironment` in Strada.
-// NOTE: This is *not* the same as `endLexicalEnvironment` in Strada as that method is incorrectly named.
-func (c *EmitContext) EndLexicalEnvironment() []*ast.Statement {
+func (c *EmitContext) EndLexicalEnvironment() []ast.Handle {
 	scope := c.letScopeStack.Pop()
-	var statements []*ast.Statement
+	var statements []ast.Handle
 	if len(scope.variables) > 0 {
-		varDeclList := c.Factory.NewVariableDeclarationList(c.Factory.NewNodeList(scope.variables), ast.NodeFlagsLet)
-		varStatement := c.Factory.NewVariableStatement(nil /*modifiers*/, varDeclList)
+		varDeclList := c.Factory.NewVariableDeclarationList(c.Factory.NewList(scope.variables), ast.NodeFlagsLet)
+		varStatement := c.Factory.NewVariableStatement(0, varDeclList)
 		c.SetEmitFlags(varStatement, EFCustomPrologue)
 		statements = append(statements, varStatement)
 	}
 	return statements
 }
 
-// Invokes c.EndLexicalEnvironment() and merges the results into `statements`
-func (c *EmitContext) EndAndMergeLexicalEnvironmentList(statements *ast.StatementList) *ast.StatementList {
-	var nodes []*ast.Statement
-	if statements != nil {
-		nodes = statements.Nodes
+func (c *EmitContext) EndAndMergeLexicalEnvironmentList(statements ast.ListRef) ast.ListRef {
+	var nodes []ast.Handle
+	if statements != 0 {
+		nodes = c.storeFile.ParseStore().ListSlice(statements)
 	}
-
 	if result, changed := c.endAndMergeLexicalEnvironment(nodes); changed {
-		list := c.Factory.NewNodeList(result)
-		list.Loc = statements.Loc
-		return list
+		return c.StoreFactory().List(c.storeFile.ParseStore().ListLoc(statements), result...)
 	}
-
 	return statements
 }
 
-// Invokes c.EndLexicalEnvironment() and merges the results into `statements`
-func (c *EmitContext) EndAndMergeLexicalEnvironment(statements []*ast.Statement) []*ast.Statement {
+func (c *EmitContext) EndAndMergeLexicalEnvironment(statements []ast.Handle) []ast.Handle {
 	result, _ := c.endAndMergeLexicalEnvironment(statements)
 	return result
 }
 
-// Invokes c.EndLexicalEnvironment() and merges the results into `statements`
-func (c *EmitContext) endAndMergeLexicalEnvironment(statements []*ast.Statement) ([]*ast.Statement, bool) {
+func (c *EmitContext) endAndMergeLexicalEnvironment(statements []ast.Handle) ([]ast.Handle, bool) {
 	return c.mergeEnvironment(statements, c.EndLexicalEnvironment())
 }
 
-// Adds a `let` declaration to the current LexicalEnvironment.
-func (c *EmitContext) AddLexicalDeclaration(name *ast.IdentifierNode) {
-	varDecl := c.Factory.NewVariableDeclaration(name, nil /*exclamationToken*/, nil /*typeNode*/, nil /*initializer*/)
+func (c *EmitContext) AddLexicalDeclaration(name ast.Handle) {
+	varDecl := c.Factory.NewVariableDeclaration(name, ast.Handle{}, ast.Handle{}, ast.Handle{})
 	c.SetEmitFlags(varDecl, EFNoNestedSourceMaps)
 	scope := c.letScopeStack.Peek()
 	scope.variables = append(scope.variables, varDecl)
 }
 
-// Merges declarations produced by c.EndVariableEnvironment() or c.EndLexicalEnvironment() into a statement list
-func (c *EmitContext) MergeEnvironmentList(statements *ast.StatementList, declarations []*ast.Statement) *ast.StatementList {
-	if result, changed := c.mergeEnvironment(statements.Nodes, declarations); changed {
-		list := c.Factory.NewNodeList(result)
-		list.Loc = statements.Loc
-		return list
+func (c *EmitContext) MergeEnvironmentList(statements ast.ListRef, declarations []ast.Handle) ast.ListRef {
+	if result, changed := c.mergeEnvironment(c.storeFile.ParseStore().ListSlice(statements), declarations); changed {
+		return c.StoreFactory().List(c.storeFile.ParseStore().ListLoc(statements), result...)
 	}
 	return statements
 }
 
-// Merges declarations produced by c.EndVariableEnvironment() or c.EndLexicalEnvironment() into a slice of statements
-func (c *EmitContext) MergeEnvironment(statements []*ast.Statement, declarations []*ast.Statement) []*ast.Statement {
+func (c *EmitContext) MergeEnvironment(statements []ast.Handle, declarations []ast.Handle) []ast.Handle {
 	result, _ := c.mergeEnvironment(statements, declarations)
 	return result
 }
-
-func (c *EmitContext) mergeEnvironment(statements []*ast.Statement, declarations []*ast.Statement) ([]*ast.Statement, bool) {
+func (c *EmitContext) mergeEnvironment(statements []ast.Handle, declarations []ast.Handle) ([]ast.Handle, bool) {
 	if len(declarations) == 0 {
 		return statements, false
 	}
-
-	// When we merge new lexical statements into an existing statement list, we merge them in the following manner:
-	//
-	// Given:
-	//
-	// | Left                               | Right                               |
-	// |------------------------------------|-------------------------------------|
-	// | [standard prologues (left)]        | [standard prologues (right)]        |
-	// | [hoisted functions (left)]         | [hoisted functions (right)]         |
-	// | [hoisted variables (left)]         | [hoisted variables (right)]         |
-	// | [lexical init statements (left)]   | [lexical init statements (right)]   |
-	// | [other statements (left)]          |                                     |
-	//
-	// The resulting statement list will be:
-	//
-	// | Result                              |
-	// |-------------------------------------|
-	// | [standard prologues (right)]        |
-	// | [standard prologues (left)]         |
-	// | [hoisted functions (right)]         |
-	// | [hoisted functions (left)]          |
-	// | [hoisted variables (right)]         |
-	// | [hoisted variables (left)]          |
-	// | [lexical init statements (right)]   |
-	// | [lexical init statements (left)]    |
-	// | [other statements (left)]           |
-	//
-	// NOTE: It is expected that new lexical init statements must be evaluated before existing lexical init statements,
-	// as the prior transformation may depend on the evaluation of the lexical init statements to be in the correct state.
-
 	changed := false
-
-	// find standard prologues on left in the following order: standard directives, hoisted functions, hoisted variables, other custom
 	leftStandardPrologueEnd := findSpanEnd(statements, ast.IsPrologueDirective, 0)
 	leftHoistedFunctionsEnd := findSpanEndWithEmitContext(c, statements, (*EmitContext).isHoistedFunction, leftStandardPrologueEnd)
 	leftHoistedVariablesEnd := findSpanEndWithEmitContext(c, statements, (*EmitContext).isHoistedVariableStatement, leftHoistedFunctionsEnd)
-
-	// find standard prologues on right in the following order: standard directives, hoisted functions, hoisted variables, other custom
 	rightStandardPrologueEnd := findSpanEnd(declarations, ast.IsPrologueDirective, 0)
 	rightHoistedFunctionsEnd := findSpanEndWithEmitContext(c, declarations, (*EmitContext).isHoistedFunction, rightStandardPrologueEnd)
 	rightHoistedVariablesEnd := findSpanEndWithEmitContext(c, declarations, (*EmitContext).isHoistedVariableStatement, rightHoistedFunctionsEnd)
@@ -373,28 +273,19 @@ func (c *EmitContext) mergeEnvironment(statements []*ast.Statement, declarations
 	if rightCustomPrologueEnd != len(declarations) {
 		panic("Expected declarations to be valid standard or custom prologues")
 	}
-
 	left := statements
-
-	// splice other custom prologues from right into left
 	if rightCustomPrologueEnd > rightHoistedVariablesEnd {
 		left = core.Splice(left, leftHoistedVariablesEnd, 0, declarations[rightHoistedVariablesEnd:rightCustomPrologueEnd]...)
 		changed = true
 	}
-
-	// splice hoisted variables from right into left
 	if rightHoistedVariablesEnd > rightHoistedFunctionsEnd {
 		left = core.Splice(left, leftHoistedFunctionsEnd, 0, declarations[rightHoistedFunctionsEnd:rightHoistedVariablesEnd]...)
 		changed = true
 	}
-
-	// splice hoisted functions from right into left
 	if rightHoistedFunctionsEnd > rightStandardPrologueEnd {
 		left = core.Splice(left, leftStandardPrologueEnd, 0, declarations[rightStandardPrologueEnd:rightHoistedFunctionsEnd]...)
 		changed = true
 	}
-
-	// splice standard prologues from right into left (that are not already in left)
 	if rightStandardPrologueEnd > 0 {
 		if leftStandardPrologueEnd == 0 {
 			left = core.Splice(left, 0, 0, declarations[:rightStandardPrologueEnd]...)
@@ -408,69 +299,53 @@ func (c *EmitContext) mergeEnvironment(statements []*ast.Statement, declarations
 			for i := rightStandardPrologueEnd - 1; i >= 0; i-- {
 				rightPrologue := declarations[i]
 				if !leftPrologues.Has(rightPrologue.Expression().Text()) {
-					left = core.Concatenate([]*ast.Statement{rightPrologue}, left)
+					left = core.Concatenate([]ast.Handle{rightPrologue}, left)
 					changed = true
 				}
 			}
 		}
 	}
-
 	return left, changed
 }
-
-func (c *EmitContext) isCustomPrologue(node *ast.Statement) bool {
+func (c *EmitContext) isCustomPrologue(node ast.Handle) bool {
 	return c.EmitFlags(node)&EFCustomPrologue != 0
 }
-
-func (c *EmitContext) isHoistedFunction(node *ast.Statement) bool {
+func (c *EmitContext) isHoistedFunction(node ast.Handle) bool {
 	return c.isCustomPrologue(node) && ast.IsFunctionDeclaration(node)
 }
-
-func isHoistedVariable(node *ast.VariableDeclarationNode) bool {
-	return ast.IsIdentifier(node.Name()) && node.Initializer() == nil
+func isHoistedVariable(node ast.Handle) bool {
+	return ast.IsIdentifier(node.Name()) && node.Initializer().IsNil()
+}
+func (c *EmitContext) isHoistedVariableStatement(node ast.Handle) bool {
+	return c.isCustomPrologue(node) && ast.IsVariableStatement(node) && core.Every(node.Store().ListSlice(node.VariableStatementDeclarationList().VariableDeclarationListDeclarations()), isHoistedVariable)
 }
 
-func (c *EmitContext) isHoistedVariableStatement(node *ast.Statement) bool {
-	return c.isCustomPrologue(node) &&
-		ast.IsVariableStatement(node) &&
-		core.Every(node.AsVariableStatement().DeclarationList.AsVariableDeclarationList().Declarations.Nodes, isHoistedVariable)
-}
-
-//
-// Name Generation
-//
-
-// Gets whether a given name has an associated AutoGenerateInfo entry.
-func (c *EmitContext) HasAutoGenerateInfo(node *ast.MemberName) bool {
-	if node != nil {
+func (c *EmitContext) HasAutoGenerateInfo(node ast.Handle) bool {
+	if !node.IsNil() {
 		_, ok := c.autoGenerate[c.NodeIdentity(node)]
 		return ok
 	}
 	return false
 }
 
-// Gets the associated AutoGenerateInfo entry for a given name.
-func (c *EmitContext) GetAutoGenerateInfo(name *ast.MemberName) *AutoGenerateInfo {
-	if name == nil {
+func (c *EmitContext) GetAutoGenerateInfo(name ast.Handle) *AutoGenerateInfo {
+	if name.IsNil() {
 		return nil
 	}
 	return c.autoGenerate[c.NodeIdentity(name)]
 }
 
-// Walks the associated AutoGenerateInfo entries of a name to find the root Nopde from which the name should be generated.
-func (c *EmitContext) GetNodeForGeneratedName(name *ast.MemberName) *ast.Node {
+func (c *EmitContext) GetNodeForGeneratedName(name ast.Handle) ast.Handle {
 	if autoGenerate := c.GetAutoGenerateInfo(name); autoGenerate != nil && autoGenerate.Flags.IsNode() {
 		return c.getNodeForGeneratedNameWorker(autoGenerate.Node, autoGenerate.Id)
 	}
 	return name
 }
-
-func (c *EmitContext) getNodeForGeneratedNameWorker(node *ast.Node, autoGenerateId AutoGenerateId) *ast.Node {
+func (c *EmitContext) getNodeForGeneratedNameWorker(node ast.Handle, autoGenerateId AutoGenerateId) ast.Handle {
 	original := c.Original(node)
-	for original != nil {
+	for !original.IsNil() {
 		node = original
 		if ast.IsMemberName(node) {
-			// if "node" is a different generated name (having a different "autoGenerateId"), use it and stop traversing.
 			autoGenerate := c.GetAutoGenerateInfo(node)
 			if autoGenerate == nil || autoGenerate.Flags.IsNode() && autoGenerate.Id != autoGenerateId {
 				break
@@ -494,39 +369,27 @@ type AutoGenerateOptions struct {
 var nextAutoGenerateId atomic.Uint32
 
 type AutoGenerateId uint32
-
 type AutoGenerateInfo struct {
-	Flags  GeneratedIdentifierFlags // Specifies whether to auto-generate the text for an identifier.
-	Id     AutoGenerateId           // Ensures unique generated identifiers get unique names, but clones get the same name.
-	Prefix string                   // Optional prefix to apply to the start of the generated name
-	Suffix string                   // Optional suffix to apply to the end of the generated name
-	Node   *ast.Node                // For a GeneratedIdentifierFlagsNode, the node from which to generate an identifier
+	Flags  GeneratedIdentifierFlags
+	Id     AutoGenerateId
+	Prefix string
+	Suffix string
+	Node   ast.Handle
 }
 
-//
-// Original Node Tracking
-//
-
-// Sets the original node for a given node.
-//
-// NOTE: This is the equivalent to `setOriginalNode` in Strada.
-func (c *EmitContext) SetOriginal(node *ast.Node, original *ast.Node) {
+func (c *EmitContext) SetOriginal(node ast.Handle, original ast.Handle) {
 	c.SetOriginalEx(node, original, false)
 }
-
-func (c *EmitContext) UnsetOriginal(node *ast.Node) {
+func (c *EmitContext) UnsetOriginal(node ast.Handle) {
 	delete(c.original, c.NodeIdentity(node))
 }
-
-func (c *EmitContext) SetOriginalEx(node *ast.Node, original *ast.Node, allowOverwrite bool) {
-	if original == nil {
+func (c *EmitContext) SetOriginalEx(node ast.Handle, original ast.Handle, allowOverwrite bool) {
+	if original.IsNil() {
 		panic("Original cannot be nil.")
 	}
-
 	if c.original == nil {
 		c.original = make(map[ast.GlobalRef]ast.GlobalRef)
 	}
-
 	nodeIdentity := c.NodeIdentity(node)
 	originalIdentity := c.NodeIdentity(original)
 	existing, ok := c.original[nodeIdentity]
@@ -542,21 +405,14 @@ func (c *EmitContext) SetOriginalEx(node *ast.Node, original *ast.Node, allowOve
 	}
 }
 
-// Gets the original node for a given node.
-//
-// NOTE: This is the equivalent to reading `node.original` in Strada.
-func (c *EmitContext) Original(node *ast.Node) *ast.Node {
+func (c *EmitContext) Original(node ast.Handle) ast.Handle {
 	return c.nodeForIdentity(c.original[c.NodeIdentity(node)])
 }
 
-// Gets the most original node associated with this node by walking Original pointers.
-//
-// NOTE: This method is analogous to `getOriginalNode` in the old compiler, but the name has changed to avoid accidental
-// conflation with `SetOriginal`/`Original`
-func (c *EmitContext) MostOriginal(node *ast.Node) *ast.Node {
-	if node != nil {
+func (c *EmitContext) MostOriginal(node ast.Handle) ast.Handle {
+	if !node.IsNil() {
 		original := c.Original(node)
-		for original != nil {
+		for !original.IsNil() {
 			node = original
 			original = c.Original(node)
 		}
@@ -564,28 +420,24 @@ func (c *EmitContext) MostOriginal(node *ast.Node) *ast.Node {
 	return node
 }
 
-// Gets the original parse tree node for a given node.
-//
-// NOTE: This is the equivalent to `getParseTreeNode` in Strada.
-func (c *EmitContext) ParseNode(node *ast.Node) *ast.Node {
+func (c *EmitContext) ParseNode(node ast.Handle) ast.Handle {
 	node = c.MostOriginal(node)
-	if node != nil && ast.IsParseTreeNode(node) {
+	if !node.IsNil() && ast.IsParseTreeNode(node) {
 		return node
 	}
-	return nil
+	return ast.Handle{}
 }
-
 func (c *EmitContext) IsFileLevelUniqueName(sourceFile *ast.SourceFile, name string, hasGlobalName func(string) bool) bool {
 	if hasGlobalName != nil && hasGlobalName(name) {
 		return false
 	}
-	sourceFile = c.MostOriginal(sourceFile.AsNode()).AsSourceFile()
+	if original := c.MostOriginal(sourceFile.ParseRoot()); !original.IsNil() {
+		if file := ast.GetSourceFileOfNode(original); file != nil {
+			sourceFile = file
+		}
+	}
 	return !sourceFile.HasIdentifier(name)
 }
-
-//
-// Emit-related Data
-//
 
 type emitNodeFlags uint32
 
@@ -604,7 +456,6 @@ type SnippetElement struct {
 	Kind  SnippetKind
 	Order int
 }
-
 type SynthesizedComment struct {
 	Kind               ast.Kind
 	Loc                core.TextRange
@@ -612,7 +463,6 @@ type SynthesizedComment struct {
 	HasTrailingNewLine bool
 	Text               string
 }
-
 type emitNode struct {
 	flags                     emitNodeFlags
 	emitFlags                 EmitFlags
@@ -620,14 +470,13 @@ type emitNode struct {
 	sourceMapRange            core.TextRange
 	tokenSourceMapRanges      map[ast.Kind]core.TextRange
 	helpers                   []*EmitHelper
-	externalHelpersModuleName *ast.IdentifierNode
+	externalHelpersModuleName ast.Handle
 	leadingComments           []SynthesizedComment
 	trailingComments          []SynthesizedComment
-	typeNode                  *ast.TypeNode
+	typeNode                  ast.Handle
 	snippetElement            *SnippetElement
 }
 
-// NOTE: This method is not guaranteed to be thread-safe
 func (e *emitNode) copyFrom(source *emitNode) {
 	e.flags = source.flags
 	e.emitFlags = source.emitFlags
@@ -641,75 +490,63 @@ func (e *emitNode) copyFrom(source *emitNode) {
 		e.snippetElement = &snippetElement
 	}
 }
-
-func (c *EmitContext) EmitFlags(node *ast.Node) EmitFlags {
+func (c *EmitContext) EmitFlags(node ast.Handle) EmitFlags {
 	if emitNode := c.tryEmitNode(node); emitNode != nil {
 		return emitNode.emitFlags
 	}
 	return EFNone
 }
-
-func (c *EmitContext) SetEmitFlags(node *ast.Node, flags EmitFlags) {
+func (c *EmitContext) SetEmitFlags(node ast.Handle, flags EmitFlags) {
 	c.emitNode(node).emitFlags = flags
 }
-
-func (c *EmitContext) AddEmitFlags(node *ast.Node, flags EmitFlags) {
+func (c *EmitContext) AddEmitFlags(node ast.Handle, flags EmitFlags) {
 	c.emitNode(node).emitFlags |= flags
 }
-
-func (c *EmitContext) SnippetElement(node *ast.Node) *SnippetElement {
+func (c *EmitContext) SnippetElement(node ast.Handle) *SnippetElement {
 	if emitNode := c.tryEmitNode(node); emitNode != nil {
 		return emitNode.snippetElement
 	}
 	return nil
 }
-
-func (c *EmitContext) SetSnippetElement(node *ast.Node, snippetElement SnippetElement) {
+func (c *EmitContext) SetSnippetElement(node ast.Handle, snippetElement SnippetElement) {
 	c.emitNode(node).snippetElement = &snippetElement
 }
 
-// Gets the range to use for a node when emitting comments.
-func (c *EmitContext) CommentRange(node *ast.Node) core.TextRange {
+func (c *EmitContext) CommentRange(node ast.Handle) core.TextRange {
 	if emitNode := c.tryEmitNode(node); emitNode != nil && emitNode.flags&hasCommentRange != 0 {
 		return emitNode.commentRange
 	}
-	return node.Loc
+	return node.Loc()
 }
 
-// Sets the range to use for a node when emitting comments.
-func (c *EmitContext) SetCommentRange(node *ast.Node, loc core.TextRange) {
+func (c *EmitContext) SetCommentRange(node ast.Handle, loc core.TextRange) {
 	emitNode := c.emitNode(node)
 	emitNode.commentRange = loc
 	emitNode.flags |= hasCommentRange
 }
 
-// Sets the range to use for a node when emitting comments.
-func (c *EmitContext) AssignCommentRange(to *ast.Node, from *ast.Node) {
+func (c *EmitContext) AssignCommentRange(to ast.Handle, from ast.Handle) {
 	c.SetCommentRange(to, c.CommentRange(from))
 }
 
-// Gets the range to use for a node when emitting source maps.
-func (c *EmitContext) SourceMapRange(node *ast.Node) core.TextRange {
+func (c *EmitContext) SourceMapRange(node ast.Handle) core.TextRange {
 	if emitNode := c.tryEmitNode(node); emitNode != nil && emitNode.flags&hasSourceMapRange != 0 {
 		return emitNode.sourceMapRange
 	}
-	return node.Loc
+	return node.Loc()
 }
 
-// Sets the range to use for a node when emitting source maps.
-func (c *EmitContext) SetSourceMapRange(node *ast.Node, loc core.TextRange) {
+func (c *EmitContext) SetSourceMapRange(node ast.Handle, loc core.TextRange) {
 	emitNode := c.emitNode(node)
 	emitNode.sourceMapRange = loc
 	emitNode.flags |= hasSourceMapRange
 }
 
-// Sets the range to use for a node when emitting source maps.
-func (c *EmitContext) AssignSourceMapRange(to *ast.Node, from *ast.Node) {
+func (c *EmitContext) AssignSourceMapRange(to ast.Handle, from ast.Handle) {
 	c.SetSourceMapRange(to, c.SourceMapRange(from))
 }
 
-// Sets the range to use for a node when emitting comments and source maps.
-func (c *EmitContext) AssignCommentAndSourceMapRanges(to *ast.Node, from *ast.Node) {
+func (c *EmitContext) AssignCommentAndSourceMapRanges(to ast.Handle, from ast.Handle) {
 	emitNode := c.emitNode(to)
 	commentRange := c.CommentRange(from)
 	sourceMapRange := c.SourceMapRange(from)
@@ -718,8 +555,7 @@ func (c *EmitContext) AssignCommentAndSourceMapRanges(to *ast.Node, from *ast.No
 	emitNode.flags |= hasCommentRange | hasSourceMapRange
 }
 
-// Gets the range for a token of a node when emitting source maps.
-func (c *EmitContext) TokenSourceMapRange(node *ast.Node, kind ast.Kind) (core.TextRange, bool) {
+func (c *EmitContext) TokenSourceMapRange(node ast.Handle, kind ast.Kind) (core.TextRange, bool) {
 	if emitNode := c.tryEmitNode(node); emitNode != nil && emitNode.tokenSourceMapRanges != nil {
 		if loc, ok := emitNode.tokenSourceMapRanges[kind]; ok {
 			return loc, true
@@ -728,48 +564,40 @@ func (c *EmitContext) TokenSourceMapRange(node *ast.Node, kind ast.Kind) (core.T
 	return core.TextRange{}, false
 }
 
-// Sets the range for a token of a node when emitting source maps.
-func (c *EmitContext) SetTokenSourceMapRange(node *ast.Node, kind ast.Kind, loc core.TextRange) {
+func (c *EmitContext) SetTokenSourceMapRange(node ast.Handle, kind ast.Kind, loc core.TextRange) {
 	emitNode := c.emitNode(node)
 	if emitNode.tokenSourceMapRanges == nil {
 		emitNode.tokenSourceMapRanges = make(map[ast.Kind]core.TextRange)
 	}
 	emitNode.tokenSourceMapRanges[kind] = loc
 }
-
-func (c *EmitContext) AssignedName(node *ast.Node) *ast.Expression {
+func (c *EmitContext) AssignedName(node ast.Handle) ast.Handle {
 	return c.nodeForIdentity(c.assignedName[c.NodeIdentity(node)])
 }
-
-func (c *EmitContext) TextSource(node *ast.StringLiteralNode) *ast.Node {
+func (c *EmitContext) TextSource(node ast.Handle) ast.Handle {
 	return c.nodeForIdentity(c.textSource[c.NodeIdentity(node)])
 }
-
-func (c *EmitContext) SetTextSource(node *ast.StringLiteralNode, source *ast.Node) {
+func (c *EmitContext) SetTextSource(node ast.Handle, source ast.Handle) {
 	if c.textSource == nil {
 		c.textSource = make(map[ast.GlobalRef]ast.GlobalRef)
 	}
 	c.textSource[c.NodeIdentity(node)] = c.NodeIdentity(source)
 }
-
-func (c *EmitContext) SetAssignedName(node *ast.Node, name *ast.Expression) {
+func (c *EmitContext) SetAssignedName(node ast.Handle, name ast.Handle) {
 	if c.assignedName == nil {
 		c.assignedName = make(map[ast.GlobalRef]ast.GlobalRef)
 	}
 	c.assignedName[c.NodeIdentity(node)] = c.NodeIdentity(name)
 }
-
-func (c *EmitContext) ClassThis(node *ast.Node) *ast.Expression {
+func (c *EmitContext) ClassThis(node ast.Handle) ast.Handle {
 	return c.nodeForIdentity(c.classThis[c.NodeIdentity(node)])
 }
-
-func (c *EmitContext) SetClassThis(node *ast.Node, classThis *ast.IdentifierNode) {
+func (c *EmitContext) SetClassThis(node ast.Handle, classThis ast.Handle) {
 	if c.classThis == nil {
 		c.classThis = make(map[ast.GlobalRef]ast.GlobalRef)
 	}
 	c.classThis[c.NodeIdentity(node)] = c.NodeIdentity(classThis)
 }
-
 func (c *EmitContext) RequestEmitHelper(helper *EmitHelper) {
 	if helper.Scoped {
 		panic("Cannot request a scoped emit helper")
@@ -779,21 +607,18 @@ func (c *EmitContext) RequestEmitHelper(helper *EmitHelper) {
 	}
 	c.emitHelpers.Add(helper)
 }
-
 func (c *EmitContext) ReadEmitHelpers() []*EmitHelper {
 	helpers := slices.Collect(c.emitHelpers.Values())
 	c.emitHelpers.Clear()
 	return helpers
 }
-
-func (c *EmitContext) AddEmitHelper(node *ast.Node, helper ...*EmitHelper) {
+func (c *EmitContext) AddEmitHelper(node ast.Handle, helper ...*EmitHelper) {
 	emitNode := c.emitNode(node)
 	for _, h := range helper {
 		emitNode.helpers = core.AppendIfUnique(emitNode.helpers, h)
 	}
 }
-
-func (c *EmitContext) MoveEmitHelpers(source *ast.Node, target *ast.Node, predicate func(helper *EmitHelper) bool) {
+func (c *EmitContext) MoveEmitHelpers(source ast.Handle, target ast.Handle, predicate func(helper *EmitHelper) bool) {
 	sourceEmitNode := c.tryEmitNode(source)
 	if sourceEmitNode == nil {
 		return
@@ -802,7 +627,6 @@ func (c *EmitContext) MoveEmitHelpers(source *ast.Node, target *ast.Node, predic
 	if len(sourceEmitHelpers) == 0 {
 		return
 	}
-
 	targetEmitNode := c.emitNode(target)
 	helpersRemoved := 0
 	for i := range sourceEmitHelpers {
@@ -814,93 +638,68 @@ func (c *EmitContext) MoveEmitHelpers(source *ast.Node, target *ast.Node, predic
 			sourceEmitHelpers[i-helpersRemoved] = helper
 		}
 	}
-
 	if helpersRemoved > 0 {
 		sourceEmitHelpers = sourceEmitHelpers[:len(sourceEmitHelpers)-helpersRemoved]
 		sourceEmitNode.helpers = sourceEmitHelpers
 	}
 }
-
-func (c *EmitContext) GetEmitHelpers(node *ast.Node) []*EmitHelper {
+func (c *EmitContext) GetEmitHelpers(node ast.Handle) []*EmitHelper {
 	emitNode := c.tryEmitNode(node)
 	if emitNode != nil {
 		return emitNode.helpers
 	}
 	return nil
 }
-
-func (c *EmitContext) GetExternalHelpersModuleName(node *ast.SourceFile) *ast.IdentifierNode {
-	if parseNode := c.ParseNode(node.AsNode()); parseNode != nil {
+func (c *EmitContext) GetExternalHelpersModuleName(node *ast.SourceFile) ast.Handle {
+	if parseNode := c.ParseNode(node.ParseRoot()); !parseNode.IsNil() {
 		if emitNode := c.tryEmitNode(parseNode); emitNode != nil {
 			return emitNode.externalHelpersModuleName
 		}
 	}
-	return nil
+	return ast.Handle{}
 }
-
-func (c *EmitContext) SetExternalHelpersModuleName(node *ast.SourceFile, name *ast.IdentifierNode) {
-	parseNode := c.ParseNode(node.AsNode())
-	if parseNode == nil {
+func (c *EmitContext) SetExternalHelpersModuleName(node *ast.SourceFile, name ast.Handle) {
+	parseNode := c.ParseNode(node.ParseRoot())
+	if parseNode.IsNil() {
 		panic("Node must be a parse tree node or have an Original pointer to a parse tree node.")
 	}
-
 	emitNode := c.emitNode(parseNode)
 	emitNode.externalHelpersModuleName = name
 }
-
 func (c *EmitContext) HasRecordedExternalHelpers(node *ast.SourceFile) bool {
-	if parseNode := c.ParseNode(node.AsNode()); parseNode != nil {
+	if parseNode := c.ParseNode(node.ParseRoot()); !parseNode.IsNil() {
 		emitNode := c.tryEmitNode(parseNode)
-		return emitNode != nil && (emitNode.externalHelpersModuleName != nil || emitNode.emitFlags&EFExternalHelpers != 0)
+		return emitNode != nil && (!emitNode.externalHelpersModuleName.IsNil() || emitNode.emitFlags&EFExternalHelpers != 0)
 	}
 	return false
 }
-
-func (c *EmitContext) IsCallToHelper(firstSegment *ast.Expression, helperName string) bool {
-	return ast.IsCallExpression(firstSegment) &&
-		ast.IsIdentifier(firstSegment.Expression()) &&
-		(c.EmitFlags(firstSegment.Expression())&EFHelperName) != 0 &&
-		firstSegment.Expression().Text() == helperName
+func (c *EmitContext) IsCallToHelper(firstSegment ast.Handle, helperName string) bool {
+	return ast.IsCallExpression(firstSegment) && ast.IsIdentifier(firstSegment.Expression()) && (c.EmitFlags(firstSegment.Expression())&EFHelperName) != 0 && firstSegment.Expression().Text() == helperName
 }
-
-//
-// Visitor Hooks
-//
-
-func (c *EmitContext) VisitVariableEnvironment(nodes *ast.StatementList, visitor *ast.NodeVisitor) *ast.StatementList {
+func (c *EmitContext) VisitVariableEnvironment(nodes ast.ListRef, visitor *ast.HandleVisitor) ast.ListRef {
 	c.StartVariableEnvironment()
 	return c.EndAndMergeVariableEnvironmentList(visitor.VisitNodes(nodes))
 }
-
-func (c *EmitContext) VisitParameters(nodes *ast.ParameterList, visitor *ast.NodeVisitor) *ast.ParameterList {
+func (c *EmitContext) VisitParameters(nodes ast.ListRef, visitor *ast.HandleVisitor) ast.ListRef {
 	c.StartVariableEnvironment()
 	scope := c.varScopeStack.Peek()
 	oldFlags := scope.flags
 	scope.flags |= environmentFlagsInParameters
 	nodes = visitor.VisitNodes(nodes)
-
-	// As of ES2015, any runtime execution of that occurs in for a parameter (such as evaluating an
-	// initializer or a binding pattern), occurs in its own lexical scope. As a result, any expression
-	// that we might transform that introduces a temporary variable would fail as the temporary variable
-	// exists in a different lexical scope. To address this, we move any binding patterns and initializers
-	// in a parameter list to the body if we detect a variable being hoisted while visiting a parameter list
-	// when the emit target is greater than ES2015. (Which is now all targets.)
 	if scope.flags&environmentFlagsVariablesHoistedInParameters != 0 {
 		nodes = c.addDefaultValueAssignmentsIfNeeded(nodes)
 	}
 	scope.flags = oldFlags
-	// !!! c.suspendVariableEnvironment()
 	return nodes
 }
-
-func (c *EmitContext) addDefaultValueAssignmentsIfNeeded(nodeList *ast.ParameterList) *ast.ParameterList {
-	if nodeList == nil {
+func (c *EmitContext) addDefaultValueAssignmentsIfNeeded(nodeList ast.ListRef) ast.ListRef {
+	if nodeList == 0 {
 		return nodeList
 	}
-	var result []*ast.Node
-	nodes := nodeList.Nodes
+	var result []ast.Handle
+	nodes := c.storeFile.ParseStore().ListSlice(nodeList)
 	for i, parameter := range nodes {
-		updated := c.addDefaultValueAssignmentIfNeeded(parameter.AsParameterDeclaration())
+		updated := c.addDefaultValueAssignmentIfNeeded(parameter)
 		if updated != parameter {
 			if result == nil {
 				result = slices.Clone(nodes)
@@ -909,92 +708,44 @@ func (c *EmitContext) addDefaultValueAssignmentsIfNeeded(nodeList *ast.Parameter
 		}
 	}
 	if result != nil {
-		res := c.Factory.NewNodeList(result)
-		res.Loc = nodeList.Loc
-		return res
+		return c.StoreFactory().List(c.storeFile.ParseStore().ListLoc(nodeList), result...)
 	}
 	return nodeList
 }
-
-func (c *EmitContext) addDefaultValueAssignmentIfNeeded(parameter *ast.ParameterDeclaration) *ast.Node {
-	// A rest parameter cannot have a binding pattern or an initializer,
-	// so let's just ignore it.
-	if parameter.DotDotDotToken != nil {
-		return parameter.AsNode()
+func (c *EmitContext) addDefaultValueAssignmentIfNeeded(parameter ast.Handle) ast.Handle {
+	if !parameter.DotDotDotToken().IsNil() {
+		return parameter
 	} else if ast.IsBindingPattern(parameter.Name()) {
 		return c.addDefaultValueAssignmentForBindingPattern(parameter)
-	} else if parameter.Initializer != nil {
-		return c.addDefaultValueAssignmentForInitializer(parameter, parameter.Name(), parameter.Initializer)
+	} else if !parameter.Initializer().IsNil() {
+		return c.addDefaultValueAssignmentForInitializer(parameter, parameter.Name(), parameter.Initializer())
 	}
-	return parameter.AsNode()
+	return parameter
 }
-
-func (c *EmitContext) addDefaultValueAssignmentForBindingPattern(parameter *ast.ParameterDeclaration) *ast.Node {
-	var initNode *ast.Node
-	if parameter.Initializer != nil {
-		initNode = c.Factory.NewConditionalExpression(
-			c.Factory.NewStrictEqualityExpression(
-				c.Factory.NewGeneratedNameForNode(parameter.AsNode()),
-				c.Factory.NewVoidZeroExpression(),
-			),
-			c.Factory.NewToken(ast.KindQuestionToken),
-			parameter.Initializer,
-			c.Factory.NewToken(ast.KindColonToken),
-			c.Factory.NewGeneratedNameForNode(parameter.AsNode()),
-		)
+func (c *EmitContext) addDefaultValueAssignmentForBindingPattern(parameter ast.Handle) ast.Handle {
+	var initNode ast.Handle
+	if !parameter.Initializer().IsNil() {
+		initNode = c.Factory.NewConditionalExpression(c.Factory.NewStrictEqualityExpression(c.Factory.NewGeneratedNameForNode(parameter), c.Factory.NewVoidZeroExpression()), c.Factory.NewToken(ast.KindQuestionToken), parameter.Initializer(), c.Factory.NewToken(ast.KindColonToken), c.Factory.NewGeneratedNameForNode(parameter))
 	} else {
-		initNode = c.Factory.NewGeneratedNameForNode(parameter.AsNode())
+		initNode = c.Factory.NewGeneratedNameForNode(parameter)
 	}
-	c.AddInitializationStatement(c.Factory.NewVariableStatement(
-		nil,
-		c.Factory.NewVariableDeclarationList(c.Factory.NewNodeList([]*ast.Node{c.Factory.NewVariableDeclaration(
-			parameter.Name(),
-			nil,
-			parameter.Type,
-			initNode,
-		)}), ast.NodeFlagsNone),
-	))
-	return c.Factory.UpdateParameterDeclaration(
-		parameter,
-		parameter.Modifiers(),
-		parameter.DotDotDotToken,
-		c.Factory.NewGeneratedNameForNode(parameter.AsNode()),
-		parameter.QuestionToken,
-		parameter.Type,
-		nil,
-	)
+	c.AddInitializationStatement(c.Factory.NewVariableStatement(0, c.Factory.NewVariableDeclarationList(c.Factory.NewList([]ast.Handle{c.Factory.NewVariableDeclaration(parameter.Name(), ast.Handle{}, parameter.Type(), initNode)}), ast.NodeFlagsNone)))
+	return c.Factory.UpdateParameterDeclaration(parameter, parameter.Modifiers(), parameter.DotDotDotToken(), c.Factory.NewGeneratedNameForNode(parameter), parameter.QuestionToken(), parameter.Type(), ast.Handle{})
 }
-
-func (c *EmitContext) addDefaultValueAssignmentForInitializer(parameter *ast.ParameterDeclaration, name *ast.Node, initializer *ast.Node) *ast.Node {
+func (c *EmitContext) addDefaultValueAssignmentForInitializer(parameter ast.Handle, name ast.Handle, initializer ast.Handle) ast.Handle {
 	c.AddEmitFlags(initializer, EFNoSourceMap|EFNoComments)
-	nameClone := name.Clone(c.Factory)
+	nameClone := c.Factory.DeepCloneNode(name)
 	c.AddEmitFlags(nameClone, EFNoSourceMap)
-	initAssignment := c.Factory.NewAssignmentExpression(
-		nameClone,
-		initializer,
-	)
-	initAssignment.Loc = parameter.Loc
+	initAssignment := c.Factory.NewAssignmentExpression(nameClone, initializer)
+	initAssignment.SetLoc(parameter.Loc())
 	c.AddEmitFlags(initAssignment, EFNoComments)
-	initBlock := c.Factory.NewBlock(c.Factory.NewNodeList([]*ast.Node{c.Factory.NewExpressionStatement(initAssignment)}), false)
-	initBlock.Loc = parameter.Loc
+	initBlock := c.Factory.NewBlock(c.Factory.NewList([]ast.Handle{c.Factory.NewExpressionStatement(initAssignment)}), false)
+	initBlock.SetLoc(parameter.Loc())
 	c.AddEmitFlags(initBlock, EFSingleLine|EFNoTrailingSourceMap|EFNoTokenSourceMaps|EFNoComments)
-	c.AddInitializationStatement(c.Factory.NewIfStatement(
-		c.Factory.NewTypeCheck(name.Clone(c.Factory), "undefined"),
-		initBlock,
-		nil,
-	))
-	return c.Factory.UpdateParameterDeclaration(
-		parameter,
-		parameter.Modifiers(),
-		parameter.DotDotDotToken,
-		parameter.Name(),
-		parameter.QuestionToken,
-		parameter.Type,
-		nil,
-	)
+	c.AddInitializationStatement(c.Factory.NewIfStatement(c.Factory.NewTypeCheck(c.Factory.DeepCloneNode(name), "undefined"), initBlock, ast.Handle{}))
+	return c.Factory.UpdateParameterDeclaration(parameter, parameter.Modifiers(), parameter.DotDotDotToken(), parameter.Name(), parameter.QuestionToken(), parameter.Type(), ast.Handle{})
 }
-
-func (c *EmitContext) AddInitializationStatement(node *ast.Node) {
+func (c *EmitContext) AddInitializationStatement(node ast.Handle) {
 	scope := c.varScopeStack.Peek()
 	if scope == nil {
 		panic("Tried to add an initialization statement without a surrounding variable scope")
@@ -1002,141 +753,114 @@ func (c *EmitContext) AddInitializationStatement(node *ast.Node) {
 	c.AddEmitFlags(node, EFCustomPrologue)
 	scope.initializationStatements = append(scope.initializationStatements, node)
 }
-
-func (c *EmitContext) ConvertToFunctionBlock(node *ast.Node, multiLine bool) *ast.Node {
+func (c *EmitContext) ConvertToFunctionBlock(node ast.Handle, multiLine bool) ast.Handle {
 	if ast.IsBlock(node) {
 		return node
 	}
 	returnStatement := c.Factory.NewReturnStatement(node)
-	returnStatement.Loc = node.Loc
-	statements := c.Factory.NewNodeList([]*ast.Node{returnStatement})
-	statements.Loc = node.Loc
+	returnStatement.SetLoc(node.Loc())
+	statements := c.StoreFactory().List(node.Loc(), returnStatement)
 	block := c.Factory.NewBlock(statements, multiLine)
-	block.Loc = node.Loc
+	block.SetLoc(node.Loc())
 	return block
 }
-
-func (c *EmitContext) VisitFunctionBody(node *ast.BlockOrExpression, visitor *ast.NodeVisitor) *ast.BlockOrExpression {
-	// !!! c.resumeVariableEnvironment()
+func (c *EmitContext) VisitFunctionBody(node ast.Handle, visitor *ast.HandleVisitor) ast.Handle {
 	updated := visitor.VisitNode(node)
 	declarations := c.EndVariableEnvironment()
 	if len(declarations) == 0 {
 		return updated
 	}
-
-	if updated == nil {
-		return c.Factory.NewBlock(c.Factory.NewNodeList(declarations), true /*multiLine*/)
+	if updated.IsNil() {
+		return c.Factory.NewBlock(c.Factory.NewList(declarations), true)
 	}
-
 	if !ast.IsBlock(updated) {
 		c.AddEmitFlags(updated, EFNoComments)
-		block := c.ConvertToFunctionBlock(updated, false /*multiLine*/)
-		return c.Factory.UpdateBlock(
-			block.AsBlock(),
-			c.MergeEnvironmentList(block.StatementList(), declarations),
-			block.AsBlock().MultiLine,
-		)
+		block := c.ConvertToFunctionBlock(updated, false)
+		return c.Factory.UpdateBlock(block, c.MergeEnvironmentList(block.StatementList(), declarations), block.BlockMultiLine())
 	}
-
-	return c.Factory.UpdateBlock(
-		updated.AsBlock(),
-		c.MergeEnvironmentList(updated.StatementList(), declarations),
-		updated.AsBlock().MultiLine,
-	)
+	return c.Factory.UpdateBlock(updated, c.MergeEnvironmentList(updated.StatementList(), declarations), updated.BlockMultiLine())
 }
-
-func (c *EmitContext) VisitIterationBody(body *ast.Statement, visitor *ast.NodeVisitor) *ast.Statement {
-	if body == nil {
-		return nil
+func (c *EmitContext) VisitIterationBody(body ast.Handle, visitor *ast.HandleVisitor) ast.Handle {
+	if body.IsNil() {
+		return ast.Handle{}
 	}
-
 	c.StartLexicalEnvironment()
 	updated := c.VisitEmbeddedStatement(body, visitor)
-	if updated == nil {
+	if updated.IsNil() {
 		panic("Expected visitor to return a statement.")
 	}
-
 	statements := c.EndLexicalEnvironment()
 	if len(statements) > 0 {
 		if ast.IsBlock(updated) {
 			statements = append(statements, updated.Statements()...)
-			statementsList := c.Factory.NewNodeList(statements)
-			statementsList.Loc = updated.StatementList().Loc
-			return c.Factory.UpdateBlock(updated.AsBlock(), statementsList, updated.AsBlock().MultiLine)
+			loc := updated.Loc()
+			if c.storeFile != nil && c.storeFile.ParseStore() != nil && updated.StatementList() != 0 {
+				loc = c.storeFile.ParseStore().ListLoc(updated.StatementList())
+			}
+			statementsList := c.StoreFactory().List(loc, statements...)
+			return c.Factory.UpdateBlock(updated, statementsList, updated.BlockMultiLine())
 		}
 		statements = append(statements, updated)
-		return c.Factory.NewBlock(c.Factory.NewNodeList(statements), true /*multiLine*/)
+		return c.Factory.NewBlock(c.Factory.NewList(statements), true)
 	}
-
 	return updated
 }
-
-func (c *EmitContext) VisitEmbeddedStatement(node *ast.Statement, visitor *ast.NodeVisitor) *ast.Statement {
-	if node == nil {
-		return nil
+func (c *EmitContext) VisitEmbeddedStatement(node ast.Handle, visitor *ast.HandleVisitor) ast.Handle {
+	if node.IsNil() {
+		return ast.Handle{}
 	}
 	embeddedStatement := visitor.VisitEmbeddedStatement(node)
-	if embeddedStatement == nil || ast.IsNotEmittedStatement(embeddedStatement) {
+	if embeddedStatement.IsNil() || ast.IsNotEmittedStatement(embeddedStatement) {
 		emptyStatement := visitor.Factory.NewEmptyStatement()
-		emptyStatement.Loc = node.Loc
+		emptyStatement.SetLoc(node.Loc())
 		c.SetOriginal(emptyStatement, node)
 		c.AssignCommentRange(emptyStatement, node)
 		return emptyStatement
 	}
 	return embeddedStatement
 }
-
-func (c *EmitContext) SetSyntheticLeadingComments(node *ast.Node, comments []SynthesizedComment) *ast.Node {
+func (c *EmitContext) SetSyntheticLeadingComments(node ast.Handle, comments []SynthesizedComment) ast.Handle {
 	c.emitNode(node).leadingComments = comments
 	return node
 }
-
-func (c *EmitContext) AddSyntheticLeadingComment(node *ast.Node, kind ast.Kind, text string, hasTrailingNewLine bool) *ast.Node {
+func (c *EmitContext) AddSyntheticLeadingComment(node ast.Handle, kind ast.Kind, text string, hasTrailingNewLine bool) ast.Handle {
 	c.emitNode(node).leadingComments = append(c.emitNode(node).leadingComments, SynthesizedComment{Kind: kind, Loc: core.NewTextRange(-1, -1), HasTrailingNewLine: hasTrailingNewLine, Text: text})
 	return node
 }
-
-func (c *EmitContext) GetSyntheticLeadingComments(node *ast.Node) []SynthesizedComment {
+func (c *EmitContext) GetSyntheticLeadingComments(node ast.Handle) []SynthesizedComment {
 	if c.hasEmitNode(node) {
 		return c.emitNode(node).leadingComments
 	}
 	return nil
 }
-
-func (c *EmitContext) SetSyntheticTrailingComments(node *ast.Node, comments []SynthesizedComment) *ast.Node {
+func (c *EmitContext) SetSyntheticTrailingComments(node ast.Handle, comments []SynthesizedComment) ast.Handle {
 	c.emitNode(node).trailingComments = comments
 	return node
 }
-
-func (c *EmitContext) AddSyntheticTrailingComment(node *ast.Node, kind ast.Kind, text string, hasTrailingNewLine bool) *ast.Node {
+func (c *EmitContext) AddSyntheticTrailingComment(node ast.Handle, kind ast.Kind, text string, hasTrailingNewLine bool) ast.Handle {
 	c.emitNode(node).trailingComments = append(c.emitNode(node).trailingComments, SynthesizedComment{Kind: kind, Loc: core.NewTextRange(-1, -1), HasTrailingNewLine: hasTrailingNewLine, Text: text})
 	return node
 }
-
-func (c *EmitContext) GetSyntheticTrailingComments(node *ast.Node) []SynthesizedComment {
+func (c *EmitContext) GetSyntheticTrailingComments(node ast.Handle) []SynthesizedComment {
 	if c.hasEmitNode(node) {
 		return c.emitNode(node).trailingComments
 	}
 	return nil
 }
 
-// SetTypeNode stores the original type node on a name node when the type is erased,
-// so the emitter can use the type's position for comment preservation.
-func (c *EmitContext) SetTypeNode(node *ast.Node, typeNode *ast.TypeNode) {
+func (c *EmitContext) SetTypeNode(node ast.Handle, typeNode ast.Handle) {
 	c.emitNode(node).typeNode = typeNode
 }
 
-// GetTypeNode gets the type node stored on a name node by the type eraser.
-func (c *EmitContext) GetTypeNode(node *ast.Node) *ast.TypeNode {
+func (c *EmitContext) GetTypeNode(node ast.Handle) ast.Handle {
 	if emitNode := c.tryEmitNode(node); emitNode != nil {
 		return emitNode.typeNode
 	}
-	return nil
+	return ast.Handle{}
 }
-
-func (c *EmitContext) NewNotEmittedStatement(node *ast.Node) *ast.Statement {
+func (c *EmitContext) NewNotEmittedStatement(node ast.Handle) ast.Handle {
 	statement := c.Factory.NewNotEmittedStatement()
-	statement.Loc = node.Loc
+	statement.SetLoc(node.Loc())
 	c.SetOriginal(statement, node)
 	c.AssignCommentRange(statement, node)
 	return statement

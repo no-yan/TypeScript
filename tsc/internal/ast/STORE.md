@@ -342,9 +342,9 @@ Production `ParseSourceFile` for TS/JS tries `tryParseSourceHandle`, then `Mater
 
 ### Next edits (one PR, one compile at the end)
 
-1. Rewrite `parser.go` in place onto `ast.Factory` / Handle. Fold or delete `parser_statement_store.go`, `parser_type_store.go`, `parser_expression_store.go`. Recovery still allocates into Store.
-2. Convert binder, checker, printer, transformers to Handle. `ParseSourceFile` returns `*SourceFile` metadata whose tree is the parse Store. No `parseNodeRef` pointer map on the compile path.
-3. Delete `store_materialize_json.go` and `store_bridge.go` production dual-write. Delete unused `*Node` factory paths that production no longer calls.
+1. Rewrite `parser.go` in place onto `ast.Factory` / Handle, including JSX. Delete `parser_handle.go`, `parser_handle_gen.go`, `parser_*_store.go`.
+2. Convert binder, checker, printer, transformers, ls, format, astnav to Handle in the same compile. Delete `*Node` public APIs. `ParseSourceFile` returns `*SourceFile` metadata whose tree is the parse Store.
+3. Delete `store_materialize_json.go` and `store_bridge.go` production dual-write. `FooNode = Handle`. Delete unused `*Node` factory paths.
 4. LS/format leftover, if any, is PR-9.
 
 Do not keep interned `*Node` shells with child pointers. That restores the dual tree.
@@ -372,6 +372,8 @@ These were given in chat and are now the rule:
 1. Split remaining GitHub PRs and increment **6, 7, 8, 9, 10** (not 6A/6B/6C then program PR-7/PR-8).
 2. Parser and checker rewrite **without a bridge**, in one shot. The dual parser plus materialize is overly complex. A large in-place rewrite is preferred over another migration wave.
 3. Stop at a durable checkpoint so a new context can resume. That checkpoint is this section plus GitHub `#7`.
+4. **2026-08-31 cutover.** JSX may be converted. Public `*Node` APIs must be deleted. `MaterializeSourceFile` may be deleted. Remaining PR-7 work is one compile (Cutover). Do not `go test ./internal/ast` after flipping `IsXxx` while `parser.go` still takes `*Node`.
+5. **2026-09-01 interrogate.** Run `rewrite-node-handle` on a `packages.Load`-clean `*Node` tree, then delete `*Node` APIs. Revert Handle-only `IsXxx` WIP first. The rewriter does not convert `.Nodes`, `VisitEachChild`, or `AsXxx`. Nested packages must be enumerated (`resolveLoad` does not recurse). `go build ./cmd/tsc` is a Cutover gate. Missing `KindJsxElement` is a fail. Work order is the Cutover list in `store-pr-7-oneshot-plan.md`. Do not restore per-package greens.
 
 The original armed `/goal` string is historical. Success is: PR-10 exists against `microsoft/TypeScript` and its body cites PR-8 e2e receipts. Tests alone are never verification. Do not land PR-3 through PR-9 on microsoft/main. The operator lands PR-1 and PR-2 only.
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/astnav"
 	"github.com/microsoft/TypeScript/tsc/internal/checker"
@@ -21,24 +20,22 @@ func (l *LanguageService) GetSymbolAtPosition(ctx context.Context, fileName stri
 		return nil, fmt.Errorf("%w: %s", ErrNoSourceFile, fileName)
 	}
 	node := astnav.GetTokenAtPosition(file, position)
-	if node == nil {
+	if node.IsNil() {
 		return nil, fmt.Errorf("%w: %s:%d", ErrNoTokenAtPosition, fileName, position)
 	}
 	checker, done := program.GetTypeCheckerForFile(ctx, file)
 	defer done()
 	return checker.GetSymbolAtLocation(node), nil
 }
-
-func (l *LanguageService) GetSymbolAtLocation(ctx context.Context, node *ast.Node) *ast.Symbol {
+func (l *LanguageService) GetSymbolAtLocation(ctx context.Context, node ast.Handle) *ast.Symbol {
 	program := l.GetProgram()
 	checker, done := program.GetTypeCheckerForFile(ctx, ast.GetSourceFileOfNode(node))
 	defer done()
 	return checker.GetSymbolAtLocation(node)
 }
-
 func (l *LanguageService) GetTypeOfSymbol(ctx context.Context, symbol *ast.Symbol) *checker.Type {
 	program := l.GetProgram()
 	checker, done := program.GetTypeChecker(ctx)
 	defer done()
-	return checker.GetTypeOfSymbolAtLocation(symbol, nil)
+	return checker.GetTypeOfSymbolAtLocation(symbol, ast.Handle{})
 }

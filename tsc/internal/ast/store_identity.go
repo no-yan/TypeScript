@@ -46,8 +46,18 @@ func RegisterFile(file *SourceFile) {
 	identitySet().BindFile(file)
 }
 
-func NodeOf(g GlobalRef) *Node {
-	return identitySet().NodeOf(g)
+func RegisterStore(s *Store) StoreID {
+	if s == nil {
+		panic("ast: RegisterStore nil")
+	}
+	if id := s.ID(); id != 0 {
+		return id
+	}
+	return identitySet().Add(s)
+}
+
+func NodeOf(g GlobalRef) Handle {
+	return identitySet().At(g)
 }
 
 // Add registers a Store and assigns its StoreID. A Store belongs to at
@@ -97,16 +107,6 @@ func (ss *StoreSet) adopt(s *Store) {
 	ss.stores[idx] = s
 }
 
-func (ss *StoreSet) NodeOf(g GlobalRef) *Node {
-	if ss == nil || g == 0 {
-		return nil
-	}
-	file := ss.File(g.StoreID())
-	if file == nil {
-		return nil
-	}
-	return file.NodeFor(g.Ref())
-}
 
 func (ss *StoreSet) SetFile(id StoreID, file *SourceFile) {
 	if id == 0 {

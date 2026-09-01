@@ -60,27 +60,32 @@ type UserPreferences struct {
 	// If enabled, TypeScript will search through all external modules' exports and add them to the completions list.
 	// This affects lone identifier completions but not completions on the right hand side of `obj.`.
 	IncludeCompletionsForModuleExports core.Tristate `raw:"includeCompletionsForModuleExports" config:"suggest.autoImports"`
+
 	// Enables auto-import-style completions on partially-typed import statements. E.g., allows
 	// `import write|` to be completed to `import { writeFile } from "fs"`.
 	IncludeCompletionsForImportStatements core.Tristate `raw:"includeCompletionsForImportStatements" config:"suggest.includeCompletionsForImportStatements"`
+
 	// Unless this option is `false`,  member completion lists triggered with `.` will include entries
 	// on potentially-null and potentially-undefined values, with insertion text to replace
 	// preceding `.` tokens with `?.`.
 	IncludeAutomaticOptionalChainCompletions core.Tristate `raw:"includeAutomaticOptionalChainCompletions" config:"suggest.includeAutomaticOptionalChainCompletions"`
+
 	// If enabled, completions for class members (e.g. methods and properties) will include
 	// a whole declaration for the member.
 	// E.g., `class A { f| }` could be completed to `class A { foo(): number {} }`, instead of
 	// `class A { foo }`.
 	IncludeCompletionsWithClassMemberSnippets core.Tristate `raw:"includeCompletionsWithClassMemberSnippets" config:"suggest.classMemberSnippets.enabled"`
+
 	// If enabled, object literal methods will have a method declaration completion entry in addition
 	// to the regular completion entry containing just the method name.
 	// E.g., `const objectLiteral: T = { f| }` could be completed to `const objectLiteral: T = { foo(): void {} }`,
 	// in addition to `const objectLiteral: T = { foo }`.
-	IncludeCompletionsWithObjectLiteralMethodSnippets core.Tristate               `raw:"includeCompletionsWithObjectLiteralMethodSnippets" config:"suggest.objectLiteralMethodSnippets.enabled"`
-	JsxAttributeCompletionStyle                       JsxAttributeCompletionStyle `raw:"jsxAttributeCompletionStyle" config:"preferences.jsxAttributeCompletionStyle"`
-	EnableAutoClosingTags                             core.Tristate               `raw:"autoClosingTags" config:"autoClosingTags.enabled" fallbackConfig:"autoClosingTags"`
-	EnableJSDocCompletions                            core.Tristate               `raw:"completeJSDocs" config:"suggest.jsdoc.enabled" fallbackConfig:"suggest.completeJSDocs"`
-	GenerateReturnInDocTemplate                       core.Tristate               `raw:"generateReturnInDocTemplate" config:"suggest.jsdoc.generateReturns"`
+	IncludeCompletionsWithObjectLiteralMethodSnippets core.Tristate `raw:"includeCompletionsWithObjectLiteralMethodSnippets" config:"suggest.objectLiteralMethodSnippets.enabled"`
+
+	JsxAttributeCompletionStyle JsxAttributeCompletionStyle `raw:"jsxAttributeCompletionStyle" config:"preferences.jsxAttributeCompletionStyle"`
+	EnableAutoClosingTags       core.Tristate               `raw:"autoClosingTags" config:"autoClosingTags.enabled" fallbackConfig:"autoClosingTags"`
+	EnableJSDocCompletions      core.Tristate               `raw:"completeJSDocs" config:"suggest.jsdoc.enabled" fallbackConfig:"suggest.completeJSDocs"`
+	GenerateReturnInDocTemplate core.Tristate               `raw:"generateReturnInDocTemplate" config:"suggest.jsdoc.generateReturns"`
 
 	// ------- AutoImports --------
 
@@ -94,9 +99,7 @@ type UserPreferences struct {
 
 	// ------- OrganizeImports -------
 
-	// Indicates which deterministic preset should be used to sort imports.
-	// "auto" detects the existing ordinal case sensitivity where possible.
-	OrganizeImportsSort OrganizeImportsSort `raw:"organizeImportsSort" config:"preferences.organizeImports.sort"` // !!!
+	OrganizeImportsSort OrganizeImportsSort `raw:"organizeImportsSort" config:"preferences.organizeImports.sort"`
 	// Indicates whether imports should be organized in a case-insensitive manner.
 	//
 	// Default: TSUnknown ("auto" in strada), will perform detection
@@ -185,14 +188,15 @@ type UserPreferences struct {
 
 	// DisableAutomaticTypeAcquisition is the deprecated setting from typescript.disableAutomaticTypeAcquisition.
 	DisableAutomaticTypeAcquisition core.Tristate `raw:"disableAutomaticTypeAcquisition" config:"disableAutomaticTypeAcquisition"`
+
 	// AutomaticTypeAcquisitionEnabled is the unified setting from tsserver.automaticTypeAcquisition.enabled under the js/ts section.
 	// When set, it takes precedence over DisableAutomaticTypeAcquisition.
 	AutomaticTypeAcquisitionEnabled core.Tristate `raw:"automaticTypeAcquisitionEnabled" config:"tsserver.automaticTypeAcquisition.enabled"`
+
 	// TODO: add tsserver.web.typeAcquisition.enabled under the js/ts section for the web variant when web support is implemented.
 
 	// ------- Project Configuration -------
 
-	// CustomConfigFileName specifies a custom config file name to use before defaulting to tsconfig.json/jsconfig.json.
 	CustomConfigFileName string `raw:"customConfigFileName" config:"customConfigFileName"`
 }
 
@@ -297,6 +301,7 @@ const (
 // --- Reflection-based parsing infrastructure ---
 
 // typeParsers maps reflect.Type to a function that parses a value into that type.
+
 var typeParsers = map[reflect.Type]func(any) any{
 	reflect.TypeFor[core.Tristate](): func(val any) any {
 		if b, ok := val.(bool); ok {
@@ -422,6 +427,7 @@ var typeParsers = map[reflect.Type]func(any) any{
 }
 
 // typeSerializers maps reflect.Type to a function that serializes a value of that type.
+
 // For types which do not serialize as-is (tristate, enums, etc).
 var typeSerializers = map[reflect.Type]func(any) any{
 	reflect.TypeFor[core.Tristate](): func(val any) any {
@@ -481,6 +487,7 @@ var typeSerializers = map[reflect.Type]func(any) any{
 	// non-zero default. Plain string serialization would therefore write "" for
 	// an unset field and the parser would read it back as the non-zero default,
 	// breaking round-tripping. Mirror the core.Tristate serializer above and omit
+
 	// the unset value (return nil) so it decodes back to the zero value. (Enums
 	// whose default already is their zero value, like the OrganizeImports* ones,
 	// round-trip without this.)

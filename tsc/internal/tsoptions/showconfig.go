@@ -32,6 +32,7 @@ type impliedOption struct {
 // impliedOptions lists the compiler options that may be implied by other options,
 // mirroring TypeScript's computedOptions used in convertToTSConfig.
 // Each compute function delegates directly to an existing core.CompilerOptions getter.
+
 var impliedOptions = []impliedOption{
 	{name: "Module", dependencies: []string{"Target"}, compute: computeFn((*core.CompilerOptions).GetEmitModuleKind)},
 	{name: "ModuleResolution", dependencies: []string{"Module", "Target"}, compute: computeFn((*core.CompilerOptions).GetModuleResolutionKind)},

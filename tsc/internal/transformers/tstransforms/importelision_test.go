@@ -41,7 +41,7 @@ func (p *fakeProgram) SourceFileMayBeEmitted(sourceFile *ast.SourceFile, forceDt
 }
 
 // GetEmitSyntaxForUsageLocation implements checker.Program.
-func (p *fakeProgram) GetEmitSyntaxForUsageLocation(sourceFile ast.HasFileName, usageLocation *ast.StringLiteralLike) core.ResolutionMode {
+func (p *fakeProgram) GetEmitSyntaxForUsageLocation(sourceFile ast.HasFileName, usageLocation ast.Handle) core.ResolutionMode {
 	panic("unimplemented")
 }
 
@@ -54,7 +54,7 @@ func (p *fakeProgram) ContentMapperExtensions() []string {
 	return nil
 }
 
-func (p *fakeProgram) GetResolvedModuleFromModuleSpecifier(file ast.HasFileName, moduleSpecifier *ast.StringLiteralLike) *module.ResolvedModule {
+func (p *fakeProgram) GetResolvedModuleFromModuleSpecifier(file ast.HasFileName, moduleSpecifier ast.Handle) *module.ResolvedModule {
 	panic("unimplemented")
 }
 
@@ -146,7 +146,7 @@ func (p *fakeProgram) GetDefaultResolutionModeForFile(sourceFile ast.HasFileName
 	return p.getEmitModuleFormatOfFile(sourceFile)
 }
 
-func (p *fakeProgram) GetModeForUsageLocation(sourceFile ast.HasFileName, location *ast.Node) core.ResolutionMode {
+func (p *fakeProgram) GetModeForUsageLocation(sourceFile ast.HasFileName, location ast.Handle) core.ResolutionMode {
 	return p.getEmitModuleFormatOfFile(sourceFile)
 }
 
@@ -166,12 +166,12 @@ func (p *fakeProgram) GetSourceFileMetaData(path tspath.Path) ast.SourceFileMeta
 	return ast.SourceFileMetaData{}
 }
 
-func (p *fakeProgram) GetImportHelpersImportSpecifier(path tspath.Path) *ast.Node {
-	return nil
+func (p *fakeProgram) GetImportHelpersImportSpecifier(path tspath.Path) ast.Handle {
+	return ast.Handle{}
 }
 
-func (p *fakeProgram) GetJSXRuntimeImportSpecifier(path tspath.Path) (moduleReference string, specifier *ast.Node) {
-	return "", nil
+func (p *fakeProgram) GetJSXRuntimeImportSpecifier(path tspath.Path) (moduleReference string, specifier ast.Handle) {
+	return "", ast.Handle{}
 }
 
 func (p *fakeProgram) GetResolvedModules() map[tspath.Path]module.ModeAwareCache[*module.ResolvedModule] {

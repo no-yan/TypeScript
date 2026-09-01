@@ -20,22 +20,18 @@ func NewImpliedModuleTransformer(opts *transformers.TransformOptions) *transform
 	tx := &ImpliedModuleTransformer{opts: opts, resolver: opts.Resolver, getEmitModuleFormatOfFile: opts.GetEmitModuleFormatOfFile}
 	return tx.NewTransformer(tx.visit, opts.Context)
 }
-
-func (tx *ImpliedModuleTransformer) visit(node *ast.Node) *ast.Node {
-	switch node.Kind {
+func (tx *ImpliedModuleTransformer) visit(node ast.Handle) ast.Handle {
+	switch node.Kind() {
 	case ast.KindSourceFile:
-		node = tx.visitSourceFile(node.AsSourceFile())
+		node = tx.visitSourceFile(node)
 	}
 	return node
 }
-
-func (tx *ImpliedModuleTransformer) visitSourceFile(node *ast.SourceFile) *ast.Node {
-	if node.IsDeclarationFile {
-		return node.AsNode()
+func (tx *ImpliedModuleTransformer) visitSourceFile(node ast.Handle) ast.Handle {
+	if ast.GetSourceFileOfNode(node) != nil && ast.GetSourceFileOfNode(node).IsDeclarationFile {
+		return node
 	}
-
-	format := tx.getEmitModuleFormatOfFile(node)
-
+	format := tx.getEmitModuleFormatOfFile(ast.GetSourceFileOfNode(node))
 	var transformer *transformers.Transformer
 	if format >= core.ModuleKindES2015 {
 		if tx.esmTransformer == nil {
@@ -48,6 +44,5 @@ func (tx *ImpliedModuleTransformer) visitSourceFile(node *ast.SourceFile) *ast.N
 		}
 		transformer = tx.cjsTransformer
 	}
-
-	return transformer.TransformSourceFile(node).AsNode()
+	return transformer.TransformSourceFile(ast.GetSourceFileOfNode(node)).ParseRoot()
 }

@@ -591,12 +591,25 @@ func (h Handle) Store() *Store { return h.s }
 // IsNil reports the absent node. NodeRef 0 is optional-absent, not NodeIsMissing.
 func (h Handle) IsNil() bool { return h.s == nil || h.id == 0 }
 
+func (h Handle) KindString() string {
+	if h.IsNil() {
+		return "<nil>"
+	}
+	return h.Kind().String()
+}
+
 func (h Handle) Kind() Kind {
+	if h.IsNil() {
+		return KindUnknown
+	}
 	h.mustLive()
 	return h.s.nodes[h.id].kind
 }
 
 func (h Handle) Flags() NodeFlags {
+	if h.IsNil() {
+		return 0
+	}
 	h.mustLive()
 	return h.s.nodes[h.id].flags
 }
@@ -910,8 +923,11 @@ func (h Handle) refInStore(other Handle) NodeRef {
 	if other.id == 0 {
 		return 0
 	}
-	if other.s != h.s {
+	if other.s == h.s {
+		return other.id
+	}
+	if other.s == nil || h.s == nil {
 		panic("ast: Handle from a different Store")
 	}
-	return other.id
+	return NewFactoryOn(h.s, FactoryHooks{}).CopySubtree(other).id
 }

@@ -49,20 +49,30 @@ func TestNormalizeJSDocTypeSourceText(t *testing.T) {
 func TestIsJSDocTypeExpressionOrChild(t *testing.T) {
 	t.Parallel()
 
-	jsDocType := &ast.Node{Kind: ast.KindTypeReference, Flags: ast.NodeFlagsJSDoc}
-	jsDocTypeChild := &ast.Node{Kind: ast.KindIdentifier, Flags: ast.NodeFlagsJSDoc, Parent: jsDocType}
-	reparsedType := &ast.Node{Kind: ast.KindTypeLiteral, Flags: ast.NodeFlagsReparsed}
-	reparsedTypeChild := &ast.Node{Kind: ast.KindIdentifier, Flags: ast.NodeFlagsReparsed, Parent: reparsedType}
-	ordinaryType := &ast.Node{Kind: ast.KindTypeReference}
-	jsDocTag := &ast.Node{Kind: ast.KindJSDocParameterTag, Flags: ast.NodeFlagsJSDoc}
-	jsDocTagChild := &ast.Node{Kind: ast.KindIdentifier, Flags: ast.NodeFlagsJSDoc, Parent: jsDocTag}
+	f := ast.NewFactory(ast.FactoryHooks{})
+	jsDocType := f.NewTypeReferenceNode(ast.Handle{}, 0)
+	jsDocType.SetFlags(ast.NodeFlagsJSDoc)
+	jsDocTypeChild := f.NewIdentifier("")
+	jsDocTypeChild.SetFlags(ast.NodeFlagsJSDoc)
+	jsDocTypeChild.SetParent(jsDocType)
+	reparsedType := f.NewTypeLiteralNode(0)
+	reparsedType.SetFlags(ast.NodeFlagsReparsed)
+	reparsedTypeChild := f.NewIdentifier("")
+	reparsedTypeChild.SetFlags(ast.NodeFlagsReparsed)
+	reparsedTypeChild.SetParent(reparsedType)
+	ordinaryType := f.NewTypeReferenceNode(ast.Handle{}, 0)
+	jsDocTag := f.NewJSDocParameterOrPropertyTag(ast.KindJSDocParameterTag, ast.Handle{}, ast.Handle{}, false, ast.Handle{}, false, 0)
+	jsDocTag.SetFlags(ast.NodeFlagsJSDoc)
+	jsDocTagChild := f.NewIdentifier("")
+	jsDocTagChild.SetFlags(ast.NodeFlagsJSDoc)
+	jsDocTagChild.SetParent(jsDocTag)
 
 	tests := []struct {
 		name     string
-		node     *ast.Node
+		node     ast.Handle
 		expected bool
 	}{
-		{name: "type expression", node: &ast.Node{Kind: ast.KindJSDocTypeExpression}, expected: true},
+		{name: "type expression", node: f.NewJSDocTypeExpression(ast.Handle{}), expected: true},
 		{name: "JSDoc type", node: jsDocType, expected: true},
 		{name: "JSDoc type child", node: jsDocTypeChild, expected: true},
 		{name: "reparsed type", node: reparsedType, expected: true},
@@ -83,11 +93,9 @@ func TestGetTextOfNodeFromJSDocTypePreservesAsteriskType(t *testing.T) {
 	t.Parallel()
 
 	sourceText := strings.Join([]string{"", " * *"}, core.NewLineKindLF.GetNewLineCharacter())
-	node := &ast.Node{
-		Kind:  ast.KindJSDocAllType,
-		Flags: ast.NodeFlagsJSDoc,
-		Loc:   core.NewTextRange(0, len(sourceText)),
-	}
+	node := ast.NewFactory(ast.FactoryHooks{}).NewJSDocAllType()
+	node.SetFlags(ast.NodeFlagsJSDoc)
+	node.SetLoc(core.NewTextRange(0, len(sourceText)))
 
 	assert.Equal(t, GetTextOfNodeFromSourceText(sourceText, node, false /*includeTrivia*/), "*")
 }

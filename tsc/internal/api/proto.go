@@ -344,8 +344,7 @@ type UpdateSnapshotParams struct {
 	// CloseProjects lists tsconfig.json files to release in the new snapshot.
 	// A project is only unloaded once every API client that opened it closes it.
 	CloseProjects []DocumentIdentifier `json:"closeProjects,omitempty"`
-	// FileChanges describes file system changes since the last snapshot.
-	FileChanges *APIFileChanges `json:"fileChanges,omitempty"`
+	// FileChanges describes file system changes since the last snapshot.FileChanges *APIFileChanges `json:"fileChanges,omitempty"`
 	// OpenFiles lists files to keep open for the API client, mirroring LSP's
 	// textDocument/didOpen. For each file, ancestor directories are searched for a
 	// tsconfig that contains it; if found, that configured project is loaded and
@@ -354,8 +353,7 @@ type UpdateSnapshotParams struct {
 	// Opens persist across snapshots until the file is closed.
 	OpenFiles []DocumentIdentifier `json:"openFiles,omitempty"`
 	// CloseFiles lists files to release in the new snapshot. A file is only fully
-	// closed once every API client that opened it closes it.
-	CloseFiles []DocumentIdentifier `json:"closeFiles,omitempty"`
+	// closed once every API client that opened it closes it.CloseFiles []DocumentIdentifier `json:"closeFiles,omitempty"`
 }
 
 // UpdateTemporarySnapshotParams are the parameters for creating a temporary
@@ -371,10 +369,8 @@ type UpdateTemporarySnapshotParams struct {
 
 // ProjectFileChanges describes what source files changed within a single project.
 type ProjectFileChanges struct {
-	// ChangedFiles lists source file paths whose content differs.
-	ChangedFiles []tspath.Path `json:"changedFiles,omitempty"`
-	// DeletedFiles lists source file paths removed from the project's program.
-	DeletedFiles []tspath.Path `json:"deletedFiles,omitempty"`
+	// ChangedFiles lists source file paths whose content differs.ChangedFiles []tspath.Path `json:"changedFiles,omitempty"`
+	// DeletedFiles lists source file paths removed from the project's program.DeletedFiles []tspath.Path `json:"deletedFiles,omitempty"`
 }
 
 // SnapshotChanges describes what changed between the previous latest snapshot
@@ -384,9 +380,9 @@ type SnapshotChanges struct {
 	// ChangedProjects maps project handles to the file changes within that project.
 	// Projects not listed here (and not in RemovedProjects) are unchanged.
 	ChangedProjects map[ProjectID]*ProjectFileChanges `json:"changedProjects,omitempty"`
+
 	// RemovedProjects lists project handles that were present in the previous
-	// snapshot but absent from the new one.
-	RemovedProjects []ProjectID `json:"removedProjects,omitempty"`
+	// snapshot but absent from the new one.RemovedProjects []ProjectID `json:"removedProjects,omitempty"`
 }
 
 // UpdateSnapshotResponse is returned by updateSnapshot.
@@ -396,8 +392,7 @@ type UpdateSnapshotResponse struct {
 	// Projects is the list of projects in the snapshot.
 	Projects []*ProjectResponse `json:"projects" nonnil:"true"`
 	// Changes describes source file differences from the previous snapshot.
-	// Nil for the first snapshot in a session.
-	Changes *SnapshotChanges `json:"changes,omitempty"`
+	// Nil for the first snapshot in a session.Changes *SnapshotChanges `json:"changes,omitempty"`
 }
 
 var unmarshalers = map[Method]func([]byte) (any, error){
@@ -647,10 +642,8 @@ type ProjectResponse struct {
 	Id                ProjectID           `json:"id"`
 	ConfigFileName    string              `json:"configFileName"`
 	ParsedCommandLine *ConfigFileResponse `json:"parsedCommandLine" nonnil:"true"`
-	// Deprecated: Use parsedCommandLine.fileNames.
-	RootFiles []string `json:"rootFiles" nonnil:"true"`
-	// Deprecated: Use parsedCommandLine.options.
-	CompilerOptions *core.CompilerOptions `json:"compilerOptions" nonnil:"true"`
+	// Deprecated: Use parsedCommandLine.fileNames.RootFiles []string `json:"rootFiles" nonnil:"true"`
+	// Deprecated: Use parsedCommandLine.options.CompilerOptions *core.CompilerOptions `json:"compilerOptions" nonnil:"true"`
 }
 
 func NewConfigFileResponse(parsedCommandLine *tsoptions.ParsedCommandLine) *ConfigFileResponse {
@@ -760,8 +753,7 @@ type GetSymbolsAtLocationsParams struct {
 type SymbolResponse struct {
 	Id SymbolID `json:"id"`
 	// Project is the project in which the symbol was first observed. It is the
-	// default project for follow-up lookups whose results can vary by project.
-	Project          ProjectID    `json:"project"`
+	// default project for follow-up lookups whose results can vary by project.Project          ProjectID    `json:"project"`
 	Name             string       `json:"name"`
 	Flags            uint32       `json:"flags"`
 	CheckFlags       uint32       `json:"checkFlags"`
@@ -1413,29 +1405,30 @@ type GetProjectDiagnosticsParams struct {
 
 // DiagnosticResponse is the API response for a single diagnostic.
 type DiagnosticResponse struct {
-	// FileName is the path of the file this diagnostic belongs to, if any.
-	FileName string `json:"fileName,omitempty"`
+	// FileName is the path of the file this diagnostic belongs to, if any.FileName string `json:"fileName,omitempty"`
 	// Pos is the start position of the diagnostic in the source file.
 	Pos int `json:"pos"`
 	// End is the end position of the diagnostic in the source file.
 	End int `json:"end"`
 	// Code is the diagnostic error code.
 	Code int32 `json:"code"`
+
 	// Category is the diagnostic category (error, warning, suggestion, message).
-	Category diagnostics.Category `json:"category"`
+	Category diagnostics.
+	Category `json:"category"`
+
 	// Text is the localized diagnostic message text.
 	Text string `json:"text"`
 	// ReportsUnnecessary indicates this diagnostic highlights unnecessary code.
 	ReportsUnnecessary bool `json:"reportsUnnecessary,omitzero"`
 	// ReportsDeprecated indicates this diagnostic highlights deprecated code.
 	ReportsDeprecated bool `json:"reportsDeprecated,omitzero"`
-	// MessageChain contains chained diagnostic messages, if any.
-	MessageChain []*DiagnosticResponse `json:"messageChain,omitempty"`
-	// RelatedInformation contains related diagnostic information, if any.
-	RelatedInformation []*DiagnosticResponse `json:"relatedInformation,omitempty"`
+	// MessageChain contains chained diagnostic messages, if any.MessageChain []*DiagnosticResponse `json:"messageChain,omitempty"`
+	// RelatedInformation contains related diagnostic information, if any.RelatedInformation []*DiagnosticResponse `json:"relatedInformation,omitempty"`
 }
 
 // NewDiagnosticResponse converts an ast.Diagnostic to a DiagnosticResponse.
+
 func NewDiagnosticResponse(d *ast.Diagnostic) *DiagnosticResponse {
 	pos := d.Pos()
 	end := d.End()
@@ -1477,6 +1470,7 @@ func NewDiagnosticResponse(d *ast.Diagnostic) *DiagnosticResponse {
 }
 
 // NewDiagnosticResponses converts a slice of ast.Diagnostics to DiagnosticResponses.
+
 func NewDiagnosticResponses(diags []*ast.Diagnostic) []*DiagnosticResponse {
 	if len(diags) == 0 {
 		return nil

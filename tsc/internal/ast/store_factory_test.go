@@ -85,9 +85,9 @@ func TestFactoryArrayLiteralListAndTrailingComma(t *testing.T) {
 	arr := f.ArrayLiteral(ast.ArrayLiteralParts{Elements: elems, Loc: core.NewTextRange(0, 7)})
 	arr.SetParentsInChildren()
 
-	assert.Equal(t, elems, arr.Elements())
-	assert.Equal(t, 2, f.Store().ListLen(arr.Elements()))
-	assert.Assert(t, f.Store().ListHasTrailingComma(arr.Elements()))
+	assert.Equal(t, elems, arr.ElementList())
+	assert.Equal(t, 2, f.Store().ListLen(arr.ElementList()))
+	assert.Assert(t, f.Store().ListHasTrailingComma(arr.ElementList()))
 	assert.Equal(t, arr.Ref(), a.Parent().Ref())
 	assert.Equal(t, arr.Ref(), b.Parent().Ref())
 

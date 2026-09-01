@@ -201,6 +201,9 @@ func (r *rewriter) rewriteFile(pkg *packages.Package, file *ast.File) ([]byte, i
 		stripFuncListClosing(file)
 	}
 	var buf bytes.Buffer
+	// Print with the load FileSet so comments keep their original positions.
+	// token.NewFileSet() dumps comments between a selector and its Ident
+	// (`ast.` + comment + `Handle`) and splits every converted type.
 	if err := format.Node(&buf, r.fset, file); err != nil {
 		return nil, 0, err
 	}
@@ -518,13 +521,12 @@ func compositeElemType(t types.Type) types.Type {
 }
 
 func (r *rewriter) handleIdentAt(pos token.Pos) ast.Expr {
+	_ = pos
 	if r.astName == "." || r.astName == "" {
-		id := ast.NewIdent("Handle")
-		id.NamePos = pos
-		return id
+		return ast.NewIdent("Handle")
 	}
 	return &ast.SelectorExpr{
-		X:   &ast.Ident{NamePos: pos, Name: r.astName},
+		X:   ast.NewIdent(r.astName),
 		Sel: ast.NewIdent("Handle"),
 	}
 }

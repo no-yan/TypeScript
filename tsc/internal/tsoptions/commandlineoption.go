@@ -102,6 +102,7 @@ func (o *CommandLineOption) DisallowNullOrUndefined() bool {
 }
 
 // CommandLineOption.Elements()
+
 var commandLineOptionElements = map[string]*CommandLineOption{
 	"lib": {
 		Name:                    "lib",
@@ -180,6 +181,7 @@ var commandLineOptionElements = map[string]*CommandLineOption{
 }
 
 // CommandLineOption.EnumMap()
+
 var commandLineOptionEnumMap = map[string]*collections.OrderedMap[string, any]{
 	"lib":              LibMap,
 	"moduleResolution": moduleResolutionOptionMap,
@@ -194,6 +196,7 @@ var commandLineOptionEnumMap = map[string]*collections.OrderedMap[string, any]{
 }
 
 // CommandLineOption.DeprecatedKeys()
+
 var commandLineOptionDeprecated = map[string]*collections.Set[string]{
 	"module":           collections.NewSetFromItems("none", "amd", "system", "umd"),
 	"moduleResolution": collections.NewSetFromItems("node", "classic", "node10"),

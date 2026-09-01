@@ -23,15 +23,10 @@ func GetExternalModuleIndicatorOptions(fileName string, options *core.CompilerOp
 
 	switch options.GetEmitModuleDetectionKind() {
 	case core.ModuleDetectionKindForce:
-		// All non-declaration files are modules, declaration files still do the usual isFileProbablyExternalModule
 		return ExternalModuleIndicatorOptions{Force: true}
 	case core.ModuleDetectionKindLegacy:
-		// Files are modules if they have imports, exports, or import.meta
 		return ExternalModuleIndicatorOptions{}
 	case core.ModuleDetectionKindAuto:
-		// If module is nodenext or node16, all esm format files are modules
-		// If jsx is react-jsx or react-jsxdev then jsx tags force module-ness
-		// otherwise, the presence of import or export statments (or import.meta) implies module-ness
 		return ExternalModuleIndicatorOptions{
 			JSX:   options.Jsx == core.JsxEmitReactJSX || options.Jsx == core.JsxEmitReactJSXDev,
 			Force: isFileForcedToBeModuleByFormat(fileName, options, metadata),
@@ -44,9 +39,6 @@ func GetExternalModuleIndicatorOptions(fileName string, options *core.CompilerOp
 var isFileForcedToBeModuleByFormatExtensions = []string{tspath.ExtensionCjs, tspath.ExtensionCts, tspath.ExtensionMjs, tspath.ExtensionMts}
 
 func isFileForcedToBeModuleByFormat(fileName string, options *core.CompilerOptions, metadata SourceFileMetaData) bool {
-	// Excludes declaration files - they still require an explicit `export {}` or the like
-	// for back compat purposes. The only non-declaration files _not_ forced to be a module are `.js` files
-	// that aren't esm-mode (meaning not in a `type: module` scope).
 	if GetImpliedNodeFormatForEmitWorker(fileName, options.GetEmitModuleKind(), metadata) == core.ModuleKindESNext || tspath.FileExtensionIsOneOf(fileName, isFileForcedToBeModuleByFormatExtensions) {
 		return true
 	}
@@ -57,34 +49,34 @@ func SetExternalModuleIndicator(file *SourceFile, opts ExternalModuleIndicatorOp
 	file.ExternalModuleIndicator = getExternalModuleIndicator(file, opts)
 }
 
-func getExternalModuleIndicator(file *SourceFile, opts ExternalModuleIndicatorOptions) *Node {
+func getExternalModuleIndicator(file *SourceFile, opts ExternalModuleIndicatorOptions) Handle {
 	if file.ScriptKind == core.ScriptKindJSON {
-		return nil
+		return Handle{}
 	}
 
-	if node := isFileProbablyExternalModule(file); node != nil {
+	if node := isFileProbablyExternalModule(file); !node.IsNil() {
 		return node
 	}
 
 	if file.IsDeclarationFile {
-		return nil
+		return Handle{}
 	}
 
 	if opts.JSX {
-		if node := isFileModuleFromUsingJSXTag(file); node != nil {
+		if node := isFileModuleFromUsingJSXTag(file); !node.IsNil() {
 			return node
 		}
 	}
 
 	if opts.Force {
-		return file.AsNode()
+		return file.ParseRoot()
 	}
 
-	return nil
+	return Handle{}
 }
 
-func isFileProbablyExternalModule(sourceFile *SourceFile) *Node {
-	for _, statement := range sourceFile.Statements.Nodes {
+func isFileProbablyExternalModule(sourceFile *SourceFile) Handle {
+	for _, statement := range sourceFile.ParseRoot().Statements() {
 		if isAnExternalModuleIndicatorNode(statement) {
 			return statement
 		}
@@ -92,23 +84,40 @@ func isFileProbablyExternalModule(sourceFile *SourceFile) *Node {
 	return getImportMetaIfNecessary(sourceFile)
 }
 
-func isAnExternalModuleIndicatorNode(node *Node) bool {
-	return HasSyntacticModifier(node, ModifierFlagsExport) ||
-		IsImportEqualsDeclaration(node) && IsExternalModuleReference(node.AsImportEqualsDeclaration().ModuleReference) ||
-		IsImportDeclaration(node) || IsExportAssignment(node) || IsExportDeclaration(node)
-}
-
-func getImportMetaIfNecessary(sourceFile *SourceFile) *Node {
-	if sourceFile.AsNode().Flags&NodeFlagsPossiblyContainsImportMeta != 0 {
-		return findChildNode(sourceFile.AsNode(), IsImportMeta)
+func isAnExternalModuleIndicatorNode(node Handle) bool {
+	if node.IsNil() {
+		return false
 	}
-	return nil
+	if node.ModifierFlags()&ModifierFlagsExport != 0 {
+		return true
+	}
+	switch node.Kind() {
+	case KindImportEqualsDeclaration:
+		ref := node.ImportEqualsDeclarationModuleReference()
+		return !ref.IsNil() && ref.Kind() == KindExternalModuleReference
+	case KindImportDeclaration, KindExportAssignment, KindExportDeclaration:
+		return true
+	default:
+		return false
+	}
 }
 
-func findChildNode(root *Node, check func(*Node) bool) *Node {
-	var result *Node
-	var visit func(*Node) bool
-	visit = func(node *Node) bool {
+func getImportMetaIfNecessary(sourceFile *SourceFile) Handle {
+	root := sourceFile.ParseRoot()
+	if root.Flags()&NodeFlagsPossiblyContainsImportMeta == 0 {
+		return Handle{}
+	}
+	return findChildHandle(root, func(n Handle) bool {
+		return !n.IsNil() && n.Kind() == KindMetaProperty &&
+			n.MetaPropertyKeywordToken() == KindImportKeyword &&
+			!n.Name().IsNil() && n.Name().Text() == "meta"
+	})
+}
+
+func findChildHandle(root Handle, check func(Handle) bool) Handle {
+	var result Handle
+	var visit StoreVisitor
+	visit = func(node Handle) bool {
 		if check(node) {
 			result = node
 			return true
@@ -119,31 +128,24 @@ func findChildNode(root *Node, check func(*Node) bool) *Node {
 	return result
 }
 
-func isFileModuleFromUsingJSXTag(file *SourceFile) *Node {
-	return walkTreeForJSXTags(file.AsNode())
+func isFileModuleFromUsingJSXTag(file *SourceFile) Handle {
+	return walkTreeForJSXTags(file.ParseRoot())
 }
 
-// This is a somewhat unavoidable full tree walk to locate a JSX tag - `import.meta` requires the same,
-// but we avoid that walk (or parts of it) if at all possible using the `PossiblyContainsImportMeta` node flag.
-// Unfortunately, there's no `NodeFlag` space to do the same for JSX.
-func walkTreeForJSXTags(node *Node) *Node {
-	var found *Node
-
-	var visitor func(node *Node) bool
-	visitor = func(node *Node) bool {
-		if found != nil {
+func walkTreeForJSXTags(node Handle) Handle {
+	var found Handle
+	var visitor StoreVisitor
+	visitor = func(n Handle) bool {
+		if !found.IsNil() {
 			return true
 		}
-		if node.SubtreeFacts()&SubtreeContainsJsx == 0 {
-			return false
-		}
-		if IsJsxOpeningLikeElement(node) || IsJsxFragment(node) {
-			found = node
+		switch n.Kind() {
+		case KindJsxOpeningElement, KindJsxSelfClosingElement, KindJsxFragment:
+			found = n
 			return true
 		}
-		return node.ForEachChild(visitor)
+		return n.ForEachChild(visitor)
 	}
 	visitor(node)
-
 	return found
 }

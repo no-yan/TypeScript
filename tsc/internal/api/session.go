@@ -47,6 +47,7 @@ type snapshotData struct {
 
 	// Symbol IDs come from ast.GetSymbolId, a global atomic counter, so the same
 	// *ast.Symbol pointer always has the same unique ID across all projects in the
+
 	// snapshot. Symbols are registered snapshot-wide to ensure identity semantics:
 	// querying the same symbol from two different projects returns the same handle.
 	symbolRegistry   map[SymbolID]*ast.Symbol
@@ -103,7 +104,7 @@ func (sd *snapshotData) getProject(projectHandle ProjectID) (*project.Project, e
 
 // nodeHandleFrom creates an index-based node handle (index.kind.path), building a node index table
 // for the file on-demand if needed.
-func (sd *snapshotData) nodeHandleFrom(node *ast.Node) NodeHandle {
+func (sd *snapshotData) nodeHandleFrom(node ast.Handle) NodeHandle {
 	sourceFile := ast.GetSourceFileOfNode(node)
 	path := sourceFile.Path()
 	table := encoder.GetNodeIndexTable(sourceFile)
@@ -400,6 +401,7 @@ type Session struct {
 	// updateMu serializes the whole of handleUpdateSnapshot (and releaseOpenRefs)
 	// against other updates. Unlike snapshotsMu it is held across the slow
 	// projectSession.APIUpdate call, because building the request from
+
 	// openProjects/openFiles, applying it, committing the ref tracking, and advancing
 	// latestSnapshot must be one atomic step; otherwise concurrent updates could
 	// double-count refs or diff against a non-adjacent snapshot. Read handlers do NOT
@@ -522,7 +524,7 @@ func (setup checkerSetup) resolveSignatureHandle(id SignatureID) (*checker.Signa
 
 // resolveLocation resolves an optional location, given either as a node handle or as a
 // file and position. Returns nil when neither is provided.
-func (setup checkerSetup) resolveLocation(handle NodeHandle, file *DocumentIdentifier, position *uint32) (*ast.Node, error) {
+func (setup checkerSetup) resolveLocation(handle NodeHandle, file *DocumentIdentifier, position *uint32) (ast.Handle, error) {
 	if handle != "" {
 		return setup.sd.resolveNodeHandle(setup.program, handle)
 	}
@@ -2511,7 +2513,7 @@ func (s *Session) handleTypeToTypeNode(ctx context.Context, params *TypeToTypeNo
 		return nil, err
 	}
 
-	var enclosingDeclaration *ast.Node
+	var enclosingDeclaration ast.Handle
 	if params.Location != "" {
 		enclosingDeclaration, err = setup.sd.resolveNodeHandle(setup.program, params.Location)
 		if err != nil {
@@ -2551,7 +2553,7 @@ func (s *Session) handleSignatureToSignatureDeclaration(ctx context.Context, par
 		return nil, err
 	}
 
-	var enclosingDeclaration *ast.Node
+	var enclosingDeclaration ast.Handle
 	if params.Location != "" {
 		enclosingDeclaration, err = setup.sd.resolveNodeHandle(setup.program, params.Location)
 		if err != nil {
@@ -2590,7 +2592,7 @@ func (s *Session) handleTypeToString(ctx context.Context, params *TypeToTypeNode
 		return nil, err
 	}
 
-	var enclosingDeclaration *ast.Node
+	var enclosingDeclaration ast.Handle
 	if params.Location != "" {
 		enclosingDeclaration, err = setup.sd.resolveNodeHandle(setup.program, params.Location)
 		if err != nil {
@@ -3480,7 +3482,7 @@ func (s *Session) handleGetFalseTypeOfConditionalType(ctx context.Context, param
 	return setup.sd.newTypeResponse(params.Project, setup.checker.GetFalseTypeOfConditionalType(t)), nil
 }
 
-func (sd *snapshotData) resolveNodeHandle(program *compiler.Program, handle NodeHandle) (*ast.Node, error) {
+func (sd *snapshotData) resolveNodeHandle(program *compiler.Program, handle NodeHandle) (ast.Handle, error) {
 	s := string(handle)
 	// Format: "index.kind.path" — we need index and path, kind is informational only.
 	firstDot := strings.IndexByte(s, '.')
@@ -3763,6 +3765,7 @@ func (s *Session) handleGetGlobalDiagnostics(ctx context.Context, params *GetPro
 	// diagnostics are produced; otherwise this would return an empty result for
 	// projects using an external checker pool (the typical API case), since
 	// compiler.Program.GetGlobalDiagnostics only reports for the internal pool.
+
 	program.GetSemanticDiagnostics(ctx, nil)
 
 	diags := core.Filter(proj.GetProjectDiagnostics(ctx), func(d *ast.Diagnostic) bool {
