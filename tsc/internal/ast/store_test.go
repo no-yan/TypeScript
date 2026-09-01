@@ -115,18 +115,21 @@ func TestStoreWalkBinaryTree(t *testing.T) {
 	assert.Equal(t, 7, n)
 }
 
-func TestStoreCrossStoreChildCopies(t *testing.T) {
+func TestStoreCrossStoreChildKeepsIdentity(t *testing.T) {
 	t.Parallel()
 	a := ast.NewStore(2)
 	b := ast.NewStore(2)
+	ast.RegisterStore(a)
+	ast.RegisterStore(b)
 	parent := a.Alloc(ast.KindBinaryExpression, 0, core.UndefinedTextRange(), 1)
 	child := b.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
 	child.SetIdent(b.Intern("x"))
 	parent.SetChild(0, child)
 	got := parent.Child(0)
 	assert.Equal(t, ast.KindIdentifier, got.Kind())
-	assert.Equal(t, a, got.Store())
-	assert.Assert(t, got.Store() != child.Store())
+	assert.Equal(t, b, got.Store())
+	assert.Equal(t, child.Ref(), got.Ref())
+	assert.Equal(t, child.Global(), got.Global())
 	assert.Equal(t, "x", got.Ident())
 }
 
