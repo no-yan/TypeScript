@@ -1071,7 +1071,7 @@ func (p *Printer) emitInitializer(node ast.Handle, equalTokenPos int, contextNod
 	p.emitExpression(node, ast.OperatorPrecedenceDisallowComma)
 }
 func (p *Printer) emitParameters(parentNode ast.Handle, parameters ast.ListRef) {
-	p.generateAllNames(parameters)
+	p.generateAllNames(parentNode, parameters)
 	p.emitList((*Printer).emitParameterDeclarationNode, parentNode, parameters, LFParameters)
 }
 func canEmitSimpleArrowHead(parentNode ast.Handle, parameters ast.ListRef) bool {
@@ -1084,14 +1084,14 @@ func canEmitSimpleArrowHead(parentNode ast.Handle, parameters ast.ListRef) bool 
 }
 func (p *Printer) emitParametersForArrow(parentNode ast.Handle, parameters ast.ListRef) {
 	if canEmitSimpleArrowHead(parentNode, parameters) {
-		p.generateAllNames(parameters)
+		p.generateAllNames(parentNode, parameters)
 		p.emitList((*Printer).emitParameterDeclarationNode, parentNode, parameters, LFSingleArrowParameter)
 	} else {
 		p.emitParameters(parentNode, parameters)
 	}
 }
 func (p *Printer) emitParametersForIndexSignature(parentNode ast.Handle, parameters ast.ListRef) {
-	p.generateAllNames(parameters)
+	p.generateAllNames(parentNode, parameters)
 	p.emitList((*Printer).emitParameterDeclarationNode, parentNode, parameters, LFIndexSignatureParameters)
 }
 func (p *Printer) emitSignature(node ast.Handle) {
@@ -1422,7 +1422,7 @@ func (p *Printer) emitTypeQuery(node ast.Handle) {
 func (p *Printer) emitTypeLiteral(node ast.Handle) {
 	state := p.enterNode(node)
 	p.pushNameGenerationScope(node)
-	p.generateAllMemberNames(node.MemberList())
+	p.generateAllMemberNames(node, node.MemberList())
 	p.writePunctuation("{")
 	flags := core.IfElse(p.shouldEmitOnSingleLine(node), LFSingleLineTypeLiteralMembers, LFMultiLineTypeLiteralMembers)
 	p.emitList((*Printer).emitTypeElement, node, node.MemberList(), flags|LFNoSpaceIfEmpty)
@@ -1849,7 +1849,7 @@ func (p *Printer) emitObjectLiteralExpression(node ast.Handle) {
 	indented := p.shouldEmitIndented(node)
 	p.increaseIndentIf(indented)
 	p.pushNameGenerationScope(node)
-	p.generateAllMemberNames(node.PropertyList())
+	p.generateAllMemberNames(node, node.PropertyList())
 	p.emitList((*Printer).emitObjectLiteralElement, node, node.PropertyList(), LFObjectLiteralExpressionProperties|core.IfElse(node.ObjectLiteralExpressionMultiLine(), LFPreferNewLine, LFNone)|core.IfElse(p.shouldAllowTrailingComma(node, node.PropertyList()), LFAllowTrailingComma, LFNone))
 	p.popNameGenerationScope(node)
 	p.decreaseIndentIf(indented)
@@ -2226,7 +2226,7 @@ func (p *Printer) emitClassExpression(node ast.Handle) {
 	p.writeSpace()
 	p.writePunctuation("{")
 	p.pushNameGenerationScope(node)
-	p.generateAllMemberNames(node.MemberList())
+	p.generateAllMemberNames(node, node.MemberList())
 	p.emitList((*Printer).emitClassElement, node, node.MemberList(), LFClassMembers)
 	p.popNameGenerationScope(node)
 	p.writePunctuation("}")
@@ -2857,7 +2857,7 @@ func (p *Printer) emitClassDeclaration(node ast.Handle) {
 	p.writeSpace()
 	p.writePunctuation("{")
 	p.pushNameGenerationScope(node)
-	p.generateAllMemberNames(node.MemberList())
+	p.generateAllMemberNames(node, node.MemberList())
 	p.emitList((*Printer).emitClassElement, node, node.MemberList(), LFClassMembers)
 	p.popNameGenerationScope(node)
 	p.writePunctuation("}")
@@ -2875,7 +2875,7 @@ func (p *Printer) emitInterfaceDeclaration(node ast.Handle) {
 	p.writeSpace()
 	p.writePunctuation("{")
 	p.pushNameGenerationScope(node)
-	p.generateAllMemberNames(node.MemberList())
+	p.generateAllMemberNames(node, node.MemberList())
 	p.emitList((*Printer).emitTypeElement, node, node.MemberList(), LFInterfaceMembers)
 	p.popNameGenerationScope(node)
 	p.writePunctuation("}")
@@ -3619,7 +3619,7 @@ func (p *Printer) emitSourceFile(node *ast.SourceFile) {
 	p.currentSourceFile = node
 	p.writeLine()
 	p.pushNameGenerationScope(node.ParseRoot())
-	p.generateAllNames(node.ParseRoot().StatementList())
+	p.generateAllNames(node.ParseRoot(), node.ParseRoot().StatementList())
 	index := 0
 	var state *commentState
 	if node.ScriptKind != core.ScriptKindJSON {
@@ -4618,11 +4618,11 @@ func (p *Printer) pushNameGenerationScope(node ast.Handle) {
 func (p *Printer) popNameGenerationScope(node ast.Handle) {
 	p.nameGenerator.PopScope(p.shouldReuseTempVariableScope(node))
 }
-func (p *Printer) generateAllNames(nodes ast.ListRef) {
+func (p *Printer) generateAllNames(owner ast.Handle, nodes ast.ListRef) {
 	if nodes == 0 {
 		return
 	}
-	for _, node := range p.currentSourceFile.ParseStore().ListSlice(nodes) {
+	for _, node := range owner.ListSlice(nodes) {
 		p.generateNames(node)
 	}
 }
@@ -4632,7 +4632,7 @@ func (p *Printer) generateNames(node ast.Handle) {
 	}
 	switch node.Kind() {
 	case ast.KindBlock, ast.KindCaseClause, ast.KindDefaultClause:
-		p.generateAllNames(node.StatementList())
+		p.generateAllNames(node, node.StatementList())
 	case ast.KindLabeledStatement, ast.KindWithStatement, ast.KindDoStatement, ast.KindWhileStatement:
 		p.generateNames(node.Statement())
 	case ast.KindIfStatement:
@@ -4644,7 +4644,7 @@ func (p *Printer) generateNames(node ast.Handle) {
 	case ast.KindSwitchStatement:
 		p.generateNames(node.SwitchStatementCaseBlock())
 	case ast.KindCaseBlock:
-		p.generateAllNames(node.CaseBlockClauses())
+		p.generateAllNames(node, node.CaseBlockClauses())
 	case ast.KindTryStatement:
 		p.generateNames(node.TryStatementTryBlock())
 		p.generateNames(node.TryStatementCatchClause())
@@ -4655,17 +4655,17 @@ func (p *Printer) generateNames(node ast.Handle) {
 	case ast.KindVariableStatement:
 		p.generateNames(node.VariableStatementDeclarationList())
 	case ast.KindVariableDeclarationList:
-		p.generateAllNames(node.VariableDeclarationListDeclarations())
+		p.generateAllNames(node, node.VariableDeclarationListDeclarations())
 	case ast.KindVariableDeclaration, ast.KindParameter, ast.KindBindingElement, ast.KindClassDeclaration:
 		p.generateNameIfNeeded(node.Name())
 	case ast.KindFunctionDeclaration:
 		p.generateNameIfNeeded(node.Name())
 		if p.shouldReuseTempVariableScope(node) {
-			p.generateAllNames(node.FunctionDeclarationParameters())
+			p.generateAllNames(node, node.FunctionDeclarationParameters())
 			p.generateNames(node.FunctionDeclarationBody())
 		}
 	case ast.KindObjectBindingPattern, ast.KindArrayBindingPattern:
-		p.generateAllNames(node.ElementList())
+		p.generateAllNames(node, node.ElementList())
 	case ast.KindImportDeclaration, ast.KindJSImportDeclaration:
 		p.generateNames(node.ImportDeclarationImportClause())
 	case ast.KindImportClause:
@@ -4674,7 +4674,7 @@ func (p *Printer) generateNames(node ast.Handle) {
 	case ast.KindNamespaceImport, ast.KindNamespaceExport:
 		p.generateNameIfNeeded(node.Name())
 	case ast.KindNamedImports:
-		p.generateAllNames(node.ElementList())
+		p.generateAllNames(node, node.ElementList())
 	case ast.KindImportSpecifier:
 		n := node
 		if !n.PropertyName().IsNil() {
@@ -4684,11 +4684,11 @@ func (p *Printer) generateNames(node ast.Handle) {
 		}
 	}
 }
-func (p *Printer) generateAllMemberNames(nodes ast.ListRef) {
+func (p *Printer) generateAllMemberNames(owner ast.Handle, nodes ast.ListRef) {
 	if nodes == 0 {
 		return
 	}
-	for _, node := range p.currentSourceFile.ParseStore().ListSlice(nodes) {
+	for _, node := range owner.ListSlice(nodes) {
 		p.generateMemberNames(node)
 	}
 }
