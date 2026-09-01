@@ -261,7 +261,7 @@ func (tx *DeclarationTransformer) appendCjsExports(combinedStatements ast.ListRe
 	result = append(result, store.ListSlice(combinedStatements)...)
 	statementNodes := flattenSyntaxLists(result)
 	if len(statementNodes) != store.ListLen(combinedStatements) {
-		combinedStatements = tx.Factory().NewList(statementNodes)
+		combinedStatements = tx.Factory().List(store.ListLoc(combinedStatements), statementNodes...)
 	}
 	return combinedStatements
 }
@@ -359,7 +359,7 @@ func (tx *DeclarationTransformer) transformAndReplaceLatePaintedStatements(state
 			results = append(results, replacement)
 		}
 	}
-	return tx.Factory().NewList(results)
+	return tx.Factory().List(tx.EmitContext().StoreFile().ParseStore().ListLoc(statements), results...)
 }
 func (tx *DeclarationTransformer) getReferencedFiles(outputFilePath string) (results []*ast.FileReference) {
 	for _, pair := range tx.rawReferencedFiles {

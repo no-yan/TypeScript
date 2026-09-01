@@ -424,6 +424,23 @@ function foo(options) {}`
 	assert.Equal(t, scanner.GetTokenPosOfNode(typeNode, file, false /*includeJSDoc*/), strings.Index(sourceText, "{{")+1)
 }
 
+func TestJSDocTypeCastDoesNotErrorInJavaScript(t *testing.T) {
+	t.Parallel()
+	sourceText := "const x = /** @type {string} */ ('value');\n"
+	file := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: "/index.js", Path: "/index.js"}, sourceText, core.ScriptKindJS)
+	for _, d := range file.JSDiagnostics() {
+		assert.Assert(t, d.Code() != 8016, "JSDoc @type cast reported TS8016: %s", d.MessageText())
+	}
+	stmt := file.ParseRoot().Statements()[0]
+	decls := stmt.VariableStatementDeclarationList().VariableDeclarationListDeclarations()
+	init := file.ParseStore().ListAt(decls, 0).Initializer()
+	assert.Assert(t, ast.IsParenthesizedExpression(init), "got kind %v", init.Kind())
+	inner := init.Expression()
+	assert.Assert(t, ast.IsAsExpression(inner), "inner kind %v", inner.Kind())
+	assert.Assert(t, inner.Type().Flags()&ast.NodeFlagsReparsed != 0)
+	assert.Assert(t, ast.IsJSDocTypeAssertion(init))
+}
+
 func TestSourceFilePositionMapWithNonASCIIStringLiteral(t *testing.T) {
 	t.Parallel()
 	sourceText := `const x = "─";

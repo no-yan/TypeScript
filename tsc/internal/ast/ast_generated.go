@@ -9,62 +9,62 @@ import (
 )
 
 var _ = core.Same[string] // prevent unused import
-var _ atomic.Uint32 // prevent unused import
+var _ atomic.Uint32       // prevent unused import
 
 // ──────────────────────────────────────────────────────────────────────
 // NodeFactory
 // ──────────────────────────────────────────────────────────────────────
 
 type NodeFactory struct {
-	hooks NodeFactoryHooks
-	arrayTypeNodeArena core.Arena[ArrayTypeNode]
-	binaryExpressionArena core.Arena[BinaryExpression]
-	blockArena core.Arena[Block]
-	callExpressionArena core.Arena[CallExpression]
-	conditionalExpressionArena core.Arena[ConditionalExpression]
+	hooks                              NodeFactoryHooks
+	arrayTypeNodeArena                 core.Arena[ArrayTypeNode]
+	binaryExpressionArena              core.Arena[BinaryExpression]
+	blockArena                         core.Arena[Block]
+	callExpressionArena                core.Arena[CallExpression]
+	conditionalExpressionArena         core.Arena[ConditionalExpression]
 	constructSignatureDeclarationArena core.Arena[ConstructSignatureDeclaration]
-	elementAccessExpressionArena core.Arena[ElementAccessExpression]
-	expressionStatementArena core.Arena[ExpressionStatement]
-	expressionWithTypeArgumentsArena core.Arena[ExpressionWithTypeArguments]
-	functionDeclarationArena core.Arena[FunctionDeclaration]
-	functionTypeNodeArena core.Arena[FunctionTypeNode]
-	heritageClauseArena core.Arena[HeritageClause]
-	identifierArena core.Arena[Identifier]
-	ifStatementArena core.Arena[IfStatement]
-	importSpecifierArena core.Arena[ImportSpecifier]
-	indexedAccessTypeNodeArena core.Arena[IndexedAccessTypeNode]
-	interfaceDeclarationArena core.Arena[InterfaceDeclaration]
-	intersectionTypeNodeArena core.Arena[IntersectionTypeNode]
-	jsdocArena core.Arena[JSDoc]
-	jsdocDeprecatedTagArena core.Arena[JSDocDeprecatedTag]
-	jsdocTextArena core.Arena[JSDocText]
-	jsdocUnknownTagArena core.Arena[JSDocUnknownTag]
-	keywordExpressionArena core.Arena[KeywordExpression]
-	keywordTypeNodeArena core.Arena[KeywordTypeNode]
-	literalTypeNodeArena core.Arena[LiteralTypeNode]
-	methodSignatureDeclarationArena core.Arena[MethodSignatureDeclaration]
-	modifierListArena core.Arena[ModifierList]
-	nodeListArena core.Arena[NodeList]
-	numericLiteralArena core.Arena[NumericLiteral]
-	parameterDeclarationArena core.Arena[ParameterDeclaration]
-	parenthesizedExpressionArena core.Arena[ParenthesizedExpression]
-	parenthesizedTypeNodeArena core.Arena[ParenthesizedTypeNode]
-	prefixUnaryExpressionArena core.Arena[PrefixUnaryExpression]
-	propertyAccessExpressionArena core.Arena[PropertyAccessExpression]
-	propertyAssignmentArena core.Arena[PropertyAssignment]
-	propertySignatureDeclarationArena core.Arena[PropertySignatureDeclaration]
-	returnStatementArena core.Arena[ReturnStatement]
-	stringLiteralArena core.Arena[StringLiteral]
-	tokenArena core.Arena[Token]
-	typeAliasDeclarationArena core.Arena[TypeAliasDeclaration]
-	typeLiteralNodeArena core.Arena[TypeLiteralNode]
-	typeOperatorNodeArena core.Arena[TypeOperatorNode]
-	typeParameterDeclarationArena core.Arena[TypeParameterDeclaration]
-	typeReferenceNodeArena core.Arena[TypeReferenceNode]
-	unionTypeNodeArena core.Arena[UnionTypeNode]
-	variableDeclarationArena core.Arena[VariableDeclaration]
-	variableDeclarationListArena core.Arena[VariableDeclarationList]
-	variableStatementArena core.Arena[VariableStatement]
+	elementAccessExpressionArena       core.Arena[ElementAccessExpression]
+	expressionStatementArena           core.Arena[ExpressionStatement]
+	expressionWithTypeArgumentsArena   core.Arena[ExpressionWithTypeArguments]
+	functionDeclarationArena           core.Arena[FunctionDeclaration]
+	functionTypeNodeArena              core.Arena[FunctionTypeNode]
+	heritageClauseArena                core.Arena[HeritageClause]
+	identifierArena                    core.Arena[Identifier]
+	ifStatementArena                   core.Arena[IfStatement]
+	importSpecifierArena               core.Arena[ImportSpecifier]
+	indexedAccessTypeNodeArena         core.Arena[IndexedAccessTypeNode]
+	interfaceDeclarationArena          core.Arena[InterfaceDeclaration]
+	intersectionTypeNodeArena          core.Arena[IntersectionTypeNode]
+	jsdocArena                         core.Arena[JSDoc]
+	jsdocDeprecatedTagArena            core.Arena[JSDocDeprecatedTag]
+	jsdocTextArena                     core.Arena[JSDocText]
+	jsdocUnknownTagArena               core.Arena[JSDocUnknownTag]
+	keywordExpressionArena             core.Arena[KeywordExpression]
+	keywordTypeNodeArena               core.Arena[KeywordTypeNode]
+	literalTypeNodeArena               core.Arena[LiteralTypeNode]
+	methodSignatureDeclarationArena    core.Arena[MethodSignatureDeclaration]
+	modifierListArena                  core.Arena[ModifierList]
+	nodeListArena                      core.Arena[NodeList]
+	numericLiteralArena                core.Arena[NumericLiteral]
+	parameterDeclarationArena          core.Arena[ParameterDeclaration]
+	parenthesizedExpressionArena       core.Arena[ParenthesizedExpression]
+	parenthesizedTypeNodeArena         core.Arena[ParenthesizedTypeNode]
+	prefixUnaryExpressionArena         core.Arena[PrefixUnaryExpression]
+	propertyAccessExpressionArena      core.Arena[PropertyAccessExpression]
+	propertyAssignmentArena            core.Arena[PropertyAssignment]
+	propertySignatureDeclarationArena  core.Arena[PropertySignatureDeclaration]
+	returnStatementArena               core.Arena[ReturnStatement]
+	stringLiteralArena                 core.Arena[StringLiteral]
+	tokenArena                         core.Arena[Token]
+	typeAliasDeclarationArena          core.Arena[TypeAliasDeclaration]
+	typeLiteralNodeArena               core.Arena[TypeLiteralNode]
+	typeOperatorNodeArena              core.Arena[TypeOperatorNode]
+	typeParameterDeclarationArena      core.Arena[TypeParameterDeclaration]
+	typeReferenceNodeArena             core.Arena[TypeReferenceNode]
+	unionTypeNodeArena                 core.Arena[UnionTypeNode]
+	variableDeclarationArena           core.Arena[VariableDeclaration]
+	variableDeclarationListArena       core.Arena[VariableDeclarationList]
+	variableStatementArena             core.Arena[VariableStatement]
 
 	nodeCount int
 	textCount int
@@ -138,7 +138,7 @@ type ModifiersBase struct {
 }
 
 type LocalsContainerBase struct {
-	Locals SymbolTable
+	Locals        SymbolTable
 	NextContainer *Node
 }
 
@@ -156,15 +156,15 @@ type TypeSyntaxBase struct {
 type FunctionLikeBase struct {
 	LocalsContainerBase
 	TypeParameters *TypeParameterList // Optional
-	Parameters *ParameterList
-	Type *TypeNode // Optional
-	FullSignature *TypeNode // Optional
+	Parameters     *ParameterList
+	Type           *TypeNode // Optional
+	FullSignature  *TypeNode // Optional
 }
 
 type BodyBase struct {
 	AsteriskToken *AsteriskToken // Optional
-	Body *NodeBody // Optional
-	EndFlowNode *FlowNode
+	Body          *NodeBody      // Optional
+	EndFlowNode   *FlowNode
 }
 
 type FunctionLikeWithBodyBase struct {
@@ -177,14 +177,14 @@ type ClassLikeBase struct {
 	ModifiersBase
 	LocalsContainerBase
 	CompositeBase
-	name *Node // Optional
-	TypeParameters *TypeParameterList // Optional
+	name            *Node               // Optional
+	TypeParameters  *TypeParameterList  // Optional
 	HeritageClauses *HeritageClauseList // Optional
-	Members *ClassElementList
+	Members         *ClassElementList
 }
 
 type LiteralLikeNodeBase struct {
-	Text string
+	Text       string
 	TokenFlags TokenFlags
 }
 
@@ -195,7 +195,7 @@ type LiteralExpressionBase struct {
 
 type TemplateLiteralLikeNodeBase struct {
 	LiteralLikeNodeBase
-	RawText string
+	RawText       string
 	TemplateFlags TokenFlags
 }
 
@@ -207,7 +207,7 @@ type ClassElementBase struct {
 
 type NamedMemberBase struct {
 	ModifiersBase
-	name *PropertyName
+	name         *PropertyName
 	PostfixToken *Node // Optional
 }
 
@@ -254,237 +254,237 @@ type JSDocCommentBase struct {
 // ──────────────────────────────────────────────────────────────────────
 
 type (
-	TokenNode = Handle
-	IdentifierNode = Handle
-	PrivateIdentifierNode = Handle
-	QualifiedNameNode = Handle
-	ComputedPropertyNameNode = Handle
-	DecoratorNode = Handle
-	EmptyStatementNode = Handle
-	IfStatementNode = Handle
-	DoStatementNode = Handle
-	WhileStatementNode = Handle
-	ForStatementNode = Handle
-	ForInOrOfStatementNode = Handle
-	BreakStatementNode = Handle
-	ContinueStatementNode = Handle
-	ReturnStatementNode = Handle
-	WithStatementNode = Handle
-	SwitchStatementNode = Handle
-	CaseBlockNode = Handle
-	CaseOrDefaultClauseNode = Handle
-	ThrowStatementNode = Handle
-	TryStatementNode = Handle
-	CatchClauseNode = Handle
-	DebuggerStatementNode = Handle
-	LabeledStatementNode = Handle
-	ExpressionStatementNode = Handle
-	BlockNode = Handle
-	VariableStatementNode = Handle
-	VariableDeclarationNode = Handle
-	VariableDeclarationListNode = Handle
-	BindingPatternNode = Handle
-	ParameterDeclarationNode = Handle
-	BindingElementNode = Handle
-	MissingDeclarationNode = Handle
-	FunctionDeclarationNode = Handle
-	ClassDeclarationNode = Handle
-	ClassExpressionNode = Handle
-	HeritageClauseNode = Handle
-	InterfaceDeclarationNode = Handle
-	TypeAliasDeclarationNode = Handle
-	EnumMemberNode = Handle
-	EnumDeclarationNode = Handle
-	ModuleBlockNode = Handle
-	NotEmittedStatementNode = Handle
-	NotEmittedTypeElementNode = Handle
-	ImportDeclarationNode = Handle
-	ExternalModuleReferenceNode = Handle
-	NamespaceImportNode = Handle
-	NamedImportsNode = Handle
-	ExportAssignmentNode = Handle
-	NamespaceExportDeclarationNode = Handle
-	NamespaceExportNode = Handle
-	NamedExportsNode = Handle
-	ExportSpecifierNode = Handle
-	CallSignatureDeclarationNode = Handle
+	TokenNode                         = Handle
+	IdentifierNode                    = Handle
+	PrivateIdentifierNode             = Handle
+	QualifiedNameNode                 = Handle
+	ComputedPropertyNameNode          = Handle
+	DecoratorNode                     = Handle
+	EmptyStatementNode                = Handle
+	IfStatementNode                   = Handle
+	DoStatementNode                   = Handle
+	WhileStatementNode                = Handle
+	ForStatementNode                  = Handle
+	ForInOrOfStatementNode            = Handle
+	BreakStatementNode                = Handle
+	ContinueStatementNode             = Handle
+	ReturnStatementNode               = Handle
+	WithStatementNode                 = Handle
+	SwitchStatementNode               = Handle
+	CaseBlockNode                     = Handle
+	CaseOrDefaultClauseNode           = Handle
+	ThrowStatementNode                = Handle
+	TryStatementNode                  = Handle
+	CatchClauseNode                   = Handle
+	DebuggerStatementNode             = Handle
+	LabeledStatementNode              = Handle
+	ExpressionStatementNode           = Handle
+	BlockNode                         = Handle
+	VariableStatementNode             = Handle
+	VariableDeclarationNode           = Handle
+	VariableDeclarationListNode       = Handle
+	BindingPatternNode                = Handle
+	ParameterDeclarationNode          = Handle
+	BindingElementNode                = Handle
+	MissingDeclarationNode            = Handle
+	FunctionDeclarationNode           = Handle
+	ClassDeclarationNode              = Handle
+	ClassExpressionNode               = Handle
+	HeritageClauseNode                = Handle
+	InterfaceDeclarationNode          = Handle
+	TypeAliasDeclarationNode          = Handle
+	EnumMemberNode                    = Handle
+	EnumDeclarationNode               = Handle
+	ModuleBlockNode                   = Handle
+	NotEmittedStatementNode           = Handle
+	NotEmittedTypeElementNode         = Handle
+	ImportDeclarationNode             = Handle
+	ExternalModuleReferenceNode       = Handle
+	NamespaceImportNode               = Handle
+	NamedImportsNode                  = Handle
+	ExportAssignmentNode              = Handle
+	NamespaceExportDeclarationNode    = Handle
+	NamespaceExportNode               = Handle
+	NamedExportsNode                  = Handle
+	ExportSpecifierNode               = Handle
+	CallSignatureDeclarationNode      = Handle
 	ConstructSignatureDeclarationNode = Handle
-	ConstructorDeclarationNode = Handle
-	GetAccessorDeclarationNode = Handle
-	SetAccessorDeclarationNode = Handle
-	IndexSignatureDeclarationNode = Handle
-	MethodSignatureDeclarationNode = Handle
-	MethodDeclarationNode = Handle
-	PropertySignatureDeclarationNode = Handle
-	PropertyDeclarationNode = Handle
-	SemicolonClassElementNode = Handle
-	ClassStaticBlockDeclarationNode = Handle
-	OmittedExpressionNode = Handle
-	KeywordExpressionNode = Handle
-	StringLiteralNode = Handle
-	NumericLiteralNode = Handle
-	BigIntLiteralNode = Handle
-	RegularExpressionLiteralNode = Handle
+	ConstructorDeclarationNode        = Handle
+	GetAccessorDeclarationNode        = Handle
+	SetAccessorDeclarationNode        = Handle
+	IndexSignatureDeclarationNode     = Handle
+	MethodSignatureDeclarationNode    = Handle
+	MethodDeclarationNode             = Handle
+	PropertySignatureDeclarationNode  = Handle
+	PropertyDeclarationNode           = Handle
+	SemicolonClassElementNode         = Handle
+	ClassStaticBlockDeclarationNode   = Handle
+	OmittedExpressionNode             = Handle
+	KeywordExpressionNode             = Handle
+	StringLiteralNode                 = Handle
+	NumericLiteralNode                = Handle
+	BigIntLiteralNode                 = Handle
+	RegularExpressionLiteralNode      = Handle
 	NoSubstitutionTemplateLiteralNode = Handle
-	BinaryExpressionNode = Handle
-	PrefixUnaryExpressionNode = Handle
-	PostfixUnaryExpressionNode = Handle
-	YieldExpressionNode = Handle
-	ArrowFunctionNode = Handle
-	FunctionExpressionNode = Handle
-	AsExpressionNode = Handle
-	SatisfiesExpressionNode = Handle
-	ConditionalExpressionNode = Handle
-	PropertyAccessExpressionNode = Handle
-	ElementAccessExpressionNode = Handle
-	CallExpressionNode = Handle
-	NewExpressionNode = Handle
-	MetaPropertyNode = Handle
-	NonNullExpressionNode = Handle
-	SpreadElementNode = Handle
-	TemplateExpressionNode = Handle
-	TemplateSpanNode = Handle
-	TaggedTemplateExpressionNode = Handle
-	ParenthesizedExpressionNode = Handle
-	ArrayLiteralExpressionNode = Handle
-	ObjectLiteralExpressionNode = Handle
-	SpreadAssignmentNode = Handle
-	PropertyAssignmentNode = Handle
-	ShorthandPropertyAssignmentNode = Handle
-	DeleteExpressionNode = Handle
-	TypeOfExpressionNode = Handle
-	VoidExpressionNode = Handle
-	AwaitExpressionNode = Handle
-	TypeAssertionNode = Handle
-	KeywordTypeNodeNode = Handle
-	UnionTypeNodeNode = Handle
-	IntersectionTypeNodeNode = Handle
-	ConditionalTypeNodeNode = Handle
-	TypeOperatorNodeNode = Handle
-	InferTypeNodeNode = Handle
-	ArrayTypeNodeNode = Handle
-	IndexedAccessTypeNodeNode = Handle
-	TypeReferenceNodeNode = Handle
-	ExpressionWithTypeArgumentsNode = Handle
-	LiteralTypeNodeNode = Handle
-	ThisTypeNodeNode = Handle
-	TypePredicateNodeNode = Handle
-	ImportAttributeNode = Handle
-	ImportAttributesNode = Handle
-	TypeQueryNodeNode = Handle
-	MappedTypeNodeNode = Handle
-	TypeLiteralNodeNode = Handle
-	TupleTypeNodeNode = Handle
-	NamedTupleMemberNode = Handle
-	OptionalTypeNodeNode = Handle
-	RestTypeNodeNode = Handle
-	ParenthesizedTypeNodeNode = Handle
-	FunctionTypeNodeNode = Handle
-	ConstructorTypeNodeNode = Handle
-	TemplateHeadNode = Handle
-	TemplateMiddleNode = Handle
-	TemplateTailNode = Handle
-	TemplateLiteralTypeNodeNode = Handle
-	TemplateLiteralTypeSpanNode = Handle
-	SyntheticExpressionNode = Handle
-	PartiallyEmittedExpressionNode = Handle
-	JsxElementNode = Handle
-	JsxAttributesNode = Handle
-	JsxNamespacedNameNode = Handle
-	JsxOpeningElementNode = Handle
-	JsxSelfClosingElementNode = Handle
-	JsxFragmentNode = Handle
-	JsxOpeningFragmentNode = Handle
-	JsxClosingFragmentNode = Handle
-	JsxAttributeNode = Handle
-	JsxSpreadAttributeNode = Handle
-	JsxClosingElementNode = Handle
-	JsxExpressionNode = Handle
-	JsxTextNode = Handle
-	SyntaxListNode = Handle
-	JSDocNode = Handle
-	JSDocTypeExpressionNode = Handle
-	JSDocNonNullableTypeNode = Handle
-	JSDocNullableTypeNode = Handle
-	JSDocAllTypeNode = Handle
-	JSDocVariadicTypeNode = Handle
-	JSDocOptionalTypeNode = Handle
-	JSDocTypeTagNode = Handle
-	JSDocUnknownTagNode = Handle
-	JSDocTemplateTagNode = Handle
-	JSDocReturnTagNode = Handle
-	JSDocPublicTagNode = Handle
-	JSDocPrivateTagNode = Handle
-	JSDocProtectedTagNode = Handle
-	JSDocReadonlyTagNode = Handle
-	JSDocOverrideTagNode = Handle
-	JSDocDeprecatedTagNode = Handle
-	JSDocSeeTagNode = Handle
-	JSDocImplementsTagNode = Handle
-	JSDocAugmentsTagNode = Handle
-	JSDocSatisfiesTagNode = Handle
-	JSDocThrowsTagNode = Handle
-	JSDocThisTagNode = Handle
-	JSDocImportTagNode = Handle
-	JSDocCallbackTagNode = Handle
-	JSDocOverloadTagNode = Handle
-	JSDocTypedefTagNode = Handle
-	JSDocSignatureNode = Handle
-	JSDocNameReferenceNode = Handle
-	SourceFileNode = Handle
-	ModuleDeclarationNode = Handle
-	ImportEqualsDeclarationNode = Handle
-	ExportDeclarationNode = Handle
-	ImportTypeNodeNode = Handle
-	ImportClauseNode = Handle
-	ImportSpecifierNode = Handle
-	JSDocTextNode = Handle
-	JSDocLinkNode = Handle
-	JSDocLinkPlainNode = Handle
-	JSDocLinkCodeNode = Handle
-	TypeParameterDeclarationNode = Handle
-	SyntheticReferenceExpressionNode = Handle
-	JSDocTypeLiteralNode = Handle
-	JSDocParameterOrPropertyTagNode = Handle
-	EndOfFile = Node
-	DotToken = Node
-	DotDotDotToken = Node
-	QuestionToken = Node
-	ExclamationToken = Node
-	ColonToken = Node
-	EqualsToken = Node
-	AsteriskToken = Node
-	EqualsGreaterThanToken = Node
-	PlusToken = Node
-	MinusToken = Node
-	QuestionDotToken = Node
-	AssertsKeyword = Node
-	AssertKeyword = Node
-	AwaitKeyword = Node
-	CaseKeyword = Node
-	AbstractKeyword = Node
-	AccessorKeyword = Node
-	AsyncKeyword = Node
-	ConstKeyword = Node
-	DeclareKeyword = Node
-	DefaultKeyword = Node
-	ExportKeyword = Node
-	InKeyword = Node
-	PrivateKeyword = Node
-	ProtectedKeyword = Node
-	PublicKeyword = Node
-	ReadonlyKeyword = Node
-	OutKeyword = Node
-	OverrideKeyword = Node
-	StaticKeyword = Node
-	BinaryOperatorToken = Node
-	AssignmentOperatorToken = Node
-	NullLiteral = Node
-	TrueLiteral = Node
-	FalseLiteral = Node
-	ThisExpression = Node
-	SuperExpression = Node
-	ImportExpression = Node
+	BinaryExpressionNode              = Handle
+	PrefixUnaryExpressionNode         = Handle
+	PostfixUnaryExpressionNode        = Handle
+	YieldExpressionNode               = Handle
+	ArrowFunctionNode                 = Handle
+	FunctionExpressionNode            = Handle
+	AsExpressionNode                  = Handle
+	SatisfiesExpressionNode           = Handle
+	ConditionalExpressionNode         = Handle
+	PropertyAccessExpressionNode      = Handle
+	ElementAccessExpressionNode       = Handle
+	CallExpressionNode                = Handle
+	NewExpressionNode                 = Handle
+	MetaPropertyNode                  = Handle
+	NonNullExpressionNode             = Handle
+	SpreadElementNode                 = Handle
+	TemplateExpressionNode            = Handle
+	TemplateSpanNode                  = Handle
+	TaggedTemplateExpressionNode      = Handle
+	ParenthesizedExpressionNode       = Handle
+	ArrayLiteralExpressionNode        = Handle
+	ObjectLiteralExpressionNode       = Handle
+	SpreadAssignmentNode              = Handle
+	PropertyAssignmentNode            = Handle
+	ShorthandPropertyAssignmentNode   = Handle
+	DeleteExpressionNode              = Handle
+	TypeOfExpressionNode              = Handle
+	VoidExpressionNode                = Handle
+	AwaitExpressionNode               = Handle
+	TypeAssertionNode                 = Handle
+	KeywordTypeNodeNode               = Handle
+	UnionTypeNodeNode                 = Handle
+	IntersectionTypeNodeNode          = Handle
+	ConditionalTypeNodeNode           = Handle
+	TypeOperatorNodeNode              = Handle
+	InferTypeNodeNode                 = Handle
+	ArrayTypeNodeNode                 = Handle
+	IndexedAccessTypeNodeNode         = Handle
+	TypeReferenceNodeNode             = Handle
+	ExpressionWithTypeArgumentsNode   = Handle
+	LiteralTypeNodeNode               = Handle
+	ThisTypeNodeNode                  = Handle
+	TypePredicateNodeNode             = Handle
+	ImportAttributeNode               = Handle
+	ImportAttributesNode              = Handle
+	TypeQueryNodeNode                 = Handle
+	MappedTypeNodeNode                = Handle
+	TypeLiteralNodeNode               = Handle
+	TupleTypeNodeNode                 = Handle
+	NamedTupleMemberNode              = Handle
+	OptionalTypeNodeNode              = Handle
+	RestTypeNodeNode                  = Handle
+	ParenthesizedTypeNodeNode         = Handle
+	FunctionTypeNodeNode              = Handle
+	ConstructorTypeNodeNode           = Handle
+	TemplateHeadNode                  = Handle
+	TemplateMiddleNode                = Handle
+	TemplateTailNode                  = Handle
+	TemplateLiteralTypeNodeNode       = Handle
+	TemplateLiteralTypeSpanNode       = Handle
+	SyntheticExpressionNode           = Handle
+	PartiallyEmittedExpressionNode    = Handle
+	JsxElementNode                    = Handle
+	JsxAttributesNode                 = Handle
+	JsxNamespacedNameNode             = Handle
+	JsxOpeningElementNode             = Handle
+	JsxSelfClosingElementNode         = Handle
+	JsxFragmentNode                   = Handle
+	JsxOpeningFragmentNode            = Handle
+	JsxClosingFragmentNode            = Handle
+	JsxAttributeNode                  = Handle
+	JsxSpreadAttributeNode            = Handle
+	JsxClosingElementNode             = Handle
+	JsxExpressionNode                 = Handle
+	JsxTextNode                       = Handle
+	SyntaxListNode                    = Handle
+	JSDocNode                         = Handle
+	JSDocTypeExpressionNode           = Handle
+	JSDocNonNullableTypeNode          = Handle
+	JSDocNullableTypeNode             = Handle
+	JSDocAllTypeNode                  = Handle
+	JSDocVariadicTypeNode             = Handle
+	JSDocOptionalTypeNode             = Handle
+	JSDocTypeTagNode                  = Handle
+	JSDocUnknownTagNode               = Handle
+	JSDocTemplateTagNode              = Handle
+	JSDocReturnTagNode                = Handle
+	JSDocPublicTagNode                = Handle
+	JSDocPrivateTagNode               = Handle
+	JSDocProtectedTagNode             = Handle
+	JSDocReadonlyTagNode              = Handle
+	JSDocOverrideTagNode              = Handle
+	JSDocDeprecatedTagNode            = Handle
+	JSDocSeeTagNode                   = Handle
+	JSDocImplementsTagNode            = Handle
+	JSDocAugmentsTagNode              = Handle
+	JSDocSatisfiesTagNode             = Handle
+	JSDocThrowsTagNode                = Handle
+	JSDocThisTagNode                  = Handle
+	JSDocImportTagNode                = Handle
+	JSDocCallbackTagNode              = Handle
+	JSDocOverloadTagNode              = Handle
+	JSDocTypedefTagNode               = Handle
+	JSDocSignatureNode                = Handle
+	JSDocNameReferenceNode            = Handle
+	SourceFileNode                    = Handle
+	ModuleDeclarationNode             = Handle
+	ImportEqualsDeclarationNode       = Handle
+	ExportDeclarationNode             = Handle
+	ImportTypeNodeNode                = Handle
+	ImportClauseNode                  = Handle
+	ImportSpecifierNode               = Handle
+	JSDocTextNode                     = Handle
+	JSDocLinkNode                     = Handle
+	JSDocLinkPlainNode                = Handle
+	JSDocLinkCodeNode                 = Handle
+	TypeParameterDeclarationNode      = Handle
+	SyntheticReferenceExpressionNode  = Handle
+	JSDocTypeLiteralNode              = Handle
+	JSDocParameterOrPropertyTagNode   = Handle
+	EndOfFile                         = Node
+	DotToken                          = Node
+	DotDotDotToken                    = Node
+	QuestionToken                     = Node
+	ExclamationToken                  = Node
+	ColonToken                        = Node
+	EqualsToken                       = Node
+	AsteriskToken                     = Node
+	EqualsGreaterThanToken            = Node
+	PlusToken                         = Node
+	MinusToken                        = Node
+	QuestionDotToken                  = Node
+	AssertsKeyword                    = Node
+	AssertKeyword                     = Node
+	AwaitKeyword                      = Node
+	CaseKeyword                       = Node
+	AbstractKeyword                   = Node
+	AccessorKeyword                   = Node
+	AsyncKeyword                      = Node
+	ConstKeyword                      = Node
+	DeclareKeyword                    = Node
+	DefaultKeyword                    = Node
+	ExportKeyword                     = Node
+	InKeyword                         = Node
+	PrivateKeyword                    = Node
+	ProtectedKeyword                  = Node
+	PublicKeyword                     = Node
+	ReadonlyKeyword                   = Node
+	OutKeyword                        = Node
+	OverrideKeyword                   = Node
+	StaticKeyword                     = Node
+	BinaryOperatorToken               = Node
+	AssignmentOperatorToken           = Node
+	NullLiteral                       = Node
+	TrueLiteral                       = Node
+	FalseLiteral                      = Node
+	ThisExpression                    = Node
+	SuperExpression                   = Node
+	ImportExpression                  = Node
 )
 
 type (
@@ -679,7 +679,7 @@ type QualifiedName struct {
 	NodeBase
 	FlowNodeBase
 	CompositeBase
-	Left *EntityName
+	Left  *EntityName
 	Right *MemberName
 }
 
@@ -712,7 +712,7 @@ func (node *QualifiedName) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *QualifiedName) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Left) |
-	propagateSubtreeFacts(node.Right)
+		propagateSubtreeFacts(node.Right)
 }
 
 func IsQualifiedName(node Handle) bool {
@@ -832,7 +832,7 @@ func IsEmptyStatement(node Handle) bool {
 type IfStatement struct {
 	StatementBase
 	CompositeBase
-	Expression *Expression
+	Expression    *Expression
 	ThenStatement *Statement
 	ElseStatement *Statement // Optional
 }
@@ -867,8 +867,8 @@ func (node *IfStatement) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *IfStatement) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Expression) |
-	propagateSubtreeFacts(node.ThenStatement) |
-	propagateSubtreeFacts(node.ElseStatement)
+		propagateSubtreeFacts(node.ThenStatement) |
+		propagateSubtreeFacts(node.ElseStatement)
 }
 
 func IsIfStatement(node Handle) bool {
@@ -914,7 +914,7 @@ func (node *DoStatement) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *DoStatement) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Statement) |
-	propagateSubtreeFacts(node.Expression)
+		propagateSubtreeFacts(node.Expression)
 }
 
 func IsDoStatement(node Handle) bool {
@@ -960,7 +960,7 @@ func (node *WhileStatement) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *WhileStatement) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Expression) |
-	propagateSubtreeFacts(node.Statement)
+		propagateSubtreeFacts(node.Statement)
 }
 
 func IsWhileStatement(node Handle) bool {
@@ -976,8 +976,8 @@ type ForStatement struct {
 	LocalsContainerBase
 	CompositeBase
 	Initializer *ForInitializer // Optional
-	Condition *Expression // Optional
-	Incrementor *Expression // Optional
+	Condition   *Expression     // Optional
+	Incrementor *Expression     // Optional
 }
 
 func (f *NodeFactory) NewForStatement(initializer *ForInitializer, condition *Expression, incrementor *Expression, statement *Statement) *Node {
@@ -1014,9 +1014,9 @@ func (node *ForStatement) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *ForStatement) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Initializer) |
-	propagateSubtreeFacts(node.Condition) |
-	propagateSubtreeFacts(node.Incrementor) |
-	propagateSubtreeFacts(node.Statement)
+		propagateSubtreeFacts(node.Condition) |
+		propagateSubtreeFacts(node.Incrementor) |
+		propagateSubtreeFacts(node.Statement)
 }
 
 func IsForStatement(node Handle) bool {
@@ -1032,9 +1032,9 @@ type ForInOrOfStatement struct {
 	LocalsContainerBase
 	CompositeBase
 	AwaitModifier *AwaitKeyword // Optional
-	Initializer *ForInitializer
-	Expression *Expression
-	Statement *Statement
+	Initializer   *ForInitializer
+	Expression    *Expression
+	Statement     *Statement
 }
 
 func (f *NodeFactory) NewForInOrOfStatement(kind Kind, awaitModifier *AwaitKeyword, initializer *ForInitializer, expression *Expression, statement *Statement) *Node {
@@ -1203,7 +1203,7 @@ type WithStatement struct {
 	StatementBase
 	CompositeBase
 	Expression *Expression
-	Statement *Statement
+	Statement  *Statement
 }
 
 func (f *NodeFactory) NewWithStatement(expression *Expression, statement *Statement) *Node {
@@ -1235,7 +1235,7 @@ func (node *WithStatement) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *WithStatement) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Expression) |
-	propagateSubtreeFacts(node.Statement)
+		propagateSubtreeFacts(node.Statement)
 }
 
 func IsWithStatement(node Handle) bool {
@@ -1250,7 +1250,7 @@ type SwitchStatement struct {
 	StatementBase
 	CompositeBase
 	Expression *Expression
-	CaseBlock *Node
+	CaseBlock  *Node
 }
 
 func (f *NodeFactory) NewSwitchStatement(expression *Expression, caseBlock *Node) *Node {
@@ -1282,7 +1282,7 @@ func (node *SwitchStatement) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *SwitchStatement) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Expression) |
-	propagateSubtreeFacts(node.CaseBlock)
+		propagateSubtreeFacts(node.CaseBlock)
 }
 
 func IsSwitchStatement(node Handle) bool {
@@ -1341,8 +1341,8 @@ func IsCaseBlock(node Handle) bool {
 type CaseOrDefaultClause struct {
 	NodeBase
 	CompositeBase
-	Expression *Expression
-	Statements *StatementList
+	Expression          *Expression
+	Statements          *StatementList
 	FallthroughFlowNode *FlowNode
 }
 
@@ -1375,7 +1375,7 @@ func (node *CaseOrDefaultClause) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *CaseOrDefaultClause) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Expression) |
-	propagateNodeListSubtreeFacts(node.Statements, propagateSubtreeFacts)
+		propagateNodeListSubtreeFacts(node.Statements, propagateSubtreeFacts)
 }
 
 func IsCaseClause(node Handle) bool {
@@ -1437,8 +1437,8 @@ func IsThrowStatement(node Handle) bool {
 type TryStatement struct {
 	StatementBase
 	CompositeBase
-	TryBlock *Node
-	CatchClause *Node // Optional
+	TryBlock     *Node
+	CatchClause  *Node // Optional
 	FinallyBlock *Node // Optional
 }
 
@@ -1472,8 +1472,8 @@ func (node *TryStatement) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *TryStatement) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.TryBlock) |
-	propagateSubtreeFacts(node.CatchClause) |
-	propagateSubtreeFacts(node.FinallyBlock)
+		propagateSubtreeFacts(node.CatchClause) |
+		propagateSubtreeFacts(node.FinallyBlock)
 }
 
 func IsTryStatement(node Handle) bool {
@@ -1489,7 +1489,7 @@ type CatchClause struct {
 	LocalsContainerBase
 	CompositeBase
 	VariableDeclaration *Node // Optional
-	Block *Node
+	Block               *Node
 }
 
 func (f *NodeFactory) NewCatchClause(variableDeclaration *Node, block *Node) *Node {
@@ -1551,7 +1551,7 @@ func IsDebuggerStatement(node Handle) bool {
 
 type LabeledStatement struct {
 	StatementBase
-	Label *Node
+	Label     *Node
 	Statement *Statement
 }
 
@@ -1584,7 +1584,7 @@ func (node *LabeledStatement) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *LabeledStatement) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Label) |
-	propagateSubtreeFacts(node.Statement)
+		propagateSubtreeFacts(node.Statement)
 }
 
 func IsLabeledStatement(node Handle) bool {
@@ -1643,7 +1643,7 @@ type Block struct {
 	LocalsContainerBase
 	CompositeBase
 	Statements *StatementList
-	MultiLine bool
+	MultiLine  bool
 }
 
 func (f *NodeFactory) NewBlock(statements *StatementList, multiLine bool) *Node {
@@ -1732,10 +1732,10 @@ type VariableDeclaration struct {
 	DeclarationBase
 	ExportableBase
 	CompositeBase
-	name *BindingName
+	name             *BindingName
 	ExclamationToken *ExclamationToken // Optional
-	Type *TypeNode // Optional
-	Initializer *Expression // Optional
+	Type             *TypeNode         // Optional
+	Initializer      *Expression       // Optional
 }
 
 func (f *NodeFactory) NewVariableDeclaration(name *BindingName, exclamationToken *ExclamationToken, typeNode *TypeNode, initializer *Expression) *Node {
@@ -1873,10 +1873,10 @@ type ParameterDeclaration struct {
 	ModifiersBase
 	CompositeBase
 	DotDotDotToken *DotDotDotToken // Optional
-	name *BindingName
-	QuestionToken *QuestionToken // Optional
-	Type *TypeNode // Optional
-	Initializer *Expression // Optional
+	name           *BindingName
+	QuestionToken  *QuestionToken // Optional
+	Type           *TypeNode      // Optional
+	Initializer    *Expression    // Optional
 }
 
 func (f *NodeFactory) NewParameterDeclaration(modifiers *ModifierList, dotDotDotToken *DotDotDotToken, name *BindingName, questionToken *QuestionToken, typeNode *TypeNode, initializer *Expression) *Node {
@@ -1934,9 +1934,9 @@ type BindingElement struct {
 	FlowNodeBase
 	CompositeBase
 	DotDotDotToken *DotDotDotToken // Optional
-	PropertyName *PropertyName // Optional
-	name *BindingName // Optional
-	Initializer *Expression // Optional
+	PropertyName   *PropertyName   // Optional
+	name           *BindingName    // Optional
+	Initializer    *Expression     // Optional
 }
 
 func (f *NodeFactory) NewBindingElement(dotDotDotToken *DotDotDotToken, propertyName *PropertyName, name *BindingName, initializer *Expression) *Node {
@@ -2030,7 +2030,7 @@ type FunctionDeclaration struct {
 	ModifiersBase
 	FunctionLikeWithBodyBase
 	CompositeBase
-	name *Node // Optional
+	name           *Node // Optional
 	ReturnFlowNode *FlowNode
 }
 
@@ -2238,10 +2238,10 @@ type InterfaceDeclaration struct {
 	DeclarationBase
 	ExportableBase
 	ModifiersBase
-	name *Node
-	TypeParameters *TypeParameterList // Optional
+	name            *Node
+	TypeParameters  *TypeParameterList  // Optional
 	HeritageClauses *HeritageClauseList // Optional
-	Members *TypeElementList
+	Members         *TypeElementList
 }
 
 func (f *NodeFactory) NewInterfaceDeclaration(modifiers *ModifierList, name *Node, typeParameters *TypeParameterList, heritageClauses *HeritageClauseList, members *TypeElementList) *Node {
@@ -2297,9 +2297,9 @@ type TypeAliasDeclaration struct {
 	ExportableBase
 	ModifiersBase
 	LocalsContainerBase
-	name *Node
+	name           *Node
 	TypeParameters *TypeParameterList // Optional
-	Type *TypeNode
+	Type           *TypeNode
 }
 
 func (f *NodeFactory) NewTypeAliasDeclaration(modifiers *ModifierList, name *Node, typeParameters *TypeParameterList, typeNode *TypeNode) *Node {
@@ -2325,12 +2325,12 @@ func (f *NodeFactory) NewJSTypeAliasDeclaration(modifiers *ModifierList, name *N
 func (f *NodeFactory) UpdateTypeAliasDeclaration(node *TypeAliasDeclaration, modifiers *ModifierList, name *Node, typeParameters *TypeParameterList, typeNode *TypeNode) *Node {
 	if modifiers != node.modifiers || !f.storeNodesEqual(name, node.name) || typeParameters != node.TypeParameters || !f.storeNodesEqual(typeNode, node.Type) {
 		switch node.Kind {
-			case KindTypeAliasDeclaration:
-				return updateNode(f.NewTypeAliasDeclaration(modifiers, name, typeParameters, typeNode), node.AsNode(), f.hooks)
-			case KindJSTypeAliasDeclaration:
-				return updateNode(f.NewJSTypeAliasDeclaration(modifiers, name, typeParameters, typeNode), node.AsNode(), f.hooks)
-			default:
-				panic("unexpected kind in UpdateTypeAliasDeclaration: " + node.Kind.String())
+		case KindTypeAliasDeclaration:
+			return updateNode(f.NewTypeAliasDeclaration(modifiers, name, typeParameters, typeNode), node.AsNode(), f.hooks)
+		case KindJSTypeAliasDeclaration:
+			return updateNode(f.NewJSTypeAliasDeclaration(modifiers, name, typeParameters, typeNode), node.AsNode(), f.hooks)
+		default:
+			panic("unexpected kind in UpdateTypeAliasDeclaration: " + node.Kind.String())
 		}
 	}
 	return node.AsNode()
@@ -2349,12 +2349,12 @@ func (node *TypeAliasDeclaration) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *TypeAliasDeclaration) Clone(f NodeFactoryCoercible) *Node {
 	switch node.Kind {
-		case KindTypeAliasDeclaration:
-			return cloneNode(f.AsNodeFactory().NewTypeAliasDeclaration(node.Modifiers(), node.name, node.TypeParameters, node.Type), node.AsNode(), f.AsNodeFactory().hooks)
-		case KindJSTypeAliasDeclaration:
-			return cloneNode(f.AsNodeFactory().NewJSTypeAliasDeclaration(node.Modifiers(), node.name, node.TypeParameters, node.Type), node.AsNode(), f.AsNodeFactory().hooks)
-		default:
-			panic("unexpected kind in TypeAliasDeclaration.Clone: " + node.Kind.String())
+	case KindTypeAliasDeclaration:
+		return cloneNode(f.AsNodeFactory().NewTypeAliasDeclaration(node.Modifiers(), node.name, node.TypeParameters, node.Type), node.AsNode(), f.AsNodeFactory().hooks)
+	case KindJSTypeAliasDeclaration:
+		return cloneNode(f.AsNodeFactory().NewJSTypeAliasDeclaration(node.Modifiers(), node.name, node.TypeParameters, node.Type), node.AsNode(), f.AsNodeFactory().hooks)
+	default:
+		panic("unexpected kind in TypeAliasDeclaration.Clone: " + node.Kind.String())
 	}
 }
 
@@ -2427,7 +2427,7 @@ type EnumDeclaration struct {
 	ExportableBase
 	ModifiersBase
 	CompositeBase
-	name *Node
+	name    *Node
 	Members *EnumMemberList
 }
 
@@ -2565,9 +2565,9 @@ type ImportDeclaration struct {
 	ModifiersBase
 	CompositeBase
 	DeclarationBase
-	ImportClause *Node // Optional
+	ImportClause    *Node // Optional
 	ModuleSpecifier *Expression
-	Attributes *Node // Optional
+	Attributes      *Node // Optional
 }
 
 func (f *NodeFactory) NewImportDeclaration(modifiers *ModifierList, importClause *Node, moduleSpecifier *Expression, attributes *Node) *Node {
@@ -2593,12 +2593,12 @@ func (f *NodeFactory) NewJSImportDeclaration(modifiers *ModifierList, importClau
 func (f *NodeFactory) UpdateImportDeclaration(node *ImportDeclaration, modifiers *ModifierList, importClause *Node, moduleSpecifier *Expression, attributes *Node) *Node {
 	if modifiers != node.modifiers || !f.storeNodesEqual(importClause, node.ImportClause) || !f.storeNodesEqual(moduleSpecifier, node.ModuleSpecifier) || !f.storeNodesEqual(attributes, node.Attributes) {
 		switch node.Kind {
-			case KindImportDeclaration:
-				return updateNode(f.NewImportDeclaration(modifiers, importClause, moduleSpecifier, attributes), node.AsNode(), f.hooks)
-			case KindJSImportDeclaration:
-				return updateNode(f.NewJSImportDeclaration(modifiers, importClause, moduleSpecifier, attributes), node.AsNode(), f.hooks)
-			default:
-				panic("unexpected kind in UpdateImportDeclaration: " + node.Kind.String())
+		case KindImportDeclaration:
+			return updateNode(f.NewImportDeclaration(modifiers, importClause, moduleSpecifier, attributes), node.AsNode(), f.hooks)
+		case KindJSImportDeclaration:
+			return updateNode(f.NewJSImportDeclaration(modifiers, importClause, moduleSpecifier, attributes), node.AsNode(), f.hooks)
+		default:
+			panic("unexpected kind in UpdateImportDeclaration: " + node.Kind.String())
 		}
 	}
 	return node.AsNode()
@@ -2617,20 +2617,20 @@ func (node *ImportDeclaration) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *ImportDeclaration) Clone(f NodeFactoryCoercible) *Node {
 	switch node.Kind {
-		case KindImportDeclaration:
-			return cloneNode(f.AsNodeFactory().NewImportDeclaration(node.Modifiers(), node.ImportClause, node.ModuleSpecifier, node.Attributes), node.AsNode(), f.AsNodeFactory().hooks)
-		case KindJSImportDeclaration:
-			return cloneNode(f.AsNodeFactory().NewJSImportDeclaration(node.Modifiers(), node.ImportClause, node.ModuleSpecifier, node.Attributes), node.AsNode(), f.AsNodeFactory().hooks)
-		default:
-			panic("unexpected kind in ImportDeclaration.Clone: " + node.Kind.String())
+	case KindImportDeclaration:
+		return cloneNode(f.AsNodeFactory().NewImportDeclaration(node.Modifiers(), node.ImportClause, node.ModuleSpecifier, node.Attributes), node.AsNode(), f.AsNodeFactory().hooks)
+	case KindJSImportDeclaration:
+		return cloneNode(f.AsNodeFactory().NewJSImportDeclaration(node.Modifiers(), node.ImportClause, node.ModuleSpecifier, node.Attributes), node.AsNode(), f.AsNodeFactory().hooks)
+	default:
+		panic("unexpected kind in ImportDeclaration.Clone: " + node.Kind.String())
 	}
 }
 
 func (node *ImportDeclaration) computeSubtreeFacts() SubtreeFacts {
 	return propagateModifierListSubtreeFacts(node.modifiers) |
-	propagateSubtreeFacts(node.ImportClause) |
-	propagateSubtreeFacts(node.ModuleSpecifier) |
-	propagateSubtreeFacts(node.Attributes)
+		propagateSubtreeFacts(node.ImportClause) |
+		propagateSubtreeFacts(node.ModuleSpecifier) |
+		propagateSubtreeFacts(node.Attributes)
 }
 
 func IsImportDeclaration(node Handle) bool {
@@ -2787,8 +2787,8 @@ type ExportAssignment struct {
 	ModifiersBase
 	CompositeBase
 	IsExportEquals bool
-	Type *TypeNode
-	Expression *Expression
+	Type           *TypeNode
+	Expression     *Expression
 }
 
 func (f *NodeFactory) NewExportAssignment(modifiers *ModifierList, isExportEquals bool, typeNode *TypeNode, expression *Expression) *Node {
@@ -2972,9 +2972,9 @@ type ExportSpecifier struct {
 	DeclarationBase
 	ExportableBase
 	CompositeBase
-	IsTypeOnly bool
+	IsTypeOnly   bool
 	PropertyName *ModuleExportName // Optional
-	name *ModuleExportName
+	name         *ModuleExportName
 }
 
 func (f *NodeFactory) NewExportSpecifier(isTypeOnly bool, propertyName *ModuleExportName, name *ModuleExportName) *Node {
@@ -3441,7 +3441,7 @@ type PropertySignatureDeclaration struct {
 	NodeBase
 	DeclarationBase
 	NamedMemberBase
-	Type *TypeNode
+	Type        *TypeNode
 	Initializer *Expression
 }
 
@@ -3497,7 +3497,7 @@ type PropertyDeclaration struct {
 	DeclarationBase
 	NamedMemberBase
 	CompositeBase
-	Type *TypeNode // Optional
+	Type        *TypeNode   // Optional
 	Initializer *Expression // Optional
 }
 
@@ -3578,7 +3578,7 @@ type ClassStaticBlockDeclaration struct {
 	ModifiersBase
 	LocalsContainerBase
 	CompositeBase
-	Body *Node
+	Body           *Node
 	ReturnFlowNode *FlowNode
 }
 
@@ -3798,10 +3798,10 @@ type BinaryExpression struct {
 	DeclarationBase
 	ModifiersBase
 	CompositeBase
-	Left *Expression
-	Type *TypeNode // Optional
+	Left          *Expression
+	Type          *TypeNode // Optional
 	OperatorToken *BinaryOperatorToken
-	Right *Expression
+	Right         *Expression
 }
 
 func (f *NodeFactory) NewBinaryExpression(modifiers *ModifierList, left *Expression, typeNode *TypeNode, operatorToken *BinaryOperatorToken, right *Expression) *Node {
@@ -3849,7 +3849,7 @@ func IsBinaryExpression(node Handle) bool {
 type PrefixUnaryExpression struct {
 	UpdateExpressionBase
 	Operator Kind
-	Operand *Expression
+	Operand  *Expression
 }
 
 func (f *NodeFactory) NewPrefixUnaryExpression(operator Kind, operand *Expression) *Node {
@@ -3893,7 +3893,7 @@ func IsPrefixUnaryExpression(node Handle) bool {
 
 type PostfixUnaryExpression struct {
 	UpdateExpressionBase
-	Operand *Expression
+	Operand  *Expression
 	Operator Kind
 }
 
@@ -3939,7 +3939,7 @@ func IsPostfixUnaryExpression(node Handle) bool {
 type YieldExpression struct {
 	ExpressionBase
 	AsteriskToken *AsteriskToken // Optional
-	Expression *Expression // Optional
+	Expression    *Expression    // Optional
 }
 
 func (f *NodeFactory) NewYieldExpression(asteriskToken *AsteriskToken, expression *Expression) *Node {
@@ -4040,7 +4040,7 @@ type FunctionExpression struct {
 	FunctionLikeWithBodyBase
 	FlowNodeBase
 	CompositeBase
-	name *Node // Optional
+	name           *Node // Optional
 	ReturnFlowNode *FlowNode
 }
 
@@ -4099,7 +4099,7 @@ func IsFunctionExpression(node Handle) bool {
 type AsExpression struct {
 	ExpressionBase
 	Expression *Expression
-	Type *TypeNode
+	Type       *TypeNode
 }
 
 func (f *NodeFactory) NewAsExpression(expression *Expression, typeNode *TypeNode) *Node {
@@ -4140,7 +4140,7 @@ func IsAsExpression(node Handle) bool {
 type SatisfiesExpression struct {
 	ExpressionBase
 	Expression *Expression
-	Type *TypeNode
+	Type       *TypeNode
 }
 
 func (f *NodeFactory) NewSatisfiesExpression(expression *Expression, typeNode *TypeNode) *Node {
@@ -4181,11 +4181,11 @@ func IsSatisfiesExpression(node Handle) bool {
 type ConditionalExpression struct {
 	ExpressionBase
 	CompositeBase
-	Condition *Expression
+	Condition     *Expression
 	QuestionToken *QuestionToken
-	WhenTrue *Expression
-	ColonToken *ColonToken
-	WhenFalse *Expression
+	WhenTrue      *Expression
+	ColonToken    *ColonToken
+	WhenFalse     *Expression
 }
 
 func (f *NodeFactory) NewConditionalExpression(condition *Expression, questionToken *QuestionToken, whenTrue *Expression, colonToken *ColonToken, whenFalse *Expression) *Node {
@@ -4224,10 +4224,10 @@ func (node *ConditionalExpression) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *ConditionalExpression) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Condition) |
-	propagateSubtreeFacts(node.QuestionToken) |
-	propagateSubtreeFacts(node.WhenTrue) |
-	propagateSubtreeFacts(node.ColonToken) |
-	propagateSubtreeFacts(node.WhenFalse)
+		propagateSubtreeFacts(node.QuestionToken) |
+		propagateSubtreeFacts(node.WhenTrue) |
+		propagateSubtreeFacts(node.ColonToken) |
+		propagateSubtreeFacts(node.WhenFalse)
 }
 
 func IsConditionalExpression(node Handle) bool {
@@ -4242,9 +4242,9 @@ type PropertyAccessExpression struct {
 	MemberExpressionBase
 	FlowNodeBase
 	CompositeBase
-	Expression *Expression
+	Expression       *Expression
 	QuestionDotToken *QuestionDotToken // Optional
-	name *MemberName
+	name             *MemberName
 }
 
 func (f *NodeFactory) NewPropertyAccessExpression(expression *Expression, questionDotToken *QuestionDotToken, name *MemberName, flags NodeFlags) *Node {
@@ -4292,8 +4292,8 @@ type ElementAccessExpression struct {
 	MemberExpressionBase
 	FlowNodeBase
 	CompositeBase
-	Expression *Expression
-	QuestionDotToken *QuestionDotToken // Optional
+	Expression         *Expression
+	QuestionDotToken   *QuestionDotToken // Optional
 	ArgumentExpression *Expression
 }
 
@@ -4328,8 +4328,8 @@ func (node *ElementAccessExpression) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *ElementAccessExpression) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Expression) |
-	propagateSubtreeFacts(node.QuestionDotToken) |
-	propagateSubtreeFacts(node.ArgumentExpression)
+		propagateSubtreeFacts(node.QuestionDotToken) |
+		propagateSubtreeFacts(node.ArgumentExpression)
 }
 
 func IsElementAccessExpression(node Handle) bool {
@@ -4344,10 +4344,10 @@ type CallExpression struct {
 	LeftHandSideExpressionBase
 	DeclarationBase
 	CompositeBase
-	Expression *Expression
+	Expression       *Expression
 	QuestionDotToken *QuestionDotToken // Optional
-	TypeArguments *TypeList // Optional
-	Arguments *ElementList
+	TypeArguments    *TypeList         // Optional
+	Arguments        *ElementList
 }
 
 func (f *NodeFactory) NewCallExpression(expression *Expression, questionDotToken *QuestionDotToken, typeArguments *TypeList, arguments *ElementList, flags NodeFlags) *Node {
@@ -4394,9 +4394,9 @@ func IsCallExpression(node Handle) bool {
 type NewExpression struct {
 	PrimaryExpressionBase
 	CompositeBase
-	Expression *Expression
-	TypeArguments *TypeList // Optional
-	Arguments *ElementList // Optional
+	Expression    *Expression
+	TypeArguments *TypeList    // Optional
+	Arguments     *ElementList // Optional
 }
 
 func (f *NodeFactory) NewNewExpression(expression *Expression, typeArguments *TypeList, arguments *ElementList) *Node {
@@ -4440,7 +4440,7 @@ type MetaProperty struct {
 	FlowNodeBase
 	CompositeBase
 	KeywordToken Kind
-	name *Node
+	name         *Node
 }
 
 func (f *NodeFactory) NewMetaProperty(keywordToken Kind, name *Node) *Node {
@@ -4564,7 +4564,7 @@ func IsSpreadElement(node Handle) bool {
 type TemplateExpression struct {
 	PrimaryExpressionBase
 	CompositeBase
-	Head *Node
+	Head          *Node
 	TemplateSpans *TemplateSpanList
 }
 
@@ -4597,7 +4597,7 @@ func (node *TemplateExpression) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *TemplateExpression) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Head) |
-	propagateNodeListSubtreeFacts(node.TemplateSpans, propagateSubtreeFacts)
+		propagateNodeListSubtreeFacts(node.TemplateSpans, propagateSubtreeFacts)
 }
 
 func IsTemplateExpression(node Handle) bool {
@@ -4611,7 +4611,7 @@ func IsTemplateExpression(node Handle) bool {
 type TemplateSpan struct {
 	NodeBase
 	Expression *Expression
-	Literal *TemplateMiddleOrTail
+	Literal    *TemplateMiddleOrTail
 }
 
 func (f *NodeFactory) NewTemplateSpan(expression *Expression, literal *TemplateMiddleOrTail) *Node {
@@ -4643,7 +4643,7 @@ func (node *TemplateSpan) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *TemplateSpan) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Expression) |
-	propagateSubtreeFacts(node.Literal)
+		propagateSubtreeFacts(node.Literal)
 }
 
 func IsTemplateSpan(node Handle) bool {
@@ -4657,10 +4657,10 @@ func IsTemplateSpan(node Handle) bool {
 type TaggedTemplateExpression struct {
 	MemberExpressionBase
 	CompositeBase
-	Tag *Expression
+	Tag              *Expression
 	QuestionDotToken *QuestionDotToken
-	TypeArguments *TypeList // Optional
-	Template *TemplateLiteral
+	TypeArguments    *TypeList // Optional
+	Template         *TemplateLiteral
 }
 
 func (f *NodeFactory) NewTaggedTemplateExpression(tag *Expression, questionDotToken *QuestionDotToken, typeArguments *TypeList, template *TemplateLiteral, flags NodeFlags) *Node {
@@ -4750,7 +4750,7 @@ func IsParenthesizedExpression(node Handle) bool {
 type ArrayLiteralExpression struct {
 	PrimaryExpressionBase
 	CompositeBase
-	Elements *ElementList
+	Elements  *ElementList
 	MultiLine bool
 }
 
@@ -4798,7 +4798,7 @@ type ObjectLiteralExpression struct {
 	DeclarationBase
 	CompositeBase
 	Properties *NodeList
-	MultiLine bool
+	MultiLine  bool
 }
 
 func (f *NodeFactory) NewObjectLiteralExpression(properties *NodeList, multiLine bool) *Node {
@@ -4887,7 +4887,7 @@ type PropertyAssignment struct {
 	DeclarationBase
 	NamedMemberBase
 	CompositeBase
-	Type *TypeNode
+	Type        *TypeNode
 	Initializer *Expression
 }
 
@@ -4943,9 +4943,9 @@ type ShorthandPropertyAssignment struct {
 	DeclarationBase
 	NamedMemberBase
 	CompositeBase
-	Type *TypeNode
-	EqualsToken *EqualsToken // Optional
-	ObjectAssignmentInitializer *Expression // Optional
+	Type                        *TypeNode
+	EqualsToken                 *EqualsToken // Optional
+	ObjectAssignmentInitializer *Expression  // Optional
 }
 
 func (f *NodeFactory) NewShorthandPropertyAssignment(modifiers *ModifierList, name *PropertyName, postfixToken *Node, typeNode *TypeNode, equalsToken *EqualsToken, objectAssignmentInitializer *Expression) *Node {
@@ -5166,7 +5166,7 @@ func IsAwaitExpression(node Handle) bool {
 
 type TypeAssertion struct {
 	UnaryExpressionBase
-	Type *TypeNode
+	Type       *TypeNode
 	Expression *Expression
 }
 
@@ -5310,10 +5310,10 @@ func IsIntersectionTypeNode(node Handle) bool {
 type ConditionalTypeNode struct {
 	TypeNodeBase
 	LocalsContainerBase
-	CheckType *TypeNode
+	CheckType   *TypeNode
 	ExtendsType *TypeNode
-	TrueType *TypeNode
-	FalseType *TypeNode
+	TrueType    *TypeNode
+	FalseType   *TypeNode
 }
 
 func (f *NodeFactory) NewConditionalTypeNode(checkType *TypeNode, extendsType *TypeNode, trueType *TypeNode, falseType *TypeNode) *Node {
@@ -5359,7 +5359,7 @@ func IsConditionalTypeNode(node Handle) bool {
 type TypeOperatorNode struct {
 	TypeNodeBase
 	Operator Kind
-	Type *TypeNode
+	Type     *TypeNode
 }
 
 func (f *NodeFactory) NewTypeOperatorNode(operator Kind, typeNode *TypeNode) *Node {
@@ -5478,7 +5478,7 @@ func IsArrayTypeNode(node Handle) bool {
 type IndexedAccessTypeNode struct {
 	TypeNodeBase
 	ObjectType *TypeNode
-	IndexType *TypeNode
+	IndexType  *TypeNode
 }
 
 func (f *NodeFactory) NewIndexedAccessTypeNode(objectType *TypeNode, indexType *TypeNode) *Node {
@@ -5559,7 +5559,7 @@ func IsTypeReferenceNode(node Handle) bool {
 type ExpressionWithTypeArguments struct {
 	MemberExpressionBase
 	CompositeBase
-	Expression *Expression
+	Expression    *Expression
 	TypeArguments *TypeList // Optional
 }
 
@@ -5662,8 +5662,8 @@ func IsThisTypeNode(node Handle) bool {
 type TypePredicateNode struct {
 	TypeNodeBase
 	AssertsModifier *AssertsKeyword // Optional
-	ParameterName *TypePredicateParameterName
-	Type *TypeNode // Optional
+	ParameterName   *TypePredicateParameterName
+	Type            *TypeNode // Optional
 }
 
 func (f *NodeFactory) NewTypePredicateNode(assertsModifier *AssertsKeyword, parameterName *TypePredicateParameterName, typeNode *TypeNode) *Node {
@@ -5705,7 +5705,7 @@ func IsTypePredicateNode(node Handle) bool {
 type ImportAttribute struct {
 	NodeBase
 	CompositeBase
-	name *ImportAttributeName
+	name  *ImportAttributeName
 	Value *Expression
 }
 
@@ -5738,7 +5738,7 @@ func (node *ImportAttribute) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *ImportAttribute) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.name) |
-	propagateSubtreeFacts(node.Value)
+		propagateSubtreeFacts(node.Value)
 }
 
 func (node *ImportAttribute) Name() *DeclarationName {
@@ -5756,9 +5756,9 @@ func IsImportAttribute(node Handle) bool {
 type ImportAttributes struct {
 	NodeBase
 	CompositeBase
-	Token Kind
+	Token      Kind
 	Attributes *ImportAttributeList
-	MultiLine bool
+	MultiLine  bool
 }
 
 func (f *NodeFactory) NewImportAttributes(token Kind, attributes *ImportAttributeList, multiLine bool) *Node {
@@ -5847,10 +5847,10 @@ type MappedTypeNode struct {
 	LocalsContainerBase
 	ReadonlyToken *Node // Optional
 	TypeParameter *Node
-	NameType *TypeNode // Optional
-	QuestionToken *Node // Optional
-	Type *TypeNode // Optional
-	Members *TypeElementList // Optional
+	NameType      *TypeNode        // Optional
+	QuestionToken *Node            // Optional
+	Type          *TypeNode        // Optional
+	Members       *TypeElementList // Optional
 }
 
 func (f *NodeFactory) NewMappedTypeNode(readonlyToken *Node, typeParameter *Node, nameType *TypeNode, questionToken *Node, typeNode *TypeNode, members *TypeElementList) *Node {
@@ -5980,9 +5980,9 @@ type NamedTupleMember struct {
 	TypeNodeBase
 	DeclarationBase
 	DotDotDotToken *DotDotDotToken // Optional
-	name *Node
-	QuestionToken *QuestionToken // Optional
-	Type *TypeNode
+	name           *Node
+	QuestionToken  *QuestionToken // Optional
+	Type           *TypeNode
 }
 
 func (f *NodeFactory) NewNamedTupleMember(dotDotDotToken *DotDotDotToken, name *Node, questionToken *QuestionToken, typeNode *TypeNode) *Node {
@@ -6313,7 +6313,7 @@ func IsTemplateTail(node Handle) bool {
 
 type TemplateLiteralTypeNode struct {
 	TypeNodeBase
-	Head *Node
+	Head          *Node
 	TemplateSpans *TemplateLiteralTypeSpanList
 }
 
@@ -6354,7 +6354,7 @@ func IsTemplateLiteralTypeNode(node Handle) bool {
 
 type TemplateLiteralTypeSpan struct {
 	TypeNodeBase
-	Type *TypeNode
+	Type    *TypeNode
 	Literal *TemplateMiddleOrTail
 }
 
@@ -6395,8 +6395,8 @@ func IsTemplateLiteralTypeSpan(node Handle) bool {
 
 type SyntheticExpression struct {
 	ExpressionBase
-	Type any
-	IsSpread bool
+	Type            any
+	IsSpread        bool
 	TupleNameSource *Node // Optional
 }
 
@@ -6483,7 +6483,7 @@ type JsxElement struct {
 	PrimaryExpressionBase
 	CompositeBase
 	OpeningElement *Node
-	Children *JsxChildList
+	Children       *JsxChildList
 	ClosingElement *Node
 }
 
@@ -6568,7 +6568,7 @@ type JsxNamespacedName struct {
 	ExpressionBase
 	CompositeBase
 	Namespace *Node
-	name *Node
+	name      *Node
 }
 
 func (f *NodeFactory) NewJsxNamespacedName(namespace *Node, name *Node) *Node {
@@ -6613,9 +6613,9 @@ func IsJsxNamespacedName(node Handle) bool {
 type JsxOpeningElement struct {
 	ExpressionBase
 	CompositeBase
-	TagName *JsxTagNameExpression
+	TagName       *JsxTagNameExpression
 	TypeArguments *TypeList // Optional
-	Attributes *Node
+	Attributes    *Node
 }
 
 func (f *NodeFactory) NewJsxOpeningElement(tagName *JsxTagNameExpression, typeArguments *TypeList, attributes *Node) *Node {
@@ -6657,9 +6657,9 @@ func IsJsxOpeningElement(node Handle) bool {
 type JsxSelfClosingElement struct {
 	PrimaryExpressionBase
 	CompositeBase
-	TagName *JsxTagNameExpression
+	TagName       *JsxTagNameExpression
 	TypeArguments *TypeList // Optional
-	Attributes *Node
+	Attributes    *Node
 }
 
 func (f *NodeFactory) NewJsxSelfClosingElement(tagName *JsxTagNameExpression, typeArguments *TypeList, attributes *Node) *Node {
@@ -6702,7 +6702,7 @@ type JsxFragment struct {
 	PrimaryExpressionBase
 	CompositeBase
 	OpeningFragment *Node
-	Children *JsxChildList
+	Children        *JsxChildList
 	ClosingFragment *Node
 }
 
@@ -6790,7 +6790,7 @@ type JsxAttribute struct {
 	NodeBase
 	DeclarationBase
 	CompositeBase
-	name *JsxAttributeName
+	name        *JsxAttributeName
 	Initializer *JsxAttributeValue // Optional
 }
 
@@ -6915,7 +6915,7 @@ func IsJsxClosingElement(node Handle) bool {
 type JsxExpression struct {
 	ExpressionBase
 	DotDotDotToken *DotDotDotToken // Optional
-	Expression *Expression // Optional
+	Expression     *Expression     // Optional
 }
 
 func (f *NodeFactory) NewJsxExpression(dotDotDotToken *DotDotDotToken, expression *Expression) *Node {
@@ -7023,7 +7023,7 @@ func IsSyntaxList(node Handle) bool {
 type JSDoc struct {
 	NodeBase
 	Comment *NodeList
-	Tags *NodeList // Optional
+	Tags    *NodeList // Optional
 }
 
 func (f *NodeFactory) NewJSDoc(comment *NodeList, tags *NodeList) *Node {
@@ -7360,7 +7360,7 @@ func IsJSDocUnknownTag(node Handle) bool {
 
 type JSDocTemplateTag struct {
 	JSDocTagBase
-	Constraint *Node
+	Constraint     *Node
 	TypeParameters *TypeParameterList
 }
 
@@ -7927,9 +7927,9 @@ func IsJSDocThisTag(node Handle) bool {
 
 type JSDocImportTag struct {
 	JSDocTagBase
-	ImportClause *Node // Optional
+	ImportClause    *Node // Optional
 	ModuleSpecifier *Expression
-	Attributes *Node // Optional
+	Attributes      *Node // Optional
 }
 
 func (f *NodeFactory) NewJSDocImportTag(tagName *Node, importClause *Node, moduleSpecifier *Expression, attributes *Node, comment *NodeList) *Node {
@@ -7977,7 +7977,7 @@ func IsJSDocImportTag(node Handle) bool {
 type JSDocCallbackTag struct {
 	JSDocTagBase
 	TypeExpression *TypeNode
-	name *JSDocFullName // Optional
+	name           *JSDocFullName // Optional
 }
 
 func (f *NodeFactory) NewJSDocCallbackTag(tagName *Node, typeExpression *TypeNode, name *JSDocFullName, comment *NodeList) *Node {
@@ -8067,8 +8067,8 @@ func IsJSDocOverloadTag(node Handle) bool {
 
 type JSDocTypedefTag struct {
 	JSDocTagBase
-	TypeExpression *Node // Optional
-	name *JSDocFullName // Optional
+	TypeExpression *Node          // Optional
+	name           *JSDocFullName // Optional
 }
 
 func (f *NodeFactory) NewJSDocTypedefTag(tagName *Node, typeExpression *Node, name *JSDocFullName, comment *NodeList) *Node {
@@ -8204,7 +8204,6 @@ func IsSourceFile(node Handle) bool {
 	return node.Kind() == KindSourceFile
 }
 
-
 // Struct and factory methods hand-written in ./ast.go
 // ──────────────────────────────────────────────────────────────────────
 // ModuleDeclaration
@@ -8219,7 +8218,7 @@ type ModuleDeclaration struct {
 	BodyBase
 	CompositeBase
 	Keyword Kind
-	name *ModuleName
+	name    *ModuleName
 }
 
 func (f *NodeFactory) NewModuleDeclaration(modifiers *ModifierList, keyword Kind, name *ModuleName, body *ModuleBody) *Node {
@@ -8269,8 +8268,8 @@ type ImportEqualsDeclaration struct {
 	ExportableBase
 	ModifiersBase
 	CompositeBase
-	IsTypeOnly bool
-	name *Node
+	IsTypeOnly      bool
+	name            *Node
 	ModuleReference *ModuleReference
 }
 
@@ -8320,10 +8319,10 @@ type ExportDeclaration struct {
 	DeclarationBase
 	ModifiersBase
 	CompositeBase
-	IsTypeOnly bool
-	ExportClause *NamedExportBindings // Optional
-	ModuleSpecifier *Expression // Optional
-	Attributes *Node // Optional
+	IsTypeOnly      bool
+	ExportClause    *NamedExportBindings // Optional
+	ModuleSpecifier *Expression          // Optional
+	Attributes      *Node                // Optional
 }
 
 func (f *NodeFactory) NewExportDeclaration(modifiers *ModifierList, isTypeOnly bool, exportClause *NamedExportBindings, moduleSpecifier *Expression, attributes *Node) *Node {
@@ -8369,10 +8368,10 @@ func IsExportDeclaration(node Handle) bool {
 
 type ImportTypeNode struct {
 	NodeWithTypeArgumentsBase
-	IsTypeOf bool
-	Argument *TypeNode
-	Attributes *Node // Optional
-	Qualifier *EntityName // Optional
+	IsTypeOf   bool
+	Argument   *TypeNode
+	Attributes *Node       // Optional
+	Qualifier  *EntityName // Optional
 }
 
 func (f *NodeFactory) NewImportTypeNode(isTypeOf bool, argument *TypeNode, attributes *Node, qualifier *EntityName, typeArguments *TypeList) *Node {
@@ -8422,8 +8421,8 @@ type ImportClause struct {
 	ExportableBase
 	CompositeBase
 	PhaseModifier ImportPhaseModifierSyntaxKind // Optional
-	name *Node // Optional
-	NamedBindings *NamedImportBindings // Optional
+	name          *Node                         // Optional
+	NamedBindings *NamedImportBindings          // Optional
 }
 
 func (f *NodeFactory) NewImportClause(phaseModifier ImportPhaseModifierSyntaxKind, name *Node, namedBindings *NamedImportBindings) *Node {
@@ -8471,9 +8470,9 @@ type ImportSpecifier struct {
 	DeclarationBase
 	ExportableBase
 	CompositeBase
-	IsTypeOnly bool
+	IsTypeOnly   bool
 	PropertyName *ModuleExportName // Optional
-	name *Node
+	name         *Node
 }
 
 func (f *NodeFactory) NewImportSpecifier(isTypeOnly bool, propertyName *ModuleExportName, name *Node) *Node {
@@ -8680,10 +8679,10 @@ type TypeParameterDeclaration struct {
 	NodeBase
 	DeclarationBase
 	ModifiersBase
-	name *Node
-	Constraint *TypeNode // Optional
-	Expression *Expression // Optional
-	DefaultType *TypeNode // Optional
+	name        *Node
+	Constraint  *TypeNode   // Optional
+	Expression  *Expression // Optional
+	DefaultType *TypeNode   // Optional
 }
 
 func (f *NodeFactory) NewTypeParameterDeclaration(modifiers *ModifierList, name *Node, constraint *TypeNode, expression *Expression, defaultType *TypeNode) *Node {
@@ -8735,7 +8734,7 @@ func IsTypeParameterDeclaration(node Handle) bool {
 type SyntheticReferenceExpression struct {
 	ExpressionBase
 	Expression *Expression
-	ThisArg *Expression
+	ThisArg    *Expression
 }
 
 func (f *NodeFactory) NewSyntheticReferenceExpression(expression *Expression, thisArg *Expression) *Node {
@@ -8767,7 +8766,7 @@ func (node *SyntheticReferenceExpression) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *SyntheticReferenceExpression) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Expression) |
-	propagateSubtreeFacts(node.ThisArg)
+		propagateSubtreeFacts(node.ThisArg)
 }
 
 func IsSyntheticReferenceExpression(node Handle) bool {
@@ -8782,7 +8781,7 @@ type JSDocTypeLiteral struct {
 	JSDocTypeBase
 	DeclarationBase
 	JSDocPropertyTags []*Node // Optional
-	IsArrayType bool
+	IsArrayType       bool
 }
 
 func (f *NodeFactory) NewJSDocTypeLiteral(jsdocPropertyTags []*Node, isArrayType bool) *Node {
@@ -8823,10 +8822,10 @@ func IsJSDocTypeLiteral(node Handle) bool {
 
 type JSDocParameterOrPropertyTag struct {
 	JSDocTagBase
-	name *EntityName
-	IsBracketed bool
+	name           *EntityName
+	IsBracketed    bool
 	TypeExpression *TypeNode // Optional
-	IsNameFirst bool
+	IsNameFirst    bool
 }
 
 func (f *NodeFactory) NewJSDocParameterOrPropertyTag(kind Kind, tagName *Node, name *EntityName, isBracketed bool, typeExpression *TypeNode, isNameFirst bool, comment *NodeList) *Node {
@@ -9995,8 +9994,8 @@ func (n *Node) AsJSDocParameterOrPropertyTag() *JSDocParameterOrPropertyTag {
 
 func IsTriviaKind(kind Kind) bool {
 	switch kind {
-		case KindSingleLineCommentTrivia, KindMultiLineCommentTrivia, KindNewLineTrivia, KindWhitespaceTrivia, KindConflictMarkerTrivia:
-			return true
+	case KindSingleLineCommentTrivia, KindMultiLineCommentTrivia, KindNewLineTrivia, KindWhitespaceTrivia, KindConflictMarkerTrivia:
+		return true
 	}
 	return false
 }
@@ -10007,8 +10006,8 @@ func IsLiteralKind(kind Kind) bool {
 
 func IsPseudoLiteralKind(kind Kind) bool {
 	switch kind {
-		case KindTemplateHead, KindTemplateMiddle, KindTemplateTail:
-			return true
+	case KindTemplateHead, KindTemplateMiddle, KindTemplateTail:
+		return true
 	}
 	return false
 }
@@ -10023,24 +10022,24 @@ func IsKeywordKind(kind Kind) bool {
 
 func IsModifierKind(kind Kind) bool {
 	switch kind {
-		case KindAbstractKeyword, KindAccessorKeyword, KindAsyncKeyword, KindConstKeyword, KindDeclareKeyword, KindDefaultKeyword, KindExportKeyword, KindInKeyword, KindPrivateKeyword, KindProtectedKeyword, KindPublicKeyword, KindReadonlyKeyword, KindOutKeyword, KindOverrideKeyword, KindStaticKeyword:
-			return true
+	case KindAbstractKeyword, KindAccessorKeyword, KindAsyncKeyword, KindConstKeyword, KindDeclareKeyword, KindDefaultKeyword, KindExportKeyword, KindInKeyword, KindPrivateKeyword, KindProtectedKeyword, KindPublicKeyword, KindReadonlyKeyword, KindOutKeyword, KindOverrideKeyword, KindStaticKeyword:
+		return true
 	}
 	return false
 }
 
 func IsKeywordTypeKind(kind Kind) bool {
 	switch kind {
-		case KindAnyKeyword, KindBigIntKeyword, KindBooleanKeyword, KindIntrinsicKeyword, KindNeverKeyword, KindNumberKeyword, KindObjectKeyword, KindStringKeyword, KindSymbolKeyword, KindUndefinedKeyword, KindUnknownKeyword, KindVoidKeyword:
-			return true
+	case KindAnyKeyword, KindBigIntKeyword, KindBooleanKeyword, KindIntrinsicKeyword, KindNeverKeyword, KindNumberKeyword, KindObjectKeyword, KindStringKeyword, KindSymbolKeyword, KindUndefinedKeyword, KindUnknownKeyword, KindVoidKeyword:
+		return true
 	}
 	return false
 }
 
 func IsKeywordExpressionKind(kind Kind) bool {
 	switch kind {
-		case KindNullKeyword, KindTrueKeyword, KindFalseKeyword, KindThisKeyword, KindSuperKeyword, KindImportKeyword:
-			return true
+	case KindNullKeyword, KindTrueKeyword, KindFalseKeyword, KindThisKeyword, KindSuperKeyword, KindImportKeyword:
+		return true
 	}
 	return false
 }
@@ -10051,8 +10050,8 @@ func IsTokenKind(kind Kind) bool {
 
 func IsJsxTokenKind(kind Kind) bool {
 	switch kind {
-		case KindLessThanSlashToken, KindEndOfFile, KindConflictMarkerTrivia, KindJsxText, KindJsxTextAllWhiteSpaces, KindOpenBraceToken, KindLessThanToken:
-			return true
+	case KindLessThanSlashToken, KindEndOfFile, KindConflictMarkerTrivia, KindJsxText, KindJsxTextAllWhiteSpaces, KindOpenBraceToken, KindLessThanToken:
+		return true
 	}
 	return false
 }
@@ -10063,185 +10062,184 @@ func IsJSDocNodeKind(kind Kind) bool {
 
 func IsImportPhaseModifierKind(kind Kind) bool {
 	switch kind {
-		case KindTypeKeyword, KindDeferKeyword:
-			return true
+	case KindTypeKeyword, KindDeferKeyword:
+		return true
 	}
 	return false
 }
 
 func IsPostfixUnaryOperator(kind Kind) bool {
 	switch kind {
-		case KindPlusPlusToken, KindMinusMinusToken:
-			return true
+	case KindPlusPlusToken, KindMinusMinusToken:
+		return true
 	}
 	return false
 }
 
 func IsPrefixUnaryOperator(kind Kind) bool {
 	switch kind {
-		case KindPlusToken, KindMinusToken, KindTildeToken, KindExclamationToken, KindPlusPlusToken, KindMinusMinusToken:
-			return true
+	case KindPlusToken, KindMinusToken, KindTildeToken, KindExclamationToken, KindPlusPlusToken, KindMinusMinusToken:
+		return true
 	}
 	return false
 }
 
 func IsAssignmentOperator(kind Kind) bool {
 	switch kind {
-		case KindEqualsToken, KindPlusEqualsToken, KindMinusEqualsToken, KindAsteriskAsteriskEqualsToken, KindAsteriskEqualsToken, KindSlashEqualsToken, KindPercentEqualsToken, KindAmpersandEqualsToken, KindBarEqualsToken, KindCaretEqualsToken, KindLessThanLessThanEqualsToken, KindGreaterThanGreaterThanGreaterThanEqualsToken, KindGreaterThanGreaterThanEqualsToken, KindBarBarEqualsToken, KindAmpersandAmpersandEqualsToken, KindQuestionQuestionEqualsToken:
-			return true
+	case KindEqualsToken, KindPlusEqualsToken, KindMinusEqualsToken, KindAsteriskAsteriskEqualsToken, KindAsteriskEqualsToken, KindSlashEqualsToken, KindPercentEqualsToken, KindAmpersandEqualsToken, KindBarEqualsToken, KindCaretEqualsToken, KindLessThanLessThanEqualsToken, KindGreaterThanGreaterThanGreaterThanEqualsToken, KindGreaterThanGreaterThanEqualsToken, KindBarBarEqualsToken, KindAmpersandAmpersandEqualsToken, KindQuestionQuestionEqualsToken:
+		return true
 	}
 	return false
 }
 
 func IsBinaryOperator(kind Kind) bool {
 	switch kind {
-		case KindQuestionQuestionToken, KindAsteriskAsteriskToken, KindAsteriskToken, KindSlashToken, KindPercentToken, KindPlusToken, KindMinusToken, KindLessThanLessThanToken, KindGreaterThanGreaterThanToken, KindGreaterThanGreaterThanGreaterThanToken, KindLessThanToken, KindLessThanEqualsToken, KindGreaterThanToken, KindGreaterThanEqualsToken, KindInstanceOfKeyword, KindInKeyword, KindEqualsEqualsToken, KindEqualsEqualsEqualsToken, KindExclamationEqualsEqualsToken, KindExclamationEqualsToken, KindAmpersandToken, KindBarToken, KindCaretToken, KindAmpersandAmpersandToken, KindBarBarToken, KindEqualsToken, KindPlusEqualsToken, KindMinusEqualsToken, KindAsteriskAsteriskEqualsToken, KindAsteriskEqualsToken, KindSlashEqualsToken, KindPercentEqualsToken, KindAmpersandEqualsToken, KindBarEqualsToken, KindCaretEqualsToken, KindLessThanLessThanEqualsToken, KindGreaterThanGreaterThanGreaterThanEqualsToken, KindGreaterThanGreaterThanEqualsToken, KindBarBarEqualsToken, KindAmpersandAmpersandEqualsToken, KindQuestionQuestionEqualsToken, KindCommaToken:
-			return true
+	case KindQuestionQuestionToken, KindAsteriskAsteriskToken, KindAsteriskToken, KindSlashToken, KindPercentToken, KindPlusToken, KindMinusToken, KindLessThanLessThanToken, KindGreaterThanGreaterThanToken, KindGreaterThanGreaterThanGreaterThanToken, KindLessThanToken, KindLessThanEqualsToken, KindGreaterThanToken, KindGreaterThanEqualsToken, KindInstanceOfKeyword, KindInKeyword, KindEqualsEqualsToken, KindEqualsEqualsEqualsToken, KindExclamationEqualsEqualsToken, KindExclamationEqualsToken, KindAmpersandToken, KindBarToken, KindCaretToken, KindAmpersandAmpersandToken, KindBarBarToken, KindEqualsToken, KindPlusEqualsToken, KindMinusEqualsToken, KindAsteriskAsteriskEqualsToken, KindAsteriskEqualsToken, KindSlashEqualsToken, KindPercentEqualsToken, KindAmpersandEqualsToken, KindBarEqualsToken, KindCaretEqualsToken, KindLessThanLessThanEqualsToken, KindGreaterThanGreaterThanGreaterThanEqualsToken, KindGreaterThanGreaterThanEqualsToken, KindBarBarEqualsToken, KindAmpersandAmpersandEqualsToken, KindQuestionQuestionEqualsToken, KindCommaToken:
+		return true
 	}
 	return false
 }
 
 func IsExponentiationOperator(kind Kind) bool {
 	switch kind {
-		case KindAsteriskAsteriskToken:
-			return true
+	case KindAsteriskAsteriskToken:
+		return true
 	}
 	return false
 }
 
 func IsMultiplicativeOperator(kind Kind) bool {
 	switch kind {
-		case KindAsteriskToken, KindSlashToken, KindPercentToken:
-			return true
+	case KindAsteriskToken, KindSlashToken, KindPercentToken:
+		return true
 	}
 	return false
 }
 
 func IsMultiplicativeOperatorOrHigher(kind Kind) bool {
 	switch kind {
-		case KindAsteriskAsteriskToken, KindAsteriskToken, KindSlashToken, KindPercentToken:
-			return true
+	case KindAsteriskAsteriskToken, KindAsteriskToken, KindSlashToken, KindPercentToken:
+		return true
 	}
 	return false
 }
 
 func IsAdditiveOperator(kind Kind) bool {
 	switch kind {
-		case KindPlusToken, KindMinusToken:
-			return true
+	case KindPlusToken, KindMinusToken:
+		return true
 	}
 	return false
 }
 
 func IsAdditiveOperatorOrHigher(kind Kind) bool {
 	switch kind {
-		case KindAsteriskAsteriskToken, KindAsteriskToken, KindSlashToken, KindPercentToken, KindPlusToken, KindMinusToken:
-			return true
+	case KindAsteriskAsteriskToken, KindAsteriskToken, KindSlashToken, KindPercentToken, KindPlusToken, KindMinusToken:
+		return true
 	}
 	return false
 }
 
 func IsShiftOperator(kind Kind) bool {
 	switch kind {
-		case KindLessThanLessThanToken, KindGreaterThanGreaterThanToken, KindGreaterThanGreaterThanGreaterThanToken:
-			return true
+	case KindLessThanLessThanToken, KindGreaterThanGreaterThanToken, KindGreaterThanGreaterThanGreaterThanToken:
+		return true
 	}
 	return false
 }
 
 func IsShiftOperatorOrHigher(kind Kind) bool {
 	switch kind {
-		case KindAsteriskAsteriskToken, KindAsteriskToken, KindSlashToken, KindPercentToken, KindPlusToken, KindMinusToken, KindLessThanLessThanToken, KindGreaterThanGreaterThanToken, KindGreaterThanGreaterThanGreaterThanToken:
-			return true
+	case KindAsteriskAsteriskToken, KindAsteriskToken, KindSlashToken, KindPercentToken, KindPlusToken, KindMinusToken, KindLessThanLessThanToken, KindGreaterThanGreaterThanToken, KindGreaterThanGreaterThanGreaterThanToken:
+		return true
 	}
 	return false
 }
 
 func IsRelationalOperator(kind Kind) bool {
 	switch kind {
-		case KindLessThanToken, KindLessThanEqualsToken, KindGreaterThanToken, KindGreaterThanEqualsToken, KindInstanceOfKeyword, KindInKeyword:
-			return true
+	case KindLessThanToken, KindLessThanEqualsToken, KindGreaterThanToken, KindGreaterThanEqualsToken, KindInstanceOfKeyword, KindInKeyword:
+		return true
 	}
 	return false
 }
 
 func IsRelationalOperatorOrHigher(kind Kind) bool {
 	switch kind {
-		case KindAsteriskAsteriskToken, KindAsteriskToken, KindSlashToken, KindPercentToken, KindPlusToken, KindMinusToken, KindLessThanLessThanToken, KindGreaterThanGreaterThanToken, KindGreaterThanGreaterThanGreaterThanToken, KindLessThanToken, KindLessThanEqualsToken, KindGreaterThanToken, KindGreaterThanEqualsToken, KindInstanceOfKeyword, KindInKeyword:
-			return true
+	case KindAsteriskAsteriskToken, KindAsteriskToken, KindSlashToken, KindPercentToken, KindPlusToken, KindMinusToken, KindLessThanLessThanToken, KindGreaterThanGreaterThanToken, KindGreaterThanGreaterThanGreaterThanToken, KindLessThanToken, KindLessThanEqualsToken, KindGreaterThanToken, KindGreaterThanEqualsToken, KindInstanceOfKeyword, KindInKeyword:
+		return true
 	}
 	return false
 }
 
 func IsEqualityOperator(kind Kind) bool {
 	switch kind {
-		case KindEqualsEqualsToken, KindEqualsEqualsEqualsToken, KindExclamationEqualsEqualsToken, KindExclamationEqualsToken:
-			return true
+	case KindEqualsEqualsToken, KindEqualsEqualsEqualsToken, KindExclamationEqualsEqualsToken, KindExclamationEqualsToken:
+		return true
 	}
 	return false
 }
 
 func IsEqualityOperatorOrHigher(kind Kind) bool {
 	switch kind {
-		case KindAsteriskAsteriskToken, KindAsteriskToken, KindSlashToken, KindPercentToken, KindPlusToken, KindMinusToken, KindLessThanLessThanToken, KindGreaterThanGreaterThanToken, KindGreaterThanGreaterThanGreaterThanToken, KindLessThanToken, KindLessThanEqualsToken, KindGreaterThanToken, KindGreaterThanEqualsToken, KindInstanceOfKeyword, KindInKeyword, KindEqualsEqualsToken, KindEqualsEqualsEqualsToken, KindExclamationEqualsEqualsToken, KindExclamationEqualsToken:
-			return true
+	case KindAsteriskAsteriskToken, KindAsteriskToken, KindSlashToken, KindPercentToken, KindPlusToken, KindMinusToken, KindLessThanLessThanToken, KindGreaterThanGreaterThanToken, KindGreaterThanGreaterThanGreaterThanToken, KindLessThanToken, KindLessThanEqualsToken, KindGreaterThanToken, KindGreaterThanEqualsToken, KindInstanceOfKeyword, KindInKeyword, KindEqualsEqualsToken, KindEqualsEqualsEqualsToken, KindExclamationEqualsEqualsToken, KindExclamationEqualsToken:
+		return true
 	}
 	return false
 }
 
 func IsBitwiseOperator(kind Kind) bool {
 	switch kind {
-		case KindAmpersandToken, KindBarToken, KindCaretToken:
-			return true
+	case KindAmpersandToken, KindBarToken, KindCaretToken:
+		return true
 	}
 	return false
 }
 
 func IsBitwiseOperatorOrHigher(kind Kind) bool {
 	switch kind {
-		case KindAsteriskAsteriskToken, KindAsteriskToken, KindSlashToken, KindPercentToken, KindPlusToken, KindMinusToken, KindLessThanLessThanToken, KindGreaterThanGreaterThanToken, KindGreaterThanGreaterThanGreaterThanToken, KindLessThanToken, KindLessThanEqualsToken, KindGreaterThanToken, KindGreaterThanEqualsToken, KindInstanceOfKeyword, KindInKeyword, KindEqualsEqualsToken, KindEqualsEqualsEqualsToken, KindExclamationEqualsEqualsToken, KindExclamationEqualsToken, KindAmpersandToken, KindBarToken, KindCaretToken:
-			return true
+	case KindAsteriskAsteriskToken, KindAsteriskToken, KindSlashToken, KindPercentToken, KindPlusToken, KindMinusToken, KindLessThanLessThanToken, KindGreaterThanGreaterThanToken, KindGreaterThanGreaterThanGreaterThanToken, KindLessThanToken, KindLessThanEqualsToken, KindGreaterThanToken, KindGreaterThanEqualsToken, KindInstanceOfKeyword, KindInKeyword, KindEqualsEqualsToken, KindEqualsEqualsEqualsToken, KindExclamationEqualsEqualsToken, KindExclamationEqualsToken, KindAmpersandToken, KindBarToken, KindCaretToken:
+		return true
 	}
 	return false
 }
 
 func IsLogicalOperator(kind Kind) bool {
 	switch kind {
-		case KindAmpersandAmpersandToken, KindBarBarToken:
-			return true
+	case KindAmpersandAmpersandToken, KindBarBarToken:
+		return true
 	}
 	return false
 }
 
 func IsLogicalOperatorOrHigher(kind Kind) bool {
 	switch kind {
-		case KindAsteriskAsteriskToken, KindAsteriskToken, KindSlashToken, KindPercentToken, KindPlusToken, KindMinusToken, KindLessThanLessThanToken, KindGreaterThanGreaterThanToken, KindGreaterThanGreaterThanGreaterThanToken, KindLessThanToken, KindLessThanEqualsToken, KindGreaterThanToken, KindGreaterThanEqualsToken, KindInstanceOfKeyword, KindInKeyword, KindEqualsEqualsToken, KindEqualsEqualsEqualsToken, KindExclamationEqualsEqualsToken, KindExclamationEqualsToken, KindAmpersandToken, KindBarToken, KindCaretToken, KindAmpersandAmpersandToken, KindBarBarToken:
-			return true
+	case KindAsteriskAsteriskToken, KindAsteriskToken, KindSlashToken, KindPercentToken, KindPlusToken, KindMinusToken, KindLessThanLessThanToken, KindGreaterThanGreaterThanToken, KindGreaterThanGreaterThanGreaterThanToken, KindLessThanToken, KindLessThanEqualsToken, KindGreaterThanToken, KindGreaterThanEqualsToken, KindInstanceOfKeyword, KindInKeyword, KindEqualsEqualsToken, KindEqualsEqualsEqualsToken, KindExclamationEqualsEqualsToken, KindExclamationEqualsToken, KindAmpersandToken, KindBarToken, KindCaretToken, KindAmpersandAmpersandToken, KindBarBarToken:
+		return true
 	}
 	return false
 }
 
 func IsCompoundAssignmentOperator(kind Kind) bool {
 	switch kind {
-		case KindPlusEqualsToken, KindMinusEqualsToken, KindAsteriskAsteriskEqualsToken, KindAsteriskEqualsToken, KindSlashEqualsToken, KindPercentEqualsToken, KindAmpersandEqualsToken, KindBarEqualsToken, KindCaretEqualsToken, KindLessThanLessThanEqualsToken, KindGreaterThanGreaterThanGreaterThanEqualsToken, KindGreaterThanGreaterThanEqualsToken, KindBarBarEqualsToken, KindAmpersandAmpersandEqualsToken, KindQuestionQuestionEqualsToken:
-			return true
+	case KindPlusEqualsToken, KindMinusEqualsToken, KindAsteriskAsteriskEqualsToken, KindAsteriskEqualsToken, KindSlashEqualsToken, KindPercentEqualsToken, KindAmpersandEqualsToken, KindBarEqualsToken, KindCaretEqualsToken, KindLessThanLessThanEqualsToken, KindGreaterThanGreaterThanGreaterThanEqualsToken, KindGreaterThanGreaterThanEqualsToken, KindBarBarEqualsToken, KindAmpersandAmpersandEqualsToken, KindQuestionQuestionEqualsToken:
+		return true
 	}
 	return false
 }
 
 func IsAssignmentOperatorOrHigher(kind Kind) bool {
 	switch kind {
-		case KindQuestionQuestionToken, KindAsteriskAsteriskToken, KindAsteriskToken, KindSlashToken, KindPercentToken, KindPlusToken, KindMinusToken, KindLessThanLessThanToken, KindGreaterThanGreaterThanToken, KindGreaterThanGreaterThanGreaterThanToken, KindLessThanToken, KindLessThanEqualsToken, KindGreaterThanToken, KindGreaterThanEqualsToken, KindInstanceOfKeyword, KindInKeyword, KindEqualsEqualsToken, KindEqualsEqualsEqualsToken, KindExclamationEqualsEqualsToken, KindExclamationEqualsToken, KindAmpersandToken, KindBarToken, KindCaretToken, KindAmpersandAmpersandToken, KindBarBarToken, KindEqualsToken, KindPlusEqualsToken, KindMinusEqualsToken, KindAsteriskAsteriskEqualsToken, KindAsteriskEqualsToken, KindSlashEqualsToken, KindPercentEqualsToken, KindAmpersandEqualsToken, KindBarEqualsToken, KindCaretEqualsToken, KindLessThanLessThanEqualsToken, KindGreaterThanGreaterThanGreaterThanEqualsToken, KindGreaterThanGreaterThanEqualsToken, KindBarBarEqualsToken, KindAmpersandAmpersandEqualsToken, KindQuestionQuestionEqualsToken:
-			return true
+	case KindQuestionQuestionToken, KindAsteriskAsteriskToken, KindAsteriskToken, KindSlashToken, KindPercentToken, KindPlusToken, KindMinusToken, KindLessThanLessThanToken, KindGreaterThanGreaterThanToken, KindGreaterThanGreaterThanGreaterThanToken, KindLessThanToken, KindLessThanEqualsToken, KindGreaterThanToken, KindGreaterThanEqualsToken, KindInstanceOfKeyword, KindInKeyword, KindEqualsEqualsToken, KindEqualsEqualsEqualsToken, KindExclamationEqualsEqualsToken, KindExclamationEqualsToken, KindAmpersandToken, KindBarToken, KindCaretToken, KindAmpersandAmpersandToken, KindBarBarToken, KindEqualsToken, KindPlusEqualsToken, KindMinusEqualsToken, KindAsteriskAsteriskEqualsToken, KindAsteriskEqualsToken, KindSlashEqualsToken, KindPercentEqualsToken, KindAmpersandEqualsToken, KindBarEqualsToken, KindCaretEqualsToken, KindLessThanLessThanEqualsToken, KindGreaterThanGreaterThanGreaterThanEqualsToken, KindGreaterThanGreaterThanEqualsToken, KindBarBarEqualsToken, KindAmpersandAmpersandEqualsToken, KindQuestionQuestionEqualsToken:
+		return true
 	}
 	return false
 }
 
 func IsLogicalOrCoalescingAssignmentOperator(kind Kind) bool {
 	switch kind {
-		case KindAmpersandAmpersandEqualsToken, KindBarBarEqualsToken, KindQuestionQuestionEqualsToken:
-			return true
+	case KindAmpersandAmpersandEqualsToken, KindBarBarEqualsToken, KindQuestionQuestionEqualsToken:
+		return true
 	}
 	return false
 }
-

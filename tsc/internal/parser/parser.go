@@ -277,6 +277,7 @@ func ParseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptK
 	p.finishSourceFile(result, isDeclarationFile && p.scriptKind != core.ScriptKindJSON)
 	result.SetParseStore(p.factory.Store(), root)
 	ast.SetExternalModuleIndicator(result, p.opts.ExternalModuleIndicatorOptions)
+	result.RecordParseIdentifiers()
 	if p.scriptKind == core.ScriptKindJSON {
 		stmts := root.SourceFileStatements()
 		if stmts != 0 && p.factory.Store().ListLen(stmts) > 0 {
@@ -6938,9 +6939,13 @@ func (p *Parser) checkJSSyntax(node ast.Handle) ast.Handle {
 	case ast.KindNonNullExpression:
 		p.jsErrorAtRange(node.Loc(), diagnostics.Non_null_assertions_can_only_be_used_in_TypeScript_files)
 	case ast.KindAsExpression:
-		p.jsErrorAtRange(node.Type().Loc(), diagnostics.Type_assertion_expressions_can_only_be_used_in_TypeScript_files)
+		if t := node.Type(); !t.IsNil() && t.Flags()&ast.NodeFlagsReparsed == 0 {
+			p.jsErrorAtRange(t.Loc(), diagnostics.Type_assertion_expressions_can_only_be_used_in_TypeScript_files)
+		}
 	case ast.KindSatisfiesExpression:
-		p.jsErrorAtRange(node.Type().Loc(), diagnostics.Type_satisfaction_expressions_can_only_be_used_in_TypeScript_files)
+		if t := node.Type(); !t.IsNil() && t.Flags()&ast.NodeFlagsReparsed == 0 {
+			p.jsErrorAtRange(t.Loc(), diagnostics.Type_satisfaction_expressions_can_only_be_used_in_TypeScript_files)
+		}
 	}
 	// Check decorator placement in JS files
 	p.checkJSDecoratorSyntax(node)

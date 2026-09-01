@@ -15,7 +15,7 @@ type NodeFactory struct {
 }
 
 func NewNodeFactory(context *EmitContext) *NodeFactory {
-	return &NodeFactory{Factory: ast.NewFactory(ast.FactoryHooks{OnCreate: context.onCreate}), emitContext: context}
+	return &NodeFactory{Factory: ast.NewFactory(context.factoryHooks()), emitContext: context}
 }
 
 func (f *NodeFactory) ReleaseArenas() {}

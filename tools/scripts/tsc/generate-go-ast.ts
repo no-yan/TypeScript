@@ -606,12 +606,12 @@ function generateStoreUpdateFactory(w: CodeWriter, node: NodeType) {
         w.push();
         w.write(`case ${api.kindType(`SyntaxKind.${node.syntaxKindName}`).formatGoConstant()}:`);
         w.push();
-        w.write(`return updateHandle(f.New${node.name}(${newArgs}), node)`);
+        w.write(`return f.updateHandle(f.New${node.name}(${newArgs}), node)`);
         w.pop();
         for (const alias of node.kindAliases) {
             w.write(`case Kind${alias}:`);
             w.push();
-            w.write(`return updateHandle(f.New${alias}(${newArgs}), node)`);
+            w.write(`return f.updateHandle(f.New${alias}(${newArgs}), node)`);
             w.pop();
         }
         w.write("default:");
@@ -622,7 +622,7 @@ function generateStoreUpdateFactory(w: CodeWriter, node: NodeType) {
         w.write("}");
     }
     else {
-        w.write(`return updateHandle(f.New${node.name}(${newArgs}), node)`);
+        w.write(`return f.updateHandle(f.New${node.name}(${newArgs}), node)`);
     }
     w.pop();
     w.write("}");

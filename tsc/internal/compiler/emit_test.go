@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/microsoft/TypeScript/tsc/internal/bundled"
@@ -13,6 +14,21 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/vfs/vfstest"
 	"gotest.tools/v3/assert"
 )
+
+type emitFiles struct {
+	mu sync.Mutex
+	m  map[string]string
+}
+
+func (e *emitFiles) write(fileName string, text string, data *compiler.WriteFileData) error {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if e.m == nil {
+		e.m = map[string]string{}
+	}
+	e.m[fileName] = text
+	return nil
+}
 
 // generateLongLineTS generates TypeScript source code that produces a single very long line.
 // This simulates generated code (e.g., from code generators) that has no line breaks,
@@ -216,4 +232,114 @@ func TestGetDeclarationDiagnosticsDoesNotMarkProgramFileAsDeclaration(t *testing
 	assert.Equal(t, false, file.IsDeclarationFile)
 	assert.Equal(t, file, file.ParseStore().SourceFile())
 	assert.Equal(t, false, file.ParseStore().SourceFile().IsDeclarationFile)
+}
+
+func TestReactJsxDefaultExportUsesRuntimeImport(t *testing.T) {
+	t.Parallel()
+	if !bundled.Embedded {
+		t.Skip("bundled files are not embedded")
+	}
+
+	fs := bundled.WrapFS(vfstest.FromMap(map[string]string{
+		"/index.tsx": "export default <div/>;\n",
+		"/tsconfig.json": `{
+			"compilerOptions": {
+				"jsx": "react-jsx",
+				"module": "commonjs",
+				"declaration": true,
+				"skipLibCheck": true
+			},
+			"files": ["index.tsx"]
+		}`,
+	}, true))
+	host := compiler.NewCompilerHost("/", fs, bundled.LibPath(), nil, nil, nil)
+	parsed, errors := tsoptions.GetParsedCommandLineOfConfigFile("/tsconfig.json", &core.CompilerOptions{}, nil, host, nil)
+	assert.Equal(t, 0, len(errors))
+
+	p := compiler.NewProgram(compiler.ProgramOptions{Config: parsed, Host: host})
+	out := &emitFiles{}
+	_ = p.Emit(context.Background(), compiler.EmitOptions{
+		WriteFile: out.write,
+	})
+
+	js, ok := out.m["/index.js"]
+	assert.Assert(t, ok, "expected /index.js, got %v", out.m)
+	assert.Assert(t, strings.Contains(js, "jsx-runtime"), "js should import jsx-runtime, got:\n%s", js)
+	assert.Assert(t, strings.Contains(js, "jsx_runtime_1.jsx") || strings.Contains(js, "jsx_runtime_1[\"jsx\"]"), "js should call through the runtime import, got:\n%s", js)
+	assert.Assert(t, !strings.Contains(js, "_jsx("), "js should not call the generated jsx binding directly, got:\n%s", js)
+
+	dts, ok := out.m["/index.d.ts"]
+	assert.Assert(t, ok, "expected /index.d.ts, got %v", out.m)
+	assert.Assert(t, strings.Contains(dts, "declare const _default"), "dts should use _default, got:\n%s", dts)
+	assert.Assert(t, !strings.Contains(dts, "_default_1"), "dts should not uniquify _default, got:\n%s", dts)
+}
+
+func TestCjsReexportHelperNameMatchesRequire(t *testing.T) {
+	t.Parallel()
+	if !bundled.Embedded {
+		t.Skip("bundled files are not embedded")
+	}
+
+	fs := bundled.WrapFS(vfstest.FromMap(map[string]string{
+		"/dog.ts":    "export function createDog() { return 1; }\n",
+		"/index.ts":  "import { createDog } from './dog';\nexport { createDog };\n",
+		"/tsconfig.json": `{
+			"compilerOptions": {
+				"module": "commonjs",
+				"skipLibCheck": true
+			},
+			"files": ["index.ts", "dog.ts"]
+		}`,
+	}, true))
+	host := compiler.NewCompilerHost("/", fs, bundled.LibPath(), nil, nil, nil)
+	parsed, errors := tsoptions.GetParsedCommandLineOfConfigFile("/tsconfig.json", &core.CompilerOptions{}, nil, host, nil)
+	assert.Equal(t, 0, len(errors))
+
+	p := compiler.NewProgram(compiler.ProgramOptions{Config: parsed, Host: host})
+	out := &emitFiles{}
+	_ = p.Emit(context.Background(), compiler.EmitOptions{
+		WriteFile: out.write,
+	})
+
+	js, ok := out.m["/index.js"]
+	assert.Assert(t, ok, "expected /index.js, got %v", out.m)
+	assert.Assert(t, strings.Contains(js, "const dog_1 = require(\"./dog\")"), "js should require dog_1, got:\n%s", js)
+	assert.Assert(t, strings.Contains(js, "return dog_1.createDog"), "export getter should use dog_1, got:\n%s", js)
+	assert.Assert(t, !strings.Contains(js, "dog_2"), "js should not mint a second dog helper, got:\n%s", js)
+}
+
+func TestJsTypedefCommentPreservedInDts(t *testing.T) {
+	t.Parallel()
+	if !bundled.Embedded {
+		t.Skip("bundled files are not embedded")
+	}
+
+	fs := bundled.WrapFS(vfstest.FromMap(map[string]string{
+		"/common.js": "/**\n * @template T, Name\n * @typedef {T & {x: Name}} Nominal\n */\nmodule.exports = {};\n",
+		"/index.js":  "import { Nominal } from './common';\n\n/**\n * @typedef {Nominal<string, 'MyNominal'>} MyNominal\n */\n",
+		"/tsconfig.json": `{
+			"compilerOptions": {
+				"allowJs": true,
+				"checkJs": true,
+				"declaration": true,
+				"module": "commonjs",
+				"skipLibCheck": true
+			},
+			"files": ["index.js", "common.js"]
+		}`,
+	}, true))
+	host := compiler.NewCompilerHost("/", fs, bundled.LibPath(), nil, nil, nil)
+	parsed, errors := tsoptions.GetParsedCommandLineOfConfigFile("/tsconfig.json", &core.CompilerOptions{}, nil, host, nil)
+	assert.Equal(t, 0, len(errors))
+
+	p := compiler.NewProgram(compiler.ProgramOptions{Config: parsed, Host: host})
+	out := &emitFiles{}
+	_ = p.Emit(context.Background(), compiler.EmitOptions{
+		WriteFile: out.write,
+	})
+
+	dts, ok := out.m["/index.d.ts"]
+	assert.Assert(t, ok, "expected /index.d.ts, got %v", out.m)
+	assert.Assert(t, strings.Contains(dts, "export type MyNominal"), "dts should emit the typedef alias, got:\n%s", dts)
+	assert.Assert(t, strings.Contains(dts, "@typedef"), "dts should keep the source @typedef comment, got:\n%s", dts)
 }

@@ -30,7 +30,7 @@ type EmitResolver struct {
 	isValueAliasDeclaration func(node ast.Handle) bool
 	aliasMarkingVisitor     func(node ast.Handle) bool
 	referenceResolver       binder.ReferenceResolver
-	jsxLinks                core.LinkStore[ast.Handle, JSXLinks]
+	jsxLinks                core.LinkStore[ast.GlobalRef, JSXLinks]
 	declarationLinks        core.LinkStore[ast.Handle, DeclarationLinks]
 	declarationFileLinks    core.LinkStore[ast.Handle, DeclarationFileLinks]
 }
@@ -625,17 +625,21 @@ func (r *EmitResolver) GetReferencedExportContainer(node ast.Handle, prefixLocal
 func (r *EmitResolver) SetReferencedImportDeclaration(node ast.Handle, ref ast.Handle) {
 	r.checkerMu.Lock()
 	defer r.checkerMu.Unlock()
-	r.jsxLinks.Get(node).importRef = ref
+	r.jsxLinks.Get(node.Global()).importRef = ref
 }
 func (r *EmitResolver) GetReferencedImportDeclaration(node ast.Handle) ast.Handle {
 	r.checkerMu.Lock()
 	defer r.checkerMu.Unlock()
-	if !ast.IsParseTreeNode(node) {
-		return r.jsxLinks.Get(node).importRef
+	if !node.IsNil() {
+		if links := r.jsxLinks.TryGet(node.Global()); links != nil && !links.importRef.IsNil() {
+			return links.importRef
+		}
 	}
-	symbol := r.checker.getReferencedValueOrAliasSymbol(node)
-	if ast.IsNonLocalAlias(symbol, ast.SymbolFlagsValue) && r.checker.getTypeOnlyAliasDeclarationEx(symbol, ast.SymbolFlagsValue).IsNil() {
-		return r.checker.getDeclarationOfAliasSymbol(symbol)
+	if ast.IsParseTreeNode(node) {
+		symbol := r.checker.getReferencedValueOrAliasSymbol(node)
+		if ast.IsNonLocalAlias(symbol, ast.SymbolFlagsValue) && r.checker.getTypeOnlyAliasDeclarationEx(symbol, ast.SymbolFlagsValue).IsNil() {
+			return r.checker.getDeclarationOfAliasSymbol(symbol)
+		}
 	}
 	return ast.Handle{}
 }

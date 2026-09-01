@@ -52,7 +52,8 @@ type listHeader struct {
 // not synchronize its node, list, intern, or side-map mutations. Compiler
 // phases transfer exclusive ownership of a file's Store; parallel work must
 // write different Stores. Readers may run concurrently only while no writer
-// is active. NewFactoryOn does not relax this rule.
+// is active. NewFactoryOn does not relax this rule. Program.Emit is sequential
+// because declaration transform reads other files while this file AllocSlots.
 //
 // StoreSet is separately synchronized for cross-file registration and lookup.
 // After Seal, node/list/intern backing arrays are pointer-free (noscan).

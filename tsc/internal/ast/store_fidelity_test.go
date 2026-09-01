@@ -72,6 +72,45 @@ func TestCloneWrapperDoesNotRebindStoreOrProgramFlags(t *testing.T) {
 	assert.Equal(t, file.ParseRoot(), view.ParseRoot())
 }
 
+func TestCloneWrapperKeepsParseIdentifierSet(t *testing.T) {
+	t.Parallel()
+	f := NewFactory(FactoryHooks{})
+	opts := SourceFileParseOptions{FileName: "/index.ts", Path: "/index.ts"}
+	foo := f.NewIdentifier("foo")
+	stmt := f.NewExpressionStatement(foo)
+	eof := f.NewToken(KindEndOfFile)
+	root := f.NewSourceFile(f.List(core.UndefinedTextRange(), stmt), eof)
+	root.SetParentsInChildren()
+	file := NewSourceFileMetadata(opts, "foo")
+	file.SetParseStore(f.Store(), root)
+	file.RecordParseIdentifiers()
+
+	assert.Equal(t, true, file.HasIdentifier("foo"))
+	assert.Equal(t, false, file.HasIdentifier("_jsx"))
+
+	emitFactory := NewFactoryOn(f.Store(), FactoryHooks{OnCreate: func(h Handle) {
+		h.SetFlags(h.Flags() | NodeFlagsSynthesized)
+	}})
+	jsx := emitFactory.NewIdentifier("_jsx")
+	emitRoot := emitFactory.NewSourceFile(emitFactory.List(core.UndefinedTextRange(), emitFactory.NewExpressionStatement(jsx)), eof)
+	view := file.CloneWrapper()
+	view.SetParseRoot(emitRoot)
+
+	assert.Equal(t, true, view.HasIdentifier("foo"))
+	assert.Equal(t, false, view.HasIdentifier("_jsx"))
+	assert.Equal(t, false, file.HasIdentifier("_jsx"))
+}
+
+func TestCallExpressionSubtreeContainsIdentifier(t *testing.T) {
+	t.Parallel()
+	f := NewFactory(FactoryHooks{OnCreate: func(h Handle) {
+		h.SetFlags(h.Flags() | NodeFlagsSynthesized)
+	}})
+	RegisterStore(f.Store())
+	call := f.NewCallExpression(f.NewIdentifier("_jsx"), Handle{}, 0, f.List(core.UndefinedTextRange(), f.NewStringLiteral("div", TokenFlagsNone)), NodeFlagsNone)
+	assert.Assert(t, call.SubtreeFacts()&SubtreeContainsIdentifier != 0, "call facts=%#x", call.SubtreeFacts())
+}
+
 func TestPrimaryStringValueUsesCanonicalTextColumn(t *testing.T) {
 	t.Parallel()
 	store := NewStore(2)

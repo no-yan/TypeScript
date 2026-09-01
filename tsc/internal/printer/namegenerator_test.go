@@ -432,6 +432,26 @@ func TestGeneratedNameForImport(t *testing.T) {
 	assert.Equal(t, "foo_1", text1)
 }
 
+func TestGeneratedNameForUpdatedImportMatchesOriginal(t *testing.T) {
+	t.Parallel()
+
+	ec := printer.NewEmitContext()
+
+	file := parsetestutil.ParseTypeScript("import { createDog } from './dog'", false)
+	binder.BindSourceFile(file)
+	ec.BindFileStore(file)
+
+	imp := file.ParseRoot().Statements()[0]
+	newSpec := ec.Factory.NewStringLiteral("./dog", ast.TokenFlagsNone)
+	updated := ec.Factory.UpdateImportDeclaration(imp, imp.ImportDeclarationModifiers(), imp.ImportDeclarationImportClause(), newSpec, imp.ImportDeclarationAttributes())
+	assert.Assert(t, updated != imp)
+
+	g := &printer.NameGenerator{Context: ec, GetTextOfNode: (ast.Handle).Text}
+	fromParse := g.GenerateName(ec.Factory.NewGeneratedNameForNode(imp))
+	fromUpdated := g.GenerateName(ec.Factory.NewGeneratedNameForNode(updated))
+	assert.Equal(t, fromParse, fromUpdated)
+}
+
 func TestGeneratedNameForExport(t *testing.T) {
 	t.Parallel()
 

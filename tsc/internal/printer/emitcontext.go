@@ -71,7 +71,7 @@ func (c *EmitContext) BindFileStore(file *ast.SourceFile) {
 	}
 	c.storeFile = file
 	if c.Factory.Store() != file.ParseStore() {
-		c.Factory.Factory = ast.NewFactoryOn(file.ParseStore(), ast.FactoryHooks{OnCreate: c.onCreate})
+		c.Factory.Factory = ast.NewFactoryOn(file.ParseStore(), c.factoryHooks())
 	}
 }
 
@@ -82,7 +82,7 @@ func (c *EmitContext) LockParseStoreWriter(file *ast.SourceFile) func() {
 	unlock := file.LockParseStoreWriter()
 	c.storeFile = file
 	ast.RegisterFile(file)
-	c.Factory.Factory = ast.NewFactoryOn(file.ParseStore(), ast.FactoryHooks{OnCreate: c.onCreate})
+	c.Factory.Factory = ast.NewFactoryOn(file.ParseStore(), c.factoryHooks())
 	return func() {
 		c.storeFile = nil
 		unlock()
@@ -129,9 +129,13 @@ func (c *EmitContext) StoreFile() *ast.SourceFile {
 	return c.storeFile
 }
 
+func (c *EmitContext) factoryHooks() ast.FactoryHooks {
+	return ast.FactoryHooks{OnCreate: c.onCreate, OnUpdate: c.onUpdate, OnClone: c.onClone}
+}
+
 func (c *EmitContext) StoreFactory() *ast.Factory {
 	if c.storeFile != nil && c.storeFile.ParseStore() != nil {
-		return ast.NewFactoryOn(c.storeFile.ParseStore(), ast.FactoryHooks{OnCreate: c.onCreate})
+		return ast.NewFactoryOn(c.storeFile.ParseStore(), c.factoryHooks())
 	}
 	return c.Factory.Factory
 }

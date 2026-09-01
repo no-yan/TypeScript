@@ -1615,7 +1615,9 @@ func (p *Program) Emit(ctx context.Context, options EmitOptions) *EmitResult {
 	writerPool := &sync.Pool{New: func() any {
 		return printer.NewTextWriter(newLine, 0)
 	}}
-	wg := core.NewWorkGroup(p.SingleThreaded())
+	// Emit appends into each file's parse Store. Declaration transform also
+	// reads other files' Stores, so two files cannot emit at once.
+	wg := core.NewWorkGroup(true)
 	var emitters []*emitter
 	forceDtsEmit := options.EmitOnly == EmitOnlyBuilderSignature || options.ForceEmit && options.EmitOnly == EmitOnlyDts
 	forceJsEmit := options.ForceEmit && options.EmitOnly == EmitOnlyJs

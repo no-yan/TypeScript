@@ -5,6 +5,8 @@ import "github.com/microsoft/TypeScript/tsc/internal/core"
 // FactoryHooks mirrors NodeFactoryHooks for the Store-backed factory.
 type FactoryHooks struct {
 	OnCreate func(Handle)
+	OnUpdate func(updated, original Handle)
+	OnClone  func(updated, original Handle)
 }
 
 // Factory allocates exclusively into one Store. NewFactory owns a new Store.
@@ -84,10 +86,13 @@ func (f *Factory) Token(kind Kind) Handle {
 	return f.NewToken(kind)
 }
 
-func updateHandle(updated, original Handle) Handle {
+func (f Factory) updateHandle(updated, original Handle) Handle {
 	if updated != original {
 		updated.SetFlags(original.Flags())
 		updated.SetLoc(original.Loc())
+		if f.hooks.OnUpdate != nil {
+			f.hooks.OnUpdate(updated, original)
+		}
 	}
 	return updated
 }
@@ -349,7 +354,7 @@ func (v *HandleVisitor) DefaultVisitNodes(list ListRef) ListRef {
 		return list
 	}
 	loc := src.ListLoc(list)
-	if !src.ListHasTrailingComma(list) && len(elems) > 0 && loc.End() >= 0 {
+	if !src.ListHasTrailingComma(list) && len(elems) > 0 && len(elems) < n && loc.End() >= 0 {
 		lastEnd := elems[len(elems)-1].End()
 		if lastEnd >= 0 && lastEnd < loc.End() {
 			loc = core.NewTextRange(loc.Pos(), lastEnd)
@@ -416,7 +421,11 @@ func (f *Factory) DeepCloneNode(node Handle) Handle {
 	}
 	var visitor *HandleVisitor
 	visitor = NewHandleVisitor(func(n Handle) Handle {
-		return visitor.VisitEachChild(n)
+		cloned := visitor.VisitEachChild(n)
+		if cloned != n && f.hooks.OnClone != nil {
+			f.hooks.OnClone(cloned, n)
+		}
+		return cloned
 	}, f, HandleVisitorHooks{})
 	return visitor.VisitNode(node)
 }
@@ -447,8 +456,7 @@ func (f *Factory) UpdateSourceFile(node Handle, statements ListRef, endOfFileTok
 		return node
 	}
 	h := f.NewSourceFile(statements, endOfFileToken)
-	h.SetLoc(node.Loc())
-	return h
+	return f.updateHandle(h, node)
 }
 
 func (h Handle) ParamType() Handle {

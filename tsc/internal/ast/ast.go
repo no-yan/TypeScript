@@ -2886,16 +2886,26 @@ func (node *SourceFile) IsContentMapperSupplemental() bool {
 }
 
 func (file *SourceFile) HasIdentifier(name string) bool {
+	file.RecordParseIdentifiers()
+	return file.identifiers.Has(name)
+}
+
+func (file *SourceFile) RecordParseIdentifiers() {
+	if file == nil {
+		return
+	}
 	file.identifiersOnce.Do(func() {
 		file.identifiers = collectIdentifiersForSourceFile(file)
 	})
-	return file.identifiers.Has(name)
 }
 
 func collectIdentifiersForSourceFile(sourceFile *SourceFile) collections.Set[string] {
 	var identifiers collections.Set[string]
 	var collect StoreVisitor
 	collect = func(node Handle) bool {
+		if node.Flags()&NodeFlagsSynthesized != 0 {
+			return false
+		}
 		switch node.Kind() {
 		case KindIdentifier,
 			KindPrivateIdentifier,
@@ -3026,6 +3036,9 @@ func (node *SourceFile) copyFrom(other *SourceFile) {
 	node.CommonJSModuleIndicator = other.CommonJSModuleIndicator
 	node.ExternalModuleIndicator = other.ExternalModuleIndicator
 	node.Flags |= other.Flags
+	other.RecordParseIdentifiers()
+	node.identifiers = other.identifiers
+	node.identifiersOnce.Do(func() {})
 }
 
 // CloneWrapper copies file metadata onto a new *SourceFile that shares the

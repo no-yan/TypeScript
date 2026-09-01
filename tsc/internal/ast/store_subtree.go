@@ -171,6 +171,10 @@ func (h Handle) computeSubtreeFacts() SubtreeFacts {
 		return SubtreeContainsTypeScript
 	}
 	switch kind {
+	case KindIdentifier:
+		return SubtreeContainsIdentifier
+	case KindPrivateIdentifier:
+		return SubtreeContainsClassFields
 	case KindNoSubstitutionTemplateLiteral, KindTemplateHead, KindTemplateMiddle, KindTemplateTail:
 		return invalidTemplateEscape(h)
 	case KindJsxText, KindJsxTextAllWhiteSpaces:
@@ -180,10 +184,6 @@ func (h Handle) computeSubtreeFacts() SubtreeFacts {
 		return tokenSubtreeFacts(kind)
 	}
 	switch kind {
-	case KindIdentifier:
-		return SubtreeContainsIdentifier
-	case KindPrivateIdentifier:
-		return SubtreeContainsClassFields
 	case KindDecorator:
 		return propagateHandle(h.Expression()) | SubtreeContainsTypeScript | SubtreeContainsDecorators
 	case KindForInStatement, KindForOfStatement:
