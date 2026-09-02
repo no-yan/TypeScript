@@ -281,6 +281,27 @@ func TestFreezeAllowsParallelParseRead(t *testing.T) {
 	wg.Wait()
 }
 
+func TestFreezeConcurrent(t *testing.T) {
+	t.Parallel()
+	s := ast.NewStore(8)
+	s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
+	var wg sync.WaitGroup
+	wg.Add(16)
+	for range 16 {
+		go func() {
+			defer wg.Done()
+			s.Freeze()
+		}()
+	}
+	wg.Wait()
+	defer func() {
+		if recover() == nil {
+			t.Fatal("expected panic on write after concurrent Freeze")
+		}
+	}()
+	s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
+}
+
 func TestEnterEmitAllowsMutation(t *testing.T) {
 	t.Parallel()
 	f := ast.NewFactory(ast.FactoryHooks{})

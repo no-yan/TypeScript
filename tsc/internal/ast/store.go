@@ -200,10 +200,13 @@ func (s *Store) Seal() {
 
 // Freeze is build → check. Idempotent if already check or emit.
 func (s *Store) Freeze() {
-	if s == nil || s.phase == storePhaseEmit {
+	if s == nil {
 		return
 	}
 	s.freezeOnce.Do(func() {
+		if s.phase == storePhaseEmit {
+			return
+		}
 		s.phase = storePhaseCheck
 		s.frozenAt = NodeRef(len(s.nodes))
 		s.internIdx = nil
