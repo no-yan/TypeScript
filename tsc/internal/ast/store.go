@@ -798,6 +798,7 @@ func (h Handle) SetChild(i int, c Handle) {
 	if c.s == h.s {
 		h.SetExternalChild(i, 0)
 		h.s.children[slot] = c.id
+		h.attachSameStore(c)
 		return
 	}
 	h.s.children[slot] = 0
@@ -959,6 +960,7 @@ func (h Handle) SetListSlot(i int, list ListRef) {
 		panic("ast: list slot out of range")
 	}
 	h.s.listSlots[int(n.listStart)+i] = list
+	h.attachList(list)
 }
 
 func (h Handle) List() ListRef {
@@ -980,6 +982,24 @@ func (h Handle) SetList(list ListRef) {
 		panic("ast: SetList on node with no list slots")
 	}
 	h.s.listSlots[n.listStart] = list
+	h.attachList(list)
+}
+
+func (h Handle) attachSameStore(c Handle) {
+	if c.id == 0 || c.s == nil || c.s != h.s {
+		return
+	}
+	c.SetParent(h)
+}
+
+func (h Handle) attachList(list ListRef) {
+	if list == 0 || h.s == nil {
+		return
+	}
+	n := h.s.ListLen(list)
+	for i := 0; i < n; i++ {
+		h.attachSameStore(h.s.ListAt(list, i))
+	}
 }
 
 // ForEachChild visits non-zero named children, then each list slot. true stops.
