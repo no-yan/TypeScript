@@ -52,7 +52,7 @@ func GetIndentation(position int, sourceFile *ast.SourceFile, options lsutil.For
 		}
 	}
 	containerList := getListByPosition(position, precedingToken.Parent(), sourceFile)
-	if containerList != 0 && !precedingToken.Loc().ContainedBy(precedingToken.Store().ListLoc(containerList)) {
+	if containerList != 0 && !precedingToken.Loc().ContainedBy(sourceFile.ParseStore().ListLoc(containerList)) {
 		useTheSameBaseIndentation := !currentToken.Parent().IsNil() && (currentToken.Parent().Kind() == ast.KindFunctionExpression || currentToken.Parent().Kind() == ast.KindArrowFunction)
 		indentSize := 0
 		if !useTheSameBaseIndentation {
@@ -263,7 +263,7 @@ func getActualIndentationForListItem(node ast.Handle, sourceFile *ast.SourceFile
 	}
 	containingList := GetContainingList(node, sourceFile)
 	if containingList != 0 {
-		index := core.FindIndex(node.Store().ListSlice(containingList), func(e ast.Handle) bool {
+		index := core.FindIndex(sourceFile.ParseStore().ListSlice(containingList), func(e ast.Handle) bool {
 			return e == node
 		})
 		if index != -1 {
@@ -427,7 +427,7 @@ func getContainingListOrParentStart(parent ast.Handle, child ast.Handle, sourceF
 	containingList := GetContainingList(child, sourceFile)
 	var startPos int
 	if containingList != 0 {
-		startPos = child.Store().ListLoc(containingList).Pos()
+		startPos = sourceFile.ParseStore().ListLoc(containingList).Pos()
 	} else {
 		startPos = scanner.GetTokenPosOfNode(parent, sourceFile, false)
 	}
