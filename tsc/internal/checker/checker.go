@@ -1053,8 +1053,17 @@ func (c *Checker) AssertBinderSymbolsStayOnParseStores() {
 		return
 	}
 	forbidden := c.synth.ID()
-	check := func(sym *ast.Symbol) {
-		if sym == nil || sym.CheckFlags != 0 {
+	seen := map[*ast.Symbol]struct{}{}
+	var check func(*ast.Symbol)
+	check = func(sym *ast.Symbol) {
+		if sym == nil {
+			return
+		}
+		if _, ok := seen[sym]; ok {
+			return
+		}
+		seen[sym] = struct{}{}
+		if sym.Flags&ast.SymbolFlagsTransient != 0 {
 			return
 		}
 		if sym.ValueDeclaration.StoreID() == forbidden {
@@ -1065,9 +1074,28 @@ func (c *Checker) AssertBinderSymbolsStayOnParseStores() {
 				panic("checker: binder symbol Declaration on synth Store")
 			}
 		}
+		for _, s := range sym.Exports {
+			check(s)
+		}
+		for _, s := range sym.Members {
+			check(s)
+		}
 	}
 	for _, file := range c.files {
-		if file == nil || file.ParseRoot().IsNil() {
+		if file == nil {
+			continue
+		}
+		for _, h := range file.Imports() {
+			check(h.Symbol())
+			check(h.LocalSymbol())
+		}
+		for _, h := range file.ModuleAugmentations {
+			check(h.Symbol())
+			check(h.LocalSymbol())
+		}
+		check(file.CommonJSModuleIndicator.Symbol())
+		check(file.ExternalModuleIndicator.Symbol())
+		if file.ParseRoot().IsNil() {
 			continue
 		}
 		ast.Walk(file.ParseRoot(), func(h ast.Handle) bool {

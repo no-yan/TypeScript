@@ -304,15 +304,27 @@ func TestEnterEmitBeforeFreezePanics(t *testing.T) {
 	s.EnterEmit()
 }
 
-func TestFreezeAfterEnterEmitPanics(t *testing.T) {
+func TestFreezeAfterEnterEmitIsIdempotent(t *testing.T) {
 	t.Parallel()
 	s := ast.NewStore(2)
 	s.Freeze()
 	s.EnterEmit()
+	s.Freeze()
+	id := s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
+	assert.Assert(t, !id.IsNil())
+}
+
+func TestLeaveEmitRestoresCheck(t *testing.T) {
+	t.Parallel()
+	s := ast.NewStore(2)
+	s.Freeze()
+	s.EnterEmit()
+	s.LeaveEmit()
+	s.Freeze()
 	defer func() {
 		if recover() == nil {
-			t.Fatal("expected panic on Freeze after EnterEmit")
+			t.Fatal("expected panic on write after LeaveEmit")
 		}
 	}()
-	s.Freeze()
+	s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
 }

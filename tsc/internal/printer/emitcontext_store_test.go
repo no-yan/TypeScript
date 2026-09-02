@@ -36,4 +36,11 @@ func TestEmitContextAppendsIntoParseStore(t *testing.T) {
 	assert.Assert(t, store.Len() > before)
 	assert.Assert(t, !generated.IsNil())
 	assert.Equal(t, generated.Store(), store)
+	store.Freeze()
+	defer func() {
+		if recover() == nil {
+			t.Fatal("expected panic on write after emit lease")
+		}
+	}()
+	store.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
 }

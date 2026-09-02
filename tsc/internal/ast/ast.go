@@ -3216,12 +3216,10 @@ func (node *SourceFile) GetOrCreateToken(
 }
 
 func createToken(kind Kind, file *SourceFile, pos, end int, flags TokenFlags) Handle {
+	// Tokens are SourceFile-private. The parse Store is frozen after bind;
+	// GetOrCreateToken still AllocSlots, so they cannot share it.
 	if file.tokenFactory == nil {
-		store := file.ParseStore()
-		if store == nil {
-			store = NewStore(16)
-		}
-		file.tokenFactory = NewFactoryOn(store, FactoryHooks{})
+		file.tokenFactory = NewFactoryOn(NewStore(16), FactoryHooks{})
 	}
 	text := file.text[pos:end]
 	switch kind {

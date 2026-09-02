@@ -60,7 +60,8 @@ const (
 // Store owns the long-lived tree. One writer for life. Parse, bind, and JSDoc
 // warmup write during build. Freeze publishes the Store as immutable for
 // parallel check (no append, no map writes except SubtreeFacts atomics).
-// EnterEmit reopens mutation for sequential emit transforms.
+// EnterEmit / LeaveEmit are the emit writer lease. SourceFiles outlive a
+// Program, so phase is not monotonic across rebuilds.
 //
 // StoreSet is separately synchronized for cross-file registration and lookup.
 // After Freeze, internIdx is dropped so node/list/intern backing arrays stay
@@ -197,26 +198,21 @@ func (s *Store) Seal() {
 	s.internIdx = nil
 }
 
-// Freeze is build → check. Idempotent if already check. Panics if phase is emit.
+// Freeze is build → check. Idempotent if already check or emit.
 func (s *Store) Freeze() {
-	if s == nil {
+	if s == nil || s.phase == storePhaseEmit {
 		return
 	}
 	s.freezeOnce.Do(func() {
-		if s.phase == storePhaseEmit {
-			panic("ast: Freeze after EnterEmit")
-		}
 		s.phase = storePhaseCheck
 		s.frozenAt = NodeRef(len(s.nodes))
 		s.internIdx = nil
 		s.subtreeFacts = make([]uint32, len(s.nodes))
 	})
-	if s.phase == storePhaseEmit {
-		panic("ast: Freeze after EnterEmit")
-	}
 }
 
-// EnterEmit is check → emit. Idempotent if already emit. Panics if still build. No reverse.
+// EnterEmit is check → emit for the writer lease. Idempotent if already emit.
+// Panics if still build.
 func (s *Store) EnterEmit() {
 	if s == nil {
 		return
@@ -228,6 +224,16 @@ func (s *Store) EnterEmit() {
 		panic("ast: EnterEmit before Freeze")
 	}
 	s.phase = storePhaseEmit
+}
+
+// LeaveEmit is emit → check. The lease is over. Idempotent if already check.
+func (s *Store) LeaveEmit() {
+	if s == nil {
+		return
+	}
+	if s.phase == storePhaseEmit {
+		s.phase = storePhaseCheck
+	}
 }
 
 func (s *Store) mustMutate() {

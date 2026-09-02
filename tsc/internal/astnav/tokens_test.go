@@ -23,6 +23,23 @@ var testFiles = []string{
 	filepath.Join(repo.TestDataPath(), "fixtures/services/mapCode.ts"),
 }
 
+func TestGetTokenAtPositionAfterFreeze(t *testing.T) {
+	t.Parallel()
+	fileText := "const x = 1;\n"
+	file := parser.ParseSourceFile(ast.SourceFileParseOptions{
+		FileName: "/test.ts",
+		Path:     "/test.ts",
+	}, fileText, core.ScriptKindTS)
+	file.ParseStore().Freeze()
+	token := astnav.GetTokenAtPosition(file, 0)
+	if token.IsNil() {
+		t.Fatal("expected a token after Freeze")
+	}
+	if token.Store() == file.ParseStore() {
+		t.Fatal("token must not allocate on the frozen parse Store")
+	}
+}
+
 func TestGetTokenAtPosition(t *testing.T) {
 	t.Parallel()
 	jstest.SkipIfNoNodeJS(t)

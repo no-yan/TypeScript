@@ -868,14 +868,31 @@ func GetSourceFileOfNode(node Handle) *SourceFile {
 	if node.IsNil() {
 		return nil
 	}
-	if file := node.Store().SourceFile(); file != nil {
-		return file
+	seen := node.Store()
+	if seen != nil {
+		if file := seen.SourceFile(); file != nil {
+			return file
+		}
 	}
 	for !node.IsNil() {
 		if node.Kind() == KindSourceFile {
-			return node.Store().SourceFile()
+			if s := node.Store(); s != nil {
+				return s.SourceFile()
+			}
+			return nil
 		}
 		node = node.Parent()
+		if node.IsNil() {
+			return nil
+		}
+		if s := node.Store(); s != seen {
+			seen = s
+			if seen != nil {
+				if file := seen.SourceFile(); file != nil {
+					return file
+				}
+			}
+		}
 	}
 	return nil
 }

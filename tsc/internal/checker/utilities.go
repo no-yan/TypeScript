@@ -23,6 +23,7 @@ func NewDiagnosticForNode(node ast.Handle, message *diagnostics.Message, args ..
 	var loc core.TextRange
 	if !node.IsNil() {
 		file = ast.GetSourceFileOfNode(node)
+		debug.Assert(file != nil, "synthetic diagnostic without SourceFile")
 		if file != nil {
 			loc = scanner.GetErrorRangeForNode(file, node)
 		} else {
