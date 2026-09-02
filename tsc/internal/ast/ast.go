@@ -2593,6 +2593,7 @@ type SourceFile struct {
 	jsdocMu                     sync.RWMutex
 	jsdocWarmOnce               sync.Once
 	hasLazyJSDoc                bool
+	lazyJSDocRefs               []NodeRef
 	identifiersOnce             sync.Once
 	identifiers                 collections.Set[string]
 	ReparsedClones              []*Node
@@ -2993,6 +2994,14 @@ func (node *SourceFile) SetHasLazyJSDoc(lazy bool) {
 	node.hasLazyJSDoc = lazy
 }
 
+func (node *SourceFile) SetLazyJSDocRefs(refs []NodeRef) {
+	if len(refs) == 0 {
+		node.lazyJSDocRefs = nil
+		return
+	}
+	node.lazyJSDocRefs = append([]NodeRef(nil), refs...)
+}
+
 func (node *SourceFile) WarmJSDoc() {
 	if node == nil {
 		return
@@ -3007,20 +3016,22 @@ func (node *SourceFile) WarmJSDoc() {
 			node.hasLazyJSDoc = false
 			return
 		}
-		var walk func(Handle)
-		walk = func(h Handle) {
-			if h.IsNil() {
-				return
-			}
-			if h.Flags()&NodeFlagsHasJSDoc != 0 {
-				node.CacheJSDocHandles(h, parseJSDocForNode(node, h))
-			}
-			h.ForEachChild(func(c Handle) bool {
-				walk(c)
-				return false
-			})
+		store := node.ParseStore()
+		if store == nil {
+			node.hasLazyJSDoc = false
+			return
 		}
-		walk(node.ParseRoot())
+		for _, ref := range node.lazyJSDocRefs {
+			h := store.At(ref)
+			if h.IsNil() || h.Flags()&NodeFlagsHasJSDoc == 0 {
+				continue
+			}
+			if len(node.JSDocHandles(h)) > 0 {
+				continue
+			}
+			node.CacheJSDocHandles(h, parseJSDocForNode(node, h))
+		}
+		node.lazyJSDocRefs = nil
 		node.hasLazyJSDoc = false
 	})
 }

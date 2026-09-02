@@ -74,6 +74,7 @@ func (p *Parser) withJSDoc(node ast.Handle, info jsdocScannerInfo) []ast.Handle 
 			node.SetFlags(node.Flags() | ast.NodeFlagsPossiblyContainsDeprecatedTag)
 		}
 		if info&jsdocScannerInfoHasSeeOrLink == 0 {
+			p.lazyJSDoc = append(p.lazyJSDoc, node.Ref())
 			return nil
 		}
 		// Fall through to eager parse for @see/@link
