@@ -8,7 +8,6 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
 	"github.com/microsoft/TypeScript/tsc/internal/scanner"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
-	"slices"
 	"strconv"
 	"sync"
 )
@@ -878,7 +877,7 @@ func getParentOfPropertyAssignment(node ast.Handle) ast.Handle {
 	case ast.KindBinaryExpression:
 		return node.BinaryExpressionLeft().Expression()
 	case ast.KindCallExpression:
-		return node.Arguments()[0]
+		return node.Store().ListAt(node.ArgumentList(), 0)
 	}
 	panic("Unhandled case in getParentOfPropertyAssignment")
 }
@@ -976,7 +975,7 @@ func (b *Binder) bindParameter(node ast.Handle) {
 		b.checkStrictModeEvalOrArguments(node, decl.Name())
 	}
 	if ast.IsBindingPattern(decl.Name()) {
-		index := slices.Index(node.Parent().Parameters(), node)
+		index := listIndex(node.Parent().ParameterList(), node)
 		b.bindAnonymousDeclaration(node, ast.SymbolFlagsFunctionScopedVariable, "__"+strconv.Itoa(index))
 	} else {
 		b.declareSymbolAndAddToSymbolTable(node, ast.SymbolFlagsFunctionScopedVariable, ast.SymbolFlagsParameterExcludes)
@@ -1445,14 +1444,32 @@ func (b *Binder) bindFunctionLikeChildren(node ast.Handle) {
 	b.bind(node.Body())
 }
 func (b *Binder) bindList(node ast.Handle, list ast.ListRef) {
+	eachList(node, list, func(h ast.Handle) { b.bind(h) })
+}
+
+func eachList(node ast.Handle, list ast.ListRef, fn func(ast.Handle)) {
 	if list == 0 || node.IsNil() {
 		return
 	}
 	s := node.Store()
 	n := s.ListLen(list)
 	for i := 0; i < n; i++ {
-		b.bind(s.ListAt(list, i))
+		fn(s.ListAt(list, i))
 	}
+}
+
+func listIndex(list ast.ListRef, node ast.Handle) int {
+	if list == 0 || node.IsNil() {
+		return -1
+	}
+	s := node.Store()
+	n := s.ListLen(list)
+	for i := 0; i < n; i++ {
+		if s.ListAt(list, i) == node {
+			return i
+		}
+	}
+	return -1
 }
 func (b *Binder) bindModifiers(node ast.Handle) {
 	b.bindList(node, node.Modifiers())
@@ -1517,15 +1534,15 @@ func isLogicalAssignmentExpression(node ast.Handle) bool {
 func (b *Binder) bindAssignmentTargetFlow(node ast.Handle) {
 	switch node.Kind() {
 	case ast.KindArrayLiteralExpression:
-		for _, e := range node.Elements() {
+		eachList(node, node.ElementList(), func(e ast.Handle) {
 			if e.Kind() == ast.KindSpreadElement {
 				b.bindAssignmentTargetFlow(e.Expression())
 			} else {
 				b.bindDestructuringTargetFlow(e)
 			}
-		}
+		})
 	case ast.KindObjectLiteralExpression:
-		for _, p := range node.Properties() {
+		eachList(node, node.PropertyList(), func(p ast.Handle) {
 			switch p.Kind() {
 			case ast.KindPropertyAssignment:
 				b.bindDestructuringTargetFlow(p.Initializer())
@@ -1534,7 +1551,7 @@ func (b *Binder) bindAssignmentTargetFlow(node ast.Handle) {
 			case ast.KindSpreadAssignment:
 				b.bindAssignmentTargetFlow(p.Expression())
 			}
-		}
+		})
 	default:
 		if isNarrowableReference(node) {
 			b.currentFlow = b.createFlowMutation(ast.FlowFlagsAssignment, b.currentFlow, node)
@@ -1741,8 +1758,11 @@ func (b *Binder) bindSwitchStatement(node ast.Handle) {
 	b.preSwitchCaseFlow = b.currentFlow
 	b.bind(stmt.SwitchStatementCaseBlock())
 	b.addAntecedent(postSwitchLabel, b.currentFlow)
-	hasDefault := core.Some(stmt.SwitchStatementCaseBlock().Clauses(), func(c ast.Handle) bool {
-		return c.Kind() == ast.KindDefaultClause
+	hasDefault := false
+	eachList(stmt.SwitchStatementCaseBlock(), stmt.SwitchStatementCaseBlock().CaseBlockClauses(), func(c ast.Handle) {
+		if c.Kind() == ast.KindDefaultClause {
+			hasDefault = true
+		}
 	})
 	if !hasDefault {
 		b.addAntecedent(postSwitchLabel, b.createFlowSwitchClause(b.preSwitchCaseFlow, node, 0, 0))
@@ -1966,9 +1986,9 @@ func (b *Binder) bindInitializedVariableFlow(node ast.Handle) {
 		name = node.BindingElementName()
 	}
 	if !name.IsNil() && ast.IsBindingPattern(name) {
-		for _, child := range name.Elements() {
+		eachList(name, name.ElementList(), func(child ast.Handle) {
 			b.bindInitializedVariableFlow(child)
-		}
+		})
 	} else {
 		b.currentFlow = b.createFlowMutation(ast.FlowFlagsAssignment, b.currentFlow, node)
 	}
@@ -2238,8 +2258,11 @@ func isNarrowableReference(node ast.Handle) bool {
 }
 func hasNarrowableArgument(expr ast.Handle) bool {
 	call := expr
-	for _, argument := range call.Arguments() {
-		if containsNarrowableReference(argument) {
+	args := call.ArgumentList()
+	s := call.Store()
+	n := s.ListLen(args)
+	for i := 0; i < n; i++ {
+		if containsNarrowableReference(s.ListAt(args, i)) {
 			return true
 		}
 	}
