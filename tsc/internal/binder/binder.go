@@ -722,19 +722,28 @@ func (b *Binder) setExportContextFlag(node ast.Handle) {
 	}
 }
 func (b *Binder) hasExportDeclarations(node ast.Handle) bool {
-	var statements []ast.Handle
+	var list ast.ListRef
 	switch node.Kind() {
 	case ast.KindSourceFile:
-		statements = node.Statements()
+		list = node.StatementList()
 	case ast.KindModuleDeclaration:
 		body := node.Body()
 		if !body.IsNil() && ast.IsModuleBlock(body) {
-			statements = body.Statements()
+			list = body.StatementList()
 		}
 	}
-	return core.Some(statements, func(s ast.Handle) bool {
-		return ast.IsExportDeclaration(s) || ast.IsExportAssignment(s)
-	})
+	if list == 0 {
+		return false
+	}
+	s := node.Store()
+	n := s.ListLen(list)
+	for i := 0; i < n; i++ {
+		st := s.ListAt(list, i)
+		if ast.IsExportDeclaration(st) || ast.IsExportAssignment(st) {
+			return true
+		}
+	}
+	return false
 }
 func (b *Binder) bindFunctionExpression(node ast.Handle) {
 	if !b.file.IsDeclarationFile && node.Flags()&ast.NodeFlagsAmbient == 0 && ast.IsAsyncFunction(node) {
@@ -1280,7 +1289,11 @@ func (b *Binder) bindContainer(node ast.Handle, containerFlags ContainerFlags) {
 		b.bindChildren(node)
 	}
 	if ast.IsSourceFile(node) && ast.IsInJSFile(node) {
-		for _, statement := range node.Statements() {
+		list := node.StatementList()
+		s := node.Store()
+		n := s.ListLen(list)
+		for i := 0; i < n; i++ {
+			statement := s.ListAt(list, i)
 			if ast.IsJSTypeAliasDeclaration(statement) {
 				b.bindBlockScopedDeclaration(statement, ast.SymbolFlagsTypeAlias, ast.SymbolFlagsTypeAliasExcludes)
 			}
@@ -1384,11 +1397,10 @@ func (b *Binder) bindChildren(node ast.Handle) {
 	case ast.KindNonNullExpression:
 		b.bindNonNullExpressionFlow(node)
 	case ast.KindSourceFile:
-		sourceFile := node
-		b.bindEachStatementFunctionsFirst(sourceFile.Statements())
-		b.bind(sourceFile.SourceFileEndOfFileToken())
+		b.bindEachStatementFunctionsFirst(node)
+		b.bind(node.SourceFileEndOfFileToken())
 	case ast.KindBlock, ast.KindModuleBlock:
-		b.bindEachStatementFunctionsFirst(node.Statements())
+		b.bindEachStatementFunctionsFirst(node)
 	case ast.KindBindingElement:
 		b.bindBindingElementFlow(node)
 	case ast.KindParameter:
@@ -1432,29 +1444,36 @@ func (b *Binder) bindFunctionLikeChildren(node ast.Handle) {
 	}
 	b.bind(node.Body())
 }
-func (b *Binder) bindEach(nodes []ast.Handle) {
-	for _, node := range nodes {
-		b.bind(node)
-	}
-}
 func (b *Binder) bindList(node ast.Handle, list ast.ListRef) {
-	if list == 0 {
+	if list == 0 || node.IsNil() {
 		return
 	}
-	b.bindEach(node.Store().ListSlice(list))
+	s := node.Store()
+	n := s.ListLen(list)
+	for i := 0; i < n; i++ {
+		b.bind(s.ListAt(list, i))
+	}
 }
 func (b *Binder) bindModifiers(node ast.Handle) {
 	b.bindList(node, node.Modifiers())
 }
-func (b *Binder) bindEachStatementFunctionsFirst(statements []ast.Handle) {
-	for _, node := range statements {
-		if node.Kind() == ast.KindFunctionDeclaration {
-			b.bind(node)
+func (b *Binder) bindEachStatementFunctionsFirst(node ast.Handle) {
+	list := node.StatementList()
+	if list == 0 || node.IsNil() {
+		return
+	}
+	s := node.Store()
+	n := s.ListLen(list)
+	for i := 0; i < n; i++ {
+		stmt := s.ListAt(list, i)
+		if stmt.Kind() == ast.KindFunctionDeclaration {
+			b.bind(stmt)
 		}
 	}
-	for _, node := range statements {
-		if node.Kind() != ast.KindFunctionDeclaration {
-			b.bind(node)
+	for i := 0; i < n; i++ {
+		stmt := s.ListAt(list, i)
+		if stmt.Kind() != ast.KindFunctionDeclaration {
+			b.bind(stmt)
 		}
 	}
 }
@@ -1734,16 +1753,18 @@ func (b *Binder) bindSwitchStatement(node ast.Handle) {
 }
 func (b *Binder) bindCaseBlock(node ast.Handle) {
 	switchStatement := node.Parent()
-	clauses := node.Store().ListSlice(node.CaseBlockClauses())
+	s := node.Store()
+	clauses := node.CaseBlockClauses()
+	n := s.ListLen(clauses)
 	isNarrowingSwitch := switchStatement.Expression().Kind() == ast.KindTrueKeyword || isNarrowingExpression(switchStatement.Expression())
 	var fallthroughFlow *ast.FlowNode = b.unreachableFlow
-	for i := 0; i < len(clauses); i++ {
+	for i := 0; i < n; i++ {
 		clauseStart := i
-		for len(clauses[i].Statements()) == 0 && i+1 < len(clauses) {
+		for s.ListLen(s.ListAt(clauses, i).StatementList()) == 0 && i+1 < n {
 			if fallthroughFlow == b.unreachableFlow {
 				b.currentFlow = b.preSwitchCaseFlow
 			}
-			b.bind(clauses[i])
+			b.bind(s.ListAt(clauses, i))
 			i++
 		}
 		preCaseLabel := b.createBranchLabel()
@@ -1754,10 +1775,10 @@ func (b *Binder) bindCaseBlock(node ast.Handle) {
 		b.addAntecedent(preCaseLabel, preCaseFlow)
 		b.addAntecedent(preCaseLabel, fallthroughFlow)
 		b.currentFlow = b.finishFlowLabel(preCaseLabel)
-		clause := clauses[i]
+		clause := s.ListAt(clauses, i)
 		b.bind(clause)
 		fallthroughFlow = b.currentFlow
-		if b.currentFlow.Flags&ast.FlowFlagsUnreachable == 0 && i != len(clauses)-1 {
+		if b.currentFlow.Flags&ast.FlowFlagsUnreachable == 0 && i != n-1 {
 			clause.SetEndFlowNode(b.currentFlow)
 		}
 	}
@@ -1770,7 +1791,7 @@ func (b *Binder) bindCaseOrDefaultClause(node ast.Handle) {
 		b.bind(clause.Expression())
 		b.currentFlow = saveCurrentFlow
 	}
-	b.bindEach(clause.Statements())
+	b.bindList(clause, clause.StatementList())
 }
 func (b *Binder) bindExpressionStatement(node ast.Handle) {
 	stmt := node
@@ -2008,7 +2029,7 @@ func (b *Binder) bindOptionalChainRest(node ast.Handle) bool {
 	case ast.KindCallExpression:
 		b.bind(node.QuestionDotToken())
 		b.bindList(node, node.TypeArgumentList())
-		b.bindEach(node.Arguments())
+		b.bindList(node, node.ArgumentList())
 	}
 	return false
 }
@@ -2019,8 +2040,8 @@ func (b *Binder) bindCallExpressionFlow(node ast.Handle) {
 	} else {
 		expr := ast.SkipParentheses(call.Expression())
 		if expr.Kind() == ast.KindFunctionExpression || expr.Kind() == ast.KindArrowFunction {
-			b.bindEach(call.TypeArguments())
-			b.bindEach(call.Arguments())
+			b.bindList(call, call.TypeArgumentList())
+			b.bindList(call, call.ArgumentList())
 			b.bind(call.Expression())
 		} else {
 			b.bindEachChild(node)
