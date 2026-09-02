@@ -8,7 +8,7 @@ func (h Handle) SubtreeFacts() SubtreeFacts {
 	if h.IsNil() {
 		return SubtreeFactsNone
 	}
-	if h.s.isSealedID(h.id) {
+	if h.s.frozenAt != 0 && h.id < h.s.frozenAt {
 		cached := atomic.LoadUint32(&h.s.subtreeFacts[h.id])
 		if SubtreeFacts(cached)&SubtreeFactsComputed != 0 {
 			return SubtreeFacts(cached) &^ SubtreeFactsComputed

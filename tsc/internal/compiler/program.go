@@ -260,6 +260,7 @@ type Program struct {
 	hasTSFile                      bool
 	packagesMapOnce                sync.Once
 	packagesMap                    map[string]bool
+	closed                         atomic.Bool
 }
 
 func (p *Program) FileExists(path string) bool {
@@ -620,11 +621,25 @@ func (p *Program) BindSourceFiles() {
 		wg.Queue(func() {
 			file.WarmJSDoc()
 			if s := file.ParseStore(); s != nil {
-				s.SealForCheck()
+				s.Freeze()
 			}
 		})
 	}
 	wg.RunAndWait()
+}
+
+// Close unregisters every checker synth Store in this program. Idempotent.
+func (p *Program) Close() {
+	if p == nil || !p.closed.CompareAndSwap(false, true) {
+		return
+	}
+	if p.compilerCheckerPool != nil {
+		p.compilerCheckerPool.Close()
+		return
+	}
+	if p.checkerPool != nil {
+		p.checkerPool.Close()
+	}
 }
 
 func (p *Program) GetTypeChecker(ctx context.Context) (*checker.Checker, func()) {

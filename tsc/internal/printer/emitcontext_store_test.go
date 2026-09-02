@@ -15,6 +15,7 @@ func TestEmitContextAppendsIntoParseStore(t *testing.T) {
 	opts := ast.SourceFileParseOptions{FileName: "/index.ts", Path: "/index.ts"}
 	file := parser.ParseSourceFile(opts, "export const x = 1;\n", core.ScriptKindTS)
 	ast.RegisterFile(file)
+	file.ParseStore().Freeze()
 	store := file.ParseStore()
 	before := store.Len()
 

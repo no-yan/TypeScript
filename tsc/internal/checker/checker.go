@@ -579,7 +579,7 @@ type Checker struct {
 	indexInfoArena                              core.Arena[IndexInfo]
 	mergedSymbols                               map[*ast.Symbol]*ast.Symbol
 	factory                                     *ast.Factory
-	stores                                      *ast.StoreSet
+	synth                                       *ast.Store
 	nodeLinks                                   core.LinkStore[ast.Handle, NodeLinks]
 	signatureLinks                              core.LinkStore[ast.Handle, SignatureLinks]
 	symbolNodeLinks                             nodeLinkStore[SymbolNodeLinks]
@@ -820,12 +820,9 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.program = program
 	c.compilerOptions = program.Options()
 	c.files = program.SourceFiles()
-	c.stores = ast.NewStoreSet()
-	for _, file := range c.files {
-		if file.ParseStore() != nil {
-			c.stores.BindFile(file)
-		}
-	}
+	c.synth = ast.NewStore(256)
+	ast.RegisterStore(c.synth)
+	c.factory = ast.NewFactoryOn(c.synth, ast.FactoryHooks{})
 	c.fileIndexMap = createFileIndexMap(c.files)
 	c.compareSymbols = c.compareSymbolsWorker
 	c.compareSymbolChains = c.compareSymbolChainsWorker
@@ -1032,6 +1029,60 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.initializeChecker()
 	return c, &c.mu
 }
+
+// Close unregisters the private synthetic Store. Idempotent.
+func (c *Checker) Close() {
+	if c == nil || c.synth == nil {
+		return
+	}
+	ast.UnregisterStore(c.synth)
+	c.synth = nil
+	c.factory = nil
+}
+
+// FactoryStore is the checker's private synthetic Store.
+func (c *Checker) FactoryStore() *ast.Store {
+	if c == nil {
+		return nil
+	}
+	return c.synth
+}
+
+func (c *Checker) AssertBinderSymbolsStayOnParseStores() {
+	if c == nil || c.synth == nil {
+		return
+	}
+	forbidden := c.synth.ID()
+	check := func(sym *ast.Symbol) {
+		if sym == nil || sym.CheckFlags != 0 {
+			return
+		}
+		if sym.ValueDeclaration.StoreID() == forbidden {
+			panic("checker: binder symbol ValueDeclaration on synth Store")
+		}
+		for _, d := range sym.Declarations {
+			if d.StoreID() == forbidden {
+				panic("checker: binder symbol Declaration on synth Store")
+			}
+		}
+	}
+	for _, file := range c.files {
+		if file == nil || file.ParseRoot().IsNil() {
+			continue
+		}
+		ast.Walk(file.ParseRoot(), func(h ast.Handle) bool {
+			check(h.Symbol())
+			check(h.LocalSymbol())
+			if locals := h.Locals(); locals != nil {
+				for _, s := range locals {
+					check(s)
+				}
+			}
+			return false
+		})
+	}
+}
+
 func createFileIndexMap(files []*ast.SourceFile) map[*ast.SourceFile]int {
 	result := make(map[*ast.SourceFile]int, len(files))
 	for i, file := range files {
@@ -1861,22 +1912,8 @@ func (c *Checker) getSymbol(symbols ast.SymbolTable, name string, meaning ast.Sy
 	}
 	return nil
 }
-func (c *Checker) storeFactory(file *ast.SourceFile) *ast.Factory {
-	if file == nil || file.ParseStore() == nil {
-		panic("checker: storeFactory missing parse Store")
-	}
-	return ast.NewFactoryOn(file.ParseStore(), ast.FactoryHooks{})
-}
 func (c *Checker) checkSourceFile(ctx context.Context, sourceFile *ast.SourceFile, checkUnused bool) {
 	c.ctx = ctx
-	if s := sourceFile.ParseStore(); s != nil {
-		unlockStore := sourceFile.LockParseStoreWriter()
-		defer unlockStore()
-		c.factory = ast.NewFactoryOn(s, ast.FactoryHooks{})
-		if c.storeFactory(sourceFile).Store() != s {
-			panic("checker: storeFactory Store mismatch")
-		}
-	}
 	links := c.sourceFileLinks.Get(sourceFile)
 	if !links.typeChecked {
 		if tr := c.tracer; tr != nil {
@@ -12855,7 +12892,7 @@ func (c *Checker) resolveExternalModule(location ast.Handle, moduleReference str
 					}
 					c.error(errorNode, diagnostics.An_import_path_can_only_end_with_a_0_extension_when_allowImportingTsExtensions_is_enabled, tsExtension)
 				}
-				} else if c.compilerOptions.RewriteRelativeImportExtensions.IsTrue() && importingSourceFile != nil && location.Flags()&ast.NodeFlagsAmbient == 0 && !tspath.IsDeclarationFileName(moduleReference) && !ast.IsLiteralImportTypeNode(location) && !ast.IsPartOfTypeOnlyImportOrExportDeclaration(location) {
+			} else if c.compilerOptions.RewriteRelativeImportExtensions.IsTrue() && importingSourceFile != nil && location.Flags()&ast.NodeFlagsAmbient == 0 && !tspath.IsDeclarationFileName(moduleReference) && !ast.IsLiteralImportTypeNode(location) && !ast.IsPartOfTypeOnlyImportOrExportDeclaration(location) {
 				shouldRewrite := core.ShouldRewriteModuleSpecifier(moduleReference, c.compilerOptions)
 				if !resolvedModule.ResolvedUsingTsExtension && shouldRewrite {
 					relativeToSourceFile := tspath.GetRelativePathFromFile(tspath.GetNormalizedAbsolutePath(importingSourceFile.FileName(), c.program.GetCurrentDirectory()), resolvedModule.ResolvedFileName, tspath.ComparePathsOptions{UseCaseSensitiveFileNames: c.program.UseCaseSensitiveFileNames(), CurrentDirectory: c.program.GetCurrentDirectory()})

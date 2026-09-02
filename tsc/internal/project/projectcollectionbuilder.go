@@ -1250,7 +1250,7 @@ func (b *ProjectCollectionBuilder) updateProgram(entry dirty.Value[*Project], lo
 				project.dirtyFilePath = ""
 				b.releaseDroppedProjectReferences(oldProgram, result.Program, project.configFilePath)
 				if oldCheckerPool != nil {
-					oldCheckerPool.Discard()
+					oldCheckerPool.Close()
 				}
 			})
 		})

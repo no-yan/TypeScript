@@ -212,39 +212,47 @@ func walkStore(h ast.Handle, visit func(ast.Handle)) {
 	}
 }
 
-func TestSealForCheckKeepsParseScalarsAndIsolatesLiveWrites(t *testing.T) {
+func TestFreezeKeepsParseScalars(t *testing.T) {
 	t.Parallel()
 	f := ast.NewFactory(ast.FactoryHooks{})
 	clause := f.NewHeritageClause(ast.KindExtendsKeyword, 0)
 	assert.Equal(t, ast.KindExtendsKeyword, clause.HeritageClauseToken())
-	f.Store().SealForCheck()
-	assert.Equal(t, ast.KindExtendsKeyword, clause.HeritageClauseToken())
-
-	synth := f.Store().Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
-	synth.SetUintValue(1, 7)
-	assert.Equal(t, uint64(7), synth.UintValue(1))
+	f.Store().Freeze()
 	assert.Equal(t, ast.KindExtendsKeyword, clause.HeritageClauseToken())
 }
 
-func TestSealForCheckRejectsParseScalarWrites(t *testing.T) {
+func TestFreezeRejectsWrites(t *testing.T) {
 	t.Parallel()
 	f := ast.NewFactory(ast.FactoryHooks{})
 	clause := f.NewHeritageClause(ast.KindExtendsKeyword, 0)
-	f.Store().SealForCheck()
+	f.Store().Freeze()
 	defer func() {
 		if recover() == nil {
-			t.Fatal("expected panic on sealed parse write")
+			t.Fatal("expected panic on frozen Store write")
 		}
 	}()
 	clause.SetHeritageClauseToken(ast.KindImplementsKeyword)
 }
 
-func TestSealForCheckAllowsParallelParseReadAndLiveWrite(t *testing.T) {
+func TestFreezeRejectsAlloc(t *testing.T) {
+	t.Parallel()
+	f := ast.NewFactory(ast.FactoryHooks{})
+	f.Store().Freeze()
+	defer func() {
+		if recover() == nil {
+			t.Fatal("expected panic on AllocSlots of frozen Store")
+		}
+	}()
+	f.Store().Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
+}
+
+func TestFreezeAllowsParallelParseRead(t *testing.T) {
 	t.Parallel()
 	f := ast.NewFactory(ast.FactoryHooks{})
 	clause := f.NewHeritageClause(ast.KindExtendsKeyword, 0)
-	f.Store().SealForCheck()
-	synth := f.Store().Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
+	f.Store().Freeze()
+	live := ast.NewStore(8)
+	synth := live.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
 
 	var wg sync.WaitGroup
 	wg.Add(3)
@@ -271,4 +279,40 @@ func TestSealForCheckAllowsParallelParseReadAndLiveWrite(t *testing.T) {
 		}
 	}()
 	wg.Wait()
+}
+
+func TestEnterEmitAllowsMutation(t *testing.T) {
+	t.Parallel()
+	f := ast.NewFactory(ast.FactoryHooks{})
+	clause := f.NewHeritageClause(ast.KindExtendsKeyword, 0)
+	f.Store().Freeze()
+	f.Store().EnterEmit()
+	clause.SetHeritageClauseToken(ast.KindImplementsKeyword)
+	assert.Equal(t, ast.KindImplementsKeyword, clause.HeritageClauseToken())
+	id := f.Store().Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
+	assert.Assert(t, !id.IsNil())
+}
+
+func TestEnterEmitBeforeFreezePanics(t *testing.T) {
+	t.Parallel()
+	s := ast.NewStore(2)
+	defer func() {
+		if recover() == nil {
+			t.Fatal("expected panic on EnterEmit before Freeze")
+		}
+	}()
+	s.EnterEmit()
+}
+
+func TestFreezeAfterEnterEmitPanics(t *testing.T) {
+	t.Parallel()
+	s := ast.NewStore(2)
+	s.Freeze()
+	s.EnterEmit()
+	defer func() {
+		if recover() == nil {
+			t.Fatal("expected panic on Freeze after EnterEmit")
+		}
+	}()
+	s.Freeze()
 }

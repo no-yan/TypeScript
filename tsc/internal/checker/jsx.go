@@ -1173,10 +1173,7 @@ func (c *Checker) getJsxNamespaceAt(location ast.Handle) *ast.Symbol {
 	return s
 }
 func sourceFileOf(h ast.Handle) *ast.SourceFile {
-	if h.IsNil() || h.Store() == nil {
-		return nil
-	}
-	return h.Store().SourceFile()
+	return ast.GetSourceFileOfNode(h)
 }
 
 func (c *Checker) getJsxNamespace(location ast.Handle) string {
@@ -1262,7 +1259,7 @@ func (c *Checker) ensureFileJsxFactory(file *ast.SourceFile) ast.Handle {
 			return entity
 		}
 	}
-	f := c.storeFactory(file)
+	f := c.factory
 	ns := c._jsxNamespace
 	if ns == "" {
 		ns = "React"
@@ -1295,7 +1292,7 @@ func (c *Checker) getJsxFragmentFactoryEntity(location ast.Handle) ast.Handle {
 	return ast.Handle{}
 }
 func (c *Checker) parseIsolatedEntityName(file *ast.SourceFile, name string) ast.Handle {
-	result := parser.ParseIsolatedEntityName(c.storeFactory(file), name)
+	result := parser.ParseIsolatedEntityName(c.factory, name)
 	if !result.IsNil() {
 		markAsSynthetic(result)
 	}

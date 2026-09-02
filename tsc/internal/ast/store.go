@@ -49,60 +49,50 @@ type listHeader struct {
 	len   uint32
 }
 
-// Store owns the long-lived tree. Parse, bind, and JSDoc warmup write it
-// exclusively. SealForCheck then publishes the parse-time side maps as
-// immutable so parallel checkers can read other files while the owning
-// checker appends synthetics into the live maps. Live-map writes still
-// require the per-file writer lease; NewFactoryOn does not relax that.
-// Program.Emit is sequential because declaration transform reads other
-// files while this file AllocSlots.
+type storePhase uint8
+
+const (
+	storePhaseBuild storePhase = iota
+	storePhaseCheck
+	storePhaseEmit
+)
+
+// Store owns the long-lived tree. One writer for life. Parse, bind, and JSDoc
+// warmup write during build. Freeze publishes the Store as immutable for
+// parallel check (no append, no map writes except SubtreeFacts atomics).
+// EnterEmit reopens mutation for sequential emit transforms.
 //
 // StoreSet is separately synchronized for cross-file registration and lookup.
-// After Seal, node/list/intern backing arrays are pointer-free (noscan).
-// Sparse side maps (symbols) remain scannable on purpose: only declaration
-// nodes use them.
+// After Freeze, internIdx is dropped so node/list/intern backing arrays stay
+// pointer-free (noscan).
 type Store struct {
-	id            atomic.Uint32 // StoreID assigned by StoreSet.Add; 0 until registered
-	allocHint     int
-	nodes         []nodeHeader
-	lists         []listHeader
-	children      []NodeRef
-	listSlots     []ListRef
-	internBuf     []byte
-	internOff     []uint32 // intern id i occupies internBuf[internOff[i]:internOff[i+1]]
-	internIdx     map[string]uint32
-	symbols       map[NodeRef]*Symbol
-	localSymbols  map[NodeRef]*Symbol
-	flows         map[NodeRef]*FlowNode
-	endFlows      map[NodeRef]*FlowNode
-	returnFlows   map[NodeRef]*FlowNode
-	locals        map[NodeRef]SymbolTable
-	nextContainer map[NodeRef]NodeRef
-	scalarValues  map[uint64]uint64 // packed NodeRef/value-slot key; pointer-free
-	stringValues  map[uint64]uint32 // intern ids keyed by NodeRef/value-slot
-	objectValues  map[uint64]any    // sparse pointer/slice kind-specific values
+	id             atomic.Uint32 // StoreID assigned by StoreSet.Add; 0 until registered
+	allocHint      int
+	phase          storePhase
+	frozenAt       NodeRef
+	freezeOnce     sync.Once
+	nodes          []nodeHeader
+	lists          []listHeader
+	children       []NodeRef
+	listSlots      []ListRef
+	internBuf      []byte
+	internOff      []uint32 // intern id i occupies internBuf[internOff[i]:internOff[i+1]]
+	internIdx      map[string]uint32
+	symbols        map[NodeRef]*Symbol
+	localSymbols   map[NodeRef]*Symbol
+	flows          map[NodeRef]*FlowNode
+	endFlows       map[NodeRef]*FlowNode
+	returnFlows    map[NodeRef]*FlowNode
+	locals         map[NodeRef]SymbolTable
+	nextContainer  map[NodeRef]NodeRef
+	scalarValues   map[uint64]uint64 // packed NodeRef/value-slot key; pointer-free
+	stringValues   map[uint64]uint32 // intern ids keyed by NodeRef/value-slot
+	objectValues   map[uint64]any    // sparse pointer/slice kind-specific values
 	externalChild  map[uint64]GlobalRef
 	externalList   map[uint64]GlobalRef
 	externalParent map[NodeRef]GlobalRef
-	// parse* maps are published by SealForCheck and then immutable.
-	// Live maps (the matching fields above) hold synthetics with id >= sealed.
-	// Tree edges (parent/child/list) stay on the original maps because emit
-	// reuses parse nodes. subtreeFacts caches parse-node SubtreeFacts without
-	// writing parseScalar.
-	sealed             NodeRef
-	sealOnce           sync.Once
-	parseSymbols       map[NodeRef]*Symbol
-	parseLocalSymbols  map[NodeRef]*Symbol
-	parseFlows         map[NodeRef]*FlowNode
-	parseEndFlows      map[NodeRef]*FlowNode
-	parseReturnFlows   map[NodeRef]*FlowNode
-	parseLocals        map[NodeRef]SymbolTable
-	parseNextContainer map[NodeRef]NodeRef
-	parseScalar        map[uint64]uint64
-	parseString        map[uint64]uint32
-	parseObject        map[uint64]any
-	subtreeFacts       []uint32
-	sourceFile         *SourceFile // metadata owner; SourceFile fields stay outside Store
+	subtreeFacts   []uint32
+	sourceFile     *SourceFile // metadata owner; SourceFile fields stay outside Store
 }
 
 func NewStore(hint int) *Store {
@@ -129,6 +119,7 @@ func (s *Store) AllocSlots(kind Kind, flags NodeFlags, loc core.TextRange, child
 	if s == nil {
 		panic("ast: Alloc on nil Store")
 	}
+	s.mustMutate()
 	if childLen < 0 {
 		panic("ast: negative childLen")
 	}
@@ -164,6 +155,7 @@ func (s *Store) AllocList(loc core.TextRange, n int) ListRef {
 	if s == nil {
 		panic("ast: AllocList on nil Store")
 	}
+	s.mustMutate()
 	if n < 0 {
 		panic("ast: negative list length")
 	}
@@ -188,6 +180,7 @@ func (s *Store) Intern(text string) uint32 {
 	if text == "" {
 		return 0
 	}
+	s.mustMutate()
 	if id, ok := s.internIdx[text]; ok {
 		return id
 	}
@@ -204,59 +197,43 @@ func (s *Store) Seal() {
 	s.internIdx = nil
 }
 
-// SealForCheck publishes parse-time side maps as immutable. Bind and JSDoc
-// warmup must have finished. After this, writes to nodes allocated before the
-// seal panic; synthetics use the live maps. SubtreeFacts for sealed nodes
-// goes to subtreeFacts, not parseScalar.
-func (s *Store) SealForCheck() {
+// Freeze is build → check. Idempotent if already check. Panics if phase is emit.
+func (s *Store) Freeze() {
 	if s == nil {
 		return
 	}
-	s.sealOnce.Do(func() {
-		s.sealed = NodeRef(len(s.nodes))
-		s.parseSymbols, s.symbols = s.symbols, nil
-		s.parseLocalSymbols, s.localSymbols = s.localSymbols, nil
-		s.parseFlows, s.flows = s.flows, nil
-		s.parseEndFlows, s.endFlows = s.endFlows, nil
-		s.parseReturnFlows, s.returnFlows = s.returnFlows, nil
-		s.parseLocals, s.locals = s.locals, nil
-		s.parseNextContainer, s.nextContainer = s.nextContainer, nil
-		s.parseScalar, s.scalarValues = s.scalarValues, nil
-		s.parseString, s.stringValues = s.stringValues, nil
-		s.parseObject, s.objectValues = s.objectValues, nil
+	s.freezeOnce.Do(func() {
+		if s.phase == storePhaseEmit {
+			panic("ast: Freeze after EnterEmit")
+		}
+		s.phase = storePhaseCheck
+		s.frozenAt = NodeRef(len(s.nodes))
+		s.internIdx = nil
 		s.subtreeFacts = make([]uint32, len(s.nodes))
 	})
-}
-
-func (s *Store) isSealedID(id NodeRef) bool {
-	return s != nil && s.sealed != 0 && id < s.sealed
-}
-
-func (s *Store) mustMutate(id NodeRef) {
-	if s.isSealedID(id) {
-		panic("ast: write to sealed parse node")
+	if s.phase == storePhaseEmit {
+		panic("ast: Freeze after EnterEmit")
 	}
 }
 
-func (s *Store) scalarMap(id NodeRef) map[uint64]uint64 {
-	if s.isSealedID(id) {
-		return s.parseScalar
+// EnterEmit is check → emit. Idempotent if already emit. Panics if still build. No reverse.
+func (s *Store) EnterEmit() {
+	if s == nil {
+		return
 	}
-	return s.scalarValues
+	switch s.phase {
+	case storePhaseEmit:
+		return
+	case storePhaseBuild:
+		panic("ast: EnterEmit before Freeze")
+	}
+	s.phase = storePhaseEmit
 }
 
-func (s *Store) stringMap(id NodeRef) map[uint64]uint32 {
-	if s.isSealedID(id) {
-		return s.parseString
+func (s *Store) mustMutate() {
+	if s != nil && s.phase == storePhaseCheck {
+		panic("ast: write to frozen Store")
 	}
-	return s.stringValues
-}
-
-func (s *Store) objectMap(id NodeRef) map[uint64]any {
-	if s.isSealedID(id) {
-		return s.parseObject
-	}
-	return s.objectValues
 }
 
 // StoreCheckpoint is a speculative-parse watermark. Restore truncates node,
@@ -382,6 +359,7 @@ func (s *Store) setListLoc(list ListRef, loc core.TextRange) {
 	if list == 0 || s == nil {
 		return
 	}
+	s.mustMutate()
 	s.lists[list].pos = int32(loc.Pos())
 	s.lists[list].end = int32(loc.End())
 }
@@ -390,6 +368,7 @@ func (s *Store) SetListAt(list ListRef, i int, h Handle) {
 	if list == 0 || s == nil {
 		panic("ast: SetListAt on missing list")
 	}
+	s.mustMutate()
 	l := &s.lists[list]
 	if i < 0 || i >= int(l.len) {
 		panic("ast: list index out of range")
@@ -408,6 +387,7 @@ func (s *Store) SetExternalListAt(list ListRef, i int, child GlobalRef) {
 	if list == 0 || s == nil {
 		panic("ast: SetExternalListAt on missing list")
 	}
+	s.mustMutate()
 	l := &s.lists[list]
 	if i < 0 || i >= int(l.len) {
 		panic("ast: list index out of range")
@@ -441,7 +421,7 @@ func (s *Store) SetSymbol(ref NodeRef, sym *Symbol) {
 	if s == nil || ref == 0 {
 		return
 	}
-	s.mustMutate(ref)
+	s.mustMutate()
 	if sym == nil {
 		delete(s.symbols, ref)
 		return
@@ -456,9 +436,6 @@ func (s *Store) Symbol(ref NodeRef) *Symbol {
 	if s == nil || ref == 0 {
 		return nil
 	}
-	if s.isSealedID(ref) {
-		return s.parseSymbols[ref]
-	}
 	return s.symbols[ref]
 }
 
@@ -466,7 +443,7 @@ func (s *Store) SetLocalSymbol(ref NodeRef, sym *Symbol) {
 	if s == nil || ref == 0 {
 		return
 	}
-	s.mustMutate(ref)
+	s.mustMutate()
 	if sym == nil {
 		delete(s.localSymbols, ref)
 		return
@@ -481,9 +458,6 @@ func (s *Store) LocalSymbol(ref NodeRef) *Symbol {
 	if s == nil || ref == 0 {
 		return nil
 	}
-	if s.isSealedID(ref) {
-		return s.parseLocalSymbols[ref]
-	}
 	return s.localSymbols[ref]
 }
 
@@ -491,7 +465,7 @@ func (s *Store) SetFlow(ref NodeRef, flow *FlowNode) {
 	if s == nil || ref == 0 {
 		return
 	}
-	s.mustMutate(ref)
+	s.mustMutate()
 	if flow == nil {
 		delete(s.flows, ref)
 		return
@@ -506,9 +480,6 @@ func (s *Store) Flow(ref NodeRef) *FlowNode {
 	if s == nil || ref == 0 {
 		return nil
 	}
-	if s.isSealedID(ref) {
-		return s.parseFlows[ref]
-	}
 	return s.flows[ref]
 }
 
@@ -516,7 +487,7 @@ func (s *Store) SetEndFlow(ref NodeRef, flow *FlowNode) {
 	if s == nil || ref == 0 {
 		return
 	}
-	s.mustMutate(ref)
+	s.mustMutate()
 	if flow == nil {
 		delete(s.endFlows, ref)
 		return
@@ -531,9 +502,6 @@ func (s *Store) EndFlow(ref NodeRef) *FlowNode {
 	if s == nil || ref == 0 {
 		return nil
 	}
-	if s.isSealedID(ref) {
-		return s.parseEndFlows[ref]
-	}
 	return s.endFlows[ref]
 }
 
@@ -541,7 +509,7 @@ func (s *Store) SetReturnFlow(ref NodeRef, flow *FlowNode) {
 	if s == nil || ref == 0 {
 		return
 	}
-	s.mustMutate(ref)
+	s.mustMutate()
 	if flow == nil {
 		delete(s.returnFlows, ref)
 		return
@@ -556,9 +524,6 @@ func (s *Store) ReturnFlow(ref NodeRef) *FlowNode {
 	if s == nil || ref == 0 {
 		return nil
 	}
-	if s.isSealedID(ref) {
-		return s.parseReturnFlows[ref]
-	}
 	return s.returnFlows[ref]
 }
 
@@ -566,7 +531,7 @@ func (s *Store) SetLocals(ref NodeRef, locals SymbolTable) {
 	if s == nil || ref == 0 {
 		return
 	}
-	s.mustMutate(ref)
+	s.mustMutate()
 	if locals == nil {
 		delete(s.locals, ref)
 		return
@@ -581,9 +546,6 @@ func (s *Store) Locals(ref NodeRef) SymbolTable {
 	if s == nil || ref == 0 {
 		return nil
 	}
-	if s.isSealedID(ref) {
-		return s.parseLocals[ref]
-	}
 	return s.locals[ref]
 }
 
@@ -591,7 +553,7 @@ func (s *Store) SetNextContainer(ref NodeRef, next NodeRef) {
 	if s == nil || ref == 0 {
 		return
 	}
-	s.mustMutate(ref)
+	s.mustMutate()
 	if next == 0 {
 		delete(s.nextContainer, ref)
 		return
@@ -606,9 +568,6 @@ func (s *Store) NextContainer(ref NodeRef) NodeRef {
 	if s == nil || ref == 0 {
 		return 0
 	}
-	if s.isSealedID(ref) {
-		return s.parseNextContainer[ref]
-	}
 	return s.nextContainer[ref]
 }
 
@@ -621,7 +580,7 @@ func (h Handle) valueKey(slot int) uint64 {
 }
 
 func (h Handle) SetUintValue(slot int, value uint64) {
-	h.s.mustMutate(h.id)
+	h.s.mustMutate()
 	key := h.valueKey(slot)
 	if h.s.scalarValues == nil {
 		h.s.scalarValues = make(map[uint64]uint64, max(1, h.s.allocHint/16))
@@ -630,11 +589,11 @@ func (h Handle) SetUintValue(slot int, value uint64) {
 }
 
 func (h Handle) UintValue(slot int) uint64 {
-	return h.s.scalarMap(h.id)[h.valueKey(slot)]
+	return h.s.scalarValues[h.valueKey(slot)]
 }
 
 func (h Handle) SetStringValue(slot int, value string) {
-	h.s.mustMutate(h.id)
+	h.s.mustMutate()
 	key := h.valueKey(slot)
 	if value == "" {
 		if primaryStringSlot(h.Kind()) == slot {
@@ -657,7 +616,7 @@ func (h Handle) StringValue(slot int) string {
 	if primaryStringSlot(h.Kind()) == slot {
 		return h.Ident()
 	}
-	id := h.s.stringMap(h.id)[h.valueKey(slot)]
+	id := h.s.stringValues[h.valueKey(slot)]
 	if id == 0 {
 		return ""
 	}
@@ -665,7 +624,7 @@ func (h Handle) StringValue(slot int) string {
 }
 
 func (h Handle) SetObjectValue(slot int, value any) {
-	h.s.mustMutate(h.id)
+	h.s.mustMutate()
 	key := h.valueKey(slot)
 	if value == nil {
 		delete(h.s.objectValues, key)
@@ -679,7 +638,7 @@ func (h Handle) SetObjectValue(slot int, value any) {
 
 func storeObjectValue[T any](h Handle, slot int) T {
 	var zero T
-	value := h.s.objectMap(h.id)[h.valueKey(slot)]
+	value := h.s.objectValues[h.valueKey(slot)]
 	if value == nil {
 		return zero
 	}
@@ -730,6 +689,7 @@ func (h Handle) Flags() NodeFlags {
 
 func (h Handle) SetFlags(flags NodeFlags) {
 	h.mustLive()
+	h.s.mustMutate()
 	h.s.nodes[h.id].flags = flags
 }
 
@@ -740,6 +700,7 @@ func (h Handle) TokenFlags() TokenFlags {
 
 func (h Handle) SetTokenFlags(flags TokenFlags) {
 	h.mustLive()
+	h.s.mustMutate()
 	h.s.nodes[h.id].tokenFlags = flags
 }
 
@@ -751,6 +712,7 @@ func (h Handle) Loc() core.TextRange {
 
 func (h Handle) SetLoc(loc core.TextRange) {
 	h.mustLive()
+	h.s.mustMutate()
 	n := &h.s.nodes[h.id]
 	n.pos = int32(loc.Pos())
 	n.end = int32(loc.End())
@@ -771,6 +733,7 @@ func (h Handle) Parent() Handle {
 
 func (h Handle) SetParent(p Handle) {
 	h.mustLive()
+	h.s.mustMutate()
 	if p.id == 0 || p.s == nil {
 		h.s.nodes[h.id].parent = 0
 		delete(h.s.externalParent, h.id)
@@ -812,6 +775,7 @@ func (h Handle) Child(i int) Handle {
 
 func (h Handle) SetChild(i int, c Handle) {
 	h.mustLive()
+	h.s.mustMutate()
 	n := &h.s.nodes[h.id]
 	if i < 0 || i >= int(n.childLen) {
 		panic("ast: child index out of range")
@@ -833,6 +797,7 @@ func (h Handle) SetChild(i int, c Handle) {
 
 func (h Handle) SetExternalChild(i int, child GlobalRef) {
 	h.mustLive()
+	h.s.mustMutate()
 	n := &h.s.nodes[h.id]
 	if i < 0 || i >= int(n.childLen) {
 		panic("ast: child index out of range")
@@ -862,6 +827,7 @@ func (h Handle) ExternalChild(i int) GlobalRef {
 
 func (h Handle) SetIdent(internID uint32) {
 	h.mustLive()
+	h.s.mustMutate()
 	if internID >= uint32(len(h.s.internOff)-1) {
 		panic("ast: intern id out of range")
 	}
@@ -978,6 +944,7 @@ func (h Handle) ListSlot(i int) ListRef {
 
 func (h Handle) SetListSlot(i int, list ListRef) {
 	h.mustLive()
+	h.s.mustMutate()
 	n := &h.s.nodes[h.id]
 	if i < 0 || i >= int(n.listLen) {
 		panic("ast: list slot out of range")
@@ -998,6 +965,7 @@ func (h Handle) List() ListRef {
 
 func (h Handle) SetList(list ListRef) {
 	h.mustLive()
+	h.s.mustMutate()
 	n := &h.s.nodes[h.id]
 	if n.listLen == 0 {
 		panic("ast: SetList on node with no list slots")

@@ -56,6 +56,21 @@ func RegisterStore(s *Store) StoreID {
 	return identitySet().Add(s)
 }
 
+// UnregisterStore nils the identity slot. It does not compact, reset s.id, or
+// empty side maps, so StoreIDs are never reused. NodeOf on that id returns
+// Handle{}. Idempotent on nil or already-removed Stores.
+func UnregisterStore(s *Store) {
+	if s == nil {
+		return
+	}
+	identitySet().Remove(s)
+}
+
+// RegisteredStoreCount is the number of non-nil identity slots.
+func RegisteredStoreCount() int {
+	return identitySet().liveCount()
+}
+
 func NodeOf(g GlobalRef) Handle {
 	return identitySet().At(g)
 }
@@ -93,6 +108,39 @@ func (ss *StoreSet) BindFile(file *SourceFile) {
 	ss.SetFile(s.ID(), file)
 }
 
+func (ss *StoreSet) Remove(s *Store) {
+	if ss == nil || s == nil {
+		return
+	}
+	id := s.ID()
+	if id == 0 {
+		return
+	}
+	ss.mu.Lock()
+	defer ss.mu.Unlock()
+	idx := int(id - 1)
+	if idx < 0 || idx >= len(ss.stores) {
+		return
+	}
+	ss.stores[idx] = nil
+	ss.files[idx] = nil
+}
+
+func (ss *StoreSet) liveCount() int {
+	if ss == nil {
+		return 0
+	}
+	ss.mu.RLock()
+	defer ss.mu.RUnlock()
+	n := 0
+	for _, s := range ss.stores {
+		if s != nil {
+			n++
+		}
+	}
+	return n
+}
+
 func (ss *StoreSet) adopt(s *Store) {
 	if s == nil || s.id.Load() == 0 {
 		return
@@ -106,7 +154,6 @@ func (ss *StoreSet) adopt(s *Store) {
 	}
 	ss.stores[idx] = s
 }
-
 
 func (ss *StoreSet) SetFile(id StoreID, file *SourceFile) {
 	if id == 0 {

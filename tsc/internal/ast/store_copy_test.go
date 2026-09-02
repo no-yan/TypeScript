@@ -73,11 +73,11 @@ func TestFactoryCopySubtreeRemapsList(t *testing.T) {
 	assert.Equal(t, copied.Store(), ca.Store())
 }
 
-func TestFactoryCopySubtreeAfterSealForCheckCopiesScalars(t *testing.T) {
+func TestFactoryCopySubtreeAfterFreezeCopiesScalars(t *testing.T) {
 	t.Parallel()
 	parse := ast.NewFactory(ast.FactoryHooks{})
 	clause := parse.NewHeritageClause(ast.KindExtendsKeyword, 0)
-	parse.Store().SealForCheck()
+	parse.Store().Freeze()
 
 	emit := ast.NewFactory(ast.FactoryHooks{})
 	copied := emit.CopySubtree(clause)

@@ -23,7 +23,11 @@ func NewDiagnosticForNode(node ast.Handle, message *diagnostics.Message, args ..
 	var loc core.TextRange
 	if !node.IsNil() {
 		file = ast.GetSourceFileOfNode(node)
-		loc = scanner.GetErrorRangeForNode(file, node)
+		if file != nil {
+			loc = scanner.GetErrorRangeForNode(file, node)
+		} else {
+			loc = node.Loc()
+		}
 	}
 	return ast.NewDiagnostic(file, loc, message, args...)
 }

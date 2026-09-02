@@ -53,17 +53,17 @@ func (c *subtreeCopier) copy(ref NodeRef) Handle {
 	dst.SetEndFlowNode(src.EndFlowNode())
 	dst.SetReturnFlowNode(src.ReturnFlowNode())
 	dst.SetLocals(src.Locals())
-	for key, value := range c.src.scalarMap(ref) {
+	for key, value := range c.src.scalarValues {
 		if NodeRef(key>>32) == ref {
 			dst.SetUintValue(int(uint32(key)), value)
 		}
 	}
-	for key, value := range c.src.stringMap(ref) {
+	for key, value := range c.src.stringValues {
 		if NodeRef(key>>32) == ref {
 			dst.SetStringValue(int(uint32(key)), c.src.internText(value))
 		}
 	}
-	for key, value := range c.src.objectMap(ref) {
+	for key, value := range c.src.objectValues {
 		if NodeRef(key>>32) == ref {
 			dst.SetObjectValue(int(uint32(key)), value)
 		}

@@ -46,6 +46,8 @@ type Program struct {
 var _ compiler.ProgramLike = (*Program)(nil)
 
 func NewProgram(program *compiler.Program, oldProgram *Program, host Host, nestedEmitNow func() time.Time, testing bool) *Program {
+	// Snapshot readers walk Statements() on a work group. Bind first.
+	program.BindSourceFiles()
 	incrementalProgram := &Program{
 		snapshot:      programToSnapshot(program, oldProgram, testing),
 		program:       program,

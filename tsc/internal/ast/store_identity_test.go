@@ -167,3 +167,34 @@ func TestSourceFileSerializesParseStoreWriters(t *testing.T) {
 	assert.Equal(t, root.Ref(), store.At(root.Ref()).Ref())
 	assert.Equal(t, root.Ref(), ast.NodeOf(root.Global()).Ref())
 }
+
+func TestUnregisterStoreNilsIdentitySlot(t *testing.T) {
+	t.Parallel()
+	s := ast.NewStore(2)
+	id := ast.RegisterStore(s)
+	h := s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
+	g := h.Global()
+	assert.Equal(t, h.Ref(), ast.NodeOf(g).Ref())
+	ast.UnregisterStore(s)
+	assert.Equal(t, ast.Handle{}, ast.NodeOf(g))
+	assert.Equal(t, id, s.ID())
+	ast.UnregisterStore(s)
+	ast.UnregisterStore(nil)
+}
+
+func TestGetSourceFileOfNodeWalksParentThenNil(t *testing.T) {
+	t.Parallel()
+	file, root := registeredSourceFile()
+	ctor := file.ParseStore().Alloc(ast.KindConstructor, 0, core.UndefinedTextRange(), 0)
+	ctor.SetParent(root)
+
+	synthStore := ast.NewStore(4)
+	ast.RegisterStore(synthStore)
+	t.Cleanup(func() { ast.UnregisterStore(synthStore) })
+	synth := synthStore.Alloc(ast.KindPropertyAccessExpression, ast.NodeFlagsSynthesized, core.UndefinedTextRange(), 2)
+	synth.SetParent(ctor)
+	assert.Equal(t, file, ast.GetSourceFileOfNode(synth))
+
+	orphan := synthStore.Alloc(ast.KindFunctionType, ast.NodeFlagsSynthesized, core.UndefinedTextRange(), 0)
+	assert.Assert(t, ast.GetSourceFileOfNode(orphan) == nil)
+}

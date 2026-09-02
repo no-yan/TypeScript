@@ -80,6 +80,7 @@ func (c *EmitContext) LockParseStoreWriter(file *ast.SourceFile) func() {
 		return func() {}
 	}
 	unlock := file.LockParseStoreWriter()
+	file.ParseStore().EnterEmit()
 	c.storeFile = file
 	ast.RegisterFile(file)
 	c.Factory.Factory = ast.NewFactoryOn(file.ParseStore(), c.factoryHooks())

@@ -868,7 +868,16 @@ func GetSourceFileOfNode(node Handle) *SourceFile {
 	if node.IsNil() {
 		return nil
 	}
-	return node.Store().SourceFile()
+	if file := node.Store().SourceFile(); file != nil {
+		return file
+	}
+	for !node.IsNil() {
+		if node.Kind() == KindSourceFile {
+			return node.Store().SourceFile()
+		}
+		node = node.Parent()
+	}
+	return nil
 }
 
 var setParentInChildrenPool = sync.Pool{
