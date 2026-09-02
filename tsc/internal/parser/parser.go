@@ -277,7 +277,6 @@ func ParseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptK
 	p.finishSourceFile(result, isDeclarationFile && p.scriptKind != core.ScriptKindJSON)
 	result.SetParseStore(p.factory.Store(), root)
 	ast.SetExternalModuleIndicator(result, p.opts.ExternalModuleIndicatorOptions)
-	result.RecordParseIdentifiers()
 	if p.scriptKind == core.ScriptKindJSON {
 		stmts := root.SourceFileStatements()
 		if stmts != 0 && p.factory.Store().ListLen(stmts) > 0 {
