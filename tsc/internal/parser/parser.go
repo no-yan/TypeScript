@@ -777,7 +777,7 @@ func (p *Parser) parseListIndex(kind ParsingContext, parseElement func(p *Parser
 	}
 	p.reparseList = outerReparseList
 	p.parsingContexts = saveParsingContexts
-	return slices.Clone(list)
+	return list
 }
 
 func (p *Parser) parseList(kind ParsingContext, parseElement func(p *Parser) ast.Handle) ast.ListRef {
@@ -841,7 +841,7 @@ func (p *Parser) parseDelimitedList(kind ParsingContext, parseElement func(p *Pa
 		}
 	}
 	p.parsingContexts = saveParsingContexts
-	return p.newList(core.NewTextRange(pos, p.nodePos()), slices.Clone(list))
+	return p.newList(core.NewTextRange(pos, p.nodePos()), list)
 }
 
 // Return a non-nil (but possibly empty) NodeList if parsing was successful, a missing NodeList if the opening
@@ -2826,7 +2826,7 @@ func (p *Parser) parseUnionOrIntersectionType(operator ast.Kind, parseConstituen
 		for p.parseOptional(operator) {
 			types = append(types, p.parseFunctionOrConstructorTypeToError(isUnionType, parseConstituentType))
 		}
-		typeNode = p.createUnionOrIntersectionTypeNode(operator, p.newList(core.NewTextRange(pos, p.nodePos()), slices.Clone(types)))
+		typeNode = p.createUnionOrIntersectionTypeNode(operator, p.newList(core.NewTextRange(pos, p.nodePos()), types))
 		p.finishHandle(typeNode, pos)
 	}
 	return typeNode
@@ -4060,7 +4060,7 @@ func (p *Parser) parseModifiersEx(allowDecorators bool, permitConstAsModifier bo
 		}
 	}
 	if len(list) != 0 {
-		return p.newList(core.NewTextRange(pos, p.nodePos()), slices.Clone(list))
+		return p.newList(core.NewTextRange(pos, p.nodePos()), list)
 	}
 	return 0
 }
