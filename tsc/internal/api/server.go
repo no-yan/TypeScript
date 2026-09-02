@@ -21,17 +21,22 @@ type StdioServerOptions struct {
 	Cwd                string
 	DefaultLibraryPath string
 	// PipePath, if set, listens on a named pipe (Windows) or Unix domain
-	// socket instead of using In/Out for communication.PipePath string
+	// socket instead of using In/Out for communication.
+	PipePath string
 	// Callbacks specifies which filesystem operations should be delegated
-	// to the client (e.g., "readFile", "fileExists"). Empty means no callbacks.Callbacks []string
+	// to the client (e.g., "readFile", "fileExists"). Empty means no callbacks.
+	Callbacks []string
 	// Async enables JSON-RPC protocol with async connection handling.
-	// When false (default), uses MessagePack protocol with sync connection.Async bool
+	// When false (default), uses MessagePack protocol with sync connection.
+	Async bool
 	// CollectTiming enables per-request server processing-time measurement.
 	// When enabled, the server accumulates each request's processing time into
 	// running totals and a recent-request ring buffer. Response messages are
 	// left unchanged; the client folds this data into its own timing snapshot
-	// on demand via getServerTiming / resetServerTiming requests.CollectTiming bool
-	// RunExternalCode allows configured content mappers to execute.RunExternalCode      bool
+	// on demand via getServerTiming / resetServerTiming requests.
+	CollectTiming bool
+	// RunExternalCode allows configured content mappers to execute.
+	RunExternalCode      bool
 	ContentMapperSpawner contentmapper.Spawner
 }
 
