@@ -13,7 +13,7 @@ a dual tree, and the reviewable diff becomes the bridge. PR-7 rewrites parser,
 binder, checker, and printer onto Store in one shot. GitHub ids increment 6,
 7, 8, 9, 10. Production visitors still consume `*Node` until that PR lands.
 
-**Resume in a new session:** read [PR-7 resume](#pr-7-resume-one-shot-no-bridge) before editing parser or checker. The armed `/goal` text still says “PR-8 against microsoft citing PR-7 e2e”. That numbering is superseded: microsoft is PR-10 citing PR-8 e2e. Do not mark the goal complete until that PR exists.
+**Resume in a new session:** read [PR-7 resume](#pr-7-resume-one-shot-no-bridge) before editing parser or checker. GitHub `#7` is the Store compile path. GitHub `#8` is e2e. PR-9 is skipped. The microsoft request is the operator's.
 
 Do **not** treat this document as a merged, settled design for the whole compiler until the [Open questions](#open-questions) below have written answers. The layout bet (packed header, noscan columns) has package-level evidence. Identity across files, mutation rules, incremental parse, emit sharing, and an end-to-end stop criterion do not.
 
@@ -312,12 +312,28 @@ The reviewable microsoft diff should be packed `nodeHeader` / `Handle` / `NodeRe
 | Id | Branch | SHA | Role |
 | --- | --- | --- | --- |
 | 6 | `cursor/store-pr-6-a9c9` | compiler `049214aa25`, receipts `b1077b1663` | Frozen emit; GitHub `#6` vs `store-pr-5` |
-| 7 | `cursor/store-pr-6b-native-parse-a9c9` | branch HEAD | One-shot Store compile path. GitHub `#7` vs `#6`. Still contains native parse **and** materialize; delete both extra parser and materialize here |
-| 8 | not opened | | e2e, diagnostic equality, 1.05× trunk |
-| 9 | not opened | | leftover LS/format `*Node` if PR-7 left any |
-| 10 | not opened | | microsoft/TypeScript PR citing PR-8 receipts |
+| 7 | `cursor/store-pr-6b-native-parse-a9c9` | `4636d0b813` | One-shot Store compile path. GitHub `#7` vs `#6`. Parse Store Freeze after bind. Checker synthetics on `Checker.synth`. Emit mutation is the writer lease |
+| 8 | `cursor/store-pr-8-e2e-a9c9` | branch HEAD | e2e, diagnostic equality, 1.05× trunk |
+| 9 | skipped | | Production `*ast.Node` under `tsc/internal/ls` and `tsc/internal/format` is empty. Do not open an empty request |
+| 10 | operator | | microsoft/TypeScript PR citing PR-8 receipts. Out of the 2026-09-02 run |
 
-Do not land PR-3 through PR-9 on microsoft/main. Program done when PR-10 exists against microsoft/TypeScript and its body cites PR-8 e2e receipts.
+Do not land PR-3 through PR-9 on microsoft/main. This run stops when GitHub `#8` exists and its body cites e2e receipts.
+
+### PR-9 skip
+
+`git grep '*ast.Node' tsc/internal/ls tsc/internal/format -- ':!*_test.go'` is empty. Remaining `*ast.Node` hits are test-only (`api/encoder/decoder_test.go`, `ast/store_bench_test.go`, `testutil/parsetestutil`), a comment in `modulespecifiers/preferences.go`, and `binder.newFlowData`'s flow payload. Flow is a second pointer graph (constraint 8), not leftover LS/format tree nodes. PR-9 is a skip record, not a request.
+
+Full `go test ./internal/testrunner -run TestLocal` overflows in `EmitContext.VisitEmbeddedStatement`. `TestLocal/alias` panics `ast: write to frozen Store` in `NodeBuilderImpl.newIdentifier` (type/symbol baselines). The e2e gate is CI smoke `--noEmit` exit 0. `TestTsgoStoreE2E` still invokes `TestLocal/alias` and logs the panic.
+
+### PR-8 `cmd/tsc` wall time
+
+CI smoke `-p /tmp/typescript-6.0/src/compiler --noEmit`, default GOGC, interleaved with `origin/main` on the same machine. Gate is HEAD median ≤ 1.05× trunk.
+
+| Head | SHA | median | notes |
+| --- | --- | --- | --- |
+| PR-6 | `049214aa25` (docs-only vs `b1077b1663`) | 1.559s | three isolated runs, 2026-09-02 |
+| PR-7 / PR-8 base | `4636d0b813` | 1.543s | ratio vs PR-6 = 0.990 PASS (1.10 gate) |
+| origin/main | pending | pending | fill from the PR-8 interleaved probe |
 
 ### What HEAD still has
 
