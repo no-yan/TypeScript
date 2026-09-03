@@ -478,7 +478,7 @@ func (f *isolatedDeclarationsFixer) fixIsolatedDeclarationError(node ast.Handle)
 		return ""
 	}
 	f.fixedNodes[node] = true
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindParameter, ast.KindPropertyDeclaration, ast.KindVariableDeclaration:
 		return f.addTypeToVariableLike(node)
 	case ast.KindArrowFunction, ast.KindFunctionExpression, ast.KindFunctionDeclaration, ast.KindMethodDeclaration, ast.KindGetAccessor:
@@ -1020,7 +1020,7 @@ func typeToStringForDiag(typeNode ast.Handle, sourceFile *ast.SourceFile, ct *ch
 
 func findAncestorWithMissingType(node ast.Handle) ast.Handle {
 	return ast.FindAncestor(node, func(n ast.Handle) bool {
-		if !canHaveTypeAnnotationKinds[n.Kind()] {
+		if !canHaveTypeAnnotationKinds[n.Kind] {
 			return false
 		}
 		if ast.IsObjectBindingPattern(n) || ast.IsArrayBindingPattern(n) {
@@ -1050,7 +1050,7 @@ func findBestFittingNode(node ast.Handle, span core.TextRange) ast.Handle {
 }
 
 func isNamedDeclarationKind(node ast.Handle) bool {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindArrowFunction, ast.KindBindingElement, ast.KindClassDeclaration, ast.KindClassExpression, ast.KindClassStaticBlockDeclaration, ast.KindConstructor, ast.KindEnumDeclaration, ast.KindEnumMember, ast.KindExportSpecifier, ast.KindFunctionDeclaration, ast.KindFunctionExpression, ast.KindGetAccessor, ast.KindImportClause, ast.KindImportEqualsDeclaration, ast.KindImportSpecifier, ast.KindInterfaceDeclaration, ast.KindJsxAttribute, ast.KindMethodDeclaration, ast.KindMethodSignature, ast.KindModuleDeclaration, ast.KindNamespaceExportDeclaration, ast.KindNamespaceImport, ast.KindNamespaceExport, ast.KindParameter, ast.KindPropertyAssignment, ast.KindPropertyDeclaration, ast.KindPropertySignature, ast.KindSetAccessor, ast.KindShorthandPropertyAssignment, ast.KindTypeAliasDeclaration, ast.KindTypeParameter, ast.KindVariableDeclaration, ast.KindJSDocTypedefTag, ast.KindJSDocCallbackTag, ast.KindJSDocPropertyTag, ast.KindNamedTupleMember:
 		return true
 	}

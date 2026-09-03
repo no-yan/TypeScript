@@ -178,7 +178,7 @@ func (g *NameGenerator) generateNameForNodeCached(node ast.Handle, privateName b
 	return name
 }
 func (g *NameGenerator) generateNameForNode(node ast.Handle, privateName bool, flags GeneratedIdentifierFlags, prefix string, suffix string) string {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier, ast.KindPrivateIdentifier:
 		return g.makeUniqueName(g.GetTextOfNode(node), nil, flags.IsOptimistic(), flags.IsReservedInNestedScopes(), privateName, prefix, suffix)
 	case ast.KindModuleDeclaration, ast.KindEnumDeclaration:

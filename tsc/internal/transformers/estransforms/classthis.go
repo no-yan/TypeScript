@@ -15,7 +15,7 @@ func isClassThisAssignmentBlock(emitContext *printer.EmitContext, node ast.Handl
 				expression := statement.Expression()
 				if ast.IsAssignmentExpression(expression, true) {
 					binary := expression
-					return ast.IsIdentifier(binary.Left()) && emitContext.ClassThis(node) == binary.Left() && binary.Right().Kind() == ast.KindThisKeyword
+					return ast.IsIdentifier(binary.Left()) && emitContext.ClassThis(node) == binary.Left() && binary.Right().Kind == ast.KindThisKeyword
 				}
 			}
 		}

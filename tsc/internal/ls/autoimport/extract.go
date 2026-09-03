@@ -94,7 +94,7 @@ func (e *symbolExtractor) getModuleIDForSymbol(symbol *ast.Symbol) (ModuleID, bo
 	}
 	if fileName != "" && e.realpath != nil {
 		decl := ast.GetNonAugmentationDeclaration(symbol)
-		if !decl.IsNil() && decl.Kind() == ast.KindSourceFile {
+		if !decl.IsNil() && decl.Kind == ast.KindSourceFile {
 			return e.getModuleID(ast.GetSourceFileOfNode(decl)), true
 		}
 	}
@@ -221,10 +221,10 @@ func (e *symbolExtractor) extractFromSymbol(name string, symbol *ast.Symbol, mod
 		}
 	} else if syntax == ExportSyntaxCommonJSModuleExports {
 		expression := ast.NodeOf(symbol.Declarations[0]).BinaryExpressionRight()
-		if expression.Kind() == ast.KindObjectLiteralExpression {
+		if expression.Kind == ast.KindObjectLiteralExpression {
 			*exports = slices.Grow(*exports, len(expression.Store().ListSlice(expression.ObjectLiteralExpressionProperties())))
 			for _, prop := range expression.Store().ListSlice(expression.ObjectLiteralExpressionProperties()) {
-				if ast.IsShorthandPropertyAssignment(prop) || ast.IsPropertyAssignment(prop) && prop.PropertyAssignmentName().Kind() == ast.KindIdentifier {
+				if ast.IsShorthandPropertyAssignment(prop) || ast.IsPropertyAssignment(prop) && prop.PropertyAssignmentName().Kind == ast.KindIdentifier {
 					export, _ := e.createExport(expression.Symbol().Members[prop.Name().Text()], moduleID, moduleFileName, syntax, file, checkerLease)
 					if export != nil {
 						export.through = name
@@ -327,7 +327,7 @@ func (e *symbolExtractor) tryResolveSymbol(symbol *ast.Symbol, syntax ExportSynt
 	case ExportSyntaxNamed:
 		decl := ast.GetDeclarationOfKind(symbol, ast.KindExportSpecifier)
 		if decl.Parent().Parent().ExportDeclarationModuleSpecifier().IsNil() {
-			if n := core.FirstNonZero(decl.Name(), decl.PropertyName()); n.Kind() == ast.KindIdentifier {
+			if n := core.FirstNonZero(decl.Name(), decl.PropertyName()); n.Kind == ast.KindIdentifier {
 				loc = n
 				name = n.Text()
 			}
@@ -339,7 +339,7 @@ func (e *symbolExtractor) tryResolveSymbol(symbol *ast.Symbol, syntax ExportSynt
 		fallthrough
 	case ExportSyntaxDefaultDeclaration:
 		decl := ast.GetDeclarationOfKind(symbol, ast.KindExportAssignment)
-		if decl.Expression().Kind() == ast.KindIdentifier {
+		if decl.Expression().Kind == ast.KindIdentifier {
 			loc = decl.Expression()
 			name = loc.Text()
 		}
@@ -364,7 +364,7 @@ func shouldIgnoreSymbol(symbol *ast.Symbol) bool {
 }
 func getSyntax(symbol *ast.Symbol) ExportSyntax {
 	for _, decl := range ast.DeclarationNodes(symbol) {
-		switch decl.Kind() {
+		switch decl.Kind {
 		case ast.KindExportSpecifier:
 			return ExportSyntaxNamed
 		case ast.KindExportAssignment:

@@ -348,7 +348,7 @@ func (c *Checker) generateJsxChildren(node ast.Handle, getInvalidTextDiagnostic 
 	}
 }
 func (c *Checker) getElaborationElementForJsxChild(child ast.Handle, nameType *Type, getInvalidTextDiagnostic func() (*diagnostics.Message, []any)) JsxElaborationElement {
-	switch child.Kind() {
+	switch child.Kind {
 	case ast.KindJsxExpression:
 		return JsxElaborationElement{errorNode: child, innerExpression: child.Expression(), nameType: nameType}
 	case ast.KindJsxText:
@@ -684,7 +684,7 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 					c.addIntraExpressionInferenceSite(inferenceContext, inferenceNode, exprType)
 				}
 			} else {
-				debug.Assert(attributeDecl.Kind() == ast.KindJsxSpreadAttribute)
+				debug.Assert(attributeDecl.Kind == ast.KindJsxSpreadAttribute)
 				if len(attributesTable) != 0 {
 					spread = c.getSpreadType(spread, createJsxAttributesType(), attributesSymbol, objectFlags, false)
 					attributesTable = make(ast.SymbolTable)
@@ -1310,7 +1310,7 @@ func markAsSynthetic(h ast.Handle) {
 }
 func firstIdentifierText(h ast.Handle) string {
 	for !h.IsNil() {
-		switch h.Kind() {
+		switch h.Kind {
 		case ast.KindIdentifier:
 			return h.IdentifierText()
 		case ast.KindQualifiedName:
@@ -1334,7 +1334,7 @@ func entityNameHandleToString(name ast.Handle) string {
 	if name.IsNil() {
 		return ""
 	}
-	switch name.Kind() {
+	switch name.Kind {
 	case ast.KindIdentifier:
 		return name.IdentifierText()
 	case ast.KindQualifiedName:
@@ -1348,7 +1348,7 @@ func (c *Checker) resolveEntityNameHandle(name ast.Handle, meaning ast.SymbolFla
 		return nil
 	}
 	var symbol *ast.Symbol
-	switch name.Kind() {
+	switch name.Kind {
 	case ast.KindIdentifier:
 		symbol = c.getMergedSymbol(c.resolveName(location, name.IdentifierText(), meaning, nil, true, false))
 	case ast.KindQualifiedName:

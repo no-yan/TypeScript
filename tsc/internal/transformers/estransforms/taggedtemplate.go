@@ -24,7 +24,7 @@ func (tx *taggedTemplateTransformer) visit(node ast.Handle) ast.Handle {
 	if node.SubtreeFacts()&ast.SubtreeContainsInvalidTemplateEscape == 0 {
 		return node
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindSourceFile:
 		return tx.visitSourceFile(node)
 	case ast.KindTaggedTemplateExpression:
@@ -95,7 +95,7 @@ func getRawLiteral(f *printer.NodeFactory, node ast.Handle) ast.Handle {
 	text := node.RawText()
 	if text == "" {
 		text = scanner.GetSourceTextOfNodeFromSourceFile(ast.GetSourceFileOfNode(node), node, false)
-		isLast := node.Kind() == ast.KindNoSubstitutionTemplateLiteral || node.Kind() == ast.KindTemplateTail
+		isLast := node.Kind == ast.KindNoSubstitutionTemplateLiteral || node.Kind == ast.KindTemplateTail
 		endLen := 2
 		if isLast {
 			endLen = 1

@@ -17,9 +17,20 @@ type ListRef uint32
 // Handle is a stack value. Heap-resident structures should hold NodeRef and
 // rebuild the Handle via Store.At; a stored Handle carries *Store, which puts
 // a pointer word in every element and forces the GC to scan the container.
+// Kind is cached from the node header so callers can switch on a plain field
+// without a Store load through Kind().
 type Handle struct {
-	s  *Store
-	id NodeRef
+	s    *Store
+	id   NodeRef
+	Kind Kind
+}
+
+// handleOf rebuilds a Handle with Kind cached from the header.
+func (s *Store) handleOf(id NodeRef) Handle {
+	if s == nil || id == 0 {
+		return Handle{}
+	}
+	return Handle{s: s, id: id, Kind: s.nodes[id].kind}
 }
 
 // StoreVisitor returns true to stop walking, matching Visitor on *Node.
@@ -152,7 +163,7 @@ func (s *Store) AllocSlots(kind Kind, flags NodeFlags, loc core.TextRange, child
 		listStart:  listStart,
 		listLen:    uint32(listLen),
 	})
-	return Handle{s: s, id: id}
+	return Handle{s: s, id: id, Kind: kind}
 }
 
 func (s *Store) AllocList(loc core.TextRange, n int) ListRef {
@@ -316,7 +327,7 @@ func (s *Store) Len() int {
 }
 
 func (s *Store) At(ref NodeRef) Handle {
-	return Handle{s: s, id: ref}
+	return s.handleOf(ref)
 }
 
 func (s *Store) SetSourceFile(file *SourceFile) {
@@ -357,7 +368,7 @@ func (s *Store) ListAt(list ListRef, i int) Handle {
 		panic("ast: list index out of range")
 	}
 	if id := s.children[int(l.start)+i]; id != 0 {
-		return Handle{s: s, id: id}
+		return s.handleOf(id)
 	}
 	if g := s.ExternalListAt(list, i); g != 0 {
 		return NodeOf(g)
@@ -643,13 +654,13 @@ func (h Handle) SetStringValue(slot int, value string) {
 	h.s.mustMutate()
 	key := h.valueKey(slot)
 	if value == "" {
-		if primaryStringSlot(h.Kind()) == slot {
+		if primaryStringSlot(h.Kind) == slot {
 			h.s.nodes[h.id].identText = 0
 		}
 		delete(h.s.stringValues, key)
 		return
 	}
-	if primaryStringSlot(h.Kind()) == slot {
+	if primaryStringSlot(h.Kind) == slot {
 		h.s.nodes[h.id].identText = h.s.Intern(value)
 		return
 	}
@@ -660,7 +671,7 @@ func (h Handle) SetStringValue(slot int, value string) {
 }
 
 func (h Handle) StringValue(slot int) string {
-	if primaryStringSlot(h.Kind()) == slot {
+	if primaryStringSlot(h.Kind) == slot {
 		return h.Ident()
 	}
 	id := h.s.stringValues[h.valueKey(slot)]
@@ -715,15 +726,7 @@ func (h Handle) KindString() string {
 	if h.IsNil() {
 		return "<nil>"
 	}
-	return h.Kind().String()
-}
-
-func (h Handle) Kind() Kind {
-	if h.IsNil() {
-		return KindUnknown
-	}
-	h.mustLive()
-	return h.s.nodes[h.id].kind
+	return h.Kind.String()
 }
 
 func (h Handle) Flags() NodeFlags {
@@ -770,7 +773,7 @@ func (h Handle) Parent() Handle {
 		return Handle{}
 	}
 	if id := h.s.nodes[h.id].parent; id != 0 {
-		return Handle{s: h.s, id: id}
+		return h.s.handleOf(id)
 	}
 	if g := h.s.externalParent[h.id]; g != 0 {
 		return NodeOf(g)
@@ -811,11 +814,25 @@ func (h Handle) Child(i int) Handle {
 	if i < 0 || i >= int(n.childLen) {
 		panic("ast: child index out of range")
 	}
-	if id := h.s.children[int(n.childStart)+i]; id != 0 {
-		return Handle{s: h.s, id: id}
+	return h.childAt(uint32(i))
+}
+
+// childAt reads the kind-relative child slot without childLen checks.
+// Hot path is small enough to inline into generated accessors.
+func (h Handle) childAt(rel uint32) Handle {
+	s := h.s
+	id := s.children[s.nodes[h.id].childStart+rel]
+	if id == 0 {
+		return h.childAtSlow(rel)
 	}
-	if g := h.ExternalChild(i); g != 0 {
-		return NodeOf(g)
+	return Handle{s: s, id: id, Kind: s.nodes[id].kind}
+}
+
+func (h Handle) childAtSlow(rel uint32) Handle {
+	if h.s.externalChild != nil {
+		if g := h.ExternalChild(int(rel)); g != 0 {
+			return NodeOf(g)
+		}
 	}
 	return Handle{}
 }

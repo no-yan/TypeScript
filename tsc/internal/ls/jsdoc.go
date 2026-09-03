@@ -77,10 +77,10 @@ func GetSymbolJSDocTags(symbol *ast.Symbol) []JSDocTagInfo {
 		}
 		tags := declarationJSDocTags(decl)
 		hasTypedef := core.Some(tags, func(t ast.Handle) bool {
-			return t.Kind() == ast.KindJSDocTypedefTag || t.Kind() == ast.KindJSDocCallbackTag
+			return t.Kind == ast.KindJSDocTypedefTag || t.Kind == ast.KindJSDocCallbackTag
 		})
 		hasParamOrReturn := core.Some(tags, func(t ast.Handle) bool {
-			return t.Kind() == ast.KindJSDocParameterTag || t.Kind() == ast.KindJSDocReturnTag
+			return t.Kind == ast.KindJSDocParameterTag || t.Kind == ast.KindJSDocReturnTag
 		})
 		if hasTypedef && !hasParamOrReturn {
 			continue
@@ -116,7 +116,7 @@ func getJSDocTagText(tag ast.Handle) string {
 		}
 		return s + " " + comment
 	}
-	switch tag.Kind() {
+	switch tag.Kind {
 	case ast.KindJSDocThrowsTag:
 		if te := tag.JSDocThrowsTagTypeExpression(); !te.IsNil() {
 			return addComment(scanner.GetTextOfNode(te))
@@ -237,7 +237,7 @@ func getJSDocOrTag(c *checker.Checker, node ast.Handle, seenSymbols *collections
 	return ast.Handle{}
 }
 func getMatchingJSDocTag(c *checker.Checker, node ast.Handle, name string, match func(ast.Handle, string) bool, seenSymbols *collections.Set[*ast.Symbol]) ast.Handle {
-	if jsdoc := getJSDocOrTag(c, node, seenSymbols); !jsdoc.IsNil() && jsdoc.Kind() == ast.KindJSDoc {
+	if jsdoc := getJSDocOrTag(c, node, seenSymbols); !jsdoc.IsNil() && jsdoc.Kind == ast.KindJSDoc {
 		if tags := jsdoc.JSDocTags(); tags != 0 {
 			for _, tag := range node.Store().ListSlice(tags) {
 				if match(tag, name) {
@@ -266,7 +266,7 @@ func getJSDocParameterTagByPosition(c *checker.Checker, param ast.Handle) ast.Ha
 		return ast.Handle{}
 	}
 	jsdoc := getJSDocOrTag(c, parent, &collections.Set[*ast.Symbol]{})
-	if jsdoc.IsNil() || jsdoc.Kind() != ast.KindJSDoc {
+	if jsdoc.IsNil() || jsdoc.Kind != ast.KindJSDoc {
 		return ast.Handle{}
 	}
 	tags := jsdoc.JSDocTags()
@@ -275,7 +275,7 @@ func getJSDocParameterTagByPosition(c *checker.Checker, param ast.Handle) ast.Ha
 	}
 	paramTagIndex := 0
 	for _, tag := range param.Store().ListSlice(tags) {
-		if tag.Kind() == ast.KindJSDocParameterTag {
+		if tag.Kind == ast.KindJSDocParameterTag {
 			if paramTagIndex == paramIndex {
 				return tag
 			}
@@ -285,10 +285,10 @@ func getJSDocParameterTagByPosition(c *checker.Checker, param ast.Handle) ast.Ha
 	return ast.Handle{}
 }
 func isMatchingParameterTag(tag ast.Handle, name string) bool {
-	return tag.Kind() == ast.KindJSDocParameterTag && isNodeWithName(tag, name)
+	return tag.Kind == ast.KindJSDocParameterTag && isNodeWithName(tag, name)
 }
 func isMatchingTemplateTag(tag ast.Handle, name string) bool {
-	return tag.Kind() == ast.KindJSDocTemplateTag && core.Some(tag.TypeParameters(), func(tp ast.Handle) bool {
+	return tag.Kind == ast.KindJSDocTemplateTag && core.Some(tag.TypeParameters(), func(tp ast.Handle) bool {
 		return isNodeWithName(tp, name)
 	})
 }

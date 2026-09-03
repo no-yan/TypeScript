@@ -64,19 +64,19 @@ func getSelectionChildren(factory ast.HandleFactory, node ast.Handle, sourceFile
 	}
 	openBraceToken := children[0]
 	closeBraceToken := children[len(children)-1]
-	if openBraceToken.Kind() != ast.KindOpenBraceToken || closeBraceToken.Kind() != ast.KindCloseBraceToken {
+	if openBraceToken.Kind != ast.KindOpenBraceToken || closeBraceToken.Kind != ast.KindCloseBraceToken {
 		return children
 	}
 	mappedType := node
 	children = children[1 : len(children)-1]
 	groupedWithPlusMinusTokens := groupChildren(factory, children, func(child ast.Handle) bool {
-		return child == mappedType.MappedTypeNodeReadonlyToken() || child.Kind() == ast.KindReadonlyKeyword || child == mappedType.QuestionToken() || child.Kind() == ast.KindQuestionToken
+		return child == mappedType.MappedTypeNodeReadonlyToken() || child.Kind == ast.KindReadonlyKeyword || child == mappedType.QuestionToken() || child.Kind == ast.KindQuestionToken
 	})
 	groupedWithBrackets := groupChildren(factory, groupedWithPlusMinusTokens, func(child ast.Handle) bool {
-		return child.Kind() == ast.KindOpenBracketToken || child.Kind() == ast.KindTypeParameter || child.Kind() == ast.KindCloseBracketToken
+		return child.Kind == ast.KindOpenBracketToken || child.Kind == ast.KindTypeParameter || child.Kind == ast.KindCloseBracketToken
 	})
 	return []ast.Handle{openBraceToken, createSyntaxList(factory, splitChildren(factory, groupedWithBrackets, func(child ast.Handle) bool {
-		return child.Kind() == ast.KindColonToken
+		return child.Kind == ast.KindColonToken
 	}, false)), closeBraceToken}
 }
 func groupChildren(factory ast.HandleFactory, children []ast.Handle, groupOn func(ast.Handle) bool) []ast.Handle {
@@ -115,7 +115,7 @@ func splitChildren(factory ast.HandleFactory, children []ast.Handle, pivotOn fun
 	leftChildren := children[:splitTokenIndex]
 	splitToken := children[splitTokenIndex]
 	lastToken := children[len(children)-1]
-	separateLastToken := separateTrailingSemicolon && lastToken.Kind() == ast.KindSemicolonToken
+	separateLastToken := separateTrailingSemicolon && lastToken.Kind == ast.KindSemicolonToken
 	rightEnd := len(children)
 	if separateLastToken {
 		rightEnd--
@@ -278,7 +278,7 @@ func getSmartSelectionRange(l *LanguageService, sourceFile *ast.SourceFile, pos 
 								selectionParent = selectionChild
 							}
 						}
-						if ast.IsStringLiteral(node) || node.Kind() == ast.KindTemplateExpression || node.Kind() == ast.KindNoSubstitutionTemplateLiteral {
+						if ast.IsStringLiteral(node) || node.Kind == ast.KindTemplateExpression || node.Kind == ast.KindNoSubstitutionTemplateLiteral {
 							if start+1 < end-1 {
 								pushSelectionRange(start+1, end-1)
 							}

@@ -73,7 +73,7 @@ func BenchmarkWalkStore(b *testing.B) {
 	var sink int
 	for b.Loop() {
 		sink = 0
-		walkStore(root, func(h ast.Handle) { sink += int(h.Kind()) })
+		walkStore(root, func(h ast.Handle) { sink += int(h.Kind) })
 	}
 	runtime.KeepAlive(sink)
 	runtime.KeepAlive(s)
@@ -96,7 +96,7 @@ func BenchmarkWalkFactoryTree(b *testing.B) {
 	var sink int
 	for b.Loop() {
 		sink = 0
-		walkStore(root, func(h ast.Handle) { sink += int(h.Kind()) })
+		walkStore(root, func(h ast.Handle) { sink += int(h.Kind) })
 	}
 	runtime.KeepAlive(sink)
 	runtime.KeepAlive(root)

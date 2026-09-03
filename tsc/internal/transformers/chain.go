@@ -13,7 +13,7 @@ type chainedTransformer struct {
 }
 
 func (ch *chainedTransformer) visit(node ast.Handle) ast.Handle {
-	if node.Kind() != ast.KindSourceFile {
+	if node.Kind != ast.KindSourceFile {
 		panic("Chained transform passed non-sourcefile initial node")
 	}
 	file := ast.GetSourceFileOfNode(node)

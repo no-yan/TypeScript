@@ -389,10 +389,10 @@ func GetInitializerOfBindingOrAssignmentElement(bindingElement ast.Handle) ast.H
 	return ast.Handle{}
 }
 func isObjectBindingOrAssignmentPattern(node ast.Handle) bool {
-	return !node.IsNil() && (node.Kind() == ast.KindObjectBindingPattern || node.Kind() == ast.KindObjectLiteralExpression)
+	return !node.IsNil() && (node.Kind == ast.KindObjectBindingPattern || node.Kind == ast.KindObjectLiteralExpression)
 }
 func isArrayBindingOrAssignmentPattern(node ast.Handle) bool {
-	return !node.IsNil() && (node.Kind() == ast.KindArrayBindingPattern || node.Kind() == ast.KindArrayLiteralExpression)
+	return !node.IsNil() && (node.Kind == ast.KindArrayBindingPattern || node.Kind == ast.KindArrayLiteralExpression)
 }
 func isSimpleBindingOrAssignmentElement(element ast.Handle) bool {
 	target := ast.GetTargetOfBindingOrAssignmentElement(element)

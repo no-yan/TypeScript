@@ -18,7 +18,7 @@ type useStrictTransformer struct {
 }
 
 func (tx *useStrictTransformer) visit(node ast.Handle) ast.Handle {
-	if node.Kind() != ast.KindSourceFile {
+	if node.Kind != ast.KindSourceFile {
 		return node
 	}
 	return tx.visitSourceFile(node)

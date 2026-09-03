@@ -71,7 +71,7 @@ func BenchmarkE2EWalkFactory(b *testing.B) {
 		sink = 0
 		walkParsed(root, func(n ast.Handle) {
 			loc := n.Loc()
-			sink += int(n.Kind()) + int(n.Flags()) + loc.Pos() + loc.End()
+			sink += int(n.Kind) + int(n.Flags()) + loc.Pos() + loc.End()
 		})
 	}
 	runtime.KeepAlive(sink)
@@ -90,7 +90,7 @@ func BenchmarkE2EWalkStore(b *testing.B) {
 		sink = 0
 		walkParsed(root, func(h ast.Handle) {
 			loc := h.Loc()
-			sink += int(h.Kind()) + int(h.Flags()) + loc.Pos() + loc.End()
+			sink += int(h.Kind) + int(h.Flags()) + loc.Pos() + loc.End()
 		})
 	}
 	runtime.KeepAlive(sink)

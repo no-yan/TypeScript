@@ -11,7 +11,7 @@ func (ch *exponentiationTransformer) visit(node ast.Handle) ast.Handle {
 	if node.SubtreeFacts()&ast.SubtreeContainsExponentiationOperator == 0 {
 		return node
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindBinaryExpression:
 		return ch.visitBinaryExpression(node)
 	default:
@@ -19,7 +19,7 @@ func (ch *exponentiationTransformer) visit(node ast.Handle) ast.Handle {
 	}
 }
 func (ch *exponentiationTransformer) visitBinaryExpression(node ast.Handle) ast.Handle {
-	switch node.OperatorToken().Kind() {
+	switch node.OperatorToken().Kind {
 	case ast.KindAsteriskAsteriskEqualsToken:
 		return ch.visitExponentiationAssignmentExpression(node)
 	case ast.KindAsteriskAsteriskToken:

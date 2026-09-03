@@ -39,7 +39,7 @@ func (s *superAccessState) initSuperAccessVisitor(emitContext *printer.EmitConte
 }
 
 func (s *superAccessState) visitSuperAccessNode(node ast.Handle) ast.Handle {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindCallExpression:
 		call := node
 		if ast.IsSuperProperty(call.Expression()) {
@@ -47,12 +47,12 @@ func (s *superAccessState) visitSuperAccessNode(node ast.Handle) ast.Handle {
 		}
 		return s.superAccessVisitor.VisitEachChild(node)
 	case ast.KindPropertyAccessExpression:
-		if node.Expression().Kind() == ast.KindSuperKeyword {
+		if node.Expression().Kind == ast.KindSuperKeyword {
 			return s.factory.NewPropertyAccessExpression(s.superBinding, ast.Handle{}, node.Name(), ast.NodeFlagsNone)
 		}
 		return s.superAccessVisitor.VisitEachChild(node)
 	case ast.KindElementAccessExpression:
-		if node.Expression().Kind() == ast.KindSuperKeyword {
+		if node.Expression().Kind == ast.KindSuperKeyword {
 			return s.createSuperElementAccessInAsyncMethod(node.ElementAccessExpressionArgumentExpression())
 		}
 		return s.superAccessVisitor.VisitEachChild(node)
@@ -130,17 +130,17 @@ func (s *superAccessState) trackSuperAccess(node ast.Handle) {
 	if s.capturedSuperProperties == nil {
 		return
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindPropertyAccessExpression:
-		if node.Expression().Kind() == ast.KindSuperKeyword {
+		if node.Expression().Kind == ast.KindSuperKeyword {
 			s.capturedSuperProperties.Add(node.Name().Text())
 		}
 	case ast.KindElementAccessExpression:
-		if node.Expression().Kind() == ast.KindSuperKeyword {
+		if node.Expression().Kind == ast.KindSuperKeyword {
 			s.hasSuperElementAccess = true
 		}
 	case ast.KindBinaryExpression:
-		if ast.IsAssignmentOperator(node.BinaryExpressionOperatorToken().Kind()) && assignmentTargetContainsSuperProperty(node.BinaryExpressionLeft()) {
+		if ast.IsAssignmentOperator(node.BinaryExpressionOperatorToken().Kind) && assignmentTargetContainsSuperProperty(node.BinaryExpressionLeft()) {
 			s.hasSuperPropertyAssignment = true
 		}
 	case ast.KindPrefixUnaryExpression:

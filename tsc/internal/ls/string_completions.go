@@ -221,7 +221,7 @@ func (l *LanguageService) convertStringLiteralCompletions(ctx context.Context, c
 	case completion.fromTypes != nil:
 		completion := completion.fromTypes
 		var quoteChar printer.QuoteChar
-		if contextToken.Kind() == ast.KindNoSubstitutionTemplateLiteral {
+		if contextToken.Kind == ast.KindNoSubstitutionTemplateLiteral {
 			quoteChar = printer.QuoteCharBacktick
 		} else if strings.HasPrefix(contextToken.Text(), "'") {
 			quoteChar = printer.QuoteCharSingleQuote
@@ -259,10 +259,10 @@ func (l *LanguageService) convertPathCompletions(ctx context.Context, completion
 }
 func (l *LanguageService) getStringLiteralCompletionEntries(ctx context.Context, file *ast.SourceFile, node ast.Handle, position int, typeChecker *checker.Checker) *stringLiteralCompletions {
 	parent := walkUpParentheses(node.Parent())
-	switch parent.Kind() {
+	switch parent.Kind {
 	case ast.KindLiteralType:
 		grandparent := walkUpParentheses(parent.Parent())
-		if grandparent.Kind() == ast.KindImportType {
+		if grandparent.Kind == ast.KindImportType {
 			return l.getStringLiteralCompletionsFromModuleNames(file, node, l.GetProgram(), typeChecker)
 		}
 		return fromUnionableLiteralType(grandparent, parent, position, typeChecker)
@@ -287,7 +287,7 @@ func (l *LanguageService) getStringLiteralCompletionEntries(ctx context.Context,
 	case ast.KindCallExpression, ast.KindNewExpression, ast.KindJsxAttribute:
 		if !isRequireCallArgument(node) && !ast.IsImportCall(parent) {
 			var argumentNode ast.Handle
-			if parent.Kind() == ast.KindJsxAttribute {
+			if parent.Kind == ast.KindJsxAttribute {
 				argumentNode = parent.Parent()
 			} else {
 				argumentNode = node
@@ -322,7 +322,7 @@ func (l *LanguageService) getStringLiteralCompletionEntries(ctx context.Context,
 		}
 		namedImportsOrExports := specifier.Parent()
 		var moduleSpecifier ast.Handle
-		if namedImportsOrExports.Kind() == ast.KindNamedImports {
+		if namedImportsOrExports.Kind == ast.KindNamedImports {
 			moduleSpecifier = namedImportsOrExports.Parent().Parent()
 		} else {
 			moduleSpecifier = namedImportsOrExports.Parent()
@@ -343,7 +343,7 @@ func (l *LanguageService) getStringLiteralCompletionEntries(ctx context.Context,
 		})
 		return &stringLiteralCompletions{fromProperties: &completionsFromProperties{symbols: uniques, hasIndexSignature: false}}
 	case ast.KindBinaryExpression:
-		if parent.BinaryExpressionOperatorToken().Kind() == ast.KindInKeyword {
+		if parent.BinaryExpressionOperatorToken().Kind == ast.KindInKeyword {
 			t := typeChecker.GetTypeAtLocation(parent.BinaryExpressionRight())
 			properties := getPropertiesForCompletion(t, typeChecker)
 			return &stringLiteralCompletions{fromProperties: &completionsFromProperties{symbols: core.Filter(properties, func(s *ast.Symbol) bool {
@@ -376,7 +376,7 @@ func toStringLiteralCompletionsFromTypes(types []*checker.StringLiteralType) *st
 	return &stringLiteralCompletions{fromTypes: result}
 }
 func fromUnionableLiteralType(grandparent ast.Handle, parent ast.Handle, position int, typeChecker *checker.Checker) *stringLiteralCompletions {
-	switch grandparent.Kind() {
+	switch grandparent.Kind {
 	case ast.KindCallExpression, ast.KindExpressionWithTypeArguments, ast.KindJsxOpeningElement, ast.KindJsxSelfClosingElement, ast.KindNewExpression, ast.KindTaggedTemplateExpression, ast.KindTypeReference:
 		typeArgument := ast.FindAncestor(parent, func(n ast.Handle) bool {
 			return n.Parent() == grandparent
@@ -1263,7 +1263,7 @@ func getFilenameWithExtensionOption(name string, program *compiler.Program, exte
 	return name, tspath.TryGetExtensionFromPath(name)
 }
 func walkUpParentheses(node ast.Handle) ast.Handle {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindParenthesizedType:
 		return ast.WalkUpParenthesizedTypes(node)
 	case ast.KindParenthesizedExpression:

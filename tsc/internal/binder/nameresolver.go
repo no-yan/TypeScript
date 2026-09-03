@@ -47,17 +47,17 @@ loop:
 			if result != nil {
 				useResult := true
 				if ast.IsFunctionLike(location) && !lastLocation.IsNil() && lastLocation != location.Body() {
-					if meaning&result.Flags&ast.SymbolFlagsType != 0 && lastLocation.Kind() != ast.KindJSDoc {
-						useResult = result.Flags&ast.SymbolFlagsTypeParameter != 0 && (lastLocation.Flags()&ast.NodeFlagsSynthesized != 0 || lastLocation == location.Type() || lastLocation.Kind() == ast.KindParameter || lastLocation.Kind() == ast.KindJSDocParameterTag || lastLocation.Kind() == ast.KindJSDocReturnTag || lastLocation.Kind() == ast.KindTypeParameter)
+					if meaning&result.Flags&ast.SymbolFlagsType != 0 && lastLocation.Kind != ast.KindJSDoc {
+						useResult = result.Flags&ast.SymbolFlagsTypeParameter != 0 && (lastLocation.Flags()&ast.NodeFlagsSynthesized != 0 || lastLocation == location.Type() || lastLocation.Kind == ast.KindParameter || lastLocation.Kind == ast.KindJSDocParameterTag || lastLocation.Kind == ast.KindJSDocReturnTag || lastLocation.Kind == ast.KindTypeParameter)
 					}
 					if meaning&result.Flags&ast.SymbolFlagsVariable != 0 {
 						if r.useOuterVariableScopeInParameter(result, location, lastLocation) {
 							useResult = false
 						} else if result.Flags&ast.SymbolFlagsFunctionScopedVariable != 0 {
-							useResult = lastLocation.Kind() == ast.KindParameter || lastLocation.Flags()&ast.NodeFlagsSynthesized != 0 || lastLocation == location.Type() && !ast.FindAncestor(ast.NodeOf(result.ValueDeclaration), ast.IsParameterDeclaration).IsNil()
+							useResult = lastLocation.Kind == ast.KindParameter || lastLocation.Flags()&ast.NodeFlagsSynthesized != 0 || lastLocation == location.Type() && !ast.FindAncestor(ast.NodeOf(result.ValueDeclaration), ast.IsParameterDeclaration).IsNil()
 						}
 					}
-				} else if location.Kind() == ast.KindConditionalType {
+				} else if location.Kind == ast.KindConditionalType {
 					useResult = lastLocation == location.ConditionalTypeNodeTrueType()
 				}
 				if useResult {
@@ -67,7 +67,7 @@ loop:
 			}
 		}
 		withinDeferredContext = withinDeferredContext || getIsDeferredContext(location, lastLocation)
-		switch location.Kind() {
+		switch location.Kind {
 		case ast.KindSourceFile:
 			if !ast.IsExternalOrCommonJSModule(ast.GetSourceFileOfNode(location)) {
 				break
@@ -188,10 +188,10 @@ loop:
 				}
 			}
 		case ast.KindDecorator:
-			if !location.Parent().IsNil() && location.Parent().Kind() == ast.KindParameter {
+			if !location.Parent().IsNil() && location.Parent().Kind == ast.KindParameter {
 				location = location.Parent()
 			}
-			if !location.Parent().IsNil() && (ast.IsClassElement(location.Parent()) || location.Parent().Kind() == ast.KindClassDeclaration) {
+			if !location.Parent().IsNil() && (ast.IsClassElement(location.Parent()) || location.Parent().Kind == ast.KindClassDeclaration) {
 				location = location.Parent()
 			}
 		case ast.KindParameter:
@@ -287,7 +287,7 @@ func (r *NameResolver) requiresScopeChange(node ast.Handle) bool {
 	return r.requiresScopeChangeWorker(d.Name()) || !d.Initializer().IsNil() && r.requiresScopeChangeWorker(d.Initializer())
 }
 func (r *NameResolver) requiresScopeChangeWorker(node ast.Handle) bool {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindArrowFunction, ast.KindFunctionExpression, ast.KindFunctionDeclaration, ast.KindConstructor:
 		return false
 	case ast.KindMethodDeclaration, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindPropertyAssignment:
@@ -361,8 +361,8 @@ func isExportDefaultSymbol(symbol *ast.Symbol) bool {
 	return symbol != nil && len(symbol.Declarations) > 0 && ast.HasSyntacticModifier(ast.NodeOf(symbol.Declarations[0]), ast.ModifierFlagsDefault)
 }
 func getIsDeferredContext(location ast.Handle, lastLocation ast.Handle) bool {
-	if location.Kind() != ast.KindArrowFunction && location.Kind() != ast.KindFunctionExpression {
-		return ast.IsTypeQueryNode(location) || (ast.IsFunctionLikeDeclaration(location) || location.Kind() == ast.KindPropertyDeclaration && !ast.IsStatic(location)) && (lastLocation.IsNil() || lastLocation != location.Name())
+	if location.Kind != ast.KindArrowFunction && location.Kind != ast.KindFunctionExpression {
+		return ast.IsTypeQueryNode(location) || (ast.IsFunctionLikeDeclaration(location) || location.Kind == ast.KindPropertyDeclaration && !ast.IsStatic(location)) && (lastLocation.IsNil() || lastLocation != location.Name())
 	}
 	if !lastLocation.IsNil() && lastLocation == location.Name() {
 		return false
@@ -375,7 +375,7 @@ func getIsDeferredContext(location ast.Handle, lastLocation ast.Handle) bool {
 func isTypeParameterSymbolDeclaredInContainer(symbol *ast.Symbol, container ast.Handle) bool {
 	for _, declRef := range symbol.Declarations {
 		decl := ast.NodeOf(declRef)
-		if !decl.IsNil() && decl.Kind() == ast.KindTypeParameter {
+		if !decl.IsNil() && decl.Kind == ast.KindTypeParameter {
 			parent := decl.Parent()
 			if parent == container {
 				return true
@@ -385,7 +385,7 @@ func isTypeParameterSymbolDeclaredInContainer(symbol *ast.Symbol, container ast.
 	return false
 }
 func isSelfReferenceLocation(node ast.Handle, lastLocation ast.Handle) bool {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindParameter:
 		return !lastLocation.IsNil() && lastLocation == node.Name()
 	case ast.KindFunctionDeclaration, ast.KindClassDeclaration, ast.KindInterfaceDeclaration, ast.KindEnumDeclaration, ast.KindTypeAliasDeclaration, ast.KindJSTypeAliasDeclaration, ast.KindModuleDeclaration:

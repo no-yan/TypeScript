@@ -230,7 +230,7 @@ func canUseOriginalText(node ast.Handle, flags getLiteralTextFlags) bool {
 	if ast.NodeIsSynthesized(node) || node.Parent().IsNil() || flags&getLiteralTextFlagsTerminateUnterminatedLiterals != 0 && ast.IsUnterminatedLiteral(node) {
 		return false
 	}
-	if node.Kind() == ast.KindNumericLiteral {
+	if node.Kind == ast.KindNumericLiteral {
 		tokenFlags := node.NumericLiteralTokenFlags()
 		if tokenFlags&ast.TokenFlagsIsInvalid != 0 {
 			return false
@@ -239,13 +239,13 @@ func canUseOriginalText(node ast.Handle, flags getLiteralTextFlags) bool {
 			return flags&getLiteralTextFlagsAllowNumericSeparator != 0
 		}
 	}
-	return node.Kind() != ast.KindBigIntLiteral
+	return node.Kind != ast.KindBigIntLiteral
 }
 func getLiteralText(node ast.Handle, sourceFile *ast.SourceFile, flags getLiteralTextFlags) string {
 	if sourceFile != nil && canUseOriginalText(node, flags) {
 		return scanner.GetSourceTextOfNodeFromSourceFile(sourceFile, node, false)
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindStringLiteral:
 		var b strings.Builder
 		var quoteChar QuoteChar
@@ -271,7 +271,7 @@ func getLiteralText(node ast.Handle, sourceFile *ast.SourceFile, flags getLitera
 		} else {
 			textLen = len(text)
 		}
-		switch node.Kind() {
+		switch node.Kind {
 		case ast.KindNoSubstitutionTemplateLiteral:
 			b.Grow(2 + textLen)
 			b.WriteRune('`')
@@ -291,7 +291,7 @@ func getLiteralText(node ast.Handle, sourceFile *ast.SourceFile, flags getLitera
 		default:
 			escapeStringWorker(text, QuoteCharBacktick, flags, &b)
 		}
-		switch node.Kind() {
+		switch node.Kind {
 		case ast.KindNoSubstitutionTemplateLiteral:
 			b.WriteRune('`')
 		case ast.KindTemplateHead:
@@ -410,7 +410,7 @@ func getContainingNodeArray(node ast.Handle) ast.ListRef {
 	if parent.IsNil() {
 		return 0
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindTypeParameter:
 		switch {
 		case ast.IsFunctionLike(parent) || ast.IsClassLike(parent) || ast.IsInterfaceDeclaration(parent) || ast.IsTypeOrJSTypeAliasDeclaration(parent):
@@ -418,7 +418,7 @@ func getContainingNodeArray(node ast.Handle) ast.ListRef {
 		case ast.IsInferTypeNode(parent):
 			break
 		default:
-			panic(fmt.Sprintf("Unexpected TypeParameter parent: %#v", parent.Kind()))
+			panic(fmt.Sprintf("Unexpected TypeParameter parent: %#v", parent.Kind))
 		}
 	case ast.KindParameter:
 		return node.Parent().ParameterList()
@@ -440,7 +440,7 @@ func getContainingNodeArray(node ast.Handle) ast.ListRef {
 			return node.Parent().InterfaceDeclarationHeritageClauses()
 		}
 	}
-	switch parent.Kind() {
+	switch parent.Kind {
 	case ast.KindTypeLiteral, ast.KindInterfaceDeclaration:
 		if ast.IsTypeElement(node) {
 			return parent.MemberList()
@@ -502,7 +502,7 @@ func getContainingNodeArray(node ast.Handle) ast.ListRef {
 	return 0
 }
 func canHaveDecorators(node ast.Handle) bool {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindParameter, ast.KindPropertyDeclaration, ast.KindMethodDeclaration, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindClassExpression, ast.KindClassDeclaration:
 		return true
 	}
@@ -547,17 +547,17 @@ func greatestEnd(end int, nodes ...interface{ End() int }) int {
 	return end
 }
 func skipSynthesizedParentheses(node ast.Handle) ast.Handle {
-	for node.Kind() == ast.KindParenthesizedExpression && ast.NodeIsSynthesized(node) {
+	for node.Kind == ast.KindParenthesizedExpression && ast.NodeIsSynthesized(node) {
 		node = node.Expression()
 	}
 	return node
 }
 func isNewExpressionWithoutArguments(node ast.Handle) bool {
-	return node.Kind() == ast.KindNewExpression && node.ArgumentList() == 0
+	return node.Kind == ast.KindNewExpression && node.ArgumentList() == 0
 }
 func isBinaryOperation(node ast.Handle, token ast.Kind) bool {
 	node = ast.SkipPartiallyEmittedExpressions(node)
-	return node.Kind() == ast.KindBinaryExpression && node.BinaryExpressionOperatorToken().Kind() == token
+	return node.Kind == ast.KindBinaryExpression && node.BinaryExpressionOperatorToken().Kind == token
 }
 func mixingBinaryOperatorsRequiresParentheses(a ast.Kind, b ast.Kind) bool {
 	if a == ast.KindQuestionQuestionToken {

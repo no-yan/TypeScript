@@ -22,7 +22,7 @@ func (h Handle) Contains(descendant Handle) bool {
 			return true
 		}
 		parent := descendant.Parent()
-		if parent.IsNil() && descendant.Kind() != KindSourceFile {
+		if parent.IsNil() && descendant.Kind != KindSourceFile {
 			panic("descendant is not parented")
 		}
 		descendant = parent
@@ -66,7 +66,7 @@ func (h Handle) HasModifierKind(kind Kind) bool {
 	s := h.Store()
 	n := s.ListLen(list)
 	for i := 0; i < n; i++ {
-		if s.ListAt(list, i).Kind() == kind {
+		if s.ListAt(list, i).Kind == kind {
 			return true
 		}
 	}
@@ -105,7 +105,7 @@ func (h Handle) Decorators() []Handle {
 	var out []Handle
 	for i := 0; i < n; i++ {
 		mod := s.ListAt(list, i)
-		if mod.Kind() == KindDecorator {
+		if mod.Kind == KindDecorator {
 			out = append(out, mod)
 		}
 	}
@@ -128,7 +128,7 @@ func (h Handle) ModifierFlags() ModifierFlags {
 		if mod.IsNil() {
 			continue
 		}
-		flags |= ModifierToFlag(mod.Kind())
+		flags |= ModifierToFlag(mod.Kind)
 	}
 	return flags
 }
@@ -137,7 +137,7 @@ func (h Handle) IsTypeOnly() bool {
 	if h.IsNil() {
 		return false
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindImportEqualsDeclaration:
 		return h.ImportEqualsDeclarationIsTypeOnly()
 	case KindImportSpecifier:
@@ -161,7 +161,7 @@ func (h Handle) PropertyNameOrName() Handle {
 }
 
 func handleRightMostAssigned(h Handle) Handle {
-	for !h.IsNil() && h.Kind() == KindBinaryExpression && h.BinaryExpressionOperatorToken().Kind() == KindEqualsToken {
+	for !h.IsNil() && h.Kind == KindBinaryExpression && h.BinaryExpressionOperatorToken().Kind == KindEqualsToken {
 		h = h.BinaryExpressionRight()
 	}
 	return h
@@ -176,18 +176,18 @@ func (h Handle) RightMostAssigned() Handle {
 }
 
 func handleLooksLikeAssignmentDeclaration(h Handle) bool {
-	if h.IsNil() || h.Kind() != KindBinaryExpression {
+	if h.IsNil() || h.Kind != KindBinaryExpression {
 		return false
 	}
 	op := h.BinaryExpressionOperatorToken()
-	if op.IsNil() || op.Kind() != KindEqualsToken {
+	if op.IsNil() || op.Kind != KindEqualsToken {
 		return false
 	}
 	left := h.BinaryExpressionLeft()
 	if left.IsNil() {
 		return false
 	}
-	switch left.Kind() {
+	switch left.Kind {
 	case KindPropertyAccessExpression, KindElementAccessExpression:
 		return true
 	}
@@ -198,7 +198,7 @@ func (h Handle) RawText() string {
 	if h.IsNil() {
 		return ""
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTemplateHead:
 		return h.TemplateHeadRawText()
 	case KindTemplateMiddle:
@@ -215,7 +215,7 @@ func (h Handle) CanHaveStatements() bool {
 	if h.IsNil() {
 		return false
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindSourceFile, KindBlock, KindModuleBlock, KindCaseClause, KindDefaultClause:
 		return true
 	}
@@ -247,14 +247,14 @@ func (h Handle) IsExportEquals() bool {
 	if h.IsNil() {
 		return false
 	}
-	return h.Kind() == KindExportAssignment && h.ExportAssignmentIsExportEquals()
+	return h.Kind == KindExportAssignment && h.ExportAssignmentIsExportEquals()
 }
 
 func (h Handle) MultiLine() bool {
 	if h.IsNil() {
 		return false
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBlock:
 		return h.BlockMultiLine()
 	case KindArrayLiteralExpression:

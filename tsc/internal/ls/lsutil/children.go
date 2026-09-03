@@ -34,7 +34,7 @@ func GetLastToken(node ast.Handle, sourceFile *ast.SourceFile) ast.Handle {
 	if node.IsNil() {
 		return ast.Handle{}
 	}
-	if ast.IsTokenKind(node.Kind()) || ast.IsIdentifier(node) {
+	if ast.IsTokenKind(node.Kind) || ast.IsIdentifier(node) {
 		return ast.Handle{}
 	}
 	AssertHasRealPosition(node)
@@ -42,7 +42,7 @@ func GetLastToken(node ast.Handle, sourceFile *ast.SourceFile) ast.Handle {
 	if lastChild.IsNil() {
 		return ast.Handle{}
 	}
-	if lastChild.Kind() < ast.KindFirstNode {
+	if lastChild.Kind < ast.KindFirstNode {
 		return lastChild
 	} else {
 		return GetLastToken(lastChild, sourceFile)
@@ -72,7 +72,7 @@ func GetLastVisitedChild(node ast.Handle, sourceFile *ast.SourceFile) ast.Handle
 	return lastChild
 }
 func GetFirstToken(node ast.Handle, sourceFile *ast.SourceFile) ast.Handle {
-	if ast.IsIdentifier(node) || ast.IsTokenKind(node.Kind()) {
+	if ast.IsIdentifier(node) || ast.IsTokenKind(node.Kind) {
 		return ast.Handle{}
 	}
 	AssertHasRealPosition(node)
@@ -104,7 +104,7 @@ func GetFirstToken(node ast.Handle, sourceFile *ast.SourceFile) ast.Handle {
 	if firstChild.IsNil() {
 		return ast.Handle{}
 	}
-	if firstChild.Kind() < ast.KindFirstNode {
+	if firstChild.Kind < ast.KindFirstNode {
 		return firstChild
 	}
 	return GetFirstToken(firstChild, sourceFile)

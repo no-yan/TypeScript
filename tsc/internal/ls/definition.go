@@ -38,7 +38,7 @@ func (l *LanguageService) provideDefinitionAtPosition(ctx context.Context, progr
 	pos := int(textPos)
 	node := astnav.GetTouchingPropertyName(file, pos)
 	reference := getReferenceAtPosition(file, pos, program)
-	if node.Kind() == ast.KindSourceFile {
+	if node.Kind == ast.KindSourceFile {
 		return lsproto.LocationOrLocationsOrDefinitionLinksOrNull{}
 	}
 	originSelectionRange, _ := l.createLspRangeFromNode(node, file)
@@ -47,7 +47,7 @@ func (l *LanguageService) provideDefinitionAtPosition(ctx context.Context, progr
 	}
 	c, done := program.GetTypeCheckerForFile(ctx, file)
 	defer done()
-	if node.Kind() == ast.KindOverrideKeyword {
+	if node.Kind == ast.KindOverrideKeyword {
 		if sym := getSymbolForOverriddenMember(c, node); sym != nil {
 			return l.createDefinitionLocations(originSelectionRange, clientSupportsLink, ast.DeclarationNodes(sym), nil, spanmap.FeatureDefinition)
 		}
@@ -57,13 +57,13 @@ func (l *LanguageService) provideDefinitionAtPosition(ctx context.Context, progr
 			return l.createDefinitionLocations(originSelectionRange, clientSupportsLink, []ast.Handle{label}, nil, spanmap.FeatureDefinition)
 		}
 	}
-	if node.Kind() == ast.KindCaseKeyword || node.Kind() == ast.KindDefaultKeyword && ast.IsDefaultClause(node.Parent()) {
+	if node.Kind == ast.KindCaseKeyword || node.Kind == ast.KindDefaultKeyword && ast.IsDefaultClause(node.Parent()) {
 		if stmt := ast.FindAncestor(node.Parent(), ast.IsSwitchStatement); !stmt.IsNil() {
 			file := ast.GetSourceFileOfNode(stmt)
 			return l.createLocationFromFileAndRange(file, scanner.GetRangeOfTokenAtPosition(file, stmt.Pos()), spanmap.FeatureDefinition)
 		}
 	}
-	if node.Kind() == ast.KindReturnKeyword || node.Kind() == ast.KindYieldKeyword || node.Kind() == ast.KindAwaitKeyword {
+	if node.Kind == ast.KindReturnKeyword || node.Kind == ast.KindYieldKeyword || node.Kind == ast.KindAwaitKeyword {
 		if fn := ast.FindAncestor(node, ast.IsFunctionLikeDeclaration); !fn.IsNil() {
 			return l.createDefinitionLocations(originSelectionRange, clientSupportsLink, []ast.Handle{fn}, nil, spanmap.FeatureDefinition)
 		}
@@ -107,7 +107,7 @@ func (l *LanguageService) ProvideTypeDefinition(ctx context.Context, documentURI
 func (l *LanguageService) provideTypeDefinitionAtPosition(ctx context.Context, program *compiler.Program, file *ast.SourceFile, textPos core.TextPos, clientSupportsLink bool) lsproto.TypeDefinitionResponse {
 	pos := int(textPos)
 	node := astnav.GetTouchingPropertyName(file, pos)
-	if node.Kind() == ast.KindSourceFile {
+	if node.Kind == ast.KindSourceFile {
 		return lsproto.LocationOrLocationsOrDefinitionLinksOrNull{}
 	}
 	originSelectionRange, _ := l.createLspRangeFromNode(node, file)
@@ -162,7 +162,7 @@ func combineDefinitionResponses(results []lsproto.DefinitionResponse, links bool
 	return lsproto.LocationOrLocationsOrDefinitionLinksOrNull{Locations: &locations}
 }
 func getDeclarationNameForKeyword(node ast.Handle) ast.Handle {
-	if node.Kind() >= ast.KindFirstKeyword && node.Kind() <= ast.KindLastKeyword {
+	if node.Kind >= ast.KindFirstKeyword && node.Kind <= ast.KindLastKeyword {
 		if ast.IsVariableDeclarationList(node.Parent()) {
 			if decl := core.FirstOrNil(node.Store().ListSlice(node.Parent().VariableDeclarationListDeclarations())); !decl.IsNil() && !decl.Name().IsNil() {
 				return decl.Name()
@@ -190,7 +190,7 @@ func (l *LanguageService) createDefinitionLocations(originSelectionRange lsproto
 		file := ast.GetSourceFileOfNode(decl)
 		name := core.OrElse(ast.GetNameOfDeclaration(decl), decl)
 		var nameRange core.TextRange
-		if name.Kind() == ast.KindEmptyStatement {
+		if name.Kind == ast.KindEmptyStatement {
 			nameRange = core.NewTextRange(name.Pos(), name.Pos())
 		} else {
 			nameRange = createRangeFromNode(name, file)
@@ -265,7 +265,7 @@ func getDeclarationsFromLocation(c *checker.Checker, node ast.Handle) []ast.Hand
 	}
 	node = getDeclarationNameForKeyword(node)
 	if symbol := c.GetSymbolAtLocation(node); symbol != nil {
-		if symbol.Flags&ast.SymbolFlagsClass != 0 && symbol.Flags&(ast.SymbolFlagsFunction|ast.SymbolFlagsVariable) == 0 && node.Kind() == ast.KindConstructorKeyword {
+		if symbol.Flags&ast.SymbolFlagsClass != 0 && symbol.Flags&(ast.SymbolFlagsFunction|ast.SymbolFlagsVariable) == 0 && node.Kind == ast.KindConstructorKeyword {
 			if constructor := symbol.Members[ast.InternalSymbolNameConstructor]; constructor != nil {
 				symbol = constructor
 			}

@@ -21,7 +21,7 @@ func IsExportName(emitContext *printer.EmitContext, name ast.Handle) bool {
 	return emitContext.EmitFlags(name)&printer.EFExportName != 0
 }
 func IsIdentifierReference(name ast.Handle, parent ast.Handle) bool {
-	switch parent.Kind() {
+	switch parent.Kind {
 	case ast.KindBinaryExpression, ast.KindPrefixUnaryExpression, ast.KindPostfixUnaryExpression, ast.KindYieldExpression, ast.KindAsExpression, ast.KindSatisfiesExpression, ast.KindElementAccessExpression, ast.KindNonNullExpression, ast.KindSpreadElement, ast.KindSpreadAssignment, ast.KindParenthesizedExpression, ast.KindArrayLiteralExpression, ast.KindDeleteExpression, ast.KindTypeOfExpression, ast.KindVoidExpression, ast.KindAwaitExpression, ast.KindTypeAssertionExpression, ast.KindExpressionWithTypeArguments, ast.KindJsxSelfClosingElement, ast.KindJsxSpreadAttribute, ast.KindJsxExpression, ast.KindPartiallyEmittedExpression:
 		return true
 	case ast.KindComputedPropertyName, ast.KindDecorator, ast.KindIfStatement, ast.KindDoStatement, ast.KindWhileStatement, ast.KindWithStatement, ast.KindReturnStatement, ast.KindSwitchStatement, ast.KindCaseClause, ast.KindThrowStatement, ast.KindExpressionStatement, ast.KindExportAssignment, ast.KindPropertyAccessExpression, ast.KindTemplateSpan:
@@ -101,7 +101,7 @@ func convertBindingElementToObjectAssignmentElement(emitContext *printer.EmitCon
 	return assignment
 }
 func ConvertBindingPatternToAssignmentPattern(emitContext *printer.EmitContext, element ast.Handle) ast.Handle {
-	switch element.Kind() {
+	switch element.Kind {
 	case ast.KindArrayBindingPattern:
 		return convertBindingElementToArrayAssignmentPattern(emitContext, element)
 	case ast.KindObjectBindingPattern:
@@ -161,7 +161,7 @@ func SingleOrMany(nodes []ast.Handle, factory *printer.NodeFactory) ast.Handle {
 }
 
 func IsSimpleCopiableExpression(expression ast.Handle) bool {
-	return ast.IsStringLiteralLike(expression) || ast.IsNumericLiteral(expression) || ast.IsKeywordKind(expression.Kind()) || ast.IsIdentifier(expression)
+	return ast.IsStringLiteralLike(expression) || ast.IsNumericLiteral(expression) || ast.IsKeywordKind(expression.Kind) || ast.IsIdentifier(expression)
 }
 func IsOriginalNodeSingleLine(emitContext *printer.EmitContext, node ast.Handle) bool {
 	if node.IsNil() {

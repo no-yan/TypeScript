@@ -932,7 +932,7 @@ func (c *Checker) inferFromSignature(n *InferenceState, source *Signature, targe
 		saveBivariant := n.bivariant
 		kind := ast.KindUnknown
 		if !target.declaration.IsNil() {
-			kind = target.declaration.Kind()
+			kind = target.declaration.Kind
 		}
 		n.bivariant = n.bivariant || kind == ast.KindMethodDeclaration || kind == ast.KindMethodSignature || kind == ast.KindConstructor
 		c.applyToParameterTypes(source, target, func(s, t *Type) {

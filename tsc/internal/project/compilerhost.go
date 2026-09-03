@@ -103,7 +103,7 @@ func (c *compilerHost) GetResolvedProjectReference(fileName string, path tspath.
 func (c *compilerHost) GetSourceFile(opts ast.SourceFileParseOptions) *ast.SourceFile {
 	c.ensureAlive()
 	if fh := c.sourceFS.GetFileByPath(opts.FileName, opts.Path); fh != nil {
-		key := NewParseCacheKey(opts, fh.Hash(), fh.Kind())
+		key := NewParseCacheKey(opts, fh.Hash(), fh.Kind)
 		return c.builder.parseCache.Acquire(key, fh)
 	}
 	return nil

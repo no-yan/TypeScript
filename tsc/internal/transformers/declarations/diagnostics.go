@@ -73,7 +73,7 @@ func createGetSymbolAccessibilityDiagnosticForNodeName(node ast.Handle) GetSymbo
 func getAccessorNameVisibilityDiagnosticMessage(node ast.Handle, symbolAccessibilityResult printer.SymbolAccessibilityResult) *diagnostics.Message {
 	if ast.IsStatic(node) {
 		return selectDiagnosticBasedOnModuleName(symbolAccessibilityResult, diagnostics.Public_static_property_0_of_exported_class_has_or_is_using_name_1_from_external_module_2_but_cannot_be_named, diagnostics.Public_static_property_0_of_exported_class_has_or_is_using_name_1_from_private_module_2, diagnostics.Public_static_property_0_of_exported_class_has_or_is_using_private_name_1)
-	} else if node.Parent().Kind() == ast.KindClassDeclaration {
+	} else if node.Parent().Kind == ast.KindClassDeclaration {
 		return selectDiagnosticBasedOnModuleName(symbolAccessibilityResult, diagnostics.Public_property_0_of_exported_class_has_or_is_using_name_1_from_external_module_2_but_cannot_be_named, diagnostics.Public_property_0_of_exported_class_has_or_is_using_name_1_from_private_module_2, diagnostics.Public_property_0_of_exported_class_has_or_is_using_private_name_1)
 	} else {
 		return selectDiagnosticBasedOnModuleNameNoNameCheck(symbolAccessibilityResult, diagnostics.Property_0_of_exported_interface_has_or_is_using_name_1_from_private_module_2, diagnostics.Property_0_of_exported_interface_has_or_is_using_private_name_1)
@@ -82,7 +82,7 @@ func getAccessorNameVisibilityDiagnosticMessage(node ast.Handle, symbolAccessibi
 func getMethodNameVisibilityDiagnosticMessage(node ast.Handle, symbolAccessibilityResult printer.SymbolAccessibilityResult) *diagnostics.Message {
 	if ast.IsStatic(node) {
 		return selectDiagnosticBasedOnModuleName(symbolAccessibilityResult, diagnostics.Public_static_method_0_of_exported_class_has_or_is_using_name_1_from_external_module_2_but_cannot_be_named, diagnostics.Public_static_method_0_of_exported_class_has_or_is_using_name_1_from_private_module_2, diagnostics.Public_static_method_0_of_exported_class_has_or_is_using_private_name_1)
-	} else if node.Parent().Kind() == ast.KindClassDeclaration {
+	} else if node.Parent().Kind == ast.KindClassDeclaration {
 		return selectDiagnosticBasedOnModuleName(symbolAccessibilityResult, diagnostics.Public_method_0_of_exported_class_has_or_is_using_name_1_from_external_module_2_but_cannot_be_named, diagnostics.Public_method_0_of_exported_class_has_or_is_using_name_1_from_private_module_2, diagnostics.Public_method_0_of_exported_class_has_or_is_using_private_name_1)
 	} else {
 		return selectDiagnosticBasedOnModuleNameNoNameCheck(symbolAccessibilityResult, diagnostics.Method_0_of_exported_interface_has_or_is_using_name_1_from_private_module_2, diagnostics.Method_0_of_exported_interface_has_or_is_using_private_name_1)
@@ -139,16 +139,16 @@ func createGetSymbolAccessibilityDiagnosticForNode(node ast.Handle) GetSymbolAcc
 			return &SymbolAccessibilityDiagnostic{errorNode: errorNode, diagnosticMessage: diagnosticMessage, typeName: typeName}
 		}
 	} else {
-		panic("Attempted to set a declaration diagnostic context for unhandled node kind: " + node.Kind().String())
+		panic("Attempted to set a declaration diagnostic context for unhandled node kind: " + node.Kind.String())
 	}
 }
 func getVariableDeclarationTypeVisibilityDiagnosticMessage(node ast.Handle, symbolAccessibilityResult printer.SymbolAccessibilityResult) *diagnostics.Message {
-	if node.Kind() == ast.KindVariableDeclaration || node.Kind() == ast.KindBindingElement {
+	if node.Kind == ast.KindVariableDeclaration || node.Kind == ast.KindBindingElement {
 		return selectDiagnosticBasedOnModuleName(symbolAccessibilityResult, diagnostics.Exported_variable_0_has_or_is_using_name_1_from_external_module_2_but_cannot_be_named, diagnostics.Exported_variable_0_has_or_is_using_name_1_from_private_module_2, diagnostics.Exported_variable_0_has_or_is_using_private_name_1)
-	} else if node.Kind() == ast.KindPropertyDeclaration || node.Kind() == ast.KindPropertyAccessExpression || node.Kind() == ast.KindElementAccessExpression || node.Kind() == ast.KindBinaryExpression || node.Kind() == ast.KindPropertySignature || (node.Kind() == ast.KindParameter && ast.HasSyntacticModifier(node.Parent(), ast.ModifierFlagsPrivate)) {
+	} else if node.Kind == ast.KindPropertyDeclaration || node.Kind == ast.KindPropertyAccessExpression || node.Kind == ast.KindElementAccessExpression || node.Kind == ast.KindBinaryExpression || node.Kind == ast.KindPropertySignature || (node.Kind == ast.KindParameter && ast.HasSyntacticModifier(node.Parent(), ast.ModifierFlagsPrivate)) {
 		if ast.IsStatic(node) {
 			return selectDiagnosticBasedOnModuleName(symbolAccessibilityResult, diagnostics.Public_static_property_0_of_exported_class_has_or_is_using_name_1_from_external_module_2_but_cannot_be_named, diagnostics.Public_static_property_0_of_exported_class_has_or_is_using_name_1_from_private_module_2, diagnostics.Public_static_property_0_of_exported_class_has_or_is_using_private_name_1)
-		} else if node.Parent().Kind() == ast.KindClassDeclaration || node.Kind() == ast.KindParameter {
+		} else if node.Parent().Kind == ast.KindClassDeclaration || node.Kind == ast.KindParameter {
 			return selectDiagnosticBasedOnModuleName(symbolAccessibilityResult, diagnostics.Public_property_0_of_exported_class_has_or_is_using_name_1_from_external_module_2_but_cannot_be_named, diagnostics.Public_property_0_of_exported_class_has_or_is_using_name_1_from_private_module_2, diagnostics.Public_property_0_of_exported_class_has_or_is_using_private_name_1)
 		} else {
 			return selectDiagnosticBasedOnModuleNameNoNameCheck(symbolAccessibilityResult, diagnostics.Property_0_of_exported_interface_has_or_is_using_name_1_from_private_module_2, diagnostics.Property_0_of_exported_interface_has_or_is_using_private_name_1)
@@ -157,7 +157,7 @@ func getVariableDeclarationTypeVisibilityDiagnosticMessage(node ast.Handle, symb
 	return nil
 }
 func getAccessorDeclarationTypeVisibilityDiagnosticMessage(node ast.Handle, symbolAccessibilityResult printer.SymbolAccessibilityResult) *diagnostics.Message {
-	if node.Kind() == ast.KindSetAccessor {
+	if node.Kind == ast.KindSetAccessor {
 		if ast.IsStatic(node) {
 			return selectDiagnosticBasedOnModuleNameNoNameCheck(symbolAccessibilityResult, diagnostics.Parameter_type_of_public_static_setter_0_from_exported_class_has_or_is_using_name_1_from_private_module_2, diagnostics.Parameter_type_of_public_static_setter_0_from_exported_class_has_or_is_using_private_name_1)
 		} else {
@@ -172,7 +172,7 @@ func getAccessorDeclarationTypeVisibilityDiagnosticMessage(node ast.Handle, symb
 	}
 }
 func getReturnTypeVisibilityDiagnosticMessage(node ast.Handle, symbolAccessibilityResult printer.SymbolAccessibilityResult) *diagnostics.Message {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindConstructSignature:
 		return selectDiagnosticBasedOnModuleNameNoNameCheck(symbolAccessibilityResult, diagnostics.Return_type_of_constructor_signature_from_exported_interface_has_or_is_using_name_0_from_private_module_1, diagnostics.Return_type_of_constructor_signature_from_exported_interface_has_or_is_using_private_name_0)
 	case ast.KindCallSignature:
@@ -182,7 +182,7 @@ func getReturnTypeVisibilityDiagnosticMessage(node ast.Handle, symbolAccessibili
 	case ast.KindMethodDeclaration, ast.KindMethodSignature:
 		if ast.IsStatic(node) {
 			return selectDiagnosticBasedOnModuleName(symbolAccessibilityResult, diagnostics.Return_type_of_public_static_method_from_exported_class_has_or_is_using_name_0_from_external_module_1_but_cannot_be_named, diagnostics.Return_type_of_public_static_method_from_exported_class_has_or_is_using_name_0_from_private_module_1, diagnostics.Return_type_of_public_static_method_from_exported_class_has_or_is_using_private_name_0)
-		} else if node.Parent().Kind() == ast.KindClassDeclaration {
+		} else if node.Parent().Kind == ast.KindClassDeclaration {
 			return selectDiagnosticBasedOnModuleName(symbolAccessibilityResult, diagnostics.Return_type_of_public_method_from_exported_class_has_or_is_using_name_0_from_external_module_1_but_cannot_be_named, diagnostics.Return_type_of_public_method_from_exported_class_has_or_is_using_name_0_from_private_module_1, diagnostics.Return_type_of_public_method_from_exported_class_has_or_is_using_private_name_0)
 		} else {
 			return selectDiagnosticBasedOnModuleNameNoNameCheck(symbolAccessibilityResult, diagnostics.Return_type_of_method_from_exported_interface_has_or_is_using_name_0_from_private_module_1, diagnostics.Return_type_of_method_from_exported_interface_has_or_is_using_private_name_0)
@@ -190,11 +190,11 @@ func getReturnTypeVisibilityDiagnosticMessage(node ast.Handle, symbolAccessibili
 	case ast.KindFunctionDeclaration:
 		return selectDiagnosticBasedOnModuleName(symbolAccessibilityResult, diagnostics.Return_type_of_exported_function_has_or_is_using_name_0_from_external_module_1_but_cannot_be_named, diagnostics.Return_type_of_exported_function_has_or_is_using_name_0_from_private_module_1, diagnostics.Return_type_of_exported_function_has_or_is_using_private_name_0)
 	default:
-		panic("This is unknown kind for signature: " + node.Kind().String())
+		panic("This is unknown kind for signature: " + node.Kind.String())
 	}
 }
 func getParameterDeclarationTypeVisibilityDiagnosticMessage(node ast.Handle, symbolAccessibilityResult printer.SymbolAccessibilityResult) *diagnostics.Message {
-	switch node.Parent().Kind() {
+	switch node.Parent().Kind {
 	case ast.KindConstructor:
 		return selectDiagnosticBasedOnModuleName(symbolAccessibilityResult, diagnostics.Parameter_0_of_constructor_from_exported_class_has_or_is_using_name_1_from_external_module_2_but_cannot_be_named, diagnostics.Parameter_0_of_constructor_from_exported_class_has_or_is_using_name_1_from_private_module_2, diagnostics.Parameter_0_of_constructor_from_exported_class_has_or_is_using_private_name_1)
 	case ast.KindConstructSignature, ast.KindConstructorType:
@@ -206,7 +206,7 @@ func getParameterDeclarationTypeVisibilityDiagnosticMessage(node ast.Handle, sym
 	case ast.KindMethodDeclaration, ast.KindMethodSignature:
 		if ast.IsStatic(node.Parent()) {
 			return selectDiagnosticBasedOnModuleName(symbolAccessibilityResult, diagnostics.Parameter_0_of_public_static_method_from_exported_class_has_or_is_using_name_1_from_external_module_2_but_cannot_be_named, diagnostics.Parameter_0_of_public_static_method_from_exported_class_has_or_is_using_name_1_from_private_module_2, diagnostics.Parameter_0_of_public_static_method_from_exported_class_has_or_is_using_private_name_1)
-		} else if node.Parent().Parent().Kind() == ast.KindClassDeclaration {
+		} else if node.Parent().Parent().Kind == ast.KindClassDeclaration {
 			return selectDiagnosticBasedOnModuleName(symbolAccessibilityResult, diagnostics.Parameter_0_of_public_method_from_exported_class_has_or_is_using_name_1_from_external_module_2_but_cannot_be_named, diagnostics.Parameter_0_of_public_method_from_exported_class_has_or_is_using_name_1_from_private_module_2, diagnostics.Parameter_0_of_public_method_from_exported_class_has_or_is_using_private_name_1)
 		} else {
 			return selectDiagnosticBasedOnModuleNameNoNameCheck(symbolAccessibilityResult, diagnostics.Parameter_0_of_method_from_exported_interface_has_or_is_using_name_1_from_private_module_2, diagnostics.Parameter_0_of_method_from_exported_interface_has_or_is_using_private_name_1)
@@ -216,11 +216,11 @@ func getParameterDeclarationTypeVisibilityDiagnosticMessage(node ast.Handle, sym
 	case ast.KindSetAccessor, ast.KindGetAccessor:
 		return selectDiagnosticBasedOnModuleName(symbolAccessibilityResult, diagnostics.Parameter_0_of_accessor_has_or_is_using_name_1_from_external_module_2_but_cannot_be_named, diagnostics.Parameter_0_of_accessor_has_or_is_using_name_1_from_private_module_2, diagnostics.Parameter_0_of_accessor_has_or_is_using_private_name_1)
 	default:
-		panic("Unknown parent for parameter: " + node.Parent().Kind().String())
+		panic("Unknown parent for parameter: " + node.Parent().Kind.String())
 	}
 }
 func getTypeParameterConstraintVisibilityDiagnosticMessage(node ast.Handle, symbolAccessibilityResult printer.SymbolAccessibilityResult) *diagnostics.Message {
-	switch node.Parent().Kind() {
+	switch node.Parent().Kind {
 	case ast.KindClassDeclaration:
 		return diagnostics.Type_parameter_0_of_exported_class_has_or_is_using_private_name_1
 	case ast.KindInterfaceDeclaration:
@@ -234,7 +234,7 @@ func getTypeParameterConstraintVisibilityDiagnosticMessage(node ast.Handle, symb
 	case ast.KindMethodDeclaration, ast.KindMethodSignature:
 		if ast.IsStatic(node.Parent()) {
 			return diagnostics.Type_parameter_0_of_public_static_method_from_exported_class_has_or_is_using_private_name_1
-		} else if node.Parent().Parent().Kind() == ast.KindClassDeclaration {
+		} else if node.Parent().Parent().Kind == ast.KindClassDeclaration {
 			return diagnostics.Type_parameter_0_of_public_method_from_exported_class_has_or_is_using_private_name_1
 		} else {
 			return diagnostics.Type_parameter_0_of_method_from_exported_interface_has_or_is_using_private_name_1
@@ -246,7 +246,7 @@ func getTypeParameterConstraintVisibilityDiagnosticMessage(node ast.Handle, symb
 	case ast.KindTypeAliasDeclaration, ast.KindJSTypeAliasDeclaration:
 		return diagnostics.Type_parameter_0_of_exported_type_alias_has_or_is_using_private_name_1
 	default:
-		panic("This is unknown parent for type parameter: " + node.Parent().Kind().String())
+		panic("This is unknown parent for type parameter: " + node.Parent().Kind.String())
 	}
 }
 func getRelatedSuggestionByDeclarationKind(kind ast.Kind) *diagnostics.Message {
@@ -355,7 +355,7 @@ func addParentDeclarationRelatedInfo(node ast.Handle, diag *ast.Diagnostic) {
 	if !ast.IsExportAssignment(parentDeclaration) && !parentDeclaration.Name().IsNil() {
 		targetStr = scanner.GetTextOfNode(parentDeclaration.Name())
 	}
-	diag.AddRelatedInfo(createDiagnosticForNode(parentDeclaration, getRelatedSuggestionByDeclarationKind(parentDeclaration.Kind()), targetStr))
+	diag.AddRelatedInfo(createDiagnosticForNode(parentDeclaration, getRelatedSuggestionByDeclarationKind(parentDeclaration.Kind), targetStr))
 }
 func createAccessorTypeError(node ast.Handle) *ast.Diagnostic {
 	allDeclarations := ast.GetAllAccessorDeclarationsForDeclaration(node, ast.DeclarationNodes(node.Symbol()))
@@ -365,37 +365,37 @@ func createAccessorTypeError(node ast.Handle) *ast.Diagnostic {
 	if ast.IsSetAccessorDeclaration(node) && len(node.Parameters()) > 0 {
 		targetNode = node.Parameters()[0]
 	}
-	diag := createDiagnosticForNode(targetNode, getErrorByDeclarationKind(node.Kind()))
+	diag := createDiagnosticForNode(targetNode, getErrorByDeclarationKind(node.Kind))
 	if !setAccessor.IsNil() {
-		diag.AddRelatedInfo(createDiagnosticForNode(setAccessor, getRelatedSuggestionByDeclarationKind(setAccessor.Kind())))
+		diag.AddRelatedInfo(createDiagnosticForNode(setAccessor, getRelatedSuggestionByDeclarationKind(setAccessor.Kind)))
 	}
 	if !getAccessor.IsNil() {
-		diag.AddRelatedInfo(createDiagnosticForNode(getAccessor, getRelatedSuggestionByDeclarationKind(getAccessor.Kind())))
+		diag.AddRelatedInfo(createDiagnosticForNode(getAccessor, getRelatedSuggestionByDeclarationKind(getAccessor.Kind)))
 	}
 	return diag
 }
 func createObjectLiteralError(node ast.Handle) *ast.Diagnostic {
-	diag := createDiagnosticForNode(node, getErrorByDeclarationKind(node.Kind()))
+	diag := createDiagnosticForNode(node, getErrorByDeclarationKind(node.Kind))
 	addParentDeclarationRelatedInfo(node, diag)
 	return diag
 }
 func createArrayLiteralError(node ast.Handle) *ast.Diagnostic {
-	diag := createDiagnosticForNode(node, getErrorByDeclarationKind(node.Kind()))
+	diag := createDiagnosticForNode(node, getErrorByDeclarationKind(node.Kind))
 	addParentDeclarationRelatedInfo(node, diag)
 	return diag
 }
 func createReturnTypeError(node ast.Handle) *ast.Diagnostic {
-	diag := createDiagnosticForNode(node, getErrorByDeclarationKind(node.Kind()))
+	diag := createDiagnosticForNode(node, getErrorByDeclarationKind(node.Kind))
 	addParentDeclarationRelatedInfo(node, diag)
-	diag.AddRelatedInfo(createDiagnosticForNode(node, getRelatedSuggestionByDeclarationKind(node.Kind())))
+	diag.AddRelatedInfo(createDiagnosticForNode(node, getRelatedSuggestionByDeclarationKind(node.Kind)))
 	return diag
 }
 func createBindingElementError(node ast.Handle) *ast.Diagnostic {
 	return createDiagnosticForNode(node, diagnostics.Binding_elements_with_initializers_can_t_be_exported_directly_with_isolatedDeclarations)
 }
 func createVariableOrPropertyError(node ast.Handle) *ast.Diagnostic {
-	diag := createDiagnosticForNode(node, getErrorByDeclarationKind(node.Kind()))
-	diag.AddRelatedInfo(createDiagnosticForNode(node, getRelatedSuggestionByDeclarationKind(node.Kind()), scanner.GetTextOfNode(node.Name())))
+	diag := createDiagnosticForNode(node, getErrorByDeclarationKind(node.Kind))
+	diag.AddRelatedInfo(createDiagnosticForNode(node, getRelatedSuggestionByDeclarationKind(node.Kind), scanner.GetTextOfNode(node.Name())))
 	return diag
 }
 func createExpressionError(node ast.Handle) *ast.Diagnostic {
@@ -428,17 +428,17 @@ func createExpressionErrorEx(node ast.Handle, diagnosticMessage *diagnostics.Mes
 	parent := ast.FindAncestorOrQuit(node.Parent(), isParentForIDDIagnostic)
 	if parentDeclaration == parent {
 		if diagnosticMessage == nil {
-			diagnosticMessage = getErrorByDeclarationKind(parentDeclaration.Kind())
+			diagnosticMessage = getErrorByDeclarationKind(parentDeclaration.Kind)
 		}
 		diag := createDiagnosticForNode(node, diagnosticMessage)
-		diag.AddRelatedInfo(createDiagnosticForNode(parentDeclaration, getRelatedSuggestionByDeclarationKind(parentDeclaration.Kind()), targetStr))
+		diag.AddRelatedInfo(createDiagnosticForNode(parentDeclaration, getRelatedSuggestionByDeclarationKind(parentDeclaration.Kind), targetStr))
 		return diag
 	}
 	if diagnosticMessage == nil {
 		diagnosticMessage = diagnostics.Expression_type_can_t_be_inferred_with_isolatedDeclarations
 	}
 	diag := createDiagnosticForNode(node, diagnosticMessage)
-	diag.AddRelatedInfo(createDiagnosticForNode(parentDeclaration, getRelatedSuggestionByDeclarationKind(parentDeclaration.Kind()), targetStr))
+	diag.AddRelatedInfo(createDiagnosticForNode(parentDeclaration, getRelatedSuggestionByDeclarationKind(parentDeclaration.Kind), targetStr))
 	diag.AddRelatedInfo(createDiagnosticForNode(node, diagnostics.Add_satisfies_and_a_type_assertion_to_this_expression_satisfies_T_as_T_to_make_the_type_explicit))
 	return diag
 }
@@ -451,13 +451,13 @@ func createGetIsolatedDeclarationErrors(resolver printer.EmitResolver) func(node
 		if !addUndefined && !node.Initializer().IsNil() {
 			return createExpressionError(node.Initializer())
 		}
-		message := getErrorByDeclarationKind(node.Kind())
+		message := getErrorByDeclarationKind(node.Kind)
 		if addUndefined {
 			message = diagnostics.Declaration_emit_for_this_parameter_requires_implicitly_adding_undefined_to_its_type_This_is_not_supported_with_isolatedDeclarations
 		}
 		diag := createDiagnosticForNode(node, message)
 		targetStr := scanner.GetTextOfNode(node.Name())
-		diag.AddRelatedInfo(createDiagnosticForNode(node, getRelatedSuggestionByDeclarationKind(node.Kind()), targetStr))
+		diag.AddRelatedInfo(createDiagnosticForNode(node, getRelatedSuggestionByDeclarationKind(node.Kind), targetStr))
 		return diag
 	}
 	return func(node ast.Handle) *ast.Diagnostic {
@@ -471,7 +471,7 @@ func createGetIsolatedDeclarationErrors(resolver printer.EmitResolver) func(node
 		if ast.IsEntityName(node) || ast.IsEntityNameExpression(node) {
 			return createEntityInTypeNodeError(node)
 		}
-		switch node.Kind() {
+		switch node.Kind {
 		case ast.KindGetAccessor, ast.KindSetAccessor:
 			return createAccessorTypeError(node)
 		case ast.KindComputedPropertyName, ast.KindShorthandPropertyAssignment, ast.KindSpreadAssignment:

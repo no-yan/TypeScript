@@ -157,7 +157,7 @@ func (b *NodeBuilder) ExpandSymbolForHover(symbol *ast.Symbol, meaning ast.Symbo
 	b.propagateVerbosityOut()
 	result := make([]ast.Handle, 0, len(nodes))
 	for _, node := range nodes {
-		switch node.Kind() {
+		switch node.Kind {
 		case ast.KindClassDeclaration:
 			result = append(result, simplifyClassDeclaration(b.impl.f, node, symbol))
 		case ast.KindEnumDeclaration:

@@ -64,7 +64,7 @@ func (s *inlayHintState) visit(node ast.Handle) bool {
 	if node.IsNil() || node.End()-node.Pos() == 0 || node.Flags()&ast.NodeFlagsReparsed != 0 {
 		return false
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindModuleDeclaration, ast.KindClassDeclaration, ast.KindInterfaceDeclaration, ast.KindFunctionDeclaration, ast.KindClassExpression, ast.KindFunctionExpression, ast.KindMethodDeclaration, ast.KindArrowFunction:
 		if s.ctx.Err() != nil {
 			return true
@@ -322,7 +322,7 @@ func isHintableDeclaration(node ast.Handle) bool {
 	return true
 }
 func isHintableLiteral(node ast.Handle) bool {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindPrefixUnaryExpression:
 		operand := node.PrefixUnaryExpressionOperand()
 		return ast.IsLiteralExpression(operand) || ast.IsIdentifier(operand) && ast.IsInfinityOrNaNString(operand.Text())
@@ -347,7 +347,7 @@ func (s *inlayHintState) getInlayHintLabelParts(node ast.Handle, idToSymbol map[
 		if node.IsNil() {
 			return
 		}
-		tokenString := scanner.TokenToString(node.Kind())
+		tokenString := scanner.TokenToString(node.Kind)
 		if tokenString != "" {
 			parts = append(parts, &lsproto.InlayHintLabelPart{Value: tokenString})
 			return
@@ -356,7 +356,7 @@ func (s *inlayHintState) getInlayHintLabelParts(node ast.Handle, idToSymbol map[
 			parts = append(parts, &lsproto.InlayHintLabelPart{Value: s.getLiteralText(node)})
 			return
 		}
-		switch node.Kind() {
+		switch node.Kind {
 		case ast.KindIdentifier:
 			identifierText := node.Text()
 			var name ast.Handle
@@ -494,9 +494,9 @@ func (s *inlayHintState) getInlayHintLabelParts(node ast.Handle, idToSymbol map[
 		case ast.KindMappedType:
 			parts = append(parts, &lsproto.InlayHintLabelPart{Value: "{ "})
 			if !node.MappedTypeNodeReadonlyToken().IsNil() {
-				if node.MappedTypeNodeReadonlyToken().Kind() == ast.KindPlusToken {
+				if node.MappedTypeNodeReadonlyToken().Kind == ast.KindPlusToken {
 					parts = append(parts, &lsproto.InlayHintLabelPart{Value: "+"})
-				} else if node.MappedTypeNodeReadonlyToken().Kind() == ast.KindMinusToken {
+				} else if node.MappedTypeNodeReadonlyToken().Kind == ast.KindMinusToken {
 					parts = append(parts, &lsproto.InlayHintLabelPart{Value: "-"})
 				}
 				parts = append(parts, &lsproto.InlayHintLabelPart{Value: "readonly "})
@@ -509,9 +509,9 @@ func (s *inlayHintState) getInlayHintLabelParts(node ast.Handle, idToSymbol map[
 			}
 			parts = append(parts, &lsproto.InlayHintLabelPart{Value: "]"})
 			if !node.QuestionToken().IsNil() {
-				if node.QuestionToken().Kind() == ast.KindPlusToken {
+				if node.QuestionToken().Kind == ast.KindPlusToken {
 					parts = append(parts, &lsproto.InlayHintLabelPart{Value: "+"})
-				} else if node.QuestionToken().Kind() == ast.KindMinusToken {
+				} else if node.QuestionToken().Kind == ast.KindMinusToken {
 					parts = append(parts, &lsproto.InlayHintLabelPart{Value: "-"})
 				}
 				parts = append(parts, &lsproto.InlayHintLabelPart{Value: "?"})
@@ -550,7 +550,7 @@ func (s *inlayHintState) getInlayHintLabelParts(node ast.Handle, idToSymbol map[
 			}
 			visitForDisplayParts(node.Name())
 			if !node.PostfixToken().IsNil() {
-				parts = append(parts, &lsproto.InlayHintLabelPart{Value: scanner.TokenToString(node.PostfixToken().Kind())})
+				parts = append(parts, &lsproto.InlayHintLabelPart{Value: scanner.TokenToString(node.PostfixToken().Kind)})
 			}
 			if !node.Type().IsNil() {
 				parts = append(parts, &lsproto.InlayHintLabelPart{Value: ": "})
@@ -571,7 +571,7 @@ func (s *inlayHintState) getInlayHintLabelParts(node ast.Handle, idToSymbol map[
 			}
 			visitForDisplayParts(node.Name())
 			if !node.PostfixToken().IsNil() {
-				parts = append(parts, &lsproto.InlayHintLabelPart{Value: scanner.TokenToString(node.PostfixToken().Kind())})
+				parts = append(parts, &lsproto.InlayHintLabelPart{Value: scanner.TokenToString(node.PostfixToken().Kind)})
 			}
 			visitParametersAndTypeParameters(node)
 			if !node.Type().IsNil() {
@@ -671,7 +671,7 @@ func (s *inlayHintState) getNodeDisplayPart(text string, node ast.Handle) *lspro
 	return part
 }
 func (s *inlayHintState) getLiteralText(node ast.Handle) string {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindStringLiteral:
 		if s.quotePreference == lsutil.QuotePreferenceSingle {
 			return `'` + printer.EscapeString(node.Text(), printer.QuoteCharSingleQuote) + `'`
@@ -682,7 +682,7 @@ func (s *inlayHintState) getLiteralText(node ast.Handle) string {
 		if rawText == "" {
 			rawText = printer.EscapeString(node.Text(), printer.QuoteCharBacktick)
 		}
-		switch node.Kind() {
+		switch node.Kind {
 		case ast.KindTemplateHead:
 			return "`" + rawText + "${"
 		case ast.KindTemplateMiddle:

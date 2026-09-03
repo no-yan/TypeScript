@@ -87,7 +87,7 @@ func (s *formattingScanner) advance() {
 	s.savedPos = s.s.TokenFullStart()
 }
 func shouldRescanGreaterThanToken(node ast.Handle) bool {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindGreaterThanEqualsToken, ast.KindGreaterThanGreaterThanEqualsToken, ast.KindGreaterThanGreaterThanGreaterThanEqualsToken, ast.KindGreaterThanGreaterThanGreaterThanToken, ast.KindGreaterThanGreaterThanToken:
 		return true
 	}
@@ -95,11 +95,11 @@ func shouldRescanGreaterThanToken(node ast.Handle) bool {
 }
 func shouldRescanJsxIdentifier(node ast.Handle) bool {
 	if !node.Parent().IsNil() {
-		switch node.Parent().Kind() {
+		switch node.Parent().Kind {
 		case ast.KindJsxAttribute, ast.KindJsxOpeningElement, ast.KindJsxClosingElement, ast.KindJsxSelfClosingElement, ast.KindJsxNamespacedName:
-			return ast.IsKeywordKind(node.Kind()) || node.Kind() == ast.KindIdentifier
+			return ast.IsKeywordKind(node.Kind) || node.Kind == ast.KindIdentifier
 		case ast.KindPropertyAccessExpression:
-			return (ast.IsKeywordKind(node.Kind()) || node.Kind() == ast.KindIdentifier) && isLeftmostJsxTagName(node)
+			return (ast.IsKeywordKind(node.Kind) || node.Kind == ast.KindIdentifier) && isLeftmostJsxTagName(node)
 		}
 	}
 	return false
@@ -128,10 +128,10 @@ func (s *formattingScanner) shouldRescanJsxText(node ast.Handle) bool {
 	return s.lastTokenInfo.token.Kind == ast.KindJsxText
 }
 func shouldRescanSlashToken(container ast.Handle) bool {
-	return container.Kind() == ast.KindRegularExpressionLiteral
+	return container.Kind == ast.KindRegularExpressionLiteral
 }
 func shouldRescanTemplateToken(container ast.Handle) bool {
-	return container.Kind() == ast.KindTemplateMiddle || container.Kind() == ast.KindTemplateTail
+	return container.Kind == ast.KindTemplateMiddle || container.Kind == ast.KindTemplateTail
 }
 func shouldRescanJsxAttributeValue(node ast.Handle) bool {
 	return !node.Parent().IsNil() && ast.IsJsxAttribute(node.Parent()) && node.Parent().Initializer() == node
@@ -153,8 +153,8 @@ const (
 )
 
 func fixTokenKind(tokenInfo tokenInfo, container ast.Handle) tokenInfo {
-	if ast.IsTokenKind(container.Kind()) && tokenInfo.token.Kind != container.Kind() {
-		tokenInfo.token.Kind = container.Kind()
+	if ast.IsTokenKind(container.Kind) && tokenInfo.token.Kind != container.Kind {
+		tokenInfo.token.Kind = container.Kind
 	}
 	return tokenInfo
 }
@@ -212,14 +212,14 @@ func (s *formattingScanner) getNextToken(n ast.Handle, expectedScanAction scanAc
 		if token == ast.KindGreaterThanToken {
 			s.lastScanAction = actionRescanGreaterThanToken
 			newToken := s.s.ReScanGreaterThanToken()
-			debug.Assert(n.Kind() == newToken)
+			debug.Assert(n.Kind == newToken)
 			return newToken
 		}
 	case actionRescanSlashToken:
 		if startsWithSlashToken(token) {
 			s.lastScanAction = actionRescanSlashToken
 			newToken := s.s.ReScanSlashToken()
-			debug.Assert(n.Kind() == newToken)
+			debug.Assert(n.Kind == newToken)
 			return newToken
 		}
 	case actionRescanTemplateToken:

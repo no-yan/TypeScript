@@ -44,7 +44,7 @@ func (tx *TypeEraserTransformer) visit(node ast.Handle) ast.Handle {
 	}
 	grandparentNode := tx.pushNode(node)
 	defer tx.popNode(grandparentNode)
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindPublicKeyword, ast.KindPrivateKeyword, ast.KindProtectedKeyword, ast.KindAbstractKeyword, ast.KindOverrideKeyword, ast.KindConstKeyword, ast.KindDeclareKeyword, ast.KindReadonlyKeyword, ast.KindArrayType, ast.KindTupleType, ast.KindOptionalType, ast.KindRestType, ast.KindTypeLiteral, ast.KindTypePredicate, ast.KindTypeParameter, ast.KindAnyKeyword, ast.KindUnknownKeyword, ast.KindBooleanKeyword, ast.KindStringKeyword, ast.KindNumberKeyword, ast.KindNeverKeyword, ast.KindVoidKeyword, ast.KindSymbolKeyword, ast.KindConstructorType, ast.KindFunctionType, ast.KindTypeQuery, ast.KindTypeReference, ast.KindUnionType, ast.KindIntersectionType, ast.KindConditionalType, ast.KindParenthesizedType, ast.KindThisType, ast.KindTypeOperator, ast.KindIndexedAccessType, ast.KindMappedType, ast.KindLiteralType, ast.KindIndexSignature:
 		return ast.Handle{}
 	case ast.KindInKeyword, ast.KindOutKeyword:

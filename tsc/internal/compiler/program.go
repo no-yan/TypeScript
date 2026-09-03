@@ -529,10 +529,10 @@ func (p *Program) jsxRuntimeImportSpecifier(file *ast.SourceFile) string {
 	return ast.GetJSXRuntimeImport(ast.GetJSXImplicitImportBase(optionsForFile, file), optionsForFile)
 }
 func equalModuleSpecifiers(n1 ast.Handle, n2 ast.Handle) bool {
-	return n1.Kind() == n2.Kind() && (!ast.IsStringLiteral(n1) || n1.Text() == n2.Text())
+	return n1.Kind == n2.Kind && (!ast.IsStringLiteral(n1) || n1.Text() == n2.Text())
 }
 func equalModuleAugmentationNames(n1 ast.Handle, n2 ast.Handle) bool {
-	return n1.Kind() == n2.Kind() && n1.Text() == n2.Text()
+	return n1.Kind == n2.Kind && n1.Text() == n2.Text()
 }
 func equalFileReferences(f1 *ast.FileReference, f2 *ast.FileReference) bool {
 	return f1.FileName == f2.FileName && f1.ResolutionMode == f2.ResolutionMode && f1.Preserve == f2.Preserve
@@ -790,7 +790,7 @@ func getAdditionalJSSyntacticDiagnostics(file *ast.SourceFile, options *core.Com
 		if node.SubtreeFacts()&ast.SubtreeContainsDecorators == 0 {
 			return false
 		}
-		if node.Kind() == ast.KindParameter && ast.HasDecorators(node) {
+		if node.Kind == ast.KindParameter && ast.HasDecorators(node) {
 			decorator := core.Find(node.ModifierNodes(), ast.IsDecorator)
 			if !decorator.IsNil() {
 				diags = append(diags, ast.NewDiagnostic(file, decorator.Loc(), diagnostics.Decorators_are_not_valid_here))

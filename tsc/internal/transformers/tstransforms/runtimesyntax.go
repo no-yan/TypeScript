@@ -45,7 +45,7 @@ func (tx *RuntimeSyntaxTransformer) popNode(grandparentNode ast.Handle) {
 func (tx *RuntimeSyntaxTransformer) pushScope(node ast.Handle) (savedCurrentScope ast.Handle, savedCurrentScopeFirstDeclarationsOfName map[string]ast.Handle) {
 	savedCurrentScope = tx.currentScope
 	savedCurrentScopeFirstDeclarationsOfName = tx.currentScopeFirstDeclarationsOfName
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindSourceFile:
 		tx.currentScope = node
 		tx.currentSourceFile = node
@@ -73,7 +73,7 @@ func (tx *RuntimeSyntaxTransformer) visit(node ast.Handle) ast.Handle {
 	if node.SubtreeFacts()&ast.SubtreeContainsTypeScript == 0 && (tx.currentNamespace.IsNil() && tx.currentEnum.IsNil() || node.SubtreeFacts()&ast.SubtreeContainsIdentifier == 0) {
 		return node
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindPublicKeyword, ast.KindPrivateKeyword, ast.KindProtectedKeyword, ast.KindReadonlyKeyword, ast.KindOverrideKeyword:
 		node = ast.Handle{}
 	case ast.KindEnumDeclaration:
@@ -91,15 +91,15 @@ func (tx *RuntimeSyntaxTransformer) visit(node ast.Handle) ast.Handle {
 	case ast.KindVariableStatement:
 		node = tx.visitVariableStatement(node)
 	case ast.KindExportDeclaration, ast.KindImportDeclaration, ast.KindImportClause:
-		if !tx.currentNamespace.IsNil() && !tx.currentScope.IsNil() && tx.currentScope.Kind() != ast.KindBlock {
+		if !tx.currentNamespace.IsNil() && !tx.currentScope.IsNil() && tx.currentScope.Kind != ast.KindBlock {
 			node = ast.Handle{}
 		} else {
 			node = tx.Visitor().VisitEachChild(node)
 		}
 	case ast.KindImportEqualsDeclaration:
-		if !tx.currentNamespace.IsNil() && !tx.currentScope.IsNil() && tx.currentScope.Kind() != ast.KindBlock && node.ImportEqualsDeclarationModuleReference().Kind() == ast.KindExternalModuleReference {
+		if !tx.currentNamespace.IsNil() && !tx.currentScope.IsNil() && tx.currentScope.Kind != ast.KindBlock && node.ImportEqualsDeclarationModuleReference().Kind == ast.KindExternalModuleReference {
 			node = ast.Handle{}
-		} else if !tx.currentNamespace.IsNil() && !tx.currentScope.IsNil() && tx.currentScope.Kind() == ast.KindBlock && node.ImportEqualsDeclarationModuleReference().Kind() != ast.KindExternalModuleReference {
+		} else if !tx.currentNamespace.IsNil() && !tx.currentScope.IsNil() && tx.currentScope.Kind == ast.KindBlock && node.ImportEqualsDeclarationModuleReference().Kind != ast.KindExternalModuleReference {
 			node = ast.Handle{}
 		} else {
 			node = tx.visitImportEqualsDeclaration(node)
@@ -115,7 +115,7 @@ func (tx *RuntimeSyntaxTransformer) visit(node ast.Handle) ast.Handle {
 }
 
 func (tx *RuntimeSyntaxTransformer) recordDeclarationInScope(node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindVariableStatement:
 		tx.recordDeclarationInScope(node.VariableStatementDeclarationList())
 		return
@@ -157,12 +157,12 @@ func (tx *RuntimeSyntaxTransformer) isFirstDeclarationInScope(node ast.Handle) b
 	return false
 }
 func (tx *RuntimeSyntaxTransformer) isExportOfNamespace(node ast.Handle) bool {
-	return !tx.currentNamespace.IsNil() && (tx.currentScope.IsNil() || tx.currentScope.Kind() != ast.KindBlock) && node.ModifierFlags()&ast.ModifierFlagsExport != 0
+	return !tx.currentNamespace.IsNil() && (tx.currentScope.IsNil() || tx.currentScope.Kind != ast.KindBlock) && node.ModifierFlags()&ast.ModifierFlagsExport != 0
 }
 
 func (tx *RuntimeSyntaxTransformer) getExpressionForPropertyName(member ast.Handle) ast.Handle {
 	name := member.Name()
-	switch name.Kind() {
+	switch name.Kind {
 	case ast.KindPrivateIdentifier:
 		return tx.Factory().NewIdentifier("")
 	case ast.KindComputedPropertyName:
@@ -349,7 +349,7 @@ func (tx *RuntimeSyntaxTransformer) transformModuleBody(node ast.Handle, namespa
 	var statementsLocation core.TextRange
 	var blockLocation core.TextRange
 	if !node.Body().IsNil() {
-		if node.Body().Kind() == ast.KindModuleBlock {
+		if node.Body().Kind == ast.KindModuleBlock {
 			node = tx.Visitor().VisitEachChild(node)
 			body := node.Body()
 			statements = body.Statements()
@@ -368,13 +368,13 @@ func (tx *RuntimeSyntaxTransformer) transformModuleBody(node ast.Handle, namespa
 	statementList := tx.Factory().List(statementsLocation, statements...)
 	block := tx.Factory().NewBlock(statementList, true)
 	block.SetLoc(blockLocation)
-	if node.Body().IsNil() || node.Body().Kind() != ast.KindModuleBlock {
+	if node.Body().IsNil() || node.Body().Kind != ast.KindModuleBlock {
 		tx.EmitContext().AddEmitFlags(block, printer.EFNoComments)
 	}
 	return block
 }
 func (tx *RuntimeSyntaxTransformer) visitImportEqualsDeclaration(node ast.Handle) ast.Handle {
-	if node.ModuleReference().Kind() == ast.KindExternalModuleReference {
+	if node.ModuleReference().Kind == ast.KindExternalModuleReference {
 		return tx.Visitor().VisitEachChild(node)
 	}
 	moduleReference := tx.Factory().CreateExpressionFromEntityName(node.ModuleReference())
@@ -670,7 +670,7 @@ func (tx *RuntimeSyntaxTransformer) shouldEmitModuleDeclaration(node ast.Handle)
 	return ast.IsInstantiatedModule(pn, tx.compilerOptions.ShouldPreserveConstEnums())
 }
 func getInnermostModuleDeclarationFromDottedModule(moduleDeclaration ast.Handle) ast.Handle {
-	for !moduleDeclaration.Body().IsNil() && moduleDeclaration.Body().Kind() == ast.KindModuleDeclaration {
+	for !moduleDeclaration.Body().IsNil() && moduleDeclaration.Body().Kind == ast.KindModuleDeclaration {
 		moduleDeclaration = moduleDeclaration.Body()
 	}
 	return moduleDeclaration

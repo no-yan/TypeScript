@@ -128,7 +128,7 @@ func (f *NodeFactory) NewGeneratedPrivateNameForNodeEx(node ast.Handle, options 
 
 func (f *NodeFactory) NewStringLiteralFromNode(textSourceNode ast.Handle) ast.Handle {
 	var text string
-	switch textSourceNode.Kind() {
+	switch textSourceNode.Kind {
 	case ast.KindIdentifier, ast.KindPrivateIdentifier, ast.KindJsxNamespacedName, ast.KindStringLiteral, ast.KindNumericLiteral, ast.KindBigIntLiteral, ast.KindNoSubstitutionTemplateLiteral, ast.KindTemplateHead, ast.KindTemplateMiddle, ast.KindTemplateTail, ast.KindRegularExpressionLiteral:
 		text = textSourceNode.Text()
 	}
@@ -168,7 +168,7 @@ func (f *NodeFactory) NewVoidZeroExpression() ast.Handle {
 	return f.NewVoidExpression(f.NewNumericLiteral("0", ast.TokenFlagsNone))
 }
 func flattenCommaElement(node ast.Handle, expressions []ast.Handle) []ast.Handle {
-	if ast.IsBinaryExpression(node) && ast.NodeIsSynthesized(node) && node.BinaryExpressionOperatorToken().Kind() == ast.KindCommaToken {
+	if ast.IsBinaryExpression(node) && ast.NodeIsSynthesized(node) && node.BinaryExpressionOperatorToken().Kind == ast.KindCommaToken {
 		expressions = flattenCommaElement(node.BinaryExpressionLeft(), expressions)
 		expressions = flattenCommaElement(node.BinaryExpressionRight(), expressions)
 	} else {
@@ -275,7 +275,7 @@ func (f *NodeFactory) isIgnorableParen(node ast.Handle) bool {
 	return ast.IsParenthesizedExpression(node) && ast.NodeIsSynthesized(node) && ast.RangeIsSynthesized(f.emitContext.SourceMapRange(node)) && ast.RangeIsSynthesized(f.emitContext.CommentRange(node))
 }
 func (f *NodeFactory) updateOuterExpression(outerExpression ast.Handle, expression ast.Handle) ast.Handle {
-	switch outerExpression.Kind() {
+	switch outerExpression.Kind {
 	case ast.KindParenthesizedExpression:
 		return f.UpdateParenthesizedExpression(outerExpression, expression)
 	case ast.KindTypeAssertionExpression:
@@ -291,7 +291,7 @@ func (f *NodeFactory) updateOuterExpression(outerExpression ast.Handle, expressi
 	case ast.KindPartiallyEmittedExpression:
 		return f.UpdatePartiallyEmittedExpression(outerExpression, expression)
 	default:
-		panic(fmt.Sprintf("Unexpected outer expression kind: %s", outerExpression.Kind()))
+		panic(fmt.Sprintf("Unexpected outer expression kind: %s", outerExpression.Kind))
 	}
 }
 func (f *NodeFactory) RestoreOuterExpressions(outerExpression ast.Handle, innerExpression ast.Handle, kinds ast.OuterExpressionKinds) ast.Handle {

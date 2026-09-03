@@ -44,7 +44,7 @@ func (c *subtreeCopier) copy(ref NodeRef) Handle {
 	src := c.src.At(ref)
 	n := src.NumChildren()
 	listN := src.NumListSlots()
-	dst := c.dst.createSlots(src.Kind(), src.Flags(), src.Loc(), n, listN)
+	dst := c.dst.createSlots(src.Kind, src.Flags(), src.Loc(), n, listN)
 	dst.SetTokenFlags(src.TokenFlags())
 	c.remap[ref] = dst.Ref()
 	dst.SetSymbol(src.Symbol())

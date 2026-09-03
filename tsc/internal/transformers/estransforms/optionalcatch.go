@@ -11,7 +11,7 @@ func (ch *optionalCatchTransformer) visit(node ast.Handle) ast.Handle {
 	if node.SubtreeFacts()&ast.SubtreeContainsMissingCatchClauseVariable == 0 {
 		return node
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindCatchClause:
 		return ch.visitCatchClause(node)
 	default:

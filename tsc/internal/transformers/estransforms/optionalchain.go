@@ -13,7 +13,7 @@ func (ch *optionalChainTransformer) visit(node ast.Handle) ast.Handle {
 	if node.SubtreeFacts()&ast.SubtreeContainsOptionalChaining == 0 {
 		return node
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindCallExpression:
 		return ch.visitCallExpression(node, false)
 	case ast.KindPropertyAccessExpression, ast.KindElementAccessExpression:
@@ -73,7 +73,7 @@ func (ch *optionalChainTransformer) visitPropertyOrElementAccessExpression(node 
 			thisArg = expression
 		}
 	}
-	if node.Kind() == ast.KindPropertyAccessExpression {
+	if node.Kind == ast.KindPropertyAccessExpression {
 		p := node
 		expression = ch.Factory().UpdatePropertyAccessExpression(p, expression, ast.Handle{}, ch.Visitor().VisitNode(p.Name()), p.Flags())
 	} else {
@@ -95,7 +95,7 @@ func (ch *optionalChainTransformer) visitDeleteExpression(node ast.Handle) ast.H
 	return ch.Visitor().VisitEachChild(node)
 }
 func (ch *optionalChainTransformer) visitNonOptionalExpression(node ast.Handle, captureThisArg bool, isDelete bool) ast.Handle {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindParenthesizedExpression:
 		return ch.visitParenthesizedExpression(node, captureThisArg, isDelete)
 	case ast.KindElementAccessExpression, ast.KindPropertyAccessExpression:
@@ -148,7 +148,7 @@ func (ch *optionalChainTransformer) visitOptionalExpression(node ast.Handle, cap
 	rightExpression := capturedLeft
 	var thisArg ast.Handle
 	for i, segment := range chain {
-		switch segment.Kind() {
+		switch segment.Kind {
 		case ast.KindElementAccessExpression, ast.KindPropertyAccessExpression:
 			if i == len(chain)-1 && captureThisArg {
 				if !transformers.IsSimpleCopiableExpression(rightExpression) {
@@ -159,7 +159,7 @@ func (ch *optionalChainTransformer) visitOptionalExpression(node ast.Handle, cap
 					thisArg = rightExpression
 				}
 			}
-			if segment.Kind() == ast.KindElementAccessExpression {
+			if segment.Kind == ast.KindElementAccessExpression {
 				rightExpression = ch.Factory().NewElementAccessExpression(rightExpression, ast.Handle{}, ch.Visitor().VisitNode(segment.ElementAccessExpressionArgumentExpression()), ast.NodeFlagsNone)
 			} else {
 				rightExpression = ch.Factory().NewPropertyAccessExpression(rightExpression, ast.Handle{}, ch.Visitor().VisitNode(segment.PropertyAccessExpressionName()), ast.NodeFlagsNone)
@@ -171,7 +171,7 @@ func (ch *optionalChainTransformer) visitOptionalExpression(node ast.Handle, cap
 					ch.EmitContext().AddEmitFlags(leftThisArg, printer.EFNoComments)
 				}
 				callThisArg := leftThisArg
-				if leftThisArg.Kind() == ast.KindSuperKeyword {
+				if leftThisArg.Kind == ast.KindSuperKeyword {
 					callThisArg = ch.Factory().NewThisExpression()
 				}
 				rightExpression = ch.Factory().NewFunctionCallCall(rightExpression, callThisArg, ch.Visitor().VisitSlice(segment.Arguments()))

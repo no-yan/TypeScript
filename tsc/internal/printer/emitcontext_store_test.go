@@ -27,7 +27,7 @@ func TestEmitContextAppendsIntoParseStore(t *testing.T) {
 	stmts = append(stmts, context.Factory.NewEmptyStatement())
 	updated := context.Factory.UpdateSourceFile(root, context.Factory.NewList(stmts), root.SourceFileEndOfFileToken())
 	file.SetParseRoot(updated)
-	assert.Equal(t, ast.KindSourceFile, updated.Kind())
+	assert.Equal(t, ast.KindSourceFile, updated.Kind)
 	assert.Assert(t, context.NodeIdentity(updated).StoreID() != 0)
 	context.SetEmitFlags(updated, printer.EFNoComments)
 	assert.Equal(t, printer.EFNoComments, context.EmitFlags(updated))

@@ -136,14 +136,14 @@ func (l *LanguageService) newCodeLensForNode(fileUri lsproto.DocumentUri, file *
 	return &lsproto.CodeLens{Range: lspRange, Data: &lsproto.CodeLensData{Kind: kind, Uri: fileUri, Position: int32(pos), SupplementalFileIndex: supplementalFileIndex(file)}}
 }
 func isValidImplementationsCodeLensNode(node ast.Handle, userPrefs lsutil.CodeLensUserPreferences) bool {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindInterfaceDeclaration:
 		return true
 	case ast.KindMethodSignature:
-		return userPrefs.ImplementationsCodeLensShowOnInterfaceMethods.IsTrue() && node.Parent().Kind() == ast.KindInterfaceDeclaration
+		return userPrefs.ImplementationsCodeLensShowOnInterfaceMethods.IsTrue() && node.Parent().Kind == ast.KindInterfaceDeclaration
 	case ast.KindMethodDeclaration:
-		if userPrefs.ImplementationsCodeLensShowOnAllClassMethods.IsTrue() && node.Parent().Kind() == ast.KindClassDeclaration {
-			return !ast.HasModifier(node, ast.ModifierFlagsPrivate) && node.Name().Kind() != ast.KindPrivateIdentifier
+		if userPrefs.ImplementationsCodeLensShowOnAllClassMethods.IsTrue() && node.Parent().Kind == ast.KindClassDeclaration {
+			return !ast.HasModifier(node, ast.ModifierFlagsPrivate) && node.Name().Kind != ast.KindPrivateIdentifier
 		}
 		fallthrough
 	case ast.KindClassDeclaration, ast.KindConstructor, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindPropertyDeclaration:
@@ -152,7 +152,7 @@ func isValidImplementationsCodeLensNode(node ast.Handle, userPrefs lsutil.CodeLe
 	return false
 }
 func isValidReferenceLensNode(node ast.Handle, userPrefs lsutil.CodeLensUserPreferences) bool {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindFunctionDeclaration:
 		if userPrefs.ReferencesCodeLensShowOnAllFunctions.IsTrue() {
 			return true
@@ -163,7 +163,7 @@ func isValidReferenceLensNode(node ast.Handle, userPrefs lsutil.CodeLensUserPref
 	case ast.KindClassDeclaration, ast.KindInterfaceDeclaration, ast.KindTypeAliasDeclaration, ast.KindEnumDeclaration, ast.KindEnumMember:
 		return true
 	case ast.KindMethodDeclaration, ast.KindMethodSignature, ast.KindConstructor, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindPropertyDeclaration, ast.KindPropertySignature:
-		switch node.Parent().Kind() {
+		switch node.Parent().Kind {
 		case ast.KindClassDeclaration, ast.KindInterfaceDeclaration, ast.KindTypeLiteral:
 			return true
 		}

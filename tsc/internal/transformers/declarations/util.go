@@ -10,7 +10,7 @@ func needsScopeMarker(result ast.Handle) bool {
 	return !ast.IsAnyImportOrReExport(result) && !ast.IsExportAssignment(result) && !ast.HasSyntacticModifier(result, ast.ModifierFlagsExport) && !ast.IsAmbientModule(result)
 }
 func canHaveLiteralInitializer(host DeclarationEmitHost, node ast.Handle) bool {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindPropertyDeclaration, ast.KindPropertySignature:
 		return host.GetEffectiveDeclarationFlags(node, ast.ModifierFlagsPrivate) == 0
 	case ast.KindParameter, ast.KindVariableDeclaration:
@@ -31,7 +31,7 @@ func canReuseModifierNodes(nodes []ast.Handle) bool {
 }
 func isDeclarationAndNotVisible(emitContext *printer.EmitContext, resolver printer.EmitResolver, node ast.Handle) bool {
 	node = emitContext.ParseNode(node)
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindFunctionDeclaration, ast.KindModuleDeclaration, ast.KindInterfaceDeclaration, ast.KindClassDeclaration, ast.KindTypeAliasDeclaration, ast.KindJSTypeAliasDeclaration, ast.KindEnumDeclaration:
 		return !resolver.IsDeclarationVisible(node)
 	case ast.KindVariableDeclaration:
@@ -65,7 +65,7 @@ func isEnclosingDeclaration(node ast.Handle) bool {
 	return ast.IsSourceFile(node) || ast.IsTypeAliasDeclaration(node) || ast.IsJSTypeAliasDeclaration(node) || ast.IsModuleDeclaration(node) || ast.IsClassDeclaration(node) || ast.IsInterfaceDeclaration(node) || ast.IsFunctionLike(node) || ast.IsIndexSignatureDeclaration(node) || ast.IsMappedTypeNode(node) || ast.IsVariableDeclaration(node)
 }
 func isAlwaysType(node ast.Handle) bool {
-	if node.Kind() == ast.KindInterfaceDeclaration {
+	if node.Kind == ast.KindInterfaceDeclaration {
 		return true
 	}
 	return false
@@ -81,13 +81,13 @@ func maskModifierFlags(node ast.Handle, modifierMask ast.ModifierFlags, modifier
 	return flags
 }
 func unwrapParenthesizedExpression(o ast.Handle) ast.Handle {
-	for o.Kind() == ast.KindParenthesizedExpression {
+	for o.Kind == ast.KindParenthesizedExpression {
 		o = o.Expression()
 	}
 	return o
 }
 func isPrivateMethodTypeParameter(host DeclarationEmitHost, node ast.Handle) bool {
-	return node.Parent().Kind() == ast.KindMethodDeclaration && host.GetEffectiveDeclarationFlags(node.Parent(), ast.ModifierFlagsPrivate) != 0
+	return node.Parent().Kind == ast.KindMethodDeclaration && host.GetEffectiveDeclarationFlags(node.Parent(), ast.ModifierFlagsPrivate) != 0
 }
 
 func shouldEmitFunctionProperties(input ast.Handle) bool {

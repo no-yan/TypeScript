@@ -352,7 +352,7 @@ func getNameForExportedSymbol(symbol *ast.Symbol, preferCapitalized bool) string
 	return symbol.Name
 }
 func replaceFirstIdentifierOfEntityName(factory ast.HandleFactory, name ast.Handle, newIdentifier ast.Handle) ast.Handle {
-	if name.Kind() == ast.KindIdentifier {
+	if name.Kind == ast.KindIdentifier {
 		return newIdentifier
 	}
 	return factory.NewQualifiedName(replaceFirstIdentifierOfEntityName(factory, name.QualifiedNameLeft(), newIdentifier), name.QualifiedNameRight())

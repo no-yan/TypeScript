@@ -65,7 +65,7 @@ func (ch *objectRestSpreadTransformer) visit(node ast.Handle) ast.Handle {
 	defer func() {
 		ch.expressionResultIsUnused = expressionResultIsUnused
 	}()
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindSourceFile:
 		return ch.visitSourceFile(node)
 	case ast.KindObjectLiteralExpression:
@@ -232,7 +232,7 @@ func (ch *objectRestSpreadTransformer) collectObjectRestAssignments(node ast.Han
 					declarations := transformers.FlattenDestructuringBinding(&ch.Transformer, parameter, ch.Factory().NewGeneratedNameForNode(parameter), transformers.FlattenLevelAll, false, false)
 					if !declarations.IsNil() {
 						decls := []ast.Handle{declarations}
-						if declarations.Kind() == ast.KindSyntaxList {
+						if declarations.Kind == ast.KindSyntaxList {
 							decls = declarations.Store().ListSlice(declarations.SyntaxListChildren())
 						}
 						declarationList := ch.Factory().NewVariableDeclarationList(ch.Factory().NewList(decls), ast.NodeFlagsNone)
@@ -271,7 +271,7 @@ func (ch *objectRestSpreadTransformer) collectObjectRestAssignments(node ast.Han
 			declarations := transformers.FlattenDestructuringBinding(&ch.Transformer, parameter, ch.Factory().NewGeneratedNameForNode(parameter), transformers.FlattenLevelObjectRest, false, true)
 			if !declarations.IsNil() {
 				decls := []ast.Handle{declarations}
-				if declarations.Kind() == ast.KindSyntaxList {
+				if declarations.Kind == ast.KindSyntaxList {
 					decls = declarations.Store().ListSlice(declarations.SyntaxListChildren())
 				}
 				declarationList := ch.Factory().NewVariableDeclarationList(ch.Factory().NewList(decls), ast.NodeFlagsNone)
@@ -291,7 +291,7 @@ func (ch *objectRestSpreadTransformer) visitCatchClause(node ast.Handle) ast.Han
 		block := ch.Visitor().VisitNode(node.Block())
 		if !visitedBindings.IsNil() {
 			var decls []ast.Handle
-			if visitedBindings.Kind() == ast.KindSyntaxList {
+			if visitedBindings.Kind == ast.KindSyntaxList {
 				decls = visitedBindings.Store().ListSlice(visitedBindings.SyntaxListChildren())
 			} else {
 				decls = []ast.Handle{visitedBindings}
@@ -372,7 +372,7 @@ func (ch *objectRestSpreadTransformer) visitBinaryExpression(node ast.Handle, ex
 	if ast.IsDestructuringAssignment(node) && ast.ContainsObjectRestOrSpread(node.Left()) {
 		return transformers.FlattenDestructuringAssignment(&ch.Transformer, node, !expressionResultIsUnused, transformers.FlattenLevelObjectRest, nil)
 	}
-	if node.OperatorToken().Kind() == ast.KindCommaToken {
+	if node.OperatorToken().Kind == ast.KindCommaToken {
 		ch.expressionResultIsUnused = true
 		left := ch.Visitor().VisitNode(node.Left())
 		ch.expressionResultIsUnused = expressionResultIsUnused
@@ -386,7 +386,7 @@ func (ch *objectRestSpreadTransformer) visitObjectLiteralExpression(node ast.Han
 		return ch.Visitor().VisitEachChild(node)
 	}
 	objects := ch.chunkObjectLiteralElements(node.PropertyList())
-	if len(objects) > 0 && objects[0].Kind() != ast.KindObjectLiteralExpression {
+	if len(objects) > 0 && objects[0].Kind != ast.KindObjectLiteralExpression {
 		objects = append([]ast.Handle{ch.Factory().NewObjectLiteralExpression(ch.Factory().NewList(nil), false)}, objects...)
 	}
 	expression := objects[0]
@@ -413,7 +413,7 @@ func (ch *objectRestSpreadTransformer) chunkObjectLiteralElements(list ast.ListR
 	var chunkObject []ast.Handle
 	objects := make([]ast.Handle, 0, 1)
 	for _, e := range elements {
-		if e.Kind() == ast.KindSpreadAssignment {
+		if e.Kind == ast.KindSpreadAssignment {
 			if len(chunkObject) > 0 {
 				objects = append(objects, ch.Factory().NewObjectLiteralExpression(ch.Factory().NewList(chunkObject), false))
 				chunkObject = nil
@@ -422,7 +422,7 @@ func (ch *objectRestSpreadTransformer) chunkObjectLiteralElements(list ast.ListR
 			objects = append(objects, ch.Visitor().VisitNode(target))
 		} else {
 			var elem ast.Handle
-			if e.Kind() == ast.KindPropertyAssignment {
+			if e.Kind == ast.KindPropertyAssignment {
 				elem = ch.Factory().NewPropertyAssignment(0, e.Name(), ast.Handle{}, ast.Handle{}, ch.Visitor().VisitNode(e.Initializer()))
 			} else {
 				elem = ch.Visitor().VisitNode(e)

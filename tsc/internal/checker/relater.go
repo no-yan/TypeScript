@@ -1023,7 +1023,7 @@ func (c *Checker) elaborateError(node ast.Handle, source *Type, target *Type, re
 	if c.elaborateDidYouMeanToCallOrConstruct(node, source, target, relation, SignatureKindConstruct, headMessage, diagnosticOutput) || c.elaborateDidYouMeanToCallOrConstruct(node, source, target, relation, SignatureKindCall, headMessage, diagnosticOutput) {
 		return true
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindAsExpression:
 		if !ast.IsConstAssertion(node) {
 			break
@@ -1032,7 +1032,7 @@ func (c *Checker) elaborateError(node ast.Handle, source *Type, target *Type, re
 	case ast.KindJsxExpression, ast.KindParenthesizedExpression:
 		return c.elaborateError(node.Expression(), source, target, relation, headMessage, diagnosticOutput)
 	case ast.KindBinaryExpression:
-		switch node.BinaryExpressionOperatorToken().Kind() {
+		switch node.BinaryExpressionOperatorToken().Kind {
 		case ast.KindEqualsToken, ast.KindCommaToken:
 			return c.elaborateError(node.BinaryExpressionRight(), source, target, relation, headMessage, diagnosticOutput)
 		}
@@ -1078,7 +1078,7 @@ func (c *Checker) elaborateObjectLiteral(node ast.Handle, source *Type, target *
 		if nameType == nil || nameType.flags&TypeFlagsNever != 0 {
 			continue
 		}
-		switch prop.Kind() {
+		switch prop.Kind {
 		case ast.KindSetAccessor, ast.KindGetAccessor, ast.KindMethodDeclaration, ast.KindShorthandPropertyAssignment:
 			reportedError = c.elaborateElement(source, target, relation, prop.Name(), ast.Handle{}, nameType, nil, nil, diagnosticOutput) || reportedError
 		case ast.KindPropertyAssignment:
@@ -1942,7 +1942,7 @@ func (c *Checker) compareSignaturesRelated(source *Signature, target *Signature,
 	}
 	kind := ast.KindUnknown
 	if !target.declaration.IsNil() {
-		kind = target.declaration.Kind()
+		kind = target.declaration.Kind
 	}
 	strictVariance := checkMode&SignatureCheckModeCallback == 0 && c.strictFunctionTypes && kind != ast.KindMethodDeclaration && kind != ast.KindMethodSignature && kind != ast.KindConstructor
 	result := TernaryTrue
@@ -2355,7 +2355,7 @@ func (c *Checker) getTupleElementLabel(elementInfo TupleElementInfo, restSymbol 
 }
 func (c *Checker) getTupleElementLabelFromBindingElement(node ast.Handle, index int, elementFlags ElementFlags) string {
 	if !node.Name().IsNil() {
-		switch node.Name().Kind() {
+		switch node.Name().Kind {
 		case ast.KindIdentifier:
 			name := node.Name().Text()
 			if hasDotDotDotToken(node) {

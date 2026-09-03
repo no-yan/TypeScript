@@ -11,7 +11,7 @@ func PositionIsASICandidate(pos int, context ast.Handle, file *ast.SourceFile) b
 		if ancestor.End() != pos {
 			return ast.FindAncestorQuit
 		}
-		return ast.ToFindAncestorResult(SyntaxMayBeASICandidate(ancestor.Kind()))
+		return ast.ToFindAncestorResult(SyntaxMayBeASICandidate(ancestor.Kind))
 	})
 	return !contextAncestor.IsNil() && NodeIsASICandidate(contextAncestor, file)
 }
@@ -32,34 +32,34 @@ func SyntaxRequiresTrailingSemicolonOrASI(kind ast.Kind) bool {
 }
 func NodeIsASICandidate(node ast.Handle, file *ast.SourceFile) bool {
 	lastToken := GetLastToken(node, file)
-	if !lastToken.IsNil() && lastToken.Kind() == ast.KindSemicolonToken {
+	if !lastToken.IsNil() && lastToken.Kind == ast.KindSemicolonToken {
 		return false
 	}
-	if SyntaxRequiresTrailingCommaOrSemicolonOrASI(node.Kind()) {
-		if !lastToken.IsNil() && lastToken.Kind() == ast.KindCommaToken {
+	if SyntaxRequiresTrailingCommaOrSemicolonOrASI(node.Kind) {
+		if !lastToken.IsNil() && lastToken.Kind == ast.KindCommaToken {
 			return false
 		}
-	} else if SyntaxRequiresTrailingModuleBlockOrSemicolonOrASI(node.Kind()) {
+	} else if SyntaxRequiresTrailingModuleBlockOrSemicolonOrASI(node.Kind) {
 		lastChild := GetLastChild(node, file)
 		if !lastChild.IsNil() && ast.IsModuleBlock(lastChild) {
 			return false
 		}
-	} else if SyntaxRequiresTrailingFunctionBlockOrSemicolonOrASI(node.Kind()) {
+	} else if SyntaxRequiresTrailingFunctionBlockOrSemicolonOrASI(node.Kind) {
 		lastChild := GetLastChild(node, file)
 		if !lastChild.IsNil() && ast.IsFunctionBlock(lastChild) {
 			return false
 		}
-	} else if !SyntaxRequiresTrailingSemicolonOrASI(node.Kind()) {
+	} else if !SyntaxRequiresTrailingSemicolonOrASI(node.Kind) {
 		return false
 	}
-	if node.Kind() == ast.KindDoStatement {
+	if node.Kind == ast.KindDoStatement {
 		return true
 	}
 	topNode := ast.FindAncestor(node, func(ancestor ast.Handle) bool {
 		return ancestor.Parent().IsNil()
 	})
 	nextToken := astnav.FindNextToken(node, topNode, file)
-	if nextToken.IsNil() || nextToken.Kind() == ast.KindCloseBraceToken {
+	if nextToken.IsNil() || nextToken.Kind == ast.KindCloseBraceToken {
 		return true
 	}
 	startLine := scanner.GetECMALineOfPosition(file, node.End())

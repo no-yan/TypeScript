@@ -95,7 +95,7 @@ func GetTextOfJSDocComment(store *ast.Store, comment ast.ListRef) string {
 	}
 	var b strings.Builder
 	for _, n := range store.ListSlice(comment) {
-		switch n.Kind() {
+		switch n.Kind {
 		case ast.KindJSDocText:
 			b.WriteString(n.Text())
 		case ast.KindJSDocLink, ast.KindJSDocLinkCode, ast.KindJSDocLinkPlain:

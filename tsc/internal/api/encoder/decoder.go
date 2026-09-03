@@ -37,8 +37,8 @@ func DecodeSourceFile(data []byte) (*ast.SourceFile, error) {
 	if err != nil {
 		return nil, err
 	}
-	if node.Kind() != ast.KindSourceFile {
-		return nil, fmt.Errorf("expected SourceFile root, got %v", node.Kind())
+	if node.Kind != ast.KindSourceFile {
+		return nil, fmt.Errorf("expected SourceFile root, got %v", node.Kind)
 	}
 	return node.Store().SourceFile(), nil
 }
@@ -276,7 +276,7 @@ func (d *astDecoder) decodeExtendedData_SourceFile(data uint32, childIndices []i
 	for _, ci := range childIndices {
 		if d.nodeField(ci, NodeOffsetKind) == SyntaxKindNodeList {
 			stmts = d.nodeListAt(ci)
-		} else if !d.nodes[ci].IsNil() && d.nodes[ci].Kind() == ast.KindEndOfFile {
+		} else if !d.nodes[ci].IsNil() && d.nodes[ci].Kind == ast.KindEndOfFile {
 			endOfFile = d.nodes[ci]
 		}
 	}

@@ -81,7 +81,7 @@ func (tx *asyncTransformer) fallbackVisitor(node ast.Handle) ast.Handle {
 		return node
 	}
 	tx.trackSuperAccess(node)
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindFunctionExpression, ast.KindFunctionDeclaration, ast.KindMethodDeclaration, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindConstructor:
 		return node
 	case ast.KindParameter, ast.KindBindingElement, ast.KindVariableDeclaration:
@@ -105,7 +105,7 @@ func (tx *asyncTransformer) visit(node ast.Handle) ast.Handle {
 		return tx.fallbackVisitor(node)
 	}
 	tx.trackSuperAccess(node)
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindAsyncKeyword:
 		return ast.Handle{}
 	case ast.KindSourceFile:
@@ -134,7 +134,7 @@ func (tx *asyncTransformer) visit(node ast.Handle) ast.Handle {
 }
 func (tx *asyncTransformer) visitAsyncBodyNode(node ast.Handle) ast.Handle {
 	if isNodeWithPossibleHoistedDeclaration(node) {
-		switch node.Kind() {
+		switch node.Kind {
 		case ast.KindVariableStatement:
 			return tx.visitVariableStatementInAsyncBody(node)
 		case ast.KindForStatement:
@@ -475,7 +475,7 @@ func (tx *asyncTransformer) transformAsyncFunctionParameterList(node ast.Handle)
 	for _, parameter := range node.Parameters() {
 		param := parameter
 		if !param.Initializer().IsNil() || !param.DotDotDotToken().IsNil() {
-			if node.Kind() == ast.KindArrowFunction {
+			if node.Kind == ast.KindArrowFunction {
 				restParameter := tx.Factory().NewParameterDeclaration(0, tx.Factory().NewToken(ast.KindDotDotDotToken), tx.Factory().NewUniqueNameEx("args", printer.AutoGenerateOptions{Flags: printer.GeneratedIdentifierFlagsReservedInNestedScopes}), ast.Handle{}, ast.Handle{}, ast.Handle{})
 				newParameters = append(newParameters, restParameter)
 			}
@@ -488,7 +488,7 @@ func (tx *asyncTransformer) transformAsyncFunctionParameterList(node ast.Handle)
 	return newParametersArray
 }
 func (tx *asyncTransformer) transformAsyncFunctionBody(node ast.Handle, outerParameters ast.ListRef) ast.Handle {
-	isArrow := node.Kind() == ast.KindArrowFunction
+	isArrow := node.Kind == ast.KindArrowFunction
 	savedCapturedSuperProperties := tx.capturedSuperProperties
 	savedHasSuperElementAccess := tx.hasSuperElementAccess
 	savedHasSuperPropertyAssignment := tx.hasSuperPropertyAssignment
@@ -606,16 +606,16 @@ func (tx *asyncTransformer) transformAsyncFunctionBodyWorker(body ast.Handle) as
 }
 
 func assignmentTargetContainsSuperProperty(node ast.Handle) bool {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindPropertyAccessExpression, ast.KindElementAccessExpression:
-		return node.Expression().Kind() == ast.KindSuperKeyword
+		return node.Expression().Kind == ast.KindSuperKeyword
 	case ast.KindParenthesizedExpression:
 		return assignmentTargetContainsSuperProperty(node.ParenthesizedExpressionExpression())
 	case ast.KindArrayLiteralExpression:
 		return slices.ContainsFunc(node.Store().ListSlice(node.ArrayLiteralExpressionElements()), assignmentTargetContainsSuperProperty)
 	case ast.KindObjectLiteralExpression:
 		for _, prop := range node.Store().ListSlice(node.ObjectLiteralExpressionProperties()) {
-			switch prop.Kind() {
+			switch prop.Kind {
 			case ast.KindPropertyAssignment:
 				if assignmentTargetContainsSuperProperty(prop.PropertyAssignmentInitializer()) {
 					return true
@@ -666,7 +666,7 @@ func isSimpleParameterList(params []ast.Handle) bool {
 }
 
 func isNodeWithPossibleHoistedDeclaration(node ast.Handle) bool {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindBlock, ast.KindVariableStatement, ast.KindWithStatement, ast.KindIfStatement, ast.KindSwitchStatement, ast.KindCaseBlock, ast.KindCaseClause, ast.KindDefaultClause, ast.KindLabeledStatement, ast.KindForStatement, ast.KindForInStatement, ast.KindForOfStatement, ast.KindDoStatement, ast.KindWhileStatement, ast.KindTryStatement, ast.KindCatchClause:
 		return true
 	}

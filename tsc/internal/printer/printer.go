@@ -114,7 +114,7 @@ func (p *Printer) getLiteralTextOfNode(node ast.Handle, sourceFile *ast.SourceFi
 	if ast.IsStringLiteral(node) {
 		if textSourceNode := p.emitContext.TextSource(node); !textSourceNode.IsNil() {
 			var text string
-			switch textSourceNode.Kind() {
+			switch textSourceNode.Kind {
 			default:
 				return p.getLiteralTextOfNode(textSourceNode, ast.GetSourceFileOfNode(textSourceNode), flags)
 			case ast.KindNumericLiteral:
@@ -151,7 +151,7 @@ func (p *Printer) getTextOfNode(node ast.Handle, includeTrivia bool) string {
 		}
 	}
 	canUseSourceFile := p.currentSourceFile != nil && !node.Parent().IsNil() && !ast.NodeIsSynthesized(node)
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier, ast.KindPrivateIdentifier, ast.KindJsxNamespacedName:
 		if !canUseSourceFile || ast.GetSourceFileOfNode(node) != ast.GetSourceFileOfNode(p.emitContext.MostOriginal(p.currentSourceFile.ParseRoot())) {
 			return node.Text()
@@ -159,7 +159,7 @@ func (p *Printer) getTextOfNode(node ast.Handle, includeTrivia bool) string {
 	case ast.KindStringLiteral, ast.KindNumericLiteral, ast.KindBigIntLiteral, ast.KindNoSubstitutionTemplateLiteral, ast.KindTemplateHead, ast.KindTemplateMiddle, ast.KindTemplateTail:
 		return p.getLiteralTextOfNode(node, nil, getLiteralTextFlagsNone)
 	default:
-		panic(fmt.Sprintf("unexpected node: %v", node.Kind()))
+		panic(fmt.Sprintf("unexpected node: %v", node.Kind))
 	}
 	return scanner.GetSourceTextOfNodeFromSourceFile(p.currentSourceFile, node, includeTrivia)
 }
@@ -362,7 +362,7 @@ func (p *Printer) getLeadingLineTerminatorCount(parentNode ast.Handle, firstChil
 		if p.nextListElementPos > 0 && firstChild.Pos() == p.nextListElementPos {
 			return 0
 		}
-		if firstChild.Kind() == ast.KindJsxText {
+		if firstChild.Kind == ast.KindJsxText {
 			return 0
 		}
 		if p.currentSourceFile != nil && !parentNode.IsNil() && !ast.PositionIsSynthesized(parentNode.Pos()) && !ast.NodeIsSynthesized(firstChild) && (firstChild.Parent().IsNil()) {
@@ -384,7 +384,7 @@ func (p *Printer) getSeparatingLineTerminatorCount(previousNode ast.Handle, next
 		if previousNode.IsNil() || nextNode.IsNil() {
 			return 0
 		}
-		if nextNode.Kind() == ast.KindJsxText {
+		if nextNode.Kind == ast.KindJsxText {
 			return 0
 		} else if p.currentSourceFile != nil && !ast.NodeIsSynthesized(previousNode) && !ast.NodeIsSynthesized(nextNode) {
 			if p.Options.PreserveSourceNewlines && siblingNodePositionsAreComparable(p.emitContext, previousNode, nextNode) {
@@ -583,7 +583,7 @@ func (p *Printer) shouldAllowTrailingComma(node ast.Handle, list ast.ListRef) bo
 	if p.currentSourceFile == nil || p.currentSourceFile.ScriptKind == core.ScriptKindJSON {
 		return false
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindObjectLiteralExpression:
 		return true
 	case ast.KindArrayLiteralExpression, ast.KindArrowFunction, ast.KindConstructor, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindTypeAliasDeclaration, ast.KindJSTypeAliasDeclaration, ast.KindFunctionType, ast.KindConstructorType, ast.KindCallSignature, ast.KindConstructSignature, ast.KindTaggedTemplateExpression, ast.KindObjectBindingPattern, ast.KindArrayBindingPattern, ast.KindNamedImports, ast.KindNamedExports, ast.KindImportAttributes:
@@ -625,7 +625,7 @@ func (p *Printer) emitKeywordNodeEx(node ast.Handle, flags tokenEmitFlags) {
 		return
 	}
 	state := p.enterTokenNode(node, flags)
-	p.writeTokenText(node.Kind(), WriteKindKeyword, node.Pos())
+	p.writeTokenText(node.Kind, WriteKindKeyword, node.Pos())
 	p.exitTokenNode(node, state)
 }
 func (p *Printer) emitPunctuationNode(node ast.Handle) {
@@ -636,7 +636,7 @@ func (p *Printer) emitPunctuationNodeEx(node ast.Handle, flags tokenEmitFlags) {
 		return
 	}
 	state := p.enterTokenNode(node, flags)
-	p.writeTokenText(node.Kind(), WriteKindPunctuation, node.Pos())
+	p.writeTokenText(node.Kind, WriteKindPunctuation, node.Pos())
 	p.exitTokenNode(node, state)
 }
 func (p *Printer) emitTokenNode(node ast.Handle) {
@@ -647,12 +647,12 @@ func (p *Printer) emitTokenNodeEx(node ast.Handle, flags tokenEmitFlags) {
 		return
 	}
 	switch {
-	case ast.IsKeywordKind(node.Kind()):
+	case ast.IsKeywordKind(node.Kind):
 		p.emitKeywordNodeEx(node, flags)
-	case ast.IsPunctuationKind(node.Kind()):
+	case ast.IsPunctuationKind(node.Kind):
 		p.emitPunctuationNodeEx(node, flags)
 	default:
-		panic(fmt.Sprintf("unexpected TokenNode: %v", node.Kind()))
+		panic(fmt.Sprintf("unexpected TokenNode: %v", node.Kind))
 	}
 }
 
@@ -707,7 +707,7 @@ func (p *Printer) emitTemplateTail(node ast.Handle) {
 	p.exitNode(node, state)
 }
 func (p *Printer) emitTemplateMiddleTail(node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindTemplateMiddle:
 		p.emitTemplateMiddle(node)
 	case ast.KindTemplateTail:
@@ -723,7 +723,7 @@ func (p *Printer) emitSnippetNode(node ast.Handle, snippetElement *SnippetElemen
 	}
 }
 func (p *Printer) emitTabStop(node ast.Handle, snippetElement *SnippetElement) {
-	debug.Assert(node.Kind() == ast.KindEmptyStatement, "Snippet tab stops can only be emitted on empty statements")
+	debug.Assert(node.Kind == ast.KindEmptyStatement, "Snippet tab stops can only be emitted on empty statements")
 	p.writer.RawWrite(fmt.Sprintf("$%d", snippetElement.Order))
 }
 func (p *Printer) emitIdentifierText(node ast.Handle) {
@@ -812,7 +812,7 @@ func (p *Printer) emitComputedPropertyName(node ast.Handle) {
 	p.exitNode(node, state)
 }
 func (p *Printer) emitEntityName(node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier:
 		p.emitIdentifierReference(node)
 	case ast.KindQualifiedName:
@@ -820,14 +820,14 @@ func (p *Printer) emitEntityName(node ast.Handle) {
 	case ast.KindPropertyAccessExpression:
 		p.emitExpression(node, ast.OperatorPrecedenceDisallowComma)
 	default:
-		panic(fmt.Sprintf("unexpected EntityName: %v", node.Kind()))
+		panic(fmt.Sprintf("unexpected EntityName: %v", node.Kind))
 	}
 }
 func (p *Printer) emitBindingName(node ast.Handle) {
 	if node.IsNil() {
 		return
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier:
 		p.emitBindingIdentifier(node)
 	case ast.KindObjectBindingPattern:
@@ -835,7 +835,7 @@ func (p *Printer) emitBindingName(node ast.Handle) {
 	case ast.KindArrayBindingPattern:
 		p.emitArrayBindingPattern(node)
 	default:
-		panic(fmt.Sprintf("unexpected BindingName: %v", node.Kind()))
+		panic(fmt.Sprintf("unexpected BindingName: %v", node.Kind))
 	}
 }
 func (p *Printer) emitPropertyName(node ast.Handle) {
@@ -844,7 +844,7 @@ func (p *Printer) emitPropertyName(node ast.Handle) {
 	}
 	savedWriteKind := p.writeKind
 	p.writeKind = WriteKindProperty
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier:
 		p.emitIdentifierName(node)
 	case ast.KindPrivateIdentifier:
@@ -860,7 +860,7 @@ func (p *Printer) emitPropertyName(node ast.Handle) {
 	case ast.KindComputedPropertyName:
 		p.emitComputedPropertyName(node)
 	default:
-		panic(fmt.Sprintf("unexpected PropertyName: %v", node.Kind()))
+		panic(fmt.Sprintf("unexpected PropertyName: %v", node.Kind))
 	}
 	p.writeKind = savedWriteKind
 }
@@ -868,62 +868,62 @@ func (p *Printer) emitMemberName(node ast.Handle) {
 	if node.IsNil() {
 		return
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier:
 		p.emitIdentifierName(node)
 	case ast.KindPrivateIdentifier:
 		p.emitPrivateIdentifier(node)
 	default:
-		panic(fmt.Sprintf("unexpected MemberName: %v", node.Kind()))
+		panic(fmt.Sprintf("unexpected MemberName: %v", node.Kind))
 	}
 }
 func (p *Printer) emitModuleName(node ast.Handle) {
 	if node.IsNil() {
 		return
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier:
 		p.emitBindingIdentifier(node)
 	case ast.KindStringLiteral:
 		p.emitStringLiteral(node)
 	default:
-		panic(fmt.Sprintf("unexpected ModuleName: %v", node.Kind()))
+		panic(fmt.Sprintf("unexpected ModuleName: %v", node.Kind))
 	}
 }
 func (p *Printer) emitModuleExportName(node ast.Handle) {
 	if node.IsNil() {
 		return
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier:
 		p.emitIdentifierName(node)
 	case ast.KindStringLiteral:
 		p.emitStringLiteral(node)
 	default:
-		panic(fmt.Sprintf("unexpected ModuleExportName: %v", node.Kind()))
+		panic(fmt.Sprintf("unexpected ModuleExportName: %v", node.Kind))
 	}
 }
 func (p *Printer) emitImportAttributeName(node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier:
 		p.emitIdentifierName(node)
 	case ast.KindStringLiteral:
 		p.emitStringLiteral(node)
 	default:
-		panic(fmt.Sprintf("unexpected ImportAttributeName: %v", node.Kind()))
+		panic(fmt.Sprintf("unexpected ImportAttributeName: %v", node.Kind))
 	}
 }
 func (p *Printer) emitNestedModuleName(node ast.Handle) {
 	if node.IsNil() {
 		return
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier:
 		p.emitIdentifierName(node)
 	case ast.KindStringLiteral:
 		p.emitStringLiteral(node)
 	default:
-		panic(fmt.Sprintf("unexpected ModuleName: %v", node.Kind()))
+		panic(fmt.Sprintf("unexpected ModuleName: %v", node.Kind))
 	}
 }
 func (p *Printer) emitModifierList(parentNode ast.Handle, modifiers ast.ListRef, allowDecorators bool) int {
@@ -1044,7 +1044,7 @@ func (p *Printer) emitModifierLike(node ast.Handle) {
 	case ast.IsModifier(node):
 		p.emitKeywordNode(node)
 	default:
-		panic(fmt.Sprintf("unhandled ModifierLike: %v", node.Kind()))
+		panic(fmt.Sprintf("unhandled ModifierLike: %v", node.Kind))
 	}
 }
 func (p *Printer) emitTypeParameters(parentNode ast.Handle, nodes ast.ListRef) {
@@ -1261,7 +1261,7 @@ func (p *Printer) emitIndexSignature(node ast.Handle) {
 	p.exitNode(node, state)
 }
 func (p *Printer) emitClassElement(node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindPropertyDeclaration:
 		p.emitPropertyDeclaration(node)
 	case ast.KindMethodDeclaration:
@@ -1283,11 +1283,11 @@ func (p *Printer) emitClassElement(node ast.Handle) {
 	case ast.KindJSTypeAliasDeclaration:
 		p.emitTypeAliasDeclaration(node)
 	default:
-		panic(fmt.Sprintf("unexpected ClassElement: %v", node.Kind()))
+		panic(fmt.Sprintf("unexpected ClassElement: %v", node.Kind))
 	}
 }
 func (p *Printer) emitTypeElement(node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindPropertySignature:
 		p.emitPropertySignature(node)
 	case ast.KindMethodSignature:
@@ -1305,11 +1305,11 @@ func (p *Printer) emitTypeElement(node ast.Handle) {
 	case ast.KindNotEmittedTypeElement:
 		p.emitNotEmittedTypeElement(node)
 	default:
-		panic(fmt.Sprintf("unexpected TypeElement: %v", node.Kind()))
+		panic(fmt.Sprintf("unexpected TypeElement: %v", node.Kind))
 	}
 }
 func (p *Printer) emitObjectLiteralElement(node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindPropertyAssignment:
 		p.emitPropertyAssignment(node)
 	case ast.KindShorthandPropertyAssignment:
@@ -1323,20 +1323,20 @@ func (p *Printer) emitObjectLiteralElement(node ast.Handle) {
 	case ast.KindSetAccessor:
 		p.emitSetAccessorDeclaration(node)
 	default:
-		panic(fmt.Sprintf("unhandled ObjectLiteralElement: %v", node.Kind()))
+		panic(fmt.Sprintf("unhandled ObjectLiteralElement: %v", node.Kind))
 	}
 }
 func (p *Printer) emitKeywordTypeNode(node ast.Handle) {
 	p.emitKeywordNode(node)
 }
 func (p *Printer) emitTypePredicateParameterName(node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier:
 		p.emitIdentifierReference(node)
 	case ast.KindThisType:
 		p.emitThisType(node)
 	default:
-		panic(fmt.Sprintf("unexpected TypePredicateParameterName: %v", node.Kind()))
+		panic(fmt.Sprintf("unexpected TypePredicateParameterName: %v", node.Kind))
 	}
 }
 func (p *Printer) emitTypePredicate(node ast.Handle) {
@@ -1376,7 +1376,7 @@ func (p *Printer) emitReturnType(node ast.Handle) {
 	}
 	p.writePunctuation("=>")
 	p.writeSpace()
-	if p.inExtends && node.Kind() == ast.KindInferType && !node.InferTypeNodeTypeParameter().TypeParameterDeclarationConstraint().IsNil() {
+	if p.inExtends && node.Kind == ast.KindInferType && !node.InferTypeNodeTypeParameter().TypeParameterDeclarationConstraint().IsNil() {
 		p.emitTypeNodePreservingExtends(node, ast.TypePrecedenceHighest)
 	} else {
 		p.emitTypeNodePreservingExtends(node, ast.TypePrecedenceLowest)
@@ -1439,7 +1439,7 @@ func (p *Printer) emitArrayType(node ast.Handle) {
 }
 
 func (p *Printer) emitPostfixTypeOperand(operand ast.Handle, parent ast.Handle) {
-	if ast.IsParseTreeNode(parent) && operand.Kind() == ast.KindTypeQuery {
+	if ast.IsParseTreeNode(parent) && operand.Kind == ast.KindTypeQuery {
 		p.emitTypeNode(operand, ast.TypePrecedenceTypeOperator)
 		return
 	}
@@ -1577,7 +1577,7 @@ func (p *Printer) emitMappedType(node ast.Handle) {
 	}
 	if !node.MappedTypeNodeReadonlyToken().IsNil() {
 		p.emitTokenNode(node.MappedTypeNodeReadonlyToken())
-		if node.MappedTypeNodeReadonlyToken().Kind() != ast.KindReadonlyKeyword {
+		if node.MappedTypeNodeReadonlyToken().Kind != ast.KindReadonlyKeyword {
 			p.writeKeyword("readonly")
 		}
 		p.writeSpace()
@@ -1593,7 +1593,7 @@ func (p *Printer) emitMappedType(node ast.Handle) {
 	p.writePunctuation("]")
 	if !node.QuestionToken().IsNil() {
 		p.emitPunctuationNode(node.QuestionToken())
-		if node.QuestionToken().Kind() != ast.KindQuestionToken {
+		if node.QuestionToken().Kind != ast.KindQuestionToken {
 			p.writePunctuation("?")
 		}
 	}
@@ -1702,7 +1702,7 @@ func (p *Printer) emitTypeNode(node ast.Handle, precedence ast.TypePrecedence) {
 		p.inExtends = false
 		p.writePunctuation("(")
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindAnyKeyword, ast.KindUnknownKeyword, ast.KindNumberKeyword, ast.KindBigIntKeyword, ast.KindObjectKeyword, ast.KindBooleanKeyword, ast.KindStringKeyword, ast.KindSymbolKeyword, ast.KindVoidKeyword, ast.KindUndefinedKeyword, ast.KindNeverKeyword, ast.KindIntrinsicKeyword:
 		p.emitKeywordTypeNode(node)
 	case ast.KindTypePredicate:
@@ -1768,7 +1768,7 @@ func (p *Printer) emitTypeNode(node ast.Handle, precedence ast.TypePrecedence) {
 	case ast.KindJSDocVariadicType:
 		p.emitJSDocVariadicType(node)
 	default:
-		panic(fmt.Sprintf("unhandled TypeNode: %v", node.Kind()))
+		panic(fmt.Sprintf("unhandled TypeNode: %v", node.Kind))
 	}
 	if parens {
 		p.writePunctuation(")")
@@ -1876,7 +1876,7 @@ func (p *Printer) emitPropertyAccessExpression(node ast.Handle) {
 	linesBeforeDot := p.getLinesBetweenNodes(node, node.Expression(), token)
 	p.writeLineRepeat(linesBeforeDot)
 	p.increaseIndentIf(linesBeforeDot > 0)
-	shouldEmitDotDot := token.Kind() != ast.KindQuestionDotToken && p.mayNeedDotDotForPropertyAccess(node.Expression()) && !p.writer.HasTrailingComment() && !p.writer.HasTrailingWhitespace()
+	shouldEmitDotDot := token.Kind != ast.KindQuestionDotToken && p.mayNeedDotDotForPropertyAccess(node.Expression()) && !p.writer.HasTrailingComment() && !p.writer.HasTrailingWhitespace()
 	if shouldEmitDotDot {
 		p.writePunctuation(".")
 	}
@@ -1913,7 +1913,7 @@ func (p *Printer) emitCallee(callee ast.Handle, parentNode ast.Handle) {
 		p.writeSpace()
 		p.emitExpression(callee, ast.OperatorPrecedenceComma)
 		p.writePunctuation(")")
-	} else if parentNode.Kind() == ast.KindCallExpression && isNewExpressionWithoutArguments(ast.SkipPartiallyEmittedExpressions(callee)) {
+	} else if parentNode.Kind == ast.KindCallExpression && isNewExpressionWithoutArguments(ast.SkipPartiallyEmittedExpressions(callee)) {
 		p.emitExpression(callee, ast.OperatorPrecedenceParentheses)
 	} else {
 		p.emitExpression(callee, core.IfElse(ast.IsOptionalChain(parentNode), ast.OperatorPrecedenceOptionalChain, ast.OperatorPrecedenceMember))
@@ -1931,7 +1931,7 @@ func (p *Printer) emitNewExpression(node ast.Handle) {
 	state := p.enterNode(node)
 	p.emitToken(ast.KindNewKeyword, node.Pos(), WriteKindKeyword, node)
 	p.writeSpace()
-	if ast.SkipPartiallyEmittedExpressions(node.Expression()).Kind() == ast.KindCallExpression {
+	if ast.SkipPartiallyEmittedExpressions(node.Expression()).Kind == ast.KindCallExpression {
 		p.emitExpression(node.Expression(), ast.OperatorPrecedenceParentheses)
 	} else {
 		p.emitExpression(node.Expression(), ast.OperatorPrecedenceMember)
@@ -1941,13 +1941,13 @@ func (p *Printer) emitNewExpression(node ast.Handle) {
 	p.exitNode(node, state)
 }
 func (p *Printer) emitTemplateLiteral(node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindNoSubstitutionTemplateLiteral:
 		p.emitNoSubstitutionTemplateLiteral(node)
 	case ast.KindTemplateExpression:
 		p.emitTemplateExpression(node)
 	default:
-		panic(fmt.Sprintf("unhandled TemplateLiteral: %v", node.Kind()))
+		panic(fmt.Sprintf("unhandled TemplateLiteral: %v", node.Kind))
 	}
 }
 func (p *Printer) emitTaggedTemplateExpression(node ast.Handle) {
@@ -2008,7 +2008,7 @@ func (p *Printer) emitConciseBody(node ast.Handle) {
 	case ast.IsExpression(node):
 		p.emitExpression(node, ast.OperatorPrecedenceYield)
 	default:
-		panic(fmt.Sprintf("unexpected ConciseBody: %v", node.Kind()))
+		panic(fmt.Sprintf("unexpected ConciseBody: %v", node.Kind))
 	}
 }
 func (p *Printer) emitArrowFunction(node ast.Handle) {
@@ -2061,7 +2061,7 @@ func (p *Printer) emitPrefixUnaryExpression(node ast.Handle) {
 	operator := node.PrefixUnaryExpressionOperator()
 	operand := node.PrefixUnaryExpressionOperand()
 	p.emitToken(operator, node.Pos(), WriteKindOperator, node)
-	if operand.Kind() == ast.KindPrefixUnaryExpression {
+	if operand.Kind == ast.KindPrefixUnaryExpression {
 		inner := operand.PrefixUnaryExpressionOperator()
 		if (operator == ast.KindPlusToken && (inner == ast.KindPlusToken || inner == ast.KindPlusPlusToken)) || (operator == ast.KindMinusToken && (inner == ast.KindMinusToken || inner == ast.KindMinusMinusToken)) {
 			p.writeSpace()
@@ -2079,11 +2079,11 @@ func (p *Printer) emitPostfixUnaryExpression(node ast.Handle) {
 
 func (p *Printer) getLiteralKindOfBinaryPlusOperand(node ast.Handle) ast.Kind {
 	node = ast.SkipPartiallyEmittedExpressions(node)
-	if ast.IsLiteralKind(node.Kind()) {
-		return node.Kind()
+	if ast.IsLiteralKind(node.Kind) {
+		return node.Kind
 	}
-	if node.Kind() == ast.KindBinaryExpression {
-		if n := node; n.Operator().Kind() == ast.KindPlusToken {
+	if node.Kind == ast.KindBinaryExpression {
+		if n := node; n.Operator().Kind == ast.KindPlusToken {
 			leftKind := p.getLiteralKindOfBinaryPlusOperand(n.Left())
 			literalKind := ast.KindUnknown
 			if ast.IsLiteralKind(leftKind) && leftKind == p.getLiteralKindOfBinaryPlusOperand(n.Right()) {
@@ -2121,7 +2121,7 @@ func (p *Printer) getBinaryExpressionPrecedence(node ast.Handle) (leftPrec ast.O
 	case ast.OperatorPrecedenceShift:
 		rightPrec = ast.OperatorPrecedenceAdditive
 	case ast.OperatorPrecedenceAdditive:
-		if node.Operator().Kind() == ast.KindPlusToken && isBinaryOperation(node.Right(), ast.KindPlusToken) {
+		if node.Operator().Kind == ast.KindPlusToken && isBinaryOperation(node.Right(), ast.KindPlusToken) {
 			leftKind := p.getLiteralKindOfBinaryPlusOperand(node.Left())
 			if ast.IsLiteralKind(leftKind) && leftKind == p.getLiteralKindOfBinaryPlusOperand(node.Right()) {
 				break
@@ -2129,7 +2129,7 @@ func (p *Printer) getBinaryExpressionPrecedence(node ast.Handle) (leftPrec ast.O
 		}
 		rightPrec = ast.OperatorPrecedenceMultiplicative
 	case ast.OperatorPrecedenceMultiplicative:
-		if node.Operator().Kind() == ast.KindAsteriskToken && isBinaryOperation(node.Right(), ast.KindAsteriskToken) {
+		if node.Operator().Kind == ast.KindAsteriskToken && isBinaryOperation(node.Right(), ast.KindAsteriskToken) {
 			break
 		}
 		rightPrec = ast.OperatorPrecedenceExponentiation
@@ -2142,17 +2142,17 @@ func (p *Printer) getBinaryExpressionPrecedence(node ast.Handle) (leftPrec ast.O
 }
 func (p *Printer) emitBinaryExpression(node ast.Handle) {
 	leftPrec, rightPrec := p.getBinaryExpressionPrecedence(node)
-	if emittedLeft := ast.SkipPartiallyEmittedExpressions(node.BinaryExpressionLeft()); ast.NodeIsSynthesized(emittedLeft) && emittedLeft.Kind() == ast.KindBinaryExpression && mixingBinaryOperatorsRequiresParentheses(node.BinaryExpressionOperatorToken().Kind(), emittedLeft.BinaryExpressionOperatorToken().Kind()) {
+	if emittedLeft := ast.SkipPartiallyEmittedExpressions(node.BinaryExpressionLeft()); ast.NodeIsSynthesized(emittedLeft) && emittedLeft.Kind == ast.KindBinaryExpression && mixingBinaryOperatorsRequiresParentheses(node.BinaryExpressionOperatorToken().Kind, emittedLeft.BinaryExpressionOperatorToken().Kind) {
 		leftPrec = ast.OperatorPrecedenceHighest
 	}
-	if emittedRight := ast.SkipPartiallyEmittedExpressions(node.BinaryExpressionRight()); ast.NodeIsSynthesized(emittedRight) && emittedRight.Kind() == ast.KindBinaryExpression && mixingBinaryOperatorsRequiresParentheses(node.BinaryExpressionOperatorToken().Kind(), emittedRight.BinaryExpressionOperatorToken().Kind()) {
+	if emittedRight := ast.SkipPartiallyEmittedExpressions(node.BinaryExpressionRight()); ast.NodeIsSynthesized(emittedRight) && emittedRight.Kind == ast.KindBinaryExpression && mixingBinaryOperatorsRequiresParentheses(node.BinaryExpressionOperatorToken().Kind, emittedRight.BinaryExpressionOperatorToken().Kind) {
 		rightPrec = ast.OperatorPrecedenceHighest
 	}
 	state := p.enterNode(node)
 	p.emitExpression(node.BinaryExpressionLeft(), leftPrec)
 	linesBeforeOperator := p.getLinesBetweenNodes(node, node.BinaryExpressionLeft(), node.BinaryExpressionOperatorToken())
 	linesAfterOperator := p.getLinesBetweenNodes(node, node.BinaryExpressionOperatorToken(), node.BinaryExpressionRight())
-	p.writeLinesAndIndent(linesBeforeOperator, node.BinaryExpressionOperatorToken().Kind() != ast.KindCommaToken)
+	p.writeLinesAndIndent(linesBeforeOperator, node.BinaryExpressionOperatorToken().Kind != ast.KindCommaToken)
 	p.emitTokenNodeEx(node.BinaryExpressionOperatorToken(), tefNoSourceMaps)
 	p.writeLinesAndIndent(linesAfterOperator, true)
 	p.emitExpression(node.BinaryExpressionRight(), rightPrec)
@@ -2348,7 +2348,7 @@ func (p *Printer) willEmitLeadingNewLine(node ast.Handle) bool {
 
 func (p *Printer) parenthesizeExpressionForNoAsi(node ast.Handle) ast.Handle {
 	if !p.commentsDisabled {
-		switch node.Kind() {
+		switch node.Kind {
 		case ast.KindPartiallyEmittedExpression:
 			if p.willEmitLeadingNewLine(node) {
 				pee := node
@@ -2406,7 +2406,7 @@ func (p *Printer) emitExpression(node ast.Handle, precedence ast.OperatorPrecede
 	if parens {
 		p.writePunctuation("(")
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindTrueKeyword, ast.KindFalseKeyword, ast.KindNullKeyword:
 		p.emitTokenNode(node)
 	case ast.KindThisKeyword, ast.KindSuperKeyword, ast.KindImportKeyword:
@@ -2502,7 +2502,7 @@ func (p *Printer) emitExpression(node ast.Handle, precedence ast.OperatorPrecede
 	case ast.KindSyntheticReferenceExpression:
 		panic("SyntheticReferenceExpression should not be printed")
 	default:
-		panic(fmt.Sprintf("unexpected Expression: %v", node.Kind()))
+		panic(fmt.Sprintf("unexpected Expression: %v", node.Kind))
 	}
 	if parens {
 		p.writePunctuation(")")
@@ -2557,7 +2557,7 @@ func (p *Printer) emitExpressionStatement(node ast.Handle) {
 	} else if isImmediatelyInvokedFunctionExpressionOrArrowFunction(node.Expression()) {
 		p.emitIIFEWithParenthesizedCallee(node.Expression())
 	} else {
-		switch ast.GetLeftmostExpression(node.Expression(), false).Kind() {
+		switch ast.GetLeftmostExpression(node.Expression(), false).Kind {
 		case ast.KindFunctionExpression, ast.KindObjectLiteralExpression:
 			p.emitExpression(node.Expression(), ast.OperatorPrecedenceParentheses)
 		default:
@@ -2592,7 +2592,7 @@ func (p *Printer) emitIfStatement(node ast.Handle) {
 	if !node.IfStatementElseStatement().IsNil() {
 		p.writeLineOrSpace(node, node.IfStatementThenStatement(), node.IfStatementElseStatement())
 		p.emitToken(ast.KindElseKeyword, node.IfStatementThenStatement().End(), WriteKindKeyword, node)
-		if node.IfStatementElseStatement().Kind() == ast.KindIfStatement {
+		if node.IfStatementElseStatement().Kind == ast.KindIfStatement {
 			p.writeSpace()
 			p.emitIfStatement(node.IfStatementElseStatement())
 		} else {
@@ -2628,7 +2628,7 @@ func (p *Printer) emitWhileStatement(node ast.Handle) {
 	p.exitNode(node, state)
 }
 func (p *Printer) emitForInitializer(node ast.Handle) {
-	if node.Kind() == ast.KindVariableDeclarationList {
+	if node.Kind == ast.KindVariableDeclarationList {
 		p.emitVariableDeclarationList(node)
 	} else {
 		p.emitExpression(node, ast.OperatorPrecedenceLowest)
@@ -2964,7 +2964,7 @@ func (p *Printer) emitImportEqualsDeclaration(node ast.Handle) {
 	p.exitNode(node, state)
 }
 func (p *Printer) emitModuleReference(node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier:
 		p.emitIdentifierReference(node)
 	case ast.KindQualifiedName:
@@ -2972,7 +2972,7 @@ func (p *Printer) emitModuleReference(node ast.Handle) {
 	case ast.KindExternalModuleReference:
 		p.emitExternalModuleReference(node)
 	default:
-		panic(fmt.Sprintf("unhandled ModuleReference: %v", node.Kind()))
+		panic(fmt.Sprintf("unhandled ModuleReference: %v", node.Kind))
 	}
 }
 func (p *Printer) emitImportDeclaration(node ast.Handle) {
@@ -3030,13 +3030,13 @@ func (p *Printer) emitNamedImportBindings(node ast.Handle) {
 	if node.IsNil() {
 		return
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindNamespaceImport:
 		p.emitNamespaceImport(node)
 	case ast.KindNamedImports:
 		p.emitNamedImports(node)
 	default:
-		panic(fmt.Sprintf("unhandled NamedImportBindings: %v", node.Kind()))
+		panic(fmt.Sprintf("unhandled NamedImportBindings: %v", node.Kind))
 	}
 }
 func (p *Printer) emitImportSpecifier(node ast.Handle) {
@@ -3159,13 +3159,13 @@ func (p *Printer) emitNamedExports(node ast.Handle) {
 	p.exitNode(node, state)
 }
 func (p *Printer) emitNamedExportBindings(node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindNamespaceExport:
 		p.emitNamespaceExport(node)
 	case ast.KindNamedExports:
 		p.emitNamedExports(node)
 	default:
-		panic(fmt.Sprintf("unhandled NamedExportBindings: %v", node.Kind()))
+		panic(fmt.Sprintf("unhandled NamedExportBindings: %v", node.Kind))
 	}
 }
 func (p *Printer) emitExportSpecifier(node ast.Handle) {
@@ -3193,7 +3193,7 @@ func (p *Printer) emitEmbeddedStatement(parentNode ast.Handle, node ast.Handle) 
 	} else {
 		p.writeLine()
 		p.increaseIndent()
-		if node.Kind() == ast.KindEmptyStatement {
+		if node.Kind == ast.KindEmptyStatement {
 			p.emitEmptyStatement(node, true)
 		} else {
 			p.emitStatement(node)
@@ -3206,7 +3206,7 @@ func (p *Printer) emitStatement(node ast.Handle) {
 		p.emitSnippetNode(node, snippetElement)
 		return
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindBlock:
 		p.emitBlock(node)
 	case ast.KindEmptyStatement:
@@ -3272,7 +3272,7 @@ func (p *Printer) emitStatement(node ast.Handle) {
 	case ast.KindExportDeclaration:
 		p.emitExportDeclaration(node)
 	default:
-		panic(fmt.Sprintf("unhandled statement: %v", node.Kind()))
+		panic(fmt.Sprintf("unhandled statement: %v", node.Kind))
 	}
 }
 func (p *Printer) emitExternalModuleReference(node ast.Handle) {
@@ -3368,13 +3368,13 @@ func (p *Printer) emitJsxSpreadAttribute(node ast.Handle) {
 	p.exitNode(node, state)
 }
 func (p *Printer) emitJsxAttributeLike(node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindJsxAttribute:
 		p.emitJsxAttribute(node)
 	case ast.KindJsxSpreadAttribute:
 		p.emitJsxSpreadAttribute(node)
 	default:
-		panic(fmt.Sprintf("unhandled JsxAttributeLike: %v", node.Kind()))
+		panic(fmt.Sprintf("unhandled JsxAttributeLike: %v", node.Kind))
 	}
 }
 func (p *Printer) emitJsxExpression(node ast.Handle) {
@@ -3400,7 +3400,7 @@ func (p *Printer) emitJsxNamespacedName(node ast.Handle) {
 	p.exitNode(node, state)
 }
 func (p *Printer) emitJsxChild(node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindJsxText:
 		p.emitJsxText(node)
 	case ast.KindJsxExpression:
@@ -3412,11 +3412,11 @@ func (p *Printer) emitJsxChild(node ast.Handle) {
 	case ast.KindJsxFragment:
 		p.emitJsxFragment(node)
 	default:
-		panic(fmt.Sprintf("unhandled JsxChild: %v", node.Kind()))
+		panic(fmt.Sprintf("unhandled JsxChild: %v", node.Kind))
 	}
 }
 func (p *Printer) emitJsxTagName(node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier:
 		p.emitIdentifierReference(node)
 	case ast.KindThisKeyword:
@@ -3426,21 +3426,21 @@ func (p *Printer) emitJsxTagName(node ast.Handle) {
 	case ast.KindPropertyAccessExpression:
 		p.emitPropertyAccessExpression(node)
 	default:
-		panic(fmt.Sprintf("unhandled JsxTagName: %v", node.Kind()))
+		panic(fmt.Sprintf("unhandled JsxTagName: %v", node.Kind))
 	}
 }
 func (p *Printer) emitJsxAttributeName(node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier:
 		p.emitIdentifierName(node)
 	case ast.KindJsxNamespacedName:
 		p.emitJsxNamespacedName(node)
 	default:
-		panic(fmt.Sprintf("unhandled JsxAttributeName: %v", node.Kind()))
+		panic(fmt.Sprintf("unhandled JsxAttributeName: %v", node.Kind))
 	}
 }
 func (p *Printer) emitJsxAttributeValue(node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindStringLiteral:
 		p.emitStringLiteral(node)
 	case ast.KindJsxExpression:
@@ -3482,13 +3482,13 @@ func (p *Printer) emitDefaultClause(node ast.Handle) {
 	p.exitNode(node, state)
 }
 func (p *Printer) emitCaseOrDefaultClauseNode(node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindCaseClause:
 		p.emitCaseClause(node)
 	case ast.KindDefaultClause:
 		p.emitDefaultClause(node)
 	default:
-		panic(fmt.Sprintf("unhandled CaseOrDefaultClause: %v", node.Kind()))
+		panic(fmt.Sprintf("unhandled CaseOrDefaultClause: %v", node.Kind))
 	}
 }
 func (p *Printer) emitHeritageClause(node ast.Handle) {
@@ -3500,13 +3500,13 @@ func (p *Printer) emitHeritageClause(node ast.Handle) {
 	p.exitNode(node, state)
 }
 func (p *Printer) emitHeritageClauseElement(node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindExpressionWithTypeArguments:
 		p.emitExpressionWithTypeArguments(node)
 	case ast.KindTypeReference:
 		p.emitTypeReference(node)
 	default:
-		panic(fmt.Sprintf("unhandled HeritageClauseElement: %v", node.Kind()))
+		panic(fmt.Sprintf("unhandled HeritageClauseElement: %v", node.Kind))
 	}
 }
 func (p *Printer) emitHeritageClauseNode(node ast.Handle) {
@@ -3725,11 +3725,11 @@ func (p *Printer) hasTrailingComma(parentNode ast.Handle, children ast.ListRef) 
 	if originalParent == parentNode {
 		return true
 	}
-	if originalParent.Kind() != parentNode.Kind() {
+	if originalParent.Kind != parentNode.Kind {
 		return false
 	}
 	originalList := children
-	switch originalParent.Kind() {
+	switch originalParent.Kind {
 	case ast.KindObjectLiteralExpression:
 		originalList = originalParent.PropertyList()
 	case ast.KindArrayLiteralExpression:
@@ -3930,7 +3930,7 @@ func (p *Printer) Write(node ast.Handle, sourceFile *ast.SourceFile, writer Emit
 			grower.Grow(len(sourceFile.Text()))
 		}
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindTemplateHead:
 		p.emitTemplateHead(node)
 	case ast.KindTemplateMiddle:
@@ -4059,14 +4059,14 @@ func (p *Printer) Write(node ast.Handle, sourceFile *ast.SourceFile, writer Emit
 			p.emitStatement(node)
 		case ast.IsExpression(node):
 			p.emitExpression(node, ast.OperatorPrecedenceLowest)
-		case ast.IsKeywordKind(node.Kind()):
+		case ast.IsKeywordKind(node.Kind):
 			p.emitKeywordNode(node)
-		case ast.IsPunctuationKind(node.Kind()):
+		case ast.IsPunctuationKind(node.Kind):
 			p.emitPunctuationNode(node)
-		case ast.IsJSDocKind(node.Kind()):
+		case ast.IsJSDocKind(node.Kind):
 			p.emitJSDocNode(node)
 		default:
-			panic(fmt.Sprintf("unhandled Node: %v", node.Kind()))
+			panic(fmt.Sprintf("unhandled Node: %v", node.Kind))
 		}
 	}
 	p.currentSourceFile = savedCurrentSourceFile
@@ -4126,7 +4126,7 @@ func (p *Printer) emitCommentsBeforeToken(token ast.Kind, pos int, contextNode a
 		pos = scanner.SkipTrivia(p.currentSourceFile.Text(), startPos)
 	}
 	node := p.emitContext.ParseNode(contextNode)
-	isSimilarNode := !node.IsNil() && node.Kind() == contextNode.Kind()
+	isSimilarNode := !node.IsNil() && node.Kind == contextNode.Kind
 	if !isSimilarNode {
 		return nil, pos
 	}
@@ -4144,7 +4144,7 @@ func (p *Printer) emitCommentsAfterToken(token ast.Kind, pos int, contextNode as
 		return
 	}
 	if contextNode.End() != pos {
-		isJsxExprContext := contextNode.Kind() == ast.KindJsxExpression
+		isJsxExprContext := contextNode.Kind == ast.KindJsxExpression
 		p.emitTrailingComments(pos, core.IfElse(isJsxExprContext, commentSeparatorNone, commentSeparatorBefore))
 	}
 }
@@ -4182,17 +4182,17 @@ func (p *Printer) emitLeadingCommentsOfNode(node ast.Handle, emitFlags EmitFlags
 	pos := commentRange.Pos()
 	end := commentRange.End()
 	if (!ast.PositionIsSynthesized(pos) || !ast.PositionIsSynthesized(end)) && pos != end {
-		skipLeadingComments := ast.PositionIsSynthesized(pos) || emitFlags&EFNoLeadingComments != 0 || node.Kind() == ast.KindJsxText
-		skipTrailingComments := ast.PositionIsSynthesized(end) || emitFlags&EFNoTrailingComments != 0 || node.Kind() == ast.KindJsxText
+		skipLeadingComments := ast.PositionIsSynthesized(pos) || emitFlags&EFNoLeadingComments != 0 || node.Kind == ast.KindJsxText
+		skipTrailingComments := ast.PositionIsSynthesized(end) || emitFlags&EFNoTrailingComments != 0 || node.Kind == ast.KindJsxText
 		if !skipLeadingComments {
-			p.emitLeadingComments(pos, node.Kind() == ast.KindNotEmittedStatement)
+			p.emitLeadingComments(pos, node.Kind == ast.KindNotEmittedStatement)
 		}
 		if !skipLeadingComments || (pos >= 0 && (emitFlags&EFNoLeadingComments) != 0) {
 			p.containerPos = pos
 		}
 		if !skipTrailingComments || (end >= 0 && (emitFlags&EFNoTrailingComments) != 0) {
 			p.containerEnd = end
-			if node.Kind() == ast.KindVariableDeclarationList {
+			if node.Kind == ast.KindVariableDeclarationList {
 				p.declarationListContainerEnd = end
 			}
 		}
@@ -4201,12 +4201,12 @@ func (p *Printer) emitLeadingCommentsOfNode(node ast.Handle, emitFlags EmitFlags
 func (p *Printer) emitTrailingCommentsOfNode(node ast.Handle, emitFlags EmitFlags, commentRange core.TextRange, containerPos int, containerEnd int, declarationListContainerEnd int) {
 	pos := commentRange.Pos()
 	end := commentRange.End()
-	skipTrailingComments := end < 0 || (emitFlags&EFNoTrailingComments) != 0 || node.Kind() == ast.KindJsxText
+	skipTrailingComments := end < 0 || (emitFlags&EFNoTrailingComments) != 0 || node.Kind == ast.KindJsxText
 	if (!ast.PositionIsSynthesized(pos) || !ast.PositionIsSynthesized(end)) && pos != end {
 		p.containerPos = containerPos
 		p.containerEnd = containerEnd
 		p.declarationListContainerEnd = declarationListContainerEnd
-		if !skipTrailingComments && node.Kind() != ast.KindNotEmittedStatement {
+		if !skipTrailingComments && node.Kind != ast.KindNotEmittedStatement {
 			p.emitTrailingComments(end, commentSeparatorBefore)
 		}
 	}
@@ -4630,7 +4630,7 @@ func (p *Printer) generateNames(node ast.Handle) {
 	if node.IsNil() {
 		return
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindBlock, ast.KindCaseClause, ast.KindDefaultClause:
 		p.generateAllNames(node, node.StatementList())
 	case ast.KindLabeledStatement, ast.KindWithStatement, ast.KindDoStatement, ast.KindWhileStatement:
@@ -4696,7 +4696,7 @@ func (p *Printer) generateMemberNames(node ast.Handle) {
 	if node.IsNil() {
 		return
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindPropertyAssignment, ast.KindShorthandPropertyAssignment, ast.KindPropertyDeclaration, ast.KindPropertySignature, ast.KindMethodDeclaration, ast.KindMethodSignature, ast.KindGetAccessor, ast.KindSetAccessor:
 		p.generateNameIfNeeded(node.Name())
 	}

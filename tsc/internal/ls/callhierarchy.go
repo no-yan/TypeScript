@@ -143,7 +143,7 @@ func getCallHierarchyDeclarationReferenceNode(node ast.Handle) ast.Handle {
 	}
 	if modifiers := node.Modifiers(); modifiers != 0 {
 		for _, mod := range node.Store().ListSlice(modifiers) {
-			if mod.Kind() == ast.KindDefaultKeyword {
+			if mod.Kind == ast.KindDefaultKeyword {
 				return mod
 			}
 		}
@@ -170,7 +170,7 @@ func getCallHierarchyItemName(program *compiler.Program, node ast.Handle) (text 
 	if (ast.IsFunctionDeclaration(node) || ast.IsClassDeclaration(node)) && node.Name().IsNil() {
 		if modifiers := node.Modifiers(); modifiers != 0 {
 			for _, mod := range node.Store().ListSlice(modifiers) {
-				if mod.Kind() == ast.KindDefaultKeyword {
+				if mod.Kind == ast.KindDefaultKeyword {
 					sourceFile := ast.GetSourceFileOfNode(node)
 					start := scanner.SkipTrivia(sourceFile.Text(), mod.Pos())
 					return "default", start, mod.End()
@@ -264,9 +264,9 @@ func getCallHierarchyItemContainerName(program *compiler.Program, node ast.Handl
 		}
 		return ""
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindGetAccessor, ast.KindSetAccessor, ast.KindMethodDeclaration:
-		if node.Parent().Kind() == ast.KindObjectLiteralExpression {
+		if node.Parent().Kind == ast.KindObjectLiteralExpression {
 			if assignedName := ast.GetAssignedName(node.Parent()); !assignedName.IsNil() {
 				return getTextOfCallHierarchyName(program, node, assignedName, assignedName)
 			}
@@ -414,7 +414,7 @@ func resolveCallHierarchyDeclaration(program *compiler.Program, location ast.Han
 			}
 			return nil
 		}
-		if location.Kind() == ast.KindStaticKeyword && ast.IsClassStaticBlockDeclaration(location.Parent()) {
+		if location.Kind == ast.KindStaticKeyword && ast.IsClassStaticBlockDeclaration(location.Parent()) {
 			location = location.Parent()
 			continue
 		}
@@ -654,7 +654,7 @@ func (c *callSiteCollector) collect(node ast.Handle) {
 		}
 		return
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier, ast.KindImportEqualsDeclaration, ast.KindImportDeclaration, ast.KindExportDeclaration, ast.KindInterfaceDeclaration, ast.KindTypeAliasDeclaration:
 		return
 	case ast.KindClassStaticBlockDeclaration:
@@ -717,7 +717,7 @@ func (c *callSiteCollector) collect(node ast.Handle) {
 }
 func collectCallSites(program *compiler.Program, c *checker.Checker, node ast.Handle) []*callSite {
 	collector := &callSiteCollector{program: program, callSites: make([]*callSite, 0)}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindSourceFile:
 		for _, stmt := range node.Statements() {
 			collector.collect(stmt)
@@ -919,7 +919,7 @@ func (l *LanguageService) callHierarchyDeclarations(file *ast.SourceFile, positi
 		if pos != 0 {
 			node = astnav.GetTouchingPropertyName(file, pos)
 		}
-		if node.IsNil() || !allowSourceFile && node.Kind() == ast.KindSourceFile {
+		if node.IsNil() || !allowSourceFile && node.Kind == ast.KindSourceFile {
 			continue
 		}
 		switch declaration := resolveCallHierarchyDeclaration(program, node).(type) {

@@ -6,7 +6,7 @@ func (h Handle) Argument() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindImportType:
 		return h.ImportTypeNodeArgument()
 	default:
@@ -18,7 +18,7 @@ func (h Handle) SetArgument(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindImportType:
 		h.SetImportTypeNodeArgument(value)
 	}
@@ -28,7 +28,7 @@ func (h Handle) ArgumentExpression() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindElementAccessExpression:
 		return h.ElementAccessExpressionArgumentExpression()
 	default:
@@ -40,7 +40,7 @@ func (h Handle) SetArgumentExpression(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindElementAccessExpression:
 		h.SetElementAccessExpressionArgumentExpression(value)
 	}
@@ -50,7 +50,7 @@ func (h Handle) Arguments() []Handle {
 	if h.IsNil() {
 		return nil
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindCallExpression:
 		return h.Store().ListSlice(h.CallExpressionArguments())
 	case KindNewExpression:
@@ -64,7 +64,7 @@ func (h Handle) ArgumentList() ListRef {
 	if h.IsNil() {
 		return 0
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindCallExpression:
 		return h.CallExpressionArguments()
 	case KindNewExpression:
@@ -78,7 +78,7 @@ func (h Handle) SetArguments(value ListRef) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindCallExpression:
 		h.SetCallExpressionArguments(value)
 	case KindNewExpression:
@@ -94,7 +94,7 @@ func (h Handle) AssertsModifier() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTypePredicate:
 		return h.TypePredicateNodeAssertsModifier()
 	default:
@@ -106,7 +106,7 @@ func (h Handle) SetAssertsModifier(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTypePredicate:
 		h.SetTypePredicateNodeAssertsModifier(value)
 	}
@@ -116,7 +116,7 @@ func (h Handle) AsteriskToken() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindFunctionDeclaration:
 		return h.FunctionDeclarationAsteriskToken()
 	case KindFunctionExpression:
@@ -134,7 +134,7 @@ func (h Handle) SetAsteriskToken(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindFunctionDeclaration:
 		h.SetFunctionDeclarationAsteriskToken(value)
 	case KindFunctionExpression:
@@ -150,7 +150,7 @@ func (h Handle) Attributes() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindExportDeclaration:
 		return h.ExportDeclarationAttributes()
 	case KindImportDeclaration, KindJSImportDeclaration:
@@ -172,7 +172,7 @@ func (h Handle) SetAttributes(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindExportDeclaration:
 		h.SetExportDeclarationAttributes(value)
 	case KindImportDeclaration, KindJSImportDeclaration:
@@ -192,7 +192,7 @@ func (h Handle) AttributeList() ListRef {
 	if h.IsNil() {
 		return 0
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindImportAttributes:
 		return h.ImportAttributesAttributes()
 	default:
@@ -204,7 +204,7 @@ func (h Handle) SetAttributeList(value ListRef) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindImportAttributes:
 		h.SetImportAttributesAttributes(value)
 	}
@@ -214,7 +214,7 @@ func (h Handle) AwaitModifier() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindForInStatement, KindForOfStatement:
 		return h.ForInOrOfStatementAwaitModifier()
 	default:
@@ -226,7 +226,7 @@ func (h Handle) SetAwaitModifier(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindForInStatement, KindForOfStatement:
 		h.SetForInOrOfStatementAwaitModifier(value)
 	}
@@ -236,7 +236,7 @@ func (h Handle) Block() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindCatchClause:
 		return h.CatchClauseBlock()
 	case KindTryStatement:
@@ -250,7 +250,7 @@ func (h Handle) SetBlock(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindCatchClause:
 		h.SetCatchClauseBlock(value)
 	case KindTryStatement:
@@ -262,7 +262,7 @@ func (h Handle) Body() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrowFunction:
 		return h.ArrowFunctionBody()
 	case KindClassStaticBlockDeclaration:
@@ -290,7 +290,7 @@ func (h Handle) SetBody(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrowFunction:
 		h.SetArrowFunctionBody(value)
 	case KindClassStaticBlockDeclaration:
@@ -316,7 +316,7 @@ func (h Handle) CaseBlock() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindSwitchStatement:
 		return h.SwitchStatementCaseBlock()
 	default:
@@ -328,7 +328,7 @@ func (h Handle) SetCaseBlock(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindSwitchStatement:
 		h.SetSwitchStatementCaseBlock(value)
 	}
@@ -338,7 +338,7 @@ func (h Handle) CatchClause() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTryStatement:
 		return h.TryStatementCatchClause()
 	default:
@@ -350,7 +350,7 @@ func (h Handle) SetCatchClause(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTryStatement:
 		h.SetTryStatementCatchClause(value)
 	}
@@ -360,7 +360,7 @@ func (h Handle) CheckType() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindConditionalType:
 		return h.ConditionalTypeNodeCheckType()
 	default:
@@ -372,7 +372,7 @@ func (h Handle) SetCheckType(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindConditionalType:
 		h.SetConditionalTypeNodeCheckType(value)
 	}
@@ -382,7 +382,7 @@ func (h Handle) Children() []Handle {
 	if h.IsNil() {
 		return nil
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJsxElement:
 		return h.Store().ListSlice(h.JsxElementChildren())
 	case KindJsxFragment:
@@ -398,7 +398,7 @@ func (h Handle) ChildList() ListRef {
 	if h.IsNil() {
 		return 0
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJsxElement:
 		return h.JsxElementChildren()
 	case KindJsxFragment:
@@ -414,7 +414,7 @@ func (h Handle) SetChildren(value ListRef) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJsxElement:
 		h.SetJsxElementChildren(value)
 	case KindJsxFragment:
@@ -432,7 +432,7 @@ func (h Handle) ClassName() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJSDocAugmentsTag:
 		return h.JSDocAugmentsTagClassName()
 	case KindJSDocImplementsTag:
@@ -446,7 +446,7 @@ func (h Handle) SetClassName(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJSDocAugmentsTag:
 		h.SetJSDocAugmentsTagClassName(value)
 	case KindJSDocImplementsTag:
@@ -458,7 +458,7 @@ func (h Handle) Clauses() []Handle {
 	if h.IsNil() {
 		return nil
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindCaseBlock:
 		return h.Store().ListSlice(h.CaseBlockClauses())
 	default:
@@ -470,7 +470,7 @@ func (h Handle) ClauseList() ListRef {
 	if h.IsNil() {
 		return 0
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindCaseBlock:
 		return h.CaseBlockClauses()
 	default:
@@ -482,7 +482,7 @@ func (h Handle) SetClauses(value ListRef) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindCaseBlock:
 		h.SetCaseBlockClauses(value)
 	}
@@ -496,7 +496,7 @@ func (h Handle) ClosingElement() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJsxElement:
 		return h.JsxElementClosingElement()
 	default:
@@ -508,7 +508,7 @@ func (h Handle) SetClosingElement(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJsxElement:
 		h.SetJsxElementClosingElement(value)
 	}
@@ -518,7 +518,7 @@ func (h Handle) ClosingFragment() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJsxFragment:
 		return h.JsxFragmentClosingFragment()
 	default:
@@ -530,7 +530,7 @@ func (h Handle) SetClosingFragment(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJsxFragment:
 		h.SetJsxFragmentClosingFragment(value)
 	}
@@ -540,7 +540,7 @@ func (h Handle) ColonToken() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindConditionalExpression:
 		return h.ConditionalExpressionColonToken()
 	default:
@@ -552,7 +552,7 @@ func (h Handle) SetColonToken(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindConditionalExpression:
 		h.SetConditionalExpressionColonToken(value)
 	}
@@ -562,7 +562,7 @@ func (h Handle) Comments() []Handle {
 	if h.IsNil() {
 		return nil
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJSDocAugmentsTag:
 		return h.Store().ListSlice(h.JSDocAugmentsTagComment())
 	case KindJSDocCallbackTag:
@@ -616,7 +616,7 @@ func (h Handle) CommentList() ListRef {
 	if h.IsNil() {
 		return 0
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJSDocAugmentsTag:
 		return h.JSDocAugmentsTagComment()
 	case KindJSDocCallbackTag:
@@ -670,7 +670,7 @@ func (h Handle) SetComments(value ListRef) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJSDocAugmentsTag:
 		h.SetJSDocAugmentsTagComment(value)
 	case KindJSDocCallbackTag:
@@ -726,7 +726,7 @@ func (h Handle) Condition() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindConditionalExpression:
 		return h.ConditionalExpressionCondition()
 	case KindDoStatement:
@@ -746,7 +746,7 @@ func (h Handle) SetCondition(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindConditionalExpression:
 		h.SetConditionalExpressionCondition(value)
 	case KindDoStatement:
@@ -764,7 +764,7 @@ func (h Handle) Constraint() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJSDocTemplateTag:
 		return h.JSDocTemplateTagConstraint()
 	case KindTypeParameter:
@@ -778,7 +778,7 @@ func (h Handle) SetConstraint(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJSDocTemplateTag:
 		h.SetJSDocTemplateTagConstraint(value)
 	case KindTypeParameter:
@@ -790,7 +790,7 @@ func (h Handle) Declarations() []Handle {
 	if h.IsNil() {
 		return nil
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindVariableDeclarationList:
 		return h.Store().ListSlice(h.VariableDeclarationListDeclarations())
 	default:
@@ -802,7 +802,7 @@ func (h Handle) DeclarationList() ListRef {
 	if h.IsNil() {
 		return 0
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindVariableDeclarationList:
 		return h.VariableDeclarationListDeclarations()
 	default:
@@ -814,7 +814,7 @@ func (h Handle) SetDeclarations(value ListRef) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindVariableDeclarationList:
 		h.SetVariableDeclarationListDeclarations(value)
 	}
@@ -828,7 +828,7 @@ func (h Handle) DefaultType() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTypeParameter:
 		return h.TypeParameterDeclarationDefaultType()
 	default:
@@ -840,7 +840,7 @@ func (h Handle) SetDefaultType(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTypeParameter:
 		h.SetTypeParameterDeclarationDefaultType(value)
 	}
@@ -850,7 +850,7 @@ func (h Handle) DotDotDotToken() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBindingElement:
 		return h.BindingElementDotDotDotToken()
 	case KindJsxExpression:
@@ -868,7 +868,7 @@ func (h Handle) SetDotDotDotToken(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBindingElement:
 		h.SetBindingElementDotDotDotToken(value)
 	case KindJsxExpression:
@@ -884,7 +884,7 @@ func (h Handle) Elements() []Handle {
 	if h.IsNil() {
 		return nil
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrayLiteralExpression:
 		return h.Store().ListSlice(h.ArrayLiteralExpressionElements())
 	case KindArrayBindingPattern, KindObjectBindingPattern:
@@ -904,7 +904,7 @@ func (h Handle) ElementList() ListRef {
 	if h.IsNil() {
 		return 0
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrayLiteralExpression:
 		return h.ArrayLiteralExpressionElements()
 	case KindArrayBindingPattern, KindObjectBindingPattern:
@@ -924,7 +924,7 @@ func (h Handle) SetElements(value ListRef) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrayLiteralExpression:
 		h.SetArrayLiteralExpressionElements(value)
 	case KindArrayBindingPattern, KindObjectBindingPattern:
@@ -946,7 +946,7 @@ func (h Handle) ElementType() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrayType:
 		return h.ArrayTypeNodeElementType()
 	default:
@@ -958,7 +958,7 @@ func (h Handle) SetElementType(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrayType:
 		h.SetArrayTypeNodeElementType(value)
 	}
@@ -968,7 +968,7 @@ func (h Handle) ElseStatement() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindIfStatement:
 		return h.IfStatementElseStatement()
 	default:
@@ -980,7 +980,7 @@ func (h Handle) SetElseStatement(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindIfStatement:
 		h.SetIfStatementElseStatement(value)
 	}
@@ -990,7 +990,7 @@ func (h Handle) EndOfFileToken() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindSourceFile:
 		return h.SourceFileEndOfFileToken()
 	default:
@@ -1002,7 +1002,7 @@ func (h Handle) SetEndOfFileToken(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindSourceFile:
 		h.SetSourceFileEndOfFileToken(value)
 	}
@@ -1012,7 +1012,7 @@ func (h Handle) EqualsGreaterThanToken() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrowFunction:
 		return h.ArrowFunctionEqualsGreaterThanToken()
 	default:
@@ -1024,7 +1024,7 @@ func (h Handle) SetEqualsGreaterThanToken(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrowFunction:
 		h.SetArrowFunctionEqualsGreaterThanToken(value)
 	}
@@ -1034,7 +1034,7 @@ func (h Handle) EqualsToken() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindShorthandPropertyAssignment:
 		return h.ShorthandPropertyAssignmentEqualsToken()
 	default:
@@ -1046,7 +1046,7 @@ func (h Handle) SetEqualsToken(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindShorthandPropertyAssignment:
 		h.SetShorthandPropertyAssignmentEqualsToken(value)
 	}
@@ -1056,7 +1056,7 @@ func (h Handle) ExclamationToken() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindVariableDeclaration:
 		return h.VariableDeclarationExclamationToken()
 	default:
@@ -1068,7 +1068,7 @@ func (h Handle) SetExclamationToken(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindVariableDeclaration:
 		h.SetVariableDeclarationExclamationToken(value)
 	}
@@ -1078,7 +1078,7 @@ func (h Handle) ExportClause() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindExportDeclaration:
 		return h.ExportDeclarationExportClause()
 	default:
@@ -1090,7 +1090,7 @@ func (h Handle) SetExportClause(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindExportDeclaration:
 		h.SetExportDeclarationExportClause(value)
 	}
@@ -1100,7 +1100,7 @@ func (h Handle) Expression() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindAsExpression:
 		return h.AsExpressionExpression()
 	case KindAwaitExpression:
@@ -1184,7 +1184,7 @@ func (h Handle) SetExpression(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindAsExpression:
 		h.SetAsExpressionExpression(value)
 	case KindAwaitExpression:
@@ -1266,7 +1266,7 @@ func (h Handle) ExprName() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTypeQuery:
 		return h.TypeQueryNodeExprName()
 	default:
@@ -1278,7 +1278,7 @@ func (h Handle) SetExprName(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTypeQuery:
 		h.SetTypeQueryNodeExprName(value)
 	}
@@ -1288,7 +1288,7 @@ func (h Handle) ExtendsType() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindConditionalType:
 		return h.ConditionalTypeNodeExtendsType()
 	default:
@@ -1300,7 +1300,7 @@ func (h Handle) SetExtendsType(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindConditionalType:
 		h.SetConditionalTypeNodeExtendsType(value)
 	}
@@ -1310,7 +1310,7 @@ func (h Handle) FalseType() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindConditionalType:
 		return h.ConditionalTypeNodeFalseType()
 	default:
@@ -1322,7 +1322,7 @@ func (h Handle) SetFalseType(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindConditionalType:
 		h.SetConditionalTypeNodeFalseType(value)
 	}
@@ -1332,7 +1332,7 @@ func (h Handle) FinallyBlock() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTryStatement:
 		return h.TryStatementFinallyBlock()
 	default:
@@ -1344,7 +1344,7 @@ func (h Handle) SetFinallyBlock(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTryStatement:
 		h.SetTryStatementFinallyBlock(value)
 	}
@@ -1354,7 +1354,7 @@ func (h Handle) FullSignature() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrowFunction:
 		return h.ArrowFunctionFullSignature()
 	case KindConstructor:
@@ -1378,7 +1378,7 @@ func (h Handle) SetFullSignature(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrowFunction:
 		h.SetArrowFunctionFullSignature(value)
 	case KindConstructor:
@@ -1400,7 +1400,7 @@ func (h Handle) Head() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTemplateExpression:
 		return h.TemplateExpressionHead()
 	case KindTemplateLiteralType:
@@ -1414,7 +1414,7 @@ func (h Handle) SetHead(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTemplateExpression:
 		h.SetTemplateExpressionHead(value)
 	case KindTemplateLiteralType:
@@ -1426,7 +1426,7 @@ func (h Handle) HeritageClauseNodes() []Handle {
 	if h.IsNil() {
 		return nil
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindClassDeclaration:
 		return h.Store().ListSlice(h.ClassDeclarationHeritageClauses())
 	case KindClassExpression:
@@ -1442,7 +1442,7 @@ func (h Handle) HeritageClauses() ListRef {
 	if h.IsNil() {
 		return 0
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindClassDeclaration:
 		return h.ClassDeclarationHeritageClauses()
 	case KindClassExpression:
@@ -1458,7 +1458,7 @@ func (h Handle) SetHeritageClauses(value ListRef) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindClassDeclaration:
 		h.SetClassDeclarationHeritageClauses(value)
 	case KindClassExpression:
@@ -1472,7 +1472,7 @@ func (h Handle) ImportClause() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindImportDeclaration, KindJSImportDeclaration:
 		return h.ImportDeclarationImportClause()
 	case KindJSDocImportTag:
@@ -1486,7 +1486,7 @@ func (h Handle) SetImportClause(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindImportDeclaration, KindJSImportDeclaration:
 		h.SetImportDeclarationImportClause(value)
 	case KindJSDocImportTag:
@@ -1498,7 +1498,7 @@ func (h Handle) Incrementor() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindForStatement:
 		return h.ForStatementIncrementor()
 	default:
@@ -1510,7 +1510,7 @@ func (h Handle) SetIncrementor(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindForStatement:
 		h.SetForStatementIncrementor(value)
 	}
@@ -1520,7 +1520,7 @@ func (h Handle) IndexType() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindIndexedAccessType:
 		return h.IndexedAccessTypeNodeIndexType()
 	default:
@@ -1532,7 +1532,7 @@ func (h Handle) SetIndexType(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindIndexedAccessType:
 		h.SetIndexedAccessTypeNodeIndexType(value)
 	}
@@ -1542,7 +1542,7 @@ func (h Handle) Initializer() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBindingElement:
 		return h.BindingElementInitializer()
 	case KindEnumMember:
@@ -1572,7 +1572,7 @@ func (h Handle) SetInitializer(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBindingElement:
 		h.SetBindingElementInitializer(value)
 	case KindEnumMember:
@@ -1600,7 +1600,7 @@ func (h Handle) JSDocPropertyTags() []Handle {
 	if h.IsNil() {
 		return nil
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJSDocTypeLiteral:
 		return h.Store().ListSlice(h.JSDocTypeLiteralJSDocPropertyTags())
 	default:
@@ -1612,7 +1612,7 @@ func (h Handle) JSDocPropertyTagList() ListRef {
 	if h.IsNil() {
 		return 0
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJSDocTypeLiteral:
 		return h.JSDocTypeLiteralJSDocPropertyTags()
 	default:
@@ -1624,7 +1624,7 @@ func (h Handle) SetJSDocPropertyTags(value ListRef) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJSDocTypeLiteral:
 		h.SetJSDocTypeLiteralJSDocPropertyTags(value)
 	}
@@ -1638,7 +1638,7 @@ func (h Handle) Label() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBreakStatement:
 		return h.BreakStatementLabel()
 	case KindContinueStatement:
@@ -1654,7 +1654,7 @@ func (h Handle) SetLabel(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBreakStatement:
 		h.SetBreakStatementLabel(value)
 	case KindContinueStatement:
@@ -1668,7 +1668,7 @@ func (h Handle) Left() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBinaryExpression:
 		return h.BinaryExpressionLeft()
 	case KindQualifiedName:
@@ -1682,7 +1682,7 @@ func (h Handle) SetLeft(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBinaryExpression:
 		h.SetBinaryExpressionLeft(value)
 	case KindQualifiedName:
@@ -1694,7 +1694,7 @@ func (h Handle) Literal() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindLiteralType:
 		return h.LiteralTypeNodeLiteral()
 	case KindTemplateLiteralTypeSpan:
@@ -1710,7 +1710,7 @@ func (h Handle) SetLiteral(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindLiteralType:
 		h.SetLiteralTypeNodeLiteral(value)
 	case KindTemplateLiteralTypeSpan:
@@ -1724,7 +1724,7 @@ func (h Handle) Members() []Handle {
 	if h.IsNil() {
 		return nil
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindClassDeclaration:
 		return h.Store().ListSlice(h.ClassDeclarationMembers())
 	case KindClassExpression:
@@ -1746,7 +1746,7 @@ func (h Handle) MemberList() ListRef {
 	if h.IsNil() {
 		return 0
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindClassDeclaration:
 		return h.ClassDeclarationMembers()
 	case KindClassExpression:
@@ -1768,7 +1768,7 @@ func (h Handle) SetMembers(value ListRef) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindClassDeclaration:
 		h.SetClassDeclarationMembers(value)
 	case KindClassExpression:
@@ -1792,7 +1792,7 @@ func (h Handle) ModifierNodes() []Handle {
 	if h.IsNil() {
 		return nil
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrowFunction:
 		return h.Store().ListSlice(h.ArrowFunctionModifiers())
 	case KindBinaryExpression:
@@ -1864,7 +1864,7 @@ func (h Handle) Modifiers() ListRef {
 	if h.IsNil() {
 		return 0
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrowFunction:
 		return h.ArrowFunctionModifiers()
 	case KindBinaryExpression:
@@ -1936,7 +1936,7 @@ func (h Handle) SetModifiers(value ListRef) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrowFunction:
 		h.SetArrowFunctionModifiers(value)
 	case KindBinaryExpression:
@@ -2006,7 +2006,7 @@ func (h Handle) ModuleReference() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindImportEqualsDeclaration:
 		return h.ImportEqualsDeclarationModuleReference()
 	default:
@@ -2018,7 +2018,7 @@ func (h Handle) SetModuleReference(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindImportEqualsDeclaration:
 		h.SetImportEqualsDeclarationModuleReference(value)
 	}
@@ -2028,7 +2028,7 @@ func (h Handle) ModuleSpecifier() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindExportDeclaration:
 		return h.ExportDeclarationModuleSpecifier()
 	case KindImportDeclaration, KindJSImportDeclaration:
@@ -2044,7 +2044,7 @@ func (h Handle) SetModuleSpecifier(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindExportDeclaration:
 		h.SetExportDeclarationModuleSpecifier(value)
 	case KindImportDeclaration, KindJSImportDeclaration:
@@ -2058,7 +2058,7 @@ func (h Handle) Name() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBindingElement:
 		return h.BindingElementName()
 	case KindClassDeclaration:
@@ -2150,7 +2150,7 @@ func (h Handle) SetName(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBindingElement:
 		h.SetBindingElementName(value)
 	case KindClassDeclaration:
@@ -2240,7 +2240,7 @@ func (h Handle) NamedBindings() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindImportClause:
 		return h.ImportClauseNamedBindings()
 	default:
@@ -2252,7 +2252,7 @@ func (h Handle) SetNamedBindings(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindImportClause:
 		h.SetImportClauseNamedBindings(value)
 	}
@@ -2262,7 +2262,7 @@ func (h Handle) NameExpression() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJSDocSeeTag:
 		return h.JSDocSeeTagNameExpression()
 	default:
@@ -2274,7 +2274,7 @@ func (h Handle) SetNameExpression(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJSDocSeeTag:
 		h.SetJSDocSeeTagNameExpression(value)
 	}
@@ -2284,7 +2284,7 @@ func (h Handle) Namespace() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJsxNamespacedName:
 		return h.JsxNamespacedNameNamespace()
 	default:
@@ -2296,7 +2296,7 @@ func (h Handle) SetNamespace(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJsxNamespacedName:
 		h.SetJsxNamespacedNameNamespace(value)
 	}
@@ -2306,7 +2306,7 @@ func (h Handle) NameType() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindMappedType:
 		return h.MappedTypeNodeNameType()
 	default:
@@ -2318,7 +2318,7 @@ func (h Handle) SetNameType(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindMappedType:
 		h.SetMappedTypeNodeNameType(value)
 	}
@@ -2328,7 +2328,7 @@ func (h Handle) ObjectAssignmentInitializer() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindShorthandPropertyAssignment:
 		return h.ShorthandPropertyAssignmentObjectAssignmentInitializer()
 	default:
@@ -2340,7 +2340,7 @@ func (h Handle) SetObjectAssignmentInitializer(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindShorthandPropertyAssignment:
 		h.SetShorthandPropertyAssignmentObjectAssignmentInitializer(value)
 	}
@@ -2350,7 +2350,7 @@ func (h Handle) ObjectType() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindIndexedAccessType:
 		return h.IndexedAccessTypeNodeObjectType()
 	default:
@@ -2362,7 +2362,7 @@ func (h Handle) SetObjectType(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindIndexedAccessType:
 		h.SetIndexedAccessTypeNodeObjectType(value)
 	}
@@ -2372,7 +2372,7 @@ func (h Handle) OpeningElement() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJsxElement:
 		return h.JsxElementOpeningElement()
 	default:
@@ -2384,7 +2384,7 @@ func (h Handle) SetOpeningElement(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJsxElement:
 		h.SetJsxElementOpeningElement(value)
 	}
@@ -2394,7 +2394,7 @@ func (h Handle) OpeningFragment() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJsxFragment:
 		return h.JsxFragmentOpeningFragment()
 	default:
@@ -2406,7 +2406,7 @@ func (h Handle) SetOpeningFragment(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJsxFragment:
 		h.SetJsxFragmentOpeningFragment(value)
 	}
@@ -2416,7 +2416,7 @@ func (h Handle) Operand() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindPostfixUnaryExpression:
 		return h.PostfixUnaryExpressionOperand()
 	case KindPrefixUnaryExpression:
@@ -2430,7 +2430,7 @@ func (h Handle) SetOperand(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindPostfixUnaryExpression:
 		h.SetPostfixUnaryExpressionOperand(value)
 	case KindPrefixUnaryExpression:
@@ -2442,7 +2442,7 @@ func (h Handle) OperatorToken() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBinaryExpression:
 		return h.BinaryExpressionOperatorToken()
 	default:
@@ -2454,7 +2454,7 @@ func (h Handle) SetOperatorToken(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBinaryExpression:
 		h.SetBinaryExpressionOperatorToken(value)
 	}
@@ -2464,7 +2464,7 @@ func (h Handle) ParameterName() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTypePredicate:
 		return h.TypePredicateNodeParameterName()
 	default:
@@ -2476,7 +2476,7 @@ func (h Handle) SetParameterName(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTypePredicate:
 		h.SetTypePredicateNodeParameterName(value)
 	}
@@ -2486,7 +2486,7 @@ func (h Handle) Parameters() []Handle {
 	if h.IsNil() {
 		return nil
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrowFunction:
 		return h.Store().ListSlice(h.ArrowFunctionParameters())
 	case KindCallSignature:
@@ -2524,7 +2524,7 @@ func (h Handle) ParameterList() ListRef {
 	if h.IsNil() {
 		return 0
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrowFunction:
 		return h.ArrowFunctionParameters()
 	case KindCallSignature:
@@ -2562,7 +2562,7 @@ func (h Handle) SetParameters(value ListRef) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrowFunction:
 		h.SetArrowFunctionParameters(value)
 	case KindCallSignature:
@@ -2602,7 +2602,7 @@ func (h Handle) Properties() []Handle {
 	if h.IsNil() {
 		return nil
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJsxAttributes:
 		return h.Store().ListSlice(h.JsxAttributesProperties())
 	case KindObjectLiteralExpression:
@@ -2616,7 +2616,7 @@ func (h Handle) PropertyList() ListRef {
 	if h.IsNil() {
 		return 0
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJsxAttributes:
 		return h.JsxAttributesProperties()
 	case KindObjectLiteralExpression:
@@ -2630,7 +2630,7 @@ func (h Handle) SetProperties(value ListRef) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJsxAttributes:
 		h.SetJsxAttributesProperties(value)
 	case KindObjectLiteralExpression:
@@ -2646,7 +2646,7 @@ func (h Handle) PropertyName() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBindingElement:
 		return h.BindingElementPropertyName()
 	case KindExportSpecifier:
@@ -2662,7 +2662,7 @@ func (h Handle) SetPropertyName(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBindingElement:
 		h.SetBindingElementPropertyName(value)
 	case KindExportSpecifier:
@@ -2676,7 +2676,7 @@ func (h Handle) Qualifier() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindImportType:
 		return h.ImportTypeNodeQualifier()
 	default:
@@ -2688,7 +2688,7 @@ func (h Handle) SetQualifier(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindImportType:
 		h.SetImportTypeNodeQualifier(value)
 	}
@@ -2698,7 +2698,7 @@ func (h Handle) QuestionDotToken() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindCallExpression:
 		return h.CallExpressionQuestionDotToken()
 	case KindElementAccessExpression:
@@ -2716,7 +2716,7 @@ func (h Handle) SetQuestionDotToken(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindCallExpression:
 		h.SetCallExpressionQuestionDotToken(value)
 	case KindElementAccessExpression:
@@ -2732,7 +2732,7 @@ func (h Handle) QuestionToken() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindConditionalExpression:
 		return h.ConditionalExpressionQuestionToken()
 	case KindMappedType:
@@ -2762,7 +2762,7 @@ func (h Handle) SetQuestionToken(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindConditionalExpression:
 		h.SetConditionalExpressionQuestionToken(value)
 	case KindMappedType:
@@ -2790,7 +2790,7 @@ func (h Handle) ReadonlyToken() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindMappedType:
 		return h.MappedTypeNodeReadonlyToken()
 	default:
@@ -2802,7 +2802,7 @@ func (h Handle) SetReadonlyToken(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindMappedType:
 		h.SetMappedTypeNodeReadonlyToken(value)
 	}
@@ -2812,7 +2812,7 @@ func (h Handle) Right() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBinaryExpression:
 		return h.BinaryExpressionRight()
 	case KindQualifiedName:
@@ -2826,7 +2826,7 @@ func (h Handle) SetRight(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBinaryExpression:
 		h.SetBinaryExpressionRight(value)
 	case KindQualifiedName:
@@ -2838,7 +2838,7 @@ func (h Handle) Statement() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindDoStatement:
 		return h.DoStatementStatement()
 	case KindForInStatement, KindForOfStatement:
@@ -2860,7 +2860,7 @@ func (h Handle) SetStatement(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindDoStatement:
 		h.SetDoStatementStatement(value)
 	case KindForInStatement, KindForOfStatement:
@@ -2880,7 +2880,7 @@ func (h Handle) Statements() []Handle {
 	if h.IsNil() {
 		return nil
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBlock:
 		return h.Store().ListSlice(h.BlockStatements())
 	case KindCaseClause, KindDefaultClause:
@@ -2898,7 +2898,7 @@ func (h Handle) StatementList() ListRef {
 	if h.IsNil() {
 		return 0
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBlock:
 		return h.BlockStatements()
 	case KindCaseClause, KindDefaultClause:
@@ -2916,7 +2916,7 @@ func (h Handle) SetStatements(value ListRef) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindBlock:
 		h.SetBlockStatements(value)
 	case KindCaseClause, KindDefaultClause:
@@ -2936,7 +2936,7 @@ func (h Handle) Tag() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTaggedTemplateExpression:
 		return h.TaggedTemplateExpressionTag()
 	default:
@@ -2948,7 +2948,7 @@ func (h Handle) SetTag(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTaggedTemplateExpression:
 		h.SetTaggedTemplateExpressionTag(value)
 	}
@@ -2958,7 +2958,7 @@ func (h Handle) TagName() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJSDocAugmentsTag:
 		return h.JSDocAugmentsTagTagName()
 	case KindJSDocCallbackTag:
@@ -3016,7 +3016,7 @@ func (h Handle) SetTagName(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJSDocAugmentsTag:
 		h.SetJSDocAugmentsTagTagName(value)
 	case KindJSDocCallbackTag:
@@ -3072,7 +3072,7 @@ func (h Handle) Tags() []Handle {
 	if h.IsNil() {
 		return nil
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJSDoc:
 		return h.Store().ListSlice(h.JSDocTags())
 	default:
@@ -3084,7 +3084,7 @@ func (h Handle) TagList() ListRef {
 	if h.IsNil() {
 		return 0
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJSDoc:
 		return h.JSDocTags()
 	default:
@@ -3096,7 +3096,7 @@ func (h Handle) SetTags(value ListRef) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJSDoc:
 		h.SetJSDocTags(value)
 	}
@@ -3110,7 +3110,7 @@ func (h Handle) Template() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTaggedTemplateExpression:
 		return h.TaggedTemplateExpressionTemplate()
 	default:
@@ -3122,7 +3122,7 @@ func (h Handle) SetTemplate(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTaggedTemplateExpression:
 		h.SetTaggedTemplateExpressionTemplate(value)
 	}
@@ -3132,7 +3132,7 @@ func (h Handle) TemplateSpans() []Handle {
 	if h.IsNil() {
 		return nil
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTemplateExpression:
 		return h.Store().ListSlice(h.TemplateExpressionTemplateSpans())
 	case KindTemplateLiteralType:
@@ -3146,7 +3146,7 @@ func (h Handle) TemplateSpanList() ListRef {
 	if h.IsNil() {
 		return 0
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTemplateExpression:
 		return h.TemplateExpressionTemplateSpans()
 	case KindTemplateLiteralType:
@@ -3160,7 +3160,7 @@ func (h Handle) SetTemplateSpans(value ListRef) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTemplateExpression:
 		h.SetTemplateExpressionTemplateSpans(value)
 	case KindTemplateLiteralType:
@@ -3176,7 +3176,7 @@ func (h Handle) ThenStatement() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindIfStatement:
 		return h.IfStatementThenStatement()
 	default:
@@ -3188,7 +3188,7 @@ func (h Handle) SetThenStatement(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindIfStatement:
 		h.SetIfStatementThenStatement(value)
 	}
@@ -3198,7 +3198,7 @@ func (h Handle) ThisArg() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindSyntheticReferenceExpression:
 		return h.SyntheticReferenceExpressionThisArg()
 	default:
@@ -3210,7 +3210,7 @@ func (h Handle) SetThisArg(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindSyntheticReferenceExpression:
 		h.SetSyntheticReferenceExpressionThisArg(value)
 	}
@@ -3220,7 +3220,7 @@ func (h Handle) TrueType() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindConditionalType:
 		return h.ConditionalTypeNodeTrueType()
 	default:
@@ -3232,7 +3232,7 @@ func (h Handle) SetTrueType(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindConditionalType:
 		h.SetConditionalTypeNodeTrueType(value)
 	}
@@ -3242,7 +3242,7 @@ func (h Handle) TryBlock() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTryStatement:
 		return h.TryStatementTryBlock()
 	default:
@@ -3254,7 +3254,7 @@ func (h Handle) SetTryBlock(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTryStatement:
 		h.SetTryStatementTryBlock(value)
 	}
@@ -3264,7 +3264,7 @@ func (h Handle) TupleNameSource() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindSyntheticExpression:
 		return h.SyntheticExpressionTupleNameSource()
 	default:
@@ -3276,7 +3276,7 @@ func (h Handle) SetTupleNameSource(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindSyntheticExpression:
 		h.SetSyntheticExpressionTupleNameSource(value)
 	}
@@ -3286,7 +3286,7 @@ func (h Handle) Type() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrowFunction:
 		return h.ArrowFunctionType()
 	case KindAsExpression:
@@ -3376,7 +3376,7 @@ func (h Handle) SetType(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrowFunction:
 		h.SetArrowFunctionType(value)
 	case KindAsExpression:
@@ -3464,7 +3464,7 @@ func (h Handle) TypeArguments() []Handle {
 	if h.IsNil() {
 		return nil
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindCallExpression:
 		return h.Store().ListSlice(h.CallExpressionTypeArguments())
 	case KindExpressionWithTypeArguments:
@@ -3492,7 +3492,7 @@ func (h Handle) TypeArgumentList() ListRef {
 	if h.IsNil() {
 		return 0
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindCallExpression:
 		return h.CallExpressionTypeArguments()
 	case KindExpressionWithTypeArguments:
@@ -3520,7 +3520,7 @@ func (h Handle) SetTypeArguments(value ListRef) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindCallExpression:
 		h.SetCallExpressionTypeArguments(value)
 	case KindExpressionWithTypeArguments:
@@ -3550,7 +3550,7 @@ func (h Handle) TypeExpression() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJSDocCallbackTag:
 		return h.JSDocCallbackTagTypeExpression()
 	case KindJSDocOverloadTag:
@@ -3578,7 +3578,7 @@ func (h Handle) SetTypeExpression(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJSDocCallbackTag:
 		h.SetJSDocCallbackTagTypeExpression(value)
 	case KindJSDocOverloadTag:
@@ -3604,7 +3604,7 @@ func (h Handle) TypeName() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTypeReference:
 		return h.TypeReferenceNodeTypeName()
 	default:
@@ -3616,7 +3616,7 @@ func (h Handle) SetTypeName(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindTypeReference:
 		h.SetTypeReferenceNodeTypeName(value)
 	}
@@ -3626,7 +3626,7 @@ func (h Handle) TypeParameter() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindInferType:
 		return h.InferTypeNodeTypeParameter()
 	case KindMappedType:
@@ -3640,7 +3640,7 @@ func (h Handle) SetTypeParameter(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindInferType:
 		h.SetInferTypeNodeTypeParameter(value)
 	case KindMappedType:
@@ -3652,7 +3652,7 @@ func (h Handle) TypeParameters() []Handle {
 	if h.IsNil() {
 		return nil
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrowFunction:
 		return h.Store().ListSlice(h.ArrowFunctionTypeParameters())
 	case KindCallSignature:
@@ -3698,7 +3698,7 @@ func (h Handle) TypeParameterList() ListRef {
 	if h.IsNil() {
 		return 0
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrowFunction:
 		return h.ArrowFunctionTypeParameters()
 	case KindCallSignature:
@@ -3744,7 +3744,7 @@ func (h Handle) SetTypeParameters(value ListRef) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindArrowFunction:
 		h.SetArrowFunctionTypeParameters(value)
 	case KindCallSignature:
@@ -3792,7 +3792,7 @@ func (h Handle) Types() []Handle {
 	if h.IsNil() {
 		return nil
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindHeritageClause:
 		return h.Store().ListSlice(h.HeritageClauseTypes())
 	case KindIntersectionType:
@@ -3808,7 +3808,7 @@ func (h Handle) TypeList() ListRef {
 	if h.IsNil() {
 		return 0
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindHeritageClause:
 		return h.HeritageClauseTypes()
 	case KindIntersectionType:
@@ -3824,7 +3824,7 @@ func (h Handle) SetTypes(value ListRef) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindHeritageClause:
 		h.SetHeritageClauseTypes(value)
 	case KindIntersectionType:
@@ -3842,7 +3842,7 @@ func (h Handle) Value() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindImportAttribute:
 		return h.ImportAttributeValue()
 	default:
@@ -3854,7 +3854,7 @@ func (h Handle) SetValue(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindImportAttribute:
 		h.SetImportAttributeValue(value)
 	}
@@ -3864,7 +3864,7 @@ func (h Handle) VariableDeclaration() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindCatchClause:
 		return h.CatchClauseVariableDeclaration()
 	default:
@@ -3876,7 +3876,7 @@ func (h Handle) SetVariableDeclaration(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindCatchClause:
 		h.SetCatchClauseVariableDeclaration(value)
 	}
@@ -3886,7 +3886,7 @@ func (h Handle) WhenFalse() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindConditionalExpression:
 		return h.ConditionalExpressionWhenFalse()
 	default:
@@ -3898,7 +3898,7 @@ func (h Handle) SetWhenFalse(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindConditionalExpression:
 		h.SetConditionalExpressionWhenFalse(value)
 	}
@@ -3908,7 +3908,7 @@ func (h Handle) WhenTrue() Handle {
 	if h.IsNil() {
 		return Handle{}
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindConditionalExpression:
 		return h.ConditionalExpressionWhenTrue()
 	default:
@@ -3920,7 +3920,7 @@ func (h Handle) SetWhenTrue(value Handle) {
 	if h.IsNil() {
 		return
 	}
-	switch h.Kind() {
+	switch h.Kind {
 	case KindConditionalExpression:
 		h.SetConditionalExpressionWhenTrue(value)
 	}

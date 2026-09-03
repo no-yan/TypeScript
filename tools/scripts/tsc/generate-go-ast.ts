@@ -596,13 +596,13 @@ function generateStoreUpdateFactory(w: CodeWriter, node: NodeType) {
 
     const newArgs = members.map(m => {
         if (m.isKindParam()) {
-            return "node.Kind()";
+            return "node.Kind";
         }
         return m.goParamName();
     }).join(", ");
 
     if (node.kindAliases.length > 0) {
-        w.write("switch node.Kind() {");
+        w.write("switch node.Kind {");
         w.push();
         w.write(`case ${api.kindType(`SyntaxKind.${node.syntaxKindName}`).formatGoConstant()}:`);
         w.push();
@@ -616,7 +616,7 @@ function generateStoreUpdateFactory(w: CodeWriter, node: NodeType) {
         }
         w.write("default:");
         w.push();
-        w.write(`panic("unexpected kind in Update${node.name}: " + node.Kind().String())`);
+        w.write(`panic("unexpected kind in Update${node.name}: " + node.Kind.String())`);
         w.pop();
         w.pop();
         w.write("}");
@@ -651,7 +651,7 @@ function generateStoreVisitEachChild(w: CodeWriter) {
     w.write("return node");
     w.pop();
     w.write("}");
-    w.write("switch node.Kind() {");
+    w.write("switch node.Kind {");
     for (const n of api.nodes()) {
         if (n.handWritten) continue;
         const members = schemaMembers(n);
@@ -681,7 +681,7 @@ function emitStoreAccessor(w: CodeWriter, node: NodeType, m: MemberInfo) {
     if (m.isChild()) {
         if (m.listKind === undefined) {
             const slot = slotConst(node.name, memberSuffix(m));
-            w.write(`func (h Handle) ${method}() Handle { return h.Child(${slot}) }`);
+            w.write(`func (h Handle) ${method}() Handle { return h.childAt(${slot}) }`);
             w.write(`func (h Handle) Set${method}(value Handle) { h.SetChild(${slot}, value) }`);
         }
         else {
@@ -1132,7 +1132,7 @@ function generateIsFunction(w: CodeWriter, node: NodeType) {
     if (node.kindType.kind === "typeParameter") {
         w.write(`func Is${node.name}(node Handle) bool {`);
         w.push();
-        w.write("switch node.Kind() {");
+        w.write("switch node.Kind {");
         w.write(`case ${kindTypes.map(kind => kind.formatGoConstant()).join(", ")}:`);
         w.push();
         w.write("return true");
@@ -1150,7 +1150,7 @@ function generateIsFunction(w: CodeWriter, node: NodeType) {
             const kindName = kind.name;
             w.write(`func Is${kindName}(node Handle) bool {`);
             w.push();
-            w.write(`return node.Kind() == ${kind.formatGoConstant()}`);
+            w.write(`return node.Kind == ${kind.formatGoConstant()}`);
             w.pop();
             w.write("}");
             w.write("");
@@ -1160,14 +1160,14 @@ function generateIsFunction(w: CodeWriter, node: NodeType) {
 
     w.write(`func Is${node.name}(node Handle) bool {`);
     w.push();
-    w.write(`return node.Kind() == ${api.kindType(`SyntaxKind.${node.syntaxKindName}`).formatGoConstant()}`);
+    w.write(`return node.Kind == ${api.kindType(`SyntaxKind.${node.syntaxKindName}`).formatGoConstant()}`);
     w.pop();
     w.write("}");
     w.write("");
     for (const alias of node.kindAliases) {
         w.write(`func Is${alias}(node Handle) bool {`);
         w.push();
-        w.write(`return node.Kind() == Kind${alias}`);
+        w.write(`return node.Kind == Kind${alias}`);
         w.pop();
         w.write("}");
         w.write("");
@@ -1718,7 +1718,7 @@ function emitPolySwitch(w: CodeWriter, g: PolyGroup, onCase: (accessor: string) 
     w.write(`return ${zero}`);
     w.pop();
     w.write("}");
-    w.write("switch h.Kind() {");
+    w.write("switch h.Kind {");
     for (const c of g.cases) {
         w.write(`case ${c.kinds.join(", ")}:`);
         w.push();
@@ -1772,7 +1772,7 @@ function generateStorePolymorphic(): string {
             w.write("return");
             w.pop();
             w.write("}");
-            w.write("switch h.Kind() {");
+            w.write("switch h.Kind {");
             for (const c of g.cases) {
                 w.write(`case ${c.kinds.join(", ")}:`);
                 w.push();
@@ -1828,7 +1828,7 @@ function generateStorePolymorphic(): string {
         w.write("return");
         w.pop();
         w.write("}");
-        w.write("switch h.Kind() {");
+        w.write("switch h.Kind {");
         for (const c of g.cases) {
             w.write(`case ${c.kinds.join(", ")}:`);
             w.push();

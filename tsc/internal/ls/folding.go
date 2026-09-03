@@ -201,7 +201,7 @@ func visitNode(ctx context.Context, n ast.Handle, depthRemaining int, sourceFile
 		return nil
 	}
 	foldingRange := make([]*lsproto.FoldingRange, 0, 40)
-	if (!ast.IsBinaryExpression(n) && ast.IsDeclaration(n)) || ast.IsVariableStatement(n) || ast.IsReturnStatement(n) || ast.IsCallOrNewExpression(n) || n.Kind() == ast.KindEndOfFile {
+	if (!ast.IsBinaryExpression(n) && ast.IsDeclaration(n)) || ast.IsVariableStatement(n) || ast.IsReturnStatement(n) || ast.IsCallOrNewExpression(n) || n.Kind == ast.KindEndOfFile {
 		foldingRange = append(foldingRange, addOutliningForLeadingCommentsForNode(ctx, n, sourceFile, l)...)
 	}
 	if ast.IsFunctionLike(n) && !n.Parent().IsNil() && ast.IsBinaryExpression(n.Parent()) && !n.Parent().BinaryExpressionLeft().IsNil() && ast.IsPropertyAccessExpression(n.Parent().BinaryExpressionLeft()) {
@@ -376,12 +376,12 @@ func parseRegionDelimiter(lineText string) *regionDelimiterResult {
 	return &regionDelimiterResult{isStart: isStart, name: strings.TrimSpace(lineText)}
 }
 func getOutliningSpanForNode(ctx context.Context, n ast.Handle, sourceFile *ast.SourceFile, l *LanguageService) *lsproto.FoldingRange {
-	switch n.Kind() {
+	switch n.Kind {
 	case ast.KindBlock:
 		if ast.IsFunctionLike(n.Parent()) {
 			return functionSpan(ctx, n.Parent(), n, sourceFile, l)
 		}
-		switch n.Parent().Kind() {
+		switch n.Parent().Kind {
 		case ast.KindDoStatement, ast.KindForInStatement, ast.KindForOfStatement, ast.KindForStatement, ast.KindIfStatement, ast.KindWhileStatement, ast.KindWithStatement, ast.KindCatchClause:
 			return spanForNode(ctx, n, ast.KindOpenBraceToken, true, sourceFile, l)
 		case ast.KindTryStatement:
@@ -434,7 +434,7 @@ func getOutliningSpanForNode(ctx context.Context, n ast.Handle, sourceFile *ast.
 }
 func spanForImportExportElements(ctx context.Context, node ast.Handle, sourceFile *ast.SourceFile, l *LanguageService) *lsproto.FoldingRange {
 	var elements ast.ListRef
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindNamedImports:
 		elements = node.NamedImportsElements()
 	case ast.KindNamedExports:
@@ -486,13 +486,13 @@ func spanForArrowFunction(ctx context.Context, node ast.Handle, sourceFile *ast.
 	return createFoldingRange(ctx, textRange, "", "")
 }
 func spanForTemplateLiteral(ctx context.Context, node ast.Handle, sourceFile *ast.SourceFile, l *LanguageService) *lsproto.FoldingRange {
-	if node.Kind() == ast.KindNoSubstitutionTemplateLiteral && len(node.Text()) == 0 {
+	if node.Kind == ast.KindNoSubstitutionTemplateLiteral && len(node.Text()) == 0 {
 		return nil
 	}
 	return createFoldingRangeFromBounds(ctx, astnav.GetStartOfNode(node, sourceFile, false), node.End(), "", sourceFile, l)
 }
 func spanForJSXElement(ctx context.Context, node ast.Handle, sourceFile *ast.SourceFile, l *LanguageService) *lsproto.FoldingRange {
-	if node.Kind() == ast.KindJsxElement {
+	if node.Kind == ast.KindJsxElement {
 		jsxElement := node
 		textRange, fidelity := l.createFoldingRangeFromBounds(astnav.GetStartOfNode(jsxElement.OpeningElement(), sourceFile, false), jsxElement.ClosingElement().End(), sourceFile)
 		if fidelity.IsNone() {
@@ -511,7 +511,7 @@ func spanForJSXElement(ctx context.Context, node ast.Handle, sourceFile *ast.Sou
 }
 func spanForJSXAttributes(ctx context.Context, node ast.Handle, sourceFile *ast.SourceFile, l *LanguageService) *lsproto.FoldingRange {
 	var attributes ast.Handle
-	if node.Kind() == ast.KindJsxSelfClosingElement {
+	if node.Kind == ast.KindJsxSelfClosingElement {
 		attributes = node.JsxSelfClosingElementAttributes()
 	} else {
 		attributes = node.JsxOpeningElementAttributes()

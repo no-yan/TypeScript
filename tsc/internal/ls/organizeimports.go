@@ -89,7 +89,7 @@ string][]*lsproto.TextEdit {
 		if kind != lsproto.CodeActionKindSourceRemoveUnusedImports {
 			var ambientModuleExportDecls []ast.Handle
 			for _, s := range moduleBody.Statements() {
-				if s.Kind() == ast.KindExportDeclaration {
+				if s.Kind == ast.KindExportDeclaration {
 					ambientModuleExportDecls = append(ambientModuleExportDecls, s)
 				}
 			}
@@ -198,7 +198,7 @@ func removeUnusedImports(oldImports []ast.Handle, sourceFile *ast.SourceFile, ty
 			name = ast.Handle{}
 		}
 		if !namedBindings.IsNil() {
-			switch namedBindings.Kind() {
+			switch namedBindings.Kind {
 			case ast.KindNamespaceImport:
 				nsImport := namedBindings
 				if !typeChecker.IsDeclarationUsed(sourceFile, nsImport.Name(), jsxElementsPresent, jsxModeNeedsExplicitImport) {
@@ -505,7 +505,7 @@ func getCategorizedImports(importDecls []ast.Handle) categorizedImports {
 			group.defaultImports = append(group.defaultImports, importDecl)
 		}
 		if !namedBindings.IsNil() {
-			switch namedBindings.Kind() {
+			switch namedBindings.Kind {
 			case ast.KindNamespaceImport:
 				group.namespaceImports = append(group.namespaceImports, importDecl)
 			case ast.KindNamedImports:
@@ -539,7 +539,7 @@ func getNewImportSpecifiers(namedImports []ast.Handle, factory ast.HandleFactory
 	return result
 }
 func tryGetNamedBindingElements(namedImport ast.Handle) []ast.Handle {
-	if namedImport.Kind() != ast.KindImportDeclaration {
+	if namedImport.Kind != ast.KindImportDeclaration {
 		return nil
 	}
 	importDecl := namedImport
@@ -548,7 +548,7 @@ func tryGetNamedBindingElements(namedImport ast.Handle) []ast.Handle {
 	}
 	clause := importDecl.ImportClause()
 	namedBindings := clause.NamedBindings()
-	if !namedBindings.IsNil() && namedBindings.Kind() == ast.KindNamedImports {
+	if !namedBindings.IsNil() && namedBindings.Kind == ast.KindNamedImports {
 		namedImportsNode := namedBindings
 		return namedImportsNode.Elements()
 	}
@@ -561,7 +561,7 @@ func getTopLevelExportGroups(sourceFile *ast.SourceFile) [][]ast.Handle {
 	i := 0
 	groupIndex := 0
 	for i < statementsLen {
-		if statements[i].Kind() == ast.KindExportDeclaration {
+		if statements[i].Kind == ast.KindExportDeclaration {
 			if groupIndex >= len(topLevelExportGroups) {
 				topLevelExportGroups = append(topLevelExportGroups, []ast.Handle{})
 			}
@@ -570,7 +570,7 @@ func getTopLevelExportGroups(sourceFile *ast.SourceFile) [][]ast.Handle {
 				topLevelExportGroups[groupIndex] = append(topLevelExportGroups[groupIndex], statements[i])
 				i++
 			} else {
-				for i < statementsLen && statements[i].Kind() == ast.KindExportDeclaration {
+				for i < statementsLen && statements[i].Kind == ast.KindExportDeclaration {
 					topLevelExportGroups[groupIndex] = append(topLevelExportGroups[groupIndex], statements[i])
 					i++
 				}
@@ -657,7 +657,7 @@ func coalesceExportsWorker(exportGroup []ast.Handle, specifierComparer func(s1, 
 			var newExportSpecifiers []ast.Handle
 			for _, exportDecl := range subGroup {
 				exportClause := exportDecl.ExportDeclarationExportClause()
-				if !exportClause.IsNil() && exportClause.Kind() == ast.KindNamedExports {
+				if !exportClause.IsNil() && exportClause.Kind == ast.KindNamedExports {
 					namedExports := exportClause
 					newExportSpecifiers = append(newExportSpecifiers, namedExports.Elements()...)
 				}
@@ -666,7 +666,7 @@ func coalesceExportsWorker(exportGroup []ast.Handle, specifierComparer func(s1, 
 			exportDecl := subGroup[0]
 			var updatedExportClause ast.Handle
 			if !exportDecl.ExportClause().IsNil() {
-				if exportDecl.ExportClause().Kind() == ast.KindNamedExports {
+				if exportDecl.ExportClause().Kind == ast.KindNamedExports {
 					namedExports := exportDecl.ExportClause()
 					sortedList := factory.NewList(newExportSpecifiers)
 					updatedExportClause = factory.UpdateNamedExports(namedExports, sortedList)

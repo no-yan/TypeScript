@@ -754,7 +754,7 @@ func isSyntacticOwner(startingToken ast.Handle, node ast.Handle, sourceFile *ast
 		return false
 	}
 	invocationChildren := getChildrenFromNonJSDocNode(node, sourceFile)
-	switch startingToken.Kind() {
+	switch startingToken.Kind {
 	case ast.KindOpenParenToken, ast.KindCommaToken:
 		return slices.Contains(invocationChildren, startingToken)
 	case ast.KindLessThanToken:
@@ -837,7 +837,7 @@ func getImmediatelyContainingArgumentInfo(node ast.Handle, position int, sourceF
 			return getArgumentListInfoForTemplate(parent, 0, sourceFile)
 		}
 		return nil
-	} else if isTemplateHead(node) && parent.Parent().Kind() == ast.KindTaggedTemplateExpression {
+	} else if isTemplateHead(node) && parent.Parent().Kind == ast.KindTaggedTemplateExpression {
 		templateExpression := parent
 		tagExpression := templateExpression.Parent()
 		argumentIndex := 1
@@ -882,7 +882,7 @@ func getArgumentIndexForTemplatePiece(spanIndex int, node ast.Handle, position i
 	return spanIndex + 1
 }
 func getAdjustedNode(node ast.Handle) ast.Handle {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindOpenParenToken, ast.KindCommaToken:
 		return node
 	default:
@@ -937,7 +937,7 @@ func getArgumentIndexOrCount(arguments []ast.Handle, node ast.Handle, c *checker
 	skipComma := false
 	for _, arg := range arguments {
 		if !node.IsNil() && arg == node {
-			if !skipComma && arg.Kind() == ast.KindCommaToken {
+			if !skipComma && arg.Kind == ast.KindCommaToken {
 				argumentIndex++
 			}
 			return argumentIndex
@@ -947,7 +947,7 @@ func getArgumentIndexOrCount(arguments []ast.Handle, node ast.Handle, c *checker
 			skipComma = true
 			continue
 		}
-		if arg.Kind() != ast.KindCommaToken {
+		if arg.Kind != ast.KindCommaToken {
 			argumentIndex++
 			skipComma = true
 			continue
@@ -962,7 +962,7 @@ func getArgumentIndexOrCount(arguments []ast.Handle, node ast.Handle, c *checker
 		return argumentIndex
 	}
 	argumentCount := argumentIndex
-	if len(arguments) > 0 && arguments[len(arguments)-1].Kind() == ast.KindCommaToken {
+	if len(arguments) > 0 && arguments[len(arguments)-1].Kind == ast.KindCommaToken {
 		argumentCount = argumentIndex + 1
 	}
 	return argumentCount
@@ -1012,7 +1012,7 @@ type argumentOrParameterListAndIndex struct {
 }
 
 func getArgumentOrParameterListAndIndex(node ast.Handle, sourceFile *ast.SourceFile, c *checker.Checker) *argumentOrParameterListAndIndex {
-	if node.Kind() == ast.KindLessThanToken || node.Kind() == ast.KindOpenParenToken {
+	if node.Kind == ast.KindLessThanToken || node.Kind == ast.KindOpenParenToken {
 		list := getChildListThatStartsWithOpenerToken(node.Parent(), node)
 		return &argumentOrParameterListAndIndex{list: list, argumentIndex: 0}
 	} else {
@@ -1026,13 +1026,13 @@ func getArgumentOrParameterListAndIndex(node ast.Handle, sourceFile *ast.SourceF
 func getChildListThatStartsWithOpenerToken(parent ast.Handle, openerToken ast.Handle) ast.ListRef {
 	if ast.IsCallExpression(parent) {
 		parentCallExpression := parent
-		if openerToken.Kind() == ast.KindLessThanToken {
+		if openerToken.Kind == ast.KindLessThanToken {
 			return parentCallExpression.TypeArgumentList()
 		}
 		return parentCallExpression.ArgumentList()
 	} else if ast.IsNewExpression(parent) {
 		parentNewExpression := parent
-		if openerToken.Kind() == ast.KindLessThanToken {
+		if openerToken.Kind == ast.KindLessThanToken {
 			return parentNewExpression.TypeArgumentList()
 		}
 		return parentNewExpression.ArgumentList()
@@ -1076,7 +1076,7 @@ func chooseBetterSymbol(s *ast.Symbol) *ast.Symbol {
 }
 func getContextualSignatureLocationInfo(node ast.Handle, sourceFile *ast.SourceFile, c *checker.Checker) *contextualSignatureLocationInfo {
 	parent := node.Parent()
-	switch parent.Kind() {
+	switch parent.Kind {
 	case ast.KindParenthesizedExpression, ast.KindMethodDeclaration, ast.KindFunctionExpression, ast.KindArrowFunction:
 		info := getArgumentOrParameterListInfo(node, sourceFile, c)
 		if info == nil {
@@ -1099,7 +1099,7 @@ func getContextualSignatureLocationInfo(node ast.Handle, sourceFile *ast.SourceF
 		highestBinary := getHighestBinary(parent)
 		contextualType := c.GetContextualType(highestBinary, checker.ContextFlagsNone)
 		argumentIndex := 0
-		if node.Kind() != ast.KindOpenParenToken {
+		if node.Kind != ast.KindOpenParenToken {
 			argumentIndex = countBinaryExpressionParameters(parent) - 1
 			argumentCount := countBinaryExpressionParameters(highestBinary)
 			if contextualType != nil {
@@ -1159,7 +1159,7 @@ func getApplicableRangeForTaggedTemplate(taggedTemplate ast.Handle, sourceFile *
 	template := taggedTemplate.Template()
 	applicableSpanStart := scanner.GetTokenPosOfNode(template, sourceFile, false)
 	applicableSpanEnd := template.End()
-	if template.Kind() == ast.KindTemplateExpression {
+	if template.Kind == ast.KindTemplateExpression {
 		templateSpans := template.TemplateExpressionTemplateSpans()
 		lastSpan := sourceFile.ParseStore().ListAt(templateSpans, sourceFile.ParseStore().ListLen(templateSpans)-1)
 		if lastSpan.TemplateSpanLiteral().End()-lastSpan.TemplateSpanLiteral().Pos() == 0 {

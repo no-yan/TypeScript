@@ -737,7 +737,7 @@ func startsWithSquareBracket(str string) bool {
 	return strings.HasPrefix(str, "[")
 }
 func isDefaultBindingContext(location ast.Handle) bool {
-	return location.Kind() == ast.KindSourceFile || ast.IsAmbientModule(location)
+	return location.Kind == ast.KindSourceFile || ast.IsAmbientModule(location)
 }
 func (b *NodeBuilderImpl) getNameOfSymbolFromNameType(symbol *ast.Symbol) string {
 	if b.ch.valueSymbolLinks.Has(symbol) {
@@ -791,14 +791,14 @@ func (b *NodeBuilderImpl) getNameOfSymbolAsWritten(symbol *ast.Symbol) string {
 			return scanner.DeclarationNameToString(name)
 		}
 		declaration := ast.DeclarationNodes(symbol)[0]
-		if !declaration.Parent().IsNil() && declaration.Parent().Kind() == ast.KindVariableDeclaration {
+		if !declaration.Parent().IsNil() && declaration.Parent().Kind == ast.KindVariableDeclaration {
 			return scanner.DeclarationNameToString(declaration.Parent().VariableDeclarationName())
 		}
 		if ast.IsClassExpression(declaration) || ast.IsFunctionExpression(declaration) || ast.IsArrowFunction(declaration) {
 			if b.ctx != nil && !b.ctx.encounteredError && b.ctx.flags&nodebuilder.FlagsAllowAnonymousIdentifier == 0 {
 				b.ctx.encounteredError = true
 			}
-			switch declaration.Kind() {
+			switch declaration.Kind {
 			case ast.KindClassExpression:
 				return "(Anonymous class)"
 			case ast.KindFunctionExpression, ast.KindArrowFunction:
@@ -939,7 +939,7 @@ func canHaveModuleSpecifier(node ast.Handle) bool {
 	if node.IsNil() {
 		return false
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindVariableDeclaration, ast.KindBindingElement, ast.KindImportDeclaration, ast.KindExportDeclaration, ast.KindImportEqualsDeclaration, ast.KindImportClause, ast.KindNamespaceExport, ast.KindNamespaceImport, ast.KindExportSpecifier, ast.KindImportSpecifier, ast.KindImportType:
 		return true
 	}
@@ -953,7 +953,7 @@ func TryGetModuleSpecifierFromDeclaration(node ast.Handle) ast.Handle {
 	return res
 }
 func tryGetModuleSpecifierFromDeclarationWorker(node ast.Handle) ast.Handle {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindVariableDeclaration, ast.KindBindingElement:
 		requireCall := ast.FindAncestor(node.Initializer(), func(node ast.Handle) bool {
 			return ast.IsRequireCall(node, true)
@@ -966,7 +966,7 @@ func tryGetModuleSpecifierFromDeclarationWorker(node ast.Handle) ast.Handle {
 		return node.ModuleSpecifier()
 	case ast.KindImportEqualsDeclaration:
 		ref := node.ImportEqualsDeclarationModuleReference()
-		if ref.Kind() != ast.KindExternalModuleReference {
+		if ref.Kind != ast.KindExternalModuleReference {
 			return ast.Handle{}
 		}
 		return ref.Expression()
@@ -1159,11 +1159,11 @@ func (b *NodeBuilderImpl) createMappedTypeNodeFromType(t *Type) ast.Handle {
 	mapped := t.AsMappedType()
 	var readonlyToken ast.Handle
 	if !mapped.declaration.MappedTypeNodeReadonlyToken().IsNil() {
-		readonlyToken = b.f.NewToken(mapped.declaration.MappedTypeNodeReadonlyToken().Kind())
+		readonlyToken = b.f.NewToken(mapped.declaration.MappedTypeNodeReadonlyToken().Kind)
 	}
 	var questionToken ast.Handle
 	if !mapped.declaration.QuestionToken().IsNil() {
-		questionToken = b.f.NewToken(mapped.declaration.QuestionToken().Kind())
+		questionToken = b.f.NewToken(mapped.declaration.QuestionToken().Kind)
 	}
 	var appropriateConstraintTypeNode ast.Handle
 	var newTypeVariable ast.Handle
@@ -1325,7 +1325,7 @@ func (b *NodeBuilderImpl) parameterToParameterDeclarationName(parameterSymbol *a
 		return b.newIdentifier(parameterSymbol.Name, parameterSymbol)
 	}
 	name := parameterDeclaration.Name()
-	switch name.Kind() {
+	switch name.Kind {
 	case ast.KindIdentifier:
 		cloned := b.f.DeepCloneNode(name)
 		b.e.SetEmitFlags(cloned, printer.EFNoAsciiEscaping)
@@ -1739,7 +1739,7 @@ func (b *NodeBuilderImpl) serializeTypeForDeclaration(declaration ast.Handle, t 
 		} else {
 			t = b.ctx.enclosingSymbolTypes[ast.GetSymbolId(symbol)]
 			if t == nil {
-				if symbol.Flags&ast.SymbolFlagsAccessor != 0 && declaration.Kind() == ast.KindSetAccessor {
+				if symbol.Flags&ast.SymbolFlagsAccessor != 0 && declaration.Kind == ast.KindSetAccessor {
 					t = b.ch.instantiateType(b.ch.getWriteTypeOfSymbol(symbol), b.ctx.mapper)
 				} else if symbol != nil && (symbol.Flags&(ast.SymbolFlagsTypeLiteral|ast.SymbolFlagsSignature) == 0) {
 					t = b.ch.instantiateType(b.ch.getWidenedLiteralType(b.ch.getTypeOfSymbol(symbol)), b.ctx.mapper)
@@ -2062,7 +2062,7 @@ func (b *NodeBuilderImpl) addPropertyToElementList(propertySymbol *ast.Symbol, t
 				}
 				return typeElements
 			} else if propertySymbol.Parent != nil && propertySymbol.Parent.Flags&ast.SymbolFlagsClass != 0 && !propDeclaration.IsNil() && !core.Find(propDeclaration.ModifierNodes(), func(m ast.Handle) bool {
-				return m.Kind() == ast.KindAccessorKeyword
+				return m.Kind == ast.KindAccessorKeyword
 			}).IsNil() {
 				fakeGetterSignature := b.ch.newSignature(SignatureFlagsNone, ast.Handle{}, nil, nil, nil, propertyType, nil, 0)
 				fakeGetterDeclaration := b.signatureToSignatureDeclarationHelper(fakeGetterSignature, ast.KindGetAccessor, &SignatureToSignatureDeclarationOptions{name: propertyName})
@@ -2255,11 +2255,11 @@ func (b *NodeBuilderImpl) shouldWriteTypeOfFunctionSymbol(symbol *ast.Symbol, ty
 			isNonLocalFunctionSymbol = true
 		} else {
 			for _, declaration := range ast.DeclarationNodes(symbol) {
-				if declaration.Parent().Kind() == ast.KindSourceFile || declaration.Parent().Kind() == ast.KindModuleBlock {
+				if declaration.Parent().Kind == ast.KindSourceFile || declaration.Parent().Kind == ast.KindModuleBlock {
 					isNonLocalFunctionSymbol = true
 					break
 				}
-				if ast.IsFunctionExpressionOrArrowFunction(declaration) && ast.IsVariableDeclaration(declaration.Parent()) && ast.IsVariableDeclarationList(declaration.Parent().Parent()) && ast.IsVariableStatement(declaration.Parent().Parent().Parent()) && !declaration.Parent().Parent().Parent().Parent().IsNil() && (declaration.Parent().Parent().Parent().Parent().Kind() == ast.KindSourceFile || declaration.Parent().Parent().Parent().Parent().Kind() == ast.KindModuleBlock) {
+				if ast.IsFunctionExpressionOrArrowFunction(declaration) && ast.IsVariableDeclaration(declaration.Parent()) && ast.IsVariableDeclarationList(declaration.Parent().Parent()) && ast.IsVariableStatement(declaration.Parent().Parent().Parent()) && !declaration.Parent().Parent().Parent().Parent().IsNil() && (declaration.Parent().Parent().Parent().Parent().Kind == ast.KindSourceFile || declaration.Parent().Parent().Parent().Parent().Kind == ast.KindModuleBlock) {
 					isNonLocalFunctionSymbol = true
 					isFunctionExpressionSymbol = true
 					break
@@ -2915,7 +2915,7 @@ func (b *NodeBuilderImpl) createAccessExpression(node ast.Handle) ast.Handle {
 	case ast.IsIdentifier(node), ast.IsPropertyAccessExpression(node), ast.IsExpressionWithTypeArguments(node):
 		return b.f.DeepCloneNode(node)
 	default:
-		panic("unexpected access node kind: " + node.Kind().String())
+		panic("unexpected access node kind: " + node.Kind.String())
 	}
 }
 func (b *NodeBuilderImpl) createExpressionWithTypeArguments(expr ast.Handle, typeArguments ast.ListRef) ast.Handle {

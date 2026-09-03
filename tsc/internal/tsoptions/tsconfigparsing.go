@@ -344,7 +344,7 @@ func convertConfigFileToObject(sourceFile *ast.SourceFile, jsonConversionNotifie
 	if len(sourceFile.ParseRoot().Statements()) > 0 {
 		rootExpression = sourceFile.ParseRoot().Statements()[0].Expression()
 	}
-	if !rootExpression.IsNil() && rootExpression.Kind() != ast.KindObjectLiteralExpression {
+	if !rootExpression.IsNil() && rootExpression.Kind != ast.KindObjectLiteralExpression {
 		baseFileName := "tsconfig.json"
 		if tspath.GetBaseFileName(sourceFile.FileName()) == "jsconfig.json" {
 			baseFileName = "jsconfig.json"
@@ -672,7 +672,7 @@ func ParseConfigFileTextToJson(fileName string, path tspath.Path, jsonText strin
 	return config, errors
 }
 func convertJSONStoreConfig(root ast.Handle) (any, bool) {
-	if root.Kind() != ast.KindSourceFile {
+	if root.Kind != ast.KindSourceFile {
 		return nil, false
 	}
 	store := root.Store()
@@ -682,11 +682,11 @@ func convertJSONStoreConfig(root ast.Handle) (any, bool) {
 		return struct{}{}, true
 	case 1:
 		statement := store.ListAt(statements, 0)
-		if statement.Kind() != ast.KindExpressionStatement {
+		if statement.Kind != ast.KindExpressionStatement {
 			return nil, false
 		}
 		expression := statement.ExpressionStatementExpression()
-		if expression.Kind() != ast.KindObjectLiteralExpression {
+		if expression.Kind != ast.KindObjectLiteralExpression {
 			return nil, false
 		}
 		return convertJSONStoreValue(expression)
@@ -695,7 +695,7 @@ func convertJSONStoreConfig(root ast.Handle) (any, bool) {
 	}
 }
 func convertJSONStoreValue(value ast.Handle) (any, bool) {
-	switch value.Kind() {
+	switch value.Kind {
 	case ast.KindTrueKeyword:
 		return true, true
 	case ast.KindFalseKeyword:
@@ -708,7 +708,7 @@ func convertJSONStoreValue(value ast.Handle) (any, bool) {
 		return float64(jsnum.FromString(value.NumericLiteralText())), true
 	case ast.KindPrefixUnaryExpression:
 		operand := value.PrefixUnaryExpressionOperand()
-		if value.PrefixUnaryExpressionOperator() != ast.KindMinusToken || operand.Kind() != ast.KindNumericLiteral {
+		if value.PrefixUnaryExpressionOperator() != ast.KindMinusToken || operand.Kind != ast.KindNumericLiteral {
 			return nil, false
 		}
 		return float64(-jsnum.FromString(operand.NumericLiteralText())), true
@@ -730,11 +730,11 @@ func convertJSONStoreValue(value ast.Handle) (any, bool) {
 		result := collections.NewOrderedMapWithSizeHint[string, any](store.ListLen(properties))
 		for i := range store.ListLen(properties) {
 			property := store.ListAt(properties, i)
-			if property.Kind() != ast.KindPropertyAssignment {
+			if property.Kind != ast.KindPropertyAssignment {
 				return nil, false
 			}
 			name := property.PropertyAssignmentName()
-			if name.Kind() != ast.KindStringLiteral {
+			if name.Kind != ast.KindStringLiteral {
 				return nil, false
 			}
 			initializer, ok := convertJSONStoreValue(property.PropertyAssignmentInitializer())
@@ -768,7 +768,7 @@ func convertObjectLiteralExpressionToJson(sourceFile *ast.SourceFile, returnValu
 	}
 	var errors []*ast.Diagnostic
 	for _, element := range node.Properties() {
-		if element.Kind() != ast.KindPropertyAssignment {
+		if element.Kind != ast.KindPropertyAssignment {
 			errors = append(errors, ast.NewDiagnostic(sourceFile, element.Loc(), diagnostics.Property_assignment_expected))
 			continue
 		}
@@ -820,7 +820,7 @@ func isDoubleQuotedString(node ast.Handle) bool {
 	return ast.IsStringLiteral(node)
 }
 func convertPropertyValueToJson(sourceFile *ast.SourceFile, valueExpression ast.Handle, option *CommandLineOption, returnValue bool, jsonConversionNotifier *jsonConversionNotifier) (any, []*ast.Diagnostic) {
-	switch valueExpression.Kind() {
+	switch valueExpression.Kind {
 	case ast.KindTrueKeyword:
 		return true, nil
 	case ast.KindFalseKeyword:
@@ -835,7 +835,7 @@ func convertPropertyValueToJson(sourceFile *ast.SourceFile, valueExpression ast.
 	case ast.KindNumericLiteral:
 		return float64(jsnum.FromString(valueExpression.Text())), nil
 	case ast.KindPrefixUnaryExpression:
-		if valueExpression.PrefixUnaryExpressionOperator() != ast.KindMinusToken || valueExpression.PrefixUnaryExpressionOperand().Kind() != ast.KindNumericLiteral {
+		if valueExpression.PrefixUnaryExpressionOperator() != ast.KindMinusToken || valueExpression.PrefixUnaryExpressionOperand().Kind != ast.KindNumericLiteral {
 			break
 		}
 		return float64(-jsnum.FromString(valueExpression.PrefixUnaryExpressionOperand().Text())), nil

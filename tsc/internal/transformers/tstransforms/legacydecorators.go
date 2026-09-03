@@ -269,7 +269,7 @@ func (tx *LegacyDecoratorsTransformer) visit(node ast.Handle) ast.Handle {
 	if (node.SubtreeFacts()&ast.SubtreeContainsDecorators) == 0 && len(tx.enclosingClasses) == 0 {
 		return node
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier:
 		return tx.visitIdentifier(node)
 	case ast.KindPropertyAccessExpression:
@@ -560,7 +560,7 @@ func isClassStaticBlockDeclarationOrStaticProperty(node ast.Handle) bool {
 	return ast.IsClassStaticBlockDeclaration(node) || (ast.IsPropertyDeclaration(node) && ast.HasStaticModifier(node))
 }
 func isNotExportOrDefaultOrDecorator(node ast.Handle) bool {
-	return !(ast.IsDecorator(node) || node.Kind() == ast.KindExportKeyword || node.Kind() == ast.KindDefaultKeyword)
+	return !(ast.IsDecorator(node) || node.Kind == ast.KindExportKeyword || node.Kind == ast.KindDefaultKeyword)
 }
 func decoratorContainsPrivateIdentifierInExpression(decorator ast.Handle) bool {
 	return (decorator.SubtreeFacts() & ast.SubtreeContainsPrivateIdentifierInExpression) != 0
@@ -608,7 +608,7 @@ func getAllDecoratorsOfClass(node ast.Handle, useLegacyDecorators bool) *allDeco
 }
 
 func getAllDecoratorsOfClassElement(member ast.Handle, parent ast.Handle, useLegacyDecorators bool) *allDecorators {
-	switch member.Kind() {
+	switch member.Kind {
 	case ast.KindGetAccessor, ast.KindSetAccessor:
 		if !useLegacyDecorators {
 			return getAllDecoratorsOfMethod(member, false)

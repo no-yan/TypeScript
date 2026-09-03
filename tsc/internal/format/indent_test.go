@@ -39,7 +39,7 @@ func TestGetContainingList_NamedImports(t *testing.T) {
 
 func forEachDescendantOfKind(node ast.Handle, kind ast.Kind, action func(ast.Handle)) {
 	node.ForEachChild(func(child ast.Handle) bool {
-		if child.Kind() == kind {
+		if child.Kind == kind {
 			action(child)
 		}
 		forEachDescendantOfKind(child, kind, action)

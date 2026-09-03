@@ -13,7 +13,7 @@ func rangeIsOnOneLine(node core.TextRange, file *ast.SourceFile) bool {
 	return startLine == endLine
 }
 func getOpenTokenForList(node ast.Handle, list ast.ListRef) ast.Kind {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindConstructor, ast.KindFunctionDeclaration, ast.KindFunctionExpression, ast.KindMethodDeclaration, ast.KindMethodSignature, ast.KindArrowFunction, ast.KindCallSignature, ast.KindConstructSignature, ast.KindFunctionType, ast.KindConstructorType, ast.KindGetAccessor, ast.KindSetAccessor:
 		if node.TypeParameterList() == list {
 			return ast.KindLessThanToken
@@ -58,7 +58,7 @@ func GetLineStartPositionForPosition(position int, sourceFile *ast.SourceFile) i
 
 func findImmediatelyPrecedingTokenOfKind(end int, expectedTokenKind ast.Kind, sourceFile *ast.SourceFile) ast.Handle {
 	precedingToken := astnav.FindPrecedingToken(sourceFile, end)
-	if precedingToken.IsNil() || precedingToken.Kind() != expectedTokenKind || precedingToken.End() != end {
+	if precedingToken.IsNil() || precedingToken.Kind != expectedTokenKind || precedingToken.End() != end {
 		return ast.Handle{}
 	}
 	return precedingToken
@@ -73,12 +73,12 @@ func findOutermostNodeWithinListLevel(node ast.Handle) ast.Handle {
 }
 
 func isListElement(parent ast.Handle, node ast.Handle) bool {
-	switch parent.Kind() {
+	switch parent.Kind {
 	case ast.KindClassDeclaration, ast.KindInterfaceDeclaration:
 		return node.Loc().ContainedBy(parent.Store().ListLoc(parent.MemberList()))
 	case ast.KindModuleDeclaration:
 		body := parent.Body()
-		return !body.IsNil() && body.Kind() == ast.KindModuleBlock && node.Loc().ContainedBy(body.Store().ListLoc(body.StatementList()))
+		return !body.IsNil() && body.Kind == ast.KindModuleBlock && node.Loc().ContainedBy(body.Store().ListLoc(body.StatementList()))
 	case ast.KindSourceFile, ast.KindBlock, ast.KindModuleBlock:
 		return node.Loc().ContainedBy(parent.Store().ListLoc(parent.StatementList()))
 	case ast.KindCatchClause:
@@ -88,7 +88,7 @@ func isListElement(parent ast.Handle, node ast.Handle) bool {
 	return false
 }
 func isMemberListElement(parent ast.Handle, node ast.Handle) bool {
-	switch parent.Kind() {
+	switch parent.Kind {
 	case ast.KindClassDeclaration, ast.KindClassExpression, ast.KindInterfaceDeclaration, ast.KindEnumDeclaration, ast.KindTypeLiteral, ast.KindMappedType:
 		return node.Loc().ContainedBy(parent.Store().ListLoc(parent.MemberList()))
 	}

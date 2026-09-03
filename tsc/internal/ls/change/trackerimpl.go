@@ -180,7 +180,7 @@ func (t *Tracker) GetAdjustedRange(sourceFile *ast.SourceFile, startNode ast.Han
 
 func (t *Tracker) getAdjustedStartPosition(sourceFile *ast.SourceFile, node ast.Handle, leadingOption LeadingTriviaOption, hasTrailingComment bool) int {
 	if leadingOption == LeadingTriviaOptionJSDoc {
-		if JSDocComments := parser.GetJSDocCommentRanges(nil, node.Kind(), node.Pos(), node.End(), sourceFile.Text()); len(JSDocComments) > 0 {
+		if JSDocComments := parser.GetJSDocCommentRanges(nil, node.Kind, node.Pos(), node.End(), sourceFile.Text()); len(JSDocComments) > 0 {
 			return format.GetLineStartPositionForPosition(JSDocComments[0].Pos(), sourceFile)
 		}
 	}
@@ -269,7 +269,7 @@ func hasCommentsBeforeLineBreak(text string, start int) bool {
 	return false
 }
 func needSemicolonBetween(a, b ast.Handle) bool {
-	return (ast.IsPropertySignatureDeclaration(a) || ast.IsPropertyDeclaration(a)) && ast.IsClassOrTypeElement(b) && b.Name().Kind() == ast.KindComputedPropertyName || ast.IsStatementButNotDeclaration(a) && ast.IsStatementButNotDeclaration(b)
+	return (ast.IsPropertySignatureDeclaration(a) || ast.IsPropertyDeclaration(a)) && ast.IsClassOrTypeElement(b) && b.Name().Kind == ast.KindComputedPropertyName || ast.IsStatementButNotDeclaration(a) && ast.IsStatementButNotDeclaration(b)
 }
 func (t *Tracker) getInsertionPositionAtSourceFileTop(sourceFile *ast.SourceFile) int {
 	var lastPrologue ast.Handle

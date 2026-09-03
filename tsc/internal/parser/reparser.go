@@ -55,7 +55,7 @@ func (p *Parser) checkNonIdentifierName(name ast.Handle) ast.Handle {
 	if name.IsNil() {
 		return ast.Handle{}
 	}
-	if name.Kind() == ast.KindIdentifier && !scanner.IsValidIdentifier(name.IdentifierText()) {
+	if name.Kind == ast.KindIdentifier && !scanner.IsValidIdentifier(name.IdentifierText()) {
 		errLoc := name.Loc()
 		if errLoc.Len() == 0 { // missing name, emit error on the character before the missing name node
 			errLoc = core.NewTextRange(name.Loc().Pos()-1, name.Loc().Pos())
@@ -84,14 +84,14 @@ func (p *Parser) reparseTags(parent ast.Handle, jsDoc []ast.Handle) {
 }
 
 func (p *Parser) reparseUnhosted(tag ast.Handle, parent ast.Handle, jsDoc ast.Handle) {
-	switch tag.Kind() {
+	switch tag.Kind {
 	case ast.KindJSDocTypedefTag:
 		typeExpression := tag.TypeExpression()
 		if typeExpression.IsNil() {
 			break
 		}
 		fullName := tag.Name()
-		isNamespace := !fullName.IsNil() && fullName.Kind() == ast.KindModuleDeclaration
+		isNamespace := !fullName.IsNil() && fullName.Kind == ast.KindModuleDeclaration
 		var modifiers ast.ListRef
 		if isNamespace {
 			modifiers = p.createExportModifier(tag)
@@ -99,13 +99,13 @@ func (p *Parser) reparseUnhosted(tag ast.Handle, parent ast.Handle, jsDoc ast.Ha
 		typeAlias := p.factory.NewJSTypeAliasDeclaration(modifiers, p.addDeepCloneReparse(p.checkNonIdentifierName(p.getInnermostNameOfJSDocNamespace(fullName))), 0, ast.Handle{})
 		typeAlias.SetTypeAliasDeclarationTypeParameters(p.gatherTypeParameters(jsDoc, true /*typedefOrCallback*/))
 		var t ast.Handle
-		switch typeExpression.Kind() {
+		switch typeExpression.Kind {
 		case ast.KindJSDocTypeExpression:
 			t = p.addDeepCloneReparse(typeExpression.Type())
 		case ast.KindJSDocTypeLiteral:
 			t = p.reparseJSDocTypeLiteral(typeExpression)
 		default:
-			panic("typedef tag type expression should be a name reference or a type expression" + typeExpression.Kind().String())
+			panic("typedef tag type expression should be a name reference or a type expression" + typeExpression.Kind.String())
 		}
 		typeAlias.SetTypeAliasDeclarationType(t)
 		p.finishReparsedNode(typeAlias, tag)
@@ -119,7 +119,7 @@ func (p *Parser) reparseUnhosted(tag ast.Handle, parent ast.Handle, jsDoc ast.Ha
 			break
 		}
 		fullName := tag.Name()
-		isNamespace := !fullName.IsNil() && fullName.Kind() == ast.KindModuleDeclaration
+		isNamespace := !fullName.IsNil() && fullName.Kind == ast.KindModuleDeclaration
 		var modifiers ast.ListRef
 		if isNamespace {
 			modifiers = p.createExportModifier(tag)
@@ -148,7 +148,7 @@ func (p *Parser) reparseUnhosted(tag ast.Handle, parent ast.Handle, jsDoc ast.Ha
 		p.reparseList = append(p.reparseList, importDeclaration)
 	case ast.KindJSDocOverloadTag:
 		// Create overload signatures only for function, method, and constructor declarations outside object literals
-		if (parent.Kind() == ast.KindFunctionDeclaration || parent.Kind() == ast.KindMethodDeclaration || parent.Kind() == ast.KindConstructor) && p.parsingContexts&(1<<PCObjectLiteralMembers) == 0 {
+		if (parent.Kind == ast.KindFunctionDeclaration || parent.Kind == ast.KindMethodDeclaration || parent.Kind == ast.KindConstructor) && p.parsingContexts&(1<<PCObjectLiteralMembers) == 0 {
 			p.reparseList = append(p.reparseList, p.reparseJSDocSignature(tag.JSDocOverloadTagTypeExpression(), parent, jsDoc, tag, parent.Modifiers()))
 		}
 	}
@@ -157,7 +157,7 @@ func (p *Parser) reparseUnhosted(tag ast.Handle, parent ast.Handle, jsDoc ast.Ha
 func (p *Parser) reparseJSDocSignature(jsSignature ast.Handle, fun ast.Handle, jsDoc ast.Handle, tag ast.Handle, modifiers ast.ListRef) ast.Handle {
 	var signature ast.Handle
 	clonedModifiers := p.addDeepCloneReparseModifiers(modifiers)
-	switch fun.Kind() {
+	switch fun.Kind {
 	case ast.KindFunctionDeclaration:
 		signature = p.factory.NewFunctionDeclaration(clonedModifiers, ast.Handle{}, p.factory.CopySubtree(p.checkNonIdentifierName(fun.Name())), 0, 0, ast.Handle{}, ast.Handle{}, ast.Handle{})
 	case ast.KindMethodDeclaration:
@@ -167,16 +167,16 @@ func (p *Parser) reparseJSDocSignature(jsSignature ast.Handle, fun ast.Handle, j
 	case ast.KindJSDocCallbackTag:
 		signature = p.factory.NewFunctionTypeNode(0, 0, p.factory.NewKeywordTypeNode(ast.KindAnyKeyword))
 	default:
-		panic("Unexpected kind " + fun.Kind().String())
+		panic("Unexpected kind " + fun.Kind.String())
 	}
 
-	if tag.Kind() != ast.KindJSDocCallbackTag {
+	if tag.Kind != ast.KindJSDocCallbackTag {
 		signature.SetTypeParameters(p.gatherTypeParameters(jsDoc, false /*typedefOrCallback*/))
 	}
 	parameters := make([]ast.Handle, 0)
 	for pi, param := range jsSignature.Parameters() {
 		var parameter ast.Handle
-		if param.Kind() == ast.KindJSDocThisTag {
+		if param.Kind == ast.KindJSDocThisTag {
 			thisIdent := p.factory.NewIdentifier("this")
 			thisIdent.SetLoc(param.Loc())
 			thisIdent.SetFlags(p.contextFlags | ast.NodeFlagsReparsed)
@@ -184,17 +184,17 @@ func (p *Parser) reparseJSDocSignature(jsSignature ast.Handle, fun ast.Handle, j
 			if !param.JSDocThisTagTypeExpression().IsNil() {
 				parameter.SetParameterDeclarationType(p.addDeepCloneReparse(param.JSDocThisTagTypeExpression().Type()))
 			}
-		} else if param.Kind() == ast.KindJSDocParameterTag || param.Kind() == ast.KindJSDocPropertyTag {
+		} else if param.Kind == ast.KindJSDocParameterTag || param.Kind == ast.KindJSDocPropertyTag {
 			// Skip sub-property parameters (e.g., @param x.y) - these have QualifiedNames
 			// and describe properties of a parent parameter, not standalone parameters.
-			if param.JSDocParameterOrPropertyTagName().Kind() == ast.KindQualifiedName {
+			if param.JSDocParameterOrPropertyTagName().Kind == ast.KindQualifiedName {
 				continue
 			}
 			var dotDotDotToken ast.Handle
 			var paramType ast.Handle
 
 			if !param.JSDocParameterOrPropertyTagTypeExpression().IsNil() {
-				if param.JSDocParameterOrPropertyTagTypeExpression().Type().Kind() == ast.KindJSDocVariadicType {
+				if param.JSDocParameterOrPropertyTagTypeExpression().Type().Kind == ast.KindJSDocVariadicType {
 					dotDotDotToken = p.factory.NewToken(ast.KindDotDotDotToken)
 					dotDotDotToken.SetLoc(param.Loc())
 					dotDotDotToken.SetFlags(p.contextFlags | ast.NodeFlagsReparsed)
@@ -206,7 +206,7 @@ func (p *Parser) reparseJSDocSignature(jsSignature ast.Handle, fun ast.Handle, j
 				}
 			}
 			name := param.JSDocParameterOrPropertyTagName()
-			if name.Kind() == ast.KindIdentifier && !scanner.IsValidIdentifier(name.IdentifierText()) {
+			if name.Kind == ast.KindIdentifier && !scanner.IsValidIdentifier(name.IdentifierText()) {
 				// drop invalid chars for _, if empty, write _0, etc., so we have a valid param name to emit later
 				result := strings.Builder{}
 				for i, ch := range name.IdentifierText() {
@@ -243,7 +243,7 @@ func (p *Parser) reparseJSDocSignature(jsSignature ast.Handle, fun ast.Handle, j
 		signature.SetType(p.addDeepCloneReparse(jsSignature.Type().TypeExpression().Type()))
 	}
 	loc := jsSignature
-	if tag.Kind() == ast.KindJSDocOverloadTag {
+	if tag.Kind == ast.KindJSDocOverloadTag {
 		loc = tag.TagName()
 	}
 	p.finishReparsedNode(signature, loc)
@@ -254,19 +254,19 @@ func (p *Parser) reparseJSDocTypeLiteral(t ast.Handle) ast.Handle {
 	if t.IsNil() {
 		return ast.Handle{}
 	}
-	if t.Kind() == ast.KindJSDocTypeLiteral {
+	if t.Kind == ast.KindJSDocTypeLiteral {
 		loc := t
 		isArrayType := t.JSDocTypeLiteralIsArrayType()
 		properties := make([]ast.Handle, 0)
 		for _, prop := range p.listHandles(t.JSDocTypeLiteralJSDocPropertyTags()) {
-			if prop.Kind() != ast.KindJSDocPropertyTag && prop.Kind() != ast.KindJSDocParameterTag {
+			if prop.Kind != ast.KindJSDocPropertyTag && prop.Kind != ast.KindJSDocParameterTag {
 				continue
 			}
 			name := prop.Name()
-			if name.Kind() == ast.KindQualifiedName {
+			if name.Kind == ast.KindQualifiedName {
 				name = name.QualifiedNameRight()
 			}
-			if name.Kind() == ast.KindIdentifier && !scanner.IsValidIdentifier(name.IdentifierText()) {
+			if name.Kind == ast.KindIdentifier && !scanner.IsValidIdentifier(name.IdentifierText()) {
 				name = p.addTransformedReparse(p.factory.NewStringLiteral(name.IdentifierText(), ast.TokenFlagsNone), name)
 			} else {
 				name = p.addDeepCloneReparse(name)
@@ -310,10 +310,10 @@ func (p *Parser) gatherTypeParameters(j ast.Handle, typedefOrCallback bool) ast.
 	for _, tag := range p.listHandles(j.JSDocTags()) {
 		// When a JSDoc comment contains an `@typedef` or `@callback` tag, `@template` type parameter
 		// declarations apply to the type being defined.
-		if !typedefOrCallback && (tag.Kind() == ast.KindJSDocTypedefTag || tag.Kind() == ast.KindJSDocCallbackTag) {
+		if !typedefOrCallback && (tag.Kind == ast.KindJSDocTypedefTag || tag.Kind == ast.KindJSDocCallbackTag) {
 			return 0
 		}
-		if tag.Kind() != ast.KindJSDocTemplateTag {
+		if tag.Kind != ast.KindJSDocTemplateTag {
 			continue
 		}
 		if firstTemplate {
@@ -351,9 +351,9 @@ func (p *Parser) gatherTypeParameters(j ast.Handle, typedefOrCallback bool) ast.
 }
 
 func (p *Parser) reparseHosted(tag ast.Handle, parent ast.Handle, jsDoc ast.Handle) {
-	switch tag.Kind() {
+	switch tag.Kind {
 	case ast.KindJSDocTypeTag:
-		switch parent.Kind() {
+		switch parent.Kind {
 		case ast.KindVariableStatement:
 			if !parent.VariableStatementDeclarationList().IsNil() {
 				for _, declaration := range p.listHandles(parent.VariableStatementDeclarationList().VariableDeclarationListDeclarations()) {
@@ -378,7 +378,7 @@ func (p *Parser) reparseHosted(tag ast.Handle, parent ast.Handle, jsDoc ast.Hand
 				return
 			}
 		case ast.KindExpressionStatement:
-			if parent.Expression().Kind() == ast.KindBinaryExpression {
+			if parent.Expression().Kind == ast.KindBinaryExpression {
 				bin := parent.Expression()
 				if bin.LooksLikeAssignmentDeclaration() && !tag.TypeExpression().IsNil() {
 					bin.SetType(p.addDeepCloneReparse(tag.TypeExpression().Type()))
@@ -405,7 +405,7 @@ func (p *Parser) reparseHosted(tag ast.Handle, parent ast.Handle, jsDoc ast.Hand
 			}
 		}
 	case ast.KindJSDocSatisfiesTag:
-		switch parent.Kind() {
+		switch parent.Kind {
 		case ast.KindVariableStatement:
 			if !parent.VariableStatementDeclarationList().IsNil() {
 				for _, declaration := range p.listHandles(parent.VariableStatementDeclarationList().VariableDeclarationListDeclarations()) {
@@ -448,7 +448,7 @@ func (p *Parser) reparseHosted(tag ast.Handle, parent ast.Handle, jsDoc ast.Hand
 				p.finishMutatedNode(parent)
 			}
 		case ast.KindExpressionStatement:
-			if parent.Expression().Kind() == ast.KindBinaryExpression {
+			if parent.Expression().Kind == ast.KindBinaryExpression {
 				bin := parent.Expression()
 				if bin.LooksLikeAssignmentDeclaration() && !tag.TypeExpression().IsNil() {
 					bin.SetBinaryExpressionRight(p.makeNewCast(
@@ -466,12 +466,12 @@ func (p *Parser) reparseHosted(tag ast.Handle, parent ast.Handle, jsDoc ast.Hand
 				fun.SetTypeParameterList(p.gatherTypeParameters(jsDoc, false /*typedefOrCallback*/))
 				p.finishMutatedNode(fun)
 			}
-		} else if parent.Kind() == ast.KindClassDeclaration {
+		} else if parent.Kind == ast.KindClassDeclaration {
 			if parent.ClassDeclarationTypeParameters() == 0 {
 				parent.SetClassDeclarationTypeParameters(p.gatherTypeParameters(jsDoc, false /*typedefOrCallback*/))
 				p.finishMutatedNode(parent)
 			}
-		} else if parent.Kind() == ast.KindClassExpression {
+		} else if parent.Kind == ast.KindClassExpression {
 			if parent.ClassExpressionTypeParameters() == 0 {
 				parent.SetClassExpressionTypeParameters(p.gatherTypeParameters(jsDoc, false /*typedefOrCallback*/))
 				p.finishMutatedNode(parent)
@@ -494,7 +494,7 @@ func (p *Parser) reparseHosted(tag ast.Handle, parent ast.Handle, jsDoc ast.Hand
 	case ast.KindJSDocThisTag:
 		if fun := getFunctionLikeHost(parent); !fun.IsNil() {
 			params := fun.Parameters()
-			if len(params) == 0 || (params[0].Name().Kind() != ast.KindThisKeyword && !ast.IsThisIdentifier(params[0].Name())) {
+			if len(params) == 0 || (params[0].Name().Kind != ast.KindThisKeyword && !ast.IsThisIdentifier(params[0].Name())) {
 				thisParam := p.factory.NewParameterDeclaration(
 					0, ast.Handle{}, p.factory.NewIdentifier("this"), ast.Handle{}, ast.Handle{}, ast.Handle{},
 				)
@@ -521,10 +521,10 @@ func (p *Parser) reparseHosted(tag ast.Handle, parent ast.Handle, jsDoc ast.Hand
 			}
 		}
 	case ast.KindJSDocReadonlyTag, ast.KindJSDocPrivateTag, ast.KindJSDocPublicTag, ast.KindJSDocProtectedTag, ast.KindJSDocOverrideTag:
-		if parent.Kind() == ast.KindExpressionStatement {
+		if parent.Kind == ast.KindExpressionStatement {
 			parent = parent.Expression()
 		}
-		switch parent.Kind() {
+		switch parent.Kind {
 		case ast.KindMethodDeclaration, ast.KindGetAccessor, ast.KindSetAccessor:
 			// In object literals these aren't parent-like members, so JSDoc modifiers like @override
 			// or @readonly aren't real modifiers there; reparsing them produces spurious grammar errors (#4437).
@@ -534,7 +534,7 @@ func (p *Parser) reparseHosted(tag ast.Handle, parent ast.Handle, jsDoc ast.Hand
 			fallthrough
 		case ast.KindPropertyDeclaration, ast.KindConstructor, ast.KindBinaryExpression:
 			var keyword ast.Kind
-			switch tag.Kind() {
+			switch tag.Kind {
 			case ast.KindJSDocReadonlyTag:
 				keyword = ast.KindReadonlyKeyword
 			case ast.KindJSDocPrivateTag:
@@ -562,7 +562,7 @@ func (p *Parser) reparseHosted(tag ast.Handle, parent ast.Handle, jsDoc ast.Hand
 			p.finishMutatedNode(parent)
 		}
 	case ast.KindJSDocImplementsTag:
-		if parent.Kind() != ast.KindClassDeclaration && parent.Kind() != ast.KindClassExpression {
+		if parent.Kind != ast.KindClassDeclaration && parent.Kind != ast.KindClassExpression {
 			break
 		}
 		className := tag.JSDocImplementsTagClassName()
@@ -587,7 +587,7 @@ func (p *Parser) reparseHosted(tag ast.Handle, parent ast.Handle, jsDoc ast.Hand
 		}
 		p.finishMutatedNode(parent)
 	case ast.KindJSDocAugmentsTag:
-		if (parent.Kind() != ast.KindClassDeclaration && parent.Kind() != ast.KindClassExpression) || parent.HeritageClauses() == 0 {
+		if (parent.Kind != ast.KindClassDeclaration && parent.Kind != ast.KindClassExpression) || parent.HeritageClauses() == 0 {
 			break
 		}
 		source := tag.JSDocAugmentsTagClassName()
@@ -618,7 +618,7 @@ func (p *Parser) makeQuestionIfOptional(parameter ast.Handle) ast.Handle {
 	var questionToken ast.Handle
 	if parameter.JSDocParameterOrPropertyTagIsBracketed() ||
 		(!parameter.JSDocParameterOrPropertyTagTypeExpression().IsNil() &&
-			parameter.JSDocParameterOrPropertyTagTypeExpression().Type().Kind() == ast.KindJSDocOptionalType) {
+			parameter.JSDocParameterOrPropertyTagTypeExpression().Type().Kind == ast.KindJSDocOptionalType) {
 		questionToken = p.factory.NewToken(ast.KindQuestionToken)
 		questionToken.SetLoc(parameter.Loc())
 		questionToken.SetFlags(p.contextFlags | ast.NodeFlagsReparsed)
@@ -633,7 +633,7 @@ func findMatchingParameter(fun ast.Handle, parameterTag ast.Handle, jsDoc ast.Ha
 	tags := jsDoc.JSDocTags()
 	for i := 0; i < s.ListLen(tags); i++ {
 		tag := s.ListAt(tags, i)
-		if tag.Kind() == ast.KindJSDocParameterTag {
+		if tag.Kind == ast.KindJSDocParameterTag {
 			paramCount++
 			if tag == parameterTag {
 				tagIndex = paramCount
@@ -642,8 +642,8 @@ func findMatchingParameter(fun ast.Handle, parameterTag ast.Handle, jsDoc ast.Ha
 		}
 	}
 	for parameterIndex, parameter := range fun.Parameters() {
-		if parameter.Name().Kind() == ast.KindIdentifier {
-			if parameterTag.Name().Kind() == ast.KindIdentifier &&
+		if parameter.Name().Kind == ast.KindIdentifier {
+			if parameterTag.Name().Kind == ast.KindIdentifier &&
 				((parameter.Name().Text() == parameterTag.Name().Text()) || (parameterIndex == tagIndex && len(parameterTag.Name().Text()) == 0)) {
 				return parameter, true
 			}
@@ -655,7 +655,7 @@ func findMatchingParameter(fun ast.Handle, parameterTag ast.Handle, jsDoc ast.Ha
 }
 
 func skipSatisfiesExpressions(node ast.Handle) ast.Handle {
-	for !node.IsNil() && node.Kind() == ast.KindSatisfiesExpression {
+	for !node.IsNil() && node.Kind == ast.KindSatisfiesExpression {
 		node = node.Expression()
 	}
 	return node
@@ -663,7 +663,7 @@ func skipSatisfiesExpressions(node ast.Handle) ast.Handle {
 
 func getFunctionLikeHost(host ast.Handle) ast.Handle {
 	fun := host
-	switch host.Kind() {
+	switch host.Kind {
 	case ast.KindVariableStatement:
 		decls := host.VariableStatementDeclarationList().VariableDeclarationListDeclarations()
 		if decls != 0 {
@@ -712,7 +712,7 @@ func (p *Parser) getInnermostNameOfJSDocNamespace(fullName ast.Handle) ast.Handl
 	if fullName.IsNil() {
 		return ast.Handle{}
 	}
-	for fullName.Kind() == ast.KindModuleDeclaration {
+	for fullName.Kind == ast.KindModuleDeclaration {
 		body := fullName.ModuleDeclarationBody()
 		if body.IsNil() {
 			return fullName.Name()
@@ -731,7 +731,7 @@ func (p *Parser) getInnermostNameOfJSDocNamespace(fullName ast.Handle) ast.Handl
 // If the name is a simple identifier (not a ModuleDeclaration), it returns the
 // statement as-is.
 func (p *Parser) wrapInJSDocNamespace(fullName ast.Handle, statement ast.Handle, nested bool) ast.Handle {
-	if fullName.IsNil() || fullName.Kind() != ast.KindModuleDeclaration {
+	if fullName.IsNil() || fullName.Kind != ast.KindModuleDeclaration {
 		return statement
 	}
 	// Recursively wrap from outermost to innermost. Inner namespaces always get an export modifier
