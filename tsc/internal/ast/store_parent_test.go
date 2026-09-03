@@ -84,3 +84,31 @@ func TestSetParentDoesNotRaceSourceStoreMaps(t *testing.T) {
 	}
 	wg.Wait()
 }
+
+func TestEmitSetChildDoesNotRepointParseParent(t *testing.T) {
+	t.Parallel()
+	f := ast.NewFactory(ast.FactoryHooks{})
+	loc := core.NewTextRange(0, 1)
+	child := f.Store().Alloc(ast.KindIdentifier, 0, loc, 0)
+	parent := f.Store().Alloc(ast.KindBinaryExpression, 0, loc, 2)
+	parent.SetChild(0, child)
+	assert.Equal(t, parent.Ref(), child.Parent().Ref())
+
+	f.Store().Freeze()
+	f.Store().EnterEmit()
+
+	synth := f.Store().Alloc(ast.KindBinaryExpression, 0, loc, 2)
+	synth.SetChild(0, child)
+	assert.Equal(t, parent.Ref(), child.Parent().Ref())
+	assert.Equal(t, child.Ref(), synth.Child(0).Ref())
+}
+
+func TestBuildSetChildStillSetsParent(t *testing.T) {
+	t.Parallel()
+	f := ast.NewFactory(ast.FactoryHooks{})
+	loc := core.NewTextRange(0, 1)
+	child := f.Store().Alloc(ast.KindIdentifier, 0, loc, 0)
+	parent := f.Store().Alloc(ast.KindBinaryExpression, 0, loc, 2)
+	parent.SetChild(0, child)
+	assert.Equal(t, parent.Ref(), child.Parent().Ref())
+}
