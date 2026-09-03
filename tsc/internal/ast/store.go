@@ -1024,7 +1024,7 @@ func (h Handle) SetList(list ListRef) {
 }
 
 func (h Handle) attachSameStore(c Handle) {
-	if c.id == 0 || c.s == nil || c.s != h.s {
+	if c.id == 0 || c.s == nil || c.s != h.s || h.s.phase != storePhaseBuild {
 		return
 	}
 	c.SetParent(h)
