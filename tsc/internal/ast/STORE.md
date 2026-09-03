@@ -57,7 +57,7 @@ Open in β: `StoreSet` lifetime for LS scenarios (stores die on edit; nothing to
 
 **Steady-state dual representation** (long-lived `*Node` view over Store, or the reverse kept forever). Two live trees share identity and lifetime, grow memory, and erase the GC bet. Temporary dual shapes can appear inside a migration wave. Delete them in that wave. Expanding Store → `*Node` for one phase is a **different mechanism** from “`*Node` façade over Store”, but it shares the same failure mode if both stay alive.
 
-**Moving `SourceFile` text into Store without a measured win.** See ownership.
+**Moving** `SourceFile` **text into Store without a measured win.** See ownership.
 
 ## Ownership boundaries
 
@@ -69,7 +69,7 @@ Identifier interning inside Store is allowed. Owning the file’s full source st
 
 ## Transforms and printers (intent)
 
-Parse builds a Store. `Seal` drops the intern map only. Binder writes flags and side maps on that Store. Checker synthetics and emit updates that share parse children also **append into the same Store** (see constraints 7 and 9). `EmitContext.AttachStore` holds the per-file writer lease across transform and print, then publishes generated NodeRefs before returning the context to its pool. Emit original, emit-node, generated-name, text-source, assigned-name, and class-this tables key on `GlobalRef`. Generated `Update*` methods compare Store identity for child reuse, and `UpdateSourceFile` carries Store ownership to the transformed root. A second emit Store plus `CopySubtree` of the whole file is incompatible with `Update*` reuse. `CopySubtree` remains the primitive for the rare deep clone across files (`deepclone.go` comment). Slot reuse and in-place delete remain out of scope.
+Parse builds a Store. `Seal` drops the intern map only. Binder writes flags and side maps on that Store. Checker synthetics and emit updates that share parse children also **append into the same Store** (see constraints 7 and 9). `EmitContext.AttachStore` holds the per-file writer lease across transform and print, then publishes generated NodeRefs before returning the context to its pool. Emit original, emit-node, generated-name, text-source, assigned-name, and class-this tables key on `GlobalRef`. Generated `Update`* methods compare Store identity for child reuse, and `UpdateSourceFile` carries Store ownership to the transformed root. A second emit Store plus `CopySubtree` of the whole file is incompatible with `Update*` reuse. `CopySubtree` remains the primitive for the rare deep clone across files (`deepclone.go` comment). Slot reuse and in-place delete remain out of scope.
 
 `CopySubtree` today walks child `NodeRef`s only. It does not remap `ListRef` payloads hung off kinds, because β has no kind that stores a `ListRef` in the header. Migration A/B must close that gap before list-bearing kinds ship.
 
@@ -98,38 +98,44 @@ maps safe by itself. `TestStoreParallelFileWriters`,
 
 Useful as a dependency order, not as a committed ship plan:
 
-| Step | Depends on |
-| --- | --- |
-| E. Delete `*Node` / old `NodeFactory` | D |
-| D. Binder / checker / LS on Store identity | C, and a global identity design |
-| C. Printer / transformers on Store | B, and list-aware copy |
-| B. Parser writes Store | A, and a shippable slice definition |
-| A. Kind schema covers parse | β slice + list slots |
+
+| Step                                       | Depends on                          |
+| ------------------------------------------ | ----------------------------------- |
+| E. Delete `*Node` / old `NodeFactory`      | D                                   |
+| D. Binder / checker / LS on Store identity | C, and a global identity design     |
+| C. Printer / transformers on Store         | B, and list-aware copy              |
+| B. Parser writes Store                     | A, and a shippable slice definition |
+| A. Kind schema covers parse                | β slice + list slots                |
+
 
 Temporary bridges such as `FlattenNode` are **measurement-only**. They keep Kind, Flags, Loc, a small set of text kinds, and `ForEachChild`. They drop symbols, flow, most literals, `TokenFlags`, and other `nodeData` fields. Do not use `FlattenNode` as a production bridge.
 
 ## Current code
 
-| Path | Role |
-| --- | --- |
-| `store.go` | `Store`, `NodeRef`, `ListRef`, `Handle`, walk, parents, Symbol/LocalSymbol/FlowNode/EndFlowNode/ReturnFlowNode/Locals/NextContainer side maps, packed `listSlots` |
-| `store_identity.go` | `StoreID`, `GlobalRef`, `StoreSet` (cross-store identity, SourceFile metadata) |
-| `store_schema.go` | Compatibility argument structs for the first Store-native factory experiments |
-| `store_schema_generated.go` | Generated child, list, and kind-specific value slots for every factory kind |
-| `store_handles_generated.go` | Generated Store-native `Factory.New*` constructors and named Handle getters/setters for every schema factory kind |
-| `store_factory.go` | Store-only `Factory`, `NewFactoryOn` |
-| `store_bridge.go` | `NodeFactory.AttachStore` dual-write into Store during parse |
-| `store_materialize_json.go` | Temporary full-fidelity Store-to-pointer bridge for the Handle-native JSON parser |
-| `store_copy.go` | `Factory.CopySubtree` (cross-store remap) |
-| `store_flatten.go` | Lossy `*Node` → Store copy for benches |
-| `store_*_test.go`, `store_*_bench_test.go` | Unit, copy, adversarial, and e2e benches |
+
+| Path                                       | Role                                                                                                                                                              |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `store.go`                                 | `Store`, `NodeRef`, `ListRef`, `Handle`, walk, parents, dense Symbol/FlowNode columns, LocalSymbol/EndFlowNode/ReturnFlowNode/Locals/NextContainer side maps, packed `listSlots` |
+| `store_identity.go`                        | `StoreID`, `GlobalRef`, `StoreSet` (cross-store identity, SourceFile metadata)                                                                                    |
+| `store_schema.go`                          | Compatibility argument structs for the first Store-native factory experiments                                                                                     |
+| `store_schema_generated.go`                | Generated child, list, and kind-specific value slots for every factory kind                                                                                       |
+| `store_handles_generated.go`               | Generated Store-native `Factory.New*` constructors and named Handle getters/setters for every schema factory kind                                                 |
+| `store_factory.go`                         | Store-only `Factory`, `NewFactoryOn`                                                                                                                              |
+| `store_bridge.go`                          | `NodeFactory.AttachStore` dual-write into Store during parse                                                                                                      |
+| `store_materialize_json.go`                | Temporary full-fidelity Store-to-pointer bridge for the Handle-native JSON parser                                                                                 |
+| `store_copy.go`                            | `Factory.CopySubtree` (cross-store remap)                                                                                                                         |
+| `store_flatten.go`                         | Lossy `*Node` → Store copy for benches                                                                                                                            |
+| `store_*_test.go`, `store_*_bench_test.go` | Unit, copy, adversarial, and e2e benches                                                                                                                          |
+
+
+
 
 ## How to re-check the layout bet
 
 From `tsc/`:
 
 ```bash
-go test ./internal/ast -run 'TestStore|TestFactory|TestFlatten' 
+go test ./internal/ast -run 'TestStore|TestFactory|TestFlatten'
 go test ./internal/ast -run TestE2ELayoutReport -v
 go test ./internal/ast -run '^$' -bench E2E -count 3
 go test ./internal/ast -run '^$' -bench ParserShapedConstruction -benchmem -count 5
@@ -157,12 +163,14 @@ compiler check.
 
 CI smoke-project medians on 2026-08-31:
 
-| Environment | median |
-| --- | --- |
-| default GOGC | 146ms |
-| `GOGC=off` | 94ms |
-| `GOGC=200` | 128ms |
-| `GOMEMLIMIT=8GiB` | 149ms |
+
+| Environment       | median |
+| ----------------- | ------ |
+| default GOGC      | 146ms  |
+| `GOGC=off`        | 94ms   |
+| `GOGC=200`        | 128ms  |
+| `GOMEMLIMIT=8GiB` | 149ms  |
+
 
 Default / `GOGC=off` is 1.55, and `GOMEMLIMIT` / `GOGC=off` is 1.58.
 `GOMEMLIMIT` does not recover the GC-off gap, so the corrected PR-1 rule passes.
@@ -174,12 +182,14 @@ Answer these in writing before calling the design “settled” or merging it as
 
 1. **Global identity.** Answered at the β level: `GlobalRef` = `StoreID` + `NodeRef` via `StoreSet` (see [Identity across stores](#identity-across-stores-β-decision)). Still open inside it: StoreSet eviction for LS edits, and whether emit stores register.
 2. **Shippable migration unit.** The four-condition rule still holds. A JSON-only wave is **not** a β gate. Parser + AST can move together if that is what makes the functional constraints testable. JSON remains a possible later slice, not a prerequisite. See [Shippable migration unit](#shippable-migration-unit-β-decision).
-3. **Mutation after parse.** Answered: `Seal` does not freeze the tree. Binder writes flags in place (`binder.go` reachability reset and `|=` of `HasImplicitReturn` / `ContainsThis`). Pointer payloads (Symbol, Locals, FlowNode) live in side maps, not in the noscan header. Concurrent bind is one Store per file (`program.go` `BindSourceFiles` work group), so no cross-store write lock. See [Functional constraints](#functional-constraints-β).
-4. **`ListRef` on nodes.** Still open as schema work. Parser builds Go slices then wraps a `NodeList` once (`parseListIndex`), so a Store parser can `AllocList` at list-finish rather than grow in place. JSDoc reparse injects into those slices **during** parse, before the list is wrapped (`parser.go:445`, `parser.go:622`).
+3. **Mutation after parse.** Answered: `Seal` does not freeze the tree. Binder writes flags in place (`binder.go` reachability reset and `|=` of `HasImplicitReturn` / `ContainsThis`). Pointer payloads (Symbol, Locals, FlowNode) live in side columns and maps, not in the noscan header. Concurrent bind is one Store per file (`program.go` `BindSourceFiles` work group), so no cross-store write lock. See [Functional constraints](#functional-constraints-β).
+4. `ListRef` **on nodes.** Still open as schema work. Parser builds Go slices then wraps a `NodeList` once (`parseListIndex`), so a Store parser can `AllocList` at list-finish rather than grow in place. JSDoc reparse injects into those slices **during** parse, before the list is wrapped (`parser.go:445`, `parser.go:622`).
 5. **Full-fidelity flatten or native parse.** Answered: native parse. `FlattenNode` stays measurement-only. It already drops TokenFlags, most literals, symbols, and flow (`store_flatten.go`).
 6. **Synthetic nodes.** Revised: they share **parse children**, so they cannot live in a separate Store under today's `NodeRef` child column. Append into the parse Store, or change the child encoding. Parallel checkers make unsynchronized append a live constraint. See constraint 7.
 7. **Incremental parse.** Answered for current tsgo: not a kill. `project/parsecache.go` keys whole files by content hash and reparses. Node-object reuse from the JS compiler is not implemented. Binder's "reset flags for incremental" comment is leftover; bind runs on the freshly parsed file.
 8. **Stop criterion.** Still open as a measurement, not as a functional blocker. Layout evidence is package-local. A `GOGC` / `GOMEMLIMIT`-only baseline on a large `tsgo` run can still abandon the **perf** bet. It does not decide the functional constraints below.
+
+
 
 ## Shippable migration unit (β decision)
 
@@ -208,49 +218,47 @@ Checked against the live `*Node` pipeline (parser, binder, checker, printer). No
 
 ### Must keep, or the pipeline is wrong
 
-1. **`NodeRef(0)` is optional-absent, not a missing token.** `NodeIsMissing` (`utilities.go:66`) treats a real node with zero-width loc as present-but-missing (error recovery). Optional fields are `nil`. Those are different states. Allocating a zero-width node for the latter, using `0` only for the former.
-
+1. `NodeRef(0)` **is optional-absent, not a missing token.** `NodeIsMissing` (`utilities.go:66`) treats a real node with zero-width loc as present-but-missing (error recovery). Optional fields are `nil`. Those are different states. Allocating a zero-width node for the latter, using `0` only for the former.
 2. **Kind-specific payload is not all children.** `nodeHeader` has kind, flags, loc, parent, child range, intern id. Live nodes also carry `TokenFlags` (`tokenflags.go`), `ModifierList.ModifierFlags`, `LiteralLike` text beyond the five kinds `FlattenNode` copies, `DeclarationBase.Symbol`, `ExportableBase.LocalSymbol`, `LocalsContainerBase.Locals` + `NextContainer`, `FlowNodeBase.FlowNode`, and `CompositeBase` subtree facts. Generated value slots preserve every factory argument: integer-like scalars use a pointer-free `map[uint64]uint64`, strings use Store intern ids, and the few pointer/slice values use a sparse side map. Token flags remain in the packed header. Dropping any generated value is a functional break.
-
 3. **Lists have their own loc.** `NodeList.HasTrailingComma` is `last.End() < list.End()` (`ast.go:138`). `listHeader` already stores loc. Copy and schema must preserve it.
-
-4. **`GetSourceFileOfNode` walks `Parent` to `KindSourceFile`** (`utilities.go:861`) and callers then read file metadata (`Text`, diagnostics, hash). The SourceFile **node** is the tree root inside Store. Metadata stays outside, keyed by `StoreID`. A root whose parent is `0` with no Store-to-metadata map makes LS and checker file lookup return nil.
-
+4. `GetSourceFileOfNode` **walks** `Parent` **to** `KindSourceFile` (`utilities.go:861`) and callers then read file metadata (`Text`, diagnostics, hash). The SourceFile **node** is the tree root inside Store. Metadata stays outside, keyed by `StoreID`. A root whose parent is `0` with no Store-to-metadata map makes LS and checker file lookup return nil.
 5. **JSDoc reparse mutates already-created hosts, not only unfinished lists.** `@param` writes `Parameter.Type` and `QuestionToken` after the parameter exists (`reparser.go:480`). `@this` replaces `FunctionLikeData().Parameters` with a longer `NodeList` (`reparser.go:514`). `@template` can assign `class.TypeParameters` after the class node exists (`reparser.go:471`). Statement-level `@typedef` still splices via `reparseList` during `parseListIndex` (`parser.go:622`, `parser.go:445`). Store: named slots stay writable (`SetChild`); `list0` is replaced with a new `ListRef` (old list abandoned). `Intern` after `Seal` appends without dedup so lazy TS JSDoc can still add text. `jsdocCache` keys stay `NodeRef`.
-
 6. **Binder mutates flags and side data, not the tree shape.** Flags are cleared and reset (`binder.go:1546`). `Symbol` / `LocalSymbol` / `Locals` / `NextContainer` / `FlowNode` / `EndFlowNode` / `ReturnFlowNode` are written on existing nodes (`binder.go:598`, `binder.go:2534`). Parent and child lists are not rewritten. `BindSourceFiles` queues one bind per unbound file (`compiler/program.go:554`), gated by `SourceFile.BindOnce`. Side maps plus mutable header flags are enough. `Seal` dropping `internIdx` is fine. Flow also allocates `KindUnknown` payload nodes (`FlowSwitchClauseData`, `flow.go:50`) that hang off `FlowNode.Node` and never enter statement lists.
-
 7. **Checker synthetics share children with the parse tree, not only identity space.** `isPropertyInitializedInConstructor` builds a synthetic access whose name child is a parse-tree node, then `SetParent`s the constructor, which may live in another file. Synthetics append into the checked file's parse Store. Same-file children and parents stay dense `NodeRef`s; exceptional cross-file child, list, and parent edges use sparse `GlobalRef` side tables on the child Store. `SetParent` and `SetChild` must not `CopySubtree` a shared parse node. `SetParentsInChildren` does not reparent a foreign child. A per-file writer lease serializes parallel checker append.
+8. **Flow is a second pointer graph.** `FlowNode` holds `*Node` plus `*FlowNode` antecedents (`flow.go:27`). Noscan headers do not remove it. Putting `*FlowNode` in `nodeHeader` would make `[]nodeHeader` scannable and erase the layout bet. Pointer payloads live outside the header: `Symbol` and `FlowNode` in dense `[]*T` columns indexed by `NodeRef` and sized at bind start (`PrepareBindTables`), the sparse bind fields (`LocalSymbol`, `EndFlowNode`, `ReturnFlowNode`, `Locals`, `NextContainer`) in `map[NodeRef]`. Both shapes keep headers noscan. Abandon "every node field lives in the packed header" if that claim is still in play.
+9. **Emit structurally shares unchanged parse nodes.** `Update`* returns the same `*Node` when every child pointer is unchanged (`ast_generated.go` `Update*` family). Transformers then `return node` / `VisitEachChild`. The output tree is a mix of parse nodes and emit-factory nodes. `EmitContext` maps (`original`, `emitNodes`) key on `*Node` (`emitcontext.go:17`). Comments and source maps walk `ParseNode` / `MostOriginal`. A second emit Store plus mandatory `CopySubtree` would clone the unchanged spine, break `==` reuse, and force every original link to be rewritten. That is allowed only if emit keeps parse nodes as the shared spine (append new nodes into the parse Store, or let the emit tree hold parse `GlobalRef`s). The earlier β line "emit is a second Store and `CopySubtree` is the primitive" is incompatible with today's sharing.
 
-8. **Flow is a second pointer graph.** `FlowNode` holds `*Node` plus `*FlowNode` antecedents (`flow.go:27`). Noscan headers do not remove it. Putting `*FlowNode` in `nodeHeader` would make `[]nodeHeader` scannable and erase the layout bet. Side map `map[NodeRef]*FlowNode` is the only shape that keeps headers noscan. Abandon "every node field lives in the packed header" if that claim is still in play.
 
-9. **Emit structurally shares unchanged parse nodes.** `Update*` returns the same `*Node` when every child pointer is unchanged (`ast_generated.go` `Update*` family). Transformers then `return node` / `VisitEachChild`. The output tree is a mix of parse nodes and emit-factory nodes. `EmitContext` maps (`original`, `emitNodes`) key on `*Node` (`emitcontext.go:17`). Comments and source maps walk `ParseNode` / `MostOriginal`. A second emit Store plus mandatory `CopySubtree` would clone the unchanged spine, break `==` reuse, and force every original link to be rewritten. That is allowed only if emit keeps parse nodes as the shared spine (append new nodes into the parse Store, or let the emit tree hold parse `GlobalRef`s). The earlier β line "emit is a second Store and `CopySubtree` is the primitive" is incompatible with today's sharing.
 
 ### Not a functional kill (checked)
 
 - **Lexer.** `Scanner` returns `Kind`, `TokenFlags`, and text (`scanner.go`). LS token-at-position rescan uses text+pos (`astnav/tokens.go`). Token objects, when created, live in `SourceFile.tokenCache` keyed by parent `*Node` (`ast.go:2917`). Key becomes `NodeRef`.
 - **Node-level incremental parse.** Overlay changes rewrite content+hash (`overlayfs.go`). `ParseCacheKey` includes the hash (`parsecache.go`). Edits reparse the file. `parser.go` still has a commented `!!! incremental parsing` stub; it is unused.
 - **Same-snapshot LS caches.** `jsdocCache` / `tokenCache` / `declarationMap` key on `*Node` while that `SourceFile` lives. They do not survive `DidChangeFile`. Key substitution is enough.
-- **`GetReparsedNodeForNode` pointer identity.** It searches by loc containment and kind+loc.
-- **In-file `==` on `*Node`.** Becomes `NodeRef` equality in one Store. Cross-file `Symbol.Declarations` / `ValueDeclaration` already have `GlobalRef`.
-- **`PagedLinkStore` keyed by `GetNodeId`.** `GlobalRef` works as a `uint64` key (high bits go through `pageMap` in `core/linkstore.go`). Per-Store `NodeRef` pages are denser. Neither is a correctness break.
+- `GetReparsedNodeForNode` **pointer identity.** It searches by loc containment and kind+loc.
+- **In-file** `==` **on** `*Node`**.** Becomes `NodeRef` equality in one Store. Cross-file `Symbol.Declarations` / `ValueDeclaration` already have `GlobalRef`.
+- `PagedLinkStore` **keyed by** `GetNodeId`**.** `GlobalRef` works as a `uint64` key (high bits go through `pageMap` in `core/linkstore.go`). Per-Store `NodeRef` pages are denser. Neither is a correctness break.
 - **JSON config path.** Independent of whether Store can represent a TypeScript file.
+
+
 
 ## What "β is done" means
 
 β is done when the functional constraints above are written and the layout+identity code matches them, so a parser wave can start without discovering a silent semantic hole. JSON is out of that bar.
 
-| Exit item | State |
-| --- | --- |
-| Layout bet has package-level evidence | done |
-| Cross-store identity exists in code | done (`store_identity.go`) |
-| Functional constraints written from live parser/binder/checker | done (this section) |
+
+| Exit item                                                                                             | State                                                                                                                            |
+| ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Layout bet has package-level evidence                                                                 | done                                                                                                                             |
+| Cross-store identity exists in code                                                                   | done (`store_identity.go`)                                                                                                       |
+| Functional constraints written from live parser/binder/checker                                        | done (this section)                                                                                                              |
 | Header/side-map split implemented for TokenFlags, Locals, FlowNode, NextContainer, extra intern kinds | TokenFlags on header; generated scalar/string/object value slots; FlowNode / Locals / NextContainer side maps; Intern after Seal |
-| Child slots and lists remain writable after the host exists (JSDoc reparse + lazy TS JSDoc) | done (`SetChild`, `SetList`, Intern after Seal) |
-| Synthetics and emit updates append into the parse Store | `NewFactoryOn`; cross-file shared children use sparse `GlobalRef` edge tables |
-| Store-to-SourceFile metadata map | `Store.SetSourceFile` keeps the per-file metadata owner; `StoreSet.SetFile` / `File` resolves it across stores |
-| `ListRef` in schema + `CopySubtree` remaps lists | done (`list0`, ArrayLiteral, FunctionExpression params, `copyList`) |
-| `GOGC` / `GOMEMLIMIT`-only baseline on a large `tsgo` run | PASS-PERF on the TypeScript v6.0.3 CI smoke project (see [cmd/tsc GOGC baseline](#cmdtsc-gogc-baseline)) |
+| Child slots and lists remain writable after the host exists (JSDoc reparse + lazy TS JSDoc)           | done (`SetChild`, `SetList`, Intern after Seal)                                                                                  |
+| Synthetics and emit updates append into the parse Store                                               | `NewFactoryOn`; cross-file shared children use sparse `GlobalRef` edge tables                                                    |
+| Store-to-SourceFile metadata map                                                                      | `Store.SetSourceFile` keeps the per-file metadata owner; `StoreSet.SetFile` / `File` resolves it across stores                   |
+| `ListRef` in schema + `CopySubtree` remaps lists                                                      | done (`list0`, ArrayLiteral, FunctionExpression params, `copyList`)                                                              |
+| `GOGC` / `GOMEMLIMIT`-only baseline on a large `tsgo` run                                             | PASS-PERF on the TypeScript v6.0.3 CI smoke project (see [cmd/tsc GOGC baseline](#cmdtsc-gogc-baseline))                         |
+
 
 `BenchmarkNewProgram` (`compiler/program_test.go:308`) is too small for the perf baseline.
 
@@ -262,38 +270,48 @@ Standalone `tsc/testdata/fixtures/compiler/checker.ts --noEmit` still exits 2 (`
 
 ### Unit / race / generate
 
-| Gate | Result |
-| --- | --- |
-| `go -C ./tsc test ./internal/printer ./internal/transformers/... -count=1` | ok (`printer`, `tstransforms`; other transformer packages have no tests) |
-| `./internal/parser ./internal/ast ./internal/binder ./internal/checker ./internal/compiler ./internal/tsoptions` | ok |
-| `./internal/testrunner -run TestLocal/alias` | ok |
-| `-race` parser, ast, printer, binder, checker, compiler, tsoptions | ok |
-| `node --experimental-strip-types tools/scripts/tsc/generate-go-ast.ts` + `gofmt` + `git diff --exit-code` | GENERATE_OK |
-| `git grep ExpandStore -- 'tsc/**/*.go'` | empty |
-| production `FlattenNode` grep | empty |
+
+| Gate                                                                                                             | Result                                                                   |
+| ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `go -C ./tsc test ./internal/printer ./internal/transformers/... -count=1`                                       | ok (`printer`, `tstransforms`; other transformer packages have no tests) |
+| `./internal/parser ./internal/ast ./internal/binder ./internal/checker ./internal/compiler ./internal/tsoptions` | ok                                                                       |
+| `./internal/testrunner -run TestLocal/alias`                                                                     | ok                                                                       |
+| `-race` parser, ast, printer, binder, checker, compiler, tsoptions                                               | ok                                                                       |
+| `node --experimental-strip-types tools/scripts/tsc/generate-go-ast.ts` + `gofmt` + `git diff --exit-code`        | GENERATE_OK                                                              |
+| `git grep ExpandStore -- 'tsc/**/*.go'`                                                                          | empty                                                                    |
+| production `FlattenNode` grep                                                                                    | empty                                                                    |
+
+
+
 
 ### Live (`VERIFY_TSC_RUN_ID=pr6a-6a-20260831T083220`, SHA `049214aa25`)
 
-| Drive | Result |
-| --- | --- |
-| `control-tsc doctor` | PASS, `Version 7.1.0-dev` |
-| `tsc --help` | exit 0 |
-| type-check fixture `-p … --noEmit` | exit 0 |
-| emit-javascript fixture `-p …` | exit 0, nonempty `dist/index.js` contains `greet` / `Hello` |
-| emit from file list `--outDir …/from-files` | exit 0, `index.js` contains `greet`, no `.d.ts` |
-| emit-declarations fixture | exit 0, nonempty `index.js` and `index.d.ts` |
-| CI smoke `-p /tmp/typescript-6.0/src/compiler --noEmit` | exit 0 |
-| CI smoke `--outDir /tmp/store-smoke-out` | exit 0, 78 nonempty `.d.ts` (`emitDeclarationOnly` in that tsconfig) |
-| `checker.ts --noEmit` | exit 2, `error TS2307` |
+
+| Drive                                                   | Result                                                               |
+| ------------------------------------------------------- | -------------------------------------------------------------------- |
+| `control-tsc doctor`                                    | PASS, `Version 7.1.0-dev`                                            |
+| `tsc --help`                                            | exit 0                                                               |
+| type-check fixture `-p … --noEmit`                      | exit 0                                                               |
+| emit-javascript fixture `-p …`                          | exit 0, nonempty `dist/index.js` contains `greet` / `Hello`          |
+| emit from file list `--outDir …/from-files`             | exit 0, `index.js` contains `greet`, no `.d.ts`                      |
+| emit-declarations fixture                               | exit 0, nonempty `index.js` and `index.d.ts`                         |
+| CI smoke `-p /tmp/typescript-6.0/src/compiler --noEmit` | exit 0                                                               |
+| CI smoke `--outDir /tmp/store-smoke-out`                | exit 0, 78 nonempty `.d.ts` (`emitDeclarationOnly` in that tsconfig) |
+| `checker.ts --noEmit`                                   | exit 2, `error TS2307`                                               |
+
+
+
 
 ### Perf vs PR-5 (`21fced2ca1`) and trunk binary
 
 Five interleaved timed runs after one warmup per head. Wall time of `built/local/tsc`. Gate is PR-6 median ≤ 1.10× PR-5. The PR-8 1.05× trunk rule is recorded, not applied.
 
-| Workload | PR-5 median | 6A median | trunk median | 6A/PR-5 | 6A/trunk |
-| --- | --- | --- | --- | --- | --- |
-| `--noEmit checker.ts` (exit 2 all heads) | 0.7903s | 0.6125s | 0.2919s | 0.775 PASS | 2.098 record |
-| `-p typescript-6.0/src/compiler --noEmit` (exit 0) | 0.3949s | 0.2676s | 0.1470s | 0.678 PASS | 1.820 record |
+
+| Workload                                           | PR-5 median | 6A median | trunk median | 6A/PR-5    | 6A/trunk     |
+| -------------------------------------------------- | ----------- | --------- | ------------ | ---------- | ------------ |
+| `--noEmit checker.ts` (exit 2 all heads)           | 0.7903s     | 0.6125s   | 0.2919s      | 0.775 PASS | 2.098 record |
+| `-p typescript-6.0/src/compiler --noEmit` (exit 0) | 0.3949s     | 0.2676s   | 0.1470s      | 0.678 PASS | 1.820 record |
+
 
 Deleting `ExpandStore` did not slow the check versus PR-5. Dual-write plus materialize still miss the trunk 1.05× gate, as expected until PR-7 deletes the pointer tree.
 
@@ -309,13 +327,15 @@ The reviewable microsoft diff should be packed `nodeHeader` / `Handle` / `NodeRe
 
 ### GitHub ids (increment 6–10)
 
-| Id | Branch | SHA | Role |
-| --- | --- | --- | --- |
-| 6 | `cursor/store-pr-6-a9c9` | compiler `049214aa25`, receipts `b1077b1663` | Frozen emit; GitHub `#6` vs `store-pr-5` |
-| 7 | `cursor/store-pr-6b-native-parse-a9c9` | `4636d0b813` | One-shot Store compile path. GitHub `#7` vs `#6`. Parse Store Freeze after bind. Checker synthetics on `Checker.synth`. Emit mutation is the writer lease |
-| 8 | `cursor/store-pr-8-e2e-a9c9` | branch HEAD | e2e, diagnostic equality, 1.05× trunk |
-| 9 | skipped | | Production `*ast.Node` under `tsc/internal/ls` and `tsc/internal/format` is empty. Do not open an empty request |
-| 10 | operator | | microsoft/TypeScript PR citing PR-8 receipts. Out of the 2026-09-02 run |
+
+| Id  | Branch                                 | SHA                                          | Role                                                                                                                                                      |
+| --- | -------------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 6   | `cursor/store-pr-6-a9c9`               | compiler `049214aa25`, receipts `b1077b1663` | Frozen emit; GitHub `#6` vs `store-pr-5`                                                                                                                  |
+| 7   | `cursor/store-pr-6b-native-parse-a9c9` | `4636d0b813`                                 | One-shot Store compile path. GitHub `#7` vs `#6`. Parse Store Freeze after bind. Checker synthetics on `Checker.synth`. Emit mutation is the writer lease |
+| 8   | `cursor/store-pr-8-e2e-a9c9`           | branch HEAD                                  | e2e, diagnostic equality, 1.05× trunk                                                                                                                     |
+| 9   | skipped                                |                                              | Production `*ast.Node` under `tsc/internal/ls` and `tsc/internal/format` is empty. Do not open an empty request                                           |
+| 10  | operator                               |                                              | microsoft/TypeScript PR citing PR-8 receipts. Out of the 2026-09-02 run                                                                                   |
+
 
 Do not land PR-3 through PR-9 on microsoft/main. This run stops when GitHub `#8` exists and its body cites e2e receipts.
 
@@ -329,11 +349,15 @@ Full `go test ./internal/testrunner -run TestLocal` overflows in `EmitContext.Vi
 
 CI smoke `-p /tmp/typescript-6.0/src/compiler --noEmit`, default GOGC, interleaved with `origin/main` on the same machine. Gate is HEAD median ≤ 1.05× trunk.
 
-| Head | SHA | median | notes |
-| --- | --- | --- | --- |
-| PR-6 | `049214aa25` (docs-only vs `b1077b1663`) | 1.559s | three isolated runs, 2026-09-02 |
-| PR-7 / PR-8 base | `4636d0b813` | 1.543s | ratio vs PR-6 = 0.990 PASS (1.10 gate) |
-| origin/main | pending | pending | fill from the PR-8 interleaved probe |
+
+| Head             | SHA                                      | median  | notes                                  |
+| ---------------- | ---------------------------------------- | ------- | -------------------------------------- |
+| PR-6             | `049214aa25` (docs-only vs `b1077b1663`) | 1.559s  | three isolated runs, 2026-09-02        |
+| PR-7 / PR-8 base | `4636d0b813`                             | 1.543s  | ratio vs PR-6 = 0.990 PASS (1.10 gate) |
+| origin/main      | pending                                  | pending | fill from the PR-8 interleaved probe   |
+
+
+
 
 ### What HEAD still has
 
@@ -357,6 +381,8 @@ Production `ParseSourceFile` for TS/JS tries `tryParseSourceHandle`, then `Mater
 - Type predicates: lookAhead-only (`isNativeTypePredicateStart`). Do not Alloc then Restore.
 - Direct `SetChild` across stores still panics. Checker synthetics that share a child from another file use sparse `GlobalRef` edges.
 
+
+
 ### Next edits (one PR, one compile at the end)
 
 1. Rewrite `parser.go` in place onto `ast.Factory` / Handle, including JSX. Delete `parser_handle.go`, `parser_handle_gen.go`, `parser_*_store.go`.
@@ -377,6 +403,8 @@ If this Cloud Agent VM is still running:
 - Plan markdown is **CRLF**. Python rewrites must keep `\r\n`. `control-tsc` files stay LF.
 - Do not commit `tsc/testdata/fixtures/compiler/checker.js` if it reappears.
 - `ManagePullRequest` accepts `https://github.com/no-yan/typescript/pull/7` (lowercase). `https://github.com/no-yan/TypeScript/pull/7` is rejected as "PR URL must belong to the current repository". `git push -u origin <branch>` works. `gh` is read-only for writes.
+
+
 
 ### Scale (so the rewrite is not under-scoped)
 
@@ -402,6 +430,8 @@ The original armed `/goal` string is historical. Success is: PR-10 exists agains
 - Draft. Parser work is `fb5bcfaf55` then `00225bf344`. Later commits on the branch are the course-correction docs and `Handle.IsNil`.
 - Old chat said “GitHub `#7` is 6B, not program PR-7”. After the increment, GitHub `#7` **is** program PR-7 (the one-shot). e2e is the next GitHub PR (program PR-8) once opened.
 
+
+
 ### Bugs already fixed in the native producer (`00225bf344`)
 
 Do not regress these when folding into `parser.go`:
@@ -410,6 +440,8 @@ Do not regress these when folding into `parser.go`:
 - Printer `ArrayBindingPattern`: holes must be `BindingElement` with nil members, not `OmittedExpression`.
 - Printer `ModuleDeclaration`: `namespace a.b {}` must nest `ModuleDeclaration`s with a synthetic export on the inner one, not a `QualifiedName` name.
 - Materialize needed `KindNamespaceExportDeclaration` and `KindOutKeyword`. After materialize deletion those kinds must still exist as Store slots.
+
+
 
 ### What was verified, and what must not be re-run as a destination
 
@@ -426,11 +458,15 @@ At `00225bf344` (native parse, still materializing): `go -C ./tsc test` ok for p
 - `NodeFactory.New*` already dual-writes through `storeAlloc` when `AttachStore` is set. That is why pointer parse plus Store is slower than Handle-only, and why deleting dual-write is the perf bet.
 - `Handle.IsNil` is `s == nil || id == 0`. `NodeRef(0)` is optional-absent, not `NodeIsMissing`.
 
+
+
 ### Skills and proof (repo paths, not `/tmp`)
 
 - CLI drive: `.cursor/skills/verify-tsc/SKILL.md` and `features/README.md`. Launch with `VERIFY_TSC_RUN_ID=… ./.cursor/skills/verify-tsc/scripts/control-tsc launch` then `doctor`.
 - Store gates: `.github/skills/store-ast-verification/SKILL.md`.
 - Walkthrough images, if taken: `/opt/cursor/artifacts/` (lane names are `pr7-lane*.png`, not `pr6b-lane*`).
+
+
 
 ### New VM: `/tmp` binaries will be gone
 
@@ -454,3 +490,4 @@ JSON and expression-only native slices already landed on frozen `#6`. Do not res
 - `gh` is read-only. Open/update PRs with `ManagePullRequest`. Push with `git push -u origin <branch>`.
 - This origin has no `pstack/` on `main`. Playbook `git show origin/main:pstack/...` fails; that is expected.
 - Operator-facing replies are Japanese. Repo docs stay English.
+

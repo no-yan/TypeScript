@@ -79,14 +79,17 @@ type Store struct {
 	internBuf      []byte
 	internOff      []uint32 // intern id i occupies internBuf[internOff[i]:internOff[i+1]]
 	internIdx      map[string]uint32
-	symbols        map[NodeRef]*Symbol
-	localSymbols   map[NodeRef]*Symbol
-	flows          map[NodeRef]*FlowNode
-	endFlows       map[NodeRef]*FlowNode
-	returnFlows    map[NodeRef]*FlowNode
-	locals         map[NodeRef]SymbolTable
-	nextContainer  map[NodeRef]NodeRef
-	scalarValues   map[uint64]uint64 // packed NodeRef/value-slot key; pointer-free
+	// Symbol and Flow mirror high-fill pointer-AST node fields as dense
+	// columns. End/return flow, localSymbol, Locals, and NextContainer stay
+	// maps: few nodes set them, and pre-sizing those columns raises B/op.
+	symbols       []*Symbol
+	localSymbols  map[NodeRef]*Symbol
+	flows         []*FlowNode
+	endFlows      map[NodeRef]*FlowNode
+	returnFlows   map[NodeRef]*FlowNode
+	locals        map[NodeRef]SymbolTable
+	nextContainer map[NodeRef]NodeRef
+	scalarValues  map[uint64]uint64 // packed NodeRef/value-slot key; pointer-free
 	stringValues   map[uint64]uint32 // intern ids keyed by NodeRef/value-slot
 	objectValues   map[uint64]any    // sparse pointer/slice kind-specific values
 	externalChild  map[uint64]GlobalRef
@@ -281,13 +284,20 @@ func (s *Store) Restore(cp StoreCheckpoint) {
 	s.lists = s.lists[:cp.lists]
 	s.children = s.children[:cp.children]
 	s.listSlots = s.listSlots[:cp.listSlots]
-	cutNodeMap(s.symbols, NodeRef(cp.nodes))
+	s.symbols = truncateCol(s.symbols, cp.nodes)
+	s.flows = truncateCol(s.flows, cp.nodes)
 	cutNodeMap(s.localSymbols, NodeRef(cp.nodes))
-	cutNodeMap(s.flows, NodeRef(cp.nodes))
 	cutNodeMap(s.endFlows, NodeRef(cp.nodes))
 	cutNodeMap(s.returnFlows, NodeRef(cp.nodes))
 	cutNodeMap(s.locals, NodeRef(cp.nodes))
 	cutNodeMap(s.nextContainer, NodeRef(cp.nodes))
+}
+
+func truncateCol[T any](col []T, n int) []T {
+	if len(col) > n {
+		return col[:n]
+	}
+	return col
 }
 
 func cutNodeMap[V any](m map[NodeRef]V, min NodeRef) {
@@ -426,26 +436,61 @@ func (s *Store) ExternalListAt(list ListRef, i int) GlobalRef {
 	return s.externalList[uint64(list)<<32|uint64(uint32(i))]
 }
 
+func (s *Store) PrepareBindTables() {
+	if s == nil {
+		return
+	}
+	s.mustMutate()
+	n := len(s.nodes)
+	if n < 1 {
+		return
+	}
+	s.symbols = ensureCol(s.symbols, n)
+	s.flows = ensureCol(s.flows, n)
+}
+
+func ensureCol[T any](col []T, n int) []T {
+	if len(col) >= n {
+		return col
+	}
+	grown := make([]T, n)
+	copy(grown, col)
+	return grown
+}
+
+// putCol writes col[ref], growing geometrically so Stores that were not
+// pre-sized by PrepareBindTables (checker synthetics) stay amortized O(1).
+func putCol[T any](col *[]T, ref NodeRef, v T) {
+	i := int(ref)
+	if i >= len(*col) {
+		grown := make([]T, max(i+1, 2*len(*col)))
+		copy(grown, *col)
+		*col = grown
+	}
+	(*col)[i] = v
+}
+
+func getCol[T any](col []T, ref NodeRef) (z T) {
+	i := int(ref)
+	if i < len(col) {
+		return col[i]
+	}
+	return z
+}
+
 func (s *Store) SetSymbol(ref NodeRef, sym *Symbol) {
 	if s == nil || ref == 0 {
 		return
 	}
 	s.mustMutate()
-	if sym == nil {
-		delete(s.symbols, ref)
-		return
-	}
-	if s.symbols == nil {
-		s.symbols = make(map[NodeRef]*Symbol)
-	}
-	s.symbols[ref] = sym
+	putCol(&s.symbols, ref, sym)
 }
 
 func (s *Store) Symbol(ref NodeRef) *Symbol {
 	if s == nil || ref == 0 {
 		return nil
 	}
-	return s.symbols[ref]
+	return getCol(s.symbols, ref)
 }
 
 func (s *Store) SetLocalSymbol(ref NodeRef, sym *Symbol) {
@@ -475,21 +520,14 @@ func (s *Store) SetFlow(ref NodeRef, flow *FlowNode) {
 		return
 	}
 	s.mustMutate()
-	if flow == nil {
-		delete(s.flows, ref)
-		return
-	}
-	if s.flows == nil {
-		s.flows = make(map[NodeRef]*FlowNode)
-	}
-	s.flows[ref] = flow
+	putCol(&s.flows, ref, flow)
 }
 
 func (s *Store) Flow(ref NodeRef) *FlowNode {
 	if s == nil || ref == 0 {
 		return nil
 	}
-	return s.flows[ref]
+	return getCol(s.flows, ref)
 }
 
 func (s *Store) SetEndFlow(ref NodeRef, flow *FlowNode) {

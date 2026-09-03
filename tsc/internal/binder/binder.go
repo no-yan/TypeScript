@@ -103,6 +103,9 @@ func bindSourceFile(file *ast.SourceFile) {
 		defer putBinder(b)
 		b.file = file
 		ast.RegisterFile(file)
+		if store := file.ParseStore(); store != nil {
+			store.PrepareBindTables()
+		}
 		b.unreachableFlow = b.newFlowNode(ast.FlowFlagsUnreachable)
 		b.bind(file.ParseRoot())
 		b.bindDeferredExpandoAssignments()
