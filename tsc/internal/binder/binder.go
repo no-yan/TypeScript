@@ -248,11 +248,9 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 	case ast.KindObjectLiteralExpression:
 		b.bindAnonymousDeclarationRef(id, kind, ast.SymbolFlagsObjectLiteral, ast.InternalSymbolNameObject)
 	case ast.KindFunctionExpression, ast.KindArrowFunction:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindFunctionExpression(node)
+		b.bindFunctionExpressionRef(id, kind)
 	case ast.KindClassExpression, ast.KindClassDeclaration:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindClassLikeDeclaration(node)
+		b.bindClassLikeDeclarationRef(id, kind)
 	case ast.KindInterfaceDeclaration:
 		b.bindBlockScopedDeclarationRef(id, kind, ast.SymbolFlagsInterface, ast.SymbolFlagsInterfaceExcludes)
 	case ast.KindCallExpression:
@@ -973,16 +971,21 @@ func (b *Binder) hasExportDeclarations(node ast.Handle) bool {
 	return false
 }
 func (b *Binder) bindFunctionExpression(node ast.Handle) {
-	if !b.file.IsDeclarationFile && node.Flags()&ast.NodeFlagsAmbient == 0 && ast.IsAsyncFunction(node) {
+	b.bindFunctionExpressionRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindFunctionExpressionRef(ref ast.NodeRef, kind ast.Kind) {
+	if !b.file.IsDeclarationFile && b.store.FlagsAt(ref)&ast.NodeFlagsAmbient == 0 && b.isAsyncFunctionRef(ref, kind) {
 		b.emitFlags |= ast.NodeFlagsHasAsyncFunctions
 	}
-	setFlowNode(node, b.currentFlow)
+	b.store.SetFlow(ref, b.currentFlow)
 	bindingName := ast.InternalSymbolNameFunction
-	if ast.IsFunctionExpression(node) && !node.FunctionExpressionName().IsNil() {
-		b.checkStrictModeFunctionName(node)
-		bindingName = node.FunctionExpressionName().Text()
+	nameRef, _ := b.nameOfDeclarationRef(ref, kind)
+	if kind == ast.KindFunctionExpression && nameRef != 0 {
+		b.checkStrictModeFunctionNameRef(ref, kind)
+		bindingName = b.store.TextAt(nameRef)
 	}
-	b.bindAnonymousDeclaration(node, ast.SymbolFlagsFunction, bindingName)
+	b.bindAnonymousDeclarationRef(ref, kind, ast.SymbolFlagsFunction, bindingName)
 }
 func (b *Binder) bindCallExpression(node ast.Handle) {
 	if b.file.CommonJSModuleIndicator.IsNil() && ast.IsRequireCall(node, false) {
@@ -1002,18 +1005,22 @@ func (b *Binder) setCommonJSModuleIndicator(node ast.Handle) bool {
 	return true
 }
 func (b *Binder) bindClassLikeDeclaration(node ast.Handle) {
-	name := node.Name()
-	switch node.Kind {
+	b.bindClassLikeDeclarationRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindClassLikeDeclarationRef(ref ast.NodeRef, kind ast.Kind) {
+	nameRef, _ := b.nameOfDeclarationRef(ref, kind)
+	switch kind {
 	case ast.KindClassDeclaration:
-		b.bindBlockScopedDeclaration(node, ast.SymbolFlagsClass, ast.SymbolFlagsClassExcludes)
+		b.bindBlockScopedDeclarationRef(ref, kind, ast.SymbolFlagsClass, ast.SymbolFlagsClassExcludes)
 	case ast.KindClassExpression:
 		nameText := ast.InternalSymbolNameClass
-		if !name.IsNil() {
-			nameText = name.Text()
+		if nameRef != 0 {
+			nameText = b.store.TextAt(nameRef)
 		}
-		b.bindAnonymousDeclaration(node, ast.SymbolFlagsClass, nameText)
+		b.bindAnonymousDeclarationRef(ref, kind, ast.SymbolFlagsClass, nameText)
 	}
-	symbol := node.Symbol()
+	symbol := b.symbol(ref)
 	prototypeSymbol := b.newSymbol(ast.SymbolFlagsProperty|ast.SymbolFlagsPrototype, "prototype")
 	symbolExport := ast.GetExports(symbol)[prototypeSymbol.Name]
 	if symbolExport != nil {
