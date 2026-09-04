@@ -423,9 +423,10 @@ func (tx *LegacyDecoratorsTransformer) transformClassDeclarationWithClassDecorat
 	isExport := ast.HasSyntacticModifier(node, ast.ModifierFlagsExport)
 	isDefault := ast.HasSyntacticModifier(node, ast.ModifierFlagsDefault)
 	var modifiers ast.ListRef
-	if node.Modifiers() != 0 && len(node.Store().ListSlice(node.Modifiers())) > 0 {
-		modifierNodes := core.Filter(node.Store().ListSlice(node.Modifiers()), isNotExportOrDefaultOrDecorator)
-		if len(modifierNodes) != len(node.Store().ListSlice(node.Modifiers())) {
+	if node.Modifiers() != 0 && node.Store().ListLen(node.Modifiers()) > 0 {
+		mods := node.Store().ListSlice(node.Modifiers())
+		modifierNodes := core.Filter(mods.Slice(), isNotExportOrDefaultOrDecorator)
+		if len(modifierNodes) != mods.Len() {
 			modifiers = tx.Factory().RelocateList(tx.Factory().NewModifierList(modifierNodes), node.Store().ListLoc(node.Modifiers()))
 		} else {
 			modifiers = node.Modifiers()
@@ -441,11 +442,11 @@ func (tx *LegacyDecoratorsTransformer) transformClassDeclarationWithClassDecorat
 	heritageClauses := tx.Visitor().VisitNodes(node.HeritageClauses())
 	members := tx.Visitor().VisitNodes(node.MemberList())
 	members, decorationStatements := tx.transformDecoratorsOfClassElements(node, members)
-	assignClassAliasInStaticBlock := tx.languageVersion >= core.ScriptTargetES2022 && !classAlias.IsNil() && members != 0 && name.Store().ListLen(members) > 0 && core.Some(name.Store().ListSlice(members), isClassStaticBlockDeclarationOrStaticProperty)
+	assignClassAliasInStaticBlock := tx.languageVersion >= core.ScriptTargetES2022 && !classAlias.IsNil() && members != 0 && name.Store().ListLen(members) > 0 && name.Store().ListSlice(members).Some(isClassStaticBlockDeclarationOrStaticProperty)
 	if assignClassAliasInStaticBlock {
 		memberList := []ast.Handle{}
 		memberList = append(memberList, tx.Factory().NewClassStaticBlockDeclaration(0, tx.Factory().NewBlock(tx.Factory().NewList([]ast.Handle{tx.Factory().NewExpressionStatement(tx.Factory().NewAssignmentExpression(classAlias, tx.Factory().NewKeywordExpression(ast.KindThisKeyword)))}), false)))
-		memberList = append(memberList, name.Store().ListSlice(members)...)
+		memberList = append(memberList, name.Store().ListSlice(members).Slice()...)
 		newList := tx.Factory().List(name.Store().ListLoc(members), memberList...)
 		members = newList
 	}
@@ -699,7 +700,7 @@ func (tx *LegacyDecoratorsTransformer) transformDecoratorsOfClassElements(node a
 	if hasClassElementWithDecoratorContainingPrivateIdentifierInExpression(node) {
 		var memberNodes []ast.Handle
 		if members != 0 {
-			memberNodes = tx.EmitContext().StoreFile().ParseStore().ListSlice(members)
+			memberNodes = tx.EmitContext().StoreFile().ParseStore().ListSlice(members).Slice()
 		}
 		members = tx.Factory().NewList(append(append([]ast.Handle{}, memberNodes...), tx.Factory().NewClassStaticBlockDeclaration(0, tx.Factory().NewBlock(tx.Factory().NewList(decorationStatements), true))))
 		decorationStatements = nil

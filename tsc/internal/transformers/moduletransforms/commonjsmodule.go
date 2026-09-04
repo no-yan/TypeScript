@@ -21,10 +21,10 @@ func locPtr(h ast.Handle) *core.TextRange {
 
 type CommonJSModuleTransformer struct {
 	transformers.Transformer
-	topLevelVisitor *ast.HandleVisitor
-	topLevelNestedVisitor *ast.HandleVisitor
-	discardedValueVisitor *ast.HandleVisitor
-	assignmentPatternVisitor *ast.HandleVisitor
+	topLevelVisitor           *ast.HandleVisitor
+	topLevelNestedVisitor     *ast.HandleVisitor
+	discardedValueVisitor     *ast.HandleVisitor
+	assignmentPatternVisitor  *ast.HandleVisitor
 	compilerOptions           *core.CompilerOptions
 	resolver                  binder.ReferenceResolver
 	getEmitModuleFormatOfFile func(file ast.HasFileName) core.ModuleKind
@@ -33,7 +33,7 @@ type CommonJSModuleTransformer struct {
 	currentSourceFile         *ast.SourceFile
 	currentModuleInfo         *externalModuleInfo
 	parentNode                ast.Handle
-	currentNode ast.Handle
+	currentNode               ast.Handle
 }
 
 func NewCommonJSModuleTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
@@ -716,7 +716,7 @@ func (tx *CommonJSModuleTransformer) visitTopLevelNestedForInOrOfStatement(node 
 			body := tx.EmitContext().VisitIterationBody(node.Statement(), tx.topLevelNestedVisitor)
 			if ast.IsBlock(body) {
 				block := body
-				bodyStatements := append(exportStatements, block.Statements()...)
+				bodyStatements := append(exportStatements, block.StatementsSeq().Slice()...)
 				bodyStatementList := tx.Factory().List(block.Store().ListLoc(block.StatementList()), bodyStatements...)
 				body = tx.Factory().UpdateBlock(block, bodyStatementList, block.MultiLine())
 			} else {

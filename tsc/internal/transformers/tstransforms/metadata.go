@@ -11,12 +11,12 @@ const USE_NEW_TYPE_METADATA_FORMAT = false
 
 type MetadataTransformer struct {
 	transformers.Transformer
-	legacyDecorators bool
-	resolver         printer.EmitResolver
-	serializer       *metadataSerializer
-	languageVersion  core.ScriptTarget
-	strictNullChecks bool
-	parent           ast.Handle
+	legacyDecorators    bool
+	resolver            printer.EmitResolver
+	serializer          *metadataSerializer
+	languageVersion     core.ScriptTarget
+	strictNullChecks    bool
+	parent              ast.Handle
 	currentLexicalScope ast.Handle
 }
 
@@ -118,7 +118,7 @@ func (tx *MetadataTransformer) injectClassTypeMetadata(list ast.ListRef, node as
 	if len(metadata) > 0 {
 		var originalNodes []ast.Handle
 		if list != 0 {
-			originalNodes = node.Store().ListSlice(list)
+			originalNodes = node.Store().ListSlice(list).Slice()
 		}
 		if len(originalNodes) == 0 {
 			res := tx.Factory().NewModifierList(metadata)
@@ -157,7 +157,7 @@ func (tx *MetadataTransformer) injectClassElementTypeMetadata(list ast.ListRef, 
 	if len(metadata) > 0 {
 		var originalNodes []ast.Handle
 		if list != 0 {
-			originalNodes = node.Store().ListSlice(list)
+			originalNodes = node.Store().ListSlice(list).Slice()
 		}
 		if len(originalNodes) == 0 {
 			res := tx.Factory().NewModifierList(metadata)

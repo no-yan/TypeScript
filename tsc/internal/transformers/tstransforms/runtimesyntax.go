@@ -12,8 +12,8 @@ import (
 
 type RuntimeSyntaxTransformer struct {
 	transformers.Transformer
-	compilerOptions *core.CompilerOptions
-	parentNode      ast.Handle
+	compilerOptions                     *core.CompilerOptions
+	parentNode                          ast.Handle
 	currentNode                         ast.Handle
 	currentSourceFile                   ast.Handle
 	currentScope                        ast.Handle
@@ -485,7 +485,7 @@ func (tx *RuntimeSyntaxTransformer) visitClassDeclaration(node ast.Handle) ast.H
 			}
 		}
 		if len(newMembers) > 0 {
-			newMembers = append(newMembers, tx.EmitContext().StoreFile().ParseStore().ListSlice(members)...)
+			newMembers = append(newMembers, tx.EmitContext().StoreFile().ParseStore().ListSlice(members).Slice()...)
 			members = tx.Factory().NewList(newMembers)
 		}
 	}
@@ -514,7 +514,7 @@ func (tx *RuntimeSyntaxTransformer) visitClassExpression(node ast.Handle) ast.Ha
 			}
 		}
 		if len(newMembers) > 0 {
-			newMembers = append(newMembers, tx.EmitContext().StoreFile().ParseStore().ListSlice(members)...)
+			newMembers = append(newMembers, tx.EmitContext().StoreFile().ParseStore().ListSlice(members).Slice()...)
 			members = tx.Factory().NewList(newMembers)
 		}
 	}
