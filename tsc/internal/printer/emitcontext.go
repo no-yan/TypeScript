@@ -177,11 +177,15 @@ func (c *EmitContext) EndVariableEnvironment() []ast.Handle {
 }
 
 func (c *EmitContext) EndAndMergeVariableEnvironmentList(statements ast.ListRef) ast.ListRef {
+	declarations := c.EndVariableEnvironment()
+	if len(declarations) == 0 {
+		return statements
+	}
 	var nodes []ast.Handle
 	if statements != 0 {
-		nodes = c.storeFile.ParseStore().ListSlice(statements)
+		nodes = c.storeFile.ParseStore().ListSlice(statements).Slice()
 	}
-	if result, changed := c.endAndMergeVariableEnvironment(nodes); changed {
+	if result, changed := c.mergeEnvironment(nodes, declarations); changed {
 		return c.StoreFactory().List(c.storeFile.ParseStore().ListLoc(statements), result...)
 	}
 	return statements
@@ -228,11 +232,15 @@ func (c *EmitContext) EndLexicalEnvironment() []ast.Handle {
 }
 
 func (c *EmitContext) EndAndMergeLexicalEnvironmentList(statements ast.ListRef) ast.ListRef {
+	declarations := c.EndLexicalEnvironment()
+	if len(declarations) == 0 {
+		return statements
+	}
 	var nodes []ast.Handle
 	if statements != 0 {
-		nodes = c.storeFile.ParseStore().ListSlice(statements)
+		nodes = c.storeFile.ParseStore().ListSlice(statements).Slice()
 	}
-	if result, changed := c.endAndMergeLexicalEnvironment(nodes); changed {
+	if result, changed := c.mergeEnvironment(nodes, declarations); changed {
 		return c.StoreFactory().List(c.storeFile.ParseStore().ListLoc(statements), result...)
 	}
 	return statements
@@ -255,7 +263,14 @@ func (c *EmitContext) AddLexicalDeclaration(name ast.Handle) {
 }
 
 func (c *EmitContext) MergeEnvironmentList(statements ast.ListRef, declarations []ast.Handle) ast.ListRef {
-	if result, changed := c.mergeEnvironment(c.storeFile.ParseStore().ListSlice(statements), declarations); changed {
+	if len(declarations) == 0 {
+		return statements
+	}
+	var nodes []ast.Handle
+	if statements != 0 {
+		nodes = c.storeFile.ParseStore().ListSlice(statements).Slice()
+	}
+	if result, changed := c.mergeEnvironment(nodes, declarations); changed {
 		return c.StoreFactory().List(c.storeFile.ParseStore().ListLoc(statements), result...)
 	}
 	return statements
@@ -324,7 +339,7 @@ func isHoistedVariable(node ast.Handle) bool {
 	return ast.IsIdentifier(node.Name()) && node.Initializer().IsNil()
 }
 func (c *EmitContext) isHoistedVariableStatement(node ast.Handle) bool {
-	return c.isCustomPrologue(node) && ast.IsVariableStatement(node) && core.Every(node.Store().ListSlice(node.VariableStatementDeclarationList().VariableDeclarationListDeclarations()), isHoistedVariable)
+	return c.isCustomPrologue(node) && ast.IsVariableStatement(node) && node.VariableStatementDeclarationList().DeclarationsSeq().Every(isHoistedVariable)
 }
 
 func (c *EmitContext) HasAutoGenerateInfo(node ast.Handle) bool {
@@ -703,13 +718,13 @@ func (c *EmitContext) addDefaultValueAssignmentsIfNeeded(nodeList ast.ListRef) a
 	if nodeList == 0 {
 		return nodeList
 	}
+	seq := c.storeFile.ParseStore().ListSlice(nodeList)
 	var result []ast.Handle
-	nodes := c.storeFile.ParseStore().ListSlice(nodeList)
-	for i, parameter := range nodes {
+	for i, parameter := range seq {
 		updated := c.addDefaultValueAssignmentIfNeeded(parameter)
 		if updated != parameter {
 			if result == nil {
-				result = slices.Clone(nodes)
+				result = seq.Slice()
 			}
 			result[i] = updated
 		}

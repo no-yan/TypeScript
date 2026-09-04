@@ -103,7 +103,7 @@ func getTokenAtPosition(sourceFile *ast.SourceFile, position int, allowPositionI
 				left = sourceFile.ParseStore().ListLoc(nodeList).End()
 				nodeAfterLeft = ast.Handle{}
 			} else if sourceFile.ParseStore().ListLoc(nodeList).Pos() <= position {
-				nodes := sourceFile.ParseStore().ListSlice(nodeList)
+				nodes := sourceFile.ParseStore().ListSlice(nodeList).Slice()
 				index, match := core.BinarySearchUniqueFunc(nodes, func(middle int, node ast.Handle) int {
 					if node.Flags()&ast.NodeFlagsReparsed != 0 {
 						return 0
@@ -214,7 +214,9 @@ func findRightmostNode(node ast.Handle) ast.Handle {
 	}
 	visitNodes := func(nodeList ast.ListRef, visitor *ast.HandleVisitor) ast.ListRef {
 		if nodeList != 0 {
-			if rightmost := ast.FindLastVisibleNode(node.Store().ListSlice(nodeList)); !rightmost.IsNil() {
+			if rightmost := node.Store().ListSlice(nodeList).LastMatching(func(h ast.Handle) bool {
+				return h.Flags()&ast.NodeFlagsReparsed == 0
+			}); !rightmost.IsNil() {
 				next = rightmost
 			}
 		}
@@ -280,7 +282,7 @@ func FindPrecedingTokenEx(sourceFile *ast.SourceFile, position int, startNode as
 				return nodeList
 			}
 			if nodeList != 0 && sourceFile.ParseStore().ListLen(nodeList) > 0 {
-				nodes := sourceFile.ParseStore().ListSlice(nodeList)
+				nodes := sourceFile.ParseStore().ListSlice(nodeList).Slice()
 				index, match := core.BinarySearchUniqueFunc(nodes, func(middle int, _ ast.Handle) int {
 					if nodes[middle].Flags()&ast.NodeFlagsReparsed != 0 {
 						return comparisonLessThan
@@ -403,7 +405,8 @@ func findRightmostValidToken(endPos int, sourceFile *ast.SourceFile, containingN
 		visitNodes := func(nodeList ast.ListRef, _ *ast.HandleVisitor) ast.ListRef {
 			if nodeList != 0 && n.Store().ListLen(nodeList) > 0 {
 				hasChildren = true
-				index, _ := core.BinarySearchUniqueFunc(n.Store().ListSlice(nodeList), func(middle int, node ast.Handle) int {
+				nodes := n.Store().ListSlice(nodeList).Slice()
+				index, _ := core.BinarySearchUniqueFunc(nodes, func(middle int, node ast.Handle) int {
 					if node.End() > endPos {
 						return comparisonGreaterThan
 					}
@@ -505,7 +508,7 @@ func FindNextToken(previousToken ast.Handle, parent ast.Handle, file *ast.Source
 		}
 		visitNodes := func(nodeList ast.ListRef, _ *ast.HandleVisitor) ast.ListRef {
 			if nodeList != 0 && parent.Store().ListLen(nodeList) > 0 && foundNode.IsNil() {
-				nodes := parent.Store().ListSlice(nodeList)
+				nodes := parent.Store().ListSlice(nodeList).Slice()
 				index, match := core.BinarySearchUniqueFunc(nodes, func(_ int, node ast.Handle) int {
 					if node.Flags()&ast.NodeFlagsReparsed != 0 {
 						return comparisonLessThan

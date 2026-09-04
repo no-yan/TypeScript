@@ -135,9 +135,7 @@ func getActualIndentationForListItemBeforeComma(commaToken ast.Handle, sourceFil
 	if containingList == 0 {
 		return -1
 	}
-	commaIndex := core.FindIndex(commaToken.Store().ListSlice(containingList), func(n ast.Handle) bool {
-		return n == commaToken
-	})
+	commaIndex := commaToken.Store().ListIndexOf(containingList, commaToken)
 	if commaIndex > 0 {
 		return deriveActualIndentationFromList(containingList, commaIndex-1, sourceFile, options)
 	}
@@ -210,7 +208,7 @@ func getIndentationForNodeWorker(current ast.Handle, currentStartLine int, curre
 			var firstListChild ast.Handle
 			containerList := GetContainingList(current, sourceFile)
 			if containerList != 0 {
-				firstListChild = core.FirstOrNil(current.Store().ListSlice(containerList))
+				firstListChild = current.Store().ListSlice(containerList).First()
 			}
 			var listIndentsChild bool
 			if !firstListChild.IsNil() {
@@ -263,9 +261,7 @@ func getActualIndentationForListItem(node ast.Handle, sourceFile *ast.SourceFile
 	}
 	containingList := GetContainingList(node, sourceFile)
 	if containingList != 0 {
-		index := core.FindIndex(sourceFile.ParseStore().ListSlice(containingList), func(e ast.Handle) bool {
-			return e == node
-		})
+		index := sourceFile.ParseStore().ListIndexOf(containingList, node)
 		if index != -1 {
 			result := deriveActualIndentationFromList(containingList, index, sourceFile, options)
 			if result != -1 {
