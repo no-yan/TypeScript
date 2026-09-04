@@ -314,20 +314,22 @@ class MissingImplements implements B. {}
 	}, sourceText, core.ScriptKindTS)
 
 	classDecl := file.ParseRoot().Statements()[0]
-	assert.Equal(t, classDecl.Store().ListSlice(classDecl.HeritageClauses())[0].Types()[0].Kind, ast.KindExpressionWithTypeArguments)
-	assert.Equal(t, classDecl.Store().ListSlice(classDecl.HeritageClauses())[1].Types()[0].Kind, ast.KindTypeReference)
+	classStore := classDecl.Store()
+	classClauses := classDecl.HeritageClauses()
+	assert.Equal(t, classStore.ListAt(classClauses, 0).TypesSeq().At(0).Kind, ast.KindExpressionWithTypeArguments)
+	assert.Equal(t, classStore.ListAt(classClauses, 1).TypesSeq().At(0).Kind, ast.KindTypeReference)
 
 	interfaceDecl := file.ParseRoot().Statements()[1]
-	assert.Equal(t, interfaceDecl.Store().ListSlice(interfaceDecl.HeritageClauses())[0].Types()[0].Kind, ast.KindTypeReference)
+	assert.Equal(t, interfaceDecl.Store().ListAt(interfaceDecl.HeritageClauses(), 0).TypesSeq().At(0).Kind, ast.KindTypeReference)
 
 	invalidInterfaceDecl := file.ParseRoot().Statements()[2]
-	assert.Equal(t, invalidInterfaceDecl.Store().ListSlice(invalidInterfaceDecl.HeritageClauses())[0].Types()[0].Kind, ast.KindExpressionWithTypeArguments)
+	assert.Equal(t, invalidInterfaceDecl.Store().ListAt(invalidInterfaceDecl.HeritageClauses(), 0).TypesSeq().At(0).Kind, ast.KindExpressionWithTypeArguments)
 
 	missingExtendsDecl := file.ParseRoot().Statements()[3]
-	assert.Equal(t, missingExtendsDecl.Store().ListSlice(missingExtendsDecl.HeritageClauses())[0].Types()[0].Kind, ast.KindExpressionWithTypeArguments)
+	assert.Equal(t, missingExtendsDecl.Store().ListAt(missingExtendsDecl.HeritageClauses(), 0).TypesSeq().At(0).Kind, ast.KindExpressionWithTypeArguments)
 
 	missingImplementsDecl := file.ParseRoot().Statements()[4]
-	assert.Equal(t, missingImplementsDecl.Store().ListSlice(missingImplementsDecl.HeritageClauses())[0].Types()[0].Kind, ast.KindExpressionWithTypeArguments)
+	assert.Equal(t, missingImplementsDecl.Store().ListAt(missingImplementsDecl.HeritageClauses(), 0).TypesSeq().At(0).Kind, ast.KindExpressionWithTypeArguments)
 }
 
 func TestJSDocImportTypeParentChain(t *testing.T) {
@@ -403,9 +405,9 @@ const value = 0;`
 	jsDocs := typeAlias.JSDoc(file)
 	assert.Equal(t, len(jsDocs), 1)
 	assert.Assert(t, jsDocs[0].JSDocTags() != 0)
-	assert.Equal(t, len((jsDocs[0]).Store().ListSlice(jsDocs[0].JSDocTags())), 1)
+	assert.Equal(t, (jsDocs[0]).Store().ListLen(jsDocs[0].JSDocTags()), 1)
 
-	typeExpression := (jsDocs[0]).Store().ListSlice(jsDocs[0].JSDocTags())[0].TypeExpression()
+	typeExpression := (jsDocs[0]).Store().ListAt(jsDocs[0].JSDocTags(), 0).TypeExpression()
 	assert.Assert(t, !typeExpression.IsNil())
 
 	expected := strings.Join([]string{"(", `"a" |`, `"b"`, ")[]"}, core.NewLineKindLF.GetNewLineCharacter())

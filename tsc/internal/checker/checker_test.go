@@ -46,7 +46,7 @@ foo.bar;`
 	defer done()
 	file := p.GetSourceFile("/foo.ts")
 	interfaceId := file.ParseRoot().Statements()[0].Name()
-	varId := (file.ParseRoot().Statements()[1].VariableStatementDeclarationList()).Store().ListSlice(file.ParseRoot().Statements()[1].VariableStatementDeclarationList().VariableDeclarationListDeclarations())[0].Name()
+	varId := file.ParseRoot().Statements()[1].VariableStatementDeclarationList().Store().ListAt(file.ParseRoot().Statements()[1].VariableStatementDeclarationList().VariableDeclarationListDeclarations(), 0).Name()
 	propAccess := file.ParseRoot().Statements()[2].Expression()
 	nodes := []ast.Handle{interfaceId, varId, propAccess}
 	for _, node := range nodes {
