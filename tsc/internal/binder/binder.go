@@ -224,29 +224,23 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 		b.store.SetFlow(id, b.currentFlow)
 		b.bindVariableDeclarationOrBindingElementRef(id, kind)
 	case ast.KindPropertyDeclaration, ast.KindPropertySignature:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindPropertyWorker(node)
+		b.bindPropertyWorkerRef(id, kind)
 	case ast.KindPropertyAssignment, ast.KindShorthandPropertyAssignment:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindPropertyOrMethodOrAccessor(node, ast.SymbolFlagsProperty, ast.SymbolFlagsPropertyExcludes)
+		b.bindPropertyOrMethodOrAccessorRef(id, kind, ast.SymbolFlagsProperty, ast.SymbolFlagsPropertyExcludes)
 	case ast.KindEnumMember:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindPropertyOrMethodOrAccessor(node, ast.SymbolFlagsEnumMember, ast.SymbolFlagsEnumMemberExcludes)
+		b.bindPropertyOrMethodOrAccessorRef(id, kind, ast.SymbolFlagsEnumMember, ast.SymbolFlagsEnumMemberExcludes)
 	case ast.KindCallSignature, ast.KindConstructSignature, ast.KindIndexSignature:
 		b.declareSymbolAndAddToSymbolTableRef(id, kind, ast.SymbolFlagsSignature, ast.SymbolFlagsNone)
 	case ast.KindMethodDeclaration, ast.KindMethodSignature:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindPropertyOrMethodOrAccessor(node, ast.SymbolFlagsMethod|getOptionalSymbolFlagForNode(node), core.IfElse(ast.IsObjectLiteralMethod(node), ast.SymbolFlagsValue, ast.SymbolFlagsMethodExcludes))
+		b.bindPropertyOrMethodOrAccessorRef(id, kind, ast.SymbolFlagsMethod|b.getOptionalSymbolFlagForRef(id, kind), core.IfElse(b.isObjectLiteralMethodRef(id, kind), ast.SymbolFlagsValue, ast.SymbolFlagsMethodExcludes))
 	case ast.KindFunctionDeclaration:
 		b.bindFunctionDeclarationRef(id, kind)
 	case ast.KindConstructor:
 		b.declareSymbolAndAddToSymbolTableRef(id, kind, ast.SymbolFlagsConstructor, ast.SymbolFlagsNone)
 	case ast.KindGetAccessor:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindPropertyOrMethodOrAccessor(node, ast.SymbolFlagsGetAccessor, ast.SymbolFlagsGetAccessorExcludes)
+		b.bindPropertyOrMethodOrAccessorRef(id, kind, ast.SymbolFlagsGetAccessor, ast.SymbolFlagsGetAccessorExcludes)
 	case ast.KindSetAccessor:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindPropertyOrMethodOrAccessor(node, ast.SymbolFlagsSetAccessor, ast.SymbolFlagsSetAccessorExcludes)
+		b.bindPropertyOrMethodOrAccessorRef(id, kind, ast.SymbolFlagsSetAccessor, ast.SymbolFlagsSetAccessorExcludes)
 	case ast.KindFunctionType, ast.KindConstructorType:
 		b.bindFunctionOrConstructorTypeRef(id, kind)
 	case ast.KindTypeLiteral, ast.KindMappedType:
@@ -834,10 +828,14 @@ func (b *Binder) finishFlowLabel(label *ast.FlowLabel) *ast.FlowNode {
 	return label
 }
 func (b *Binder) bindPropertyWorker(node ast.Handle) {
-	isAutoAccessor := ast.IsAutoAccessorPropertyDeclaration(node)
+	b.bindPropertyWorkerRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindPropertyWorkerRef(ref ast.NodeRef, kind ast.Kind) {
+	isAutoAccessor := kind == ast.KindPropertyDeclaration && b.hasSyntacticModifierRef(ref, kind, ast.ModifierFlagsAccessor)
 	includes := core.IfElse(isAutoAccessor, ast.SymbolFlagsAccessor, ast.SymbolFlagsProperty)
 	excludes := core.IfElse(isAutoAccessor, ast.SymbolFlagsAccessorExcludes, ast.SymbolFlagsPropertyExcludes)
-	b.bindPropertyOrMethodOrAccessor(node, includes|getOptionalSymbolFlagForNode(node), excludes)
+	b.bindPropertyOrMethodOrAccessorRef(ref, kind, includes|b.getOptionalSymbolFlagForRef(ref, kind), excludes)
 }
 func (b *Binder) bindSourceFileIfExternalModule() {
 	b.setExportContextFlag(b.file.ParseRoot())
@@ -1025,17 +1023,46 @@ func (b *Binder) bindClassLikeDeclaration(node ast.Handle) {
 	prototypeSymbol.Parent = symbol
 }
 func (b *Binder) bindPropertyOrMethodOrAccessor(node ast.Handle, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags) {
-	if !b.file.IsDeclarationFile && node.Flags()&ast.NodeFlagsAmbient == 0 && ast.IsAsyncFunction(node) {
+	b.bindPropertyOrMethodOrAccessorRef(node.Ref(), node.Kind, symbolFlags, symbolExcludes)
+}
+
+func (b *Binder) bindPropertyOrMethodOrAccessorRef(ref ast.NodeRef, kind ast.Kind, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags) {
+	if !b.file.IsDeclarationFile && b.store.FlagsAt(ref)&ast.NodeFlagsAmbient == 0 && b.isAsyncFunctionRef(ref, kind) {
 		b.emitFlags |= ast.NodeFlagsHasAsyncFunctions
 	}
-	if b.currentFlow != nil && ast.IsObjectLiteralOrClassExpressionMethodOrAccessor(node) {
-		setFlowNode(node, b.currentFlow)
+	if b.currentFlow != nil && b.isObjectLiteralOrClassExpressionMethodOrAccessorRef(ref, kind) {
+		b.store.SetFlow(ref, b.currentFlow)
 	}
-	if ast.HasDynamicName(node) {
-		b.bindAnonymousDeclaration(node, symbolFlags, ast.InternalSymbolNameComputed)
+	if b.hasDynamicNameRef(ref, kind) {
+		b.bindAnonymousDeclarationRef(ref, kind, symbolFlags, ast.InternalSymbolNameComputed)
 	} else {
-		b.declareSymbolAndAddToSymbolTable(node, symbolFlags, symbolExcludes)
+		b.declareSymbolAndAddToSymbolTableRef(ref, kind, symbolFlags, symbolExcludes)
 	}
+}
+
+func (b *Binder) isObjectLiteralOrClassExpressionMethodOrAccessorRef(ref ast.NodeRef, kind ast.Kind) bool {
+	switch kind {
+	case ast.KindMethodDeclaration, ast.KindGetAccessor, ast.KindSetAccessor:
+		parentKind := b.store.KindAt(b.store.ParentRef(ref))
+		return parentKind == ast.KindObjectLiteralExpression || parentKind == ast.KindClassExpression
+	}
+	return false
+}
+
+func (b *Binder) isObjectLiteralMethodRef(ref ast.NodeRef, kind ast.Kind) bool {
+	return kind == ast.KindMethodDeclaration && b.store.KindAt(b.store.ParentRef(ref)) == ast.KindObjectLiteralExpression
+}
+
+func (b *Binder) questionTokenOfRef(ref ast.NodeRef, kind ast.Kind) ast.NodeRef {
+	if token := b.questionTokenRefGenerated(ref, kind); token != 0 {
+		return token
+	}
+	return b.postfixTokenRefGenerated(ref, kind)
+}
+
+func (b *Binder) getOptionalSymbolFlagForRef(ref ast.NodeRef, kind ast.Kind) ast.SymbolFlags {
+	postfixToken := b.questionTokenOfRef(ref, kind)
+	return core.IfElse(postfixToken != 0 && b.store.KindAt(postfixToken) == ast.KindQuestionToken, ast.SymbolFlagsOptional, ast.SymbolFlagsNone)
 }
 func (b *Binder) bindFunctionOrConstructorType(node ast.Handle) {
 	b.bindFunctionOrConstructorTypeRef(node.Ref(), node.Kind)

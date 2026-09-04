@@ -517,6 +517,25 @@ func (b *Binder) questionTokenRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.N
 	return 0
 }
 
+func (b *Binder) postfixTokenRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.NodeRef {
+	s := b.store
+	switch kind {
+	case ast.KindMethodSignature:
+		return s.ChildRef(ref, 1)
+	case ast.KindMethodDeclaration:
+		return s.ChildRef(ref, 2)
+	case ast.KindPropertySignature:
+		return s.ChildRef(ref, 1)
+	case ast.KindPropertyDeclaration:
+		return s.ChildRef(ref, 1)
+	case ast.KindPropertyAssignment:
+		return s.ChildRef(ref, 1)
+	case ast.KindShorthandPropertyAssignment:
+		return s.ChildRef(ref, 1)
+	}
+	return 0
+}
+
 func (b *Binder) argumentsRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.ListRef {
 	s := b.store
 	switch kind {
