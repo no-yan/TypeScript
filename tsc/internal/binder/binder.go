@@ -1656,8 +1656,7 @@ func (b *Binder) bindContainer(id ast.NodeRef, kind ast.Kind, containerFlags Con
 		saveSeenThisKeyword := b.seenThisKeyword
 		isImmediatelyInvoked := false
 		if containerFlags&ContainerFlagsIsFunctionExpression != 0 {
-			node := ast.HandleOf(b.store, id, kind)
-			isImmediatelyInvoked = !ast.HasSyntacticModifier(node, ast.ModifierFlagsAsync) && !isGeneratorFunctionExpression(node) && !ast.GetImmediatelyInvokedFunctionExpression(node).IsNil()
+			isImmediatelyInvoked = !b.hasSyntacticModifierRef(id, kind, ast.ModifierFlagsAsync) && !b.isGeneratorFunctionExpressionRef(id, kind) && b.getImmediatelyInvokedFunctionExpressionRef(id, kind) != 0
 		}
 		if !isImmediatelyInvoked && kind == ast.KindClassStaticBlockDeclaration {
 			isImmediatelyInvoked = true
@@ -1756,6 +1755,26 @@ func (b *Binder) bindContainer(id ast.NodeRef, kind ast.Kind, containerFlags Con
 	b.thisContainerKind = saveThisContainerKind
 	b.blockScopeContainer = savedBlockScopeContainer
 	b.blockScopeContainerKind = savedBlockScopeContainerKind
+}
+
+func (b *Binder) isGeneratorFunctionExpressionRef(ref ast.NodeRef, kind ast.Kind) bool {
+	return kind == ast.KindFunctionExpression && b.asteriskTokenRefGenerated(ref, kind) != 0
+}
+
+func (b *Binder) getImmediatelyInvokedFunctionExpressionRef(ref ast.NodeRef, kind ast.Kind) ast.NodeRef {
+	if kind != ast.KindFunctionExpression && kind != ast.KindArrowFunction {
+		return 0
+	}
+	prev := ref
+	parent := b.store.ParentRef(ref)
+	for b.store.KindAt(parent) == ast.KindParenthesizedExpression {
+		prev = parent
+		parent = b.store.ParentRef(parent)
+	}
+	if b.store.KindAt(parent) == ast.KindCallExpression && b.expressionRefGenerated(parent, ast.KindCallExpression) == prev {
+		return parent
+	}
+	return 0
 }
 
 func (b *Binder) isAmbientModuleRef(ref ast.NodeRef, kind ast.Kind) bool {
