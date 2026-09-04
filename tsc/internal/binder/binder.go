@@ -1266,7 +1266,7 @@ func (b *Binder) getThisClassAndSymbolTable() (classSymbol *ast.Symbol, symbolTa
 	case ast.KindFunctionDeclaration, ast.KindFunctionExpression:
 	case ast.KindConstructor, ast.KindPropertyDeclaration, ast.KindMethodDeclaration, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindClassStaticBlockDeclaration:
 		classSymbol = b.symbol(b.store.ParentRef(b.thisContainer))
-		if ast.IsStatic(ast.HandleOf(b.store, b.thisContainer, b.thisContainerKind)) {
+		if b.isStaticRef(b.thisContainer, b.thisContainerKind) {
 			symbolTable = ast.GetExports(classSymbol)
 		} else {
 			symbolTable = ast.GetMembers(classSymbol)
