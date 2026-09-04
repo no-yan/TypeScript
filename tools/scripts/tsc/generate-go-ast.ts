@@ -942,7 +942,7 @@ function generateBinderWalk(): string {
     w.write("}");
     w.write("");
 
-    for (const suffix of ["Initializer", "Type", "Expression", "QuestionToken", "PostfixToken", "Body"] as const) {
+    for (const suffix of ["Initializer", "Type", "Expression", "QuestionToken", "PostfixToken", "Body", "ExportClause"] as const) {
         const functionName = suffix[0].toLowerCase() + suffix.slice(1) + "RefGenerated";
         w.write(`func (b *Binder) ${functionName}(ref ast.NodeRef, kind ast.Kind) ast.NodeRef {`);
         w.push();
@@ -991,6 +991,18 @@ function generateBinderWalk(): string {
         w.pop();
         w.write("}");
         w.write("return 0");
+        w.pop();
+        w.write("}");
+        w.write("");
+    }
+
+    const exportAssignment = api.nodes().find(node => node.name === "ExportAssignment");
+    const isExportEquals = exportAssignment === undefined ? undefined : storeLayout(exportAssignment).values.find(m => memberSuffix(m) === "IsExportEquals");
+    if (exportAssignment !== undefined && isExportEquals !== undefined) {
+        const slot = storeLayout(exportAssignment).values.indexOf(isExportEquals);
+        w.write("func (b *Binder) isExportEqualsRefGenerated(ref ast.NodeRef, kind ast.Kind) bool {");
+        w.push();
+        w.write(`return kind == ast.KindExportAssignment && b.store.UintValueAt(ref, ${slot}) != 0`);
         w.pop();
         w.write("}");
         w.write("");

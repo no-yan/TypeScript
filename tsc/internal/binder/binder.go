@@ -278,17 +278,13 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 	case ast.KindImportEqualsDeclaration, ast.KindNamespaceImport, ast.KindImportSpecifier, ast.KindExportSpecifier:
 		b.declareSymbolAndAddToSymbolTableRef(id, kind, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes)
 	case ast.KindNamespaceExportDeclaration:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindNamespaceExportDeclaration(node)
+		b.bindNamespaceExportDeclarationRef(id, kind)
 	case ast.KindImportClause:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindImportClause(node)
+		b.bindImportClauseRef(id, kind)
 	case ast.KindExportDeclaration:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindExportDeclaration(node)
+		b.bindExportDeclarationRef(id, kind)
 	case ast.KindExportAssignment:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindExportAssignment(node)
+		b.bindExportAssignmentRef(id, kind)
 	case ast.KindSourceFile:
 		b.bindSourceFileIfExternalModuleRef(id, kind)
 	case ast.KindJsxAttributes:
@@ -899,48 +895,83 @@ func (b *Binder) declareModuleSymbol(node ast.Handle) ast.ModuleInstanceState {
 	return state
 }
 func (b *Binder) bindNamespaceExportDeclaration(node ast.Handle) {
-	if node.Modifiers() != 0 {
-		b.errorOnNode(node, diagnostics.Modifiers_cannot_appear_here)
+	b.bindNamespaceExportDeclarationRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindNamespaceExportDeclarationRef(ref ast.NodeRef, kind ast.Kind) {
+	if b.modifiersRefGenerated(ref, kind) != 0 {
+		b.errorOnNode(ast.HandleOf(b.store, ref, kind), diagnostics.Modifiers_cannot_appear_here)
 	}
+	parent := b.store.ParentRef(ref)
 	switch {
-	case !ast.IsSourceFile(node.Parent()):
-		b.errorOnNode(node, diagnostics.Global_module_exports_may_only_appear_at_top_level)
+	case b.store.KindAt(parent) != ast.KindSourceFile:
+		b.errorOnNode(ast.HandleOf(b.store, ref, kind), diagnostics.Global_module_exports_may_only_appear_at_top_level)
 	case !ast.IsExternalModule(b.file):
-		b.errorOnNode(node, diagnostics.Global_module_exports_may_only_appear_in_module_files)
+		b.errorOnNode(ast.HandleOf(b.store, ref, kind), diagnostics.Global_module_exports_may_only_appear_in_module_files)
 	case !b.file.IsDeclarationFile:
-		b.errorOnNode(node, diagnostics.Global_module_exports_may_only_appear_in_declaration_files)
+		b.errorOnNode(ast.HandleOf(b.store, ref, kind), diagnostics.Global_module_exports_may_only_appear_in_declaration_files)
 	default:
-		b.declareSymbol(ast.GetSymbolTable(&b.file.GlobalExports), b.file.Symbol, node, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes)
+		b.declareSymbolRef(ast.GetSymbolTable(&b.file.GlobalExports), b.file.Symbol, ref, kind, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes, false, false)
 	}
 }
 func (b *Binder) bindImportClause(node ast.Handle) {
-	if !node.ImportClauseName().IsNil() {
-		b.declareSymbolAndAddToSymbolTable(node, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes)
+	b.bindImportClauseRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindImportClauseRef(ref ast.NodeRef, kind ast.Kind) {
+	if b.nameRefGenerated(ref, kind) != 0 {
+		b.declareSymbolAndAddToSymbolTableRef(ref, kind, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes)
 	}
 }
 func (b *Binder) bindExportDeclaration(node ast.Handle) {
-	decl := node
+	b.bindExportDeclarationRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindExportDeclarationRef(ref ast.NodeRef, kind ast.Kind) {
 	containerSymbol := b.symbol(b.container)
 	if containerSymbol == nil {
-		b.bindAnonymousDeclaration(node, ast.SymbolFlagsExportStar, b.getDeclarationName(node))
-	} else if decl.ExportDeclarationExportClause().IsNil() {
-		b.declareSymbol(ast.GetExports(containerSymbol), containerSymbol, node, ast.SymbolFlagsExportStar, ast.SymbolFlagsNone)
-	} else if ast.IsNamespaceExport(decl.ExportDeclarationExportClause()) {
-		b.declareSymbol(ast.GetExports(containerSymbol), containerSymbol, decl.ExportDeclarationExportClause(), ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes)
+		b.bindAnonymousDeclarationRef(ref, kind, ast.SymbolFlagsExportStar, b.getDeclarationNameRef(ref, kind))
+	} else if b.exportClauseRefGenerated(ref, kind) == 0 {
+		b.declareSymbolRef(ast.GetExports(containerSymbol), containerSymbol, ref, kind, ast.SymbolFlagsExportStar, ast.SymbolFlagsNone, false, false)
+	} else if b.store.KindAt(b.exportClauseRefGenerated(ref, kind)) == ast.KindNamespaceExport {
+		clause := b.exportClauseRefGenerated(ref, kind)
+		b.declareSymbolRef(ast.GetExports(containerSymbol), containerSymbol, clause, ast.KindNamespaceExport, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes, false, false)
 	}
 }
 func (b *Binder) bindExportAssignment(node ast.Handle) {
+	b.bindExportAssignmentRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindExportAssignmentRef(ref ast.NodeRef, kind ast.Kind) {
 	container := b.container
 	containerSymbol := b.symbol(container)
-	if containerSymbol == nil && ast.IsExportAssignment(node) {
-		b.bindAnonymousDeclaration(node, ast.SymbolFlagsValue, b.getDeclarationName(node))
+	if containerSymbol == nil {
+		b.bindAnonymousDeclarationRef(ref, kind, ast.SymbolFlagsValue, b.getDeclarationNameRef(ref, kind))
 	} else {
-		flags := core.IfElse(ast.ExpressionIsAlias(node.Expression()), ast.SymbolFlagsAlias, ast.SymbolFlagsProperty)
-		symbol := b.declareSymbol(ast.GetExports(containerSymbol), containerSymbol, node, flags, ast.SymbolFlagsAll)
-		if node.ExportAssignmentIsExportEquals() {
-			SetValueDeclaration(symbol, node)
+		expression := b.expressionRefGenerated(ref, kind)
+		flags := core.IfElse(b.expressionIsAliasRef(expression, b.store.KindAt(expression)), ast.SymbolFlagsAlias, ast.SymbolFlagsProperty)
+		symbol := b.declareSymbolRef(ast.GetExports(containerSymbol), containerSymbol, ref, kind, flags, ast.SymbolFlagsAll, false, false)
+		if b.isExportEqualsRefGenerated(ref, kind) {
+			b.setValueDeclarationRef(symbol, ref, kind, b.store.GlobalRef(ref))
 		}
 	}
+}
+
+func (b *Binder) expressionIsAliasRef(ref ast.NodeRef, kind ast.Kind) bool {
+	if ref == 0 {
+		return false
+	}
+	if kind == ast.KindIdentifier {
+		return true
+	}
+	if kind == ast.KindClassExpression {
+		return true
+	}
+	if kind != ast.KindPropertyAccessExpression || b.nameRefGenerated(ref, kind) == 0 || b.store.KindAt(b.nameRefGenerated(ref, kind)) != ast.KindIdentifier {
+		return false
+	}
+	expression := b.expressionRefGenerated(ref, kind)
+	return b.expressionIsAliasRef(expression, b.store.KindAt(expression))
 }
 func (b *Binder) bindJsxAttributes(node ast.Handle) {
 	b.bindAnonymousDeclaration(node, ast.SymbolFlagsObjectLiteral, ast.InternalSymbolNameJSXAttributes)

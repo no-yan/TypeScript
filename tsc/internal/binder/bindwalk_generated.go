@@ -561,6 +561,15 @@ func (b *Binder) bodyRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.NodeRef {
 	return 0
 }
 
+func (b *Binder) exportClauseRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.NodeRef {
+	s := b.store
+	switch kind {
+	case ast.KindExportDeclaration:
+		return s.ChildRef(ref, 0)
+	}
+	return 0
+}
+
 func (b *Binder) argumentsRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.ListRef {
 	s := b.store
 	switch kind {
@@ -620,4 +629,8 @@ func (b *Binder) statementsRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.List
 		return s.ListSlotAt(ref, 0)
 	}
 	return 0
+}
+
+func (b *Binder) isExportEqualsRefGenerated(ref ast.NodeRef, kind ast.Kind) bool {
+	return kind == ast.KindExportAssignment && b.store.UintValueAt(ref, 0) != 0
 }

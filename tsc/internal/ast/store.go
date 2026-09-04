@@ -762,6 +762,19 @@ func (h Handle) UintValue(slot int) uint64 {
 	return h.s.scalarValues[h.valueKey(slot)]
 }
 
+// UintValueAt reads a scalar value without materializing a Handle. Generated
+// NodeRef consumers use this for schema value fields whose representation is a
+// sparse Store side table.
+func (s *Store) UintValueAt(ref NodeRef, slot int) uint64 {
+	if s == nil || ref == 0 {
+		return 0
+	}
+	if slot < 0 {
+		panic("ast: negative value slot")
+	}
+	return s.scalarValues[uint64(ref)<<32|uint64(uint32(slot))]
+}
+
 func (h Handle) SetStringValue(slot int, value string) {
 	h.s.mustMutate()
 	key := h.valueKey(slot)
