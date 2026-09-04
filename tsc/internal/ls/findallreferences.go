@@ -48,7 +48,7 @@ type refInfo struct {
 }
 type SymbolAndEntries struct {
 	definition *Definition
-	references []*// === types for settings ===
+	references []* // === types for settings ===
 	// other, references, rename
 	// renamed from providePrefixAndSuffixTextForRename. default: true
 	// === types for results ===
@@ -508,7 +508,7 @@ func getContextNode(node ast.Handle) ast.Handle {
 	}
 	switch node.Kind {
 	case ast.KindVariableDeclaration:
-		if !ast.IsVariableDeclarationList(node.Parent()) || len(node.Store().ListSlice(node.Parent().VariableDeclarationListDeclarations())) != 1 {
+		if !ast.IsVariableDeclarationList(node.Parent()) || node.Store().ListLen(node.Parent().VariableDeclarationListDeclarations()) != 1 {
 			return node
 		} else if ast.IsVariableStatement(node.Parent().Parent()) {
 			return node.Parent().Parent()
@@ -585,7 +585,7 @@ func skipPastExportOrImportSpecifierOrUnion(symbol *ast.Symbol, node ast.Handle,
 	if parent.Kind == ast.KindExportSpecifier && useLocalSymbolForExportSpecifier {
 		return getLocalSymbolForExportSpecifier(node, symbol, parent, checker)
 	}
-	return core.FirstNonNil(ast.DeclarationNodes(symbol), func(decl ast.Handle) *ast.Symbol {
+	for _, decl := range ast.DeclarationNodes(symbol) {
 		if decl.Parent().IsNil() {
 			if symbol.Flags&(ast.SymbolFlagsTransient|ast.SymbolFlagsModuleExports) != 0 {
 				return nil
@@ -595,8 +595,8 @@ func skipPastExportOrImportSpecifierOrUnion(symbol *ast.Symbol, node ast.Handle,
 		if decl.Parent().Kind == ast.KindTypeLiteral && decl.Parent().Parent().Kind == ast.KindUnionType {
 			return checker.GetPropertyOfType(checker.GetTypeFromTypeNode(decl.Parent().Parent()), symbol.Name)
 		}
-		return nil
-	})
+	}
+	return nil
 }
 func getSymbolScope(symbol *ast.Symbol) ast.Handle {
 	valueDeclaration := ast.NodeOf(symbol.ValueDeclaration)
@@ -608,7 +608,7 @@ func getSymbolScope(symbol *ast.Symbol) ast.Handle {
 	}
 	declarations := ast.DeclarationNodes(symbol)
 	if symbol.Flags&(ast.SymbolFlagsProperty|ast.SymbolFlagsMethod) != 0 {
-		privateDeclaration := core.Find(declarations, func(d ast.Handle) bool {
+		privateDeclaration := declarations.FirstMatching(func(d ast.Handle) bool {
 			return ast.HasModifier(d, ast.ModifierFlagsPrivate) || ast.IsPrivateIdentifierClassElementDeclaration(d)
 		})
 		if !privateDeclaration.IsNil() {
@@ -616,7 +616,7 @@ func getSymbolScope(symbol *ast.Symbol) ast.Handle {
 		}
 		return ast.Handle{}
 	}
-	if core.Some(declarations, isObjectBindingElementWithoutPropertyName) {
+	if declarations.Some(isObjectBindingElementWithoutPropertyName) {
 		return ast.Handle{}
 	}
 	exposedByParent := symbol.Parent != nil && symbol.Flags&ast.SymbolFlagsTypeParameter == 0
@@ -925,7 +925,7 @@ func (l *LanguageService) definitionToReferencedSymbolDefinitionInfo(ctx context
 		element := l.getDefinitionKindAndDisplayParts(ctx, symbol, originalNode, vsCapability)
 		var node ast.Handle
 		if len(symbol.Declarations) > 0 {
-			decl := ast.DeclarationNodes(symbol)[0]
+			decl := ast.DeclarationNodes(symbol).First()
 			node = core.OrElse(decl.Name(), decl)
 		} else {
 			node = originalNode
