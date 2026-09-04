@@ -220,12 +220,10 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 		node = ast.HandleOf(b.store, id, kind)
 		b.bindParameter(node)
 	case ast.KindVariableDeclaration:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindVariableDeclarationOrBindingElement(node)
+		b.bindVariableDeclarationOrBindingElementRef(id, kind)
 	case ast.KindBindingElement:
-		node = ast.HandleOf(b.store, id, kind)
 		b.store.SetFlow(id, b.currentFlow)
-		b.bindVariableDeclarationOrBindingElement(node)
+		b.bindVariableDeclarationOrBindingElementRef(id, kind)
 	case ast.KindPropertyDeclaration, ast.KindPropertySignature:
 		node = ast.HandleOf(b.store, id, kind)
 		b.bindPropertyWorker(node)
@@ -546,11 +544,7 @@ func (b *Binder) hasSyntacticModifierRef(ref ast.NodeRef, kind ast.Kind, flags a
 }
 
 func (b *Binder) combinedModifierFlagsRef(ref ast.NodeRef, kind ast.Kind) ast.ModifierFlags {
-	for kind == ast.KindBindingElement {
-		parent := b.store.ParentRef(ref)
-		ref = b.store.ParentRef(parent)
-		kind = b.store.KindAt(ref)
-	}
+	ref, kind = b.rootDeclarationRef(ref, kind)
 	flags := b.modifierFlagsRef(ref, kind)
 	if kind == ast.KindVariableDeclaration {
 		ref = b.store.ParentRef(ref)
@@ -563,6 +557,33 @@ func (b *Binder) combinedModifierFlagsRef(ref ast.NodeRef, kind ast.Kind) ast.Mo
 	}
 	if ref != 0 && kind == ast.KindVariableStatement {
 		flags |= b.modifierFlagsRef(ref, kind)
+	}
+	return flags
+}
+
+func (b *Binder) rootDeclarationRef(ref ast.NodeRef, kind ast.Kind) (ast.NodeRef, ast.Kind) {
+	for kind == ast.KindBindingElement {
+		parent := b.store.ParentRef(ref)
+		ref = b.store.ParentRef(parent)
+		kind = b.store.KindAt(ref)
+	}
+	return ref, kind
+}
+
+func (b *Binder) combinedNodeFlagsRef(ref ast.NodeRef, kind ast.Kind) ast.NodeFlags {
+	ref, kind = b.rootDeclarationRef(ref, kind)
+	flags := b.store.FlagsAt(ref)
+	if kind == ast.KindVariableDeclaration {
+		ref = b.store.ParentRef(ref)
+		kind = b.store.KindAt(ref)
+	}
+	if ref != 0 && kind == ast.KindVariableDeclarationList {
+		flags |= b.store.FlagsAt(ref)
+		ref = b.store.ParentRef(ref)
+		kind = b.store.KindAt(ref)
+	}
+	if ref != 0 && kind == ast.KindVariableStatement {
+		flags |= b.store.FlagsAt(ref)
 	}
 	return flags
 }
@@ -1185,19 +1206,77 @@ func (b *Binder) bindEnumDeclaration(node ast.Handle) {
 	}
 }
 func (b *Binder) bindVariableDeclarationOrBindingElement(node ast.Handle) {
-	b.checkStrictModeEvalOrArguments(node, node.Name())
-	if name := node.Name(); !name.IsNil() && !ast.IsBindingPattern(name) {
+	b.bindVariableDeclarationOrBindingElementRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindVariableDeclarationOrBindingElementRef(ref ast.NodeRef, kind ast.Kind) {
+	nameRef, nameKind := b.nameOfDeclarationRef(ref, kind)
+	b.checkStrictModeEvalOrArgumentsRef(ref, kind, nameRef, nameKind)
+	if nameRef != 0 && !isBindingPatternKind(nameKind) {
 		switch {
-		case ast.IsVariableDeclarationInitializedToRequire(node):
-			b.declareSymbolAndAddToSymbolTable(node, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes)
-		case ast.IsBlockOrCatchScoped(node):
-			b.bindBlockScopedDeclaration(node, ast.SymbolFlagsBlockScopedVariable, ast.SymbolFlagsBlockScopedVariableExcludes)
-		case ast.IsPartOfParameterDeclaration(node):
-			b.declareSymbolAndAddToSymbolTable(node, ast.SymbolFlagsFunctionScopedVariable, ast.SymbolFlagsParameterExcludes)
+		case b.isVariableDeclarationInitializedToRequireRef(ref, kind):
+			b.declareSymbolAndAddToSymbolTableRef(ref, kind, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes)
+		case b.isBlockOrCatchScopedRef(ref, kind):
+			b.bindBlockScopedDeclarationRef(ref, kind, ast.SymbolFlagsBlockScopedVariable, ast.SymbolFlagsBlockScopedVariableExcludes)
+		case b.isPartOfParameterDeclarationRef(ref, kind):
+			b.declareSymbolAndAddToSymbolTableRef(ref, kind, ast.SymbolFlagsFunctionScopedVariable, ast.SymbolFlagsParameterExcludes)
 		default:
-			b.declareSymbolAndAddToSymbolTable(node, ast.SymbolFlagsFunctionScopedVariable, ast.SymbolFlagsFunctionScopedVariableExcludes)
+			b.declareSymbolAndAddToSymbolTableRef(ref, kind, ast.SymbolFlagsFunctionScopedVariable, ast.SymbolFlagsFunctionScopedVariableExcludes)
 		}
 	}
+}
+
+func isBindingPatternKind(kind ast.Kind) bool {
+	return kind == ast.KindObjectBindingPattern || kind == ast.KindArrayBindingPattern
+}
+
+func (b *Binder) isVariableDeclarationInitializedToRequireRef(ref ast.NodeRef, kind ast.Kind) bool {
+	ref, kind = b.rootDeclarationRef(ref, kind)
+	if b.store.FlagsAt(ref)&ast.NodeFlagsJavaScriptFile == 0 || kind != ast.KindVariableDeclaration {
+		return false
+	}
+	initializer := b.initializerRefGenerated(ref, kind)
+	if initializer == 0 {
+		return false
+	}
+	declarationList := b.store.ParentRef(ref)
+	variableStatement := b.store.ParentRef(declarationList)
+	return b.modifierFlagsRef(variableStatement, b.store.KindAt(variableStatement))&ast.ModifierFlagsExport == 0 &&
+		b.typeRefGenerated(ref, kind) == 0 &&
+		b.isRequireCallRef(initializer, b.store.KindAt(initializer), true)
+}
+
+func (b *Binder) isRequireCallRef(ref ast.NodeRef, kind ast.Kind, requireStringLiteralLikeArgument bool) bool {
+	if kind != ast.KindCallExpression {
+		return false
+	}
+	expression := b.expressionRefGenerated(ref, kind)
+	if expression == 0 || b.store.KindAt(expression) != ast.KindIdentifier || b.store.TextAt(expression) != "require" {
+		return false
+	}
+	arguments := b.argumentsRefGenerated(ref, kind)
+	if b.store.ListLen(arguments) != 1 {
+		return false
+	}
+	if !requireStringLiteralLikeArgument {
+		return true
+	}
+	argument := b.store.ListElem(arguments, 0)
+	argumentKind := b.store.KindAt(argument)
+	return argumentKind == ast.KindStringLiteral || argumentKind == ast.KindNoSubstitutionTemplateLiteral
+}
+
+func (b *Binder) isBlockOrCatchScopedRef(ref ast.NodeRef, kind ast.Kind) bool {
+	if b.combinedNodeFlagsRef(ref, kind)&ast.NodeFlagsBlockScoped != 0 {
+		return true
+	}
+	root, rootKind := b.rootDeclarationRef(ref, kind)
+	return rootKind == ast.KindVariableDeclaration && b.store.KindAt(b.store.ParentRef(root)) == ast.KindCatchClause
+}
+
+func (b *Binder) isPartOfParameterDeclarationRef(ref ast.NodeRef, kind ast.Kind) bool {
+	_, rootKind := b.rootDeclarationRef(ref, kind)
+	return rootKind == ast.KindParameter
 }
 func (b *Binder) bindParameter(node ast.Handle) {
 	decl := node

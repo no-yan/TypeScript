@@ -308,3 +308,207 @@ func (b *Binder) asteriskTokenRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.N
 	}
 	return 0
 }
+
+func (b *Binder) initializerRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.NodeRef {
+	s := b.store
+	switch kind {
+	case ast.KindForStatement:
+		return s.ChildRef(ref, 0)
+	case ast.KindForInStatement, ast.KindForOfStatement:
+		return s.ChildRef(ref, 1)
+	case ast.KindVariableDeclaration:
+		return s.ChildRef(ref, 3)
+	case ast.KindParameter:
+		return s.ChildRef(ref, 4)
+	case ast.KindBindingElement:
+		return s.ChildRef(ref, 3)
+	case ast.KindEnumMember:
+		return s.ChildRef(ref, 1)
+	case ast.KindPropertySignature:
+		return s.ChildRef(ref, 3)
+	case ast.KindPropertyDeclaration:
+		return s.ChildRef(ref, 3)
+	case ast.KindPropertyAssignment:
+		return s.ChildRef(ref, 3)
+	case ast.KindJsxAttribute:
+		return s.ChildRef(ref, 1)
+	}
+	return 0
+}
+
+func (b *Binder) typeRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.NodeRef {
+	s := b.store
+	switch kind {
+	case ast.KindVariableDeclaration:
+		return s.ChildRef(ref, 2)
+	case ast.KindParameter:
+		return s.ChildRef(ref, 3)
+	case ast.KindFunctionDeclaration:
+		return s.ChildRef(ref, 2)
+	case ast.KindTypeAliasDeclaration, ast.KindJSTypeAliasDeclaration:
+		return s.ChildRef(ref, 1)
+	case ast.KindExportAssignment:
+		return s.ChildRef(ref, 0)
+	case ast.KindCallSignature:
+		return s.ChildRef(ref, 0)
+	case ast.KindConstructSignature:
+		return s.ChildRef(ref, 0)
+	case ast.KindConstructor:
+		return s.ChildRef(ref, 0)
+	case ast.KindGetAccessor:
+		return s.ChildRef(ref, 1)
+	case ast.KindSetAccessor:
+		return s.ChildRef(ref, 1)
+	case ast.KindIndexSignature:
+		return s.ChildRef(ref, 0)
+	case ast.KindMethodSignature:
+		return s.ChildRef(ref, 2)
+	case ast.KindMethodDeclaration:
+		return s.ChildRef(ref, 3)
+	case ast.KindPropertySignature:
+		return s.ChildRef(ref, 2)
+	case ast.KindPropertyDeclaration:
+		return s.ChildRef(ref, 2)
+	case ast.KindBinaryExpression:
+		return s.ChildRef(ref, 1)
+	case ast.KindArrowFunction:
+		return s.ChildRef(ref, 0)
+	case ast.KindFunctionExpression:
+		return s.ChildRef(ref, 2)
+	case ast.KindAsExpression:
+		return s.ChildRef(ref, 1)
+	case ast.KindSatisfiesExpression:
+		return s.ChildRef(ref, 1)
+	case ast.KindPropertyAssignment:
+		return s.ChildRef(ref, 2)
+	case ast.KindShorthandPropertyAssignment:
+		return s.ChildRef(ref, 2)
+	case ast.KindTypeAssertionExpression:
+		return s.ChildRef(ref, 0)
+	case ast.KindTypeOperator:
+		return s.ChildRef(ref, 0)
+	case ast.KindTypePredicate:
+		return s.ChildRef(ref, 2)
+	case ast.KindMappedType:
+		return s.ChildRef(ref, 4)
+	case ast.KindNamedTupleMember:
+		return s.ChildRef(ref, 3)
+	case ast.KindOptionalType:
+		return s.ChildRef(ref, 0)
+	case ast.KindRestType:
+		return s.ChildRef(ref, 0)
+	case ast.KindParenthesizedType:
+		return s.ChildRef(ref, 0)
+	case ast.KindFunctionType:
+		return s.ChildRef(ref, 0)
+	case ast.KindConstructorType:
+		return s.ChildRef(ref, 0)
+	case ast.KindTemplateLiteralTypeSpan:
+		return s.ChildRef(ref, 0)
+	case ast.KindJSDocTypeExpression:
+		return s.ChildRef(ref, 0)
+	case ast.KindJSDocNonNullableType:
+		return s.ChildRef(ref, 0)
+	case ast.KindJSDocNullableType:
+		return s.ChildRef(ref, 0)
+	case ast.KindJSDocVariadicType:
+		return s.ChildRef(ref, 0)
+	case ast.KindJSDocOptionalType:
+		return s.ChildRef(ref, 0)
+	case ast.KindJSDocSignature:
+		return s.ChildRef(ref, 0)
+	}
+	return 0
+}
+
+func (b *Binder) expressionRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.NodeRef {
+	s := b.store
+	switch kind {
+	case ast.KindComputedPropertyName:
+		return s.ChildRef(ref, 0)
+	case ast.KindDecorator:
+		return s.ChildRef(ref, 0)
+	case ast.KindIfStatement:
+		return s.ChildRef(ref, 0)
+	case ast.KindDoStatement:
+		return s.ChildRef(ref, 1)
+	case ast.KindWhileStatement:
+		return s.ChildRef(ref, 0)
+	case ast.KindForInStatement, ast.KindForOfStatement:
+		return s.ChildRef(ref, 2)
+	case ast.KindReturnStatement:
+		return s.ChildRef(ref, 0)
+	case ast.KindWithStatement:
+		return s.ChildRef(ref, 0)
+	case ast.KindSwitchStatement:
+		return s.ChildRef(ref, 0)
+	case ast.KindCaseClause, ast.KindDefaultClause:
+		return s.ChildRef(ref, 0)
+	case ast.KindThrowStatement:
+		return s.ChildRef(ref, 0)
+	case ast.KindExpressionStatement:
+		return s.ChildRef(ref, 0)
+	case ast.KindExternalModuleReference:
+		return s.ChildRef(ref, 0)
+	case ast.KindExportAssignment:
+		return s.ChildRef(ref, 1)
+	case ast.KindYieldExpression:
+		return s.ChildRef(ref, 1)
+	case ast.KindAsExpression:
+		return s.ChildRef(ref, 0)
+	case ast.KindSatisfiesExpression:
+		return s.ChildRef(ref, 0)
+	case ast.KindPropertyAccessExpression:
+		return s.ChildRef(ref, 0)
+	case ast.KindElementAccessExpression:
+		return s.ChildRef(ref, 0)
+	case ast.KindCallExpression:
+		return s.ChildRef(ref, 0)
+	case ast.KindNewExpression:
+		return s.ChildRef(ref, 0)
+	case ast.KindNonNullExpression:
+		return s.ChildRef(ref, 0)
+	case ast.KindSpreadElement:
+		return s.ChildRef(ref, 0)
+	case ast.KindTemplateSpan:
+		return s.ChildRef(ref, 0)
+	case ast.KindParenthesizedExpression:
+		return s.ChildRef(ref, 0)
+	case ast.KindSpreadAssignment:
+		return s.ChildRef(ref, 0)
+	case ast.KindDeleteExpression:
+		return s.ChildRef(ref, 0)
+	case ast.KindTypeOfExpression:
+		return s.ChildRef(ref, 0)
+	case ast.KindVoidExpression:
+		return s.ChildRef(ref, 0)
+	case ast.KindAwaitExpression:
+		return s.ChildRef(ref, 0)
+	case ast.KindTypeAssertionExpression:
+		return s.ChildRef(ref, 1)
+	case ast.KindExpressionWithTypeArguments:
+		return s.ChildRef(ref, 0)
+	case ast.KindPartiallyEmittedExpression:
+		return s.ChildRef(ref, 0)
+	case ast.KindJsxSpreadAttribute:
+		return s.ChildRef(ref, 0)
+	case ast.KindJsxExpression:
+		return s.ChildRef(ref, 1)
+	case ast.KindTypeParameter:
+		return s.ChildRef(ref, 2)
+	case ast.KindSyntheticReferenceExpression:
+		return s.ChildRef(ref, 0)
+	}
+	return 0
+}
+
+func (b *Binder) argumentsRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.ListRef {
+	s := b.store
+	switch kind {
+	case ast.KindCallExpression:
+		return s.ListSlotAt(ref, 1)
+	case ast.KindNewExpression:
+		return s.ListSlotAt(ref, 1)
+	}
+	return 0
+}

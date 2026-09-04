@@ -941,6 +941,57 @@ function generateBinderWalk(): string {
     w.pop();
     w.write("}");
     w.write("");
+
+    for (const suffix of ["Initializer", "Type", "Expression"] as const) {
+        const functionName = suffix[0].toLowerCase() + suffix.slice(1) + "RefGenerated";
+        w.write(`func (b *Binder) ${functionName}(ref ast.NodeRef, kind ast.Kind) ast.NodeRef {`);
+        w.push();
+        w.write("s := b.store");
+        w.write("switch kind {");
+        w.push();
+        for (const node of api.nodes()) {
+            const member = schemaMembers(node).find(m => m.isChild() && m.listKind === undefined && memberSuffix(m) === suffix);
+            if (member === undefined) continue;
+            const kinds = node.allKinds().map(k => k.formatGoConstant());
+            if (kinds.length === 0) continue;
+            const slot = storeLayout(node).children.indexOf(member);
+            if (slot < 0) throw new Error(`missing Store ${suffix.toLowerCase()} slot for ${node.name}`);
+            w.write(`case ${kinds.map(k => `ast.${k}`).join(", ")}:`);
+            w.push();
+            w.write(`return s.ChildRef(ref, ${slot})`);
+            w.pop();
+        }
+        w.pop();
+        w.write("}");
+        w.write("return 0");
+        w.pop();
+        w.write("}");
+        w.write("");
+    }
+
+    w.write("func (b *Binder) argumentsRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.ListRef {");
+    w.push();
+    w.write("s := b.store");
+    w.write("switch kind {");
+    w.push();
+    for (const node of api.nodes()) {
+        const argumentsList = schemaMembers(node).find(m => m.isChild() && m.listKind !== undefined && memberSuffix(m) === "Arguments");
+        if (argumentsList === undefined) continue;
+        const kinds = node.allKinds().map(k => k.formatGoConstant());
+        if (kinds.length === 0) continue;
+        const slot = storeLayout(node).lists.indexOf(argumentsList);
+        if (slot < 0) throw new Error(`missing Store arguments slot for ${node.name}`);
+        w.write(`case ${kinds.map(k => `ast.${k}`).join(", ")}:`);
+        w.push();
+        w.write(`return s.ListSlotAt(ref, ${slot})`);
+        w.pop();
+    }
+    w.pop();
+    w.write("}");
+    w.write("return 0");
+    w.pop();
+    w.write("}");
+    w.write("");
     return w.toString();
 }
 
