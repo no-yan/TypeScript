@@ -66,11 +66,20 @@ Parse would build a Store. `Seal` drops the intern map only. Binder writes flags
 
 `CopySubtree` today walks child `NodeRef`s only. It does not remap `ListRef` payloads hung off kinds, because β has no kind that stores a `ListRef` in the header. Migration A/B must close that gap before list-bearing kinds ship.
 
-## Concurrency (intent)
+## Concurrency
 
-One `Factory` / `Store` per file parse. Concurrent parsers do not share a Store. Peak memory for that policy is **unmeasured**.
+A `Store` is single-writer. Parse, bind, check, and emit transfer exclusive
+ownership of a file's Store in phase order; readers may overlap only while no
+phase is mutating it. Concurrent parsers and checker workers may write
+different file Stores. `NewFactoryOn` means "append under the current phase's
+ownership", not that two factories may append concurrently. This keeps locks
+out of the per-node allocation and access path.
 
-`symbols` is an ordinary map with no ownership or locking story. Whether parallel checker work can race on `SetSymbol` is **unproven** as a concrete path, and still a design gap: the map admits unsynchronized writers.
+`StoreSet` is the synchronized cross-file identity and metadata index.
+SourceFile bridge maps that are shared by checker workers require their own
+synchronization; Store's single-writer rule does not make those maps safe.
+`TestStoreParallelFileWriters` exercises the allowed topology under `-race`.
+Peak memory for the one-Store-per-file policy is **unmeasured**.
 
 ## Migration sketch (backcast)
 
@@ -90,10 +99,10 @@ Temporary bridges such as `FlattenNode` are **measurement-only**. They keep Kind
 
 | Path | Role |
 | --- | --- |
-| `store.go` | `Store`, `NodeRef`, `ListRef`, `Handle`, walk, parents, symbol/flow side maps, `list0` |
-| `store_identity.go` | `StoreID`, `GlobalRef`, `StoreSet` (cross-store identity) |
+| `store.go` | `Store`, `NodeRef`, `ListRef`, `Handle`, walk, parents, symbol/flow/locals/nextContainer side maps, `list0` |
+| `store_identity.go` | `StoreID`, `GlobalRef`, `StoreSet` (cross-store identity, SourceFile metadata) |
 | `store_schema.go` | BinaryExpression, Parameter, ArrayLiteral slot layout |
-| `store_factory.go` | Store-only `Factory` |
+| `store_factory.go` | Store-only `Factory`, `NewFactoryOn` |
 | `store_copy.go` | `Factory.CopySubtree` (cross-store remap) |
 | `store_flatten.go` | Lossy `*Node` → Store copy for benches |
 | `store_*_test.go`, `store_*_bench_test.go` | Unit, copy, adversarial, and e2e benches |
@@ -218,10 +227,10 @@ Checked against the live `*Node` pipeline (parser, binder, checker, printer). No
 | Layout bet has package-level evidence | done |
 | Cross-store identity exists in code | done (`store_identity.go`) |
 | Functional constraints written from live parser/binder/checker | done (this section) |
-| Header/side-map split implemented for TokenFlags, Locals, FlowNode, NextContainer, extra intern kinds | TokenFlags on header, FlowNode side map, Intern after Seal. Locals / NextContainer not started |
+| Header/side-map split implemented for TokenFlags, Locals, FlowNode, NextContainer, extra intern kinds | TokenFlags on header, FlowNode / Locals / NextContainer side maps, Intern after Seal |
 | Child slots and lists remain writable after the host exists (JSDoc reparse + lazy TS JSDoc) | done (`SetChild`, `SetList`, Intern after Seal) |
-| Synthetics and emit updates append into the parse Store (no cross-store child edges) | policy written; no Factory-on-existing-Store helper yet |
-| Store-to-SourceFile metadata map | not started |
+| Synthetics and emit updates append into the parse Store (no cross-store child edges) | `NewFactoryOn` |
+| Store-to-SourceFile metadata map | `StoreSet.SetFile` / `File` |
 | `ListRef` in schema + `CopySubtree` remaps lists | done (`list0`, ArrayLiteral, FunctionExpression params, `copyList`) |
 | `GOGC` / `GOMEMLIMIT`-only baseline on a large `tsgo` run | PASS-PERF on the TypeScript v6.0.3 CI smoke project (see [cmd/tsc GOGC baseline](#cmdtsc-gogc-baseline)) |
 

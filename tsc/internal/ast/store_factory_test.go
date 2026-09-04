@@ -142,3 +142,14 @@ func TestFactoryTokenFlagsAndFlowSideMap(t *testing.T) {
 	lit.SetFlowNode(nil)
 	assert.Assert(t, lit.FlowNode() == nil)
 }
+
+func TestFactoryOnExistingStore(t *testing.T) {
+	t.Parallel()
+	parse := ast.NewFactory(ast.FactoryHooks{})
+	id := parse.Identifier("a")
+	synth := ast.NewFactoryOn(parse.Store(), ast.FactoryHooks{})
+	extra := synth.Identifier("b")
+	assert.Equal(t, parse.Store(), extra.Store())
+	assert.Assert(t, extra.Ref() != id.Ref())
+	assert.Equal(t, 2, parse.Store().Len())
+}

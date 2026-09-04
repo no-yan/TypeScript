@@ -1,6 +1,7 @@
 package ast_test
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
@@ -124,6 +125,50 @@ func TestStoreCrossStoreChildPanics(t *testing.T) {
 		}
 	}()
 	parent.SetChild(0, child)
+}
+
+func TestStoreLocalsAndNextContainer(t *testing.T) {
+	t.Parallel()
+	s := ast.NewStore(4)
+	fn := s.Alloc(ast.KindFunctionExpression, 0, core.UndefinedTextRange(), 0)
+	body := s.Alloc(ast.KindBlock, 0, core.UndefinedTextRange(), 0)
+	sym := &ast.Symbol{Name: "x"}
+	table := ast.SymbolTable{"x": sym}
+	fn.SetLocals(table)
+	fn.SetNextContainer(body)
+	got := fn.Locals()
+	assert.Equal(t, 1, len(got))
+	assert.Equal(t, sym, got["x"])
+	assert.Equal(t, body.Ref(), fn.NextContainer().Ref())
+	assert.Equal(t, s, fn.NextContainer().Store())
+}
+
+// TestStoreParallelFileWriters is intended to run under -race. The Store
+// ownership contract permits parallel writes across files, never to the same
+// Store.
+func TestStoreParallelFileWriters(t *testing.T) {
+	t.Parallel()
+	const files = 16
+
+	stores := ast.NewStoreSet()
+	var wg sync.WaitGroup
+	for file := range files {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			factory := ast.NewFactory(ast.FactoryHooks{})
+			var last ast.Handle
+			for node := range 256 {
+				last = factory.Identifier(string(rune('a' + (file+node)%26)))
+				last.SetFlags(ast.NodeFlagsSynthesized)
+			}
+			id := stores.Add(factory.Store())
+			stores.SetFile(id, &ast.SourceFile{})
+			assert.Equal(t, last.Ref(), stores.At(last.Global()).Ref())
+			assert.Assert(t, stores.File(id) != nil)
+		}()
+	}
+	wg.Wait()
 }
 
 func buildStoreTree(s *ast.Store, depth int) ast.Handle {

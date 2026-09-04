@@ -26,7 +26,8 @@ func (g GlobalRef) Ref() NodeRef     { return NodeRef(g) }
 // deterministic ids across runs.
 type StoreSet struct {
 	mu     sync.RWMutex
-	stores []*Store // index i holds the Store with StoreID i+1
+	stores []*Store      // index i holds the Store with StoreID i+1
+	files  []*SourceFile // parallel to stores; nil until SetFile
 }
 
 func NewStoreSet() *StoreSet { return &StoreSet{} }
@@ -45,7 +46,32 @@ func (ss *StoreSet) Add(s *Store) StoreID {
 	id := StoreID(len(ss.stores) + 1)
 	s.id = id
 	ss.stores = append(ss.stores, s)
+	ss.files = append(ss.files, nil)
 	return id
+}
+
+func (ss *StoreSet) SetFile(id StoreID, file *SourceFile) {
+	if id == 0 {
+		panic("ast: SetFile missing StoreID")
+	}
+	ss.mu.Lock()
+	defer ss.mu.Unlock()
+	if int(id) > len(ss.stores) {
+		panic("ast: SetFile unknown StoreID")
+	}
+	ss.files[id-1] = file
+}
+
+func (ss *StoreSet) File(id StoreID) *SourceFile {
+	if id == 0 {
+		return nil
+	}
+	ss.mu.RLock()
+	defer ss.mu.RUnlock()
+	if int(id) > len(ss.files) {
+		return nil
+	}
+	return ss.files[id-1]
 }
 
 func (ss *StoreSet) Store(id StoreID) *Store {
