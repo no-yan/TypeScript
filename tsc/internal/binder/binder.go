@@ -1858,8 +1858,7 @@ func (b *Binder) bindChildrenRef(id ast.NodeRef, kind ast.Kind) {
 		node := ast.HandleOf(b.store, id, kind)
 		b.bindTryStatement(node)
 	case ast.KindSwitchStatement:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindSwitchStatement(node)
+		b.bindSwitchStatementRef(id, kind)
 	case ast.KindCaseBlock:
 		b.bindCaseBlockRef(id, kind)
 	case ast.KindCaseClause, ast.KindDefaultClause:
@@ -2331,6 +2330,34 @@ func (b *Binder) bindSwitchStatement(node ast.Handle) {
 	b.preSwitchCaseFlow = savePreSwitchCaseFlow
 	b.currentFlow = b.finishFlowLabel(postSwitchLabel)
 }
+
+func (b *Binder) bindSwitchStatementRef(ref ast.NodeRef, kind ast.Kind) {
+	s := b.store
+	postSwitchLabel := b.createBranchLabel()
+	expressionRef := b.expressionRefGenerated(ref, kind)
+	b.bindRef(expressionRef, kind)
+	saveBreakTarget := b.currentBreakTarget
+	savePreSwitchCaseFlow := b.preSwitchCaseFlow
+	b.currentBreakTarget = postSwitchLabel
+	b.preSwitchCaseFlow = b.currentFlow
+	b.bindRef(b.caseBlockRefGenerated(ref, kind), kind)
+	b.addAntecedent(postSwitchLabel, b.currentFlow)
+	hasDefault := false
+	clauses := b.caseBlockClausesRefGenerated(b.caseBlockRefGenerated(ref, kind), ast.KindCaseBlock)
+	for i := 0; i < s.ListLen(clauses); i++ {
+		if s.KindAt(s.ListElem(clauses, i)) == ast.KindDefaultClause {
+			hasDefault = true
+			break
+		}
+	}
+	if !hasDefault {
+		b.addAntecedent(postSwitchLabel, b.createFlowSwitchClause(b.preSwitchCaseFlow, ast.HandleOf(s, ref, kind), 0, 0))
+	}
+	b.currentBreakTarget = saveBreakTarget
+	b.preSwitchCaseFlow = savePreSwitchCaseFlow
+	b.currentFlow = b.finishFlowLabel(postSwitchLabel)
+}
+
 func (b *Binder) bindCaseBlock(node ast.Handle) {
 	switchStatement := node.Parent()
 	s := node.Store()

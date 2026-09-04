@@ -1012,6 +1012,22 @@ function generateBinderWalk(): string {
         }
     }
 
+    const switchStatement = api.nodes().find(node => node.name === "SwitchStatement");
+    if (switchStatement !== undefined) {
+        const caseBlockMember = schemaMembers(switchStatement).find(m => m.isChild() && m.listKind === undefined && memberSuffix(m) === "CaseBlock");
+        if (caseBlockMember !== undefined) {
+            const slot = storeLayout(switchStatement).children.indexOf(caseBlockMember);
+            if (slot < 0) throw new Error("missing SwitchStatement case block slot");
+            w.write("func (b *Binder) caseBlockRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.NodeRef {");
+            w.push();
+            w.write(`if kind == ast.KindSwitchStatement { return b.store.ChildRef(ref, ${slot}) }`);
+            w.write("return 0");
+            w.pop();
+            w.write("}");
+            w.write("");
+        }
+    }
+
     const exportAssignment = api.nodes().find(node => node.name === "ExportAssignment");
     const isExportEquals = exportAssignment === undefined ? undefined : storeLayout(exportAssignment).values.find(m => memberSuffix(m) === "IsExportEquals");
     if (exportAssignment !== undefined && isExportEquals !== undefined) {
