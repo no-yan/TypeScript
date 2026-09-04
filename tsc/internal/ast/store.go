@@ -36,21 +36,47 @@ func (s *Store) handleOf(id NodeRef) Handle {
 // StoreVisitor returns true to stop walking, matching Visitor on *Node.
 type StoreVisitor func(Handle) bool
 
-// nodeHeader packs every per-node scalar into one pointer-free row so
-// []nodeHeader stays noscan while a multi-field visit still hits one
-// cache line. Children live in a separate packed []NodeRef column.
+// nodeHeader packs every per-node scalar into one pointer-free 24-byte row so
+// []nodeHeader stays noscan and a multi-field visit hits one cache line
+// (two and a half rows per 64-byte line).
+//
+// Layout notes:
+//   - childLen and listLen are uint8. The schema maximum is 6 named children
+//     and 4 list slots; AllocSlots panics above 255.
+//   - Named child slots and list slots share the children column. A node's
+//     named children occupy children[childStart : childStart+childLen] and its
+//     list slots follow at children[childStart+childLen : +listLen], so one
+//     base index serves both.
+//   - Kinds with a primary string slot (identifiers, literals, template parts,
+//     JsxText) have no child or list slots, so childStart doubles as their
+//     intern id. Ident reads it only when childLen|listLen == 0, and
+//     AllocSlots writes 0 there for slotless nodes.
+//   - TokenFlags are set on under 4% of nodes and live in a side map.
 type nodeHeader struct {
 	kind       Kind
+	childLen   uint8
+	listLen    uint8
 	flags      NodeFlags
-	tokenFlags TokenFlags
 	pos        int32
 	end        int32
 	parent     NodeRef
 	childStart uint32
-	childLen   uint32
-	identText  uint32
-	listStart  uint32
-	listLen    uint32
+}
+
+// maxNodeSlots bounds childLen+listLen so both counts fit the uint8 header
+// fields and the shared slot range stays addressable.
+const maxNodeSlots = 255
+
+// listBase is the children index of the first list slot.
+func (n *nodeHeader) listBase() uint32 { return n.childStart + uint32(n.childLen) }
+
+// identID is the intern id for text-bearing kinds. Nodes with any slot have no
+// primary text, so their childStart is never read as an intern id.
+func (n *nodeHeader) identID() uint32 {
+	if n.childLen|n.listLen != 0 {
+		return 0
+	}
+	return n.childStart
 }
 
 type listHeader struct {
@@ -85,24 +111,30 @@ type Store struct {
 	freezeOnce sync.Once
 	nodes      []nodeHeader
 	lists      []listHeader
-	children   []NodeRef
-	listSlots  []ListRef
+	children   []NodeRef // named child slots, list slots (as ListRef), and list elements
 	internBuf  []byte
 	internOff  []uint32 // intern id i occupies internBuf[internOff[i]:internOff[i+1]]
 	internIdx  map[string]uint32
 	// Symbol and Flow mirror high-fill pointer-AST node fields as dense
 	// columns. End/return flow, localSymbol, Locals, and NextContainer stay
 	// maps: few nodes set them, and pre-sizing those columns raises B/op.
-	symbols        []*Symbol
+	//
+	// symbolIdx is a noscan NodeRef-indexed column of 1-based indexes into
+	// symbolRefs (0 = no symbol). About one node in eight carries a Symbol, so
+	// the pointer-bearing slice the GC must scan is eight times smaller than a
+	// dense []*Symbol column, and the dense column itself halves in size.
+	symbolIdx      []uint32
+	symbolRefs     []*Symbol // symbolRefs[0] is the nil sentinel
 	localSymbols   map[NodeRef]*Symbol
 	flows          []*FlowNode
 	endFlows       map[NodeRef]*FlowNode
 	returnFlows    map[NodeRef]*FlowNode
 	locals         map[NodeRef]SymbolTable
 	nextContainer  map[NodeRef]NodeRef
-	scalarValues   map[uint64]uint64 // packed NodeRef/value-slot key; pointer-free
-	stringValues   map[uint64]uint32 // intern ids keyed by NodeRef/value-slot
-	objectValues   map[uint64]any    // sparse pointer/slice kind-specific values
+	tokenFlags     map[NodeRef]TokenFlags // sparse: literals and template parts only
+	scalarValues   map[uint64]uint64      // packed NodeRef/value-slot key; pointer-free
+	stringValues   map[uint64]uint32      // intern ids keyed by NodeRef/value-slot
+	objectValues   map[uint64]any         // sparse pointer/slice kind-specific values
 	externalChild  map[uint64]GlobalRef
 	externalList   map[uint64]GlobalRef
 	externalParent map[NodeRef]GlobalRef
@@ -118,8 +150,7 @@ func NewStore(hint int) *Store {
 		allocHint: hint,
 		nodes:     make([]nodeHeader, 1, hint+1),
 		lists:     make([]listHeader, 1, max(8, hint/7)),
-		children:  make([]NodeRef, 0, hint+hint/2),
-		listSlots: make([]ListRef, 0, hint*3/8),
+		children:  make([]NodeRef, 0, hint+hint/2+hint*3/8),
 		internBuf: make([]byte, 0, hint),
 		internOff: make([]uint32, 2, max(2, hint/32)),
 		internIdx: make(map[string]uint32, hint/32),
@@ -141,27 +172,28 @@ func (s *Store) AllocSlots(kind Kind, flags NodeFlags, loc core.TextRange, child
 	if listLen < 0 {
 		panic("ast: negative listLen")
 	}
+	if childLen > maxNodeSlots || listLen > maxNodeSlots || childLen+listLen > maxNodeSlots {
+		panic("ast: too many node slots")
+	}
 	if len(s.nodes) >= int(^NodeRef(0)) {
 		panic("ast: Store exhausted")
 	}
 	id := NodeRef(len(s.nodes))
-	start := uint32(len(s.children))
-	if childLen > 0 {
-		s.children = append(s.children, make([]NodeRef, childLen)...)
-	}
-	listStart := uint32(len(s.listSlots))
-	if listLen > 0 {
-		s.listSlots = append(s.listSlots, make([]ListRef, listLen)...)
+	// Slotless nodes keep childStart 0 so Ident on a text-less node reads the
+	// empty intern id instead of a stale slot base.
+	start := uint32(0)
+	if n := childLen + listLen; n > 0 {
+		start = uint32(len(s.children))
+		s.children = append(s.children, make([]NodeRef, n)...)
 	}
 	s.nodes = append(s.nodes, nodeHeader{
 		kind:       kind,
+		childLen:   uint8(childLen),
+		listLen:    uint8(listLen),
 		flags:      flags,
 		pos:        int32(loc.Pos()),
 		end:        int32(loc.End()),
 		childStart: start,
-		childLen:   uint32(childLen),
-		listStart:  listStart,
-		listLen:    uint32(listLen),
 	})
 	return Handle{s: s, id: id, Kind: kind}
 }
@@ -263,10 +295,9 @@ func (s *Store) mustMutate() {
 // list, and child columns back to this point. Interned strings stay; they are
 // not counted in Len and are safe to reuse.
 type StoreCheckpoint struct {
-	nodes     int
-	lists     int
-	children  int
-	listSlots int
+	nodes    int
+	lists    int
+	children int
 }
 
 func (s *Store) Checkpoint() StoreCheckpoint {
@@ -274,10 +305,9 @@ func (s *Store) Checkpoint() StoreCheckpoint {
 		return StoreCheckpoint{}
 	}
 	return StoreCheckpoint{
-		nodes:     len(s.nodes),
-		lists:     len(s.lists),
-		children:  len(s.children),
-		listSlots: len(s.listSlots),
+		nodes:    len(s.nodes),
+		lists:    len(s.lists),
+		children: len(s.children),
 	}
 }
 
@@ -287,16 +317,15 @@ func (s *Store) Restore(cp StoreCheckpoint) {
 	}
 	if cp.nodes < 1 || cp.nodes > len(s.nodes) ||
 		cp.lists < 1 || cp.lists > len(s.lists) ||
-		cp.children < 0 || cp.children > len(s.children) ||
-		cp.listSlots < 0 || cp.listSlots > len(s.listSlots) {
+		cp.children < 0 || cp.children > len(s.children) {
 		panic("ast: invalid Store checkpoint")
 	}
 	s.nodes = s.nodes[:cp.nodes]
 	s.lists = s.lists[:cp.lists]
 	s.children = s.children[:cp.children]
-	s.listSlots = s.listSlots[:cp.listSlots]
-	s.symbols = truncateCol(s.symbols, cp.nodes)
+	s.symbolIdx = truncateCol(s.symbolIdx, cp.nodes)
 	s.flows = truncateCol(s.flows, cp.nodes)
+	cutNodeMap(s.tokenFlags, NodeRef(cp.nodes))
 	cutNodeMap(s.localSymbols, NodeRef(cp.nodes))
 	cutNodeMap(s.endFlows, NodeRef(cp.nodes))
 	cutNodeMap(s.returnFlows, NodeRef(cp.nodes))
@@ -368,7 +397,7 @@ func (s *Store) TextAt(id NodeRef) string {
 	if s == nil || id == 0 {
 		return ""
 	}
-	return s.internText(s.nodes[id].identText)
+	return s.internText(s.nodes[id].identID())
 }
 
 // NumChildrenAt is the named-child slot count without constructing a Handle.
@@ -403,7 +432,7 @@ func (s *Store) ChildRef(parent NodeRef, slot uint32) NodeRef {
 		return 0
 	}
 	n := &s.nodes[parent]
-	if slot >= n.childLen {
+	if slot >= uint32(n.childLen) {
 		panic("ast: child index out of range")
 	}
 	return s.children[n.childStart+slot]
@@ -415,10 +444,10 @@ func (s *Store) ListSlotAt(parent NodeRef, slot uint32) ListRef {
 		return 0
 	}
 	n := &s.nodes[parent]
-	if slot >= n.listLen {
+	if slot >= uint32(n.listLen) {
 		panic("ast: list slot out of range")
 	}
-	return s.listSlots[n.listStart+slot]
+	return ListRef(s.children[n.listBase()+slot])
 }
 
 // ListElem returns the same-Store element NodeRef at list index i.
@@ -568,7 +597,10 @@ func (s *Store) PrepareBindTables() {
 	if n < 1 {
 		return
 	}
-	s.symbols = ensureCol(s.symbols, n)
+	s.symbolIdx = ensureCol(s.symbolIdx, n)
+	if s.symbolRefs == nil {
+		s.symbolRefs = make([]*Symbol, 1, max(2, n/8))
+	}
 	s.flows = ensureCol(s.flows, n)
 }
 
@@ -606,14 +638,28 @@ func (s *Store) SetSymbol(ref NodeRef, sym *Symbol) {
 		return
 	}
 	s.mustMutate()
-	putCol(&s.symbols, ref, sym)
+	if idx := getCol(s.symbolIdx, ref); idx != 0 {
+		s.symbolRefs[idx] = sym
+		return
+	}
+	if sym == nil {
+		return
+	}
+	if s.symbolRefs == nil {
+		s.symbolRefs = make([]*Symbol, 1, 8)
+	}
+	s.symbolRefs = append(s.symbolRefs, sym)
+	putCol(&s.symbolIdx, ref, uint32(len(s.symbolRefs)-1))
 }
 
 func (s *Store) Symbol(ref NodeRef) *Symbol {
 	if s == nil || ref == 0 {
 		return nil
 	}
-	return getCol(s.symbols, ref)
+	if idx := getCol(s.symbolIdx, ref); idx != 0 {
+		return s.symbolRefs[idx]
+	}
+	return nil
 }
 
 func (s *Store) SetLocalSymbol(ref NodeRef, sym *Symbol) {
@@ -780,13 +826,13 @@ func (h Handle) SetStringValue(slot int, value string) {
 	key := h.valueKey(slot)
 	if value == "" {
 		if primaryStringSlot(h.Kind) == slot {
-			h.s.nodes[h.id].identText = 0
+			h.SetIdent(0)
 		}
 		delete(h.s.stringValues, key)
 		return
 	}
 	if primaryStringSlot(h.Kind) == slot {
-		h.s.nodes[h.id].identText = h.s.Intern(value)
+		h.SetIdent(h.s.Intern(value))
 		return
 	}
 	if h.s.stringValues == nil {
@@ -870,13 +916,20 @@ func (h Handle) SetFlags(flags NodeFlags) {
 
 func (h Handle) TokenFlags() TokenFlags {
 	h.mustLive()
-	return h.s.nodes[h.id].tokenFlags
+	return h.s.tokenFlags[h.id]
 }
 
 func (h Handle) SetTokenFlags(flags TokenFlags) {
 	h.mustLive()
 	h.s.mustMutate()
-	h.s.nodes[h.id].tokenFlags = flags
+	if flags == 0 {
+		delete(h.s.tokenFlags, h.id)
+		return
+	}
+	if h.s.tokenFlags == nil {
+		h.s.tokenFlags = make(map[NodeRef]TokenFlags, max(1, h.s.allocHint/32))
+	}
+	h.s.tokenFlags[h.id] = flags
 }
 
 func (h Handle) Loc() core.TextRange {
@@ -1021,12 +1074,16 @@ func (h Handle) SetIdent(internID uint32) {
 	if internID >= uint32(len(h.s.internOff)-1) {
 		panic("ast: intern id out of range")
 	}
-	h.s.nodes[h.id].identText = internID
+	n := &h.s.nodes[h.id]
+	if n.childLen|n.listLen != 0 {
+		panic("ast: SetIdent on a node with child slots")
+	}
+	n.childStart = internID
 }
 
 func (h Handle) Ident() string {
 	h.mustLive()
-	return h.s.internText(h.s.nodes[h.id].identText)
+	return h.s.internText(h.s.nodes[h.id].identID())
 }
 
 // Text is the identifier/literal text when present.
@@ -1129,7 +1186,7 @@ func (h Handle) ListSlot(i int) ListRef {
 	if i < 0 || i >= int(n.listLen) {
 		panic("ast: list slot out of range")
 	}
-	return h.s.listSlots[int(n.listStart)+i]
+	return ListRef(h.s.children[int(n.listBase())+i])
 }
 
 func (h Handle) SetListSlot(i int, list ListRef) {
@@ -1139,7 +1196,7 @@ func (h Handle) SetListSlot(i int, list ListRef) {
 	if i < 0 || i >= int(n.listLen) {
 		panic("ast: list slot out of range")
 	}
-	h.s.listSlots[int(n.listStart)+i] = list
+	h.s.children[int(n.listBase())+i] = NodeRef(list)
 	h.attachList(list)
 }
 
@@ -1151,7 +1208,7 @@ func (h Handle) List() ListRef {
 	if n.listLen == 0 {
 		return 0
 	}
-	return h.s.listSlots[n.listStart]
+	return ListRef(h.s.children[n.listBase()])
 }
 
 func (h Handle) SetList(list ListRef) {
@@ -1161,7 +1218,7 @@ func (h Handle) SetList(list ListRef) {
 	if n.listLen == 0 {
 		panic("ast: SetList on node with no list slots")
 	}
-	h.s.listSlots[n.listStart] = list
+	h.s.children[n.listBase()] = NodeRef(list)
 	h.attachList(list)
 }
 
@@ -1198,7 +1255,7 @@ func (h Handle) ForEachChild(v StoreVisitor) bool {
 		}
 	}
 	for slot := range int(n.listLen) {
-		list := h.s.listSlots[int(n.listStart)+slot]
+		list := ListRef(h.s.children[int(n.listBase())+slot])
 		if list == 0 {
 			continue
 		}
