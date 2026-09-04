@@ -1573,7 +1573,11 @@ func IsLocalsContainer(node Handle) bool {
 	if node.IsNil() {
 		return false
 	}
-	switch node.Kind {
+	return IsLocalsContainerKind(node.Kind)
+}
+
+func IsLocalsContainerKind(kind Kind) bool {
+	switch kind {
 	case KindBlock,
 		KindCaseBlock,
 		KindCatchClause,
@@ -2680,6 +2684,16 @@ func (node *SourceFile) ParseStore() *Store {
 	node.parseStoreMu.RLock()
 	defer node.parseStoreMu.RUnlock()
 	return node.parseStore
+}
+
+// ParseTreeRef returns the parse Store and root captured under the same lock.
+func (node *SourceFile) ParseTreeRef() (*Store, NodeRef) {
+	if node == nil {
+		return nil, 0
+	}
+	node.parseStoreMu.RLock()
+	defer node.parseStoreMu.RUnlock()
+	return node.parseStore, node.parseRoot
 }
 
 // LockParseStoreWriter acquires the per-file Store writer lease. Parser,

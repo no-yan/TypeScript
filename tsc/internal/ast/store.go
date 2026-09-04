@@ -78,29 +78,29 @@ const (
 // After Freeze, internIdx is dropped so node/list/intern backing arrays stay
 // pointer-free (noscan).
 type Store struct {
-	id             atomic.Uint32 // StoreID assigned by StoreSet.Add; 0 until registered
-	allocHint      int
-	phase          storePhase
-	frozenAt       NodeRef
-	freezeOnce     sync.Once
-	nodes          []nodeHeader
-	lists          []listHeader
-	children       []NodeRef
-	listSlots      []ListRef
-	internBuf      []byte
-	internOff      []uint32 // intern id i occupies internBuf[internOff[i]:internOff[i+1]]
-	internIdx      map[string]uint32
+	id         atomic.Uint32 // StoreID assigned by StoreSet.Add; 0 until registered
+	allocHint  int
+	phase      storePhase
+	frozenAt   NodeRef
+	freezeOnce sync.Once
+	nodes      []nodeHeader
+	lists      []listHeader
+	children   []NodeRef
+	listSlots  []ListRef
+	internBuf  []byte
+	internOff  []uint32 // intern id i occupies internBuf[internOff[i]:internOff[i+1]]
+	internIdx  map[string]uint32
 	// Symbol and Flow mirror high-fill pointer-AST node fields as dense
 	// columns. End/return flow, localSymbol, Locals, and NextContainer stay
 	// maps: few nodes set them, and pre-sizing those columns raises B/op.
-	symbols       []*Symbol
-	localSymbols  map[NodeRef]*Symbol
-	flows         []*FlowNode
-	endFlows      map[NodeRef]*FlowNode
-	returnFlows   map[NodeRef]*FlowNode
-	locals        map[NodeRef]SymbolTable
-	nextContainer map[NodeRef]NodeRef
-	scalarValues  map[uint64]uint64 // packed NodeRef/value-slot key; pointer-free
+	symbols        []*Symbol
+	localSymbols   map[NodeRef]*Symbol
+	flows          []*FlowNode
+	endFlows       map[NodeRef]*FlowNode
+	returnFlows    map[NodeRef]*FlowNode
+	locals         map[NodeRef]SymbolTable
+	nextContainer  map[NodeRef]NodeRef
+	scalarValues   map[uint64]uint64 // packed NodeRef/value-slot key; pointer-free
 	stringValues   map[uint64]uint32 // intern ids keyed by NodeRef/value-slot
 	objectValues   map[uint64]any    // sparse pointer/slice kind-specific values
 	externalChild  map[uint64]GlobalRef
@@ -328,6 +328,118 @@ func (s *Store) Len() int {
 
 func (s *Store) At(ref NodeRef) Handle {
 	return s.handleOf(ref)
+}
+
+// HandleOf builds a Handle with a caller-supplied Kind (no header reload).
+func HandleOf(s *Store, id NodeRef, kind Kind) Handle {
+	if s == nil || id == 0 {
+		return Handle{}
+	}
+	return Handle{s: s, id: id, Kind: kind}
+}
+
+// KindAt returns the node Kind. id 0 yields 0.
+func (s *Store) KindAt(id NodeRef) Kind {
+	if s == nil || id == 0 {
+		return 0
+	}
+	return s.nodes[id].kind
+}
+
+// FlagsAt returns the node flags without constructing a Handle.
+func (s *Store) FlagsAt(id NodeRef) NodeFlags {
+	if s == nil || id == 0 {
+		return 0
+	}
+	return s.nodes[id].flags
+}
+
+// LocAt returns the source range without constructing a Handle.
+func (s *Store) LocAt(id NodeRef) core.TextRange {
+	if s == nil || id == 0 {
+		return core.UndefinedTextRange()
+	}
+	n := &s.nodes[id]
+	return core.NewTextRange(int(n.pos), int(n.end))
+}
+
+// TextAt returns identifier or literal text without constructing a Handle.
+func (s *Store) TextAt(id NodeRef) string {
+	if s == nil || id == 0 {
+		return ""
+	}
+	return s.internText(s.nodes[id].identText)
+}
+
+// NumChildrenAt is the named-child slot count without constructing a Handle.
+func (s *Store) NumChildrenAt(id NodeRef) int {
+	if s == nil || id == 0 {
+		return 0
+	}
+	return int(s.nodes[id].childLen)
+}
+
+// NumListSlotsAt is the list-slot count without constructing a Handle.
+func (s *Store) NumListSlotsAt(id NodeRef) int {
+	if s == nil || id == 0 {
+		return 0
+	}
+	return int(s.nodes[id].listLen)
+}
+
+// SetFlagsAt updates the node flags without constructing a Handle.
+func (s *Store) SetFlagsAt(id NodeRef, flags NodeFlags) {
+	if s == nil || id == 0 {
+		return
+	}
+	s.mustMutate()
+	s.nodes[id].flags = flags
+}
+
+// ChildRef returns the same-Store child at kind-relative slot. 0 means missing
+// or an external child (use At(parent).Child for the slow path).
+func (s *Store) ChildRef(parent NodeRef, slot uint32) NodeRef {
+	if s == nil || parent == 0 {
+		return 0
+	}
+	n := &s.nodes[parent]
+	if slot >= n.childLen {
+		panic("ast: child index out of range")
+	}
+	return s.children[n.childStart+slot]
+}
+
+// ListSlotAt returns the ListRef at list-relative slot for parent.
+func (s *Store) ListSlotAt(parent NodeRef, slot uint32) ListRef {
+	if s == nil || parent == 0 {
+		return 0
+	}
+	n := &s.nodes[parent]
+	if slot >= n.listLen {
+		panic("ast: list slot out of range")
+	}
+	return s.listSlots[n.listStart+slot]
+}
+
+// ListElem returns the same-Store element NodeRef at list index i.
+// 0 means missing or external (use ListAt for the slow path).
+func (s *Store) ListElem(list ListRef, i int) NodeRef {
+	if list == 0 || s == nil {
+		return 0
+	}
+	l := &s.lists[list]
+	if i < 0 || i >= int(l.len) {
+		panic("ast: list index out of range")
+	}
+	return s.children[int(l.start)+i]
+}
+
+// ParentRef returns the packed same-Store parent, or 0.
+func (s *Store) ParentRef(id NodeRef) NodeRef {
+	if s == nil || id == 0 {
+		return 0
+	}
+	return s.nodes[id].parent
 }
 
 func (s *Store) SetSourceFile(file *SourceFile) {
