@@ -47,8 +47,12 @@ func (h Handle) SetArgumentExpression(value Handle) {
 }
 
 func (h Handle) Arguments() []Handle {
+	return h.ArgumentsSeq().Slice()
+}
+
+func (h Handle) ArgumentsSeq() NodeSeq {
 	if h.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
 	switch h.Kind {
 	case KindCallExpression:
@@ -56,7 +60,7 @@ func (h Handle) Arguments() []Handle {
 	case KindNewExpression:
 		return h.Store().ListSlice(h.NewExpressionArguments())
 	default:
-		return nil
+		return EmptyNodeSeq
 	}
 }
 
@@ -379,8 +383,12 @@ func (h Handle) SetCheckType(value Handle) {
 }
 
 func (h Handle) Children() []Handle {
+	return h.ChildrenSeq().Slice()
+}
+
+func (h Handle) ChildrenSeq() NodeSeq {
 	if h.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
 	switch h.Kind {
 	case KindJsxElement:
@@ -390,7 +398,7 @@ func (h Handle) Children() []Handle {
 	case KindSyntaxList:
 		return h.Store().ListSlice(h.SyntaxListChildren())
 	default:
-		return nil
+		return EmptyNodeSeq
 	}
 }
 
@@ -455,14 +463,18 @@ func (h Handle) SetClassName(value Handle) {
 }
 
 func (h Handle) Clauses() []Handle {
+	return h.ClausesSeq().Slice()
+}
+
+func (h Handle) ClausesSeq() NodeSeq {
 	if h.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
 	switch h.Kind {
 	case KindCaseBlock:
 		return h.Store().ListSlice(h.CaseBlockClauses())
 	default:
-		return nil
+		return EmptyNodeSeq
 	}
 }
 
@@ -559,8 +571,12 @@ func (h Handle) SetColonToken(value Handle) {
 }
 
 func (h Handle) Comments() []Handle {
+	return h.CommentsSeq().Slice()
+}
+
+func (h Handle) CommentsSeq() NodeSeq {
 	if h.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
 	switch h.Kind {
 	case KindJSDocAugmentsTag:
@@ -608,7 +624,7 @@ func (h Handle) Comments() []Handle {
 	case KindJSDocUnknownTag:
 		return h.Store().ListSlice(h.JSDocUnknownTagComment())
 	default:
-		return nil
+		return EmptyNodeSeq
 	}
 }
 
@@ -787,14 +803,18 @@ func (h Handle) SetConstraint(value Handle) {
 }
 
 func (h Handle) Declarations() []Handle {
+	return h.DeclarationsSeq().Slice()
+}
+
+func (h Handle) DeclarationsSeq() NodeSeq {
 	if h.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
 	switch h.Kind {
 	case KindVariableDeclarationList:
 		return h.Store().ListSlice(h.VariableDeclarationListDeclarations())
 	default:
-		return nil
+		return EmptyNodeSeq
 	}
 }
 
@@ -881,8 +901,12 @@ func (h Handle) SetDotDotDotToken(value Handle) {
 }
 
 func (h Handle) Elements() []Handle {
+	return h.ElementsSeq().Slice()
+}
+
+func (h Handle) ElementsSeq() NodeSeq {
 	if h.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
 	switch h.Kind {
 	case KindArrayLiteralExpression:
@@ -896,7 +920,7 @@ func (h Handle) Elements() []Handle {
 	case KindTupleType:
 		return h.Store().ListSlice(h.TupleTypeNodeElements())
 	default:
-		return nil
+		return EmptyNodeSeq
 	}
 }
 
@@ -1423,8 +1447,12 @@ func (h Handle) SetHead(value Handle) {
 }
 
 func (h Handle) HeritageClauseNodes() []Handle {
+	return h.HeritageClauseNodesSeq().Slice()
+}
+
+func (h Handle) HeritageClauseNodesSeq() NodeSeq {
 	if h.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
 	switch h.Kind {
 	case KindClassDeclaration:
@@ -1434,7 +1462,7 @@ func (h Handle) HeritageClauseNodes() []Handle {
 	case KindInterfaceDeclaration:
 		return h.Store().ListSlice(h.InterfaceDeclarationHeritageClauses())
 	default:
-		return nil
+		return EmptyNodeSeq
 	}
 }
 
@@ -1597,14 +1625,18 @@ func (h Handle) SetInitializer(value Handle) {
 }
 
 func (h Handle) JSDocPropertyTags() []Handle {
+	return h.JSDocPropertyTagsSeq().Slice()
+}
+
+func (h Handle) JSDocPropertyTagsSeq() NodeSeq {
 	if h.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
 	switch h.Kind {
 	case KindJSDocTypeLiteral:
 		return h.Store().ListSlice(h.JSDocTypeLiteralJSDocPropertyTags())
 	default:
-		return nil
+		return EmptyNodeSeq
 	}
 }
 
@@ -1721,8 +1753,12 @@ func (h Handle) SetLiteral(value Handle) {
 }
 
 func (h Handle) Members() []Handle {
+	return h.MembersSeq().Slice()
+}
+
+func (h Handle) MembersSeq() NodeSeq {
 	if h.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
 	switch h.Kind {
 	case KindClassDeclaration:
@@ -1738,7 +1774,7 @@ func (h Handle) Members() []Handle {
 	case KindTypeLiteral:
 		return h.Store().ListSlice(h.TypeLiteralNodeMembers())
 	default:
-		return nil
+		return EmptyNodeSeq
 	}
 }
 
@@ -1789,8 +1825,12 @@ func (h Handle) SetMemberList(value ListRef) {
 }
 
 func (h Handle) ModifierNodes() []Handle {
+	return h.ModifierNodesSeq().Slice()
+}
+
+func (h Handle) ModifierNodesSeq() NodeSeq {
 	if h.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
 	switch h.Kind {
 	case KindArrowFunction:
@@ -1856,7 +1896,7 @@ func (h Handle) ModifierNodes() []Handle {
 	case KindVariableStatement:
 		return h.Store().ListSlice(h.VariableStatementModifiers())
 	default:
-		return nil
+		return EmptyNodeSeq
 	}
 }
 
@@ -2483,8 +2523,12 @@ func (h Handle) SetParameterName(value Handle) {
 }
 
 func (h Handle) Parameters() []Handle {
+	return h.ParametersSeq().Slice()
+}
+
+func (h Handle) ParametersSeq() NodeSeq {
 	if h.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
 	switch h.Kind {
 	case KindArrowFunction:
@@ -2516,7 +2560,7 @@ func (h Handle) Parameters() []Handle {
 	case KindSetAccessor:
 		return h.Store().ListSlice(h.SetAccessorDeclarationParameters())
 	default:
-		return nil
+		return EmptyNodeSeq
 	}
 }
 
@@ -2599,8 +2643,12 @@ func (h Handle) SetParameterList(value ListRef) {
 }
 
 func (h Handle) Properties() []Handle {
+	return h.PropertiesSeq().Slice()
+}
+
+func (h Handle) PropertiesSeq() NodeSeq {
 	if h.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
 	switch h.Kind {
 	case KindJsxAttributes:
@@ -2608,7 +2656,7 @@ func (h Handle) Properties() []Handle {
 	case KindObjectLiteralExpression:
 		return h.Store().ListSlice(h.ObjectLiteralExpressionProperties())
 	default:
-		return nil
+		return EmptyNodeSeq
 	}
 }
 
@@ -2877,8 +2925,12 @@ func (h Handle) SetStatement(value Handle) {
 }
 
 func (h Handle) Statements() []Handle {
+	return h.StatementsSeq().Slice()
+}
+
+func (h Handle) StatementsSeq() NodeSeq {
 	if h.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
 	switch h.Kind {
 	case KindBlock:
@@ -2890,7 +2942,7 @@ func (h Handle) Statements() []Handle {
 	case KindSourceFile:
 		return h.Store().ListSlice(h.SourceFileStatements())
 	default:
-		return nil
+		return EmptyNodeSeq
 	}
 }
 
@@ -3069,14 +3121,18 @@ func (h Handle) SetTagName(value Handle) {
 }
 
 func (h Handle) Tags() []Handle {
+	return h.TagsSeq().Slice()
+}
+
+func (h Handle) TagsSeq() NodeSeq {
 	if h.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
 	switch h.Kind {
 	case KindJSDoc:
 		return h.Store().ListSlice(h.JSDocTags())
 	default:
-		return nil
+		return EmptyNodeSeq
 	}
 }
 
@@ -3129,8 +3185,12 @@ func (h Handle) SetTemplate(value Handle) {
 }
 
 func (h Handle) TemplateSpans() []Handle {
+	return h.TemplateSpansSeq().Slice()
+}
+
+func (h Handle) TemplateSpansSeq() NodeSeq {
 	if h.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
 	switch h.Kind {
 	case KindTemplateExpression:
@@ -3138,7 +3198,7 @@ func (h Handle) TemplateSpans() []Handle {
 	case KindTemplateLiteralType:
 		return h.Store().ListSlice(h.TemplateLiteralTypeNodeTemplateSpans())
 	default:
-		return nil
+		return EmptyNodeSeq
 	}
 }
 
@@ -3461,8 +3521,12 @@ func (h Handle) SetType(value Handle) {
 }
 
 func (h Handle) TypeArguments() []Handle {
+	return h.TypeArgumentsSeq().Slice()
+}
+
+func (h Handle) TypeArgumentsSeq() NodeSeq {
 	if h.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
 	switch h.Kind {
 	case KindCallExpression:
@@ -3484,7 +3548,7 @@ func (h Handle) TypeArguments() []Handle {
 	case KindTypeReference:
 		return h.Store().ListSlice(h.TypeReferenceNodeTypeArguments())
 	default:
-		return nil
+		return EmptyNodeSeq
 	}
 }
 
@@ -3649,8 +3713,12 @@ func (h Handle) SetTypeParameter(value Handle) {
 }
 
 func (h Handle) TypeParameters() []Handle {
+	return h.TypeParametersSeq().Slice()
+}
+
+func (h Handle) TypeParametersSeq() NodeSeq {
 	if h.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
 	switch h.Kind {
 	case KindArrowFunction:
@@ -3690,7 +3758,7 @@ func (h Handle) TypeParameters() []Handle {
 	case KindJSTypeAliasDeclaration, KindTypeAliasDeclaration:
 		return h.Store().ListSlice(h.TypeAliasDeclarationTypeParameters())
 	default:
-		return nil
+		return EmptyNodeSeq
 	}
 }
 
@@ -3789,8 +3857,12 @@ func (h Handle) SetTypeParameterList(value ListRef) {
 }
 
 func (h Handle) Types() []Handle {
+	return h.TypesSeq().Slice()
+}
+
+func (h Handle) TypesSeq() NodeSeq {
 	if h.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
 	switch h.Kind {
 	case KindHeritageClause:
@@ -3800,7 +3872,7 @@ func (h Handle) Types() []Handle {
 	case KindUnionType:
 		return h.Store().ListSlice(h.UnionTypeNodeTypes())
 	default:
-		return nil
+		return EmptyNodeSeq
 	}
 }
 

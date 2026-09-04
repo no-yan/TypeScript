@@ -2082,7 +2082,13 @@ function generateStorePolymorphic(): string {
         if (!skipSlice) {
             w.write(`func (h Handle) ${twins.slice}() []Handle {`);
             w.push();
-            emitPolySwitch(w, g, acc => `return h.Store().ListSlice(h.${acc}())`, "nil");
+            w.write(`return h.${twins.slice}Seq().Slice()`);
+            w.pop();
+            w.write("}");
+            w.write("");
+            w.write(`func (h Handle) ${twins.slice}Seq() NodeSeq {`);
+            w.push();
+            emitPolySwitch(w, g, acc => `return h.Store().ListSlice(h.${acc}())`, "EmptyNodeSeq");
             w.pop();
             w.write("}");
             w.write("");

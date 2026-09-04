@@ -73,23 +73,63 @@ func (h Handle) HasModifierKind(kind Kind) bool {
 	return false
 }
 
-func (s *Store) ListSlice(list ListRef) []Handle {
+// ListSlice returns an allocation-free NodeSeq over the packed list.
+// Prefer ListLen / ListAt / ListIndexOf when the ListRef is available.
+func (s *Store) ListSlice(list ListRef) NodeSeq {
 	if s == nil || list == 0 {
-		return nil
+		return EmptyNodeSeq
 	}
-	n := s.ListLen(list)
-	out := make([]Handle, n)
-	for i := 0; i < n; i++ {
-		out[i] = s.ListAt(list, i)
+	return func(yield func(int, Handle) bool) {
+		n := s.ListLen(list)
+		for i := 0; i < n; i++ {
+			if !yield(i, s.ListAt(list, i)) {
+				return
+			}
+		}
 	}
-	return out
 }
 
-func (h Handle) ListSlice(list ListRef) []Handle {
+func (h Handle) ListSlice(list ListRef) NodeSeq {
 	if h.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
 	return h.Store().ListSlice(list)
+}
+
+// ListIndexOf finds target in the packed list without materializing []Handle.
+// Same-store elements compare via the children column; external slots use ListAt.
+func (s *Store) ListIndexOf(list ListRef, target Handle) int {
+	if s == nil || list == 0 {
+		return -1
+	}
+	n := s.ListLen(list)
+	if n == 0 {
+		return -1
+	}
+	if !target.IsNil() && target.s == s {
+		id := target.id
+		for i := 0; i < n; i++ {
+			if s.ListElem(list, i) == id {
+				return i
+			}
+		}
+		// Packed miss: only empty local slots can hold an external handle.
+		for i := 0; i < n; i++ {
+			if s.ListElem(list, i) != 0 {
+				continue
+			}
+			if s.ListAt(list, i) == target {
+				return i
+			}
+		}
+		return -1
+	}
+	for i := 0; i < n; i++ {
+		if s.ListAt(list, i) == target {
+			return i
+		}
+	}
+	return -1
 }
 
 func (h Handle) Decorators() []Handle {

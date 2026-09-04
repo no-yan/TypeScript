@@ -130,17 +130,26 @@ func FindLastSymbolDeclaration(symbol *Symbol, pred func(Handle) bool) Handle {
 	return Handle{}
 }
 
-func DeclarationNodes(symbol *Symbol) []Handle {
+// DeclarationNodes yields non-nil declaration Handles with dense indices
+// (nil GlobalRefs are skipped, matching the old slice filter).
+func DeclarationNodes(symbol *Symbol) NodeSeq {
 	if symbol == nil {
-		return nil
+		return EmptyNodeSeq
 	}
-	out := make([]Handle, 0, len(symbol.Declarations))
-	for _, g := range symbol.Declarations {
-		if n := NodeOf(g); !n.IsNil() {
-			out = append(out, n)
+	decls := symbol.Declarations
+	return func(yield func(int, Handle) bool) {
+		dense := 0
+		for _, g := range decls {
+			n := NodeOf(g)
+			if n.IsNil() {
+				continue
+			}
+			if !yield(dense, n) {
+				return
+			}
+			dense++
 		}
 	}
-	return out
 }
 
 func SomeDeclaration(symbol *Symbol, pred func(Handle) bool) bool {
