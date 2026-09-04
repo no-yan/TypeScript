@@ -9,7 +9,7 @@ import (
 
 type GetSymbolAccessibilityDiagnostic = func(symbolAccessibilityResult printer.SymbolAccessibilityResult) *SymbolAccessibilityDiagnostic
 type SymbolAccessibilityDiagnostic struct {
-	errorNode ast.Handle
+	errorNode         ast.Handle
 	diagnosticMessage *diagnostics.Message
 	typeName          ast.Handle
 }
@@ -358,9 +358,18 @@ func addParentDeclarationRelatedInfo(node ast.Handle, diag *ast.Diagnostic) {
 	diag.AddRelatedInfo(createDiagnosticForNode(parentDeclaration, getRelatedSuggestionByDeclarationKind(parentDeclaration.Kind), targetStr))
 }
 func createAccessorTypeError(node ast.Handle) *ast.Diagnostic {
-	allDeclarations := ast.GetAllAccessorDeclarationsForDeclaration(node, ast.DeclarationNodes(node.Symbol()))
-	getAccessor := allDeclarations.GetAccessor
-	setAccessor := allDeclarations.SetAccessor
+	var getAccessor, setAccessor ast.Handle
+	if ast.IsSetAccessorDeclaration(node) {
+		setAccessor = node
+		getAccessor = ast.DeclarationNodes(node.Symbol()).FirstMatching(func(d ast.Handle) bool {
+			return d.Kind == ast.KindGetAccessor
+		})
+	} else {
+		getAccessor = node
+		setAccessor = ast.DeclarationNodes(node.Symbol()).FirstMatching(func(d ast.Handle) bool {
+			return d.Kind == ast.KindSetAccessor
+		})
+	}
 	targetNode := node
 	if ast.IsSetAccessorDeclaration(node) && len(node.Parameters()) > 0 {
 		targetNode = node.Parameters()[0]

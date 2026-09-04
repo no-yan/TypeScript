@@ -2,7 +2,6 @@ package declarations
 
 import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
-	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
 )
 
@@ -21,13 +20,10 @@ func canHaveLiteralInitializer(host DeclarationEmitHost, node ast.Handle) bool {
 func canProduceDiagnostics(node ast.Handle) bool {
 	return ast.IsVariableDeclaration(node) || ast.IsPropertyDeclaration(node) || ast.IsPropertySignatureDeclaration(node) || ast.IsBindingElement(node) || ast.IsSetAccessorDeclaration(node) || ast.IsGetAccessorDeclaration(node) || ast.IsConstructSignatureDeclaration(node) || ast.IsCallSignatureDeclaration(node) || ast.IsMethodDeclaration(node) || ast.IsMethodSignatureDeclaration(node) || ast.IsFunctionDeclaration(node) || ast.IsParameterDeclaration(node) || ast.IsTypeParameterDeclaration(node) || ast.IsExpressionWithTypeArguments(node) || ast.IsImportEqualsDeclaration(node) || ast.IsTypeAliasDeclaration(node) || ast.IsJSTypeAliasDeclaration(node) || ast.IsConstructorDeclaration(node) || ast.IsIndexSignatureDeclaration(node) || ast.IsPropertyAccessExpression(node) || ast.IsElementAccessExpression(node) || ast.IsBinaryExpression(node) || ast.IsCallExpression(node)
 }
-func canReuseModifierNodes(nodes []ast.Handle) bool {
-	for _, node := range nodes {
-		if ast.IsModifier(node) && node.Flags()&ast.NodeFlagsReparsed != 0 {
-			return false
-		}
-	}
-	return true
+func canReuseModifierNodes(nodes ast.NodeSeq) bool {
+	return !nodes.Some(func(node ast.Handle) bool {
+		return ast.IsModifier(node) && node.Flags()&ast.NodeFlagsReparsed != 0
+	})
 }
 func isDeclarationAndNotVisible(emitContext *printer.EmitContext, resolver printer.EmitResolver, node ast.Handle) bool {
 	node = emitContext.ParseNode(node)
@@ -109,5 +105,5 @@ func hasScopeMarker(store *ast.Store, statements ast.ListRef) bool {
 	if store == nil || statements == 0 {
 		return false
 	}
-	return core.Some(store.ListSlice(statements), isScopeMarker)
+	return store.ListSlice(statements).Some(isScopeMarker)
 }
