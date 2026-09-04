@@ -1867,8 +1867,7 @@ func (b *Binder) bindChildrenRef(id ast.NodeRef, kind ast.Kind) {
 		node := ast.HandleOf(b.store, id, kind)
 		b.bindCaseOrDefaultClause(node)
 	case ast.KindExpressionStatement:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindExpressionStatement(node)
+		b.bindExpressionStatementRef(id, kind)
 	case ast.KindLabeledStatement:
 		node := ast.HandleOf(b.store, id, kind)
 		b.bindLabeledStatement(node)
@@ -2380,11 +2379,38 @@ func (b *Binder) bindExpressionStatement(node ast.Handle) {
 	b.bind(stmt.Expression())
 	b.maybeBindExpressionFlowIfCall(stmt.Expression())
 }
+
+func (b *Binder) bindExpressionStatementRef(ref ast.NodeRef, kind ast.Kind) {
+	expression := b.expressionRefGenerated(ref, kind)
+	b.bindRef(expression, kind)
+	b.maybeBindExpressionFlowIfCallRef(expression)
+}
+
 func (b *Binder) maybeBindExpressionFlowIfCall(node ast.Handle) {
 	if ast.IsCallExpression(node) {
 		if node.Expression().Kind != ast.KindSuperKeyword && ast.IsDottedName(node.Expression()) {
 			b.currentFlow = b.createFlowCall(b.currentFlow, node)
 		}
+	}
+}
+
+func (b *Binder) maybeBindExpressionFlowIfCallRef(ref ast.NodeRef) {
+	if b.store.KindAt(ref) == ast.KindCallExpression {
+		expression := b.expressionRefGenerated(ref, ast.KindCallExpression)
+		if b.store.KindAt(expression) != ast.KindSuperKeyword && b.isDottedNameRef(expression) {
+			b.currentFlow = b.createFlowCall(b.currentFlow, ast.HandleOf(b.store, ref, ast.KindCallExpression))
+		}
+	}
+}
+
+func (b *Binder) isDottedNameRef(ref ast.NodeRef) bool {
+	switch b.store.KindAt(ref) {
+	case ast.KindIdentifier, ast.KindThisKeyword, ast.KindSuperKeyword, ast.KindMetaProperty:
+		return true
+	case ast.KindPropertyAccessExpression, ast.KindParenthesizedExpression:
+		return b.isDottedNameRef(b.expressionRefGenerated(ref, b.store.KindAt(ref)))
+	default:
+		return false
 	}
 }
 func (b *Binder) bindLabeledStatement(node ast.Handle) {
