@@ -1845,11 +1845,9 @@ func (b *Binder) bindChildrenRef(id ast.NodeRef, kind ast.Kind) {
 		node := ast.HandleOf(b.store, id, kind)
 		b.bindIfStatement(node)
 	case ast.KindReturnStatement:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindReturnStatement(node)
+		b.bindReturnStatementRef(id, kind)
 	case ast.KindThrowStatement:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindThrowStatement(node)
+		b.bindThrowStatementRef(id, kind)
 	case ast.KindBreakStatement:
 		node := ast.HandleOf(b.store, id, kind)
 		b.bindBreakStatement(node)
@@ -2209,8 +2207,25 @@ func (b *Binder) bindReturnStatement(node ast.Handle) {
 	b.hasExplicitReturn = true
 	b.hasFlowEffects = true
 }
+
+func (b *Binder) bindReturnStatementRef(ref ast.NodeRef, kind ast.Kind) {
+	b.bindRef(b.expressionRefGenerated(ref, kind), kind)
+	if b.currentReturnTarget != nil {
+		b.addAntecedent(b.currentReturnTarget, b.currentFlow)
+	}
+	b.currentFlow = b.unreachableFlow
+	b.hasExplicitReturn = true
+	b.hasFlowEffects = true
+}
+
 func (b *Binder) bindThrowStatement(node ast.Handle) {
 	b.bind(node.Expression())
+	b.currentFlow = b.unreachableFlow
+	b.hasFlowEffects = true
+}
+
+func (b *Binder) bindThrowStatementRef(ref ast.NodeRef, kind ast.Kind) {
+	b.bindRef(b.expressionRefGenerated(ref, kind), kind)
 	b.currentFlow = b.unreachableFlow
 	b.hasFlowEffects = true
 }
