@@ -996,6 +996,22 @@ function generateBinderWalk(): string {
         w.write("");
     }
 
+    const caseBlock = api.nodes().find(node => node.name === "CaseBlock");
+    if (caseBlock !== undefined) {
+        const clauses = schemaMembers(caseBlock).find(m => m.isChild() && m.listKind !== undefined && memberSuffix(m) === "Clauses");
+        if (clauses !== undefined) {
+            const slot = storeLayout(caseBlock).lists.indexOf(clauses);
+            if (slot < 0) throw new Error("missing CaseBlock clauses list slot");
+            w.write("func (b *Binder) caseBlockClausesRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.ListRef {");
+            w.push();
+            w.write(`if kind == ast.KindCaseBlock { return b.store.ListSlotAt(ref, ${slot}) }`);
+            w.write("return 0");
+            w.pop();
+            w.write("}");
+            w.write("");
+        }
+    }
+
     const exportAssignment = api.nodes().find(node => node.name === "ExportAssignment");
     const isExportEquals = exportAssignment === undefined ? undefined : storeLayout(exportAssignment).values.find(m => memberSuffix(m) === "IsExportEquals");
     if (exportAssignment !== undefined && isExportEquals !== undefined) {

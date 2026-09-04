@@ -1861,8 +1861,7 @@ func (b *Binder) bindChildrenRef(id ast.NodeRef, kind ast.Kind) {
 		node := ast.HandleOf(b.store, id, kind)
 		b.bindSwitchStatement(node)
 	case ast.KindCaseBlock:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindCaseBlock(node)
+		b.bindCaseBlockRef(id, kind)
 	case ast.KindCaseClause, ast.KindDefaultClause:
 		b.bindCaseOrDefaultClauseRef(id, kind)
 	case ast.KindExpressionStatement:
@@ -2364,6 +2363,42 @@ func (b *Binder) bindCaseBlock(node ast.Handle) {
 		}
 	}
 }
+
+func (b *Binder) bindCaseBlockRef(ref ast.NodeRef, kind ast.Kind) {
+	s := b.store
+	switchStatementRef := s.ParentRef(ref)
+	switchStatement := ast.HandleOf(s, switchStatementRef, ast.KindSwitchStatement)
+	clauses := b.caseBlockClausesRefGenerated(ref, kind)
+	n := s.ListLen(clauses)
+	switchExpression := b.expressionRefGenerated(switchStatementRef, ast.KindSwitchStatement)
+	isNarrowingSwitch := s.KindAt(switchExpression) == ast.KindTrueKeyword || isNarrowingExpression(ast.HandleOf(s, switchExpression, s.KindAt(switchExpression)))
+	var fallthroughFlow *ast.FlowNode = b.unreachableFlow
+	for i := 0; i < n; i++ {
+		clauseStart := i
+		for clauseRef := s.ListElem(clauses, i); s.ListLen(b.statementsRefGenerated(clauseRef, s.KindAt(clauseRef))) == 0 && i+1 < n; clauseRef = s.ListElem(clauses, i) {
+			if fallthroughFlow == b.unreachableFlow {
+				b.currentFlow = b.preSwitchCaseFlow
+			}
+			b.bindRef(clauseRef, ast.KindCaseBlock)
+			i++
+		}
+		preCaseLabel := b.createBranchLabel()
+		preCaseFlow := b.preSwitchCaseFlow
+		if isNarrowingSwitch {
+			preCaseFlow = b.createFlowSwitchClause(b.preSwitchCaseFlow, switchStatement, clauseStart, i+1)
+		}
+		b.addAntecedent(preCaseLabel, preCaseFlow)
+		b.addAntecedent(preCaseLabel, fallthroughFlow)
+		b.currentFlow = b.finishFlowLabel(preCaseLabel)
+		clauseRef := s.ListElem(clauses, i)
+		b.bindRef(clauseRef, ast.KindCaseBlock)
+		fallthroughFlow = b.currentFlow
+		if b.currentFlow.Flags&ast.FlowFlagsUnreachable == 0 && i != n-1 {
+			s.SetEndFlow(clauseRef, b.currentFlow)
+		}
+	}
+}
+
 func (b *Binder) bindCaseOrDefaultClause(node ast.Handle) {
 	clause := node
 	if !clause.Expression().IsNil() {

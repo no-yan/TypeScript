@@ -631,6 +631,13 @@ func (b *Binder) statementsRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.List
 	return 0
 }
 
+func (b *Binder) caseBlockClausesRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.ListRef {
+	if kind == ast.KindCaseBlock {
+		return b.store.ListSlotAt(ref, 0)
+	}
+	return 0
+}
+
 func (b *Binder) isExportEqualsRefGenerated(ref ast.NodeRef, kind ast.Kind) bool {
 	return kind == ast.KindExportAssignment && b.store.UintValueAt(ref, 0) != 0
 }
