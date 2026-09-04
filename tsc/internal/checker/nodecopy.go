@@ -425,7 +425,7 @@ func getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recoveryBoundary) *as
 		}
 		if node.Kind == ast.KindJSDocTypeLiteral {
 			var members []ast.Handle
-			for _, t := range node.Store().ListSlice(node.JSDocTypeLiteralJSDocPropertyTags()) {
+			for _, t := range node.JSDocPropertyTagsSeq() {
 				if t.Kind != ast.KindJSDocPropertyTag && t.Kind != ast.KindJSDocParameterTag {
 					continue
 				}
@@ -658,9 +658,9 @@ func getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recoveryBoundary) *as
 		if nonLocalNode && res != 0 {
 			store := b.e.StoreFactory().Store()
 			if res == nodes {
-				res = b.e.StoreFactory().List(store.ListLoc(nodes), store.ListSlice(nodes)...)
+				res = b.e.StoreFactory().RelocateList(nodes, store.ListLoc(nodes))
 			}
-			res = b.e.StoreFactory().List(core.NewTextRange(-1, -1), store.ListSlice(res)...)
+			res = b.e.StoreFactory().RelocateList(res, core.NewTextRange(-1, -1))
 		}
 		return res
 	}, VisitNode: func(node ast.Handle, v *ast.HandleVisitor) ast.Handle {

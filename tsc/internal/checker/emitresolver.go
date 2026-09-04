@@ -114,7 +114,7 @@ func (r *EmitResolver) determineIfDeclarationIsVisible(node ast.Handle) bool {
 		return r.isDeclarationVisible(node.Parent().Parent())
 	case ast.KindVariableDeclaration, ast.KindModuleDeclaration, ast.KindClassDeclaration, ast.KindInterfaceDeclaration, ast.KindTypeAliasDeclaration, ast.KindJSTypeAliasDeclaration, ast.KindFunctionDeclaration, ast.KindEnumDeclaration, ast.KindImportEqualsDeclaration:
 		if ast.IsVariableDeclaration(node) {
-			if ast.IsBindingPattern(node.Name()) && len(node.Name().Elements()) == 0 {
+			if ast.IsBindingPattern(node.Name()) && node.Name().ElementsSeq().Len() == 0 {
 				return false
 			}
 		}
@@ -533,7 +533,7 @@ func (r *EmitResolver) isValueAliasDeclarationWorker(node ast.Handle) bool {
 		return symbol != nil && r.isAliasResolvedToValue(symbol, true)
 	case ast.KindExportDeclaration:
 		exportClause := node.ExportDeclarationExportClause()
-		return !exportClause.IsNil() && (ast.IsNamespaceExport(exportClause) || core.Some(exportClause.Elements(), r.isValueAliasDeclaration))
+		return !exportClause.IsNil() && (ast.IsNamespaceExport(exportClause) || exportClause.ElementsSeq().Some(r.isValueAliasDeclaration))
 	case ast.KindExportAssignment:
 		if !node.Expression().IsNil() && node.Expression().Kind == ast.KindIdentifier {
 			return r.isAliasResolvedToValue(c.getSymbolOfDeclaration(node), true)
@@ -835,7 +835,7 @@ func (r *EmitResolver) CreateLateBoundIndexSignatures(emitContext *printer.EmitC
 			node := requestNodeBuilder.IndexInfoToIndexSignatureDeclaration(info, enclosingDeclaration, flags, internalFlags, tracker)
 			if !node.IsNil() && isStatic {
 				modNodes := []ast.Handle{emitContext.Factory.NewModifier(ast.KindStaticKeyword)}
-				modNodes = append(modNodes, node.ModifierNodes()...)
+				modNodes = append(modNodes, node.ModifierNodesSeq().Slice()...)
 				mods := emitContext.Factory.NewModifierList(modNodes)
 				node = emitContext.Factory.UpdateIndexSignatureDeclaration(node, mods, node.ParameterList(), node.Type())
 			}

@@ -583,8 +583,7 @@ func (c *Checker) getTypeParameterConstraintForPositionAcrossSignatures(signatur
 func (c *Checker) getTypeArgumentConstraint(node ast.Handle) *Type {
 	var typeArgumentPosition int = -1
 	if ast.HasTypeArguments(node.Parent()) {
-		typeArgs := node.Parent().TypeArguments()
-		for i, arg := range typeArgs {
+		for i, arg := range node.Parent().TypeArgumentsSeq() {
 			if arg == node {
 				typeArgumentPosition = i
 				break
@@ -628,8 +627,7 @@ func (c *Checker) getTypeArgumentConstraint(node ast.Handle) *Type {
 	return nil
 }
 func (c *Checker) IsTypeInvalidDueToUnionDiscriminant(contextualType *Type, obj ast.Handle) bool {
-	properties := obj.Properties()
-	return core.Some(properties, func(property ast.Handle) bool {
+	return obj.PropertiesSeq().Some(func(property ast.Handle) bool {
 		var nameType *Type
 		propertyName := property.Name
 		if !propertyName().IsNil() {
@@ -745,8 +743,7 @@ func (c *Checker) GetContextualTypeForArrayLiteralAtPosition(contextualArrayType
 	}
 	firstSpreadIndex, lastSpreadIndex := -1, -1
 	elementIndex := 0
-	elements := arrayLiteral.Elements()
-	for i, elem := range elements {
+	for i, elem := range arrayLiteral.ElementsSeq() {
 		if elem.Pos() < position {
 			elementIndex++
 		}
@@ -836,13 +833,13 @@ func (c *Checker) getTypeOfAssignmentPattern(expr ast.Handle) *Type {
 	if ast.IsPropertyAssignment(expr.Parent()) {
 		node := expr.Parent().Parent()
 		typeOfParentObjectLiteral := core.OrElse(c.getTypeOfAssignmentPattern(node), c.errorType)
-		propertyIndex := slices.Index(node.Properties(), expr.Parent())
+		propertyIndex := node.Store().ListIndexOf(node.PropertyList(), expr.Parent())
 		return c.checkObjectLiteralDestructuringPropertyAssignment(node, typeOfParentObjectLiteral, propertyIndex, 0, false)
 	}
 	node := expr.Parent()
 	typeOfArrayLiteral := core.OrElse(c.getTypeOfAssignmentPattern(node), c.errorType)
 	elementType := core.OrElse(c.checkIteratedTypeOrElementType(IterationUseDestructuring, typeOfArrayLiteral, c.undefinedType, expr.Parent()), c.errorType)
-	return c.checkArrayLiteralDestructuringElementAssignment(node, typeOfArrayLiteral, slices.Index(node.Elements(), expr), elementType, CheckModeNormal)
+	return c.checkArrayLiteralDestructuringElementAssignment(node, typeOfArrayLiteral, node.Store().ListIndexOf(node.ElementList(), expr), elementType, CheckModeNormal)
 }
 func (c *Checker) GetSignatureFromDeclaration(node ast.Handle) *Signature {
 	return c.getSignatureFromDeclaration(node)
