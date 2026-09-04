@@ -502,12 +502,62 @@ func (b *Binder) expressionRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.Node
 	return 0
 }
 
+func (b *Binder) questionTokenRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.NodeRef {
+	s := b.store
+	switch kind {
+	case ast.KindParameter:
+		return s.ChildRef(ref, 2)
+	case ast.KindConditionalExpression:
+		return s.ChildRef(ref, 1)
+	case ast.KindMappedType:
+		return s.ChildRef(ref, 3)
+	case ast.KindNamedTupleMember:
+		return s.ChildRef(ref, 2)
+	}
+	return 0
+}
+
 func (b *Binder) argumentsRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.ListRef {
 	s := b.store
 	switch kind {
 	case ast.KindCallExpression:
 		return s.ListSlotAt(ref, 1)
 	case ast.KindNewExpression:
+		return s.ListSlotAt(ref, 1)
+	}
+	return 0
+}
+
+func (b *Binder) parametersRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.ListRef {
+	s := b.store
+	switch kind {
+	case ast.KindFunctionDeclaration:
+		return s.ListSlotAt(ref, 2)
+	case ast.KindCallSignature:
+		return s.ListSlotAt(ref, 1)
+	case ast.KindConstructSignature:
+		return s.ListSlotAt(ref, 1)
+	case ast.KindConstructor:
+		return s.ListSlotAt(ref, 2)
+	case ast.KindGetAccessor:
+		return s.ListSlotAt(ref, 2)
+	case ast.KindSetAccessor:
+		return s.ListSlotAt(ref, 2)
+	case ast.KindIndexSignature:
+		return s.ListSlotAt(ref, 1)
+	case ast.KindMethodSignature:
+		return s.ListSlotAt(ref, 2)
+	case ast.KindMethodDeclaration:
+		return s.ListSlotAt(ref, 2)
+	case ast.KindArrowFunction:
+		return s.ListSlotAt(ref, 2)
+	case ast.KindFunctionExpression:
+		return s.ListSlotAt(ref, 2)
+	case ast.KindFunctionType:
+		return s.ListSlotAt(ref, 1)
+	case ast.KindConstructorType:
+		return s.ListSlotAt(ref, 2)
+	case ast.KindJSDocSignature:
 		return s.ListSlotAt(ref, 1)
 	}
 	return 0

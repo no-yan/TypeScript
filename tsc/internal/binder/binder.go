@@ -217,8 +217,7 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 		node = ast.HandleOf(b.store, id, kind)
 		b.bindTypeParameter(node)
 	case ast.KindParameter:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindParameter(node)
+		b.bindParameterRef(id, kind)
 	case ast.KindVariableDeclaration:
 		b.bindVariableDeclarationOrBindingElementRef(id, kind)
 	case ast.KindBindingElement:
@@ -1279,20 +1278,27 @@ func (b *Binder) isPartOfParameterDeclarationRef(ref ast.NodeRef, kind ast.Kind)
 	return rootKind == ast.KindParameter
 }
 func (b *Binder) bindParameter(node ast.Handle) {
-	decl := node
-	if node.Flags()&ast.NodeFlagsAmbient == 0 {
-		b.checkStrictModeEvalOrArguments(node, decl.Name())
+	b.bindParameterRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindParameterRef(ref ast.NodeRef, kind ast.Kind) {
+	nameRef, nameKind := b.nameOfDeclarationRef(ref, kind)
+	if b.store.FlagsAt(ref)&ast.NodeFlagsAmbient == 0 {
+		b.checkStrictModeEvalOrArgumentsRef(ref, kind, nameRef, nameKind)
 	}
-	if ast.IsBindingPattern(decl.Name()) {
-		index := listIndex(node.Parent().ParameterList(), node)
-		b.bindAnonymousDeclaration(node, ast.SymbolFlagsFunctionScopedVariable, "__"+strconv.Itoa(index))
+	parent := b.store.ParentRef(ref)
+	parentKind := b.store.KindAt(parent)
+	if isBindingPatternKind(nameKind) {
+		index := listIndexRef(b.store, b.parametersRefGenerated(parent, parentKind), ref)
+		b.bindAnonymousDeclarationRef(ref, kind, ast.SymbolFlagsFunctionScopedVariable, "__"+strconv.Itoa(index))
 	} else {
-		b.declareSymbolAndAddToSymbolTable(node, ast.SymbolFlagsFunctionScopedVariable, ast.SymbolFlagsParameterExcludes)
+		b.declareSymbolAndAddToSymbolTableRef(ref, kind, ast.SymbolFlagsFunctionScopedVariable, ast.SymbolFlagsParameterExcludes)
 	}
-	if ast.IsParameterPropertyDeclaration(node, node.Parent()) {
-		classDeclaration := node.Parent().Parent()
-		flags := ast.SymbolFlagsProperty | core.IfElse(!decl.QuestionToken().IsNil(), ast.SymbolFlagsOptional, ast.SymbolFlagsNone)
-		b.declareSymbol(ast.GetMembers(classDeclaration.Symbol()), classDeclaration.Symbol(), node, flags, ast.SymbolFlagsPropertyExcludes)
+	if b.hasSyntacticModifierRef(ref, kind, ast.ModifierFlagsParameterPropertyModifier) && parentKind == ast.KindConstructor {
+		classDeclaration := b.store.ParentRef(parent)
+		classSymbol := b.symbol(classDeclaration)
+		flags := ast.SymbolFlagsProperty | core.IfElse(b.questionTokenRefGenerated(ref, kind) != 0, ast.SymbolFlagsOptional, ast.SymbolFlagsNone)
+		b.declareSymbolRef(ast.GetMembers(classSymbol), classSymbol, ref, kind, flags, ast.SymbolFlagsPropertyExcludes, false, false)
 	}
 }
 func (b *Binder) bindFunctionDeclaration(node ast.Handle) {
@@ -1325,11 +1331,15 @@ func (b *Binder) getInferTypeContainer(node ast.Handle) ast.Handle {
 	return ast.Handle{}
 }
 func (b *Binder) bindAnonymousDeclaration(node ast.Handle, symbolFlags ast.SymbolFlags, name string) {
+	b.bindAnonymousDeclarationRef(node.Ref(), node.Kind, symbolFlags, name)
+}
+
+func (b *Binder) bindAnonymousDeclarationRef(ref ast.NodeRef, kind ast.Kind, symbolFlags ast.SymbolFlags, name string) {
 	symbol := b.newSymbol(symbolFlags, name)
 	if symbolFlags&(ast.SymbolFlagsEnumMember|ast.SymbolFlagsClassMember) != 0 {
 		symbol.Parent = b.symbol(b.container)
 	}
-	b.addDeclarationToSymbol(symbol, node, symbolFlags)
+	b.addDeclarationToSymbolRef(symbol, ref, kind, symbolFlags)
 }
 func (b *Binder) bindBlockScopedDeclaration(node ast.Handle, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags) {
 	b.bindBlockScopedDeclarationRef(node.Ref(), node.Kind, symbolFlags, symbolExcludes)
@@ -1886,9 +1896,15 @@ func listIndex(list ast.ListRef, node ast.Handle) int {
 	if list == 0 || node.IsNil() {
 		return -1
 	}
-	s := node.Store()
+	return listIndexRef(node.Store(), list, node.Ref())
+}
+
+func listIndexRef(store *ast.Store, list ast.ListRef, ref ast.NodeRef) int {
+	if store == nil || list == 0 || ref == 0 {
+		return -1
+	}
+	s := store
 	n := s.ListLen(list)
-	ref := node.Ref()
 	for i := 0; i < n; i++ {
 		if s.ListElem(list, i) == ref {
 			return i
