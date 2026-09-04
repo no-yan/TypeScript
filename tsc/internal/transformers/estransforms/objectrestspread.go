@@ -233,7 +233,8 @@ func (ch *objectRestSpreadTransformer) collectObjectRestAssignments(node ast.Han
 					if !declarations.IsNil() {
 						decls := []ast.Handle{declarations}
 						if declarations.Kind == ast.KindSyntaxList {
-							decls = declarations.Store().ListSlice(declarations.SyntaxListChildren())
+							// NewList takes []Handle ownership.
+							decls = declarations.ChildrenSeq().Slice()
 						}
 						declarationList := ch.Factory().NewVariableDeclarationList(ch.Factory().NewList(decls), ast.NodeFlagsNone)
 						statement := ch.Factory().NewVariableStatement(0, declarationList)
@@ -272,7 +273,8 @@ func (ch *objectRestSpreadTransformer) collectObjectRestAssignments(node ast.Han
 			if !declarations.IsNil() {
 				decls := []ast.Handle{declarations}
 				if declarations.Kind == ast.KindSyntaxList {
-					decls = declarations.Store().ListSlice(declarations.SyntaxListChildren())
+					// NewList takes []Handle ownership.
+					decls = declarations.ChildrenSeq().Slice()
 				}
 				declarationList := ch.Factory().NewVariableDeclarationList(ch.Factory().NewList(decls), ast.NodeFlagsNone)
 				statement := ch.Factory().NewVariableStatement(0, declarationList)
@@ -292,7 +294,8 @@ func (ch *objectRestSpreadTransformer) visitCatchClause(node ast.Handle) ast.Han
 		if !visitedBindings.IsNil() {
 			var decls []ast.Handle
 			if visitedBindings.Kind == ast.KindSyntaxList {
-				decls = visitedBindings.Store().ListSlice(visitedBindings.SyntaxListChildren())
+				// NewList takes []Handle ownership.
+				decls = visitedBindings.ChildrenSeq().Slice()
 			} else {
 				decls = []ast.Handle{visitedBindings}
 			}
@@ -409,10 +412,9 @@ func (ch *objectRestSpreadTransformer) chunkObjectLiteralElements(list ast.ListR
 	if store.ListLen(list) == 0 {
 		return nil
 	}
-	elements := store.ListSlice(list)
 	var chunkObject []ast.Handle
 	objects := make([]ast.Handle, 0, 1)
-	for _, e := range elements {
+	for _, e := range store.ListSlice(list) {
 		if e.Kind == ast.KindSpreadAssignment {
 			if len(chunkObject) > 0 {
 				objects = append(objects, ch.Factory().NewObjectLiteralExpression(ch.Factory().NewList(chunkObject), false))

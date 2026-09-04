@@ -10,7 +10,6 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/scanner"
 	"github.com/microsoft/TypeScript/tsc/internal/transformers"
 	"iter"
-	"slices"
 )
 
 type classFacts int
@@ -82,15 +81,15 @@ type classFieldsTransformer struct {
 	insideComputedPropertyName                        bool
 	parentNode                                        ast.Handle
 	currentNode                                       ast.Handle
-	modifierVisitor *ast.HandleVisitor
-	discardedValueVisitor *ast.HandleVisitor
-	heritageClauseVisitor *ast.HandleVisitor
-	assignmentTargetVisitor *ast.HandleVisitor
-	classElementVisitor *ast.HandleVisitor
-	accessorFieldResultVisitor *ast.HandleVisitor
-	arrayAssignmentElementVisitor *ast.HandleVisitor
-	objectAssignmentElementVisitor *ast.HandleVisitor
-	substitutionVisitor *ast.HandleVisitor
+	modifierVisitor                                   *ast.HandleVisitor
+	discardedValueVisitor                             *ast.HandleVisitor
+	heritageClauseVisitor                             *ast.HandleVisitor
+	assignmentTargetVisitor                           *ast.HandleVisitor
+	classElementVisitor                               *ast.HandleVisitor
+	accessorFieldResultVisitor                        *ast.HandleVisitor
+	arrayAssignmentElementVisitor                     *ast.HandleVisitor
+	objectAssignmentElementVisitor                    *ast.HandleVisitor
+	substitutionVisitor                               *ast.HandleVisitor
 	isAnonymousClassNeedingAssignedName               func(ast.Handle) bool
 }
 
@@ -927,7 +926,8 @@ func (tx *classFieldsTransformer) visitTaggedTemplateExpression(node ast.Handle)
 func (tx *classFieldsTransformer) transformClassStaticBlockDeclaration(node ast.Handle) ast.Handle {
 	if tx.shouldTransformPrivateElementsOrClassStaticBlocks {
 		if isClassThisAssignmentBlock(tx.EmitContext(), node) {
-			result := tx.Visitor().VisitNode(node.Store().ListSlice(node.ClassStaticBlockDeclarationBody().BlockStatements())[0].Expression())
+			body := node.ClassStaticBlockDeclarationBody()
+			result := tx.Visitor().VisitNode(body.Store().ListAt(body.BlockStatements(), 0).Expression())
 			if ast.IsAssignmentExpression(result, true) {
 				binary := result
 				if binary.Left() == binary.Right() {
@@ -937,10 +937,12 @@ func (tx *classFieldsTransformer) transformClassStaticBlockDeclaration(node ast.
 			return result
 		}
 		if isClassNamedEvaluationHelperBlock(tx.EmitContext(), node) {
-			return tx.Visitor().VisitNode(node.Store().ListSlice(node.ClassStaticBlockDeclarationBody().BlockStatements())[0].Expression())
+			body := node.ClassStaticBlockDeclarationBody()
+			return tx.Visitor().VisitNode(body.Store().ListAt(body.BlockStatements(), 0).Expression())
 		}
 		tx.EmitContext().StartVariableEnvironment()
-		statements := tx.setCurrentClassElementAndVisitStatements(node, node.Store().ListSlice(node.ClassStaticBlockDeclarationBody().BlockStatements()))
+		// setCurrentClassElementAndVisitStatements takes []Handle ownership.
+		statements := tx.setCurrentClassElementAndVisitStatements(node, node.ClassStaticBlockDeclarationBody().StatementsSeq().Slice())
 		statements = tx.EmitContext().EndAndMergeVariableEnvironment(statements)
 		iife := tx.Factory().NewImmediatelyInvokedArrowFunction(statements)
 		arrowFunction := ast.SkipParentheses(iife.Expression())
@@ -1492,7 +1494,7 @@ func (tx *classFieldsTransformer) transformClassMembers(node ast.Handle) (member
 	}
 	members = tx.classElementVisitor.VisitNodes(node.MemberList())
 	var syntheticConstructor ast.Handle
-	if !core.Some(node.Store().ListSlice(members), ast.IsConstructorDeclaration) {
+	if !node.Store().ListSlice(members).Some(ast.IsConstructorDeclaration) {
 		syntheticConstructor = tx.transformConstructor(ast.Handle{}, node)
 	}
 	var syntheticStaticBlock ast.Handle
@@ -1511,12 +1513,19 @@ func (tx *classFieldsTransformer) transformClassMembers(node ast.Handle) (member
 	}
 	if !syntheticConstructor.IsNil() || !syntheticStaticBlock.IsNil() {
 		membersArray := make([]ast.Handle, 0, node.Store().ListLen(members)+2)
-		classThisIdx := slices.IndexFunc(node.Store().ListSlice(members), func(n ast.Handle) bool {
-			return isClassThisAssignmentBlock(tx.EmitContext(), n)
-		})
-		namedEvalIdx := slices.IndexFunc(node.Store().ListSlice(members), func(n ast.Handle) bool {
-			return isClassNamedEvaluationHelperBlock(tx.EmitContext(), n)
-		})
+		classThisIdx := -1
+		namedEvalIdx := -1
+		for i, n := range node.Store().ListSlice(members) {
+			if classThisIdx < 0 && isClassThisAssignmentBlock(tx.EmitContext(), n) {
+				classThisIdx = i
+			}
+			if namedEvalIdx < 0 && isClassNamedEvaluationHelperBlock(tx.EmitContext(), n) {
+				namedEvalIdx = i
+			}
+			if classThisIdx >= 0 && namedEvalIdx >= 0 {
+				break
+			}
+		}
 		if classThisIdx >= 0 {
 			membersArray = append(membersArray, node.Store().ListAt(members, classThisIdx))
 		}
@@ -1677,7 +1686,7 @@ func (tx *classFieldsTransformer) transformConstructorBody(container ast.Handle,
 		return ast.Handle{}
 	}
 	var multiLine bool
-	if !constructor.IsNil() && !constructor.Body().IsNil() && len(constructor.Body().Store().ListSlice(constructor.Body().BlockStatements())) >= len(statements) {
+	if !constructor.IsNil() && !constructor.Body().IsNil() && constructor.Body().Store().ListLen(constructor.Body().BlockStatements()) >= len(statements) {
 		multiLine = constructor.Body().BlockMultiLine()
 	} else {
 		multiLine = len(statements) > 0
