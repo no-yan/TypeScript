@@ -942,7 +942,7 @@ function generateBinderWalk(): string {
     w.write("}");
     w.write("");
 
-    for (const suffix of ["Initializer", "Type", "Expression", "QuestionToken", "PostfixToken"] as const) {
+    for (const suffix of ["Initializer", "Type", "Expression", "QuestionToken", "PostfixToken", "Body"] as const) {
         const functionName = suffix[0].toLowerCase() + suffix.slice(1) + "RefGenerated";
         w.write(`func (b *Binder) ${functionName}(ref ast.NodeRef, kind ast.Kind) ast.NodeRef {`);
         w.push();
@@ -969,7 +969,7 @@ function generateBinderWalk(): string {
         w.write("");
     }
 
-    for (const suffix of ["Arguments", "Parameters"] as const) {
+    for (const suffix of ["Arguments", "Parameters", "Statements"] as const) {
         const functionName = suffix[0].toLowerCase() + suffix.slice(1) + "RefGenerated";
         w.write(`func (b *Binder) ${functionName}(ref ast.NodeRef, kind ast.Kind) ast.ListRef {`);
         w.push();

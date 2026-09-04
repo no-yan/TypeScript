@@ -271,8 +271,7 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 			b.bindBlockScopedDeclarationRef(id, kind, ast.SymbolFlagsTypeAlias, ast.SymbolFlagsTypeAliasExcludes)
 		}
 	case ast.KindEnumDeclaration:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindEnumDeclaration(node)
+		b.bindEnumDeclarationRef(id, kind)
 	case ast.KindModuleDeclaration:
 		node = ast.HandleOf(b.store, id, kind)
 		b.bindModuleDeclaration(node)
@@ -291,7 +290,7 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 		node = ast.HandleOf(b.store, id, kind)
 		b.bindExportAssignment(node)
 	case ast.KindSourceFile:
-		b.bindSourceFileIfExternalModule()
+		b.bindSourceFileIfExternalModuleRef(id, kind)
 	case ast.KindJsxAttributes:
 		b.bindAnonymousDeclarationRef(id, kind, ast.SymbolFlagsObjectLiteral, ast.InternalSymbolNameJSXAttributes)
 	case ast.KindJsxAttribute:
@@ -836,18 +835,28 @@ func (b *Binder) bindPropertyWorkerRef(ref ast.NodeRef, kind ast.Kind) {
 	b.bindPropertyOrMethodOrAccessorRef(ref, kind, includes|b.getOptionalSymbolFlagForRef(ref, kind), excludes)
 }
 func (b *Binder) bindSourceFileIfExternalModule() {
-	b.setExportContextFlag(b.file.ParseRoot())
+	_, ref := b.file.ParseTreeRef()
+	b.bindSourceFileIfExternalModuleRef(ref, ast.KindSourceFile)
+}
+
+func (b *Binder) bindSourceFileIfExternalModuleRef(ref ast.NodeRef, kind ast.Kind) {
+	b.setExportContextFlagRef(ref, kind)
 	if ast.IsExternalOrCommonJSModule(b.file) {
-		b.bindSourceFileAsExternalModule()
+		b.bindSourceFileAsExternalModuleRef(ref, kind)
 	} else if ast.IsJsonSourceFile(b.file) {
-		b.bindSourceFileAsExternalModule()
+		b.bindSourceFileAsExternalModuleRef(ref, kind)
 		originalSymbol := b.file.Symbol
-		b.declareSymbol(ast.GetSymbolTable(&b.file.Symbol.Exports), b.file.Symbol, b.file.ParseRoot(), ast.SymbolFlagsProperty, ast.SymbolFlagsAll)
+		b.declareSymbolRef(ast.GetSymbolTable(&b.file.Symbol.Exports), b.file.Symbol, ref, kind, ast.SymbolFlagsProperty, ast.SymbolFlagsAll, false, false)
 		b.file.Symbol = originalSymbol
 	}
 }
 func (b *Binder) bindSourceFileAsExternalModule() {
-	b.bindAnonymousDeclaration(b.file.ParseRoot(), ast.SymbolFlagsValueModule, "\""+tspath.RemoveFileExtension(b.file.FileName())+"\"")
+	_, ref := b.file.ParseTreeRef()
+	b.bindSourceFileAsExternalModuleRef(ref, ast.KindSourceFile)
+}
+
+func (b *Binder) bindSourceFileAsExternalModuleRef(ref ast.NodeRef, kind ast.Kind) {
+	b.bindAnonymousDeclarationRef(ref, kind, ast.SymbolFlagsValueModule, "\""+tspath.RemoveFileExtension(b.file.FileName())+"\"")
 }
 func (b *Binder) bindModuleDeclaration(node ast.Handle) {
 	b.setExportContextFlag(node)
@@ -940,31 +949,41 @@ func (b *Binder) bindJsxAttribute(node ast.Handle, symbolFlags ast.SymbolFlags, 
 	b.declareSymbolAndAddToSymbolTable(node, symbolFlags, symbolExcludes)
 }
 func (b *Binder) setExportContextFlag(node ast.Handle) {
-	if node.Flags()&ast.NodeFlagsAmbient != 0 && !b.hasExportDeclarations(node) {
-		node.SetFlags(node.Flags() | ast.NodeFlagsExportContext)
+	b.setExportContextFlagRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) setExportContextFlagRef(ref ast.NodeRef, kind ast.Kind) {
+	flags := b.store.FlagsAt(ref)
+	if flags&ast.NodeFlagsAmbient != 0 && !b.hasExportDeclarationsRef(ref, kind) {
+		b.store.SetFlagsAt(ref, flags|ast.NodeFlagsExportContext)
 	} else {
-		node.SetFlags(node.Flags() &^ ast.NodeFlagsExportContext)
+		b.store.SetFlagsAt(ref, flags&^ast.NodeFlagsExportContext)
 	}
 }
 func (b *Binder) hasExportDeclarations(node ast.Handle) bool {
+	return b.hasExportDeclarationsRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) hasExportDeclarationsRef(ref ast.NodeRef, kind ast.Kind) bool {
 	var list ast.ListRef
-	switch node.Kind {
+	switch kind {
 	case ast.KindSourceFile:
-		list = node.StatementList()
+		list = b.statementsRefGenerated(ref, kind)
 	case ast.KindModuleDeclaration:
-		body := node.Body()
-		if !body.IsNil() && ast.IsModuleBlock(body) {
-			list = body.StatementList()
+		body := b.bodyRefGenerated(ref, kind)
+		if body != 0 && b.store.KindAt(body) == ast.KindModuleBlock {
+			list = b.statementsRefGenerated(body, ast.KindModuleBlock)
 		}
 	}
 	if list == 0 {
 		return false
 	}
-	s := node.Store()
+	s := b.store
 	n := s.ListLen(list)
 	for i := 0; i < n; i++ {
-		st := s.ListAt(list, i)
-		if ast.IsExportDeclaration(st) || ast.IsExportAssignment(st) {
+		statement := s.ListElem(list, i)
+		statementKind := s.KindAt(statement)
+		if statementKind == ast.KindExportDeclaration || statementKind == ast.KindExportAssignment {
 			return true
 		}
 	}
@@ -1225,10 +1244,14 @@ func (b *Binder) getThisClassAndSymbolTable() (classSymbol *ast.Symbol, symbolTa
 	return classSymbol, symbolTable
 }
 func (b *Binder) bindEnumDeclaration(node ast.Handle) {
-	if ast.IsEnumConst(node) {
-		b.bindBlockScopedDeclaration(node, ast.SymbolFlagsConstEnum, ast.SymbolFlagsConstEnumExcludes)
+	b.bindEnumDeclarationRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindEnumDeclarationRef(ref ast.NodeRef, kind ast.Kind) {
+	if b.combinedModifierFlagsRef(ref, kind)&ast.ModifierFlagsConst != 0 {
+		b.bindBlockScopedDeclarationRef(ref, kind, ast.SymbolFlagsConstEnum, ast.SymbolFlagsConstEnumExcludes)
 	} else {
-		b.bindBlockScopedDeclaration(node, ast.SymbolFlagsRegularEnum, ast.SymbolFlagsRegularEnumExcludes)
+		b.bindBlockScopedDeclarationRef(ref, kind, ast.SymbolFlagsRegularEnum, ast.SymbolFlagsRegularEnumExcludes)
 	}
 }
 func (b *Binder) bindVariableDeclarationOrBindingElement(node ast.Handle) {

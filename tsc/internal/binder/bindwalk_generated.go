@@ -536,6 +536,31 @@ func (b *Binder) postfixTokenRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.No
 	return 0
 }
 
+func (b *Binder) bodyRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.NodeRef {
+	s := b.store
+	switch kind {
+	case ast.KindFunctionDeclaration:
+		return s.ChildRef(ref, 4)
+	case ast.KindConstructor:
+		return s.ChildRef(ref, 2)
+	case ast.KindGetAccessor:
+		return s.ChildRef(ref, 3)
+	case ast.KindSetAccessor:
+		return s.ChildRef(ref, 3)
+	case ast.KindMethodDeclaration:
+		return s.ChildRef(ref, 5)
+	case ast.KindClassStaticBlockDeclaration:
+		return s.ChildRef(ref, 0)
+	case ast.KindArrowFunction:
+		return s.ChildRef(ref, 3)
+	case ast.KindFunctionExpression:
+		return s.ChildRef(ref, 4)
+	case ast.KindModuleDeclaration:
+		return s.ChildRef(ref, 1)
+	}
+	return 0
+}
+
 func (b *Binder) argumentsRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.ListRef {
 	s := b.store
 	switch kind {
@@ -578,6 +603,21 @@ func (b *Binder) parametersRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.List
 		return s.ListSlotAt(ref, 2)
 	case ast.KindJSDocSignature:
 		return s.ListSlotAt(ref, 1)
+	}
+	return 0
+}
+
+func (b *Binder) statementsRefGenerated(ref ast.NodeRef, kind ast.Kind) ast.ListRef {
+	s := b.store
+	switch kind {
+	case ast.KindCaseClause, ast.KindDefaultClause:
+		return s.ListSlotAt(ref, 0)
+	case ast.KindBlock:
+		return s.ListSlotAt(ref, 0)
+	case ast.KindModuleBlock:
+		return s.ListSlotAt(ref, 0)
+	case ast.KindSourceFile:
+		return s.ListSlotAt(ref, 0)
 	}
 	return 0
 }
