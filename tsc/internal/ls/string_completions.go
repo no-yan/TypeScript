@@ -27,7 +27,7 @@ import (
 )
 
 type completionsFromTypes struct {
-	types []*/*replacementToken*/ /*includeSymbols*/ /*insertText*/ /*filterText*/ /*commitCharacters*/ /*labelDetails*/ /*isMemberCompletion*/ /*isSnippet*/ /*hasAction*/ /*preselect*/ /*source*/ /*autoImportEntryData*/ /*additionalTextEdits*/ /*detail*/ /*optionalReplacementSpan*/ // The user may type in a path that doesn't yet exist, creating a "new identifier" with respect to the collection of identifiers the server is aware of.
+	types []* /*replacementToken*/ /*includeSymbols*/ /*insertText*/ /*filterText*/ /*commitCharacters*/ /*labelDetails*/ /*isMemberCompletion*/ /*isSnippet*/ /*hasAction*/ /*preselect*/ /*source*/ /*autoImportEntryData*/ /*additionalTextEdits*/ /*detail*/ /*optionalReplacementSpan*/ // The user may type in a path that doesn't yet exist, creating a "new identifier" with respect to the collection of identifiers the server is aware of.
 	/*insertText*/ /*filterText*/ /*commitCharacters*/ /*labelDetails*/ /*isMemberCompletion*/ /*isSnippet*/ /*hasAction*/ /*preselect*/ /*source*/ /*autoImportEntryData*/ /*additionalTextEdits*/ /*optionalReplacementSpan*/ // Get quoted name of properties of the object literal expression
 	// i.e. interface ConfigFiles {
 	//          'jspm:dev': string
@@ -306,7 +306,7 @@ func (l *LanguageService) getStringLiteralCompletionEntries(ctx context.Context,
 	case ast.KindImportDeclaration, ast.KindExportDeclaration, ast.KindExternalModuleReference, ast.KindJSDocImportTag:
 		return l.getStringLiteralCompletionsFromModuleNames(file, node, l.GetProgram(), typeChecker)
 	case ast.KindCaseClause:
-		tracker := newCaseClauseTracker(typeChecker, parent.Store().ListSlice(parent.Parent().CaseBlockClauses()))
+		tracker := newCaseClauseTracker(typeChecker, parent.Store().ListSlice(parent.Parent().CaseBlockClauses()).Slice())
 		contextualTypes := fromContextualType(checker.ContextFlagsIgnoreNodeInferences, node, typeChecker)
 		if contextualTypes == nil {
 			return nil

@@ -401,7 +401,7 @@ func (t *Tracker) InsertNodeInListAfter(sourceFile *ast.SourceFile, after ast.Ha
 	if containingList == 0 {
 		return
 	}
-	index := slices.Index(after.Store().ListSlice(containingList), after)
+	index := after.Store().ListIndexOf(containingList, after)
 	if index < 0 {
 		return
 	}

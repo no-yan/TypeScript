@@ -372,8 +372,8 @@ func getAdjustedLocation(node ast.Handle, forRename bool, sourceFile *ast.Source
 			return location
 		}
 	}
-	if (node.Kind == ast.KindVarKeyword || node.Kind == ast.KindConstKeyword || node.Kind == ast.KindLetKeyword) && ast.IsVariableDeclarationList(parent) && len(parent.Store().ListSlice(parent.VariableDeclarationListDeclarations())) == 1 {
-		declaration := parent.Store().ListSlice(parent.VariableDeclarationListDeclarations())[0]
+	if (node.Kind == ast.KindVarKeyword || node.Kind == ast.KindConstKeyword || node.Kind == ast.KindLetKeyword) && ast.IsVariableDeclarationList(parent) && parent.Store().ListLen(parent.VariableDeclarationListDeclarations()) == 1 {
+		declaration := parent.Store().ListAt(parent.VariableDeclarationListDeclarations(), 0)
 		if ast.IsIdentifier(declaration.Name()) {
 			return declaration.Name()
 		}
@@ -625,7 +625,7 @@ func getIntersectingMeaningFromDeclarations(node ast.Handle, symbol *ast.Symbol,
 	}
 	meaning := getMeaningFromLocation(node)
 	declarations := ast.DeclarationNodes(symbol)
-	if len(declarations) == 0 {
+	if declarations.Len() == 0 {
 		return meaning
 	}
 	lastIterationMeaning := meaning

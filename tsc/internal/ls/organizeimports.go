@@ -20,6 +20,7 @@ func (l *LanguageService) OrganizeImports(ctx context.Context, sourceFile *ast.S
 //  1. Removing unused imports
 //  2. Coalescing imports from the same module
 //  3. Sorting imports
+//
 // Unmappable files are dropped by GetChanges, so a content-mapped file whose imports cannot be
 // faithfully rewritten yields no edits rather than a corrupting one.
 // Header comment preservation is handled via LeadingTriviaOptionExclude in the change tracker below
@@ -272,8 +273,7 @@ func getImportAttributesKey(attributes ast.Handle) string {
 	key.WriteString(importAttrs.ImportAttributesToken().String())
 	key.WriteString(" ")
 	attrList := importAttrs.ImportAttributesAttributes()
-	attrNodes := make([]ast.Handle, len(importAttrs.Store().ListSlice(attrList)))
-	copy(attrNodes, importAttrs.Store().ListSlice(attrList))
+	attrNodes := importAttrs.Store().ListSlice(attrList).Slice()
 	slices.SortFunc(attrNodes, func(a, b ast.Handle) int {
 		aName := a.ImportAttributeName().Text()
 		bName := b.ImportAttributeName().Text()

@@ -20,7 +20,7 @@ import (
 
 func (l *LanguageService) ProvideFoldingRange(ctx context.Context, documentURI lsproto.DocumentUri) (lsproto.FoldingRangeResponse, error) {
 	_, sourceFile := l.getProgramAndFile(documentURI)
-	projections := append([]*// adjustFoldingEnd adjusts the end line of folding ranges when the client signals lineFoldingOnly.
+	projections := append([]* // adjustFoldingEnd adjusts the end line of folding ranges when the client signals lineFoldingOnly.
 	// This mirrors the behavior of VS Code's built-in TypeScript extension (workaround for vscode#47240).
 	// When lineFoldingOnly is true, we hide lines from startLine+1 to endLine. And to keep closing
 	// brackets/braces visible, we subtract 1 from endLine when the range ends with a closing pair character.
@@ -464,7 +464,7 @@ func spanForParenthesizedExpression(ctx context.Context, node ast.Handle, source
 	return createFoldingRange(ctx, textRange, "", "")
 }
 func spanForCallExpression(ctx context.Context, node ast.Handle, sourceFile *ast.SourceFile, l *LanguageService) *lsproto.FoldingRange {
-	if node.CallExpressionArguments() == 0 || len(node.Store().ListSlice(node.CallExpressionArguments())) == 0 {
+	if node.CallExpressionArguments() == 0 || node.Store().ListLen(node.CallExpressionArguments()) == 0 {
 		return nil
 	}
 	openToken := astnav.FindChildOfKind(node, ast.KindOpenParenToken, sourceFile)

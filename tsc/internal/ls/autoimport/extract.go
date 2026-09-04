@@ -222,7 +222,7 @@ func (e *symbolExtractor) extractFromSymbol(name string, symbol *ast.Symbol, mod
 	} else if syntax == ExportSyntaxCommonJSModuleExports {
 		expression := ast.NodeOf(symbol.Declarations[0]).BinaryExpressionRight()
 		if expression.Kind == ast.KindObjectLiteralExpression {
-			*exports = slices.Grow(*exports, len(expression.Store().ListSlice(expression.ObjectLiteralExpressionProperties())))
+			*exports = slices.Grow(*exports, expression.Store().ListLen(expression.ObjectLiteralExpressionProperties()))
 			for _, prop := range expression.Store().ListSlice(expression.ObjectLiteralExpressionProperties()) {
 				if ast.IsShorthandPropertyAssignment(prop) || ast.IsPropertyAssignment(prop) && prop.PropertyAssignmentName().Kind == ast.KindIdentifier {
 					export, _ := e.createExport(expression.Symbol().Members[prop.Name().Text()], moduleID, moduleFileName, syntax, file, checkerLease)
