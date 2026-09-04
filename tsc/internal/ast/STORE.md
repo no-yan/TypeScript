@@ -110,6 +110,37 @@ go test ./internal/ast -run '^$' -bench E2E -count 3
 
 Use e2e numbers only for pointer-tree vs Store layout on a flattened file. They do not prove parser wiring, offset interning, or compile wall-time wins.
 
+## cmd/tsc GOGC baseline
+
+`TestTsgoGOGCBaseline` rebuilds the noembed CI binary and checks the TypeScript
+v6.0.3 compiler project used by the repository smoke job. Set
+`STORE_TSGO_PROJECT` when that checkout is outside
+`smoke/typescript-6.0/src/compiler`. Runs are interleaved and rotated across
+default GOGC, `GOGC=off`, `GOGC=200`, and `GOMEMLIMIT=8GiB`; every child must
+exit 0, including an untimed preflight.
+
+The earlier 2026-08-27 numbers are discarded. That harness accepted exit 2
+while compiling `tsc/testdata/fixtures/compiler/checker.ts`, whose unresolved
+`./_namespaces/ts.js` import stopped the run in module resolution. It therefore
+did not measure a completed check and could not support its recorded verdict.
+
+The generated-workload medians recorded earlier on 2026-08-31 are also
+superseded: that workload completed successfully but did not represent the CI
+compiler check.
+
+CI smoke-project medians on 2026-08-31:
+
+| Environment | median |
+| --- | --- |
+| default GOGC | 146ms |
+| `GOGC=off` | 94ms |
+| `GOGC=200` | 128ms |
+| `GOMEMLIMIT=8GiB` | 149ms |
+
+Default / `GOGC=off` is 1.55, and `GOMEMLIMIT` / `GOGC=off` is 1.58.
+`GOMEMLIMIT` does not recover the GC-off gap, so the corrected PR-1 rule passes.
+The harness enforces both ratios.
+
 ## Open questions
 
 Answer these in writing before calling the design “settled” or merging it as architecture guidance.
@@ -192,6 +223,6 @@ Checked against the live `*Node` pipeline (parser, binder, checker, printer). No
 | Synthetics and emit updates append into the parse Store (no cross-store child edges) | policy written; no Factory-on-existing-Store helper yet |
 | Store-to-SourceFile metadata map | not started |
 | `ListRef` in schema + `CopySubtree` remaps lists | done (`list0`, ArrayLiteral, FunctionExpression params, `copyList`) |
-| `GOGC` / `GOMEMLIMIT`-only baseline on a large `tsgo` run | not started. abandons the **perf** bet, not the functional one |
+| `GOGC` / `GOMEMLIMIT`-only baseline on a large `tsgo` run | PASS-PERF on the TypeScript v6.0.3 CI smoke project (see [cmd/tsc GOGC baseline](#cmdtsc-gogc-baseline)) |
 
 `BenchmarkNewProgram` (`compiler/program_test.go:308`) is too small for the perf baseline.
