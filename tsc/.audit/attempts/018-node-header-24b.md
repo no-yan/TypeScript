@@ -34,6 +34,10 @@ workload: `/Volumes/SanDisk1TB/ghq/github.com/microsoft/vscode` `src/tsconfig.js
 | Total | 2.260s | 2.141s | 0.947 | −0.150s [−0.315, +0.015] |
 | max RSS | 1922MB | 1837MB | 0.956 | −57MB [−160, +46] |
 
+`max RSS` は 8GB 機ではメモリ圧迫の指標にならない。`GOGC=off` で 3 回ずつ走らせると Go 側の `Memory used`（HeapAlloc）は base 2661MB / new 2114MB（**−547MB, −21%**、3 回とも ±1MB）で決定的なのに、maxrss は base 1541〜1834MB / new 1688〜1841MB と heap より小さい値で揺れる。1 回の実行中に `vm_stat` の Compressions が約 25 万ページ（16KB 単位）増えており、OS の圧縮が RSS を削っている。footprint を見るなら `Memory used` か、余裕のある機械での phys_footprint を使うこと。
+
+−547MB の内訳（hint = len/5 ≈ 26M 行の事前確保に対して）: nodes 列 26M × 20B ≈ 520MB、symbols 列 122MB → symbolIdx 61MB + symbolRefs 15MB で −46MB、tokenFlags map +16MB 程度。
+
 CPU プロファイル（各 1 回、`--pprofDir`）:
 
 | 項目 | base | new |
