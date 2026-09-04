@@ -233,16 +233,14 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 		node = ast.HandleOf(b.store, id, kind)
 		b.bindPropertyOrMethodOrAccessor(node, ast.SymbolFlagsEnumMember, ast.SymbolFlagsEnumMemberExcludes)
 	case ast.KindCallSignature, ast.KindConstructSignature, ast.KindIndexSignature:
-		node = ast.HandleOf(b.store, id, kind)
-		b.declareSymbolAndAddToSymbolTable(node, ast.SymbolFlagsSignature, ast.SymbolFlagsNone)
+		b.declareSymbolAndAddToSymbolTableRef(id, kind, ast.SymbolFlagsSignature, ast.SymbolFlagsNone)
 	case ast.KindMethodDeclaration, ast.KindMethodSignature:
 		node = ast.HandleOf(b.store, id, kind)
 		b.bindPropertyOrMethodOrAccessor(node, ast.SymbolFlagsMethod|getOptionalSymbolFlagForNode(node), core.IfElse(ast.IsObjectLiteralMethod(node), ast.SymbolFlagsValue, ast.SymbolFlagsMethodExcludes))
 	case ast.KindFunctionDeclaration:
 		b.bindFunctionDeclarationRef(id, kind)
 	case ast.KindConstructor:
-		node = ast.HandleOf(b.store, id, kind)
-		b.declareSymbolAndAddToSymbolTable(node, ast.SymbolFlagsConstructor, ast.SymbolFlagsNone)
+		b.declareSymbolAndAddToSymbolTableRef(id, kind, ast.SymbolFlagsConstructor, ast.SymbolFlagsNone)
 	case ast.KindGetAccessor:
 		node = ast.HandleOf(b.store, id, kind)
 		b.bindPropertyOrMethodOrAccessor(node, ast.SymbolFlagsGetAccessor, ast.SymbolFlagsGetAccessorExcludes)
@@ -250,14 +248,11 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 		node = ast.HandleOf(b.store, id, kind)
 		b.bindPropertyOrMethodOrAccessor(node, ast.SymbolFlagsSetAccessor, ast.SymbolFlagsSetAccessorExcludes)
 	case ast.KindFunctionType, ast.KindConstructorType:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindFunctionOrConstructorType(node)
+		b.bindFunctionOrConstructorTypeRef(id, kind)
 	case ast.KindTypeLiteral, ast.KindMappedType:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindAnonymousDeclaration(node, ast.SymbolFlagsTypeLiteral, ast.InternalSymbolNameType)
+		b.bindAnonymousDeclarationRef(id, kind, ast.SymbolFlagsTypeLiteral, ast.InternalSymbolNameType)
 	case ast.KindObjectLiteralExpression:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindAnonymousDeclaration(node, ast.SymbolFlagsObjectLiteral, ast.InternalSymbolNameObject)
+		b.bindAnonymousDeclarationRef(id, kind, ast.SymbolFlagsObjectLiteral, ast.InternalSymbolNameObject)
 	case ast.KindFunctionExpression, ast.KindArrowFunction:
 		node = ast.HandleOf(b.store, id, kind)
 		b.bindFunctionExpression(node)
@@ -265,8 +260,7 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 		node = ast.HandleOf(b.store, id, kind)
 		b.bindClassLikeDeclaration(node)
 	case ast.KindInterfaceDeclaration:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindBlockScopedDeclaration(node, ast.SymbolFlagsInterface, ast.SymbolFlagsInterfaceExcludes)
+		b.bindBlockScopedDeclarationRef(id, kind, ast.SymbolFlagsInterface, ast.SymbolFlagsInterfaceExcludes)
 	case ast.KindCallExpression:
 		node = ast.HandleOf(b.store, id, kind)
 		switch ast.GetAssignmentDeclarationKind(node) {
@@ -279,12 +273,10 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 			b.bindCallExpression(node)
 		}
 	case ast.KindTypeAliasDeclaration:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindBlockScopedDeclaration(node, ast.SymbolFlagsTypeAlias, ast.SymbolFlagsTypeAliasExcludes)
+		b.bindBlockScopedDeclarationRef(id, kind, ast.SymbolFlagsTypeAlias, ast.SymbolFlagsTypeAliasExcludes)
 	case ast.KindJSTypeAliasDeclaration:
 		if b.blockScopeContainerKind != ast.KindSourceFile {
-			node = ast.HandleOf(b.store, id, kind)
-			b.bindBlockScopedDeclaration(node, ast.SymbolFlagsTypeAlias, ast.SymbolFlagsTypeAliasExcludes)
+			b.bindBlockScopedDeclarationRef(id, kind, ast.SymbolFlagsTypeAlias, ast.SymbolFlagsTypeAliasExcludes)
 		}
 	case ast.KindEnumDeclaration:
 		node = ast.HandleOf(b.store, id, kind)
@@ -293,8 +285,7 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 		node = ast.HandleOf(b.store, id, kind)
 		b.bindModuleDeclaration(node)
 	case ast.KindImportEqualsDeclaration, ast.KindNamespaceImport, ast.KindImportSpecifier, ast.KindExportSpecifier:
-		node = ast.HandleOf(b.store, id, kind)
-		b.declareSymbolAndAddToSymbolTable(node, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes)
+		b.declareSymbolAndAddToSymbolTableRef(id, kind, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes)
 	case ast.KindNamespaceExportDeclaration:
 		node = ast.HandleOf(b.store, id, kind)
 		b.bindNamespaceExportDeclaration(node)
@@ -310,11 +301,9 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 	case ast.KindSourceFile:
 		b.bindSourceFileIfExternalModule()
 	case ast.KindJsxAttributes:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindJsxAttributes(node)
+		b.bindAnonymousDeclarationRef(id, kind, ast.SymbolFlagsObjectLiteral, ast.InternalSymbolNameJSXAttributes)
 	case ast.KindJsxAttribute:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindJsxAttribute(node, ast.SymbolFlagsProperty, ast.SymbolFlagsPropertyExcludes)
+		b.declareSymbolAndAddToSymbolTableRef(id, kind, ast.SymbolFlagsProperty, ast.SymbolFlagsPropertyExcludes)
 	}
 	flags := b.store.FlagsAt(id)
 	thisNodeOrAnySubnodesHasError := flags&ast.NodeFlagsThisNodeHasError != 0
@@ -1049,10 +1038,14 @@ func (b *Binder) bindPropertyOrMethodOrAccessor(node ast.Handle, symbolFlags ast
 	}
 }
 func (b *Binder) bindFunctionOrConstructorType(node ast.Handle) {
-	symbol := b.newSymbol(ast.SymbolFlagsSignature, b.getDeclarationName(node))
-	b.addDeclarationToSymbol(symbol, node, ast.SymbolFlagsSignature)
+	b.bindFunctionOrConstructorTypeRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindFunctionOrConstructorTypeRef(ref ast.NodeRef, kind ast.Kind) {
+	symbol := b.newSymbol(ast.SymbolFlagsSignature, b.getDeclarationNameRef(ref, kind))
+	b.addDeclarationToSymbolRef(symbol, ref, kind, ast.SymbolFlagsSignature)
 	typeLiteralSymbol := b.newSymbol(ast.SymbolFlagsTypeLiteral, ast.InternalSymbolNameType)
-	b.addDeclarationToSymbol(typeLiteralSymbol, node, ast.SymbolFlagsTypeLiteral)
+	b.addDeclarationToSymbolRef(typeLiteralSymbol, ref, kind, ast.SymbolFlagsTypeLiteral)
 	typeLiteralSymbol.Members = make(ast.SymbolTable)
 	typeLiteralSymbol.Members[symbol.Name] = symbol
 }
