@@ -152,7 +152,7 @@ func (tx *classFieldsTransformer) visitSourceFile(node ast.Handle) ast.Handle {
 	return visited
 }
 func (tx *classFieldsTransformer) visitModifier(node ast.Handle) ast.Handle {
-	if node.Kind() == ast.KindAccessorKeyword {
+	if node.Kind == ast.KindAccessorKeyword {
 		if tx.shouldTransformAutoAccessorsInCurrentClass() {
 			return ast.Handle{}
 		}
@@ -175,10 +175,10 @@ func (tx *classFieldsTransformer) popNode(grandparentNode ast.Handle) {
 }
 
 func (tx *classFieldsTransformer) visitForSubstitution(node ast.Handle) ast.Handle {
-	if node.Kind() == ast.KindIdentifier {
+	if node.Kind == ast.KindIdentifier {
 		return tx.visitIdentifier(node)
 	}
-	if node.Kind() == ast.KindPropertyAccessExpression && ast.IsIdentifier(node.PropertyAccessExpressionName()) {
+	if node.Kind == ast.KindPropertyAccessExpression && ast.IsIdentifier(node.PropertyAccessExpressionName()) {
 		return tx.visitPropertyAccessExpressionForSubstitution(node)
 	}
 	return tx.substitutionVisitor.VisitEachChild(node)
@@ -193,7 +193,7 @@ func (tx *classFieldsTransformer) visit(node ast.Handle) ast.Handle {
 		}
 		return node
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindSourceFile:
 		return tx.visitSourceFile(node)
 	case ast.KindClassDeclaration:
@@ -248,7 +248,7 @@ func (tx *classFieldsTransformer) visit(node ast.Handle) ast.Handle {
 }
 
 func (tx *classFieldsTransformer) visitDiscardedValue(node ast.Handle) ast.Handle {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindPrefixUnaryExpression, ast.KindPostfixUnaryExpression:
 		return tx.visitPreOrPostfixUnaryExpression(node, true)
 	case ast.KindBinaryExpression:
@@ -261,7 +261,7 @@ func (tx *classFieldsTransformer) visitDiscardedValue(node ast.Handle) ast.Handl
 }
 
 func (tx *classFieldsTransformer) visitHeritageClause(node ast.Handle) ast.Handle {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindHeritageClause:
 		return tx.heritageClauseVisitor.VisitEachChild(node)
 	case ast.KindExpressionWithTypeArguments:
@@ -272,7 +272,7 @@ func (tx *classFieldsTransformer) visitHeritageClause(node ast.Handle) ast.Handl
 }
 
 func (tx *classFieldsTransformer) visitAssignmentTarget(node ast.Handle) ast.Handle {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindObjectLiteralExpression, ast.KindArrayLiteralExpression:
 		return tx.visitAssignmentPattern(node)
 	default:
@@ -309,7 +309,7 @@ func (tx *classFieldsTransformer) visitDestructuringAssignmentTarget(node ast.Ha
 }
 
 func (tx *classFieldsTransformer) visitClassElement(node ast.Handle) ast.Handle {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindConstructor:
 		return tx.setCurrentClassElementAnd(node, (*classFieldsTransformer).visitConstructorDeclaration, node)
 	case ast.KindGetAccessor, ast.KindSetAccessor, ast.KindMethodDeclaration:
@@ -338,7 +338,7 @@ func (tx *classFieldsTransformer) visitPropertyName(name ast.Handle) ast.Handle 
 }
 
 func (tx *classFieldsTransformer) visitAccessorFieldResult(node ast.Handle) ast.Handle {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindPropertyDeclaration:
 		return tx.transformFieldInitializer(node)
 	case ast.KindGetAccessor, ast.KindSetAccessor:
@@ -1002,7 +1002,7 @@ func (tx *classFieldsTransformer) visitBinaryExpression(node ast.Handle, discard
 		if ast.IsPropertyAccessExpression(left) && ast.IsPrivateIdentifier(left.Name()) {
 			info := tx.accessPrivateIdentifier(left.Name())
 			if info != nil {
-				result := tx.createPrivateIdentifierAssignment(info, left.Expression(), node.Right(), node.OperatorToken().Kind())
+				result := tx.createPrivateIdentifierAssignment(info, left.Expression(), node.Right(), node.OperatorToken().Kind)
 				tx.EmitContext().SetOriginal(result, node)
 				result.SetLoc(node.Loc())
 				return result
@@ -1021,7 +1021,7 @@ func (tx *classFieldsTransformer) visitBinaryExpression(node ast.Handle, discard
 				}
 				if !setterName.IsNil() {
 					expression := tx.Visitor().VisitNode(node.Right())
-					if ast.IsCompoundAssignment(node.OperatorToken().Kind()) {
+					if ast.IsCompoundAssignment(node.OperatorToken().Kind) {
 						getterName := setterName
 						if !transformers.IsSimpleInlineableExpression(setterName) {
 							getterName = tx.Factory().NewTempVariable()
@@ -1031,7 +1031,7 @@ func (tx *classFieldsTransformer) visitBinaryExpression(node ast.Handle, discard
 						superPropertyGet := tx.Factory().NewReflectGetCall(data.superClassReference, getterName, data.classConstructor)
 						tx.EmitContext().SetOriginal(superPropertyGet, node.Left())
 						superPropertyGet.SetLoc(node.Left().Loc())
-						expression = tx.Factory().NewBinaryExpression(0, superPropertyGet, ast.Handle{}, tx.Factory().NewToken(transformers.GetNonAssignmentOperatorForCompoundAssignment(node.OperatorToken().Kind())), expression)
+						expression = tx.Factory().NewBinaryExpression(0, superPropertyGet, ast.Handle{}, tx.Factory().NewToken(transformers.GetNonAssignmentOperatorForCompoundAssignment(node.OperatorToken().Kind)), expression)
 						expression.SetLoc(node.Loc())
 					}
 					var temp ast.Handle
@@ -1055,7 +1055,7 @@ func (tx *classFieldsTransformer) visitBinaryExpression(node ast.Handle, discard
 			}
 		}
 	}
-	if node.OperatorToken().Kind() == ast.KindInKeyword && ast.IsPrivateIdentifier(node.Left()) {
+	if node.OperatorToken().Kind == ast.KindInKeyword && ast.IsPrivateIdentifier(node.Left()) {
 		return tx.transformPrivateIdentifierInInExpression(node)
 	}
 	return tx.Visitor().VisitEachChild(node)
@@ -1552,7 +1552,7 @@ func (tx *classFieldsTransformer) transformConstructor(constructor ast.Handle, c
 		return ast.Handle{}
 	}
 	extendsClauseElement := ast.GetClassExtendsHeritageElement(container)
-	isDerivedClass := !extendsClauseElement.IsNil() && ast.SkipOuterExpressions(extendsClauseElement.Expression(), ast.OEKAll).Kind() != ast.KindNullKeyword
+	isDerivedClass := !extendsClauseElement.IsNil() && ast.SkipOuterExpressions(extendsClauseElement.Expression(), ast.OEKAll).Kind != ast.KindNullKeyword
 	var parameters ast.ListRef
 	if !constructor.IsNil() {
 		parameters = tx.Visitor().VisitNodes(constructor.ParameterList())
@@ -2095,7 +2095,7 @@ func (tx *classFieldsTransformer) wrapPrivateIdentifierForDestructuringTarget(no
 		return tx.Visitor().VisitEachChild(node)
 	}
 	receiver := prop.Expression()
-	isThisOrSuperProperty := prop.Expression().Kind() == ast.KindThisKeyword || prop.Expression().Kind() == ast.KindSuperKeyword
+	isThisOrSuperProperty := prop.Expression().Kind == ast.KindThisKeyword || prop.Expression().Kind == ast.KindSuperKeyword
 	if isThisOrSuperProperty || !transformers.IsSimpleCopiableExpression(prop.Expression()) {
 		receiver = tx.Factory().NewTempVariableEx(printer.AutoGenerateOptions{Flags: printer.GeneratedIdentifierFlagsReservedInNestedScopes})
 		tx.EmitContext().AddVariableDeclaration(receiver)
@@ -2128,7 +2128,7 @@ func (tx *classFieldsTransformer) visitArrayAssignmentElement(node ast.Handle) a
 		if ast.IsSpreadElement(node) {
 			return tx.visitAssignmentRestElement(node)
 		}
-		if node.Kind() != ast.KindOmittedExpression {
+		if node.Kind != ast.KindOmittedExpression {
 			return tx.visitAssignmentElement(node)
 		}
 	}
@@ -2269,7 +2269,7 @@ func (tx *classFieldsTransformer) createCallBinding(node ast.Handle) (thisArg as
 }
 func shouldBeCapturedInTempVariable(node ast.Handle) bool {
 	target := ast.SkipParentheses(node)
-	switch target.Kind() {
+	switch target.Kind {
 	case ast.KindIdentifier, ast.KindThisKeyword, ast.KindNumericLiteral, ast.KindBigIntLiteral, ast.KindStringLiteral:
 		return false
 	default:
@@ -2310,7 +2310,7 @@ func findComputedPropertyNameCacheAssignment(emitContext *printer.EmitContext, n
 	node := name.Expression()
 	for {
 		node = ast.SkipOuterExpressions(node, 0)
-		if ast.IsBinaryExpression(node) && node.BinaryExpressionOperatorToken().Kind() == ast.KindCommaToken {
+		if ast.IsBinaryExpression(node) && node.BinaryExpressionOperatorToken().Kind == ast.KindCommaToken {
 			node = node.BinaryExpressionRight()
 			continue
 		}

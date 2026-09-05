@@ -190,7 +190,7 @@ func (l *LanguageService) collectSemanticTokensInRange(ctx context.Context, c *c
 					tokenModifier := tokenModifier(0)
 					parent := node.Parent()
 					if !parent.IsNil() {
-						parentIsDeclaration := ast.IsBindingElement(parent) || tokenFromDeclarationMapping(parent.Kind()) == tokenType
+						parentIsDeclaration := ast.IsBindingElement(parent) || tokenFromDeclarationMapping(parent.Kind) == tokenType
 						if parentIsDeclaration && parent.Name() == node {
 							tokenModifier |= tokenModifierDeclaration
 						}
@@ -270,7 +270,7 @@ func classifySymbol(symbol *ast.Symbol, meaning ast.SemanticMeaning) (tokenType,
 		if ast.IsBindingElement(decl) {
 			decl = getDeclarationForBindingElement(decl)
 		}
-		if tokenType := tokenFromDeclarationMapping(decl.Kind()); tokenType >= 0 {
+		if tokenType := tokenFromDeclarationMapping(decl.Kind); tokenType >= 0 {
 			return tokenType, true
 		}
 	}

@@ -387,7 +387,7 @@ func getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recoveryBoundary) *as
 	}
 	tryVisitSimpleTypeNode = func(node ast.Handle) ast.Handle {
 		innerNode := ast.SkipParentheses(node)
-		switch innerNode.Kind() {
+		switch innerNode.Kind {
 		case ast.KindTypeReference:
 			return tryVisitTypeReference(innerNode)
 		case ast.KindTypeQuery:
@@ -403,30 +403,30 @@ func getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recoveryBoundary) *as
 	}
 	visitExistingNodeTreeSymbolsWorker := func(node ast.Handle) ast.Handle {
 		factory := b.f
-		if node.Kind() == ast.KindJSDocTypeExpression {
+		if node.Kind == ast.KindJSDocTypeExpression {
 			return visitor.VisitNode(node.JSDocTypeExpressionType())
 		}
-		if node.Kind() == ast.KindJSDocAllType {
+		if node.Kind == ast.KindJSDocAllType {
 			return factory.NewKeywordTypeNode(ast.KindAnyKeyword)
 		}
-		if node.Kind() == ast.KindJSDocNullableType {
+		if node.Kind == ast.KindJSDocNullableType {
 			unionMembers := []ast.Handle{visitor.VisitNode(node.JSDocNullableTypeType()), factory.NewLiteralTypeNode(factory.NewKeywordExpression(ast.KindNullKeyword))}
 			return factory.NewUnionTypeNode(factory.NewList(unionMembers))
 		}
-		if node.Kind() == ast.KindJSDocOptionalType {
+		if node.Kind == ast.KindJSDocOptionalType {
 			unionMembers := []ast.Handle{visitor.VisitNode(node.JSDocOptionalTypeType()), factory.NewKeywordTypeNode(ast.KindUndefinedKeyword)}
 			return factory.NewUnionTypeNode(factory.NewList(unionMembers))
 		}
-		if node.Kind() == ast.KindJSDocNonNullableType {
+		if node.Kind == ast.KindJSDocNonNullableType {
 			return visitor.VisitNode(node.JSDocNonNullableTypeType())
 		}
-		if node.Kind() == ast.KindJSDocVariadicType {
+		if node.Kind == ast.KindJSDocVariadicType {
 			return factory.NewArrayTypeNode(visitor.VisitNode(node.JSDocVariadicTypeType()))
 		}
-		if node.Kind() == ast.KindJSDocTypeLiteral {
+		if node.Kind == ast.KindJSDocTypeLiteral {
 			var members []ast.Handle
 			for _, t := range node.Store().ListSlice(node.JSDocTypeLiteralJSDocPropertyTags()) {
-				if t.Kind() != ast.KindJSDocPropertyTag && t.Kind() != ast.KindJSDocParameterTag {
+				if t.Kind != ast.KindJSDocPropertyTag && t.Kind != ast.KindJSDocParameterTag {
 					continue
 				}
 				n := t.Name()
@@ -437,7 +437,7 @@ func getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recoveryBoundary) *as
 					targetName = n.QualifiedNameRight()
 				}
 				name := visitor.VisitNode(targetName)
-				shouldBeOptional := t.JSDocParameterOrPropertyTagIsBracketed() || (!t.TypeExpression().IsNil() && t.TypeExpression().Kind() == ast.KindJSDocOptionalType)
+				shouldBeOptional := t.JSDocParameterOrPropertyTagIsBracketed() || (!t.TypeExpression().IsNil() && t.TypeExpression().Kind == ast.KindJSDocOptionalType)
 				var question ast.Handle
 				if shouldBeOptional {
 					question = factory.NewToken(ast.KindQuestionToken)
@@ -484,7 +484,7 @@ func getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recoveryBoundary) *as
 			return node
 		}
 		if ast.IsTypeOperatorNode(node) {
-			if node.TypeOperatorNodeOperator() == ast.KindUniqueKeyword && node.TypeOperatorNodeType().Kind() == ast.KindSymbolKeyword {
+			if node.TypeOperatorNodeOperator() == ast.KindUniqueKeyword && node.TypeOperatorNodeType().Kind == ast.KindSymbolKeyword {
 				nonFakeEnclosing := b.getEnclosingDeclarationIgnoringFakeScope()
 				sameScope := ast.FindAncestor(node, func(a ast.Handle) bool {
 					return a == nonFakeEnclosing
@@ -525,7 +525,7 @@ func getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recoveryBoundary) *as
 			}
 			return factory.UpdateImportTypeNode(node, node.ImportTypeNodeIsTypeOf(), arg, visitor.VisitNode(node.ImportTypeNodeAttributes()), visitor.VisitNode(node.ImportTypeNodeQualifier()), visitor.VisitNodes(node.ImportTypeNodeTypeArguments()))
 		}
-		if !node.Name().IsNil() && node.Name().Kind() == ast.KindComputedPropertyName && !b.ch.hasLateBindableName(node) {
+		if !node.Name().IsNil() && node.Name().Kind == ast.KindComputedPropertyName && !b.ch.hasLateBindableName(node) {
 			if !ast.HasDynamicName(node) {
 				return visitor.VisitEachChild(node)
 			}
@@ -541,7 +541,7 @@ func getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recoveryBoundary) *as
 			}
 			node = visited
 			newType := factory.NewKeywordTypeNode(ast.KindAnyKeyword)
-			switch node.Kind() {
+			switch node.Kind {
 			case ast.KindPropertyDeclaration:
 				return factory.UpdatePropertyDeclaration(node, node.Modifiers(), node.Name(), node.PostfixToken(), newType, ast.Handle{})
 			case ast.KindPropertySignature:

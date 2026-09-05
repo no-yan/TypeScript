@@ -43,7 +43,7 @@ func (l *LanguageService) provideSourceDefinitionAtPosition(ctx context.Context,
 	pos := int(textPos)
 	resolver := l.newSourceDefResolver(program, file.FileName())
 	node := astnav.GetTouchingPropertyName(file, pos)
-	if node.Kind() == ast.KindSourceFile {
+	if node.Kind == ast.KindSourceFile {
 		if declarations, ref := resolver.resolveTripleSlashReference(file, pos, program); len(declarations) != 0 {
 			originSelectionRange, _ := l.createLspRangeFromBounds(ref.Pos(), ref.End(), file)
 			return l.createDefinitionLocations(originSelectionRange, clientSupportsLink, declarations, nil, spanmap.FeatureDefinition), nil
@@ -376,7 +376,7 @@ func getCandidateSourceDeclarationNames(originalNode ast.Handle, declaration ast
 				names = append(names, text)
 			}
 		}
-		if declaration.Kind() == ast.KindExportAssignment {
+		if declaration.Kind == ast.KindExportAssignment {
 			names = append(names, "default")
 		}
 		if (ast.IsFunctionDeclaration(declaration) || ast.IsClassDeclaration(declaration)) && declaration.ModifierFlags()&ast.ModifierFlagsExportDefault == ast.ModifierFlagsExportDefault {
@@ -437,7 +437,7 @@ func findDeclarationNodesByName(sourceFile *ast.SourceFile, names []string) []as
 				}
 			}
 		}
-		if wantDefault && node.Kind() == ast.KindExportAssignment {
+		if wantDefault && node.Kind == ast.KindExportAssignment {
 			matched = true
 		}
 		if wantDefault && (ast.IsFunctionDeclaration(node) || ast.IsClassDeclaration(node)) && node.ModifierFlags()&ast.ModifierFlagsExportDefault == ast.ModifierFlagsExportDefault {
@@ -488,7 +488,7 @@ func getPropertyLikeSourceDeclarations(originalNode ast.Handle, declarations []a
 		return nil
 	}
 	return core.Filter(declarations, func(node ast.Handle) bool {
-		switch node.Kind() {
+		switch node.Kind {
 		case ast.KindPropertyAssignment, ast.KindShorthandPropertyAssignment, ast.KindPropertyDeclaration, ast.KindPropertySignature, ast.KindMethodDeclaration, ast.KindMethodSignature, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindEnumMember:
 			return true
 		default:
@@ -500,13 +500,13 @@ func hasConcreteSourceDeclarations(declarations []ast.Handle) bool {
 	return slices.ContainsFunc(declarations, isConcreteSourceDeclaration)
 }
 func isConcreteSourceDeclaration(node ast.Handle) bool {
-	if !ast.IsDeclaration(node) || node.Kind() == ast.KindExportAssignment {
+	if !ast.IsDeclaration(node) || node.Kind == ast.KindExportAssignment {
 		return false
 	}
 	if (ast.IsBinaryExpression(node) || ast.IsCallExpression(node)) && ast.GetAssignmentDeclarationKind(node) != ast.JSDeclarationKindNone {
 		return false
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindParameter, ast.KindTypeParameter, ast.KindBindingElement, ast.KindImportClause, ast.KindImportSpecifier, ast.KindNamespaceImport, ast.KindExportSpecifier, ast.KindPropertyAccessExpression, ast.KindElementAccessExpression:
 		return false
 	default:
@@ -536,7 +536,7 @@ func uniqueDeclarationNodes(nodes []ast.Handle) []ast.Handle {
 func findClosestDeclarationNode(sourceFile *ast.SourceFile, pos int) ast.Handle {
 	node := astnav.GetTouchingPropertyName(sourceFile, pos)
 	for current := node; !current.IsNil(); current = current.Parent() {
-		if ast.IsDeclaration(current) || current.Kind() == ast.KindExportAssignment {
+		if ast.IsDeclaration(current) || current.Kind == ast.KindExportAssignment {
 			return current
 		}
 	}

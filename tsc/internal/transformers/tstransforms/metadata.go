@@ -28,7 +28,7 @@ func (tx *MetadataTransformer) visit(node ast.Handle) ast.Handle {
 	if (node.SubtreeFacts() & ast.SubtreeContainsDecorators) == 0 {
 		return node
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindClassDeclaration:
 		return tx.visitClassDeclaration(node)
 	case ast.KindClassExpression:
@@ -128,9 +128,9 @@ func (tx *MetadataTransformer) injectClassTypeMetadata(list ast.ListRef, node as
 			return res
 		}
 		var modifiersArray []ast.Handle
-		if ast.IsModifier(originalNodes[0]) && (originalNodes[0].Kind() == ast.KindDefaultKeyword || originalNodes[0].Kind() == ast.KindExportKeyword) {
+		if ast.IsModifier(originalNodes[0]) && (originalNodes[0].Kind == ast.KindDefaultKeyword || originalNodes[0].Kind == ast.KindExportKeyword) {
 			modifiersArray = append(modifiersArray, originalNodes[0])
-			if len(originalNodes) > 1 && (originalNodes[1].Kind() == ast.KindDefaultKeyword || originalNodes[1].Kind() == ast.KindExportKeyword) {
+			if len(originalNodes) > 1 && (originalNodes[1].Kind == ast.KindDefaultKeyword || originalNodes[1].Kind == ast.KindExportKeyword) {
 				modifiersArray = append(modifiersArray, originalNodes[1])
 			}
 		}
@@ -223,7 +223,7 @@ func (tx *MetadataTransformer) getNewTypeMetadata(node ast.Handle, container ast
 }
 
 func (tx *MetadataTransformer) shouldAddTypeMetadata(node ast.Handle) bool {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindMethodDeclaration, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindPropertyDeclaration:
 		return true
 	}
@@ -231,11 +231,11 @@ func (tx *MetadataTransformer) shouldAddTypeMetadata(node ast.Handle) bool {
 }
 
 func (tx *MetadataTransformer) shouldAddReturnTypeMetadata(node ast.Handle) bool {
-	return node.Kind() == ast.KindMethodDeclaration
+	return node.Kind == ast.KindMethodDeclaration
 }
 
 func (tx *MetadataTransformer) shouldAddParamTypesMetadata(node ast.Handle) bool {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindClassDeclaration, ast.KindClassExpression:
 		return !ast.GetFirstConstructorWithBody(node).IsNil()
 	case ast.KindMethodDeclaration, ast.KindGetAccessor, ast.KindSetAccessor:

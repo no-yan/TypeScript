@@ -173,7 +173,7 @@ func getCommentOwnerInfoWorker(commentOwner ast.Handle, generateReturnInDocTempl
 	if commentOwner.IsNil() {
 		return nil, false
 	}
-	switch commentOwner.Kind() {
+	switch commentOwner.Kind {
 	case ast.KindFunctionDeclaration, ast.KindFunctionExpression, ast.KindMethodDeclaration, ast.KindConstructor, ast.KindMethodSignature, ast.KindArrowFunction:
 		return &commentOwnerInfo{commentOwner: commentOwner, parameters: commentOwner.Parameters(), hasReturn: hasReturn(commentOwner, generateReturnInDocTemplate)}, false
 	case ast.KindPropertyAssignment:
@@ -198,7 +198,7 @@ func getCommentOwnerInfoWorker(commentOwner ast.Handle, generateReturnInDocTempl
 	case ast.KindSourceFile:
 		return nil, true
 	case ast.KindModuleDeclaration:
-		if commentOwner.Parent().Kind() == ast.KindModuleDeclaration {
+		if commentOwner.Parent().Kind == ast.KindModuleDeclaration {
 			return nil, false
 		}
 		return &commentOwnerInfo{commentOwner: commentOwner}, false
@@ -240,10 +240,10 @@ func getRightHandSideOfAssignment(rightHandSide ast.Handle) ast.Handle {
 	if rightHandSide.IsNil() {
 		return ast.Handle{}
 	}
-	for rightHandSide.Kind() == ast.KindParenthesizedExpression {
+	for rightHandSide.Kind == ast.KindParenthesizedExpression {
 		rightHandSide = rightHandSide.ParenthesizedExpressionExpression()
 	}
-	switch rightHandSide.Kind() {
+	switch rightHandSide.Kind {
 	case ast.KindFunctionExpression, ast.KindArrowFunction:
 		return rightHandSide
 	case ast.KindClassExpression:

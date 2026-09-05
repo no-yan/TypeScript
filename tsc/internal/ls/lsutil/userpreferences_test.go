@@ -17,7 +17,7 @@ func fillNonZeroValues(v reflect.Value) {
 		if !field.CanSet() {
 			continue
 		}
-		switch field.Kind() {
+		switch field.Kind {
 		case reflect.Bool:
 			field.SetBool(true)
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:

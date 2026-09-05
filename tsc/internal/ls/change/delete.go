@@ -38,10 +38,10 @@ func deleteDeclaration(t *Tracker, deletedNodesInLists map[ // deleteDeclaration
 // hasJSDocNodes checks if a node has JSDoc comments
 // nil is ok for JSDoc - it will return empty slice if not available
 ast.Handle]bool, sourceFile *ast.SourceFile, node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindParameter:
 		oldFunction := node.Parent()
-		if oldFunction.Kind() == ast.KindArrowFunction && len(oldFunction.Store().ListSlice(oldFunction.ArrowFunctionParameters())) == 1 && astnav.FindChildOfKind(oldFunction, ast.KindOpenParenToken, sourceFile).IsNil() {
+		if oldFunction.Kind == ast.KindArrowFunction && len(oldFunction.Store().ListSlice(oldFunction.ArrowFunctionParameters())) == 1 && astnav.FindChildOfKind(oldFunction, ast.KindOpenParenToken, sourceFile).IsNil() {
 			t.ReplaceRangeWithText(sourceFile, t.GetAdjustedRange(sourceFile, node, node, LeadingTriviaOptionIncludeAll, TrailingTriviaOptionInclude), "()")
 		} else {
 			deleteNodeInList(t, deletedNodesInLists, sourceFile, node)
@@ -60,7 +60,7 @@ ast.Handle]bool, sourceFile *ast.SourceFile, node ast.Handle) {
 		deleteNode(t, sourceFile, node, leadingTrivia, TrailingTriviaOptionInclude)
 	case ast.KindBindingElement:
 		pattern := node.Parent()
-		preserveComma := pattern.Kind() == ast.KindArrayBindingPattern && node != pattern.Store().ListSlice(pattern.BindingPatternElements())[len(pattern.Store().ListSlice(pattern.BindingPatternElements()))-1]
+		preserveComma := pattern.Kind == ast.KindArrayBindingPattern && node != pattern.Store().ListSlice(pattern.BindingPatternElements())[len(pattern.Store().ListSlice(pattern.BindingPatternElements()))-1]
 		if preserveComma {
 			deleteNode(t, sourceFile, node, LeadingTriviaOptionIncludeAll, TrailingTriviaOptionExclude)
 		} else {
@@ -94,9 +94,9 @@ ast.Handle]bool, sourceFile *ast.SourceFile, node ast.Handle) {
 	default:
 		if node.Parent().IsNil() {
 			deleteNode(t, sourceFile, node, LeadingTriviaOptionIncludeAll, TrailingTriviaOptionInclude)
-		} else if node.Parent().Kind() == ast.KindImportClause && node.Parent().ImportClauseName() == node {
+		} else if node.Parent().Kind == ast.KindImportClause && node.Parent().ImportClauseName() == node {
 			deleteDefaultImport(t, sourceFile, node.Parent())
-		} else if node.Parent().Kind() == ast.KindCallExpression && slices.Contains(node.Store().ListSlice(node.Parent().CallExpressionArguments()), node) {
+		} else if node.Parent().Kind == ast.KindCallExpression && slices.Contains(node.Store().ListSlice(node.Parent().CallExpressionArguments()), node) {
 			deleteNodeInList(t, deletedNodesInLists, sourceFile, node)
 		} else {
 			deleteNode(t, sourceFile, node, LeadingTriviaOptionIncludeAll, TrailingTriviaOptionInclude)
@@ -111,7 +111,7 @@ func deleteDefaultImport(t *Tracker, sourceFile *ast.SourceFile, importClause as
 		name := clause.Name()
 		start := astnav.GetStartOfNode(name, sourceFile, false)
 		nextToken := astnav.GetTokenAtPosition(sourceFile, name.End())
-		if !nextToken.IsNil() && nextToken.Kind() == ast.KindCommaToken {
+		if !nextToken.IsNil() && nextToken.Kind == ast.KindCommaToken {
 			end := scanner.SkipTriviaEx(sourceFile.Text(), nextToken.End(), &scanner.SkipTriviaOptions{StopAfterLineBreak: false, StopAtComments: true})
 			t.ReplaceRangeWithText(sourceFile, t.toLSPEditRange(sourceFile, core.NewTextRange(start, end)), "")
 		} else {
@@ -134,7 +134,7 @@ func deleteImportBinding(t *Tracker, sourceFile *ast.SourceFile, node ast.Handle
 }
 func deleteVariableDeclaration(t *Tracker, deletedNodesInLists map[ast.Handle]bool, sourceFile *ast.SourceFile, node ast.Handle) {
 	parent := node.Parent()
-	if parent.Kind() == ast.KindCatchClause {
+	if parent.Kind == ast.KindCatchClause {
 		openParen := astnav.FindChildOfKind(parent, ast.KindOpenParenToken, sourceFile)
 		closeParen := astnav.FindChildOfKind(parent, ast.KindCloseParenToken, sourceFile)
 		debug.Assert(!openParen.IsNil() && !closeParen.IsNil(), "catch clause should have parens")
@@ -146,7 +146,7 @@ func deleteVariableDeclaration(t *Tracker, deletedNodesInLists map[ast.Handle]bo
 		return
 	}
 	gp := parent.Parent()
-	switch gp.Kind() {
+	switch gp.Kind {
 	case ast.KindForOfStatement, ast.KindForInStatement:
 		t.ReplaceNode(sourceFile, node, t.NewObjectLiteralExpression(t.NewList([]ast.Handle{}), false), nil)
 	case ast.KindForStatement:
@@ -158,7 +158,7 @@ func deleteVariableDeclaration(t *Tracker, deletedNodesInLists map[ast.Handle]bo
 		}
 		deleteNode(t, sourceFile, gp, leadingTrivia, TrailingTriviaOptionInclude)
 	default:
-		debug.Fail("Unexpected grandparent kind: " + gp.Kind().String())
+		debug.Fail("Unexpected grandparent kind: " + gp.Kind.String())
 	}
 }
 

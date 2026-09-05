@@ -66,7 +66,7 @@ func (c *Checker) IsAnySymbolAccessible(symbols []*ast.Symbol, enclosingDeclarat
 	return nil
 }
 func hasNonGlobalAugmentationExternalModuleSymbol(declaration ast.Handle) bool {
-	return ast.IsModuleWithStringLiteralName(declaration) || (declaration.Kind() == ast.KindSourceFile && ast.IsExternalOrCommonJSModule(ast.GetSourceFileOfNode(declaration)))
+	return ast.IsModuleWithStringLiteralName(declaration) || (declaration.Kind == ast.KindSourceFile && ast.IsExternalOrCommonJSModule(ast.GetSourceFileOfNode(declaration)))
 }
 func getQualifiedLeftMeaning(rightMeaning ast.SymbolFlags) ast.SymbolFlags {
 	if rightMeaning == ast.SymbolFlagsValue {
@@ -188,7 +188,7 @@ func (c *Checker) getVariableDeclarationOfObjectLiteral(symbol *ast.Symbol, mean
 	return nil
 }
 func hasExternalModuleSymbol(declaration ast.Handle) bool {
-	return ast.IsAmbientModule(declaration) || (declaration.Kind() == ast.KindSourceFile && ast.IsExternalOrCommonJSModule(ast.GetSourceFileOfNode(declaration)))
+	return ast.IsAmbientModule(declaration) || (declaration.Kind == ast.KindSourceFile && ast.IsExternalOrCommonJSModule(ast.GetSourceFileOfNode(declaration)))
 }
 func (c *Checker) getExternalModuleContainer(declaration ast.Handle) *ast.Symbol {
 	node := ast.FindAncestor(declaration, hasExternalModuleSymbol)
@@ -235,7 +235,7 @@ func (c *Checker) getContainersOfSymbol(symbol *ast.Symbol, enclosingDeclaration
 				continue
 			}
 		}
-		if ast.IsClassExpression(d) && ast.IsBinaryExpression(d.Parent()) && d.Parent().BinaryExpressionOperatorToken().Kind() == ast.KindEqualsToken && ast.IsAccessExpression(d.Parent().BinaryExpressionLeft()) && ast.IsEntityNameExpression(d.Parent().BinaryExpressionLeft().Expression()) {
+		if ast.IsClassExpression(d) && ast.IsBinaryExpression(d.Parent()) && d.Parent().BinaryExpressionOperatorToken().Kind == ast.KindEqualsToken && ast.IsAccessExpression(d.Parent().BinaryExpressionLeft()) && ast.IsEntityNameExpression(d.Parent().BinaryExpressionLeft().Expression()) {
 			if ast.IsModuleExportsAccessExpression(d.Parent().BinaryExpressionLeft()) || ast.IsExportsIdentifier(d.Parent().BinaryExpressionLeft().Expression()) {
 				sym := c.getSymbolOfDeclaration(ast.GetSourceFileOfNode(d).ParseRoot())
 				if sym != nil && !slices.Contains(candidates, sym) {
@@ -544,7 +544,7 @@ func (c *Checker) needsQualification(symbol *ast.Symbol, enclosingDeclaration as
 func isPropertyOrMethodDeclarationSymbol(symbol *ast.Symbol) bool {
 	if len(symbol.Declarations) > 0 {
 		for _, declaration := range ast.DeclarationNodes(symbol) {
-			switch declaration.Kind() {
+			switch declaration.Kind {
 			case ast.KindPropertyDeclaration, ast.KindMethodDeclaration, ast.KindGetAccessor, ast.KindSetAccessor:
 				continue
 			default:
@@ -562,7 +562,7 @@ func (c *Checker) someSymbolTableInScope(enclosingDeclaration ast.Handle, callba
 				return true
 			}
 		}
-		switch location.Kind() {
+		switch location.Kind {
 		case ast.KindSourceFile, ast.KindModuleDeclaration:
 			if ast.IsSourceFile(location) && !ast.IsExternalOrCommonJSModule(ast.GetSourceFileOfNode(location)) {
 				break

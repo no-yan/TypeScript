@@ -305,7 +305,7 @@ func (walker *typeWriterWalker) visitNode(node ast.Handle, isSymbolWalk bool) []
 	nodes := forEachASTNode(node)
 	var results []*typeWriterResult
 	for _, n := range nodes {
-		if ast.IsExpressionNode(n) || n.Kind() == ast.KindIdentifier || ast.IsDeclarationName(n) ||
+		if ast.IsExpressionNode(n) || n.Kind == ast.KindIdentifier || ast.IsDeclarationName(n) ||
 			ast.IsQualifiedName(n) && ast.IsNameOfHeritageClauseTypeReference(n) && (isSymbolWalk || ast.IsQualifiedName(n.Parent())) {
 			result := walker.writeTypeOrSymbol(n, isSymbolWalk)
 			if result != nil {
@@ -329,9 +329,9 @@ func forEachASTNode(node ast.Handle) []ast.Handle {
 	for len(work) > 0 {
 		elem := work[len(work)-1]
 		work = work[:len(work)-1]
-		if elem.Flags()&ast.NodeFlagsReparsed == 0 || elem.Kind() == ast.KindAsExpression || elem.Kind() == ast.KindSatisfiesExpression ||
-			((elem.Parent().Kind() == ast.KindSatisfiesExpression || elem.Parent().Kind() == ast.KindAsExpression) && elem == elem.Parent().Expression()) {
-			if elem.Flags()&ast.NodeFlagsReparsed == 0 || elem.Parent().Kind() == ast.KindAsExpression || elem.Parent().Kind() == ast.KindSatisfiesExpression {
+		if elem.Flags()&ast.NodeFlagsReparsed == 0 || elem.Kind == ast.KindAsExpression || elem.Kind == ast.KindSatisfiesExpression ||
+			((elem.Parent().Kind == ast.KindSatisfiesExpression || elem.Parent().Kind == ast.KindAsExpression) && elem == elem.Parent().Expression()) {
+			if elem.Flags()&ast.NodeFlagsReparsed == 0 || elem.Parent().Kind == ast.KindAsExpression || elem.Parent().Kind == ast.KindSatisfiesExpression {
 				result = append(result, elem)
 			}
 			elem.ForEachChild(addChild)
@@ -357,7 +357,7 @@ func (walker *typeWriterWalker) writeTypeOrSymbol(node ast.Handle, isSymbolWalk 
 		// Don't try to get the type of something that's already a type.
 		// Exception for `T` in `type T = something` because that may evaluate to some interesting type.
 		if ast.IsPartOfTypeNode(node) ||
-			(node.Kind() == ast.KindAsExpression || node.Kind() == ast.KindSatisfiesExpression) && node.Type().Flags()&ast.NodeFlagsReparsed != 0 ||
+			(node.Kind == ast.KindAsExpression || node.Kind == ast.KindSatisfiesExpression) && node.Type().Flags()&ast.NodeFlagsReparsed != 0 ||
 			ast.IsIdentifier(node) &&
 				(ast.GetMeaningFromDeclaration(node.Parent())&ast.SemanticMeaningValue) == 0 &&
 				!(ast.IsTypeOrJSTypeAliasDeclaration(node.Parent()) && node == node.Parent().Name()) {

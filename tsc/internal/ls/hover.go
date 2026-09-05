@@ -297,10 +297,10 @@ func getDocumentationFromDeclaration(getMappedLocation documentationLocationMapp
 	var b strings.Builder
 	if jsdoc := getJSDocOrTag(c, declaration, &collections.Set[*ast.Symbol]{}); !jsdoc.IsNil() && !(declaration.Flags()&ast.NodeFlagsReparsed == 0 && containsTypedefTag(jsdoc)) {
 		writeComments(getMappedLocation, &b, c, jsdoc.Comments(), isMarkdown)
-		if jsdoc.Kind() == ast.KindJSDoc && !commentOnly {
+		if jsdoc.Kind == ast.KindJSDoc && !commentOnly {
 			if tags := jsdoc.JSDocTags(); tags != 0 {
 				for _, tag := range declaration.Store().ListSlice(tags) {
-					if tag.Kind() == ast.KindJSDocTypeTag || tag.Kind() == ast.KindJSDocTypedefTag || tag.Kind() == ast.KindJSDocCallbackTag {
+					if tag.Kind == ast.KindJSDocTypeTag || tag.Kind == ast.KindJSDocTypedefTag || tag.Kind == ast.KindJSDocCallbackTag {
 						continue
 					}
 					b.WriteString("\n\n")
@@ -312,7 +312,7 @@ func getDocumentationFromDeclaration(getMappedLocation documentationLocationMapp
 						b.WriteString("@")
 						b.WriteString(tag.TagName().Text())
 					}
-					switch tag.Kind() {
+					switch tag.Kind {
 					case ast.KindJSDocParameterTag, ast.KindJSDocPropertyTag:
 						writeOptionalEntityName(&b, tag.Name())
 					case ast.KindJSDocAugmentsTag:
@@ -326,7 +326,7 @@ func getDocumentationFromDeclaration(getMappedLocation documentationLocationMapp
 						}
 					}
 					comments := tag.Comments()
-					if tag.Kind() == ast.KindJSDocUnknownTag && tag.TagName().Text() == "example" {
+					if tag.Kind == ast.KindJSDocUnknownTag && tag.TagName().Text() == "example" {
 						commentText := scanner.GetTextOfJSDocComment(tag.Store(), tag.CommentList())
 						if strings.HasPrefix(commentText, "<caption>") {
 							if captionEnd := strings.Index(commentText, "</caption>"); captionEnd > 0 {
@@ -350,14 +350,14 @@ func getDocumentationFromDeclaration(getMappedLocation documentationLocationMapp
 						} else {
 							writeCode(&b, "tsx", commentText)
 						}
-					} else if tag.Kind() == ast.KindJSDocSeeTag && !tag.JSDocSeeTagNameExpression().IsNil() {
+					} else if tag.Kind == ast.KindJSDocSeeTag && !tag.JSDocSeeTagNameExpression().IsNil() {
 						b.WriteString(" — ")
 						writeNameLink(getMappedLocation, &b, c, tag.JSDocSeeTagNameExpression().Name(), "", false, isMarkdown)
 						if len(comments) != 0 {
 							b.WriteString(" ")
 							writeComments(getMappedLocation, &b, c, comments, isMarkdown)
 						}
-					} else if tag.Kind() == ast.KindJSDocThrowsTag && !tag.JSDocThrowsTagTypeExpression().IsNil() {
+					} else if tag.Kind == ast.KindJSDocThrowsTag && !tag.JSDocThrowsTagTypeExpression().IsNil() {
 						b.WriteString(" — ")
 						b.WriteString(scanner.GetTextOfNode(tag.JSDocThrowsTagTypeExpression()))
 						if len(comments) != 0 {
@@ -366,7 +366,7 @@ func getDocumentationFromDeclaration(getMappedLocation documentationLocationMapp
 						}
 					} else if len(comments) != 0 {
 						b.WriteString(" ")
-						if comments[0].Kind() != ast.KindJSDocText || !strings.HasPrefix(comments[0].Text(), "-") {
+						if comments[0].Kind != ast.KindJSDocText || !strings.HasPrefix(comments[0].Text(), "-") {
 							b.WriteString("— ")
 						}
 						writeComments(getMappedLocation, &b, c, comments, isMarkdown)
@@ -384,7 +384,7 @@ func formatQuickInfo(quickInfo string) string {
 	return b.String()
 }
 func shouldGetType(node ast.Handle) bool {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier:
 		return !(node.Flags()&ast.NodeFlagsJSDoc != 0 && ast.IsDeclarationName(node)) && !ast.IsLabelName(node) && !ast.IsTagName(node) && !ast.IsConstTypeReference(node.Parent())
 	case ast.KindThisKeyword, ast.KindThisType, ast.KindSuperKeyword, ast.KindNamedTupleMember:
@@ -477,7 +477,7 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol *ast.Symbol
 		text := c.SymbolToStringEx(symbol, enclosing, meaning, flags)
 		dpw.WriteSymbol(text, symbol)
 	}
-	if node.Kind() == ast.KindThisKeyword && ast.IsInExpressionContext(node) || ast.IsThisInTypeQuery(node) {
+	if node.Kind == ast.KindThisKeyword && ast.IsInExpressionContext(node) || ast.IsThisInTypeQuery(node) {
 		dpw.WriteKeyword("this")
 		dpw.WritePunctuation(": ")
 		writeTypeClassified(c.GetTypeAtLocation(node), container, typeFormatFlags)
@@ -723,10 +723,10 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol *ast.Symbol
 			setDeclaration(ast.NodeOf(symbol.ValueDeclaration))
 		}
 		if flags&(ast.SymbolFlagsClass|ast.SymbolFlagsInterface) != 0 {
-			if node.Kind() == ast.KindThisKeyword || ast.IsThisInTypeQuery(node) {
+			if node.Kind == ast.KindThisKeyword || ast.IsThisInTypeQuery(node) {
 				writeNewLine()
 				dpw.WriteKeyword("this")
-			} else if node.Kind() == ast.KindConstructorKeyword && (ast.IsConstructorDeclaration(node.Parent()) || ast.IsConstructSignatureDeclaration(node.Parent())) {
+			} else if node.Kind == ast.KindConstructorKeyword && (ast.IsConstructorDeclaration(node.Parent()) || ast.IsConstructSignatureDeclaration(node.Parent())) {
 				setDeclaration(node.Parent())
 				signatures := []*checker.Signature{c.GetSignatureFromDeclaration(node.Parent())}
 				writeSignatures(signatures, "constructor ", false, symbol)
@@ -825,9 +825,9 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol *ast.Symbol
 					declaration := decl.Parent()
 					if ast.IsFunctionLike(declaration) {
 						dpw.WriteKeyword(" in ")
-						if declaration.Kind() == ast.KindConstructSignature {
+						if declaration.Kind == ast.KindConstructSignature {
 							dpw.WriteKeyword("new ")
-						} else if declaration.Kind() != ast.KindCallSignature && !declaration.Name().IsNil() {
+						} else if declaration.Kind != ast.KindCallSignature && !declaration.Name().IsNil() {
 							writeSymbolClassified(declaration.Symbol(), container, ast.SymbolFlagsNone, symbolFormatFlags)
 						}
 						sig := c.GetSignatureFromDeclaration(declaration)
@@ -924,10 +924,10 @@ func getCallOrNewExpression(node ast.Handle) ast.Handle {
 	return ast.Handle{}
 }
 func containsTypedefTag(jsdoc ast.Handle) bool {
-	if jsdoc.Kind() == ast.KindJSDoc {
+	if jsdoc.Kind == ast.KindJSDoc {
 		if tags := jsdoc.JSDocTags(); tags != 0 {
 			for _, tag := range jsdoc.Store().ListSlice(tags) {
-				if tag.Kind() == ast.KindJSDocTypedefTag || tag.Kind() == ast.KindJSDocCallbackTag {
+				if tag.Kind == ast.KindJSDocTypedefTag || tag.Kind == ast.KindJSDocCallbackTag {
 					return true
 				}
 			}
@@ -957,7 +957,7 @@ func writeCode(b *strings.Builder, lang string, code string) {
 }
 func writeComments(getMappedLocation documentationLocationMapper, b *strings.Builder, c *checker.Checker, comments []ast.Handle, isMarkdown bool) {
 	for _, comment := range comments {
-		switch comment.Kind() {
+		switch comment.Kind {
 		case ast.KindJSDocText:
 			b.WriteString(comment.Text())
 		case ast.KindJSDocLink, ast.KindJSDocLinkPlain:
@@ -1053,7 +1053,7 @@ func getEntityNameString(name ast.Handle) string {
 	return b.String()
 }
 func writeEntityNameParts(b *strings.Builder, node ast.Handle) {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier:
 		b.WriteString(node.Text())
 	case ast.KindQualifiedName:

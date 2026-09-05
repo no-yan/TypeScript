@@ -28,7 +28,7 @@ func NewEvaluator(evaluateEntity Evaluator, outerExpressionsToSkip ast.OuterExpr
 		resolvedOtherFiles := false
 		hasExternalReferences := false
 		expr = ast.SkipOuterExpressions(expr, outerExpressionsToSkip|ast.OEKParentheses)
-		switch expr.Kind() {
+		switch expr.Kind {
 		case ast.KindPrefixUnaryExpression:
 			result := evaluate(expr.PrefixUnaryExpressionOperand(), location)
 			resolvedOtherFiles = result.ResolvedOtherFiles
@@ -46,7 +46,7 @@ func NewEvaluator(evaluateEntity Evaluator, outerExpressionsToSkip ast.OuterExpr
 		case ast.KindBinaryExpression:
 			left := evaluate(expr.Left(), location)
 			right := evaluate(expr.Right(), location)
-			operator := expr.Operator().Kind()
+			operator := expr.Operator().Kind
 			isSyntacticallyString = (left.IsSyntacticallyString || right.IsSyntacticallyString) && operator == ast.KindPlusToken
 			resolvedOtherFiles = left.ResolvedOtherFiles || right.ResolvedOtherFiles
 			hasExternalReferences = left.HasExternalReferences || right.HasExternalReferences

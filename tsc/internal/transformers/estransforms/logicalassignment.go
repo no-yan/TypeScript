@@ -11,7 +11,7 @@ func (ch *logicalAssignmentTransformer) visit(node ast.Handle) ast.Handle {
 	if node.SubtreeFacts()&ast.SubtreeContainsLogicalAssignments == 0 {
 		return node
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindBinaryExpression:
 		return ch.visitBinaryExpression(node)
 	default:
@@ -20,7 +20,7 @@ func (ch *logicalAssignmentTransformer) visit(node ast.Handle) ast.Handle {
 }
 func (ch *logicalAssignmentTransformer) visitBinaryExpression(node ast.Handle) ast.Handle {
 	var nonAssignmentOperator ast.Kind
-	switch node.OperatorToken().Kind() {
+	switch node.OperatorToken().Kind {
 	case ast.KindBarBarEqualsToken:
 		nonAssignmentOperator = ast.KindBarBarToken
 	case ast.KindAmpersandAmpersandEqualsToken:

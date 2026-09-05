@@ -851,20 +851,20 @@ func (s *Session) sendPerformanceTelemetry(ctx context.Context) {
 	}
 
 	readUint64 := func(s gometrics.Sample) float64 {
-		if s.Value.Kind() == gometrics.KindUint64 {
+		if s.Value.Kind == gometrics.KindUint64 {
 			return float64(s.Value.Uint64())
 		}
 		return 0
 	}
 	readFloat64 := func(s gometrics.Sample) float64 {
-		if s.Value.Kind() == gometrics.KindFloat64 {
+		if s.Value.Kind == gometrics.KindFloat64 {
 			return s.Value.Float64()
 		}
 		return 0
 	}
 
 	measurements.MemoryUsedBytes = readUint64(samples[sMemoryUsedBytes])
-	if samples[sGoMemLimit].Value.Kind() == gometrics.KindUint64 {
+	if samples[sGoMemLimit].Value.Kind == gometrics.KindUint64 {
 		v := samples[sGoMemLimit].Value.Uint64()
 		if v < uint64(math.MaxInt64) {
 			measurements.GoMemLimit = float64(v)
@@ -1170,7 +1170,7 @@ func (s *Session) getSnapshotAndDefaultProject(ctx context.Context, uri lsproto.
 		if callerRef {
 			snapshot.Deref(s)
 		}
-		if file := snapshot.GetFile(uri.FileName()); file != nil && file.Kind() == core.ScriptKindUnknown {
+		if file := snapshot.GetFile(uri.FileName()); file != nil && file.Kind == core.ScriptKindUnknown {
 			return nil, nil, nil, fmt.Errorf("%w: no project found for URI %s", ErrNoProjectForUnknownScriptKind, uri)
 		}
 		return nil, nil, nil, fmt.Errorf("no project found for URI %s", uri)

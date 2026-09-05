@@ -15,7 +15,7 @@ func TestStoreAllocRefIsNonZero(t *testing.T) {
 	h := s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
 	assert.Assert(t, h.Ref() != 0)
 	assert.Assert(t, !h.IsNil())
-	assert.Equal(t, ast.KindIdentifier, h.Kind())
+	assert.Equal(t, ast.KindIdentifier, h.Kind)
 }
 
 func TestStoreZeroRefIsMissing(t *testing.T) {
@@ -72,7 +72,7 @@ func TestStoreAtRebuildsHandle(t *testing.T) {
 	h := s.Alloc(ast.KindIdentifier, 0, core.NewTextRange(2, 5), 0)
 	ref := h.Ref()
 	got := s.At(ref)
-	assert.Equal(t, ast.KindIdentifier, got.Kind())
+	assert.Equal(t, ast.KindIdentifier, got.Kind)
 	assert.Equal(t, 2, got.Loc().Pos())
 	assert.Equal(t, ast.NodeRef(0), s.At(0).Ref())
 	assert.Equal(t, 0, s.At(0).NumChildren())
@@ -103,7 +103,7 @@ func TestStoreGrowPastHint(t *testing.T) {
 		last = s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
 	}
 	assert.Equal(t, ast.NodeRef(256), last.Ref())
-	assert.Equal(t, ast.KindIdentifier, last.Kind())
+	assert.Equal(t, ast.KindIdentifier, last.Kind)
 }
 
 func TestStoreWalkBinaryTree(t *testing.T) {
@@ -126,7 +126,7 @@ func TestStoreCrossStoreChildKeepsIdentity(t *testing.T) {
 	child.SetIdent(b.Intern("x"))
 	parent.SetChild(0, child)
 	got := parent.Child(0)
-	assert.Equal(t, ast.KindIdentifier, got.Kind())
+	assert.Equal(t, ast.KindIdentifier, got.Kind)
 	assert.Equal(t, b, got.Store())
 	assert.Equal(t, child.Ref(), got.Ref())
 	assert.Equal(t, child.Global(), got.Global())

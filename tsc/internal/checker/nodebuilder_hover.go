@@ -184,7 +184,7 @@ func (b *NodeBuilderImpl) addClassModifiers(members []ast.Handle, isStatic bool)
 
 func typeElementsToClassElements(f ast.HandleFactory, members []ast.Handle) []ast.Handle {
 	for i, m := range members {
-		switch m.Kind() {
+		switch m.Kind {
 		case ast.KindPropertySignature:
 			ps := m
 			members[i] = f.NewPropertyDeclaration(m.Modifiers(), ps.Name(), ps.QuestionToken(), ps.Type(), ast.Handle{})

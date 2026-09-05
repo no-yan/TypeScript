@@ -106,7 +106,7 @@ func forEachImport(program *compiler.Program, sourceFile *ast.SourceFile, action
 		}
 	} else {
 		forEachPossibleImportOrExportStatement(sourceFile.ParseRoot(), func(node ast.Handle) bool {
-			switch node.Kind() {
+			switch node.Kind {
 			case ast.KindExportDeclaration, ast.KindImportDeclaration, ast.KindJSImportDeclaration:
 				if specifier := node.ModuleSpecifier(); !specifier.IsNil() && ast.IsStringLiteral(specifier) {
 					action(node, specifier)
@@ -217,7 +217,7 @@ func getImportersForExport(sourceFiles []*ast.SourceFile, sourceFilesSet *collec
 			if !markSeenDirectImport(direct) {
 				continue
 			}
-			switch direct.Kind() {
+			switch direct.Kind {
 			case ast.KindCallExpression:
 				if ast.IsImportCall(direct) {
 					handleImportCall(direct)
@@ -367,7 +367,7 @@ func getSearchesFromDirectImports(directImports []ast.Handle, exportSymbol *ast.
 		}
 		if importClause := decl.ImportClause(); !importClause.IsNil() {
 			if namedBindings := importClause.ImportClauseNamedBindings(); !namedBindings.IsNil() {
-				switch namedBindings.Kind() {
+				switch namedBindings.Kind {
 				case ast.KindNamespaceImport:
 					handleNamespaceImportLike(namedBindings.Name())
 				case ast.KindNamedImports:
@@ -528,7 +528,7 @@ func getExportNode(parent ast.Handle, node ast.Handle) ast.Handle {
 }
 func isNodeImport(node ast.Handle) bool {
 	parent := node.Parent()
-	switch parent.Kind() {
+	switch parent.Kind {
 	case ast.KindImportEqualsDeclaration:
 		return parent.Name() == node && isExternalModuleImportEquals(parent)
 	case ast.KindImportSpecifier:
@@ -543,7 +543,7 @@ func isNodeImport(node ast.Handle) bool {
 }
 func isExternalModuleImportEquals(node ast.Handle) bool {
 	moduleReference := node.ImportEqualsDeclarationModuleReference()
-	return ast.IsExternalModuleReference(moduleReference) && moduleReference.Expression().Kind() == ast.KindStringLiteral
+	return ast.IsExternalModuleReference(moduleReference) && moduleReference.Expression().Kind == ast.KindStringLiteral
 }
 
 func skipExportSpecifierSymbol(symbol *ast.Symbol, checker *checker.Checker) *ast.Symbol {
@@ -592,7 +592,7 @@ func findModuleReferences(program *compiler.Program, sourceFiles []*ast.SourceFi
 	refs := []ModuleReference{}
 	for _, referencingFile := range sourceFiles {
 		searchSourceFile := ast.NodeOf(searchModuleSymbol.ValueDeclaration)
-		if !searchSourceFile.IsNil() && searchSourceFile.Kind() == ast.KindSourceFile {
+		if !searchSourceFile.IsNil() && searchSourceFile.Kind == ast.KindSourceFile {
 			for _, ref := range referencingFile.ReferencedFiles {
 				if program.GetSourceFileFromReference(referencingFile, ref) == ast.GetSourceFileOfNode(searchSourceFile) {
 					refs = append(refs, ModuleReference{kind: ModuleReferenceKindReference, referencingFile: referencingFile, ref: ref})

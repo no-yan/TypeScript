@@ -11,7 +11,7 @@ import (
 
 func isDeclarationNameOfEnumOrNamespace(emitContext *printer.EmitContext, node ast.Handle) bool {
 	if original := emitContext.MostOriginal(node); !original.IsNil() && !original.Parent().IsNil() {
-		switch original.Parent().Kind() {
+		switch original.Parent().Kind {
 		case ast.KindEnumDeclaration, ast.KindModuleDeclaration:
 			return original == original.Parent().Name()
 		}

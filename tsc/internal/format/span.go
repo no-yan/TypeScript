@@ -261,16 +261,16 @@ func (w *formatSpanWorker) processChildNode(node ast.Handle, indenter *dynamicIn
 	if !w.formattingScanner.isOnToken() || w.formattingScanner.getTokenFullStart() >= w.originalRange.End() {
 		return inheritedIndentation
 	}
-	if ast.IsTokenKind(child.Kind()) {
+	if ast.IsTokenKind(child.Kind) {
 		tokenInfo := w.formattingScanner.readTokenInfo(child)
-		if child.Kind() != ast.KindJsxText {
+		if child.Kind != ast.KindJsxText {
 			debug.Assert(tokenInfo.token.Loc.End() == child.Loc().End(), "Token end is child end")
 			w.consumeTokenAndAdvanceScanner(tokenInfo, node, parentDynamicIndentation, child, false)
 			return inheritedIndentation
 		}
 	}
 	effectiveParentStartLine := undecoratedParentStartLine
-	if child.Kind() == ast.KindDecorator {
+	if child.Kind == ast.KindDecorator {
 		effectiveParentStartLine = childStartLine
 	}
 	childIndentation := 0
@@ -282,7 +282,7 @@ func (w *formatSpanWorker) processChildNode(node ast.Handle, indenter *dynamicIn
 	}
 	w.processNode(child, w.childContextNode, childStartLine, undecoratedChildStartLine, childIndentation, delta)
 	w.childContextNode = node
-	if isFirstListItem && parent.Kind() == ast.KindArrayLiteralExpression && inheritedIndentation == -1 {
+	if isFirstListItem && parent.Kind == ast.KindArrayLiteralExpression && inheritedIndentation == -1 {
 		inheritedIndentation = childIndentation
 	}
 	return inheritedIndentation
@@ -374,7 +374,7 @@ func (w *formatSpanWorker) computeIndentation(node ast.Handle, startLine int, in
 		delta = min(w.formattingContext.Options.IndentSize, parentDynamicIndentation.getDelta(node)+delta)
 		return indentation, delta
 	} else if inheritedIndentation == -1 {
-		if node.Kind() == ast.KindOpenParenToken && startLine == w.lastIndentedLine {
+		if node.Kind == ast.KindOpenParenToken && startLine == w.lastIndentedLine {
 			return w.indentationOnLastIndentedLine, parentDynamicIndentation.getDelta(node)
 		} else if childStartsOnTheSameLineWithElseInIfStatement(parent, node, startLine, w.sourceFile) || childIsUnindentedBranchOfConditionalExpression(parent, node, startLine, w.sourceFile) || argumentStartsOnSameLineAsPreviousArgument(parent, node, startLine, w.sourceFile) {
 			return parentDynamicIndentation.getIndentation(), delta
@@ -848,13 +848,13 @@ func (i *dynamicIndenter) shouldAddDelta(line int, kind ast.Kind, container ast.
 	case ast.KindOpenBraceToken, ast.KindCloseBraceToken, ast.KindCloseParenToken, ast.KindElseKeyword, ast.KindWhileKeyword, ast.KindAtToken:
 		return false
 	case ast.KindSlashToken, ast.KindGreaterThanToken:
-		switch container.Kind() {
+		switch container.Kind {
 		case ast.KindJsxOpeningElement, ast.KindJsxClosingElement, ast.KindJsxSelfClosingElement:
 			return false
 		}
 		break
 	case ast.KindOpenBracketToken, ast.KindCloseBracketToken:
-		if container.Kind() != ast.KindMappedType {
+		if container.Kind != ast.KindMappedType {
 			return false
 		}
 		break
@@ -865,10 +865,10 @@ func getFirstNonDecoratorTokenOfNode(node ast.Handle) ast.Kind {
 	if ast.CanHaveModifiers(node) {
 		modifier := core.Find(node.ModifierNodes()[core.FindIndex(node.ModifierNodes(), ast.IsDecorator):], ast.IsModifier)
 		if !modifier.IsNil() {
-			return modifier.Kind()
+			return modifier.Kind
 		}
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindClassDeclaration:
 		return ast.KindClassKeyword
 	case ast.KindInterfaceDeclaration:
@@ -889,7 +889,7 @@ func getFirstNonDecoratorTokenOfNode(node ast.Handle) ast.Kind {
 	case ast.KindPropertyDeclaration, ast.KindParameter:
 		name := ast.GetNameOfDeclaration(node)
 		if !name.IsNil() {
-			return name.Kind()
+			return name.Kind
 		}
 	}
 	return ast.KindUnknown

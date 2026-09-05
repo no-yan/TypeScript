@@ -98,19 +98,19 @@ func newESDecoratorTransformer(opts *transformers.TransformOptions) *transformer
 	tx.arrayAssignmentVisitor = ec.NewNodeVisitor(tx.visitArrayAssignmentElement)
 	tx.objectAssignmentVisitor = ec.NewNodeVisitor(tx.visitObjectAssignmentElement)
 	tx.staticOnlyModifierVisitor = ec.NewNodeVisitor(func(node ast.Handle) ast.Handle {
-		if node.Kind() == ast.KindStaticKeyword {
+		if node.Kind == ast.KindStaticKeyword {
 			return node
 		}
 		return ast.Handle{}
 	})
 	tx.asyncOnlyModifierVisitor = ec.NewNodeVisitor(func(node ast.Handle) ast.Handle {
-		if node.Kind() == ast.KindAsyncKeyword {
+		if node.Kind == ast.KindAsyncKeyword {
 			return node
 		}
 		return ast.Handle{}
 	})
 	tx.accessorStrippingModifierVisitor = ec.NewNodeVisitor(func(node ast.Handle) ast.Handle {
-		if node.Kind() == ast.KindAccessorKeyword {
+		if node.Kind == ast.KindAccessorKeyword {
 			return ast.Handle{}
 		}
 		return node
@@ -211,10 +211,10 @@ func (tx *esDecoratorTransformer) visitSourceFile(node ast.Handle) ast.Handle {
 	return visited
 }
 func (tx *esDecoratorTransformer) outerThisVisit(n ast.Handle) ast.Handle {
-	if n.SubtreeFacts()&ast.SubtreeContainsLexicalThis == 0 && n.Kind() != ast.KindThisKeyword {
+	if n.SubtreeFacts()&ast.SubtreeContainsLexicalThis == 0 && n.Kind != ast.KindThisKeyword {
 		return n
 	}
-	if n.Kind() == ast.KindThisKeyword {
+	if n.Kind == ast.KindThisKeyword {
 		if tx.outerThis.IsNil() {
 			tx.outerThis = tx.Factory().NewUniqueNameEx("_outerThis", printer.AutoGenerateOptions{Flags: printer.GeneratedIdentifierFlagsOptimistic})
 		}
@@ -226,13 +226,13 @@ func (tx *esDecoratorTransformer) shouldVisitNode(node ast.Handle) bool {
 	return node.SubtreeFacts()&ast.SubtreeContainsDecorators != 0 || (!tx.classThis.IsNil() && node.SubtreeFacts()&ast.SubtreeContainsLexicalThis != 0) || (!tx.classThis.IsNil() && !tx.classSuper.IsNil() && node.SubtreeFacts()&ast.SubtreeContainsLexicalSuper != 0)
 }
 func (tx *esDecoratorTransformer) visit(node ast.Handle) ast.Handle {
-	if node.Kind() == ast.KindSourceFile {
+	if node.Kind == ast.KindSourceFile {
 		return tx.visitSourceFile(node)
 	}
 	if !tx.shouldVisitNode(node) {
 		return node
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindDecorator:
 		return ast.Handle{}
 	case ast.KindClassDeclaration:
@@ -282,13 +282,13 @@ func (tx *esDecoratorTransformer) visit(node ast.Handle) ast.Handle {
 	}
 }
 func (tx *esDecoratorTransformer) modifierVisitorVisit(node ast.Handle) ast.Handle {
-	if node.Kind() == ast.KindDecorator {
+	if node.Kind == ast.KindDecorator {
 		return ast.Handle{}
 	}
 	return node
 }
 func (tx *esDecoratorTransformer) classElementVisitorVisit(node ast.Handle) ast.Handle {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindConstructor:
 		return tx.visitConstructorDeclaration(node)
 	case ast.KindMethodDeclaration:
@@ -306,7 +306,7 @@ func (tx *esDecoratorTransformer) classElementVisitorVisit(node ast.Handle) ast.
 	}
 }
 func (tx *esDecoratorTransformer) discardedValueVisit(node ast.Handle) ast.Handle {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindPrefixUnaryExpression, ast.KindPostfixUnaryExpression:
 		return tx.visitPreOrPostfixUnaryExpression(node, true)
 	case ast.KindBinaryExpression:
@@ -332,7 +332,7 @@ func (tx *esDecoratorTransformer) constructorClassElementVisit(node ast.Handle) 
 	return node
 }
 func (tx *esDecoratorTransformer) exportStrippingModifierVisit(node ast.Handle) ast.Handle {
-	if node.Kind() == ast.KindExportKeyword {
+	if node.Kind == ast.KindExportKeyword {
 		return ast.Handle{}
 	}
 	return tx.modifierVisitorVisit(node)
@@ -522,7 +522,7 @@ func (tx *esDecoratorTransformer) transformClassLike(node ast.Handle) ast.Handle
 	if len(ci.pendingInstanceInitializers) > 0 && ast.GetFirstConstructorWithBody(node).IsNil() {
 		initializerStatements := tx.prepareConstructor(ci)
 		if len(initializerStatements) > 0 {
-			isDerivedClass := !extendsElement.IsNil() && ast.SkipOuterExpressions(extendsElement.ExpressionWithTypeArgumentsExpression(), ast.OEKAll).Kind() != ast.KindNullKeyword
+			isDerivedClass := !extendsElement.IsNil() && ast.SkipOuterExpressions(extendsElement.ExpressionWithTypeArgumentsExpression(), ast.OEKAll).Kind != ast.KindNullKeyword
 			constructorStatements := []ast.Handle{}
 			if isDerivedClass {
 				spreadArguments := f.NewSpreadElement(f.NewIdentifier("arguments"))
@@ -1293,7 +1293,7 @@ func (tx *esDecoratorTransformer) visitBinaryExpression(node ast.Handle, discard
 			}
 			if !setterName.IsNil() {
 				expression := tx.Visitor().VisitNode(bin.Right())
-				if ast.IsCompoundAssignment(bin.OperatorToken().Kind()) {
+				if ast.IsCompoundAssignment(bin.OperatorToken().Kind) {
 					getterName := setterName
 					if !transformers.IsSimpleInlineableExpression(setterName) {
 						getterName = f.NewTempVariable()
@@ -1303,7 +1303,7 @@ func (tx *esDecoratorTransformer) visitBinaryExpression(node ast.Handle, discard
 					superPropertyGet := f.NewReflectGetCall(tx.classSuper, getterName, tx.classThis)
 					ec.SetOriginal(superPropertyGet, bin.Left())
 					superPropertyGet.SetLoc(bin.Left().Loc())
-					expression = f.NewBinaryExpression(0, superPropertyGet, ast.Handle{}, f.NewToken(transformers.GetNonAssignmentOperatorForCompoundAssignment(bin.OperatorToken().Kind())), expression)
+					expression = f.NewBinaryExpression(0, superPropertyGet, ast.Handle{}, f.NewToken(transformers.GetNonAssignmentOperatorForCompoundAssignment(bin.OperatorToken().Kind)), expression)
 					expression.SetLoc(node.Loc())
 				}
 				var temp ast.Handle
@@ -1326,7 +1326,7 @@ func (tx *esDecoratorTransformer) visitBinaryExpression(node ast.Handle, discard
 			}
 		}
 	}
-	if bin.OperatorToken().Kind() == ast.KindCommaToken {
+	if bin.OperatorToken().Kind == ast.KindCommaToken {
 		left := tx.discardedVisitor.VisitNode(bin.Left())
 		var right ast.Handle
 		if discarded {
@@ -1621,7 +1621,7 @@ func (tx *esDecoratorTransformer) createCallBinding(expression ast.Handle) (ast.
 	if ast.IsSuperProperty(callee) {
 		return callee, f.NewThisExpression()
 	}
-	if callee.Kind() == ast.KindSuperKeyword {
+	if callee.Kind == ast.KindSuperKeyword {
 		return callee, f.NewThisExpression()
 	}
 	if tx.EmitContext().EmitFlags(callee)&printer.EFHelperName != 0 {
@@ -1657,7 +1657,7 @@ func (tx *esDecoratorTransformer) createCallBinding(expression ast.Handle) (ast.
 }
 func (tx *esDecoratorTransformer) shouldBeCapturedInTempVariable(node ast.Handle) bool {
 	target := ast.SkipParentheses(node)
-	switch target.Kind() {
+	switch target.Kind {
 	case ast.KindIdentifier:
 		return true
 	case ast.KindThisKeyword, ast.KindNumericLiteral, ast.KindBigIntLiteral, ast.KindStringLiteral:

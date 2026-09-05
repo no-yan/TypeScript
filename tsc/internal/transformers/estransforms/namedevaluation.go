@@ -41,7 +41,7 @@ type anonymousFunctionDefinition = ast.Handle
 
 func isAnonymousFunctionDefinition(emitContext *printer.EmitContext, node ast.Handle, cb func(ast.Handle) bool) bool {
 	node = ast.SkipOuterExpressions(node, ast.OEKAll)
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindClassExpression:
 		if classHasDeclaredOrExplicitlyAssignedName(emitContext, node) {
 			return false
@@ -69,7 +69,7 @@ func isNamedEvaluationAnd(emitContext *printer.EmitContext, node ast.Handle, cb 
 	if !ast.IsNamedEvaluationSource(node) {
 		return false
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindShorthandPropertyAssignment:
 		return isAnonymousFunctionDefinition(emitContext, node.ShorthandPropertyAssignmentObjectAssignmentInitializer(), cb)
 	case ast.KindPropertyAssignment, ast.KindVariableDeclaration, ast.KindParameter, ast.KindBindingElement, ast.KindPropertyDeclaration:
@@ -255,7 +255,7 @@ func transformNamedEvaluationOfExportAssignment(emitContext *printer.EmitContext
 }
 
 func transformNamedEvaluation(context *printer.EmitContext, node ast.Handle, ignoreEmptyStringLiteral bool, assignedName string) ast.Handle {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindPropertyAssignment:
 		return transformNamedEvaluationOfPropertyAssignment(context, node, ignoreEmptyStringLiteral, assignedName)
 	case ast.KindShorthandPropertyAssignment:

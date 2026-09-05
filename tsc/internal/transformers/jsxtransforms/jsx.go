@@ -87,7 +87,7 @@ func (tx *JSXTransformer) visit(node ast.Handle) ast.Handle {
 	if node.SubtreeFacts()&ast.SubtreeContainsJsx == 0 {
 		return node
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindSourceFile:
 		tx.setInChild(false)
 		return tx.visitSourceFile(node)
@@ -115,7 +115,7 @@ func (tx *JSXTransformer) visit(node ast.Handle) ast.Handle {
 func hasKeyAfterPropsSpread(node ast.Handle) bool {
 	spread := false
 	opener := node
-	if node.Kind() == ast.KindJsxElement {
+	if node.Kind == ast.KindJsxElement {
 		opener = node.JsxElementOpeningElement()
 	}
 	for _, elem := range opener.Attributes().Properties() {
@@ -255,7 +255,7 @@ func (tx *JSXTransformer) transformJsxChildToExpression(node ast.Handle) ast.Han
 }
 func (tx *JSXTransformer) convertJsxChildrenToChildrenPropAssignment(children []ast.Handle) ast.Handle {
 	nonWhitespceChildren := ast.GetSemanticJsxChildren(children)
-	if len(nonWhitespceChildren) == 1 && (nonWhitespceChildren[0].Kind() != ast.KindJsxExpression || nonWhitespceChildren[0].JsxExpressionDotDotDotToken().IsNil()) {
+	if len(nonWhitespceChildren) == 1 && (nonWhitespceChildren[0].Kind != ast.KindJsxExpression || nonWhitespceChildren[0].JsxExpressionDotDotDotToken().IsNil()) {
 		result := tx.transformJsxChildToExpression(nonWhitespceChildren[0])
 		if result.IsNil() {
 			return ast.Handle{}
@@ -277,7 +277,7 @@ func (tx *JSXTransformer) convertJsxChildrenToChildrenPropAssignment(children []
 	return tx.Factory().NewPropertyAssignment(0, tx.Factory().NewIdentifier("children"), ast.Handle{}, ast.Handle{}, tx.Factory().NewArrayLiteralExpression(tx.Factory().NewList(results), false))
 }
 func (tx *JSXTransformer) getTagName(node ast.Handle) ast.Handle {
-	if node.Kind() == ast.KindJsxElement {
+	if node.Kind == ast.KindJsxElement {
 		return tx.getTagName(node.JsxElementOpeningElement())
 	} else if ast.IsJsxOpeningLikeElement(node) {
 		tagName := node.TagName()
@@ -289,7 +289,7 @@ func (tx *JSXTransformer) getTagName(node ast.Handle) ast.Handle {
 			return tx.Factory().CreateExpressionFromEntityName(tagName)
 		}
 	} else {
-		panic("unhandled node kind passed to getTagName: " + node.Kind().String())
+		panic("unhandled node kind passed to getTagName: " + node.Kind.String())
 	}
 }
 func (tx *JSXTransformer) visitJsxOpeningLikeElementJSX(element ast.Handle, children ast.ListRef, location core.TextRange) ast.Handle {
@@ -301,7 +301,7 @@ func (tx *JSXTransformer) visitJsxOpeningLikeElementJSX(element ast.Handle, chil
 	var keyAttr ast.Handle
 	attrs := element.Attributes().Properties()
 	for i, p := range attrs {
-		if p.Kind() == ast.KindJsxAttribute && !p.JsxAttributeName().IsNil() && ast.IsIdentifier(p.JsxAttributeName()) && p.JsxAttributeName().Text() == "key" {
+		if p.Kind == ast.KindJsxAttribute && !p.JsxAttributeName().IsNil() && ast.IsIdentifier(p.JsxAttributeName()) && p.JsxAttributeName().Text() == "key" {
 			keyAttr = p
 			attrs = slices.Clone(attrs)
 			attrs = slices.Delete(attrs, i, i+1)
@@ -372,7 +372,7 @@ func (tx *JSXTransformer) combinePropertiesIntoNewExpression(expressions []ast.H
 func (tx *JSXTransformer) transformJsxAttributesToProps(attrs []ast.Handle, childrenProp ast.Handle) []ast.Handle {
 	props := make([]ast.Handle, 0, len(attrs))
 	for _, attr := range attrs {
-		if attr.Kind() == ast.KindJsxSpreadAttribute {
+		if attr.Kind == ast.KindJsxSpreadAttribute {
 			res := tx.transformJsxSpreadAttributesToProps(attr)
 			props = append(props, res...)
 		} else {
@@ -420,13 +420,13 @@ func (tx *JSXTransformer) transformJsxAttributeInitializer(node ast.Handle) ast.
 	if node.IsNil() {
 		return tx.Factory().NewTrueExpression()
 	}
-	if node.Kind() == ast.KindStringLiteral {
+	if node.Kind == ast.KindStringLiteral {
 		res := tx.Factory().NewStringLiteral(decodeEntities(node.Text()), node.StringLiteralTokenFlags())
 		res.SetLoc(node.Loc())
 		res.SetStringLiteralTokenFlags(node.StringLiteralTokenFlags())
 		return res
 	}
-	if node.Kind() == ast.KindJsxExpression {
+	if node.Kind == ast.KindJsxExpression {
 		if node.Expression().IsNil() {
 			return tx.Factory().NewTrueExpression()
 		}
@@ -436,7 +436,7 @@ func (tx *JSXTransformer) transformJsxAttributeInitializer(node ast.Handle) ast.
 		tx.setInChild(false)
 		return tx.Visitor().Visit(node)
 	}
-	panic("Unhandled node kind found in jsx initializer: " + node.Kind().String())
+	panic("Unhandled node kind found in jsx initializer: " + node.Kind.String())
 }
 func (tx *JSXTransformer) visitJsxOpeningLikeElementOrFragmentJSX(tagName ast.Handle, object ast.Handle, keyAttr ast.Handle, children ast.ListRef, location core.TextRange) ast.Handle {
 	var nonWhitespaceChildren []ast.Handle
@@ -499,7 +499,7 @@ func (tx *JSXTransformer) createReactNamespace(reactNamespace string, parent ast
 	return react
 }
 func (tx *JSXTransformer) createJsxFactoryExpressionFromEntityName(e ast.Handle, parent ast.Handle) ast.Handle {
-	if e.Kind() == ast.KindQualifiedName {
+	if e.Kind == ast.KindQualifiedName {
 		left := tx.createJsxFactoryExpressionFromEntityName(e.QualifiedNameLeft(), parent)
 		right := tx.Factory().NewIdentifier(e.QualifiedNameRight().IdentifierText())
 		return tx.Factory().NewPropertyAccessExpression(left, ast.Handle{}, right, ast.NodeFlagsNone)

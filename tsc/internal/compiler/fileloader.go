@@ -602,7 +602,7 @@ func (p *fileLoader) resolveImportsAndModuleAugmentations(t *parseTask) {
 	importsStart := len(moduleNames)
 	moduleNames = append(moduleNames, file.Imports()...)
 	for _, imp := range file.ModuleAugmentations {
-		if imp.Kind() == ast.KindStringLiteral {
+		if imp.Kind == ast.KindStringLiteral {
 			moduleNames = append(moduleNames, imp)
 		}
 	}
@@ -712,12 +712,12 @@ func getDefaultResolutionModeForFile(fileName string, meta ast.SourceFileMetaDat
 	}
 }
 func getModeForUsageLocation(fileName string, meta ast.SourceFileMetaData, usage ast.Handle, options *core.CompilerOptions) core.ResolutionMode {
-	if ast.IsImportDeclaration(usage.Parent()) || usage.Parent().Kind() == ast.KindJSImportDeclaration || ast.IsExportDeclaration(usage.Parent()) || ast.IsJSDocImportTag(usage.Parent()) {
+	if ast.IsImportDeclaration(usage.Parent()) || usage.Parent().Kind == ast.KindJSImportDeclaration || ast.IsExportDeclaration(usage.Parent()) || ast.IsJSDocImportTag(usage.Parent()) {
 		isTypeOnly := ast.IsExclusivelyTypeOnlyImportOrExport(usage.Parent())
 		if isTypeOnly {
 			var override core.ResolutionMode
 			var ok bool
-			switch usage.Parent().Kind() {
+			switch usage.Parent().Kind {
 			case ast.KindImportDeclaration, ast.KindJSImportDeclaration:
 				override, ok = usage.Parent().ImportDeclarationAttributes().ResolutionModeOverride()
 			case ast.KindExportDeclaration:

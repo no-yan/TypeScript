@@ -78,7 +78,7 @@ func TestParseCacheBindsBeforePublishing(t *testing.T) {
 		FileName: fileName,
 		Path:     tspath.Path(fileName),
 	}
-	key := NewParseCacheKey(parseOptions, fileHandle.Hash(), fileHandle.Kind())
+	key := NewParseCacheKey(parseOptions, fileHandle.Hash(), fileHandle.Kind)
 	cache := NewParseCache(RefCountCacheOptions{})
 
 	file := cache.Acquire(key, fileHandle)

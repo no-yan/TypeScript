@@ -132,7 +132,7 @@ func TestTypeScriptExpressionParseWalksStoreTree(t *testing.T) {
 	var visit func(ast.Handle)
 	visit = func(node ast.Handle) {
 		count++
-		seen[node.Kind()] = true
+		seen[node.Kind] = true
 		node.ForEachChild(func(child ast.Handle) bool {
 			assert.Equal(t, node, child.Parent())
 			visit(child)
@@ -314,20 +314,20 @@ class MissingImplements implements B. {}
 	}, sourceText, core.ScriptKindTS)
 
 	classDecl := file.ParseRoot().Statements()[0]
-	assert.Equal(t, classDecl.Store().ListSlice(classDecl.HeritageClauses())[0].Types()[0].Kind(), ast.KindExpressionWithTypeArguments)
-	assert.Equal(t, classDecl.Store().ListSlice(classDecl.HeritageClauses())[1].Types()[0].Kind(), ast.KindTypeReference)
+	assert.Equal(t, classDecl.Store().ListSlice(classDecl.HeritageClauses())[0].Types()[0].Kind, ast.KindExpressionWithTypeArguments)
+	assert.Equal(t, classDecl.Store().ListSlice(classDecl.HeritageClauses())[1].Types()[0].Kind, ast.KindTypeReference)
 
 	interfaceDecl := file.ParseRoot().Statements()[1]
-	assert.Equal(t, interfaceDecl.Store().ListSlice(interfaceDecl.HeritageClauses())[0].Types()[0].Kind(), ast.KindTypeReference)
+	assert.Equal(t, interfaceDecl.Store().ListSlice(interfaceDecl.HeritageClauses())[0].Types()[0].Kind, ast.KindTypeReference)
 
 	invalidInterfaceDecl := file.ParseRoot().Statements()[2]
-	assert.Equal(t, invalidInterfaceDecl.Store().ListSlice(invalidInterfaceDecl.HeritageClauses())[0].Types()[0].Kind(), ast.KindExpressionWithTypeArguments)
+	assert.Equal(t, invalidInterfaceDecl.Store().ListSlice(invalidInterfaceDecl.HeritageClauses())[0].Types()[0].Kind, ast.KindExpressionWithTypeArguments)
 
 	missingExtendsDecl := file.ParseRoot().Statements()[3]
-	assert.Equal(t, missingExtendsDecl.Store().ListSlice(missingExtendsDecl.HeritageClauses())[0].Types()[0].Kind(), ast.KindExpressionWithTypeArguments)
+	assert.Equal(t, missingExtendsDecl.Store().ListSlice(missingExtendsDecl.HeritageClauses())[0].Types()[0].Kind, ast.KindExpressionWithTypeArguments)
 
 	missingImplementsDecl := file.ParseRoot().Statements()[4]
-	assert.Equal(t, missingImplementsDecl.Store().ListSlice(missingImplementsDecl.HeritageClauses())[0].Types()[0].Kind(), ast.KindExpressionWithTypeArguments)
+	assert.Equal(t, missingImplementsDecl.Store().ListSlice(missingImplementsDecl.HeritageClauses())[0].Types()[0].Kind, ast.KindExpressionWithTypeArguments)
 }
 
 func TestJSDocImportTypeParentChain(t *testing.T) {
@@ -461,9 +461,9 @@ func TestJSDocTypeCastDoesNotErrorInJavaScript(t *testing.T) {
 	stmt := file.ParseRoot().Statements()[0]
 	decls := stmt.VariableStatementDeclarationList().VariableDeclarationListDeclarations()
 	init := file.ParseStore().ListAt(decls, 0).Initializer()
-	assert.Assert(t, ast.IsParenthesizedExpression(init), "got kind %v", init.Kind())
+	assert.Assert(t, ast.IsParenthesizedExpression(init), "got kind %v", init.Kind)
 	inner := init.Expression()
-	assert.Assert(t, ast.IsAsExpression(inner), "inner kind %v", inner.Kind())
+	assert.Assert(t, ast.IsAsExpression(inner), "inner kind %v", inner.Kind)
 	assert.Assert(t, inner.Type().Flags()&ast.NodeFlagsReparsed != 0)
 	assert.Assert(t, ast.IsJSDocTypeAssertion(init))
 }
@@ -511,7 +511,7 @@ func TestParseStoreNonempty(t *testing.T) {
 	store := file.ParseStore()
 	assert.Assert(t, store != nil, "ParseSourceFile must allocate a Store")
 	assert.Assert(t, store.Len() > 0, "Store must be nonempty after parse")
-	assert.Equal(t, ast.KindSourceFile, file.ParseRoot().Kind())
+	assert.Equal(t, ast.KindSourceFile, file.ParseRoot().Kind)
 }
 
 func TestCollectsGlobalScopeAugmentations(t *testing.T) {
@@ -550,7 +550,7 @@ func TestIsolatedEntityName(t *testing.T) {
 	f := ast.NewFactoryHint(ast.FactoryHooks{}, 16)
 	h := parser.ParseIsolatedEntityName(f, "a.b.c")
 	assert.Assert(t, !h.IsNil())
-	assert.Equal(t, ast.KindQualifiedName, h.Kind())
+	assert.Equal(t, ast.KindQualifiedName, h.Kind)
 	assert.Equal(t, "c", h.QualifiedNameRight().IdentifierText())
 	assert.Equal(t, f.Store(), h.Store())
 	assert.Assert(t, parser.ParseIsolatedEntityName(f, "1foo").IsNil())
@@ -564,10 +564,10 @@ export function f() {}
 	opts := ast.SourceFileParseOptions{FileName: "/index.ts", Path: "/index.ts"}
 	file := parser.ParseSourceFile(opts, sourceText, core.ScriptKindTS)
 	fn := file.ParseRoot().Statements()[0]
-	assert.Equal(t, ast.KindFunctionDeclaration, fn.Kind())
+	assert.Equal(t, ast.KindFunctionDeclaration, fn.Kind)
 	docs := fn.JSDoc(file)
 	assert.Equal(t, 1, len(docs))
-	assert.Equal(t, ast.KindJSDoc, docs[0].Kind())
+	assert.Equal(t, ast.KindJSDoc, docs[0].Kind)
 	assert.Equal(t, file.ParseStore(), docs[0].Store())
 }
 

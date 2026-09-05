@@ -21,18 +21,18 @@ func ProbablyUsesSemicolons(file *ast.SourceFile) bool {
 		if node.Flags()&ast.NodeFlagsReparsed != 0 {
 			return false
 		}
-		if SyntaxRequiresTrailingSemicolonOrASI(node.Kind()) {
+		if SyntaxRequiresTrailingSemicolonOrASI(node.Kind) {
 			lastToken := GetLastToken(node, file)
-			if !lastToken.IsNil() && lastToken.Kind() == ast.KindSemicolonToken {
+			if !lastToken.IsNil() && lastToken.Kind == ast.KindSemicolonToken {
 				withSemicolon++
 			} else {
 				withoutSemicolon++
 			}
-		} else if SyntaxRequiresTrailingCommaOrSemicolonOrASI(node.Kind()) {
+		} else if SyntaxRequiresTrailingCommaOrSemicolonOrASI(node.Kind) {
 			lastToken := GetLastToken(node, file)
-			if !lastToken.IsNil() && lastToken.Kind() == ast.KindSemicolonToken {
+			if !lastToken.IsNil() && lastToken.Kind == ast.KindSemicolonToken {
 				withSemicolon++
-			} else if !lastToken.IsNil() && lastToken.Kind() != ast.KindCommaToken {
+			} else if !lastToken.IsNil() && lastToken.Kind != ast.KindCommaToken {
 				lastTokenLine := scanner.GetECMALineOfPosition(file, astnav.GetStartOfNode(lastToken, file, false))
 				nextTokenLine := scanner.GetECMALineOfPosition(file, scanner.SkipTrivia(file.Text(), lastToken.End()))
 				if lastTokenLine != nextTokenLine {

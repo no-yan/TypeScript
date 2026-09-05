@@ -64,7 +64,7 @@ func (tx *CommonJSModuleTransformer) popNode(grandparentNode ast.Handle) {
 func (tx *CommonJSModuleTransformer) visitTopLevel(node ast.Handle) ast.Handle {
 	grandparentNode := tx.pushNode(node)
 	defer tx.popNode(grandparentNode)
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindImportDeclaration:
 		node = tx.visitTopLevelImportDeclaration(node)
 	case ast.KindImportEqualsDeclaration:
@@ -92,7 +92,7 @@ func (tx *CommonJSModuleTransformer) visitTopLevelNested(node ast.Handle) ast.Ha
 }
 
 func (tx *CommonJSModuleTransformer) visitTopLevelNestedNoStack(node ast.Handle) ast.Handle {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindVariableStatement:
 		node = tx.visitTopLevelVariableStatement(node)
 	case ast.KindForStatement:
@@ -137,7 +137,7 @@ func (tx *CommonJSModuleTransformer) visitNoStack(node ast.Handle, resultIsDisca
 	if !ast.IsSourceFile(node) && node.SubtreeFacts()&(ast.SubtreeContainsDynamicImport|ast.SubtreeContainsIdentifier) == 0 {
 		return node
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindSourceFile:
 		node = tx.visitSourceFile(node)
 	case ast.KindForStatement:
@@ -183,7 +183,7 @@ func (tx *CommonJSModuleTransformer) visitAssignmentPattern(node ast.Handle) ast
 	return tx.visitAssignmentPatternNoStack(node)
 }
 func (tx *CommonJSModuleTransformer) visitAssignmentPatternNoStack(node ast.Handle) ast.Handle {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindObjectLiteralExpression, ast.KindArrayLiteralExpression:
 		node = tx.assignmentPatternVisitor.VisitEachChild(node)
 	case ast.KindPropertyAssignment:
@@ -216,7 +216,7 @@ func (tx *CommonJSModuleTransformer) visitSourceFile(node ast.Handle) ast.Handle
 	return updated
 }
 func (tx *CommonJSModuleTransformer) shouldEmitUnderscoreUnderscoreESModule() bool {
-	if tspath.FileExtensionIsOneOf(tx.currentSourceFile.FileName(), tspath.SupportedJSExtensionsFlat) && !tx.currentSourceFile.CommonJSModuleIndicator.IsNil() && (tx.currentSourceFile.ExternalModuleIndicator.IsNil() || tx.currentSourceFile.ExternalModuleIndicator.Kind() == ast.KindSourceFile) {
+	if tspath.FileExtensionIsOneOf(tx.currentSourceFile.FileName(), tspath.SupportedJSExtensionsFlat) && !tx.currentSourceFile.CommonJSModuleIndicator.IsNil() && (tx.currentSourceFile.ExternalModuleIndicator.IsNil() || tx.currentSourceFile.ExternalModuleIndicator.Kind == ast.KindSourceFile) {
 		return false
 	}
 	if tx.currentModuleInfo.exportEquals.IsNil() && ast.IsExternalModule(tx.currentSourceFile) {
@@ -245,7 +245,7 @@ func (tx *CommonJSModuleTransformer) transformCommonJSModule(node ast.Handle) as
 			right := tx.Factory().NewVoidZeroExpression()
 			for _, nextId := range tx.currentModuleInfo.exportedNames[i:min(i+chunkSize, l)] {
 				var left ast.Handle
-				if nextId.Kind() == ast.KindStringLiteral {
+				if nextId.Kind == ast.KindStringLiteral {
 					left = tx.Factory().NewElementAccessExpression(tx.Factory().NewIdentifier("exports"), ast.Handle{}, tx.Factory().NewStringLiteralFromNode(nextId), ast.NodeFlagsNone)
 				} else {
 					name := tx.Factory().DeepCloneNode(nextId)
@@ -319,7 +319,7 @@ func (tx *CommonJSModuleTransformer) appendExportsOfImportDeclaration(statements
 	}
 	namedBindings := importClause.ImportClauseNamedBindings()
 	if !namedBindings.IsNil() {
-		switch namedBindings.Kind() {
+		switch namedBindings.Kind {
 		case ast.KindNamespaceImport:
 			statements = tx.appendExportsOfDeclaration(statements, namedBindings, seen, false)
 		case ast.KindNamedImports:
@@ -403,7 +403,7 @@ func (tx *CommonJSModuleTransformer) appendExportsOfDeclaration(statements []ast
 }
 
 func (tx *CommonJSModuleTransformer) appendExportStatement(statements []ast.Handle, seen *collections.Set[string], exportName ast.Handle, expression ast.Handle, location *core.TextRange, allowComments bool, liveBinding bool) []ast.Handle {
-	if exportName.Kind() != ast.KindStringLiteral {
+	if exportName.Kind != ast.KindStringLiteral {
 		if seen.Has(exportName.Text()) {
 			return statements
 		}
@@ -431,7 +431,7 @@ func (tx *CommonJSModuleTransformer) createExportExpression(name ast.Handle, val
 		expression = tx.Factory().NewCallExpression(tx.Factory().NewPropertyAccessExpression(tx.Factory().NewIdentifier("Object"), ast.Handle{}, tx.Factory().NewIdentifier("defineProperty"), ast.NodeFlagsNone), ast.Handle{}, 0, tx.Factory().NewList([]ast.Handle{tx.Factory().NewIdentifier("exports"), tx.Factory().NewStringLiteralFromNode(name), tx.Factory().NewObjectLiteralExpression(tx.Factory().NewList([]ast.Handle{tx.Factory().NewPropertyAssignment(0, tx.Factory().NewIdentifier("enumerable"), ast.Handle{}, ast.Handle{}, tx.Factory().NewTrueExpression()), tx.Factory().NewPropertyAssignment(0, tx.Factory().NewIdentifier("get"), ast.Handle{}, ast.Handle{}, tx.Factory().NewFunctionExpression(0, ast.Handle{}, ast.Handle{}, 0, tx.Factory().NewList([]ast.Handle{}), ast.Handle{}, ast.Handle{}, tx.Factory().NewBlock(tx.Factory().NewList([]ast.Handle{tx.Factory().NewReturnStatement(value)}), false)))}), false)}), ast.NodeFlagsNone)
 	} else {
 		var left ast.Handle
-		if name.Kind() == ast.KindStringLiteral {
+		if name.Kind == ast.KindStringLiteral {
 			left = tx.Factory().NewElementAccessExpression(tx.Factory().NewIdentifier("exports"), ast.Handle{}, tx.Factory().NewStringLiteralFromNode(name), ast.NodeFlagsNone)
 		} else {
 			left = tx.Factory().NewPropertyAccessExpression(tx.Factory().NewIdentifier("exports"), ast.Handle{}, tx.Factory().DeepCloneNode(name), ast.NodeFlagsNone)
@@ -843,7 +843,7 @@ func (tx *CommonJSModuleTransformer) visitDestructuringAssignment(node ast.Handl
 func (tx *CommonJSModuleTransformer) destructuringNeedsFlattening(node ast.Handle) bool {
 	if ast.IsObjectLiteralExpression(node) {
 		for _, elem := range node.Properties() {
-			switch elem.Kind() {
+			switch elem.Kind {
 			case ast.KindPropertyAssignment:
 				if tx.destructuringNeedsFlattening(elem.Initializer()) {
 					return true
@@ -950,7 +950,7 @@ func (tx *CommonJSModuleTransformer) visitAssignmentRestElement(node ast.Handle)
 func (tx *CommonJSModuleTransformer) visitAssignmentElement(node ast.Handle) ast.Handle {
 	if ast.IsBinaryExpression(node) {
 		n := node
-		if n.OperatorToken().Kind() == ast.KindEqualsToken {
+		if n.OperatorToken().Kind == ast.KindEqualsToken {
 			return tx.Factory().UpdateBinaryExpression(n, 0, tx.visitDestructuringAssignmentTarget(n.Left()), ast.Handle{}, n.OperatorToken(), tx.Visitor().VisitNode(n.Right()))
 		}
 	}
@@ -959,7 +959,7 @@ func (tx *CommonJSModuleTransformer) visitAssignmentElement(node ast.Handle) ast
 func (tx *CommonJSModuleTransformer) visitDestructuringAssignmentTarget(node ast.Handle) ast.Handle {
 	grandparentNode := tx.pushNode(node)
 	defer tx.popNode(grandparentNode)
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindObjectLiteralExpression, ast.KindArrayLiteralExpression:
 		node = tx.visitAssignmentPatternNoStack(node)
 	default:

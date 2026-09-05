@@ -48,7 +48,7 @@ func (f *missingMemberFixer) createMemberFromSymbol(symbol *ast.Symbol, enclosin
 	optional := symbol.Flags&ast.SymbolFlagsOptional != 0
 	kind := ast.KindPropertySignature
 	if !declaration.IsNil() {
-		kind = declaration.Kind()
+		kind = declaration.Kind
 	}
 	declarationName := createDeclarationName(f.changeTracker.HandleFactory, f.typeChecker, symbol, declaration)
 	modifiers := f.createModifiers(symbol, declaration)

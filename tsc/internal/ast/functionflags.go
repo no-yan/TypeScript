@@ -15,7 +15,7 @@ func GetFunctionFlags(node Handle) FunctionFlags {
 		return FunctionFlagsInvalid
 	}
 	flags := FunctionFlagsNormal
-	switch node.Kind() {
+	switch node.Kind {
 	case KindFunctionDeclaration, KindFunctionExpression, KindMethodDeclaration:
 		if !node.AsteriskToken().IsNil() {
 			flags |= FunctionFlagsGenerator

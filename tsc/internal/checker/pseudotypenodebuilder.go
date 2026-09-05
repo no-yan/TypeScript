@@ -110,7 +110,7 @@ func (b *NodeBuilderImpl) pseudoTypeToNode(t *pseudochecker.PseudoType) ast.Hand
 				}
 				return
 			}
-			if node.Kind() == ast.KindUndefinedKeyword {
+			if node.Kind == ast.KindUndefinedKeyword {
 				if hasUndefined {
 					return
 				}

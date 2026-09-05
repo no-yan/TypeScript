@@ -109,7 +109,7 @@ func (sd *snapshotData) nodeHandleFrom(node ast.Handle) NodeHandle {
 	path := sourceFile.Path()
 	table := encoder.GetNodeIndexTable(sourceFile)
 	idx := table.GetIndex(node)
-	return NodeHandle(fmt.Sprintf("%d.%d.%s", idx, node.Kind(), path))
+	return NodeHandle(fmt.Sprintf("%d.%d.%s", idx, node.Kind, path))
 }
 
 // getOrCreateProjectRegistry returns the registry for the given project, creating it if needed.
@@ -2931,7 +2931,7 @@ func (s *Session) handleGetTypePredicateOfSignature(ctx context.Context, params 
 	}
 
 	resp := &TypePredicateResponse{
-		Kind:           int32(pred.Kind()),
+		Kind:           int32(pred.Kind),
 		ParameterIndex: pred.ParameterIndex(),
 		ParameterName:  pred.ParameterName(),
 	}

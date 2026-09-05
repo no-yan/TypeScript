@@ -26,7 +26,7 @@ func parseJSDocForNode(sourceFile *ast.SourceFile, node ast.Handle) []ast.Handle
 	defer putParser(p)
 	p.initializeState(sourceFile.ParseOptions(), sourceFile.Text(), sourceFile.ScriptKind)
 	p.factory = ast.NewFactoryOn(store, ast.FactoryHooks{})
-	ranges := GetJSDocCommentRanges(nil, node.Kind(), node.Pos(), node.End(), sourceFile.Text())
+	ranges := GetJSDocCommentRanges(nil, node.Kind, node.Pos(), node.End(), sourceFile.Text())
 	if len(ranges) == 0 {
 		return nil
 	}
@@ -80,7 +80,7 @@ func (p *Parser) withJSDoc(node ast.Handle, info jsdocScannerInfo) []ast.Handle 
 		// Fall through to eager parse for @see/@link
 	}
 
-	ranges := GetJSDocCommentRanges(p.jsdocCommentRangesSpace, node.Kind(), node.Pos(), node.End(), p.sourceText)
+	ranges := GetJSDocCommentRanges(p.jsdocCommentRangesSpace, node.Kind, node.Pos(), node.End(), p.sourceText)
 	p.jsdocCommentRangesSpace = ranges[:0]
 
 	// Should only be called once per node
@@ -823,14 +823,14 @@ func (p *Parser) parseBracketNameInPropertyAndParamTag(target propertyLikeParse)
 }
 
 func isObjectOrObjectArrayTypeReference(node ast.Handle) bool {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindObjectKeyword:
 		return true
 	case ast.KindArrayType:
 		return isObjectOrObjectArrayTypeReference(node.ArrayTypeNodeElementType())
 	default:
-		if node.Kind() == ast.KindTypeReference {
-			return node.TypeReferenceNodeTypeName().Kind() == ast.KindIdentifier && node.TypeReferenceNodeTypeName().Text() == "Object" && node.TypeReferenceNodeTypeArguments() == 0
+		if node.Kind == ast.KindTypeReference {
+			return node.TypeReferenceNodeTypeName().Kind == ast.KindIdentifier && node.TypeReferenceNodeTypeName().Text() == "Object" && node.TypeReferenceNodeTypeArguments() == 0
 		}
 		return false
 	}
@@ -872,7 +872,7 @@ func (p *Parser) parseNestedTypeLiteral(typeExpression ast.Handle, name ast.Hand
 				p.rewind(state)
 				break
 			}
-			switch child.Kind() {
+			switch child.Kind {
 			case ast.KindJSDocParameterTag, ast.KindJSDocPropertyTag:
 				children = append(children, child)
 			case ast.KindJSDocTemplateTag:
@@ -880,7 +880,7 @@ func (p *Parser) parseNestedTypeLiteral(typeExpression ast.Handle, name ast.Hand
 			}
 		}
 		if len(children) != 0 {
-			literal := p.finishHandle(p.factory.NewJSDocTypeLiteral(p.newList(core.UndefinedTextRange(), children), typeExpression.Type().Kind() == ast.KindArrayType), pos)
+			literal := p.finishHandle(p.factory.NewJSDocTypeLiteral(p.newList(core.UndefinedTextRange(), children), typeExpression.Type().Kind == ast.KindArrayType), pos)
 			return p.finishHandle(p.factory.NewJSDocTypeExpression(literal), pos)
 		}
 	}
@@ -888,7 +888,7 @@ func (p *Parser) parseNestedTypeLiteral(typeExpression ast.Handle, name ast.Hand
 }
 
 func (p *Parser) parseReturnTag(previousTags []ast.Handle, start int, tagName ast.Handle, indent int, indentText string) ast.Handle {
-	if core.Some(previousTags, func(h ast.Handle) bool { return h.Kind() == ast.KindJSDocReturnTag }) {
+	if core.Some(previousTags, func(h ast.Handle) bool { return h.Kind == ast.KindJSDocReturnTag }) {
 		p.parseErrorAt(tagName.Pos(), p.scanner.TokenStart(), diagnostics.X_0_tag_already_specified, tagName.Text())
 	}
 
@@ -898,7 +898,7 @@ func (p *Parser) parseReturnTag(previousTags []ast.Handle, start int, tagName as
 
 // pass indent=-1 to skip parsing trailing comments (as when a type tag is nested in a typedef)
 func (p *Parser) parseTypeTag(previousTags []ast.Handle, start int, tagName ast.Handle, indent int, indentText string) ast.Handle {
-	if core.Some(previousTags, func(h ast.Handle) bool { return h.Kind() == ast.KindJSDocTypeTag }) {
+	if core.Some(previousTags, func(h ast.Handle) bool { return h.Kind == ast.KindJSDocTypeTag }) {
 		p.parseErrorAt(tagName.Pos(), p.scanner.TokenStart(), diagnostics.X_0_tag_already_specified, tagName.Text())
 	}
 
@@ -1044,7 +1044,7 @@ func (p *Parser) parseTypedefTag(start int, tagName ast.Handle, indent int, inde
 				break
 			}
 			hasChildren = true
-			switch child.Kind() {
+			switch child.Kind {
 			case ast.KindJSDocTemplateTag:
 				p.parseErrorAtRange(child.TagName().Loc(), diagnostics.A_JSDoc_template_tag_may_not_follow_a_typedef_callback_or_overload_tag)
 			case ast.KindJSDocTypeTag:
@@ -1062,7 +1062,7 @@ func (p *Parser) parseTypedefTag(start int, tagName ast.Handle, indent int, inde
 			}
 		}
 		if hasChildren {
-			isArrayType := !typeExpression.IsNil() && typeExpression.Type().Kind() == ast.KindArrayType
+			isArrayType := !typeExpression.IsNil() && typeExpression.Type().Kind == ast.KindArrayType
 			jsdocTypeLiteral := p.factory.NewJSDocTypeLiteral(p.newList(core.UndefinedTextRange(), jsdocPropertyTags), isArrayType)
 			if !childTypeTag.IsNil() && !childTypeTag.JSDocTypeTagTypeExpression().IsNil() && !isObjectOrObjectArrayTypeReference(childTypeTag.JSDocTypeTagTypeExpression().Type()) {
 				typeExpression = childTypeTag.JSDocTypeTagTypeExpression()
@@ -1115,7 +1115,7 @@ func (p *Parser) parseCallbackTagParameters(indent int) ast.ListRef {
 			p.rewind(state)
 			break
 		}
-		if child.Kind() == ast.KindJSDocTemplateTag {
+		if child.Kind == ast.KindJSDocTemplateTag {
 			p.parseErrorAtRange(child.TagName().Loc(), diagnostics.A_JSDoc_template_tag_may_not_follow_a_typedef_callback_or_overload_tag)
 		} else {
 			parameters = append(parameters, child)
@@ -1130,7 +1130,7 @@ func (p *Parser) parseJSDocSignature(start int, indent int) ast.Handle {
 	state := p.mark()
 	if p.parseOptionalJsdoc(ast.KindAtToken) {
 		tag := p.parseTag(nil, indent)
-		if tag.Kind() == ast.KindJSDocReturnTag {
+		if tag.Kind == ast.KindJSDocReturnTag {
 			returnTag = tag
 		}
 	}
@@ -1177,8 +1177,8 @@ func (p *Parser) parseOverloadTag(start int, tagName ast.Handle, indent int, ind
 }
 
 func textsEqual(a ast.Handle, b ast.Handle) bool {
-	for a.Kind() != ast.KindIdentifier || b.Kind() != ast.KindIdentifier {
-		if a.Kind() != ast.KindIdentifier && b.Kind() != ast.KindIdentifier && a.QualifiedNameRight().Text() == b.QualifiedNameRight().Text() {
+	for a.Kind != ast.KindIdentifier || b.Kind != ast.KindIdentifier {
+		if a.Kind != ast.KindIdentifier && b.Kind != ast.KindIdentifier && a.QualifiedNameRight().Text() == b.QualifiedNameRight().Text() {
 			a = a.QualifiedNameLeft()
 			b = b.QualifiedNameLeft()
 		} else {
@@ -1201,8 +1201,8 @@ func (p *Parser) parseChildParameterOrPropertyTag(target propertyLikeParse, inde
 			if canParseTag && p.scanner.CanFollowJSDocAt() {
 				child := p.tryParseChildTag(target, indent)
 				if !child.IsNil() && !name.IsNil() &&
-					(child.Kind() == ast.KindJSDocParameterTag || child.Kind() == ast.KindJSDocPropertyTag) &&
-					(child.Name().Kind() == ast.KindIdentifier || !textsEqual(name, child.Name().QualifiedNameLeft())) {
+					(child.Kind == ast.KindJSDocParameterTag || child.Kind == ast.KindJSDocPropertyTag) &&
+					(child.Name().Kind == ast.KindIdentifier || !textsEqual(name, child.Name().QualifiedNameLeft())) {
 					return ast.Handle{}
 				}
 				return child

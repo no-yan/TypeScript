@@ -100,7 +100,7 @@ func (r *FileIncludeReason) getReferencedLocation(program *Program) *referenceFi
 		} else {
 			augIndex := len(file.Imports())
 			for _, imp := range file.ModuleAugmentations {
-				if imp.Kind() == ast.KindStringLiteral {
+				if imp.Kind == ast.KindStringLiteral {
 					if augIndex == ref.index {
 						specifier = imp
 						break

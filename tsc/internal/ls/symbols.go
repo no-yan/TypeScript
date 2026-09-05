@@ -188,7 +188,7 @@ func (l *LanguageService) getDocumentSymbolsForChildren(ctx context.Context, nod
 				}
 			}
 		}
-		switch node.Kind() {
+		switch node.Kind {
 		case ast.KindClassDeclaration, ast.KindClassExpression, ast.KindInterfaceDeclaration, ast.KindEnumDeclaration:
 			if ast.IsClassLike(node) && ast.GetDeclarationName(node) != "" {
 				expandoTargets.Add(ast.GetDeclarationName(node))
@@ -227,7 +227,7 @@ func (l *LanguageService) getDocumentSymbolsForChildren(ctx context.Context, nod
 				addSymbolForNode(node.Name(), node.Name(), nil)
 			}
 			if namedBindings := node.ImportClauseNamedBindings(); !namedBindings.IsNil() {
-				if namedBindings.Kind() == ast.KindNamespaceImport {
+				if namedBindings.Kind == ast.KindNamespaceImport {
 					addSymbolForNode(namedBindings, ast.Handle{}, nil)
 				} else {
 					for _, element := range namedBindings.Elements() {
@@ -424,7 +424,7 @@ func isAnonymousName(name string) bool {
 	return name == "<function>" || name == "<class>" || name == "export=" || name == "default" || name == "constructor" || name == "()" || name == "new()" || name == "[]" || strings.HasSuffix(name, ") callback")
 }
 func getTextOfName(node ast.Handle) string {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier, ast.KindPrivateIdentifier, ast.KindNumericLiteral:
 		return node.Text()
 	case ast.KindStringLiteral:
@@ -445,7 +445,7 @@ func getUnnamedNodeLabel(node ast.Handle) string {
 		}
 		return "default"
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindFunctionDeclaration, ast.KindFunctionExpression, ast.KindArrowFunction:
 		if node.ModifierFlags()&ast.ModifierFlagsDefault != 0 {
 			return "default"
@@ -479,7 +479,7 @@ func getUnnamedNodeLabel(node ast.Handle) string {
 	return ""
 }
 func getCallExpressionName(node ast.Handle) string {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier, ast.KindPrivateIdentifier:
 		return node.Text()
 	case ast.KindPropertyAccessExpression:
@@ -646,7 +646,7 @@ func compareDeclarationInfos(d1, d2 DeclarationInfo) int {
 }
 
 func getSymbolKindFromNode(node ast.Handle) lsproto.SymbolKind {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindSourceFile:
 		if ast.IsExternalModule(ast.GetSourceFileOfNode(node)) {
 			return lsproto.SymbolKindModule

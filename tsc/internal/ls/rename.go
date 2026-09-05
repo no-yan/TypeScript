@@ -194,7 +194,7 @@ func nodeIsEligibleForRename(node ast.Handle) bool {
 	if node.IsNil() {
 		return false
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindIdentifier, ast.KindPrivateIdentifier, ast.KindStringLiteral, ast.KindNoSubstitutionTemplateLiteral, ast.KindThisKeyword:
 		return true
 	case ast.KindNumericLiteral:

@@ -136,7 +136,7 @@ func tryGetModuleNameFromAmbientModule(moduleSymbol *ast.Symbol, checker Checker
 			continue
 		}
 		exportAssignmentDecl := ast.NodeOf(sym.ValueDeclaration)
-		if exportAssignmentDecl.IsNil() || exportAssignmentDecl.Kind() != ast.KindExportAssignment {
+		if exportAssignmentDecl.IsNil() || exportAssignmentDecl.Kind != ast.KindExportAssignment {
 			continue
 		}
 		exportSymbol := checker.GetSymbolAtLocation(exportAssignmentDecl.Expression())

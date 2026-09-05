@@ -227,7 +227,7 @@ func (tx *usingDeclarationTransformer) visit(node ast.Handle) ast.Handle {
 	if node.SubtreeFacts()&ast.SubtreeContainsUsing == 0 {
 		return node
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindSourceFile:
 		node = tx.visitSourceFile(node)
 	case ast.KindBlock:
@@ -349,7 +349,7 @@ func (tx *usingDeclarationTransformer) transformUsingDeclarations(statementsIn [
 		if topLevelStatements == nil {
 			return node
 		}
-		switch node.Kind() {
+		switch node.Kind {
 		case ast.KindImportDeclaration, ast.KindImportEqualsDeclaration, ast.KindExportDeclaration, ast.KindFunctionDeclaration:
 			tx.hoistImportOrExportOrHoistedDeclaration(node, topLevelStatements)
 			return ast.Handle{}
@@ -397,7 +397,7 @@ func (tx *usingDeclarationTransformer) transformUsingDeclarations(statementsIn [
 			}
 		}
 		if result := tx.visit(statement); !result.IsNil() {
-			if result.Kind() == ast.KindSyntaxList {
+			if result.Kind == ast.KindSyntaxList {
 				for _, node := range result.Store().ListSlice(result.SyntaxListChildren()) {
 					hoistOrAppendNode(node)
 				}

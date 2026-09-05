@@ -157,7 +157,7 @@ func (v *HandleVisitor) VisitEachChild(node Handle) Handle {
 	prev := v.listStore
 	v.listStore = node.Store()
 	defer func() { v.listStore = prev }()
-	if node.Kind() == KindSourceFile {
+	if node.Kind == KindSourceFile {
 		stmts := v.VisitTopLevelStatements(node.SourceFileStatements())
 		eof := v.VisitToken(node.SourceFileEndOfFileToken())
 		if v.Factory == nil {
@@ -183,7 +183,7 @@ func (v *HandleVisitor) DefaultVisitNode(node Handle) Handle {
 	v.listStore = node.Store()
 	defer func() { v.listStore = prev }()
 	visited := v.Visit(node)
-	if visited.IsNil() || visited.Kind() != KindSyntaxList {
+	if visited.IsNil() || visited.Kind != KindSyntaxList {
 		return visited
 	}
 	kids := visited.Store().ListSlice(visited.SyntaxListChildren())
@@ -191,7 +191,7 @@ func (v *HandleVisitor) DefaultVisitNode(node Handle) Handle {
 		panic("Expected only a single node to be written to output")
 	}
 	visited = kids[0]
-	if !visited.IsNil() && visited.Kind() == KindSyntaxList {
+	if !visited.IsNil() && visited.Kind == KindSyntaxList {
 		panic("The result of visiting and lifting a Node may not be SyntaxList")
 	}
 	return visited
@@ -236,7 +236,7 @@ func (v *HandleVisitor) liftToBlock(node Handle) Handle {
 		return node
 	}
 	var nodes []Handle
-	if node.Kind() == KindSyntaxList {
+	if node.Kind == KindSyntaxList {
 		nodes = node.Store().ListSlice(node.SyntaxListChildren())
 	} else {
 		nodes = []Handle{node}
@@ -246,7 +246,7 @@ func (v *HandleVisitor) liftToBlock(node Handle) Handle {
 	} else {
 		node = v.Factory.NewBlock(v.Factory.NewList(nodes), true)
 	}
-	if !node.IsNil() && node.Kind() == KindSyntaxList {
+	if !node.IsNil() && node.Kind == KindSyntaxList {
 		panic("The result of visiting and lifting a Node may not be SyntaxList")
 	}
 	return node
@@ -277,7 +277,7 @@ func appendVisitedHandle(out []Handle, visited Handle) []Handle {
 	if visited.IsNil() {
 		return out
 	}
-	if visited.Kind() == KindSyntaxList {
+	if visited.Kind == KindSyntaxList {
 		return append(out, visited.Store().ListSlice(visited.SyntaxListChildren())...)
 	}
 	return append(out, visited)
@@ -298,7 +298,7 @@ func (v *HandleVisitor) VisitSlice(nodes []Handle) []Handle {
 			changed = true
 			continue
 		}
-		if visited.Kind() == KindSyntaxList {
+		if visited.Kind == KindSyntaxList {
 			changed = true
 		}
 		out = appendVisitedHandle(out, visited)
@@ -337,7 +337,7 @@ func (v *HandleVisitor) DefaultVisitNodes(list ListRef) ListRef {
 			changed = true
 			continue
 		}
-		if visited.Kind() == KindSyntaxList {
+		if visited.Kind == KindSyntaxList {
 			changed = true
 		}
 		elems = appendVisitedHandle(elems, visited)
@@ -473,13 +473,13 @@ func (h Handle) SetParamQuestion(q Handle) {
 
 func (h Handle) requireKind(k Kind) {
 	h.mustLive()
-	if h.s.nodes[h.id].kind != k {
+	if h.Kind != k {
 		panic("ast: Handle kind mismatch")
 	}
 }
 
 func ReplaceHandleModifiers(f HandleFactory, node Handle, modifiers ListRef) Handle {
-	switch node.Kind() {
+	switch node.Kind {
 	case KindTypeParameter:
 		return f.UpdateTypeParameterDeclaration(node, modifiers, node.Name(), node.Constraint(), node.Expression(), node.DefaultType())
 	case KindParameter:

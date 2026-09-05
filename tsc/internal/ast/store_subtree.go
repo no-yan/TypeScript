@@ -30,11 +30,11 @@ func (h Handle) propagateSubtreeFacts() SubtreeFacts {
 	if h.IsNil() {
 		return SubtreeFactsNone
 	}
-	if isTypeSyntaxKind(h.Kind()) {
+	if isTypeSyntaxKind(h.Kind) {
 		return SubtreeContainsTypeScript
 	}
-	facts := h.SubtreeFacts() &^ handleSubtreeExclusion(h.Kind())
-	switch h.Kind() {
+	facts := h.SubtreeFacts() &^ handleSubtreeExclusion(h.Kind)
+	switch h.Kind {
 	case KindMethodDeclaration, KindGetAccessor, KindSetAccessor, KindPropertyDeclaration:
 		facts |= propagateHandle(h.Name())
 	}
@@ -177,7 +177,7 @@ func invalidTemplateEscape(h Handle) SubtreeFacts {
 }
 
 func (h Handle) computeSubtreeFacts() SubtreeFacts {
-	kind := h.Kind()
+	kind := h.Kind
 	if isTypeSyntaxKind(kind) {
 		return SubtreeContainsTypeScript
 	}
@@ -234,7 +234,7 @@ func (h Handle) computeSubtreeFacts() SubtreeFacts {
 		return propagateHandleList(h.Elements(), propagateArrayBindingElementHandle)
 	case KindParameter:
 		name := h.Name()
-		if !name.IsNil() && name.Kind() == KindIdentifier && name.Text() == "this" {
+		if !name.IsNil() && name.Kind == KindIdentifier && name.Text() == "this" {
 			return SubtreeContainsTypeScript
 		}
 		return propagateHandleList(h.ModifierNodes(), propagateHandle) |
@@ -291,7 +291,7 @@ func (h Handle) computeSubtreeFacts() SubtreeFacts {
 			SubtreeContainsTypeScript
 	case KindImportEqualsDeclaration:
 		ref := h.ImportEqualsDeclarationModuleReference()
-		if h.IsTypeOnly() || ref.IsNil() || ref.Kind() != KindExternalModuleReference {
+		if h.IsTypeOnly() || ref.IsNil() || ref.Kind != KindExternalModuleReference {
 			return SubtreeContainsTypeScript
 		}
 		return propagateHandleList(h.ModifierNodes(), propagateHandle) | propagateHandle(h.Name()) | propagateHandle(ref)
@@ -367,11 +367,11 @@ func (h Handle) computeSubtreeFacts() SubtreeFacts {
 			propagateHandle(h.Type()) |
 			propagateHandle(op) |
 			propagateHandle(h.Right())
-		if !op.IsNil() && op.Kind() == KindInKeyword && !left.IsNil() && left.Kind() == KindPrivateIdentifier {
+		if !op.IsNil() && op.Kind == KindInKeyword && !left.IsNil() && left.Kind == KindPrivateIdentifier {
 			facts |= SubtreeContainsClassFields | SubtreeContainsPrivateIdentifierInExpression
 		}
-		if !op.IsNil() && op.Kind() == KindEqualsToken && !left.IsNil() &&
-			(left.Kind() == KindObjectLiteralExpression || left.Kind() == KindArrayLiteralExpression) &&
+		if !op.IsNil() && op.Kind == KindEqualsToken && !left.IsNil() &&
+			(left.Kind == KindObjectLiteralExpression || left.Kind == KindArrayLiteralExpression) &&
 			left.SubtreeFacts()&(SubtreeContainsObjectRestOrSpread|SubtreeContainsESObjectRestOrSpread) != 0 {
 			facts |= SubtreeContainsObjectRestOrSpread
 		}
@@ -383,7 +383,7 @@ func (h Handle) computeSubtreeFacts() SubtreeFacts {
 	case KindPropertyAccessExpression:
 		name := h.Name()
 		privateName := SubtreeFactsNone
-		if name.IsNil() || name.Kind() != KindIdentifier {
+		if name.IsNil() || name.Kind != KindIdentifier {
 			privateName = SubtreeContainsPrivateIdentifierInExpression
 		}
 		return propagateHandle(h.Expression()) | propagateHandle(h.QuestionDotToken()) | propagateHandle(name) | privateName
@@ -392,7 +392,7 @@ func (h Handle) computeSubtreeFacts() SubtreeFacts {
 			propagateHandle(h.QuestionDotToken()) |
 			eraseableList(h.TypeArguments()) |
 			propagateHandleList(h.Arguments(), propagateHandle)
-		if h.Expression().Kind() == KindImportKeyword {
+		if h.Expression().Kind == KindImportKeyword {
 			facts |= SubtreeContainsDynamicImport
 		}
 		return facts
@@ -448,7 +448,7 @@ func (h Handle) computeSubtreeFacts() SubtreeFacts {
 }
 
 func jsxAttributesOf(h Handle) Handle {
-	switch h.Kind() {
+	switch h.Kind {
 	case KindJsxOpeningElement:
 		return h.JsxOpeningElementAttributes()
 	case KindJsxSelfClosingElement:

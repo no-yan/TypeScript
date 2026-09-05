@@ -20,15 +20,15 @@ func TestFactoryIdentifierTokenBinary(t *testing.T) {
 	})
 	bin.SetParentsInChildren()
 
-	assert.Equal(t, ast.KindBinaryExpression, bin.Kind())
+	assert.Equal(t, ast.KindBinaryExpression, bin.Kind)
 	assert.Equal(t, "a", bin.Left().Text())
 	assert.Equal(t, "b", bin.Right().Text())
-	assert.Equal(t, ast.KindPlusToken, bin.Operator().Kind())
+	assert.Equal(t, ast.KindPlusToken, bin.Operator().Kind)
 	assert.Equal(t, bin.Ref(), left.Parent().Ref())
 
 	var kinds []ast.Kind
 	ast.Walk(bin, func(h ast.Handle) bool {
-		kinds = append(kinds, h.Kind())
+		kinds = append(kinds, h.Kind)
 		return false
 	})
 	assert.DeepEqual(t, []ast.Kind{
@@ -93,7 +93,7 @@ func TestFactoryArrayLiteralListAndTrailingComma(t *testing.T) {
 
 	var kinds []ast.Kind
 	ast.Walk(arr, func(h ast.Handle) bool {
-		kinds = append(kinds, h.Kind())
+		kinds = append(kinds, h.Kind)
 		return false
 	})
 	assert.DeepEqual(t, []ast.Kind{

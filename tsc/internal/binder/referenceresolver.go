@@ -95,7 +95,7 @@ func (r *referenceResolver) isTypeOnlyAliasDeclaration(symbol *ast.Symbol) bool 
 		}
 		node := r.getDeclarationOfAliasSymbol(symbol)
 		for !node.IsNil() {
-			switch node.Kind() {
+			switch node.Kind {
 			case ast.KindImportEqualsDeclaration, ast.KindExportDeclaration:
 				return node.IsTypeOnly()
 			case ast.KindImportClause, ast.KindImportSpecifier, ast.KindExportSpecifier:
@@ -129,7 +129,7 @@ func (r *referenceResolver) getExportSymbolOfValueSymbolIfExported(symbol *ast.S
 	return nil
 }
 func (r *referenceResolver) GetReferencedExportContainer(node ast.Handle, prefixLocals bool) ast.Handle {
-	startInDeclarationContainer := !node.Parent().IsNil() && (node.Parent().Kind() == ast.KindModuleDeclaration || node.Parent().Kind() == ast.KindEnumDeclaration) && node == node.Parent().Name()
+	startInDeclarationContainer := !node.Parent().IsNil() && (node.Parent().Kind == ast.KindModuleDeclaration || node.Parent().Kind == ast.KindEnumDeclaration) && node == node.Parent().Name()
 	if symbol := r.getReferencedValueSymbol(node, startInDeclarationContainer); symbol != nil {
 		if symbol.Flags&ast.SymbolFlagsExportValue != 0 {
 			exportSymbol := r.getMergedSymbol(symbol.ExportSymbol)
@@ -142,7 +142,7 @@ func (r *referenceResolver) GetReferencedExportContainer(node ast.Handle, prefix
 		if parentSymbol != nil {
 			if parentSymbol.Flags&ast.SymbolFlagsValueModule != 0 {
 				valueDecl := ast.NodeOf(parentSymbol.ValueDeclaration)
-				if !valueDecl.IsNil() && valueDecl.Kind() == ast.KindSourceFile {
+				if !valueDecl.IsNil() && valueDecl.Kind == ast.KindSourceFile {
 					symbolFile := ast.GetSourceFileOfNode(valueDecl)
 					referenceFile := ast.GetSourceFileOfNode(node)
 					symbolIsUmdExport := symbolFile != referenceFile
@@ -153,7 +153,7 @@ func (r *referenceResolver) GetReferencedExportContainer(node ast.Handle, prefix
 				}
 			}
 			isMatchingContainer := func(n ast.Handle) bool {
-				return (n.Kind() == ast.KindModuleDeclaration || n.Kind() == ast.KindEnumDeclaration) && r.getSymbolOfDeclaration(n) == parentSymbol
+				return (n.Kind == ast.KindModuleDeclaration || n.Kind == ast.KindEnumDeclaration) && r.getSymbolOfDeclaration(n) == parentSymbol
 			}
 			return ast.FindAncestor(node.Parent(), isMatchingContainer)
 		}
@@ -183,7 +183,7 @@ func (r *referenceResolver) GetReferencedValueDeclarations(node ast.Handle) []as
 			if declaration.IsNil() {
 				continue
 			}
-			switch declaration.Kind() {
+			switch declaration.Kind {
 			case ast.KindVariableDeclaration, ast.KindParameter, ast.KindBindingElement, ast.KindPropertyDeclaration, ast.KindPropertyAssignment, ast.KindShorthandPropertyAssignment, ast.KindEnumMember, ast.KindObjectLiteralExpression, ast.KindFunctionDeclaration, ast.KindFunctionExpression, ast.KindArrowFunction, ast.KindClassDeclaration, ast.KindClassExpression, ast.KindEnumDeclaration, ast.KindMethodDeclaration, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindModuleDeclaration:
 				declarations = append(declarations, declaration)
 			}

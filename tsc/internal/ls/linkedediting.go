@@ -23,7 +23,7 @@ func (l *LanguageService) ProvideLinkedEditingRange(ctx context.Context, params 
 	sourceFile = positions[0].Script
 	position := positions[0].Position
 	token := astnav.FindPrecedingToken(sourceFile, int(position))
-	if token.IsNil() || token.Parent().Kind() == ast.KindSourceFile {
+	if token.IsNil() || token.Parent().Kind == ast.KindSourceFile {
 		return lsproto.LinkedEditingRangeResponse{}, nil
 	}
 	if ast.IsJsxFragment(token.Parent().Parent()) {

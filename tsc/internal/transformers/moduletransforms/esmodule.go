@@ -39,7 +39,7 @@ func NewESModuleTransformer(opts *transformers.TransformOptions) *transformers.T
 }
 
 func (tx *ESModuleTransformer) visit(node ast.Handle) ast.Handle {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindSourceFile:
 		node = tx.visitSourceFile(node)
 	case ast.KindImportDeclaration:

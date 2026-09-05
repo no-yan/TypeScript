@@ -28,7 +28,7 @@ func NewConstEnumInliningTransformer(opt *transformers.TransformOptions) *transf
 	return tx.NewTransformer(tx.visit, emitContext)
 }
 func (tx *ConstEnumInliningTransformer) visit(node ast.Handle) ast.Handle {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindPropertyAccessExpression, ast.KindElementAccessExpression:
 		{
 			parse := tx.EmitContext().ParseNode(node)

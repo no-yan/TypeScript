@@ -19,7 +19,7 @@ func scanNavigationToken(s *scanner.Scanner, containingNode ast.Handle) ast.Kind
 }
 func GetTouchingPropertyName(sourceFile *ast.SourceFile, position int) ast.Handle {
 	return getTokenAtPosition(sourceFile, position, false, func(node ast.Handle) bool {
-		return ast.IsPropertyNameLiteral(node) || ast.IsKeywordKind(node.Kind()) || ast.IsPrivateIdentifier(node)
+		return ast.IsPropertyNameLiteral(node) || ast.IsKeywordKind(node.Kind) || ast.IsPrivateIdentifier(node)
 	})
 }
 func GetTouchingToken(sourceFile *ast.SourceFile, position int) ast.Handle {
@@ -41,13 +41,13 @@ func getTokenAtPosition(sourceFile *ast.SourceFile, position int, allowPositionI
 		return ast.Handle{}
 	}
 	testNode := func(node ast.Handle) int {
-		if node.Kind() != ast.KindEndOfFile && node.End() == position && includePrecedingTokenAtEndPosition != nil && node.Flags()&ast.NodeFlagsReparsed == 0 {
+		if node.Kind != ast.KindEndOfFile && node.End() == position && includePrecedingTokenAtEndPosition != nil && node.Flags()&ast.NodeFlagsReparsed == 0 {
 			if !prevSubtree.IsNil() && !getIncludedPrecedingToken(prevSubtree).IsNil() {
 				return 0
 			}
 			prevSubtree = node
 		}
-		if node.End() < position || node.End() == position && node.Kind() != ast.KindEndOfFile && (!ast.IsJSDocKind(node.Kind()) || node.End() != sourceFile.ParseRoot().End()) {
+		if node.End() < position || node.End() == position && node.Kind != ast.KindEndOfFile && (!ast.IsJSDocKind(node.Kind) || node.End() != sourceFile.ParseRoot().End()) {
 			return -1
 		}
 		nodePos := getPosition(node, sourceFile, allowPositionInLeadingTrivia)
@@ -67,7 +67,7 @@ func getTokenAtPosition(sourceFile *ast.SourceFile, position int, allowPositionI
 			result := testNode(node)
 			switch result {
 			case -1:
-				if !ast.IsJSDocKind(node.Kind()) {
+				if !ast.IsJSDocKind(node.Kind) {
 					left = node.End()
 				}
 				nodeAfterLeft = ast.Handle{}
@@ -154,7 +154,7 @@ func getTokenAtPosition(sourceFile *ast.SourceFile, position int, allowPositionI
 			prevSubtree = ast.Handle{}
 		}
 		if next.IsNil() {
-			if ast.IsTokenKind(current.Kind()) || shouldSkipChild(current) {
+			if ast.IsTokenKind(current.Kind) || shouldSkipChild(current) {
 				return current
 			}
 			scanner := scanner.GetScannerForSourceFile(sourceFile, left)
@@ -173,10 +173,10 @@ func getTokenAtPosition(sourceFile *ast.SourceFile, position int, allowPositionI
 				}
 				if tokenStart <= position && (position < tokenEnd) {
 					if token == ast.KindIdentifier || !ast.IsTokenKind(token) {
-						if ast.IsJSDocKind(current.Kind()) {
+						if ast.IsJSDocKind(current.Kind) {
 							return current
 						}
-						panic(fmt.Sprintf("did not expect %s to have %s in its trivia", current.Kind().String(), token.String()))
+						panic(fmt.Sprintf("did not expect %s to have %s in its trivia", current.Kind.String(), token.String()))
 					}
 					return sourceFile.GetOrCreateToken(token, tokenFullStart, tokenEnd, current, flags)
 				}
@@ -257,7 +257,7 @@ func FindPrecedingToken(sourceFile *ast.SourceFile, position int) ast.Handle {
 func FindPrecedingTokenEx(sourceFile *ast.SourceFile, position int, startNode ast.Handle, excludeJSDoc bool) ast.Handle {
 	var find func(node ast.Handle) ast.Handle
 	find = func(n ast.Handle) ast.Handle {
-		if ast.IsNonWhitespaceToken(n) && n.Kind() != ast.KindEndOfFile {
+		if ast.IsNonWhitespaceToken(n) && n.Kind != ast.KindEndOfFile {
 			return n
 		}
 		var foundChild, prevChild ast.Handle
@@ -356,7 +356,7 @@ func FindPrecedingTokenEx(sourceFile *ast.SourceFile, position int, startNode as
 	return result
 }
 func isValidPrecedingNode(node ast.Handle, sourceFile *ast.SourceFile) bool {
-	if node.Kind() == ast.KindEndOfFile {
+	if node.Kind == ast.KindEndOfFile {
 		return len(node.JSDoc(sourceFile)) > 0
 	}
 	start := GetStartOfNode(node, sourceFile, false)
@@ -493,7 +493,7 @@ func findRightmostValidToken(endPos int, sourceFile *ast.SourceFile, containingN
 func FindNextToken(previousToken ast.Handle, parent ast.Handle, file *ast.SourceFile) ast.Handle {
 	var find func(n ast.Handle) ast.Handle
 	find = func(n ast.Handle) ast.Handle {
-		if ast.IsTokenKind(n.Kind()) && n.Pos() == previousToken.End() {
+		if ast.IsTokenKind(n.Kind) && n.Pos() == previousToken.End() {
 			return n
 		}
 		var foundNode ast.Handle
@@ -575,7 +575,7 @@ func getNodeVisitor(visitNode func(ast.Handle, *ast.HandleVisitor) ast.Handle, v
 	}})
 }
 func shouldSkipChild(node ast.Handle) bool {
-	return node.Kind() == ast.KindJSDoc || node.Kind() == ast.KindJSDocText || node.Kind() == ast.KindJSDocTypeLiteral || node.Kind() == ast.KindJSDocSignature || ast.IsJSDocLinkLike(node) || ast.IsJSDocTag(node)
+	return node.Kind == ast.KindJSDoc || node.Kind == ast.KindJSDocText || node.Kind == ast.KindJSDocTypeLiteral || node.Kind == ast.KindJSDocSignature || ast.IsJSDocLinkLike(node) || ast.IsJSDocTag(node)
 }
 
 func FindChildOfKind(containingNode ast.Handle, kind ast.Kind, sourceFile *ast.SourceFile) ast.Handle {
@@ -599,7 +599,7 @@ func FindChildOfKind(containingNode ast.Handle, kind ast.Kind, sourceFile *ast.S
 			startPos = tokenEnd
 			scan.Scan()
 		}
-		if node.Kind() == kind {
+		if node.Kind == kind {
 			foundChild = node
 			return true
 		}

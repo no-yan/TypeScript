@@ -91,10 +91,10 @@ func isAnExternalModuleIndicatorNode(node Handle) bool {
 	if node.ModifierFlags()&ModifierFlagsExport != 0 {
 		return true
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case KindImportEqualsDeclaration:
 		ref := node.ImportEqualsDeclarationModuleReference()
-		return !ref.IsNil() && ref.Kind() == KindExternalModuleReference
+		return !ref.IsNil() && ref.Kind == KindExternalModuleReference
 	case KindImportDeclaration, KindExportAssignment, KindExportDeclaration:
 		return true
 	default:
@@ -108,7 +108,7 @@ func getImportMetaIfNecessary(sourceFile *SourceFile) Handle {
 		return Handle{}
 	}
 	return findChildHandle(root, func(n Handle) bool {
-		return !n.IsNil() && n.Kind() == KindMetaProperty &&
+		return !n.IsNil() && n.Kind == KindMetaProperty &&
 			n.MetaPropertyKeywordToken() == KindImportKeyword &&
 			!n.Name().IsNil() && n.Name().Text() == "meta"
 	})
@@ -139,7 +139,7 @@ func walkTreeForJSXTags(node Handle) Handle {
 		if !found.IsNil() {
 			return true
 		}
-		switch n.Kind() {
+		switch n.Kind {
 		case KindJsxOpeningElement, KindJsxSelfClosingElement, KindJsxFragment:
 			found = n
 			return true

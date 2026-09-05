@@ -9,7 +9,7 @@ import (
 func (c *Checker) checkUnmatchedJSDocParameters(node ast.Handle) {
 	var jsdocParameters []ast.Handle
 	for _, tag := range getAllJSDocTags(node) {
-		if tag.Kind() == ast.KindJSDocParameterTag {
+		if tag.Kind == ast.KindJSDocParameterTag {
 			name := tag.JSDocParameterOrPropertyTagName()
 			if ast.IsIdentifier(name) && len(name.Text()) == 0 {
 				continue

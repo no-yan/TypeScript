@@ -48,7 +48,7 @@ func (c *externalModuleInfoCollector) collect() *externalModuleInfo {
 			}
 			continue
 		}
-		switch node.Kind() {
+		switch node.Kind {
 		case ast.KindImportDeclaration:
 			n := node
 			c.addExternalImport(node)
@@ -150,7 +150,7 @@ func (c *externalModuleInfoCollector) addExportedNamesForExportDeclaration(node 
 		specifierNameText := specifier.Name().Text()
 		if c.addUniqueExport(specifierNameText) {
 			name := specifier.PropertyNameOrName()
-			if name.Kind() != ast.KindStringLiteral {
+			if name.Kind != ast.KindStringLiteral {
 				if node.ModuleSpecifier().IsNil() {
 					c.output.exportSpecifiers.Add(name.Text(), specifier)
 				}
@@ -159,7 +159,7 @@ func (c *externalModuleInfoCollector) addExportedNamesForExportDeclaration(node 
 					decl = c.resolver.GetReferencedValueDeclaration(c.emitContext.MostOriginal(name))
 				}
 				if !decl.IsNil() {
-					if decl.Kind() == ast.KindFunctionDeclaration {
+					if decl.Kind == ast.KindFunctionDeclaration {
 						c.uniqueExports.Delete(specifierNameText)
 						c.addExportedFunctionDeclaration(decl, specifier.Name(), ast.ModuleExportNameIsDefault(specifier.Name()))
 						continue

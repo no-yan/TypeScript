@@ -207,6 +207,19 @@ func (s *Store) ID() StoreID {
 	return StoreID(s.id.Load())
 }
 
+// GlobalRef returns the process-wide identity for ref without constructing a
+// Handle. It has the same registration requirement as Handle.Global.
+func (s *Store) GlobalRef(ref NodeRef) GlobalRef {
+	if s == nil || ref == 0 {
+		return 0
+	}
+	id := StoreID(s.id.Load())
+	if id == 0 {
+		panic("ast: Global on unregistered Store")
+	}
+	return MakeGlobalRef(id, ref)
+}
+
 // Global returns the process-wide identity of the node. It panics on a
 // Store that was never registered, because a silent 0 would corrupt any
 // map keyed by GlobalRef.

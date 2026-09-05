@@ -8,7 +8,7 @@ import (
 )
 
 func (ch *PseudoChecker) GetReturnTypeOfSignature(signatureNode ast.Handle) *PseudoType {
-	switch signatureNode.Kind() {
+	switch signatureNode.Kind {
 	case ast.KindGetAccessor:
 		return ch.GetTypeOfAccessor(signatureNode)
 	case ast.KindMethodDeclaration, ast.KindFunctionDeclaration, ast.KindConstructor, ast.KindMethodSignature, ast.KindCallSignature, ast.KindConstructSignature, ast.KindSetAccessor, ast.KindIndexSignature, ast.KindFunctionType, ast.KindConstructorType, ast.KindFunctionExpression, ast.KindArrowFunction, ast.KindJSDocSignature:
@@ -25,7 +25,7 @@ func (ch *PseudoChecker) GetTypeOfExpression(node ast.Handle) *PseudoType {
 	return ch.typeFromExpression(node)
 }
 func (ch *PseudoChecker) GetTypeOfDeclaration(node ast.Handle) *PseudoType {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindParameter:
 		return ch.typeFromParameter(node)
 	case ast.KindVariableDeclaration:
@@ -60,7 +60,7 @@ func (ch *PseudoChecker) typeFromPropertyAssignment(node ast.Handle) *PseudoType
 	if !annotation.IsNil() {
 		return NewPseudoTypeDirect(annotation)
 	}
-	if node.Kind() == ast.KindPropertyAssignment {
+	if node.Kind == ast.KindPropertyAssignment {
 		init := node.Initializer()
 		if !init.IsNil() {
 			expr := ch.typeFromExpression(init)
@@ -92,7 +92,7 @@ func (ch *PseudoChecker) typeFromProperty(node ast.Handle) *PseudoType {
 			}
 			expr := ch.typeFromExpression(init)
 			if expr != nil && (expr.Kind != PseudoTypeKindInferred || len(expr.AsPseudoTypeInferred().ErrorNodes) > 0) {
-				if expr.Kind != PseudoTypeKindDirect && !node.PropertyDeclarationPostfixToken().IsNil() && node.PropertyDeclarationPostfixToken().Kind() == ast.KindQuestionToken {
+				if expr.Kind != PseudoTypeKindDirect && !node.PropertyDeclarationPostfixToken().IsNil() && node.PropertyDeclarationPostfixToken().Kind == ast.KindQuestionToken {
 					return addUndefinedIfDefinitelyRequired(expr)
 				}
 				return expr
@@ -153,7 +153,7 @@ func (ch *PseudoChecker) getTypeAnnotationFromAccessor(node ast.Handle) ast.Hand
 	if node.IsNil() {
 		return ast.Handle{}
 	}
-	if node.Kind() == ast.KindGetAccessor {
+	if node.Kind == ast.KindGetAccessor {
 		return node.GetAccessorDeclarationType()
 	}
 	set := node
@@ -210,9 +210,9 @@ func (ch *PseudoChecker) typeFromSingleReturnExpression(fn ast.Handle) *PseudoTy
 	if !candidateExpr.IsNil() {
 		if isContextuallyTyped(candidateExpr) {
 			var t ast.Handle
-			if candidateExpr.Kind() == ast.KindTypeAssertionExpression {
+			if candidateExpr.Kind == ast.KindTypeAssertionExpression {
 				t = candidateExpr.TypeAssertionType()
-			} else if candidateExpr.Kind() == ast.KindAsExpression {
+			} else if candidateExpr.Kind == ast.KindAsExpression {
 				t = candidateExpr.AsExpressionType()
 			}
 			if !t.IsNil() && !ast.IsConstTypeReference(t) {
@@ -226,7 +226,7 @@ func (ch *PseudoChecker) typeFromSingleReturnExpression(fn ast.Handle) *PseudoTy
 }
 
 func (ch *PseudoChecker) typeFromExpression(node ast.Handle) *PseudoType {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindOmittedExpression:
 		return PseudoTypeUndefined
 	case ast.KindParenthesizedExpression:
@@ -282,16 +282,16 @@ func (ch *PseudoChecker) typeFromObjectLiteral(node ast.Handle) *PseudoType {
 	}
 	results := make([]*PseudoObjectElement, 0, len(node.Properties()))
 	for _, e := range node.Properties() {
-		switch e.Kind() {
+		switch e.Kind {
 		case ast.KindMethodDeclaration:
-			optional := !e.MethodDeclarationPostfixToken().IsNil() && e.MethodDeclarationPostfixToken().Kind() == ast.KindQuestionToken
+			optional := !e.MethodDeclarationPostfixToken().IsNil() && e.MethodDeclarationPostfixToken().Kind == ast.KindQuestionToken
 			if !e.FullSignature().IsNil() {
 				results = append(results, NewPseudoPropertyAssignment(false, e.Name(), optional, NewPseudoTypeDirect(e.FullSignature())))
 			} else {
 				results = append(results, NewPseudoObjectMethod(e, e.Name(), optional, ch.cloneTypeParameters(e.TypeParameters()), ch.cloneParameters(e.Parameters()), ch.createReturnFromSignature(e)))
 			}
 		case ast.KindPropertyAssignment:
-			results = append(results, NewPseudoPropertyAssignment(false, e.Name(), !e.PropertyAssignmentPostfixToken().IsNil() && e.PropertyAssignmentPostfixToken().Kind() == ast.KindQuestionToken, ch.typeFromExpression(e.Initializer())))
+			results = append(results, NewPseudoPropertyAssignment(false, e.Name(), !e.PropertyAssignmentPostfixToken().IsNil() && e.PropertyAssignmentPostfixToken().Kind == ast.KindQuestionToken, ch.typeFromExpression(e.Initializer())))
 		case ast.KindSetAccessor, ast.KindGetAccessor:
 			member := ch.getAccessorMember(e, e.Name())
 			if member != nil {
@@ -329,7 +329,7 @@ func (ch *PseudoChecker) canGetTypeFromObjectLiteral(node ast.Handle) []ast.Hand
 			errorNodes = append(errorNodes, e)
 			continue
 		}
-		if e.Kind() == ast.KindShorthandPropertyAssignment || e.Kind() == ast.KindSpreadAssignment {
+		if e.Kind == ast.KindShorthandPropertyAssignment || e.Kind == ast.KindSpreadAssignment {
 			errorNodes = append(errorNodes, e)
 			continue
 		}
@@ -337,11 +337,11 @@ func (ch *PseudoChecker) canGetTypeFromObjectLiteral(node ast.Handle) []ast.Hand
 			errorNodes = append(errorNodes, e.Name())
 			continue
 		}
-		if e.Name().Kind() == ast.KindPrivateIdentifier {
+		if e.Name().Kind == ast.KindPrivateIdentifier {
 			errorNodes = append(errorNodes, e)
 			continue
 		}
-		if e.Name().Kind() == ast.KindComputedPropertyName {
+		if e.Name().Kind == ast.KindComputedPropertyName {
 			expression := e.Name().Expression()
 			if !ast.IsPrimitiveLiteralValue(expression, false) {
 				errorNodes = append(errorNodes, e.Name())
@@ -369,7 +369,7 @@ func (ch *PseudoChecker) canGetTypeFromArrayLiteral(node ast.Handle) []ast.Handl
 		return []ast.Handle{node}
 	}
 	for _, e := range node.Elements() {
-		if e.Kind() == ast.KindSpreadElement {
+		if e.Kind == ast.KindSpreadElement {
 			return []ast.Handle{e}
 		}
 	}
@@ -386,7 +386,7 @@ func isConstContextPropagatingKind(kind ast.Kind) bool {
 
 func IsInConstContext(node ast.Handle) bool {
 	maybeAssertion := ast.FindAncestor(node.Parent(), func(n ast.Handle) bool {
-		return ast.IsAssertionExpression(n) || !isConstContextPropagatingKind(n.Kind())
+		return ast.IsAssertionExpression(n) || !isConstContextPropagatingKind(n.Kind)
 	})
 	return ast.IsConstAssertion(maybeAssertion)
 }
@@ -396,10 +396,10 @@ func (ch *PseudoChecker) typeFromPrimitiveLiteralPrefix(node ast.Handle) *Pseudo
 		expr = node.PrefixUnaryExpressionOperand()
 	}
 	inner := node.PrefixUnaryExpressionOperand()
-	if inner.Kind() == ast.KindBigIntLiteral {
+	if inner.Kind == ast.KindBigIntLiteral {
 		return NewPseudoTypeMaybeConstLocation(node, NewPseudoTypeBigIntLiteral(expr), PseudoTypeBigInt)
 	}
-	if inner.Kind() == ast.KindNumericLiteral {
+	if inner.Kind == ast.KindNumericLiteral {
 		return NewPseudoTypeMaybeConstLocation(node, NewPseudoTypeNumericLiteral(expr), PseudoTypeNumber)
 	}
 	debug.FailBadSyntaxKind(inner)
@@ -430,10 +430,10 @@ func isUndefinedPseudoType(t *PseudoType) bool {
 	return t.Kind == PseudoTypeKindUndefined || (t.Kind == PseudoTypeKindMaybeConstLocation && isUndefinedPseudoType(t.AsPseudoTypeMaybeConstLocation().ConstType))
 }
 func typeNodeCouldReferToUndefined(node ast.Handle) bool {
-	for node.Kind() == ast.KindParenthesizedType {
+	for node.Kind == ast.KindParenthesizedType {
 		node = node.ParenthesizedTypeNodeType()
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindTypeReference, ast.KindIndexedAccessType, ast.KindTypeQuery, ast.KindOptionalType, ast.KindRestType, ast.KindImportType:
 		return true
 	case ast.KindIntersectionType:
@@ -494,7 +494,7 @@ func addUndefinedIfDefinitelyRequired(expr *PseudoType) *PseudoType {
 }
 func (ch *PseudoChecker) typeFromParameter(node ast.Handle) *PseudoType {
 	parent := node.Parent()
-	if parent.Kind() == ast.KindSetAccessor {
+	if parent.Kind == ast.KindSetAccessor {
 		return ch.GetTypeOfAccessor(parent)
 	}
 	if node.Initializer().IsNil() {
@@ -510,7 +510,7 @@ func (ch *PseudoChecker) typeFromParameter(node ast.Handle) *PseudoType {
 }
 func (ch *PseudoChecker) typeFromParameterWorker(node ast.Handle, selfIdx int, lastRequired int) *PseudoType {
 	parent := node.Parent()
-	if parent.Kind() == ast.KindSetAccessor {
+	if parent.Kind == ast.KindSetAccessor {
 		return ch.GetTypeOfAccessor(parent)
 	}
 	hasRequiredAfter := selfIdx < lastRequired-1

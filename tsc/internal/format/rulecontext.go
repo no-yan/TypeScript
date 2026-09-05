@@ -143,9 +143,9 @@ func isNotForContext(context *FormattingContext) bool {
 	return !isForContext(context)
 }
 func isBinaryOpContext(context *FormattingContext) bool {
-	switch context.contextNode.Kind() {
+	switch context.contextNode.Kind {
 	case ast.KindBinaryExpression:
-		return context.contextNode.BinaryExpressionOperatorToken().Kind() != ast.KindCommaToken
+		return context.contextNode.BinaryExpressionOperatorToken().Kind != ast.KindCommaToken
 	case ast.KindConditionalExpression, ast.KindConditionalType, ast.KindAsExpression, ast.KindExportSpecifier, ast.KindImportSpecifier, ast.KindTypePredicate, ast.KindUnionType, ast.KindIntersectionType, ast.KindSatisfiesExpression:
 		return true
 	case ast.KindBindingElement:
@@ -176,7 +176,7 @@ func isNotTypeAnnotationContext(context *FormattingContext) bool {
 	return !isTypeAnnotationContext(context)
 }
 func isTypeAnnotationContext(context *FormattingContext) bool {
-	contextKind := context.contextNode.Kind()
+	contextKind := context.contextNode.Kind
 	return contextKind == ast.KindPropertyDeclaration || contextKind == ast.KindPropertySignature || contextKind == ast.KindParameter || contextKind == ast.KindVariableDeclaration || ast.IsFunctionLikeKind(contextKind)
 }
 func isOptionalPropertyContext(context *FormattingContext) bool {
@@ -186,13 +186,13 @@ func isNonOptionalPropertyContext(context *FormattingContext) bool {
 	return !isOptionalPropertyContext(context)
 }
 func isConditionalOperatorContext(context *FormattingContext) bool {
-	return context.contextNode.Kind() == ast.KindConditionalExpression || context.contextNode.Kind() == ast.KindConditionalType
+	return context.contextNode.Kind == ast.KindConditionalExpression || context.contextNode.Kind == ast.KindConditionalType
 }
 func isSameLineTokenOrBeforeBlockContext(context *FormattingContext) bool {
 	return context.TokensAreOnSameLine() || isBeforeBlockContext(context)
 }
 func isBraceWrappedContext(context *FormattingContext) bool {
-	return context.contextNode.Kind() == ast.KindObjectBindingPattern || context.contextNode.Kind() == ast.KindMappedType || isSingleLineBlockContext(context)
+	return context.contextNode.Kind == ast.KindObjectBindingPattern || context.contextNode.Kind == ast.KindMappedType || isSingleLineBlockContext(context)
 }
 
 func isBeforeMultilineBlockContext(context *FormattingContext) bool {
@@ -215,14 +215,14 @@ func nodeIsBlockContext(node ast.Handle) bool {
 	if nodeIsTypeScriptDeclWithBlockContext(node) {
 		return true
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindBlock, ast.KindCaseBlock, ast.KindObjectLiteralExpression, ast.KindModuleBlock:
 		return true
 	}
 	return false
 }
 func isFunctionDeclContext(context *FormattingContext) bool {
-	switch context.contextNode.Kind() {
+	switch context.contextNode.Kind {
 	case ast.KindFunctionDeclaration, ast.KindMethodDeclaration, ast.KindMethodSignature:
 		fallthrough
 	case ast.KindGetAccessor, ast.KindSetAccessor:
@@ -238,32 +238,32 @@ func isNotFunctionDeclContext(context *FormattingContext) bool {
 	return !isFunctionDeclContext(context)
 }
 func isFunctionDeclarationOrFunctionExpressionContext(context *FormattingContext) bool {
-	return context.contextNode.Kind() == ast.KindFunctionDeclaration || context.contextNode.Kind() == ast.KindFunctionExpression
+	return context.contextNode.Kind == ast.KindFunctionDeclaration || context.contextNode.Kind == ast.KindFunctionExpression
 }
 func isTypeScriptDeclWithBlockContext(context *FormattingContext) bool {
 	return nodeIsTypeScriptDeclWithBlockContext(context.contextNode)
 }
 func nodeIsTypeScriptDeclWithBlockContext(node ast.Handle) bool {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindClassDeclaration, ast.KindClassExpression, ast.KindInterfaceDeclaration, ast.KindEnumDeclaration, ast.KindTypeLiteral, ast.KindModuleDeclaration, ast.KindExportDeclaration, ast.KindNamedExports, ast.KindImportDeclaration, ast.KindNamedImports:
 		return true
 	}
 	return false
 }
 func isAfterCodeBlockContext(context *FormattingContext) bool {
-	switch context.currentTokenParent.Kind() {
+	switch context.currentTokenParent.Kind {
 	case ast.KindClassDeclaration, ast.KindModuleDeclaration, ast.KindEnumDeclaration, ast.KindCatchClause, ast.KindModuleBlock, ast.KindSwitchStatement:
 		return true
 	case ast.KindBlock:
 		blockParent := context.currentTokenParent.Parent()
-		if blockParent.IsNil() || blockParent.Kind() != ast.KindArrowFunction && blockParent.Kind() != ast.KindFunctionExpression {
+		if blockParent.IsNil() || blockParent.Kind != ast.KindArrowFunction && blockParent.Kind != ast.KindFunctionExpression {
 			return true
 		}
 	}
 	return false
 }
 func isControlDeclContext(context *FormattingContext) bool {
-	switch context.contextNode.Kind() {
+	switch context.contextNode.Kind {
 	case ast.KindIfStatement, ast.KindSwitchStatement, ast.KindForStatement, ast.KindForInStatement, ast.KindForOfStatement, ast.KindWhileStatement, ast.KindTryStatement, ast.KindDoStatement, ast.KindWithStatement:
 		fallthrough
 	case ast.KindCatchClause:
@@ -273,13 +273,13 @@ func isControlDeclContext(context *FormattingContext) bool {
 	}
 }
 func isObjectContext(context *FormattingContext) bool {
-	return context.contextNode.Kind() == ast.KindObjectLiteralExpression
+	return context.contextNode.Kind == ast.KindObjectLiteralExpression
 }
 func isFunctionCallContext(context *FormattingContext) bool {
-	return context.contextNode.Kind() == ast.KindCallExpression
+	return context.contextNode.Kind == ast.KindCallExpression
 }
 func isNewContext(context *FormattingContext) bool {
-	return context.contextNode.Kind() == ast.KindNewExpression
+	return context.contextNode.Kind == ast.KindNewExpression
 }
 func isFunctionCallOrNewContext(context *FormattingContext) bool {
 	return isFunctionCallContext(context) || isNewContext(context)
@@ -294,37 +294,37 @@ func isNextTokenNotCloseParen(context *FormattingContext) bool {
 	return context.nextTokenSpan.Kind != ast.KindCloseParenToken
 }
 func isArrowFunctionContext(context *FormattingContext) bool {
-	return context.contextNode.Kind() == ast.KindArrowFunction
+	return context.contextNode.Kind == ast.KindArrowFunction
 }
 func isImportTypeContext(context *FormattingContext) bool {
-	return context.contextNode.Kind() == ast.KindImportType
+	return context.contextNode.Kind == ast.KindImportType
 }
 func isNonJsxSameLineTokenContext(context *FormattingContext) bool {
-	return context.TokensAreOnSameLine() && context.contextNode.Kind() != ast.KindJsxText
+	return context.TokensAreOnSameLine() && context.contextNode.Kind != ast.KindJsxText
 }
 func isNonJsxTextContext(context *FormattingContext) bool {
-	return context.contextNode.Kind() != ast.KindJsxText
+	return context.contextNode.Kind != ast.KindJsxText
 }
 func isNonJsxElementOrFragmentContext(context *FormattingContext) bool {
-	return context.contextNode.Kind() != ast.KindJsxElement && context.contextNode.Kind() != ast.KindJsxFragment
+	return context.contextNode.Kind != ast.KindJsxElement && context.contextNode.Kind != ast.KindJsxFragment
 }
 func isJsxExpressionContext(context *FormattingContext) bool {
-	return context.contextNode.Kind() == ast.KindJsxExpression || context.contextNode.Kind() == ast.KindJsxSpreadAttribute
+	return context.contextNode.Kind == ast.KindJsxExpression || context.contextNode.Kind == ast.KindJsxSpreadAttribute
 }
 func isNextTokenParentJsxAttribute(context *FormattingContext) bool {
-	return context.nextTokenParent.Kind() == ast.KindJsxAttribute || (context.nextTokenParent.Kind() == ast.KindJsxNamespacedName && context.nextTokenParent.Parent().Kind() == ast.KindJsxAttribute)
+	return context.nextTokenParent.Kind == ast.KindJsxAttribute || (context.nextTokenParent.Kind == ast.KindJsxNamespacedName && context.nextTokenParent.Parent().Kind == ast.KindJsxAttribute)
 }
 func isJsxAttributeContext(context *FormattingContext) bool {
-	return context.contextNode.Kind() == ast.KindJsxAttribute
+	return context.contextNode.Kind == ast.KindJsxAttribute
 }
 func isNextTokenParentNotJsxNamespacedName(context *FormattingContext) bool {
-	return context.nextTokenParent.Kind() != ast.KindJsxNamespacedName
+	return context.nextTokenParent.Kind != ast.KindJsxNamespacedName
 }
 func isNextTokenParentJsxNamespacedName(context *FormattingContext) bool {
-	return context.nextTokenParent.Kind() == ast.KindJsxNamespacedName
+	return context.nextTokenParent.Kind == ast.KindJsxNamespacedName
 }
 func isJsxSelfClosingElementContext(context *FormattingContext) bool {
-	return context.contextNode.Kind() == ast.KindJsxSelfClosingElement
+	return context.contextNode.Kind == ast.KindJsxSelfClosingElement
 }
 func isNotBeforeBlockInFunctionDeclarationContext(context *FormattingContext) bool {
 	return !isFunctionDeclContext(context) && !isBeforeBlockContext(context)
@@ -336,28 +336,28 @@ func nodeIsInDecoratorContext(node ast.Handle) bool {
 	for !node.IsNil() && ast.IsExpression(node) {
 		node = node.Parent()
 	}
-	return !node.IsNil() && node.Kind() == ast.KindDecorator
+	return !node.IsNil() && node.Kind == ast.KindDecorator
 }
 func isStartOfVariableDeclarationList(context *FormattingContext) bool {
-	return context.currentTokenParent.Kind() == ast.KindVariableDeclarationList && scanner.GetTokenPosOfNode(context.currentTokenParent, context.SourceFile, false) == context.currentTokenSpan.Loc.Pos()
+	return context.currentTokenParent.Kind == ast.KindVariableDeclarationList && scanner.GetTokenPosOfNode(context.currentTokenParent, context.SourceFile, false) == context.currentTokenSpan.Loc.Pos()
 }
 func isNotFormatOnEnter(context *FormattingContext) bool {
 	return context.FormattingRequestKind != FormatRequestKindFormatOnEnter
 }
 func isModuleDeclContext(context *FormattingContext) bool {
-	return context.contextNode.Kind() == ast.KindModuleDeclaration
+	return context.contextNode.Kind == ast.KindModuleDeclaration
 }
 func isObjectTypeContext(context *FormattingContext) bool {
-	return context.contextNode.Kind() == ast.KindTypeLiteral
+	return context.contextNode.Kind == ast.KindTypeLiteral
 }
 func isConstructorSignatureContext(context *FormattingContext) bool {
-	return context.contextNode.Kind() == ast.KindConstructSignature
+	return context.contextNode.Kind == ast.KindConstructSignature
 }
 func isTypeArgumentOrParameterOrAssertion(token TextRangeWithKind, parent ast.Handle) bool {
 	if token.Kind != ast.KindLessThanToken && token.Kind != ast.KindGreaterThanToken {
 		return false
 	}
-	switch parent.Kind() {
+	switch parent.Kind {
 	case ast.KindTypeReference, ast.KindTypeAssertionExpression, ast.KindTypeAliasDeclaration, ast.KindClassDeclaration, ast.KindClassExpression, ast.KindInterfaceDeclaration, ast.KindFunctionDeclaration, ast.KindFunctionExpression, ast.KindArrowFunction, ast.KindMethodDeclaration, ast.KindMethodSignature, ast.KindCallSignature, ast.KindConstructSignature, ast.KindCallExpression, ast.KindNewExpression, ast.KindExpressionWithTypeArguments:
 		return true
 	default:
@@ -368,25 +368,25 @@ func isTypeArgumentOrParameterOrAssertionContext(context *FormattingContext) boo
 	return isTypeArgumentOrParameterOrAssertion(context.currentTokenSpan, context.currentTokenParent) || isTypeArgumentOrParameterOrAssertion(context.nextTokenSpan, context.nextTokenParent)
 }
 func isTypeAssertionContext(context *FormattingContext) bool {
-	return context.contextNode.Kind() == ast.KindTypeAssertionExpression
+	return context.contextNode.Kind == ast.KindTypeAssertionExpression
 }
 func isNonTypeAssertionContext(context *FormattingContext) bool {
 	return !isTypeAssertionContext(context)
 }
 func isVoidOpContext(context *FormattingContext) bool {
-	return context.currentTokenSpan.Kind == ast.KindVoidKeyword && context.currentTokenParent.Kind() == ast.KindVoidExpression
+	return context.currentTokenSpan.Kind == ast.KindVoidKeyword && context.currentTokenParent.Kind == ast.KindVoidExpression
 }
 func isYieldOrYieldStarWithOperand(context *FormattingContext) bool {
-	return context.contextNode.Kind() == ast.KindYieldExpression && !context.contextNode.Expression().IsNil()
+	return context.contextNode.Kind == ast.KindYieldExpression && !context.contextNode.Expression().IsNil()
 }
 func isNonNullAssertionContext(context *FormattingContext) bool {
-	return context.contextNode.Kind() == ast.KindNonNullExpression
+	return context.contextNode.Kind == ast.KindNonNullExpression
 }
 func isNotStatementConditionContext(context *FormattingContext) bool {
 	return !isStatementConditionContext(context)
 }
 func isStatementConditionContext(context *FormattingContext) bool {
-	switch context.contextNode.Kind() {
+	switch context.contextNode.Kind {
 	case ast.KindIfStatement, ast.KindForStatement, ast.KindForInStatement, ast.KindForOfStatement, ast.KindDoStatement, ast.KindWhileStatement:
 		return true
 	default:
@@ -406,7 +406,7 @@ func isSemicolonDeletionContext(context *FormattingContext) bool {
 		if nextRealToken.IsNil() {
 			return true
 		}
-		nextTokenKind = nextRealToken.Kind()
+		nextTokenKind = nextRealToken.Kind
 		nextTokenStart = scanner.GetTokenPosOfNode(nextRealToken, context.SourceFile, false)
 	}
 	startLine := scanner.GetECMALineOfPosition(context.SourceFile, context.currentTokenSpan.Loc.Pos())
@@ -420,13 +420,13 @@ func isSemicolonDeletionContext(context *FormattingContext) bool {
 	if nextTokenKind == ast.KindSemicolonClassElement || nextTokenKind == ast.KindSemicolonToken {
 		return false
 	}
-	if context.contextNode.Kind() == ast.KindInterfaceDeclaration || context.contextNode.Kind() == ast.KindTypeAliasDeclaration {
-		return context.currentTokenParent.Kind() != ast.KindPropertySignature || !context.currentTokenParent.Type().IsNil() || nextTokenKind != ast.KindOpenParenToken
+	if context.contextNode.Kind == ast.KindInterfaceDeclaration || context.contextNode.Kind == ast.KindTypeAliasDeclaration {
+		return context.currentTokenParent.Kind != ast.KindPropertySignature || !context.currentTokenParent.Type().IsNil() || nextTokenKind != ast.KindOpenParenToken
 	}
 	if ast.IsPropertyDeclaration(context.currentTokenParent) {
 		return context.currentTokenParent.Initializer().IsNil()
 	}
-	return context.currentTokenParent.Kind() != ast.KindForStatement && context.currentTokenParent.Kind() != ast.KindEmptyStatement && context.currentTokenParent.Kind() != ast.KindSemicolonClassElement && nextTokenKind != ast.KindOpenBracketToken && nextTokenKind != ast.KindOpenParenToken && nextTokenKind != ast.KindPlusToken && nextTokenKind != ast.KindMinusToken && nextTokenKind != ast.KindSlashToken && nextTokenKind != ast.KindRegularExpressionLiteral && nextTokenKind != ast.KindCommaToken && nextTokenKind != ast.KindTemplateExpression && nextTokenKind != ast.KindTemplateHead && nextTokenKind != ast.KindNoSubstitutionTemplateLiteral && nextTokenKind != ast.KindDotToken
+	return context.currentTokenParent.Kind != ast.KindForStatement && context.currentTokenParent.Kind != ast.KindEmptyStatement && context.currentTokenParent.Kind != ast.KindSemicolonClassElement && nextTokenKind != ast.KindOpenBracketToken && nextTokenKind != ast.KindOpenParenToken && nextTokenKind != ast.KindPlusToken && nextTokenKind != ast.KindMinusToken && nextTokenKind != ast.KindSlashToken && nextTokenKind != ast.KindRegularExpressionLiteral && nextTokenKind != ast.KindCommaToken && nextTokenKind != ast.KindTemplateExpression && nextTokenKind != ast.KindTemplateHead && nextTokenKind != ast.KindNoSubstitutionTemplateLiteral && nextTokenKind != ast.KindDotToken
 }
 func isSemicolonInsertionContext(context *FormattingContext) bool {
 	return lsutil.PositionIsASICandidate(context.currentTokenSpan.Loc.End(), context.currentTokenParent, context.SourceFile)

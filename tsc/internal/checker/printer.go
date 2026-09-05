@@ -138,7 +138,7 @@ func (c *Checker) symbolToStringEx(symbol *ast.Symbol, enclosingDeclaration ast.
 		sourceFile = ast.GetSourceFileOfNode(enclosingDeclaration)
 	}
 	var printer_ *printer.Printer
-	if !enclosingDeclaration.IsNil() && enclosingDeclaration.Kind() == ast.KindSourceFile {
+	if !enclosingDeclaration.IsNil() && enclosingDeclaration.Kind == ast.KindSourceFile {
 		printer_ = createPrinterWithRemoveCommentsOmitTrailingSemicolonNeverAsciiEscape(nodeBuilder.EmitContext())
 	} else {
 		printer_ = createPrinterWithRemoveCommentsOmitTrailingSemicolon(nodeBuilder.EmitContext())

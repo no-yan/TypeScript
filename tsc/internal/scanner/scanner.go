@@ -2294,7 +2294,7 @@ func GetTokenPosOfNode(node ast.Handle, sourceFile *ast.SourceFile, includeJSDoc
 	if ast.NodeIsMissing(node) {
 		return node.Pos()
 	}
-	if ast.IsJSDocNode(node) || node.Kind() == ast.KindJsxText {
+	if ast.IsJSDocNode(node) || node.Kind == ast.KindJsxText {
 		return SkipTriviaEx(sourceFile.Text(), node.Pos(), &SkipTriviaOptions{StopAtComments: true})
 	}
 	if includeJSDoc && len(node.JSDoc(sourceFile)) > 0 {
@@ -2305,7 +2305,7 @@ func GetTokenPosOfNode(node ast.Handle, sourceFile *ast.SourceFile, includeJSDoc
 func getErrorRangeForArrowFunction(sourceFile *ast.SourceFile, node ast.Handle) core.TextRange {
 	pos := SkipTrivia(sourceFile.Text(), node.Pos())
 	body := node.Body()
-	if !body.IsNil() && body.Kind() == ast.KindBlock {
+	if !body.IsNil() && body.Kind == ast.KindBlock {
 		startLine := GetECMALineOfPosition(sourceFile, body.Pos())
 		endLine := GetECMALineOfPosition(sourceFile, body.End())
 		if startLine < endLine {
@@ -2347,7 +2347,7 @@ func findOriginatingJSDocSatisfiesTag(sourceFile *ast.SourceFile, node ast.Handl
 }
 func GetErrorRangeForNode(sourceFile *ast.SourceFile, node ast.Handle) core.TextRange {
 	errorNode := node
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindSourceFile:
 		pos := SkipTrivia(sourceFile.Text(), 0)
 		if pos == len(sourceFile.Text()) {

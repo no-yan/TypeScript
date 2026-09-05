@@ -592,7 +592,7 @@ func (c *compilerTest) verifyParentPointers(t *testing.T) {
 			} else {
 				elab += "!synthetic! no text available"
 			}
-			assert.Assert(t, n.Parent() == parent, "parent node does not match traversed parent: "+n.Kind().String()+": "+elab)
+			assert.Assert(t, n.Parent() == parent, "parent node does not match traversed parent: "+n.Kind.String()+": "+elab)
 			oldParent := parent
 			parent = n
 			n.ForEachChild(verifier)

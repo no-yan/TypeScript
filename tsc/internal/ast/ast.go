@@ -1283,7 +1283,7 @@ func IsWriteAccess(node Handle) bool {
 
 func IsWriteAccessForReference(node Handle) bool {
 	decl := GetDeclarationFromName(node)
-	return (!decl.IsNil() && declarationIsWriteAccess(decl)) || node.Kind() == KindDefaultKeyword || IsWriteAccess(node)
+	return (!decl.IsNil() && declarationIsWriteAccess(decl)) || node.Kind == KindDefaultKeyword || IsWriteAccess(node)
 }
 
 func GetDeclarationFromName(name Handle) Handle {
@@ -1291,7 +1291,7 @@ func GetDeclarationFromName(name Handle) Handle {
 		return Handle{}
 	}
 	parent := name.Parent()
-	switch name.Kind() {
+	switch name.Kind {
 	case KindStringLiteral, KindNoSubstitutionTemplateLiteral, KindNumericLiteral:
 		if IsComputedPropertyName(parent) {
 			return parent.Parent()
@@ -1337,7 +1337,7 @@ func declarationIsWriteAccess(decl Handle) bool {
 		return true
 	}
 
-	switch decl.Kind() {
+	switch decl.Kind {
 	case KindBinaryExpression,
 		KindBindingElement,
 		KindClassDeclaration,
@@ -1390,7 +1390,7 @@ func IsArrayLiteralOrObjectLiteralDestructuringPattern(node Handle) bool {
 	parent := node.Parent()
 	// [a,b,c] from:
 	// [a, b, c] = someExpression;
-	if IsBinaryExpression(parent) && parent.Left() == node && parent.Operator().Kind() == KindEqualsToken {
+	if IsBinaryExpression(parent) && parent.Left() == node && parent.Operator().Kind == KindEqualsToken {
 		return true
 	}
 	// [a, b, c] from:
@@ -1412,7 +1412,7 @@ func accessKind(node Handle) AccessKind {
 	if parent.IsNil() {
 		return AccessKindRead
 	}
-	switch parent.Kind() {
+	switch parent.Kind {
 	case KindParenthesizedExpression:
 		return accessKind(parent)
 	case KindPrefixUnaryExpression:
@@ -1430,8 +1430,8 @@ func accessKind(node Handle) AccessKind {
 	case KindBinaryExpression:
 		if parent.Left() == node {
 			operator := parent.Operator()
-			if IsAssignmentOperator(operator.Kind()) {
-				if operator.Kind() == KindEqualsToken {
+			if IsAssignmentOperator(operator.Kind) {
+				if operator.Kind == KindEqualsToken {
 					return AccessKindWrite
 				}
 				return AccessKindReadWrite
@@ -1496,7 +1496,7 @@ func IsDeclarationNode(node Handle) bool {
 	if node.IsNil() {
 		return false
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case KindArrowFunction,
 		KindBinaryExpression,
 		KindBindingElement,
@@ -1573,7 +1573,11 @@ func IsLocalsContainer(node Handle) bool {
 	if node.IsNil() {
 		return false
 	}
-	switch node.Kind() {
+	return IsLocalsContainerKind(node.Kind)
+}
+
+func IsLocalsContainerKind(kind Kind) bool {
+	switch kind {
 	case KindBlock,
 		KindCaseBlock,
 		KindCatchClause,
@@ -1918,7 +1922,7 @@ func (node *HeritageClause) computeSubtreeFacts() SubtreeFacts {
 }
 
 func IsTypeOrJSTypeAliasDeclaration(node Handle) bool {
-	return node.Kind() == KindTypeAliasDeclaration || node.Kind() == KindJSTypeAliasDeclaration
+	return node.Kind == KindTypeAliasDeclaration || node.Kind == KindJSTypeAliasDeclaration
 }
 
 func (node *EnumMember) computeSubtreeFacts() SubtreeFacts {
@@ -1964,7 +1968,7 @@ func (node *ImportEqualsDeclaration) computeSubtreeFacts() SubtreeFacts {
 }
 
 func IsImportDeclarationOrJSImportDeclaration(node Handle) bool {
-	return node.Kind() == KindImportDeclaration || node.Kind() == KindJSImportDeclaration
+	return node.Kind == KindImportDeclaration || node.Kind == KindJSImportDeclaration
 }
 
 func (node *ImportSpecifier) computeSubtreeFacts() SubtreeFacts {
@@ -1990,7 +1994,7 @@ func (node *ExportAssignment) computeSubtreeFacts() SubtreeFacts {
 }
 
 func IsAnyExportAssignment(node Handle) bool {
-	return node.Kind() == KindExportAssignment
+	return node.Kind == KindExportAssignment
 }
 
 func (node *ExportDeclaration) computeSubtreeFacts() SubtreeFacts {
@@ -2682,6 +2686,16 @@ func (node *SourceFile) ParseStore() *Store {
 	return node.parseStore
 }
 
+// ParseTreeRef returns the parse Store and root captured under the same lock.
+func (node *SourceFile) ParseTreeRef() (*Store, NodeRef) {
+	if node == nil {
+		return nil, 0
+	}
+	node.parseStoreMu.RLock()
+	defer node.parseStoreMu.RUnlock()
+	return node.parseStore, node.parseRoot
+}
+
 // LockParseStoreWriter acquires the per-file Store writer lease. Parser,
 // binder, checker, and emit phases transfer this lease in order. A checker
 // must hold it while appending synthetics and publishing their NodeRefs.
@@ -2908,7 +2922,7 @@ func collectIdentifiersForSourceFile(sourceFile *SourceFile) collections.Set[str
 		if node.Flags()&NodeFlagsSynthesized != 0 {
 			return false
 		}
-		switch node.Kind() {
+		switch node.Kind {
 		case KindIdentifier,
 			KindPrivateIdentifier,
 			KindStringLiteral,
@@ -3208,13 +3222,13 @@ func (node *SourceFile) GetOrCreateToken(
 	loc := core.NewTextRange(pos, end)
 	key := TokenCacheKey{parent, loc}
 	if token, ok := node.tokenCache[key]; ok {
-		if token.Kind() != kind {
-			panic(fmt.Sprintf("Token cache mismatch: %v != %v", token.Kind(), kind))
+		if token.Kind != kind {
+			panic(fmt.Sprintf("Token cache mismatch: %v != %v", token.Kind, kind))
 		}
 		return token
 	}
 	if !parent.IsNil() && parent.Flags()&NodeFlagsReparsed != 0 {
-		panic(fmt.Sprintf("Cannot create token from reparsed node of kind %v", parent.Kind()))
+		panic(fmt.Sprintf("Cannot create token from reparsed node of kind %v", parent.Kind))
 	}
 	if node.tokenCache == nil {
 		node.tokenCache = make(map[TokenCacheKey]Handle)

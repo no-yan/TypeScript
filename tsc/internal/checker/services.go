@@ -51,7 +51,7 @@ func (c *Checker) getSymbolsInScope(location ast.Handle, meaning ast.SymbolFlags
 			if canHaveLocals(location) && location.Locals() != nil && !ast.IsGlobalSourceFile(location) {
 				copySymbols(location.Locals(), meaning)
 			}
-			switch location.Kind() {
+			switch location.Kind {
 			case ast.KindSourceFile:
 				if !ast.IsExternalModule(ast.GetSourceFileOfNode(location)) {
 					break
@@ -120,15 +120,15 @@ func (c *Checker) IsValidPropertyAccess(node ast.Handle, propertyName string) bo
 	return c.isValidPropertyAccess(node, propertyName)
 }
 func (c *Checker) isValidPropertyAccess(node ast.Handle, propertyName string) bool {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindPropertyAccessExpression:
-		return c.isValidPropertyAccessWithType(node, node.Expression().Kind() == ast.KindSuperKeyword, propertyName, c.getWidenedType(c.checkExpression(node.Expression())))
+		return c.isValidPropertyAccessWithType(node, node.Expression().Kind == ast.KindSuperKeyword, propertyName, c.getWidenedType(c.checkExpression(node.Expression())))
 	case ast.KindQualifiedName:
 		return c.isValidPropertyAccessWithType(node, false, propertyName, c.getWidenedType(c.checkExpression(node.QualifiedNameLeft())))
 	case ast.KindImportType:
 		return c.isValidPropertyAccessWithType(node, false, propertyName, c.getTypeFromTypeNode(node))
 	}
-	panic("Unexpected node kind in isValidPropertyAccess: " + node.Kind().String())
+	panic("Unexpected node kind in isValidPropertyAccess: " + node.Kind.String())
 }
 func (c *Checker) isValidPropertyAccessWithType(node ast.Handle, isSuper bool, propertyName string, t *Type) bool {
 	if IsTypeAny(t) {
@@ -139,7 +139,7 @@ func (c *Checker) isValidPropertyAccessWithType(node ast.Handle, isSuper bool, p
 }
 
 func (c *Checker) IsValidPropertyAccessForCompletions(node ast.Handle, t *Type, property *ast.Symbol) bool {
-	return c.isPropertyAccessible(node, node.Kind() == ast.KindPropertyAccessExpression && node.Expression().Kind() == ast.KindSuperKeyword, false, t, property)
+	return c.isPropertyAccessible(node, node.Kind == ast.KindPropertyAccessExpression && node.Expression().Kind == ast.KindSuperKeyword, false, t, property)
 }
 func (c *Checker) GetAllPossiblePropertiesOfTypes(types []*Type) []*ast.Symbol {
 	unionType := c.getUnionType(types)
@@ -371,13 +371,13 @@ func (c *Checker) GetExportSymbolOfSymbol(symbol *ast.Symbol) *ast.Symbol {
 	return c.getMergedSymbol(core.IfElse(symbol.ExportSymbol != nil, symbol.ExportSymbol, symbol))
 }
 func (c *Checker) GetExportSpecifierLocalTargetSymbol(node ast.Handle) *ast.Symbol {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindExportSpecifier:
 		if !node.Parent().Parent().ModuleSpecifier().IsNil() {
 			return c.getExternalModuleMember(node.Parent().Parent(), node, false)
 		}
 		name := node.PropertyNameOrName()
-		if name.Kind() == ast.KindStringLiteral {
+		if name.Kind == ast.KindStringLiteral {
 			return nil
 		}
 		return c.resolveEntityName(name, ast.SymbolFlagsValue|ast.SymbolFlagsType|ast.SymbolFlagsNamespace|ast.SymbolFlagsAlias, true, false, ast.Handle{})
@@ -387,7 +387,7 @@ func (c *Checker) GetExportSpecifierLocalTargetSymbol(node ast.Handle) *ast.Symb
 	panic("Unhandled case in getExportSpecifierLocalTargetSymbol, node should be ExportSpecifier | Identifier")
 }
 func (c *Checker) GetShorthandAssignmentValueSymbol(location ast.Handle) *ast.Symbol {
-	if !location.IsNil() && location.Kind() == ast.KindShorthandPropertyAssignment {
+	if !location.IsNil() && location.Kind == ast.KindShorthandPropertyAssignment {
 		return c.resolveEntityName(location.Name(), ast.SymbolFlagsValue|ast.SymbolFlagsAlias, true, false, ast.Handle{})
 	}
 	return nil
@@ -437,7 +437,7 @@ func (c *Checker) IsSymbolReferencedInFile(sourceFile *ast.SourceFile, definitio
 		if refSymbol == symbol {
 			return true
 		}
-		if !token.Parent().IsNil() && token.Parent().Kind() == ast.KindShorthandPropertyAssignment {
+		if !token.Parent().IsNil() && token.Parent().Kind == ast.KindShorthandPropertyAssignment {
 			shorthandSymbol := c.GetShorthandAssignmentValueSymbol(token.Parent())
 			if shorthandSymbol == symbol {
 				return true
@@ -469,7 +469,7 @@ func (c *Checker) GetReferencesToSymbolInFile(sourceFile *ast.SourceFile, symbol
 			result = append(result, token)
 			continue
 		}
-		if !token.Parent().IsNil() && token.Parent().Kind() == ast.KindShorthandPropertyAssignment {
+		if !token.Parent().IsNil() && token.Parent().Kind == ast.KindShorthandPropertyAssignment {
 			shorthandSymbol := c.GetShorthandAssignmentValueSymbol(token.Parent())
 			if shorthandSymbol == symbol {
 				result = append(result, token)
@@ -549,7 +549,7 @@ func (c *Checker) GetTypeArgumentConstraint(node ast.Handle) *Type {
 }
 
 func (c *Checker) getUninstantiatedSignatures(node ast.Handle) []*Signature {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindCallExpression, ast.KindDecorator:
 		return c.getSignaturesOfType(c.getTypeOfExpression(node.Expression()), SignatureKindCall)
 	case ast.KindNewExpression:
@@ -677,7 +677,7 @@ func (c *Checker) GetContextualTypeForJsxAttribute(attribute ast.Handle) *Type {
 	return c.getContextualTypeForJsxAttribute(attribute, ContextFlagsNone)
 }
 func (c *Checker) GetConstantValue(node ast.Handle) any {
-	if node.Kind() == ast.KindEnumMember {
+	if node.Kind == ast.KindEnumMember {
 		return c.getEnumMemberValue(node).Value
 	}
 	if c.symbolNodeLinks.Get(node).resolvedSymbol == nil {

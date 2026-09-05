@@ -27,7 +27,7 @@ func collectExternalModuleReferences(file *ast.SourceFile) {
 func collectModuleReferences(file *ast.SourceFile, node ast.Handle, inAmbientModule bool) {
 	if ast.IsAnyImportOrReExport(node) {
 		moduleNameExpr := handleExternalModuleName(node)
-		if !moduleNameExpr.IsNil() && moduleNameExpr.Kind() == ast.KindStringLiteral {
+		if !moduleNameExpr.IsNil() && moduleNameExpr.Kind == ast.KindStringLiteral {
 			moduleName := handleText(moduleNameExpr)
 			if moduleName != "" && (!inAmbientModule || !tspath.IsExternalModuleNameRelative(moduleName)) {
 				ast.SetImportsOfSourceFile(file, append(file.Imports(), moduleNameExpr))
@@ -42,7 +42,7 @@ func collectModuleReferences(file *ast.SourceFile, node ast.Handle, inAmbientMod
 		}
 		return
 	}
-	if node.Kind() == ast.KindModuleDeclaration && ast.IsAmbientModule(node) && (inAmbientModule || ast.HasSyntacticModifier(node, ast.ModifierFlagsAmbient) || file.IsDeclarationFile) {
+	if node.Kind == ast.KindModuleDeclaration && ast.IsAmbientModule(node) && (inAmbientModule || ast.HasSyntacticModifier(node, ast.ModifierFlagsAmbient) || file.IsDeclarationFile) {
 		name := node.ModuleDeclarationName()
 		nameText := handleText(name)
 		if ast.IsExternalModule(file) || (inAmbientModule && !tspath.IsExternalModuleNameRelative(nameText)) {
@@ -62,20 +62,20 @@ func collectModuleReferences(file *ast.SourceFile, node ast.Handle, inAmbientMod
 
 
 func handleExternalModuleName(node ast.Handle) ast.Handle {
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindImportDeclaration, ast.KindJSImportDeclaration:
 		return node.ImportDeclarationModuleSpecifier()
 	case ast.KindExportDeclaration:
 		return node.ExportDeclarationModuleSpecifier()
 	case ast.KindImportEqualsDeclaration:
 		ref := node.ImportEqualsDeclarationModuleReference()
-		if !ref.IsNil() && ref.Kind() == ast.KindExternalModuleReference {
+		if !ref.IsNil() && ref.Kind == ast.KindExternalModuleReference {
 			return ref.Expression()
 		}
 		return ast.Handle{}
 	case ast.KindModuleDeclaration:
 		name := node.ModuleDeclarationName()
-		if !name.IsNil() && name.Kind() == ast.KindStringLiteral {
+		if !name.IsNil() && name.Kind == ast.KindStringLiteral {
 			return name
 		}
 		return ast.Handle{}

@@ -42,7 +42,7 @@ func newforawaitTransformer(opts *transformers.TransformOptions) *transformers.T
 	tx.initSuperAccessVisitor(tx.EmitContext(), tx.Factory())
 	tx.fallbackNodeVisitor = tx.EmitContext().NewNodeVisitor(tx.visitFallback)
 	tx.noAsyncModifierVisitor = tx.EmitContext().NewNodeVisitor(func(node ast.Handle) ast.Handle {
-		if node.Kind() == ast.KindAsyncKeyword {
+		if node.Kind == ast.KindAsyncKeyword {
 			return ast.Handle{}
 		}
 		return node
@@ -81,7 +81,7 @@ func (tx *forawaitTransformer) fallbackVisitor(node ast.Handle) ast.Handle {
 	if tx.capturedSuperProperties == nil {
 		return node
 	}
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindFunctionExpression, ast.KindFunctionDeclaration, ast.KindMethodDeclaration, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindConstructor:
 		return node
 	}
@@ -96,7 +96,7 @@ func (tx *forawaitTransformer) visit(node ast.Handle) ast.Handle {
 		return tx.fallbackVisitor(node)
 	}
 	tx.trackSuperAccess(node)
-	switch node.Kind() {
+	switch node.Kind {
 	case ast.KindSourceFile:
 		return tx.visitSourceFile(node)
 	case ast.KindAwaitExpression:
@@ -185,7 +185,7 @@ func (tx *forawaitTransformer) visitReturnStatement(node ast.Handle) ast.Handle 
 func (tx *forawaitTransformer) visitLabeledStatement(node ast.Handle) ast.Handle {
 	if tx.enclosingFunctionFlags&ast.FunctionFlagsAsync != 0 {
 		statement := unwrapInnermostStatementOfLabel(node)
-		if statement.Kind() == ast.KindForOfStatement && !statement.ForInOrOfStatementAwaitModifier().IsNil() {
+		if statement.Kind == ast.KindForOfStatement && !statement.ForInOrOfStatementAwaitModifier().IsNil() {
 			return tx.visitForOfStatement(statement, node)
 		}
 		return tx.Factory().RestoreEnclosingLabel(tx.Visitor().VisitNode(statement), node)
@@ -195,7 +195,7 @@ func (tx *forawaitTransformer) visitLabeledStatement(node ast.Handle) ast.Handle
 
 func unwrapInnermostStatementOfLabel(node ast.Handle) ast.Handle {
 	for {
-		if node.Statement().Kind() != ast.KindLabeledStatement {
+		if node.Statement().Kind != ast.KindLabeledStatement {
 			return node.Statement()
 		}
 		node = node.Statement()

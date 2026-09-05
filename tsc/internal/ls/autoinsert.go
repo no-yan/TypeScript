@@ -30,7 +30,7 @@ func (l *LanguageService) ProvideOnAutoInsert(ctx context.Context, params *lspro
 	}
 	var closingText string
 	var element ast.Handle
-	if token.Kind() == ast.KindGreaterThanToken && ast.IsJsxOpeningElement(token.Parent()) {
+	if token.Kind == ast.KindGreaterThanToken && ast.IsJsxOpeningElement(token.Parent()) {
 		element = token.Parent().Parent()
 	} else if ast.IsJsxText(token) && ast.IsJsxElement(token.Parent()) {
 		element = token.Parent()
@@ -40,7 +40,7 @@ func (l *LanguageService) ProvideOnAutoInsert(ctx context.Context, params *lspro
 		closingText = "</" + ast.EntityNameToString(tagNameNode, scanner.GetTextOfNode) + ">"
 	} else {
 		var fragment ast.Handle
-		if token.Kind() == ast.KindGreaterThanToken && ast.IsJsxOpeningFragment(token.Parent()) {
+		if token.Kind == ast.KindGreaterThanToken && ast.IsJsxOpeningFragment(token.Parent()) {
 			fragment = token.Parent().Parent()
 		} else if ast.IsJsxText(token) && ast.IsJsxFragment(token.Parent()) {
 			fragment = token.Parent()
