@@ -267,7 +267,7 @@ func (c *Checker) isOptionalParameter(node ast.Handle) bool {
 	iife := ast.GetImmediatelyInvokedFunctionExpression(node.Parent())
 	if !iife.IsNil() {
 		parameterIndex := node.Parent().Store().ListIndexOf(node.Parent().ParameterList(), node)
-		return node.Type().IsNil() && node.ParameterDeclarationDotDotDotToken().IsNil() && parameterIndex >= len(c.getEffectiveCallArguments(iife))
+		return node.Type().IsNil() && node.ParameterDeclarationDotDotDotToken().IsNil() && parameterIndex >= c.getEffectiveCallArguments(iife).Len()
 	}
 	return false
 }

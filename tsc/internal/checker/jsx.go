@@ -23,6 +23,39 @@ const (
 	JsxFlagsIntrinsicElement        JsxFlags = JsxFlagsIntrinsicNamedElement | JsxFlagsIntrinsicIndexedElement
 )
 
+func hasSemanticJsxChildren(children ast.NodeSeq) bool {
+	for _, i := range children.All() {
+		switch i.Kind {
+		case ast.KindJsxExpression:
+			if !i.Expression().IsNil() {
+				return true
+			}
+		case ast.KindJsxText:
+			if !i.JsxTextContainsOnlyTriviaWhiteSpaces() {
+				return true
+			}
+		default:
+			return true
+		}
+	}
+	return false
+}
+
+func collectJsxDiscriminantProperties(c *Checker, node ast.Handle, contextualType *Type) []ast.Handle {
+	var out []ast.Handle
+	for _, p := range node.PropertiesSeq().All() {
+		symbol := p.Symbol()
+		if symbol == nil || !ast.IsJsxAttribute(p) {
+			continue
+		}
+		initializer := p.Initializer()
+		if (initializer.IsNil() || c.isPossiblyDiscriminantValue(initializer)) && c.isDiscriminantProperty(contextualType, symbol.Name) {
+			out = append(out, p)
+		}
+	}
+	return out
+}
+
 type JsxReferenceKind int32
 
 const (
@@ -224,20 +257,13 @@ func (c *Checker) discriminateContextualTypeByJSXAttributes(node ast.Handle, con
 		return discriminated
 	}
 	jsxChildrenPropertyName := c.getJsxElementChildrenPropertyName(c.getJsxNamespaceAt(node))
-	discriminantProperties := core.Filter(node.PropertiesSeq().Slice(), func(p ast.Handle) bool {
-		symbol := p.Symbol()
-		if symbol == nil || !ast.IsJsxAttribute(p) {
-			return false
-		}
-		initializer := p.Initializer()
-		return (initializer.IsNil() || c.isPossiblyDiscriminantValue(initializer)) && c.isDiscriminantProperty(contextualType, symbol.Name)
-	})
+	discriminantProperties := collectJsxDiscriminantProperties(c, node, contextualType)
 	discriminantMembers := core.Filter(c.getPropertiesOfType(contextualType), func(s *ast.Symbol) bool {
 		if s.Flags&ast.SymbolFlagsOptional == 0 || node.Symbol() == nil {
 			return false
 		}
 		element := node.Parent().Parent()
-		if s.Name == jsxChildrenPropertyName && ast.IsJsxElement(element) && len(ast.GetSemanticJsxChildren(element.ChildrenSeq().Slice())) != 0 {
+		if s.Name == jsxChildrenPropertyName && ast.IsJsxElement(element) && hasSemanticJsxChildren(element.ChildrenSeq()) {
 			return false
 		}
 		return node.Symbol().Members[s.Name] == nil && c.isDiscriminantProperty(contextualType, s.Name)
@@ -495,7 +521,7 @@ func (c *Checker) resolveJsxOpeningLikeElement(node ast.Handle, candidatesOutArr
 			c.checkTypeAssignableToAndOptionallyElaborate(c.checkExpressionWithContextualType(node.Attributes(), c.getEffectiveFirstArgumentForJsxSignature(fakeSignature, node), nil, CheckModeNormal), result, node.TagName(), node.Attributes(), nil, nil)
 			typeArguments := node.TypeArgumentsSeq()
 			if typeArguments.Len() != 0 {
-				c.checkSourceElements(typeArguments.Slice())
+				c.checkSourceElementsSeq(typeArguments)
 				sourceFile := sourceFileOf(node)
 				typeArgumentList := node.TypeArgumentList()
 				listLoc := node.Store().ListLoc(typeArgumentList)
@@ -719,18 +745,17 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 		if parent.IsNil() {
 			return false
 		}
-		var children []ast.Handle
 		switch {
 		case ast.IsJsxElement(parent):
 			if parent.JsxElementOpeningElement() == openingLikeElement {
-				children = parent.ChildrenSeq().Slice()
+				return hasSemanticJsxChildren(parent.ChildrenSeq())
 			}
 		case ast.IsJsxFragment(parent):
 			if parent.JsxFragmentOpeningFragment() == openingLikeElement {
-				children = parent.ChildrenSeq().Slice()
+				return hasSemanticJsxChildren(parent.ChildrenSeq())
 			}
 		}
-		return len(ast.GetSemanticJsxChildren(children)) != 0
+		return false
 	}
 	if parentHasSemanticJsxChildren(openingLikeElement) {
 		var childTypes []*Type = c.checkJsxChildren(openingLikeElement.Parent(), checkMode)

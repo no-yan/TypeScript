@@ -1979,9 +1979,6 @@ func (c *Checker) checkSourceFile(ctx context.Context, sourceFile *ast.SourceFil
 	c.ctx = nil
 }
 
-func (c *Checker) checkSourceElements(nodes []ast.Handle) {
-	c.checkSourceElementsSeq(ast.NodeSequence(nodes))
-}
 func (c *Checker) checkSourceElementsSeq(nodes ast.NodeSeq) {
 	for _, node := range nodes.All() {
 		if c.isCanceled() {
@@ -2153,20 +2150,23 @@ func (c *Checker) checkSourceElementUnreachable(node ast.Handle) bool {
 	endNode := node
 	parent := node.Parent()
 	if parent.CanHaveStatements() {
-		statements := parent.Statements()
-		if offset := slices.Index(statements, node); offset >= 0 {
+		list := parent.StatementList()
+		store := parent.Store()
+		offset := store.ListIndexOf(list, node)
+		if offset >= 0 {
 			first := offset
 			last := offset
-			for i := offset + 1; i < len(statements); i++ {
-				nextNode := statements[i]
+			ln := store.ListLen(list)
+			for i := offset + 1; i < ln; i++ {
+				nextNode := store.ListAt(list, i)
 				if !ast.IsPotentiallyExecutableNode(nextNode) || !c.isSourceElementUnreachable(nextNode) {
 					break
 				}
 				last = i
 				c.reportedUnreachableNodes.Add(nextNode)
 			}
-			startNode = statements[first]
-			endNode = statements[last]
+			startNode = store.ListAt(list, first)
+			endNode = store.ListAt(list, last)
 		}
 	}
 	start := scanner.GetTokenPosOfNode(startNode, sourceFile, false)
@@ -2417,7 +2417,7 @@ func (c *Checker) checkSignatureDeclaration(node ast.Handle) {
 			c.checkExternalEmitHelpers(node, ExternalEmitHelpersAwaiter)
 		}
 	}
-	c.checkTypeParameters(node.TypeParameters())
+	c.checkTypeParameters(node.TypeParametersSeq())
 	c.checkUnmatchedJSDocParameters(node)
 	c.checkSourceElementsSeq(node.ParametersSeq())
 	returnTypeNode := node.Type()
@@ -2842,8 +2842,7 @@ func (c *Checker) checkArrayType(node ast.Handle) {
 func (c *Checker) checkTupleType(node ast.Handle) {
 	seenOptionalElement := false
 	seenRestElement := false
-	elements := node.Elements()
-	for _, e := range elements {
+	for _, e := range node.ElementsSeq().All() {
 		flags := c.getTupleElementFlags(e)
 		if flags&ElementFlagsVariadic != 0 {
 			t := c.getTypeFromTypeNode(e.Type())
@@ -2872,7 +2871,7 @@ func (c *Checker) checkTupleType(node ast.Handle) {
 			break
 		}
 	}
-	c.checkSourceElements(elements)
+	c.checkSourceElementsSeq(node.ElementsSeq())
 	c.getTypeFromTypeNode(node)
 }
 func (c *Checker) checkUnionOrIntersectionType(node ast.Handle) {
@@ -2932,14 +2931,15 @@ func (c *Checker) checkImportType(node ast.Handle) {
 	c.checkTypeReferenceOrImport(node)
 }
 func (c *Checker) getResolutionModeOverride(node ast.Handle, reportErrors bool) core.ResolutionMode {
-	attrs := node.Properties()
-	if len(attrs) != 1 {
+	list := node.PropertyList()
+	store := node.Store()
+	if store.ListLen(list) != 1 {
 		if reportErrors {
 			c.grammarErrorOnNode(node, diagnostics.Type_import_attributes_should_have_exactly_one_key_resolution_mode_with_value_import_or_require)
 		}
 		return core.ResolutionModeNone
 	}
-	elem := attrs[0]
+	elem := store.ListAt(list, 0)
 	if !ast.IsStringLiteralLike(elem.Name()) {
 		return core.ResolutionModeNone
 	}
@@ -3752,7 +3752,7 @@ func (c *Checker) checkClassLikeDeclaration(node ast.Handle) {
 	c.checkGrammarClassLikeDeclaration(node)
 	c.checkDecorators(node)
 	c.checkCollisionsForDeclarationName(node, node.Name())
-	c.checkTypeParameters(node.TypeParameters())
+	c.checkTypeParameters(node.TypeParametersSeq())
 	c.checkExportsOnMergedDeclarations(node)
 	symbol := c.getSymbolOfDeclaration(node)
 	classType := c.getDeclaredTypeOfSymbol(symbol)
@@ -3779,7 +3779,7 @@ func (c *Checker) checkClassLikeDeclaration(node ast.Handle) {
 			c.checkSourceElement(baseTypeNode.Expression())
 			if typeArgumentCount(baseTypeNode) != 0 {
 				c.checkSourceElementsSeq(baseTypeNode.TypeArgumentsSeq())
-				for _, constructor := range c.getConstructorsForTypeArguments(staticBaseType, baseTypeNode.TypeArguments(), baseTypeNode) {
+				for _, constructor := range c.getConstructorsForTypeArguments(staticBaseType, baseTypeNode.TypeArgumentsSeq(), baseTypeNode) {
 					if !c.checkTypeArgumentConstraints(baseTypeNode, constructor.typeParameters) {
 						break
 					}
@@ -3804,7 +3804,7 @@ func (c *Checker) checkClassLikeDeclaration(node ast.Handle) {
 				}
 			}
 			if !(staticBaseType.symbol != nil && staticBaseType.symbol.Flags&ast.SymbolFlagsClass != 0) && baseConstructorType.flags&TypeFlagsTypeVariable == 0 {
-				constructors := c.getInstantiatedConstructorsForTypeArguments(staticBaseType, baseTypeNode.TypeArguments(), baseTypeNode)
+				constructors := c.getInstantiatedConstructorsForTypeArguments(staticBaseType, baseTypeNode.TypeArgumentsSeq(), baseTypeNode)
 				if !core.Every(constructors, func(sig *Signature) bool {
 					return c.isTypeIdenticalTo(c.getReturnTypeOfSignature(sig), baseType)
 				}) {
@@ -4417,7 +4417,7 @@ func (c *Checker) checkInterfaceDeclaration(node ast.Handle) {
 	if !c.containerAllowsBlockScopedVariable(node.Parent()) {
 		c.grammarErrorOnNode(node, diagnostics.X_0_declarations_can_only_be_declared_inside_a_block, "interface")
 	}
-	c.checkTypeParameters(node.TypeParameters())
+	c.checkTypeParameters(node.TypeParametersSeq())
 	c.checkTypeNameIsReserved(node.Name(), diagnostics.Interface_name_cannot_be_0)
 	c.checkExportsOnMergedDeclarations(node)
 	symbol := c.getSymbolOfDeclaration(node)
@@ -4512,11 +4512,11 @@ func (c *Checker) checkEnumDeclaration(node ast.Handle) {
 			if declaration.Kind != ast.KindEnumDeclaration {
 				continue
 			}
-			members := declaration.Members()
-			if len(members) == 0 {
+			members := declaration.MembersSeq()
+			if members.Len() == 0 {
 				continue
 			}
-			firstEnumMember := members[0]
+			firstEnumMember := members.First()
 			if firstEnumMember.Initializer().IsNil() {
 				if seenEnumMissingInitialInitializer {
 					c.error(firstEnumMember.Name(), diagnostics.In_an_enum_with_multiple_declarations_only_one_declaration_can_omit_an_initializer_for_its_first_enum_element)
@@ -5940,10 +5940,10 @@ func (c *Checker) checkTypeAliasDeclaration(node ast.Handle) {
 	}
 	c.checkExportsOnMergedDeclarations(node)
 	typeNode := node.Type()
-	typeParameters := node.TypeParameters()
-	c.checkTypeParameters(typeParameters)
+	c.checkTypeParameters(node.TypeParametersSeq())
 	if !typeNode.IsNil() && typeNode.Kind == ast.KindIntrinsicKeyword {
-		if !(len(typeParameters) == 0 && node.Name().Text() == "BuiltinIteratorReturn" || len(typeParameters) == 1 && intrinsicTypeKinds[node.Name().Text()] != IntrinsicTypeKindUnknown) {
+		n := node.TypeParametersSeq().Len()
+		if !(n == 0 && node.Name().Text() == "BuiltinIteratorReturn" || n == 1 && intrinsicTypeKinds[node.Name().Text()] != IntrinsicTypeKindUnknown) {
 			c.error(typeNode, diagnostics.The_intrinsic_keyword_can_only_be_used_to_declare_compiler_provided_intrinsic_types)
 		}
 		return
@@ -6037,9 +6037,9 @@ func (c *Checker) getDeclarationSpaces(node ast.Handle) DeclarationSpaces {
 	}
 	panic("Unhandled case in getDeclarationSpaces: " + node.Kind.String())
 }
-func (c *Checker) checkTypeParameters(typeParameterDeclarations []ast.Handle) {
+func (c *Checker) checkTypeParameters(typeParameterDeclarations ast.NodeSeq) {
 	seenDefault := false
-	for i, node := range typeParameterDeclarations {
+	for i, node := range typeParameterDeclarations.All() {
 		c.checkTypeParameter(node)
 		defaultTypeNode := node.TypeParameterDeclarationDefaultType()
 		if !defaultTypeNode.IsNil() {
@@ -6049,21 +6049,22 @@ func (c *Checker) checkTypeParameters(typeParameterDeclarations []ast.Handle) {
 			c.error(node, diagnostics.Required_type_parameters_may_not_follow_optional_type_parameters)
 		}
 		for j := range i {
-			if typeParameterDeclarations[j].Symbol() == node.Symbol() {
+			if typeParameterDeclarations.At(j).Symbol() == node.Symbol() {
 				c.error(node.Name(), diagnostics.Duplicate_identifier_0, scanner.DeclarationNameToString(node.Name()))
 			}
 		}
 	}
 }
 
-func (c *Checker) checkTypeParametersNotReferenced(root ast.Handle, typeParameters []ast.Handle, index int) {
+func (c *Checker) checkTypeParametersNotReferenced(root ast.Handle, typeParameters ast.NodeSeq, index int) {
 	var visit func(ast.Handle) bool
 	visit = func(node ast.Handle) bool {
 		if ast.IsTypeReferenceNode(node) {
 			t := c.getTypeFromTypeReference(node)
 			if t.flags&TypeFlagsTypeParameter != 0 {
-				for i := index; i < len(typeParameters); i++ {
-					if t.symbol == c.getSymbolOfDeclaration(typeParameters[i]) {
+				ln := typeParameters.Len()
+				for i := index; i < ln; i++ {
+					if t.symbol == c.getSymbolOfDeclaration(typeParameters.At(i)) {
 						c.error(node, diagnostics.Type_parameter_defaults_can_only_reference_previously_declared_type_parameters)
 					}
 				}
@@ -6911,9 +6912,9 @@ func (c *Checker) checkRegularExpressionLiteral(node ast.Handle) *Type {
 	return c.globalRegExpType
 }
 func (c *Checker) checkArrayLiteral(node ast.Handle, checkMode CheckMode) *Type {
-	elements := node.Elements()
-	elementTypes := make([]*Type, len(elements))
-	elementInfos := make([]TupleElementInfo, len(elements))
+	ln := node.ElementsSeq().Len()
+	elementTypes := make([]*Type, ln)
+	elementInfos := make([]TupleElementInfo, ln)
 	c.pushCachedContextualType(node)
 	inDestructuringPattern := ast.IsAssignmentTarget(node)
 	inConstContext := c.isConstContext(node)
@@ -6922,7 +6923,7 @@ func (c *Checker) checkArrayLiteral(node ast.Handle, checkMode CheckMode) *Type 
 		return c.isTupleLikeType(t) || c.isGenericMappedType(t) && t.AsMappedType().nameType == nil && c.getHomomorphicTypeVariable(core.OrElse(t.AsMappedType().target, t)) != nil
 	})
 	hasOmittedExpression := false
-	for i, e := range elements {
+	for i, e := range node.ElementsSeq().All() {
 		switch {
 		case ast.IsSpreadElement(e):
 			spreadType := c.checkExpressionEx(e.Expression(), checkMode)
@@ -7128,29 +7129,32 @@ func (c *Checker) getConstituentProperty(objectType *Type, propertyName string) 
 }
 func (c *Checker) checkImportCallExpression(node ast.Handle) *Type {
 	c.checkGrammarImportCallExpression(node)
-	args := node.Arguments()
-	if len(args) == 0 {
+	list := node.ArgumentList()
+	store := node.Store()
+	ln := store.ListLen(list)
+	if ln == 0 {
 		return c.createPromiseReturnType(node, c.anyType)
 	}
-	specifier := args[0]
+	specifier := store.ListAt(list, 0)
 	specifierType := c.checkExpressionCached(specifier)
 	var optionsType *Type
-	if len(args) > 1 {
-		optionsType = c.checkExpressionCached(args[1])
+	if ln > 1 {
+		optionsType = c.checkExpressionCached(store.ListAt(list, 1))
 	}
-	for i := 2; i < len(args); i++ {
-		c.checkExpressionCached(args[i])
+	for i := 2; i < ln; i++ {
+		c.checkExpressionCached(store.ListAt(list, i))
 	}
 	if specifierType.flags&TypeFlagsNullable != 0 || !c.isTypeAssignableTo(specifierType, c.stringType) {
 		c.error(specifier, diagnostics.Dynamic_import_s_specifier_must_be_of_type_string_but_here_has_type_0, c.TypeToString(specifierType))
 	}
 	if optionsType != nil {
+		optionsArg := store.ListAt(list, 1)
 		importCallOptionsType := c.getGlobalImportCallOptionsTypeChecked()
 		if importCallOptionsType != c.emptyObjectType {
-			c.checkTypeAssignableTo(optionsType, c.getNullableType(importCallOptionsType, TypeFlagsUndefined), args[1], nil)
+			c.checkTypeAssignableTo(optionsType, c.getNullableType(importCallOptionsType, TypeFlagsUndefined), optionsArg, nil)
 		}
-		if ast.IsObjectLiteralExpression(args[1]) {
-			for _, prop := range (args[1]).Store().ListSlice(args[1].ObjectLiteralExpressionProperties()).All() {
+		if ast.IsObjectLiteralExpression(optionsArg) {
+			for _, prop := range optionsArg.Store().ListSlice(optionsArg.ObjectLiteralExpressionProperties()).All() {
 				if ast.IsPropertyAssignment(prop) && ast.IsIdentifier(prop.Name()) && prop.Name().Text() == "assert" {
 					c.error(prop.Name(), diagnostics.Import_assertions_have_been_replaced_by_import_attributes_Use_with_instead_of_assert)
 					break
@@ -7295,7 +7299,7 @@ func (c *Checker) resolveCallExpression(node ast.Handle, candidatesOutArray *[]*
 		if !c.isErrorType(superType) {
 			baseTypeNode := ast.GetClassExtendsHeritageElement(ast.GetContainingClass(node))
 			if !baseTypeNode.IsNil() {
-				baseConstructors := c.getInstantiatedConstructorsForTypeArguments(superType, baseTypeNode.TypeArguments(), baseTypeNode)
+				baseConstructors := c.getInstantiatedConstructorsForTypeArguments(superType, baseTypeNode.TypeArgumentsSeq(), baseTypeNode)
 				return c.resolveCall(node, baseConstructors, candidatesOutArray, checkMode, SignatureFlagsNone, nil)
 			}
 		}
@@ -7576,8 +7580,8 @@ func (c *Checker) resolveInstanceofExpression(node ast.Handle, candidatesOutArra
 
 type CallState struct {
 	node                           ast.Handle
-	typeArguments                  []ast.Handle
-	args                           []ast.Handle
+	typeArguments                  ast.NodeSeq
+	args                           ast.NodeSeq
 	candidates                     []*Signature
 	argCheckMode                   CheckMode
 	isSingleNonGenericCandidate    bool
@@ -7596,9 +7600,9 @@ func (c *Checker) resolveCall(node ast.Handle, signatures []*Signature, candidat
 	var s CallState
 	s.node = node
 	if !isDecorator && !isInstanceof && !isSuperCall(node) && !ast.IsJsxOpeningFragment(node) {
-		s.typeArguments = node.TypeArguments()
+		s.typeArguments = node.TypeArgumentsSeq()
 		if isTaggedTemplate || isJsxOpeningOrSelfClosingElement || node.Expression().Kind != ast.KindSuperKeyword {
-			c.checkSourceElements(s.typeArguments)
+			c.checkSourceElementsSeq(s.typeArguments)
 		}
 	}
 	s.candidates = c.reorderCandidates(signatures, callChainFlags)
@@ -7610,7 +7614,7 @@ func (c *Checker) resolveCall(node ast.Handle, signatures []*Signature, candidat
 	}
 	s.args = c.getEffectiveCallArguments(node)
 	s.isSingleNonGenericCandidate = len(s.candidates) == 1 && len(s.candidates[0].typeParameters) == 0
-	if !isDecorator && !s.isSingleNonGenericCandidate && core.Some(s.args, c.isContextSensitive) {
+	if !isDecorator && !s.isSingleNonGenericCandidate && s.args.Some(c.isContextSensitive) {
 		s.argCheckMode = CheckModeSkipContextSensitive
 	} else {
 		s.argCheckMode = CheckModeNormal
@@ -7700,7 +7704,7 @@ func (c *Checker) chooseOverload(s *CallState, relation *Relation) *Signature {
 	s.candidateForTypeArgumentError = nil
 	if s.isSingleNonGenericCandidate {
 		candidate := s.candidates[0]
-		if len(s.typeArguments) != 0 || !c.hasCorrectArity(s.node, s.args, candidate, s.signatureHelpTrailingComma) {
+		if s.typeArguments.Len() != 0 || !c.hasCorrectArity(s.node, s.args, candidate, s.signatureHelpTrailingComma) {
 			return nil
 		}
 		if !c.isSignatureApplicable(s.node, s.args, candidate, relation, CheckModeNormal, false, nil) {
@@ -7710,15 +7714,15 @@ func (c *Checker) chooseOverload(s *CallState, relation *Relation) *Signature {
 		return candidate
 	}
 	for candidateIndex, candidate := range s.candidates {
-		if !c.hasCorrectTypeArgumentArity(candidate, s.typeArguments) || !c.hasCorrectArity(s.node, s.args, candidate, s.signatureHelpTrailingComma) {
+		if !c.hasCorrectTypeArgumentAritySeq(candidate, s.typeArguments) || !c.hasCorrectArity(s.node, s.args, candidate, s.signatureHelpTrailingComma) {
 			continue
 		}
 		var checkCandidate *Signature
 		var inferenceContext *InferenceContext
 		if len(candidate.typeParameters) != 0 {
 			var typeArgumentTypes []*Type
-			if len(s.typeArguments) != 0 {
-				typeArgumentTypes = c.checkTypeArguments(candidate, s.typeArguments, false, nil)
+			if s.typeArguments.Len() != 0 {
+				typeArgumentTypes = c.checkTypeArgumentsSeq(candidate, s.typeArguments, false, nil)
 				if typeArgumentTypes == nil {
 					s.candidateForTypeArgumentError = candidate
 					continue
@@ -7766,7 +7770,7 @@ func (c *Checker) chooseOverload(s *CallState, relation *Relation) *Signature {
 	}
 	return nil
 }
-func (c *Checker) hasCorrectArity(node ast.Handle, args []ast.Handle, signature *Signature, signatureHelpTrailingComma bool) bool {
+func (c *Checker) hasCorrectArity(node ast.Handle, args ast.NodeSeq, signature *Signature, signatureHelpTrailingComma bool) bool {
 	if ast.IsJsxOpeningFragment(node) {
 		return true
 	}
@@ -7776,7 +7780,7 @@ func (c *Checker) hasCorrectArity(node ast.Handle, args []ast.Handle, signature 
 	effectiveMinimumArguments := c.getMinArgumentCount(signature)
 	switch {
 	case ast.IsTaggedTemplateExpression(node):
-		argCount = len(args)
+		argCount = args.Len()
 		template := node.TaggedTemplateExpressionTemplate()
 		if ast.IsTemplateExpression(template) {
 			lastSpan := template.Store().ListSlice(template.TemplateExpressionTemplateSpans()).Last()
@@ -7793,19 +7797,19 @@ func (c *Checker) hasCorrectArity(node ast.Handle, args []ast.Handle, signature 
 		if callIsIncomplete {
 			return true
 		}
-		argCount = core.IfElse(effectiveMinimumArguments == 0, len(args), 1)
-		effectiveParameterCount = core.IfElse(len(args) == 0, effectiveParameterCount, 1)
+		argCount = core.IfElse(effectiveMinimumArguments == 0, args.Len(), 1)
+		effectiveParameterCount = core.IfElse(args.Len() == 0, effectiveParameterCount, 1)
 		effectiveMinimumArguments = min(effectiveMinimumArguments, 1)
 	case ast.IsNewExpression(node) && node.ArgumentList() == 0:
 		return c.getMinArgumentCount(signature) == 0
 	default:
 		if signatureHelpTrailingComma {
-			argCount = len(args) + 1
+			argCount = args.Len() + 1
 		} else {
-			argCount = len(args)
+			argCount = args.Len()
 		}
 		callIsIncomplete = node.Store().ListLoc(node.ArgumentList()).End() == node.End()
-		spreadArgIndex := c.getSpreadArgumentIndex(args)
+		spreadArgIndex := c.getSpreadArgumentIndexSeq(args)
 		if spreadArgIndex >= 0 {
 			return spreadArgIndex >= c.getMinArgumentCount(signature) && (c.hasEffectiveRestParameter(signature) || spreadArgIndex < c.getParameterCount(signature))
 		}
@@ -7853,17 +7857,11 @@ func (c *Checker) getLegacyDecoratorArgumentCount(node ast.Handle, signature *Si
 	}
 	panic("Unhandled case in getLegacyDecoratorArgumentCount")
 }
-func (c *Checker) hasCorrectTypeArgumentArity(signature *Signature, typeArguments []ast.Handle) bool {
-	return c.hasCorrectTypeArgumentAritySeq(signature, ast.NodeSequence(typeArguments))
-}
 func (c *Checker) hasCorrectTypeArgumentAritySeq(signature *Signature, typeArguments ast.NodeSeq) bool {
 	numTypeParameters := len(signature.typeParameters)
 	minTypeArgumentCount := c.getMinTypeArgumentCount(signature.typeParameters)
 	n := typeArguments.Len()
 	return n == 0 || n >= minTypeArgumentCount && n <= numTypeParameters
-}
-func (c *Checker) checkTypeArguments(signature *Signature, typeArgumentNodes []ast.Handle, reportErrors bool, headMessage *diagnostics.Message) []*Type {
-	return c.checkTypeArgumentsSeq(signature, ast.NodeSequence(typeArgumentNodes), reportErrors, headMessage)
 }
 func (c *Checker) checkTypeArgumentsSeq(signature *Signature, typeArgumentNodes ast.NodeSeq, reportErrors bool, headMessage *diagnostics.Message) []*Type {
 	isJavaScript := ast.IsInJSFile(signature.declaration)
@@ -7902,7 +7900,7 @@ func (c *Checker) checkTypeArgumentsSeq(signature *Signature, typeArgumentNodes 
 	}
 	return typeArgumentTypes
 }
-func (c *Checker) isSignatureApplicable(node ast.Handle, args []ast.Handle, signature *Signature, relation *Relation, checkMode CheckMode, reportErrors bool, diagnosticOutput *[]*ast.Diagnostic) bool {
+func (c *Checker) isSignatureApplicable(node ast.Handle, args ast.NodeSeq, signature *Signature, relation *Relation, checkMode CheckMode, reportErrors bool, diagnosticOutput *[]*ast.Diagnostic) bool {
 	if ast.IsJsxCallLike(node) {
 		return c.checkApplicableSignatureForJsxCallLikeElement(node, signature, relation, checkMode, reportErrors, diagnosticOutput)
 	}
@@ -7926,12 +7924,12 @@ func (c *Checker) isSignatureApplicable(node ast.Handle, args []ast.Handle, sign
 	restType := c.getNonArrayRestType(signature)
 	var argCount int
 	if restType != nil {
-		argCount = min(c.getParameterCount(signature)-1, len(args))
+		argCount = min(c.getParameterCount(signature)-1, args.Len())
 	} else {
-		argCount = len(args)
+		argCount = args.Len()
 	}
 	for i := range argCount {
-		arg := args[i]
+		arg := args.At(i)
 		if !ast.IsOmittedExpression(arg) {
 			paramType := c.getTypeAtPosition(signature, i)
 			argType := c.checkExpressionWithContextualType(arg, paramType, nil, checkMode)
@@ -7949,18 +7947,18 @@ func (c *Checker) isSignatureApplicable(node ast.Handle, args []ast.Handle, sign
 		}
 	}
 	if restType != nil {
-		spreadType := c.getSpreadArgumentType(args, argCount, len(args), restType, nil, checkMode)
-		restArgCount := len(args) - argCount
+		spreadType := c.getSpreadArgumentType(args, argCount, args.Len(), restType, nil, checkMode)
+		restArgCount := args.Len() - argCount
 		var errorNode ast.Handle
 		if reportErrors {
 			switch restArgCount {
 			case 0:
 				errorNode = node
 			case 1:
-				errorNode = c.getEffectiveCheckNode(args[argCount])
+				errorNode = c.getEffectiveCheckNode(args.At(argCount))
 			default:
 				errorNode = c.createSyntheticExpression(node, spreadType, false, ast.Handle{})
-				errorNode.SetLoc(core.NewTextRange(args[argCount].Pos(), args[len(args)-1].End()))
+				errorNode.SetLoc(core.NewTextRange(args.At(argCount).Pos(), args.At(args.Len()-1).End()))
 			}
 		}
 		if !c.checkTypeRelatedToEx(spreadType, restType, relation, errorNode, headMessage, diagnosticOutput) {
@@ -8020,7 +8018,7 @@ func (c *Checker) getEffectiveCheckNode(argument ast.Handle) ast.Handle {
 	flags := core.IfElse(ast.IsInJSFile(argument), ast.OEKParentheses|ast.OEKSatisfies|ast.OEKExcludeJSDocTypeAssertion, ast.OEKParentheses|ast.OEKSatisfies)
 	return ast.SkipOuterExpressions(argument, flags)
 }
-func (c *Checker) inferTypeArguments(node ast.Handle, signature *Signature, args []ast.Handle, checkMode CheckMode, context *InferenceContext) []*Type {
+func (c *Checker) inferTypeArguments(node ast.Handle, signature *Signature, args ast.NodeSeq, checkMode CheckMode, context *InferenceContext) []*Type {
 	if ast.IsJsxOpeningLikeElement(node) {
 		return c.inferJsxTypeArguments(node, signature, checkMode, context)
 	}
@@ -8062,7 +8060,7 @@ func (c *Checker) inferTypeArguments(node ast.Handle, signature *Signature, args
 		}
 	}
 	restType := c.getNonArrayRestType(signature)
-	argCount := len(args)
+	argCount := args.Len()
 	if restType != nil {
 		argCount = min(c.getParameterCount(signature)-1, argCount)
 	}
@@ -8071,8 +8069,15 @@ func (c *Checker) inferTypeArguments(node ast.Handle, signature *Signature, args
 			return info.typeParameter == restType
 		})
 		if info != nil {
-			if core.FindIndex(args[argCount:], isSpreadArgument) < 0 {
-				info.impliedArity = len(args) - argCount
+			spreadInRest := false
+			for i := argCount; i < args.Len(); i++ {
+				if isSpreadArgument(args.At(i)) {
+					spreadInRest = true
+					break
+				}
+			}
+			if !spreadInRest {
+				info.impliedArity = args.Len() - argCount
 			}
 		}
 	}
@@ -8082,7 +8087,7 @@ func (c *Checker) inferTypeArguments(node ast.Handle, signature *Signature, args
 		c.inferTypes(context.inferences, c.getThisArgumentType(thisArgumentNode), thisType, InferencePriorityNone, false)
 	}
 	for i := range argCount {
-		arg := args[i]
+		arg := args.At(i)
 		if arg.Kind != ast.KindOmittedExpression {
 			paramType := c.getTypeAtPosition(signature, i)
 			if c.couldContainTypeVariables(paramType) {
@@ -8092,13 +8097,13 @@ func (c *Checker) inferTypeArguments(node ast.Handle, signature *Signature, args
 		}
 	}
 	if restType != nil && c.couldContainTypeVariables(restType) {
-		spreadType := c.getSpreadArgumentType(args, argCount, len(args), restType, context, checkMode)
+		spreadType := c.getSpreadArgumentType(args, argCount, args.Len(), restType, context, checkMode)
 		c.inferTypes(context.inferences, spreadType, restType, InferencePriorityNone, false)
 	}
 	return c.getInferredTypes(context)
 }
 
-func (c *Checker) getCandidateForOverloadFailure(node ast.Handle, candidates []*Signature, args []ast.Handle, hasCandidatesOutArray bool, checkMode CheckMode) *Signature {
+func (c *Checker) getCandidateForOverloadFailure(node ast.Handle, candidates []*Signature, args ast.NodeSeq, hasCandidatesOutArray bool, checkMode CheckMode) *Signature {
 	c.checkNodeDeferred(node)
 	if hasCandidatesOutArray || len(candidates) == 1 || core.Some(candidates, func(s *Signature) bool {
 		return len(s.typeParameters) != 0
@@ -8107,8 +8112,8 @@ func (c *Checker) getCandidateForOverloadFailure(node ast.Handle, candidates []*
 	}
 	return c.createUnionOfSignaturesForOverloadFailure(candidates)
 }
-func (c *Checker) pickLongestCandidateSignature(node ast.Handle, candidates []*Signature, args []ast.Handle, checkMode CheckMode) *Signature {
-	argCount := len(args)
+func (c *Checker) pickLongestCandidateSignature(node ast.Handle, candidates []*Signature, args ast.NodeSeq, checkMode CheckMode) *Signature {
+	argCount := args.Len()
 	if c.apparentArgumentCount != nil {
 		argCount = *c.apparentArgumentCount
 	}
@@ -8118,12 +8123,12 @@ func (c *Checker) pickLongestCandidateSignature(node ast.Handle, candidates []*S
 	if len(typeParameters) == 0 {
 		return candidate
 	}
-	var typeArgumentNodes []ast.Handle
+	typeArgumentNodes := ast.EmptyNodeSeq
 	if c.callLikeExpressionMayHaveTypeArguments(node) {
-		typeArgumentNodes = node.TypeArguments()
+		typeArgumentNodes = node.TypeArgumentsSeq()
 	}
 	var instantiated *Signature
-	if len(typeArgumentNodes) != 0 {
+	if typeArgumentNodes.Len() != 0 {
 		instantiated = c.createSignatureInstantiation(candidate, c.getTypeArgumentsFromNodes(typeArgumentNodes, typeParameters))
 	} else {
 		instantiated = c.inferSignatureInstantiationForOverloadFailure(node, typeParameters, candidate, args, checkMode)
@@ -8146,11 +8151,15 @@ func (c *Checker) getLongestCandidateIndex(candidates []*Signature, argsCount in
 	}
 	return maxParamsIndex
 }
-func (c *Checker) getTypeArgumentsFromNodes(typeArgumentNodes []ast.Handle, typeParameters []*Type) []*Type {
-	if len(typeArgumentNodes) > len(typeParameters) {
-		typeArgumentNodes = typeArgumentNodes[:len(typeParameters)]
+func (c *Checker) getTypeArgumentsFromNodes(typeArgumentNodes ast.NodeSeq, typeParameters []*Type) []*Type {
+	n := typeArgumentNodes.Len()
+	if n > len(typeParameters) {
+		n = len(typeParameters)
 	}
-	typeArguments := core.Map(typeArgumentNodes, c.getTypeFromTypeNode)
+	typeArguments := make([]*Type, 0, len(typeParameters))
+	for i := range n {
+		typeArguments = append(typeArguments, c.getTypeFromTypeNode(typeArgumentNodes.At(i)))
+	}
 	for len(typeArguments) < len(typeParameters) {
 		t := c.getDefaultFromTypeParameter(typeParameters[len(typeArguments)])
 		if t == nil {
@@ -8163,7 +8172,7 @@ func (c *Checker) getTypeArgumentsFromNodes(typeArgumentNodes []ast.Handle, type
 	}
 	return typeArguments
 }
-func (c *Checker) inferSignatureInstantiationForOverloadFailure(node ast.Handle, typeParameters []*Type, candidate *Signature, args []ast.Handle, checkMode CheckMode) *Signature {
+func (c *Checker) inferSignatureInstantiationForOverloadFailure(node ast.Handle, typeParameters []*Type, candidate *Signature, args ast.NodeSeq, checkMode CheckMode) *Signature {
 	inferenceContext := c.newInferenceContext(typeParameters, candidate, core.IfElse(ast.IsInJSFile(node), InferenceFlagsAnyDefault, InferenceFlagsNone), nil)
 	typeArgumentTypes := c.inferTypeArguments(node, candidate, args, checkMode|CheckModeSkipContextSensitive|CheckModeSkipGenericFunctions, inferenceContext)
 	return c.createSignatureInstantiation(candidate, typeArgumentTypes)
@@ -8257,10 +8266,10 @@ func (c *Checker) reportCallResolutionErrors(node ast.Handle, s *CallState, sign
 	case s.candidateForArgumentArityError != nil:
 		c.addDiagnostic(c.getArgumentArityError(s.node, []*Signature{s.candidateForArgumentArityError}, s.args, headMessage))
 	case s.candidateForTypeArgumentError != nil:
-		c.checkTypeArguments(s.candidateForTypeArgumentError, s.node.TypeArguments(), true, headMessage)
+		c.checkTypeArgumentsSeq(s.candidateForTypeArgumentError, s.node.TypeArgumentsSeq(), true, headMessage)
 	case !ast.IsJsxOpeningFragment(node):
 		signaturesWithCorrectTypeArgumentArity := core.Filter(signatures, func(sig *Signature) bool {
-			return c.hasCorrectTypeArgumentArity(sig, s.typeArguments)
+			return c.hasCorrectTypeArgumentAritySeq(sig, s.typeArguments)
 		})
 		if len(signaturesWithCorrectTypeArgumentArity) == 0 {
 			c.addDiagnostic(c.getTypeArgumentArityError(s.node, signatures, s.typeArguments, headMessage))
@@ -8288,16 +8297,17 @@ func (c *Checker) addImplementationSuccessElaboration(s *CallState, failed *Sign
 		}
 	}
 }
-func (c *Checker) getArgumentArityError(node ast.Handle, signatures []*Signature, args []ast.Handle, headMessage *diagnostics.Message) *ast.Diagnostic {
-	spreadIndex := c.getSpreadArgumentIndex(args)
+func (c *Checker) getArgumentArityError(node ast.Handle, signatures []*Signature, args ast.NodeSeq, headMessage *diagnostics.Message) *ast.Diagnostic {
+	spreadIndex := c.getSpreadArgumentIndexSeq(args)
 	if spreadIndex > -1 {
-		return NewDiagnosticForNode(args[spreadIndex], diagnostics.A_spread_argument_must_either_have_a_tuple_type_or_be_passed_to_a_rest_parameter)
+		return NewDiagnosticForNode(args.At(spreadIndex), diagnostics.A_spread_argument_must_either_have_a_tuple_type_or_be_passed_to_a_rest_parameter)
 	}
 	minCount := math.MaxInt
 	maxCount := math.MinInt
 	maxBelow := math.MinInt
 	minAbove := math.MaxInt
 	var closestSignature *Signature
+	argLen := args.Len()
 	for _, sig := range signatures {
 		minParameter := c.getMinArgumentCount(sig)
 		maxParameter := c.getParameterCount(sig)
@@ -8306,10 +8316,10 @@ func (c *Checker) getArgumentArityError(node ast.Handle, signatures []*Signature
 			closestSignature = sig
 		}
 		maxCount = max(maxCount, maxParameter)
-		if minParameter < len(args) && minParameter > maxBelow {
+		if minParameter < argLen && minParameter > maxBelow {
 			maxBelow = minParameter
 		}
-		if len(args) < maxParameter && maxParameter < minAbove {
+		if argLen < maxParameter && maxParameter < minAbove {
 			minAbove = maxParameter
 		}
 	}
@@ -8323,7 +8333,7 @@ func (c *Checker) getArgumentArityError(node ast.Handle, signatures []*Signature
 	default:
 		parameterRange = strconv.Itoa(minCount)
 	}
-	isVoidPromiseError := !hasRestParameter && parameterRange == "1" && len(args) == 0 && c.isPromiseResolveArityError(node)
+	isVoidPromiseError := !hasRestParameter && parameterRange == "1" && argLen == 0 && c.isPromiseResolveArityError(node)
 	errorNode := getErrorNodeForCallNode(node)
 	if isVoidPromiseError && ast.IsInJSFile(node) {
 		return NewDiagnosticForNode(errorNode, diagnostics.Expected_1_argument_but_got_0_new_Promise_needs_a_JSDoc_hint_to_produce_a_resolve_that_can_be_called_without_arguments)
@@ -8344,20 +8354,20 @@ func (c *Checker) getArgumentArityError(node ast.Handle, signatures []*Signature
 		message = diagnostics.Expected_0_arguments_but_got_1
 	}
 	switch {
-	case minCount < len(args) && len(args) < maxCount:
-		diagnostic := NewDiagnosticForNode(errorNode, diagnostics.No_overload_expects_0_arguments_but_overloads_do_exist_that_expect_either_1_or_2_arguments, len(args), maxBelow, minAbove)
+	case minCount < argLen && argLen < maxCount:
+		diagnostic := NewDiagnosticForNode(errorNode, diagnostics.No_overload_expects_0_arguments_but_overloads_do_exist_that_expect_either_1_or_2_arguments, argLen, maxBelow, minAbove)
 		if headMessage != nil {
 			diagnostic = ast.NewDiagnosticChain(diagnostic, headMessage)
 		}
 		return diagnostic
-	case len(args) < minCount:
-		diagnostic := NewDiagnosticForNode(errorNode, message, parameterRange, len(args))
+	case argLen < minCount:
+		diagnostic := NewDiagnosticForNode(errorNode, message, parameterRange, argLen)
 		if headMessage != nil {
 			diagnostic = ast.NewDiagnosticChain(diagnostic, headMessage)
 		}
 		var parameter ast.Handle
 		if closestSignature != nil && !closestSignature.declaration.IsNil() {
-			parameter = closestSignature.declaration.ParametersSeq().At(len(args) + core.IfElse(closestSignature.thisParameter != nil, 1, 0))
+			parameter = closestSignature.declaration.ParametersSeq().At(argLen + core.IfElse(closestSignature.thisParameter != nil, 1, 0))
 		}
 		if !parameter.IsNil() {
 			var related *ast.Diagnostic
@@ -8373,16 +8383,16 @@ func (c *Checker) getArgumentArityError(node ast.Handle, signatures []*Signature
 		}
 		return diagnostic
 	default:
-		if maxCount >= len(args) {
-			diagnostic := NewDiagnosticForNode(errorNode, message, parameterRange, len(args))
+		if maxCount >= argLen {
+			diagnostic := NewDiagnosticForNode(errorNode, message, parameterRange, argLen)
 			if headMessage != nil {
 				diagnostic = ast.NewDiagnosticChain(diagnostic, headMessage)
 			}
 			return diagnostic
 		}
 		sourceFile := ast.GetSourceFileOfNode(node)
-		pos := args[maxCount].Pos()
-		end := args[len(args)-1].End()
+		pos := args.At(maxCount).Pos()
+		end := args.At(argLen - 1).End()
 		if end == pos {
 			end++
 		}
@@ -8390,7 +8400,7 @@ func (c *Checker) getArgumentArityError(node ast.Handle, signatures []*Signature
 		if end < pos {
 			end = pos
 		}
-		diagnostic := ast.NewDiagnostic(sourceFile, core.NewTextRange(pos, end), message, parameterRange, len(args))
+		diagnostic := ast.NewDiagnostic(sourceFile, core.NewTextRange(pos, end), message, parameterRange, argLen)
 		if headMessage != nil {
 			diagnostic = ast.NewDiagnosticChain(diagnostic, headMessage)
 		}
@@ -8425,9 +8435,9 @@ func getErrorNodeForCallNode(node ast.Handle) ast.Handle {
 	}
 	return node
 }
-func (c *Checker) getTypeArgumentArityError(node ast.Handle, signatures []*Signature, typeArguments []ast.Handle, headMessage *diagnostics.Message) *ast.Diagnostic {
+func (c *Checker) getTypeArgumentArityError(node ast.Handle, signatures []*Signature, typeArguments ast.NodeSeq, headMessage *diagnostics.Message) *ast.Diagnostic {
 	var diagnostic *ast.Diagnostic
-	argCount := len(typeArguments)
+	argCount := typeArguments.Len()
 	sourceFile := ast.GetSourceFileOfNode(node)
 	typeArgumentList := node.TypeArgumentList()
 	loc := core.NewTextRange(scanner.SkipTrivia(sourceFile.Text(), node.Store().ListLoc(typeArgumentList).Pos()), node.Store().ListLoc(typeArgumentList).End())
@@ -8829,16 +8839,17 @@ func (c *Checker) getIntersectedSignatures(signatures []*Signature) *Signature {
 }
 
 func (c *Checker) isAritySmaller(signature *Signature, target ast.Handle) bool {
-	parameters := target.Parameters()
+	params := target.ParametersSeq()
 	targetParameterCount := 0
-	for targetParameterCount < len(parameters) {
-		param := parameters[targetParameterCount]
+	ln := params.Len()
+	for targetParameterCount < ln {
+		param := params.At(targetParameterCount)
 		if !param.Initializer().IsNil() || !param.QuestionToken().IsNil() || hasDotDotDotToken(param) {
 			break
 		}
 		targetParameterCount++
 	}
-	if len(parameters) != 0 && ast.IsThisParameter(parameters[0]) {
+	if ln != 0 && ast.IsThisParameter(params.First()) {
 		targetParameterCount--
 	}
 	return !c.hasEffectiveRestParameter(signature) && c.getParameterCount(signature) < targetParameterCount
@@ -10756,8 +10767,7 @@ func (c *Checker) checkObjectLiteralAssignment(node ast.Handle, sourceType *Type
 }
 
 func (c *Checker) checkObjectLiteralDestructuringPropertyAssignment(node ast.Handle, objectLiteralType *Type, propertyIndex int, allProperties ast.ListRef, rightIsThis bool) *Type {
-	properties := node.Properties()
-	property := properties[propertyIndex]
+	property := node.Store().ListAt(node.PropertyList(), propertyIndex)
 	if ast.IsPropertyAssignment(property) || ast.IsShorthandPropertyAssignment(property) {
 		name := property.Name
 		exprType := c.getLiteralTypeFromPropertyName(name())
@@ -10778,7 +10788,7 @@ func (c *Checker) checkObjectLiteralDestructuringPropertyAssignment(node ast.Han
 		return c.checkDestructuringAssignment(expr, t, CheckModeNormal, false)
 	}
 	if ast.IsSpreadAssignment(property) {
-		if propertyIndex < len(properties)-1 {
+		if propertyIndex < node.Store().ListLen(node.PropertyList())-1 {
 			c.error(property, diagnostics.A_rest_element_must_be_last_in_a_destructuring_pattern)
 			return nil
 		}
@@ -10801,12 +10811,13 @@ func (c *Checker) checkObjectLiteralDestructuringPropertyAssignment(node ast.Han
 	return nil
 }
 func (c *Checker) checkArrayLiteralAssignment(node ast.Handle, sourceType *Type, checkMode CheckMode) *Type {
-	elements := node.Elements()
+	elements := node.ElementList()
+	ln := node.Store().ListLen(elements)
 	possiblyOutOfBoundsType := core.OrElse(c.checkIteratedTypeOrElementType(IterationUseDestructuring|IterationUsePossiblyOutOfBounds, sourceType, c.undefinedType, node), c.errorType)
 	inBoundsType := core.IfElse(c.compilerOptions.NoUncheckedIndexedAccess == core.TSTrue, nil, possiblyOutOfBoundsType)
-	for i := range elements {
+	for i := range ln {
 		t := possiblyOutOfBoundsType
-		if elements[i].Kind == ast.KindSpreadElement {
+		if node.Store().ListAt(elements, i).Kind == ast.KindSpreadElement {
 			if inBoundsType == nil {
 				inBoundsType = core.OrElse(c.checkIteratedTypeOrElementType(IterationUseDestructuring, sourceType, c.undefinedType, node), c.errorType)
 			}
@@ -14039,11 +14050,11 @@ func (c *Checker) getTypeOfVariableOrParameterOrPropertyWorker(symbol *ast.Symbo
 	debug.Assert(symbol.ValueDeclaration != 0)
 	declaration := ast.NodeOf(symbol.ValueDeclaration)
 	if ast.IsSourceFile(declaration) && ast.IsJsonSourceFile(ast.GetSourceFileOfNode(declaration)) {
-		statements := declaration.Statements()
-		if len(statements) == 0 {
+		stmts := declaration.StatementsSeq()
+		if stmts.Len() == 0 {
 			return c.emptyObjectType
 		}
-		return c.getWidenedType(c.getWidenedLiteralType(c.checkExpression(statements[0].Expression())))
+		return c.getWidenedType(c.getWidenedLiteralType(c.checkExpression(stmts.First().Expression())))
 	}
 	if !c.pushTypeResolution(symbol, TypeSystemPropertyNameType) {
 		return c.reportCircularityError(symbol)
@@ -14268,15 +14279,17 @@ func (c *Checker) getPropertyNameFromBindingElement(e ast.Handle) string {
 	return ast.InternalSymbolNameMissing
 }
 func (c *Checker) padTupleType(t *Type, pattern ast.Handle) *Type {
-	patternElements := pattern.Elements()
-	if t.TargetTupleType().combinedFlags&ElementFlagsVariable != 0 || c.getTypeReferenceArity(t) >= len(patternElements) {
+	list := pattern.ElementList()
+	store := pattern.Store()
+	patternLen := store.ListLen(list)
+	if t.TargetTupleType().combinedFlags&ElementFlagsVariable != 0 || c.getTypeReferenceArity(t) >= patternLen {
 		return t
 	}
 	elementTypes := slices.Clone(c.getElementTypes(t))
 	elementInfos := slices.Clone(t.TargetTupleType().elementInfos)
-	for i := c.getTypeReferenceArity(t); i < len(patternElements); i++ {
-		e := patternElements[i]
-		if i < len(patternElements)-1 || !(ast.IsBindingElement(e) && hasDotDotDotToken(e)) {
+	for i := c.getTypeReferenceArity(t); i < patternLen; i++ {
+		e := store.ListAt(list, i)
+		if i < patternLen-1 || !(ast.IsBindingElement(e) && hasDotDotDotToken(e)) {
 			elementType := c.anyType
 			if !ast.IsOmittedExpression(e) && c.hasDefaultValue(e) {
 				elementType = c.getTypeFromBindingElement(e, false, false)
@@ -14568,9 +14581,9 @@ func (c *Checker) getTypeParametersForTypeAndSymbol(t *Type, symbol *ast.Symbol)
 	return nil
 }
 func (c *Checker) getEffectiveTypeArgumentAtIndex(node ast.Handle, typeParameters []*Type, index int) *Type {
-	typeArguments := node.TypeArguments()
-	if index < len(typeArguments) {
-		return c.getTypeFromTypeNode(typeArguments[index])
+	typeArguments := node.TypeArgumentsSeq()
+	if index < typeArguments.Len() {
+		return c.getTypeFromTypeNode(typeArguments.At(index))
 	}
 	return c.getEffectiveTypeArguments(node, typeParameters)[index]
 }
@@ -15025,9 +15038,9 @@ func (c *Checker) getBindingElementTypeFromParentType(declaration ast.Handle, pa
 				c.error(declaration, diagnostics.Rest_types_may_only_be_created_from_object_types)
 				return c.errorType
 			}
-			elements := pattern.Elements()
-			literalMembers := make([]ast.Handle, 0, len(elements))
-			for _, element := range elements {
+			seq := pattern.ElementsSeq()
+			literalMembers := make([]ast.Handle, 0, seq.Len())
+			for _, element := range seq.All() {
 				if !hasDotDotDotToken(element) {
 					name := element.PropertyNameOrName()
 					literalMembers = append(literalMembers, name)
@@ -15220,24 +15233,30 @@ func (c *Checker) getTypeFromObjectBindingPattern(pattern ast.Handle, includePat
 }
 
 func (c *Checker) getTypeFromArrayBindingPattern(pattern ast.Handle, includePatternInType bool, reportErrors bool) *Type {
-	elements := pattern.Elements()
-	lastElement := core.LastOrNil(elements)
+	seq := pattern.ElementsSeq()
+	ln := seq.Len()
+	lastElement := seq.Last()
 	var restElement ast.Handle
 	if !lastElement.IsNil() && ast.IsBindingElement(lastElement) && hasDotDotDotToken(lastElement) {
 		restElement = lastElement
 	}
-	if len(elements) == 0 || len(elements) == 1 && !restElement.IsNil() {
+	if ln == 0 || ln == 1 && !restElement.IsNil() {
 		if c.languageVersion >= core.ScriptTargetES2015 {
 			return c.createIterableType(c.anyType)
 		}
 		return c.anyArrayType
 	}
-	minLength := core.FindLastIndex(elements, func(e ast.Handle) bool {
-		return !(e == restElement || e.Name().IsNil() || c.hasDefaultValue(e))
-	}) + 1
-	elementTypes := make([]*Type, len(elements))
-	elementInfos := make([]TupleElementInfo, len(elements))
-	for i, e := range elements {
+	minLength := 0
+	for i := ln - 1; i >= 0; i-- {
+		e := seq.At(i)
+		if !(e == restElement || e.Name().IsNil() || c.hasDefaultValue(e)) {
+			minLength = i + 1
+			break
+		}
+	}
+	elementTypes := make([]*Type, ln)
+	elementInfos := make([]TupleElementInfo, ln)
+	for i, e := range seq.All() {
 		var t *Type
 		if e.Name().IsNil() {
 			t = c.anyType
@@ -15513,7 +15532,7 @@ func (c *Checker) reportImplicitAny(declaration ast.Handle, t *Type, wideningKin
 		if ast.IsIdentifier(param.Name()) {
 			name := param.Name()
 			originalKeywordKind := scanner.IdentifierToKeywordKind(name)
-			if (ast.IsCallSignatureDeclaration(declaration.Parent()) || ast.IsMethodSignatureDeclaration(declaration.Parent()) || ast.IsFunctionTypeNode(declaration.Parent())) && slices.Contains(declaration.Parent().Parameters(), declaration) && (ast.IsTypeNodeKind(originalKeywordKind) || c.resolveName(declaration, name.Text(), ast.SymbolFlagsType, nil, true, false) != nil) {
+			if (ast.IsCallSignatureDeclaration(declaration.Parent()) || ast.IsMethodSignatureDeclaration(declaration.Parent()) || ast.IsFunctionTypeNode(declaration.Parent())) && declaration.Parent().Store().ListIndexOf(declaration.Parent().ParameterList(), declaration) >= 0 && (ast.IsTypeNodeKind(originalKeywordKind) || c.resolveName(declaration, name.Text(), ast.SymbolFlagsType, nil, true, false) != nil) {
 				newName := fmt.Sprintf("arg%v", declaration.Parent().Store().ListIndexOf(declaration.Parent().ParameterList(), declaration))
 				typeName := scanner.DeclarationNameToString(param.Name()) + core.IfElse(!param.DotDotDotToken().IsNil(), "[]", "")
 				c.errorOrSuggestion(c.noImplicitAny, declaration, diagnostics.Parameter_has_a_name_but_no_type_Did_you_mean_0_Colon_1, newName, typeName)
@@ -16339,7 +16358,7 @@ func (c *Checker) resolveBaseTypesOfClass(t *Type) {
 	} else if baseConstructorType.flags&TypeFlagsAny != 0 {
 		baseType = baseConstructorType
 	} else {
-		constructors := c.getInstantiatedConstructorsForTypeArguments(baseConstructorType, baseTypeNode.TypeArguments(), baseTypeNode)
+		constructors := c.getInstantiatedConstructorsForTypeArguments(baseConstructorType, baseTypeNode.TypeArgumentsSeq(), baseTypeNode)
 		if len(constructors) == 0 {
 			c.error(baseTypeNode.Expression(), diagnostics.No_base_constructor_has_the_specified_number_of_type_arguments)
 			return
@@ -16370,9 +16389,12 @@ func getBaseTypeNodeOfClass(t *Type) ast.Handle {
 	}
 	return ast.Handle{}
 }
-func (c *Checker) getInstantiatedConstructorsForTypeArguments(t *Type, typeArgumentNodes []ast.Handle, location ast.Handle) []*Signature {
+func (c *Checker) getInstantiatedConstructorsForTypeArguments(t *Type, typeArgumentNodes ast.NodeSeq, location ast.Handle) []*Signature {
 	signatures := c.getConstructorsForTypeArguments(t, typeArgumentNodes, location)
-	typeArguments := core.Map(typeArgumentNodes, c.getTypeFromTypeNode)
+	typeArguments := make([]*Type, 0, typeArgumentNodes.Len())
+	for _, n := range typeArgumentNodes.All() {
+		typeArguments = append(typeArguments, c.getTypeFromTypeNode(n))
+	}
 	return core.SameMap(signatures, func(sig *Signature) *Signature {
 		if len(sig.typeParameters) != 0 {
 			return c.getSignatureInstantiation(sig, typeArguments, ast.IsInJSFile(location), nil)
@@ -16380,8 +16402,8 @@ func (c *Checker) getInstantiatedConstructorsForTypeArguments(t *Type, typeArgum
 		return sig
 	})
 }
-func (c *Checker) getConstructorsForTypeArguments(t *Type, typeArgumentNodes []ast.Handle, location ast.Handle) []*Signature {
-	typeArgCount := len(typeArgumentNodes)
+func (c *Checker) getConstructorsForTypeArguments(t *Type, typeArgumentNodes ast.NodeSeq, location ast.Handle) []*Signature {
+	typeArgCount := typeArgumentNodes.Len()
 	return core.Filter(c.getSignaturesOfType(t, SignatureKindConstruct), func(sig *Signature) bool {
 		return typeArgCount >= c.getMinTypeArgumentCount(sig.typeParameters) && typeArgCount <= len(sig.typeParameters)
 	})
@@ -16693,10 +16715,10 @@ func (c *Checker) getIndexInfosOfIndexSymbol(indexSymbol *ast.Symbol, siblingSym
 	var propertySymbols []*ast.Symbol
 	for _, declaration := range ast.DeclarationNodes(indexSymbol).All() {
 		if ast.IsIndexSignatureDeclaration(declaration) {
-			parameters := declaration.Parameters()
+			params := declaration.ParametersSeq()
 			returnTypeNode := declaration.Type()
-			if len(parameters) == 1 {
-				typeNode := parameters[0].Type()
+			if params.Len() == 1 {
+				typeNode := params.First().Type()
 				if !typeNode.IsNil() {
 					valueType := c.anyType
 					if !returnTypeNode.IsNil() {
@@ -16934,7 +16956,7 @@ func (c *Checker) getTypeParametersFromDeclaration(declaration ast.Handle) []*Ty
 		return sig.TypeParameters()
 	}
 	var result []*Type
-	for _, node := range declaration.TypeParameters() {
+	for _, node := range declaration.TypeParametersSeq().All() {
 		result = core.AppendIfUnique(result, c.getDeclaredTypeOfTypeParameter(node.Symbol()))
 	}
 	return result
@@ -19650,7 +19672,7 @@ func (c *Checker) getIntendedTypeFromJSDocTypeReference(node ast.Handle) *Type {
 	if node.Flags()&ast.NodeFlagsJSDoc != 0 && ast.IsTypeReferenceNode(node) {
 		typeName := node.TypeReferenceNodeTypeName()
 		if ast.IsIdentifier(typeName) {
-			typeArgs := node.TypeArguments()
+			typeArgs := node.TypeArgumentsSeq()
 			switch typeName.Text() {
 			case "String":
 				c.checkNoTypeArguments(node, nil)
@@ -19677,18 +19699,18 @@ func (c *Checker) getIntendedTypeFromJSDocTypeReference(node ast.Handle) *Type {
 				c.checkNoTypeArguments(node, nil)
 				return c.globalFunctionType
 			case "array":
-				if len(typeArgs) == 0 && !c.noImplicitAny {
+				if typeArgs.Len() == 0 && !c.noImplicitAny {
 					return c.anyArrayType
 				}
 			case "promise":
-				if len(typeArgs) == 0 && !c.noImplicitAny {
+				if typeArgs.Len() == 0 && !c.noImplicitAny {
 					return c.createPromiseType(c.anyType)
 				}
 			case "Object":
-				if len(typeArgs) == 2 {
+				if typeArgs.Len() == 2 {
 					if recordSymbol := c.getGlobalRecordSymbol(); recordSymbol != nil {
-						if indexType := c.getTypeFromTypeNode(typeArgs[0]); c.isValidIndexKeyType(indexType) {
-							return c.getTypeAliasInstantiation(recordSymbol, []*Type{indexType, c.getTypeFromTypeNode(typeArgs[1])}, nil)
+						if indexType := c.getTypeFromTypeNode(typeArgs.At(0)); c.isValidIndexKeyType(indexType) {
+							return c.getTypeAliasInstantiation(recordSymbol, []*Type{indexType, c.getTypeFromTypeNode(typeArgs.At(1))}, nil)
 						}
 					}
 					return c.anyType
@@ -20132,9 +20154,8 @@ func (c *Checker) getTupleElementType(t *Type, index int) *Type {
 }
 
 func (c *Checker) getTypeFromTypeAliasReference(node ast.Handle, symbol *ast.Symbol) *Type {
-	typeArguments := node.TypeArguments()
 	if symbol.CheckFlags&ast.CheckFlagsUnresolved != 0 {
-		alias := &TypeAlias{symbol: symbol, typeArguments: core.Map(typeArguments, c.getTypeFromTypeNode)}
+		alias := &TypeAlias{symbol: symbol, typeArguments: c.getTypeArgumentsFromNode(node)}
 		key := getAliasKey(alias)
 		errorType := c.errorTypes[key]
 		if errorType == nil {
@@ -20147,7 +20168,7 @@ func (c *Checker) getTypeFromTypeAliasReference(node ast.Handle, symbol *ast.Sym
 	t := c.getDeclaredTypeOfSymbol(symbol)
 	typeParameters := c.typeAliasLinks.Get(symbol).typeParameters
 	if len(typeParameters) != 0 {
-		numTypeArguments := len(typeArguments)
+		numTypeArguments := typeArgumentCount(node)
 		minTypeArgumentCount := c.getMinTypeArgumentCount(typeParameters)
 		if numTypeArguments < minTypeArgumentCount || numTypeArguments > len(typeParameters) {
 			message := core.IfElse(minTypeArgumentCount == len(typeParameters), diagnostics.Generic_type_0_requires_1_type_argument_s, diagnostics.Generic_type_0_requires_between_1_and_2_type_arguments)
@@ -20316,7 +20337,7 @@ func (c *Checker) getOuterTypeParameters(node ast.Handle, includeThisTypes bool)
 			if kind == ast.KindConditionalType {
 				return append(outerTypeParameters, c.getInferTypeParameters(node)...)
 			}
-			outerAndOwnTypeParameters := c.appendTypeParameters(outerTypeParameters, node.TypeParameters())
+			outerAndOwnTypeParameters := c.appendTypeParameters(outerTypeParameters, node.TypeParametersSeq())
 			var thisType *Type
 			if includeThisTypes && (kind == ast.KindClassDeclaration || kind == ast.KindClassExpression || kind == ast.KindInterfaceDeclaration) {
 				thisType = c.getDeclaredTypeOfClassOrInterface(c.getSymbolOfDeclaration(node)).AsInterfaceType().thisType
@@ -20344,14 +20365,14 @@ func (c *Checker) getLocalTypeParametersOfClassOrInterfaceOrTypeAlias(symbol *as
 func (c *Checker) appendLocalTypeParametersOfClassOrInterfaceOrTypeAlias(types []*Type, symbol *ast.Symbol) []*Type {
 	for _, node := range ast.DeclarationNodes(symbol).All() {
 		if ast.NodeKindIs(node, ast.KindInterfaceDeclaration, ast.KindClassDeclaration, ast.KindClassExpression) || isTypeAlias(node) {
-			types = c.appendTypeParameters(types, node.TypeParameters())
+			types = c.appendTypeParameters(types, node.TypeParametersSeq())
 		}
 	}
 	return types
 }
 
-func (c *Checker) appendTypeParameters(typeParameters []*Type, declarations []ast.Handle) []*Type {
-	for _, declaration := range declarations {
+func (c *Checker) appendTypeParameters(typeParameters []*Type, declarations ast.NodeSeq) []*Type {
+	for _, declaration := range declarations.All() {
 		typeParameters = core.AppendIfUnique(typeParameters, c.getDeclaredTypeOfTypeParameter(c.getSymbolOfDeclaration(declaration)))
 	}
 	return typeParameters
@@ -25152,15 +25173,15 @@ func (c *Checker) getContextuallyTypedParameterType(parameter ast.Handle) *Type 
 		args := c.getEffectiveCallArguments(iife)
 		indexOfParameter := fn.Store().ListIndexOf(fn.ParameterList(), parameter)
 		if hasDotDotDotToken(parameter) {
-			return c.getSpreadArgumentType(args, indexOfParameter, len(args), c.anyType, nil, CheckModeNormal)
+			return c.getSpreadArgumentType(args, indexOfParameter, args.Len(), c.anyType, nil, CheckModeNormal)
 		}
 		links := c.signatureLinks.Get(iife)
 		cached := links.resolvedSignature
 		links.resolvedSignature = c.anySignature
 		var t *Type
 		switch {
-		case indexOfParameter < len(args):
-			t = c.getWidenedLiteralType(c.checkExpression(args[indexOfParameter]))
+		case indexOfParameter < args.Len():
+			t = c.getWidenedLiteralType(c.checkExpression(args.At(indexOfParameter)))
 		case !parameter.Initializer().IsNil():
 			t = nil
 		default:
@@ -25182,10 +25203,10 @@ func (c *Checker) getContextuallyTypedParameterType(parameter ast.Handle) *Type 
 func (c *Checker) isContextSensitiveFunctionOrObjectLiteralMethod(fn ast.Handle) bool {
 	return (ast.IsFunctionExpressionOrArrowFunction(fn) || ast.IsObjectLiteralMethod(fn)) && c.isContextSensitiveFunctionLikeDeclaration(fn)
 }
-func (c *Checker) getSpreadArgumentType(args []ast.Handle, index int, argCount int, restType *Type, context *InferenceContext, checkMode CheckMode) *Type {
+func (c *Checker) getSpreadArgumentType(args ast.NodeSeq, index int, argCount int, restType *Type, context *InferenceContext, checkMode CheckMode) *Type {
 	inConstContext := c.isConstTypeVariable(restType, 0)
 	if argCount > 0 && index >= argCount-1 {
-		arg := args[argCount-1]
+		arg := args.At(argCount - 1)
 		if isSpreadArgument(arg) {
 			var spreadType *Type
 			if ast.IsSyntheticExpression(arg) {
@@ -25205,7 +25226,7 @@ func (c *Checker) getSpreadArgumentType(args []ast.Handle, index int, argCount i
 	var types []*Type
 	var infos []TupleElementInfo
 	for i := index; i < argCount; i++ {
-		arg := args[i]
+		arg := args.At(i)
 		var t *Type
 		var info TupleElementInfo
 		if isSpreadArgument(arg) {
@@ -25419,7 +25440,7 @@ func (c *Checker) getContextualTypeForAwaitOperand(node ast.Handle, contextFlags
 
 func (c *Checker) getContextualTypeForArgument(callTarget ast.Handle, arg ast.Handle) *Type {
 	args := c.getEffectiveCallArguments(callTarget)
-	argIndex := slices.Index(args, arg)
+	argIndex := nodeSeqIndex(args, arg)
 	if argIndex == -1 {
 		return nil
 	}
@@ -25651,70 +25672,102 @@ func (c *Checker) getContextualImportAttributeType(node ast.Handle) *Type {
 	return c.getTypeOfPropertyOfContextualType(c.getGlobalImportAttributesType(), node.Name().Text())
 }
 
-func (c *Checker) getEffectiveCallArguments(node ast.Handle) []ast.Handle {
+func (c *Checker) getEffectiveCallArguments(node ast.Handle) ast.NodeSeq {
 	switch {
 	case ast.IsJsxOpeningFragment(node):
-		return []ast.Handle{c.createSyntheticExpression(node, c.emptyFreshJsxObjectType, false, ast.Handle{})}
+		return ast.NodeSequence([]ast.Handle{c.createSyntheticExpression(node, c.emptyFreshJsxObjectType, false, ast.Handle{})})
 	case ast.IsTaggedTemplateExpression(node):
 		template := node.TaggedTemplateExpressionTemplate()
 		firstArg := c.createSyntheticExpression(template, c.getGlobalTemplateStringsArrayType(), false, ast.Handle{})
 		if !ast.IsTemplateExpression(template) {
-			return []ast.Handle{firstArg}
+			return ast.NodeSequence([]ast.Handle{firstArg})
 		}
 		spanList := template.TemplateExpressionTemplateSpans()
-		args := make([]ast.Handle, template.Store().ListLen(spanList)+1)
+		store := template.Store()
+		ln := store.ListLen(spanList)
+		args := make([]ast.Handle, ln+1)
 		args[0] = firstArg
-		for i, span := range template.Store().ListSlice(spanList).All() {
-			args[i+1] = span.Expression()
+		for i := range ln {
+			args[i+1] = store.ListAt(spanList, i).Expression()
 		}
-		return args
+		return ast.NodeSequence(args)
 	case ast.IsDecorator(node):
-		return c.getEffectiveDecoratorArguments(node)
+		return ast.NodeSequence(c.getEffectiveDecoratorArguments(node))
 	case ast.IsBinaryExpression(node):
-		return []ast.Handle{node.BinaryExpressionLeft()}
+		return ast.NodeSequence([]ast.Handle{node.BinaryExpressionLeft()})
 	case ast.IsJsxOpeningLikeElement(node):
 		if node.Attributes().PropertiesSeq().Len() != 0 || (ast.IsJsxOpeningElement(node) && node.Parent().ChildrenSeq().Len() != 0) {
-			return []ast.Handle{node.Attributes()}
+			return ast.NodeSequence([]ast.Handle{node.Attributes()})
 		}
-		return nil
+		return ast.EmptyNodeSeq
 	default:
-		args := node.Arguments()
-		spreadIndex := c.getSpreadArgumentIndex(args)
-		if spreadIndex >= 0 {
-			effectiveArgs := slices.Clip(args[:spreadIndex])
-			for i := spreadIndex; i < len(args); i++ {
-				arg := args[i]
-				var spreadType *Type
-				if ast.IsSpreadElement(arg) {
-					if len(c.flowLoopStack) != 0 {
-						spreadType = c.checkExpression(arg.Expression())
-					} else {
-						spreadType = c.checkExpressionCached(arg.Expression())
-					}
-				}
-				if spreadType != nil && isTupleType(spreadType) {
-					for i, t := range c.getElementTypes(spreadType) {
-						elementInfos := spreadType.TargetTupleType().elementInfos
-						flags := elementInfos[i].flags
-						syntheticType := t
-						if flags&ElementFlagsRest != 0 {
-							syntheticType = c.createArrayType(t)
-						}
-						syntheticArg := c.createSyntheticExpression(arg, syntheticType, flags&ElementFlagsVariable != 0, elementInfos[i].labeledDeclaration)
-						effectiveArgs = append(effectiveArgs, syntheticArg)
-					}
+		list := node.ArgumentList()
+		if list == 0 {
+			return ast.EmptyNodeSeq
+		}
+		store := node.Store()
+		ln := store.ListLen(list)
+		spreadIndex := -1
+		for i := range ln {
+			if isSpreadArgument(store.ListAt(list, i)) {
+				spreadIndex = i
+				break
+			}
+		}
+		if spreadIndex < 0 {
+			return store.ListSlice(list)
+		}
+		effectiveArgs := make([]ast.Handle, 0, ln)
+		for i := range spreadIndex {
+			effectiveArgs = append(effectiveArgs, store.ListAt(list, i))
+		}
+		for i := spreadIndex; i < ln; i++ {
+			arg := store.ListAt(list, i)
+			var spreadType *Type
+			if ast.IsSpreadElement(arg) {
+				if len(c.flowLoopStack) != 0 {
+					spreadType = c.checkExpression(arg.Expression())
 				} else {
-					effectiveArgs = append(effectiveArgs, arg)
+					spreadType = c.checkExpressionCached(arg.Expression())
 				}
 			}
-			return effectiveArgs
+			if spreadType != nil && isTupleType(spreadType) {
+				for i, t := range c.getElementTypes(spreadType) {
+					elementInfos := spreadType.TargetTupleType().elementInfos
+					flags := elementInfos[i].flags
+					syntheticType := t
+					if flags&ElementFlagsRest != 0 {
+						syntheticType = c.createArrayType(t)
+					}
+					syntheticArg := c.createSyntheticExpression(arg, syntheticType, flags&ElementFlagsVariable != 0, elementInfos[i].labeledDeclaration)
+					effectiveArgs = append(effectiveArgs, syntheticArg)
+				}
+			} else {
+				effectiveArgs = append(effectiveArgs, arg)
+			}
 		}
-		return args
+		return ast.NodeSequence(effectiveArgs)
 	}
 }
-func (c *Checker) getSpreadArgumentIndex(args []ast.Handle) int {
-	return core.FindIndex(args, isSpreadArgument)
+
+func nodeSeqIndex(seq ast.NodeSeq, target ast.Handle) int {
+	for i, h := range seq.All() {
+		if h == target {
+			return i
+		}
+	}
+	return -1
 }
+
+func (c *Checker) getSpreadArgumentIndexSeq(args ast.NodeSeq) int {
+	for i, arg := range args.All() {
+		if isSpreadArgument(arg) {
+			return i
+		}
+	}
+	return -1
+}
+
 func isSpreadArgument(arg ast.Handle) bool {
 	return ast.IsSpreadElement(arg) || ast.IsSyntheticExpression(arg) && arg.SyntheticExpressionIsSpread()
 }
@@ -26201,19 +26254,22 @@ func (c *Checker) discriminateContextualTypeByObjectMembers(node ast.Handle, con
 	}
 	discriminated := c.getMatchingUnionConstituentForObjectLiteral(contextualType, node)
 	if discriminated == nil {
-		discriminantProperties := core.Filter(node.Properties(), func(p ast.Handle) bool {
+		var discriminantProperties []ast.Handle
+		for _, p := range node.PropertiesSeq().All() {
 			symbol := p.Symbol()
 			if symbol == nil {
-				return false
+				continue
 			}
 			if ast.IsPropertyAssignment(p) {
-				return c.isPossiblyDiscriminantValue(p.Initializer()) && c.isDiscriminantProperty(contextualType, symbol.Name)
+				if c.isPossiblyDiscriminantValue(p.Initializer()) && c.isDiscriminantProperty(contextualType, symbol.Name) {
+					discriminantProperties = append(discriminantProperties, p)
+				}
+				continue
 			}
-			if ast.IsShorthandPropertyAssignment(p) {
-				return c.isDiscriminantProperty(contextualType, symbol.Name)
+			if ast.IsShorthandPropertyAssignment(p) && c.isDiscriminantProperty(contextualType, symbol.Name) {
+				discriminantProperties = append(discriminantProperties, p)
 			}
-			return false
-		})
+		}
 		discriminantMembers := core.Filter(c.getPropertiesOfType(contextualType), func(s *ast.Symbol) bool {
 			return s.Flags&ast.SymbolFlagsOptional != 0 && node.Symbol().Members[s.Name] == nil && c.isDiscriminantProperty(contextualType, s.Name)
 		})
