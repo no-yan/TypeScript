@@ -179,7 +179,7 @@ func (l *LanguageService) getDocumentSymbolsForChildren(ctx context.Context, nod
 			if jsdocs := node.JSDoc(file); len(jsdocs) > 0 {
 				for _, jsdoc := range jsdocs {
 					if tagList := jsdoc.JSDocTags(); tagList != 0 {
-						for _, tag := range node.Store().ListSlice(tagList) {
+						for _, tag := range node.Store().ListSlice(tagList).All() {
 							if ast.IsJSDocTypedefTag(tag) || ast.IsJSDocCallbackTag(tag) {
 								addSymbolForNode(tag, ast.Handle{}, nil)
 							}

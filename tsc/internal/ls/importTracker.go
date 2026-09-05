@@ -266,7 +266,7 @@ func getImportersForExport(sourceFiles []*ast.SourceFile, sourceFilesSet *collec
 		if isAvailableThroughGlobal {
 			return sourceFiles
 		}
-		for _, decl := range ast.DeclarationNodes(exportInfo.exportingModuleSymbol) {
+		for _, decl := range ast.DeclarationNodes(exportInfo.exportingModuleSymbol).All() {
 			if ast.IsExternalModuleAugmentation(decl) && sourceFilesSet.Has(ast.GetSourceFileOfNode(decl).FileName()) {
 				addIndirectUser(decl, false)
 			}
@@ -546,7 +546,7 @@ func isExternalModuleImportEquals(node ast.Handle) bool {
 }
 
 func skipExportSpecifierSymbol(symbol *ast.Symbol, checker *checker.Checker) *ast.Symbol {
-	for _, declaration := range ast.DeclarationNodes(symbol) {
+	for _, declaration := range ast.DeclarationNodes(symbol).All() {
 		switch {
 		case ast.IsExportSpecifier(declaration) && declaration.PropertyName().IsNil() && declaration.Parent().Parent().ModuleSpecifier().IsNil():
 			return core.OrElse(checker.GetExportSpecifierLocalTargetSymbol(declaration), symbol)
@@ -578,7 +578,7 @@ func symbolNameNoDefault(symbol *ast.Symbol) string {
 	if symbol.Name != ast.InternalSymbolNameDefault {
 		return symbol.Name
 	}
-	for _, decl := range ast.DeclarationNodes(symbol) {
+	for _, decl := range ast.DeclarationNodes(symbol).All() {
 		name := ast.GetNameOfDeclaration(decl)
 		if !name.IsNil() && ast.IsIdentifier(name) {
 			return name.Text()

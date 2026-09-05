@@ -156,7 +156,7 @@ func (sd *snapshotData) newSymbolResponse(symbol *ast.Symbol, canonicalProject P
 
 	if len(symbol.Declarations) > 0 {
 		resp.Declarations = make([]NodeHandle, len(symbol.Declarations))
-		for i, decl := range ast.DeclarationNodes(symbol) {
+		for i, decl := range ast.DeclarationNodes(symbol).All() {
 			resp.Declarations[i] = sd.nodeHandleFrom(decl)
 		}
 	}

@@ -1298,7 +1298,7 @@ func getAlreadyUsedTypesInStringLiteralUnion(union ast.Handle, current ast.Handl
 		return nil
 	}
 	var values []string
-	for _, typeNode := range current.Store().ListSlice(typesList) {
+	for _, typeNode := range current.Store().ListSlice(typesList).All() {
 		if typeNode != current && ast.IsLiteralTypeNode(typeNode) && ast.IsStringLiteral(typeNode.LiteralTypeNodeLiteral()) {
 			values = append(values, typeNode.LiteralTypeNodeLiteral().Text())
 		}

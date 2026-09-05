@@ -398,7 +398,7 @@ func (tx *usingDeclarationTransformer) transformUsingDeclarations(statementsIn [
 		}
 		if result := tx.visit(statement); !result.IsNil() {
 			if result.Kind == ast.KindSyntaxList {
-				for _, node := range result.Store().ListSlice(result.SyntaxListChildren()) {
+				for _, node := range result.Store().ListSlice(result.SyntaxListChildren()).All() {
 					hoistOrAppendNode(node)
 				}
 			} else {

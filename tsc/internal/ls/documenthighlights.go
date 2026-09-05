@@ -284,7 +284,7 @@ func (l *LanguageService) getFromAllDeclarations(nodeTest func(ast.Handle) bool,
 		var symbolDecls []ast.Handle
 		if ast.CanHaveSymbol(decl) {
 			if symbol := decl.Symbol(); symbol != nil {
-				for _, d := range ast.DeclarationNodes(symbol) {
+				for _, d := range ast.DeclarationNodes(symbol).All() {
 					if nodeTest(d) {
 					outer:
 						for _, c := range getChildrenFromNonJSDocNode(d, sourceFile) {
@@ -495,7 +495,7 @@ func getSwitchCaseDefaultOccurrences(node ast.Handle, sourceFile *ast.SourceFile
 		keywords = append(keywords, token)
 	}
 	clauses := switchStatement.CaseBlock().CaseBlockClauses()
-	for _, clause := range node.Store().ListSlice(clauses) {
+	for _, clause := range node.Store().ListSlice(clauses).All() {
 		clauseToken := lsutil.GetFirstToken(clause, sourceFile)
 		if clauseToken.Kind == ast.KindCaseKeyword || clauseToken.Kind == ast.KindDefaultKeyword {
 			keywords = append(keywords, clauseToken)

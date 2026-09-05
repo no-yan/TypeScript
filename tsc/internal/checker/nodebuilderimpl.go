@@ -637,7 +637,7 @@ func (b *NodeBuilderImpl) createAccessFromSymbolChain(chain []*ast.Symbol, index
 	}
 	if len(symbolName) == 0 {
 		var name ast.Handle
-		for _, d := range ast.DeclarationNodes(symbol) {
+		for _, d := range ast.DeclarationNodes(symbol).All() {
 			name = ast.GetNameOfDeclaration(d)
 			if !name.IsNil() {
 				break
@@ -779,7 +779,7 @@ func (b *NodeBuilderImpl) getNameOfSymbolAsWritten(symbol *ast.Symbol) string {
 	}
 	if len(symbol.Declarations) > 0 {
 		var name ast.Handle
-		for _, d := range ast.DeclarationNodes(symbol) {
+		for _, d := range ast.DeclarationNodes(symbol).All() {
 			if n := ast.GetNameOfDeclaration(d); !n.IsNil() {
 				name = n
 				break
@@ -1009,7 +1009,7 @@ func (b *NodeBuilderImpl) getSpecifierForModuleSymbol(symbol *ast.Symbol, overri
 	file := ast.GetDeclarationOfKind(symbol, ast.KindSourceFile)
 	if file.IsNil() {
 		var equivalentSymbol *ast.Symbol
-		for _, d := range ast.DeclarationNodes(symbol) {
+		for _, d := range ast.DeclarationNodes(symbol).All() {
 			if s := b.ch.getFileSymbolIfFileSymbolExportEqualsContainer(d, symbol); s != nil {
 				equivalentSymbol = s
 				break
@@ -2264,7 +2264,7 @@ func (b *NodeBuilderImpl) shouldWriteTypeOfFunctionSymbol(symbol *ast.Symbol, ty
 		if symbol.Parent != nil {
 			isNonLocalFunctionSymbol = true
 		} else {
-			for _, declaration := range ast.DeclarationNodes(symbol) {
+			for _, declaration := range ast.DeclarationNodes(symbol).All() {
 				if declaration.Parent().Kind == ast.KindSourceFile || declaration.Parent().Kind == ast.KindModuleBlock {
 					isNonLocalFunctionSymbol = true
 					break

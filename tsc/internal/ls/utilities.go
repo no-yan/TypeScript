@@ -630,7 +630,7 @@ func getIntersectingMeaningFromDeclarations(node ast.Handle, symbol *ast.Symbol,
 	}
 	lastIterationMeaning := meaning
 	iteration := func(m ast.SemanticMeaning) ast.SemanticMeaning {
-		for _, declaration := range declarations {
+		for _, declaration := range declarations.All() {
 			declarationMeaning := getMeaningFromDeclaration(declaration)
 			if declarationMeaning&m != 0 {
 				m |= declarationMeaning
@@ -688,7 +688,7 @@ func getPropertySymbolsFromBaseTypes(symbol *ast.Symbol, propertyName string, ch
 		if symbol.Flags&(ast.SymbolFlagsClass|ast.SymbolFlagsInterface) == 0 || !seen.AddIfAbsent(symbol) {
 			return nil
 		}
-		for _, declaration := range ast.DeclarationNodes(symbol) {
+		for _, declaration := range ast.DeclarationNodes(symbol).All() {
 			for _, typeReference := range getAllSuperTypeNodes(declaration) {
 				if propertyType := checker.GetTypeAtLocation(typeReference); propertyType != nil && propertyType.Symbol() != nil {
 					if propertySymbol := checker.GetPropertyOfType(propertyType, propertyName); propertySymbol != nil {

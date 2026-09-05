@@ -142,7 +142,7 @@ func getCallHierarchyDeclarationReferenceNode(node ast.Handle) ast.Handle {
 		return node.Parent().Name()
 	}
 	if modifiers := node.Modifiers(); modifiers != 0 {
-		for _, mod := range node.Store().ListSlice(modifiers) {
+		for _, mod := range node.Store().ListSlice(modifiers).All() {
 			if mod.Kind == ast.KindDefaultKeyword {
 				return mod
 			}
@@ -169,7 +169,7 @@ func getCallHierarchyItemName(program *compiler.Program, node ast.Handle) (text 
 	}
 	if (ast.IsFunctionDeclaration(node) || ast.IsClassDeclaration(node)) && node.Name().IsNil() {
 		if modifiers := node.Modifiers(); modifiers != 0 {
-			for _, mod := range node.Store().ListSlice(modifiers) {
+			for _, mod := range node.Store().ListSlice(modifiers).All() {
 				if mod.Kind == ast.KindDefaultKeyword {
 					sourceFile := ast.GetSourceFileOfNode(node)
 					start := scanner.SkipTrivia(sourceFile.Text(), mod.Pos())
@@ -740,7 +740,7 @@ func collectCallSites(program *compiler.Program, c *checker.Checker, node ast.Ha
 		}
 	case ast.KindClassDeclaration, ast.KindClassExpression:
 		if modifiers := node.Modifiers(); modifiers != 0 {
-			for _, mod := range node.Store().ListSlice(modifiers) {
+			for _, mod := range node.Store().ListSlice(modifiers).All() {
 				collector.collect(mod)
 			}
 		}
@@ -750,7 +750,7 @@ func collectCallSites(program *compiler.Program, c *checker.Checker, node ast.Ha
 		}
 		for _, member := range node.Members() {
 			if ast.CanHaveModifiers(member) && member.Modifiers() != 0 {
-				for _, mod := range member.Store().ListSlice(member.Modifiers()) {
+				for _, mod := range member.Store().ListSlice(member.Modifiers()).All() {
 					collector.collect(mod)
 				}
 			}

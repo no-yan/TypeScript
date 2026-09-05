@@ -600,7 +600,7 @@ func (tx *esDecoratorTransformer) transformClassLike(node ast.Handle) ast.Handle
 	if !leadingStaticBlock.IsNil() || !syntheticConstructor.IsNil() || !trailingStaticBlock.IsNil() {
 		newMembers := make([]ast.Handle, 0, node.Store().ListLen(members)+3)
 		existingNamedEvaluationHelperBlockIndex := -1
-		for i, m := range node.Store().ListSlice(members) {
+		for i, m := range node.Store().ListSlice(members).All() {
 			if isClassNamedEvaluationHelperBlock(ec, m) {
 				existingNamedEvaluationHelperBlockIndex = i
 				break

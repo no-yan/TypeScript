@@ -585,7 +585,7 @@ func skipPastExportOrImportSpecifierOrUnion(symbol *ast.Symbol, node ast.Handle,
 	if parent.Kind == ast.KindExportSpecifier && useLocalSymbolForExportSpecifier {
 		return getLocalSymbolForExportSpecifier(node, symbol, parent, checker)
 	}
-	for _, decl := range ast.DeclarationNodes(symbol) {
+	for _, decl := range ast.DeclarationNodes(symbol).All() {
 		if decl.Parent().IsNil() {
 			if symbol.Flags&(ast.SymbolFlagsTransient|ast.SymbolFlagsModuleExports) != 0 {
 				return nil
@@ -624,7 +624,7 @@ func getSymbolScope(symbol *ast.Symbol) ast.Handle {
 		return ast.Handle{}
 	}
 	var scope ast.Handle
-	for _, declaration := range declarations {
+	for _, declaration := range declarations.All() {
 		container := getContainerNode(declaration)
 		if !scope.IsNil() && scope != container {
 			return ast.Handle{}
@@ -674,7 +674,7 @@ func (l *LanguageService) getNonLocalDefinition(ctx context.Context, entry *Symb
 	checker, done := program.GetTypeChecker(ctx)
 	defer done()
 	emitResolver := checker.GetEmitResolver()
-	for _, d := range ast.DeclarationNodes(entry.definition.symbol) {
+	for _, d := range ast.DeclarationNodes(entry.definition.symbol).All() {
 		if isDefinitionVisible(emitResolver, d) {
 			file, startPos := getFileAndStartPosFromDeclaration(d)
 			fileName := file.FileName()
@@ -735,7 +735,7 @@ func (l *LanguageService) forEachOriginalDefinitionLocation(ctx context.Context,
 		return
 	}
 	program := l.GetProgram()
-	for _, d := range ast.DeclarationNodes(entry.definition.symbol) {
+	for _, d := range ast.DeclarationNodes(entry.definition.symbol).All() {
 		file, startPos := getFileAndStartPosFromDeclaration(d)
 		fileName := file.FileName()
 		if tspath.IsDeclarationFileName(fileName) {
@@ -1156,7 +1156,7 @@ func (l *LanguageService) GetSignatureUsages(ctx context.Context, signatureDecl 
 	declNames := make(map[ast.Handle]bool)
 	for _, entry := range entries {
 		if entry.definition != nil && entry.definition.symbol != nil {
-			for _, decl := range ast.DeclarationNodes(entry.definition.symbol) {
+			for _, decl := range ast.DeclarationNodes(entry.definition.symbol).All() {
 				if n := decl.Name(); !n.IsNil() {
 					declNames[n] = true
 				}
@@ -1554,7 +1554,7 @@ func (l *LanguageService) getReferencedSymbolsForModule(ctx context.Context, pro
 		return nil
 	})
 	if len(symbol.Declarations) > 0 {
-		for _, decl := range ast.DeclarationNodes(symbol) {
+		for _, decl := range ast.DeclarationNodes(symbol).All() {
 			switch decl.Kind {
 			case ast.KindSourceFile:
 				continue
@@ -1569,7 +1569,7 @@ func (l *LanguageService) getReferencedSymbolsForModule(ctx context.Context, pro
 	}
 	exported := symbol.Exports[ast.InternalSymbolNameExportEquals]
 	if exported != nil && len(exported.Declarations) > 0 {
-		for _, decl := range ast.DeclarationNodes(exported) {
+		for _, decl := range ast.DeclarationNodes(exported).All() {
 			sourceFile := ast.GetSourceFileOfNode(decl)
 			if sourceFilesSet.Has(sourceFile.FileName()) {
 				var node ast.Handle
@@ -1731,7 +1731,7 @@ func getReferenceEntriesForShorthandPropertyAssignment(node ast.Handle, checker 
 	}
 	shorthandSymbol := checker.GetShorthandAssignmentValueSymbol(ast.NodeOf(refSymbol.ValueDeclaration))
 	if shorthandSymbol != nil && len(shorthandSymbol.Declarations) > 0 {
-		for _, declaration := range ast.DeclarationNodes(shorthandSymbol) {
+		for _, declaration := range ast.DeclarationNodes(shorthandSymbol).All() {
 			if ast.GetMeaningFromDeclaration(declaration)&ast.SemanticMeaningValue != 0 {
 				addReference(declaration)
 			}
@@ -1756,7 +1756,7 @@ func hasOwnConstructor(classDeclaration ast.Handle) bool {
 func findOwnConstructorReferences(classSymbol *ast.Symbol, sourceFile *ast.SourceFile, addNode func(ast.Handle)) {
 	constructorSymbol := getClassConstructorSymbol(classSymbol)
 	if constructorSymbol != nil && len(constructorSymbol.Declarations) > 0 {
-		for _, decl := range ast.DeclarationNodes(constructorSymbol) {
+		for _, decl := range ast.DeclarationNodes(constructorSymbol).All() {
 			if decl.Kind == ast.KindConstructor {
 				if ctrKeyword := astnav.FindChildOfKind(decl, ast.KindConstructorKeyword, sourceFile); !ctrKeyword.IsNil() {
 					addNode(ctrKeyword)
@@ -1785,7 +1785,7 @@ func findSuperConstructorAccesses(classDeclaration ast.Handle, addNode func(ast.
 	if constructorSymbol == nil || len(constructorSymbol.Declarations) == 0 {
 		return
 	}
-	for _, decl := range ast.DeclarationNodes(constructorSymbol) {
+	for _, decl := range ast.DeclarationNodes(constructorSymbol).All() {
 		if decl.Kind == ast.KindConstructor {
 			body := decl.Body()
 			if !body.IsNil() {
@@ -2065,7 +2065,7 @@ func (state *refState) getReferencesAtExportSpecifier(referenceLocation ast.Hand
 }
 
 func (state *refState) searchForImportedSymbol(symbol *ast.Symbol) {
-	for _, declaration := range ast.DeclarationNodes(symbol) {
+	for _, declaration := range ast.DeclarationNodes(symbol).All() {
 		exportingFile := ast.GetSourceFileOfNode(declaration)
 		state.getReferencesInSourceFile(exportingFile, state.createSearch(declaration, symbol, ImpExpKindImport, "", nil), state.includesSourceFile(exportingFile))
 	}

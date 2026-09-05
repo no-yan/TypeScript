@@ -1070,7 +1070,7 @@ func (c *Checker) elaborateObjectLiteral(node ast.Handle, source *Type, target *
 		return false
 	}
 	reportedError := false
-	for _, prop := range node.PropertiesSeq() {
+	for _, prop := range node.PropertiesSeq().All() {
 		if ast.IsSpreadAssignment(prop) {
 			continue
 		}
@@ -1101,7 +1101,7 @@ func (c *Checker) elaborateArrayLiteral(node ast.Handle, source *Type, target *T
 		}
 	}
 	reportedError := false
-	for i, element := range node.ElementsSeq() {
+	for i, element := range node.ElementsSeq().All() {
 		if ast.IsOmittedExpression(element) || c.isTupleLikeType(target) && c.getPropertyOfType(target, jsnum.Number(i).String()) == nil {
 			continue
 		}
@@ -1887,7 +1887,7 @@ func (c *Checker) isMarkerType(t *Type) bool {
 func (c *Checker) getTypeParameterModifiers(tp *Type) ast.ModifierFlags {
 	var flags ast.ModifierFlags
 	if tp.symbol != nil {
-		for _, d := range ast.DeclarationNodes(tp.symbol) {
+		for _, d := range ast.DeclarationNodes(tp.symbol).All() {
 			flags |= d.ModifierFlags()
 		}
 	}

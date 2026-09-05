@@ -223,7 +223,7 @@ func (e *symbolExtractor) extractFromSymbol(name string, symbol *ast.Symbol, mod
 		expression := ast.NodeOf(symbol.Declarations[0]).BinaryExpressionRight()
 		if expression.Kind == ast.KindObjectLiteralExpression {
 			*exports = slices.Grow(*exports, expression.Store().ListLen(expression.ObjectLiteralExpressionProperties()))
-			for _, prop := range expression.Store().ListSlice(expression.ObjectLiteralExpressionProperties()) {
+			for _, prop := range expression.Store().ListSlice(expression.ObjectLiteralExpressionProperties()).All() {
 				if ast.IsShorthandPropertyAssignment(prop) || ast.IsPropertyAssignment(prop) && prop.PropertyAssignmentName().Kind == ast.KindIdentifier {
 					export, _ := e.createExport(expression.Symbol().Members[prop.Name().Text()], moduleID, moduleFileName, syntax, file, checkerLease)
 					if export != nil {
@@ -363,7 +363,7 @@ func shouldIgnoreSymbol(symbol *ast.Symbol) bool {
 	return false
 }
 func getSyntax(symbol *ast.Symbol) ExportSyntax {
-	for _, decl := range ast.DeclarationNodes(symbol) {
+	for _, decl := range ast.DeclarationNodes(symbol).All() {
 		switch decl.Kind {
 		case ast.KindExportSpecifier:
 			return ExportSyntaxNamed

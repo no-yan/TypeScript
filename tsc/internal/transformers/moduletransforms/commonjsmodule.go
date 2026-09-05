@@ -861,7 +861,7 @@ func (tx *CommonJSModuleTransformer) destructuringNeedsFlattening(node ast.Handl
 			}
 		}
 	} else if ast.IsArrayLiteralExpression(node) {
-		for _, elem := range node.Store().ListSlice(node.ArrayLiteralExpressionElements()) {
+		for _, elem := range node.Store().ListSlice(node.ArrayLiteralExpressionElements()).All() {
 			if ast.IsSpreadElement(elem) {
 				if tx.destructuringNeedsFlattening(elem.Expression()) {
 					return true

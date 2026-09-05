@@ -105,7 +105,7 @@ func GetModuleSpecifiersForFileWithInfo(
 }
 
 func tryGetModuleNameFromAmbientModule(moduleSymbol *ast.Symbol, checker CheckerShape) string {
-	for _, decl := range ast.DeclarationNodes(moduleSymbol) {
+	for _, decl := range ast.DeclarationNodes(moduleSymbol).All() {
 		if ast.IsModuleWithStringLiteralName(decl) && (!ast.IsModuleAugmentationExternal(decl) || !tspath.IsExternalModuleNameRelative(decl.Name().Text())) {
 			return decl.Name().Text()
 		}
@@ -121,7 +121,7 @@ func tryGetModuleNameFromAmbientModule(moduleSymbol *ast.Symbol, checker Checker
 	 * }
 	 */
 	// `import {c} from "m";` is valid, in which case, `moduleSymbol` is "ns", but the module name should be "m"
-	for _, d := range ast.DeclarationNodes(moduleSymbol) {
+	for _, d := range ast.DeclarationNodes(moduleSymbol).All() {
 		if !ast.IsModuleDeclaration(d) {
 			continue
 		}

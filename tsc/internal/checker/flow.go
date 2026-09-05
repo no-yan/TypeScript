@@ -1444,7 +1444,7 @@ func (c *Checker) getTypeAtFlowArrayMutation(f *FlowState, flow *ast.FlowNode) F
 			if flowType.t.objectFlags&ObjectFlagsEvolvingArray != 0 {
 				evolvedType := flowType.t
 				if ast.IsCallExpression(node) {
-					for _, arg := range node.ArgumentsSeq() {
+					for _, arg := range node.ArgumentsSeq().All() {
 						evolvedType = c.addEvolvingArrayElementType(evolvedType, arg)
 					}
 				} else {
@@ -1854,7 +1854,7 @@ func (c *Checker) getReferenceRoot(node ast.Handle) ast.Handle {
 	return node
 }
 func (c *Checker) hasMatchingArgument(expression ast.Handle, reference ast.Handle) bool {
-	for _, argument := range expression.ArgumentsSeq() {
+	for _, argument := range expression.ArgumentsSeq().All() {
 		if c.isOrContainsMatchingReference(reference, argument) || c.optionalChainContainsReference(argument, reference) {
 			return true
 		}

@@ -105,7 +105,7 @@ func (b *NodeBuilderImpl) pseudoTypeToNode(t *pseudochecker.PseudoType) ast.Hand
 		var appendTypeNode func(node ast.Handle)
 		appendTypeNode = func(node ast.Handle) {
 			if ast.IsUnionTypeNode(node) {
-				for _, node := range node.Store().ListSlice(node.UnionTypeNodeTypes()) {
+				for _, node := range node.Store().ListSlice(node.UnionTypeNodeTypes()).All() {
 					appendTypeNode(node)
 				}
 				return

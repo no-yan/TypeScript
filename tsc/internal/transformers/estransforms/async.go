@@ -333,7 +333,7 @@ func (tx *asyncTransformer) recordDeclarationName(node ast.Handle, names *collec
 	if ast.IsIdentifier(name) {
 		names.Add(name.Text())
 	} else if ast.IsBindingPattern(name) {
-		for _, element := range name.Store().ListSlice(name.BindingPatternElements()) {
+		for _, element := range name.Store().ListSlice(name.BindingPatternElements()).All() {
 			if !ast.IsOmittedExpression(element) {
 				tx.recordDeclarationName(element, names)
 			}
@@ -383,7 +383,7 @@ func (tx *asyncTransformer) hoistVariable(node ast.Handle) {
 	if ast.IsIdentifier(name) {
 		tx.EmitContext().AddVariableDeclaration(name)
 	} else if ast.IsBindingPattern(name) {
-		for _, element := range name.Store().ListSlice(name.BindingPatternElements()) {
+		for _, element := range name.Store().ListSlice(name.BindingPatternElements()).All() {
 			if !ast.IsOmittedExpression(element) {
 				tx.hoistVariable(element)
 			}
@@ -410,7 +410,7 @@ func (tx *asyncTransformer) collidesWithParameterName(node ast.Handle) bool {
 		return tx.enclosingFunctionParameterNames != nil && tx.enclosingFunctionParameterNames.Has(name.Text())
 	}
 	if ast.IsBindingPattern(name) {
-		for _, element := range name.Store().ListSlice(name.BindingPatternElements()) {
+		for _, element := range name.Store().ListSlice(name.BindingPatternElements()).All() {
 			if !ast.IsOmittedExpression(element) && tx.collidesWithParameterName(element) {
 				return true
 			}
@@ -613,7 +613,7 @@ func assignmentTargetContainsSuperProperty(node ast.Handle) bool {
 	case ast.KindArrayLiteralExpression:
 		return node.ElementsSeq().Some(assignmentTargetContainsSuperProperty)
 	case ast.KindObjectLiteralExpression:
-		for _, prop := range node.Store().ListSlice(node.ObjectLiteralExpressionProperties()) {
+		for _, prop := range node.Store().ListSlice(node.ObjectLiteralExpressionProperties()).All() {
 			switch prop.Kind {
 			case ast.KindPropertyAssignment:
 				if assignmentTargetContainsSuperProperty(prop.PropertyAssignmentInitializer()) {

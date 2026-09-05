@@ -48,7 +48,7 @@ func GetSymbolDocumentationComment(c *checker.Checker, symbol *ast.Symbol) strin
 	// Collect all @param tags in order
 
 	var seen collections.Set[ast.Handle]
-	for _, decl := range ast.DeclarationNodes(symbol) {
+	for _, decl := range ast.DeclarationNodes(symbol).All() {
 		if decl.IsNil() {
 			continue
 		}
@@ -68,7 +68,7 @@ func GetSymbolJSDocTags(symbol *ast.Symbol) []JSDocTagInfo {
 	}
 	var infos []JSDocTagInfo
 	var seen collections.Set[ast.Handle]
-	for _, decl := range ast.DeclarationNodes(symbol) {
+	for _, decl := range ast.DeclarationNodes(symbol).All() {
 		if decl.IsNil() {
 			continue
 		}
@@ -195,7 +195,7 @@ func getJSDocOrTag(c *checker.Checker, node ast.Handle, seenSymbols *collections
 		if name := node.PropertyNameOrName(); ast.IsIdentifier(name) {
 			if objectType := c.GetTypeAtLocation(node.Parent()); objectType != nil {
 				if prop := c.GetPropertyOfType(objectType, name.Text()); prop != nil {
-					for _, d := range ast.DeclarationNodes(prop) {
+					for _, d := range ast.DeclarationNodes(prop).All() {
 						if jsdoc := getJSDoc(d); !jsdoc.IsNil() {
 							return jsdoc
 						}
@@ -239,7 +239,7 @@ func getJSDocOrTag(c *checker.Checker, node ast.Handle, seenSymbols *collections
 func getMatchingJSDocTag(c *checker.Checker, node ast.Handle, name string, match func(ast.Handle, string) bool, seenSymbols *collections.Set[*ast.Symbol]) ast.Handle {
 	if jsdoc := getJSDocOrTag(c, node, seenSymbols); !jsdoc.IsNil() && jsdoc.Kind == ast.KindJSDoc {
 		if tags := jsdoc.JSDocTags(); tags != 0 {
-			for _, tag := range node.Store().ListSlice(tags) {
+			for _, tag := range node.Store().ListSlice(tags).All() {
 				if match(tag, name) {
 					return tag
 				}
@@ -274,7 +274,7 @@ func getJSDocParameterTagByPosition(c *checker.Checker, param ast.Handle) ast.Ha
 		return ast.Handle{}
 	}
 	paramTagIndex := 0
-	for _, tag := range param.Store().ListSlice(tags) {
+	for _, tag := range param.Store().ListSlice(tags).All() {
 		if tag.Kind == ast.KindJSDocParameterTag {
 			if paramTagIndex == paramIndex {
 				return tag

@@ -1066,7 +1066,7 @@ func tryGetParameterInfo(startingToken ast.Handle, sourceFile *ast.SourceFile, c
 }
 func chooseBetterSymbol(s *ast.Symbol) *ast.Symbol {
 	if s.Name == ast.InternalSymbolNameType {
-		for _, d := range ast.DeclarationNodes(s) {
+		for _, d := range ast.DeclarationNodes(s).All() {
 			if ast.IsFunctionTypeNode(d) && ast.CanHaveSymbol(d.Parent()) {
 				return d.Parent().Symbol()
 			}

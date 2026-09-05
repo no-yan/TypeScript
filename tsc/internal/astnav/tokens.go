@@ -82,7 +82,7 @@ func getTokenAtPosition(sourceFile *ast.SourceFile, position int, allowPositionI
 			return nodeList
 		}
 		if nodeAfterLeft.IsNil() {
-			for _, node := range sourceFile.ParseStore().ListSlice(nodeList) {
+			for _, node := range sourceFile.ParseStore().ListSlice(nodeList).All() {
 				if node.Flags()&ast.NodeFlagsReparsed == 0 {
 					nodeAfterLeft = node
 					break

@@ -106,7 +106,7 @@ func (s *SymbolTrackerImpl) ReportNonlocalAugmentation(containingFile *ast.Sourc
 	if primaryDeclaration.IsNil() {
 		return
 	}
-	for _, augmentations := range ast.DeclarationNodes(augmentingSymbol) {
+	for _, augmentations := range ast.DeclarationNodes(augmentingSymbol).All() {
 		if ast.GetSourceFileOfNode(augmentations) == containingFile {
 			continue
 		}

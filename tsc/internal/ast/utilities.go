@@ -2521,7 +2521,7 @@ func GetDeclarationOfKind(symbol *Symbol, kind Kind) Handle {
 }
 
 func FindConstructorDeclaration(node Handle) Handle {
-	for _, member := range node.MembersSeq() {
+	for _, member := range node.MembersSeq().All() {
 		if IsConstructorDeclaration(member) && NodeIsPresent(member.Body()) {
 			return member
 		}
@@ -4261,7 +4261,7 @@ func IsInfinityOrNaNString(name string) bool {
 }
 
 func GetFirstConstructorWithBody(node Handle) Handle {
-	for _, member := range node.MembersSeq() {
+	for _, member := range node.MembersSeq().All() {
 		if IsConstructorDeclaration(member) && NodeIsPresent(member.Body()) {
 			return member
 		}
@@ -4450,15 +4450,13 @@ func GetAllAccessorDeclarationsForDeclaration(accessor Handle, declarationsOfSym
 
 func GetAllAccessorDeclarations(parentDeclarations NodeSeq, accessor Handle) AllAccessorDeclarations {
 	if HasDynamicName(accessor) {
-		return GetAllAccessorDeclarationsForDeclaration(accessor, func(yield func(int, Handle) bool) {
-			yield(0, accessor)
-		})
+		return GetAllAccessorDeclarationsForDeclaration(accessor, NodeSequence([]Handle{accessor}))
 	}
 
 	accessorName := GetPropertyNameForPropertyNameNode(accessor.Name())
 	accessorStatic := IsStatic(accessor)
 	var matches []Handle
-	for _, member := range parentDeclarations {
+	for _, member := range parentDeclarations.All() {
 		if !IsAccessor(member) || IsStatic(member) != accessorStatic {
 			continue
 		}
@@ -4467,13 +4465,7 @@ func GetAllAccessorDeclarations(parentDeclarations NodeSeq, accessor Handle) All
 			matches = append(matches, member)
 		}
 	}
-	return GetAllAccessorDeclarationsForDeclaration(accessor, func(yield func(int, Handle) bool) {
-		for i, m := range matches {
-			if !yield(i, m) {
-				return
-			}
-		}
-	})
+	return GetAllAccessorDeclarationsForDeclaration(accessor, NodeSequence(matches))
 }
 
 func IsAsyncFunction(node Handle) bool {

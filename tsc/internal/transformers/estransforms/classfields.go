@@ -1515,7 +1515,7 @@ func (tx *classFieldsTransformer) transformClassMembers(node ast.Handle) (member
 		membersArray := make([]ast.Handle, 0, node.Store().ListLen(members)+2)
 		classThisIdx := -1
 		namedEvalIdx := -1
-		for i, n := range node.Store().ListSlice(members) {
+		for i, n := range node.Store().ListSlice(members).All() {
 			if classThisIdx < 0 && isClassThisAssignmentBlock(tx.EmitContext(), n) {
 				classThisIdx = i
 			}
@@ -1538,7 +1538,7 @@ func (tx *classFieldsTransformer) transformClassMembers(node ast.Handle) (member
 		if !syntheticStaticBlock.IsNil() {
 			membersArray = append(membersArray, syntheticStaticBlock)
 		}
-		for i, member := range node.Store().ListSlice(members) {
+		for i, member := range node.Store().ListSlice(members).All() {
 			if i != classThisIdx && i != namedEvalIdx {
 				membersArray = append(membersArray, member)
 			}

@@ -2315,7 +2315,7 @@ func (l *LanguageService) createObjectLiteralMethod(snippetPrinter *snippetPrint
 	}
 	paramList := typeNode.FunctionTypeNodeParameters()
 	parameters := make([]ast.Handle, 0, typeNode.Store().ListLen(paramList))
-	for _, parameter := range typeNode.Store().ListSlice(paramList) {
+	for _, parameter := range typeNode.Store().ListSlice(paramList).All() {
 		parameters = append(parameters, factory.NewParameterDeclaration(0, parameter.ParameterDeclarationDotDotDotToken(), factory.DeepCloneNode(parameter.Name()), ast.Handle{}, ast.Handle{}, parameter.ParameterDeclarationInitializer()))
 	}
 	body := factory.NewBlock(factory.NewList(nil), true)
@@ -4578,7 +4578,7 @@ func getJSDocParameterCompletions(ctx context.Context, file *ast.SourceFile, pos
 	if jsDoc.JSDocTags() != 0 {
 		tags = jsDoc.Store().ListSlice(jsDoc.JSDocTags())
 	}
-	for _, tag := range tags {
+	for _, tag := range tags.All() {
 		if ast.IsJSDocParameterTag(tag) && astnav.GetStartOfNode(tag, file, false) < position && ast.IsIdentifier(tag.Name()) {
 			paramTagCount++
 		}

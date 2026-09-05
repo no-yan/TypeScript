@@ -537,7 +537,7 @@ func (tx *JSXTransformer) visitJsxOpeningLikeElementCreateElement(element ast.Ha
 	}
 	var newChildren []ast.Handle
 	if children != 0 && element.Store().ListLen(children) > 0 {
-		for _, c := range element.Store().ListSlice(children) {
+		for _, c := range element.Store().ListSlice(children).All() {
 			res := tx.transformJsxChildToExpression(c)
 			if !res.IsNil() {
 				newChildren = append(newChildren, res)
@@ -565,7 +565,7 @@ func (tx *JSXTransformer) visitJsxOpeningFragmentCreateElement(fragment ast.Hand
 	callee := tx.createJsxFactoryExpression(fragment)
 	var newChildren []ast.Handle
 	if children != 0 && fragment.Store().ListLen(children) > 0 {
-		for _, c := range fragment.Store().ListSlice(children) {
+		for _, c := range fragment.Store().ListSlice(children).All() {
 			res := tx.transformJsxChildToExpression(c)
 			if !res.IsNil() {
 				newChildren = append(newChildren, res)

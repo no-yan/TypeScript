@@ -20,17 +20,17 @@ func TestNodeSeqEmptyNil(t *testing.T) {
 	assert.Assert(t, !nilSeq.Some(func(ast.Handle) bool { return true }))
 
 	n := 0
-	for range ast.EmptyNodeSeq {
+	for range ast.EmptyNodeSeq.All() {
 		n++
 	}
 	assert.Equal(t, 0, n)
 
 	assert.Equal(t, 0, ast.NewStore(2).ListSlice(0).Len())
-	for range ast.NewStore(2).ListSlice(0) {
+	for range ast.NewStore(2).ListSlice(0).All() {
 		t.Fatal("nil list must not yield")
 	}
 	assert.Equal(t, 0, ast.DeclarationNodes(nil).Len())
-	for range ast.DeclarationNodes(nil) {
+	for range ast.DeclarationNodes(nil).All() {
 		t.Fatal("nil symbol must not yield")
 	}
 	assert.Equal(t, 0, ast.DeclarationNodes(&ast.Symbol{}).Len())
@@ -46,7 +46,7 @@ func TestNodeSeqEarlyBreak(t *testing.T) {
 	seq := f.Store().ListSlice(list)
 
 	seen := 0
-	for i, h := range seq {
+	for i, h := range seq.All() {
 		seen++
 		assert.Equal(t, seen-1, i)
 		if h.Ref() == b.Ref() {
@@ -72,7 +72,7 @@ func TestNodeSeqDenseIndexAndNilDeclarationSkip(t *testing.T) {
 	}
 	var idxs []int
 	var refs []ast.NodeRef
-	for i, h := range ast.DeclarationNodes(sym) {
+	for i, h := range ast.DeclarationNodes(sym).All() {
 		idxs = append(idxs, i)
 		refs = append(refs, h.Ref())
 	}
@@ -100,7 +100,7 @@ func TestNodeSeqExternalListElement(t *testing.T) {
 	a.SetExternalListAt(list, 1, external.Global())
 
 	var got []ast.Handle
-	for _, h := range a.ListSlice(list) {
+	for _, h := range a.ListSlice(list).All() {
 		got = append(got, h)
 	}
 	assert.Equal(t, 2, len(got))
@@ -143,4 +143,47 @@ func TestNodeSeqHelpers(t *testing.T) {
 	arr := f.NewArrayLiteralExpression(list, false)
 	assert.Equal(t, 2, len(arr.Elements()))
 	assert.Equal(t, 2, arr.ElementsSeq().Len())
+}
+
+func TestNodeSeqAllocsPerRun(t *testing.T) {
+	f := ast.NewFactory(ast.FactoryHooks{})
+	a := f.NewIdentifier("a")
+	b := f.NewIdentifier("b")
+	list := f.List(core.UndefinedTextRange(), a, b)
+	s := f.Store()
+	seq := s.ListSlice(list)
+	ast.RegisterStore(s)
+	sym := &ast.Symbol{Name: "x", Declarations: []ast.GlobalRef{a.Global(), b.Global()}}
+
+	var sink int
+	listAllocs := testing.AllocsPerRun(1000, func() {
+		for i, h := range s.ListSlice(list).All() {
+			sink += i + int(h.Kind)
+		}
+	})
+	declAllocs := testing.AllocsPerRun(1000, func() {
+		for i, h := range ast.DeclarationNodes(sym).All() {
+			sink += i + int(h.Kind)
+		}
+	})
+	firstAllocs := testing.AllocsPerRun(1000, func() {
+		sink += int(seq.First().Kind)
+	})
+	lenAllocs := testing.AllocsPerRun(1000, func() {
+		sink += seq.Len()
+	})
+	t.Logf("AllocsPerRun ListSlice.All=%v DeclarationNodes.All=%v First=%v Len=%v", listAllocs, declAllocs, firstAllocs, lenAllocs)
+	if listAllocs != 0 {
+		t.Fatalf("ListSlice All range AllocsPerRun = %v, want 0", listAllocs)
+	}
+	if declAllocs != 0 {
+		t.Fatalf("DeclarationNodes All range AllocsPerRun = %v, want 0", declAllocs)
+	}
+	if firstAllocs != 0 {
+		t.Fatalf("First AllocsPerRun = %v, want 0", firstAllocs)
+	}
+	if lenAllocs != 0 {
+		t.Fatalf("Len AllocsPerRun = %v, want 0", lenAllocs)
+	}
+	_ = sink
 }

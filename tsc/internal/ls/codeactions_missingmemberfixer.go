@@ -181,7 +181,7 @@ func (f *missingMemberFixer) createSignatureDeclarationFromSignature(signature *
 	typeNode := core.IfElse(isJS, ast.Handle{}, signatureDeclaration.Type())
 	if typeParameters != 0 && enclosingDeclaration.Store().ListLen(typeParameters) > 0 {
 		nodes := make([]ast.Handle, 0, enclosingDeclaration.Store().ListLen(typeParameters))
-		for _, tp := range enclosingDeclaration.Store().ListSlice(typeParameters) {
+		for _, tp := range enclosingDeclaration.Store().ListSlice(typeParameters).All() {
 			if tp.IsNil() {
 				continue
 			}
@@ -204,7 +204,7 @@ func (f *missingMemberFixer) createSignatureDeclarationFromSignature(signature *
 	}
 	if parameters != 0 {
 		nodes := make([]ast.Handle, 0, enclosingDeclaration.Store().ListLen(parameters))
-		for _, p := range enclosingDeclaration.Store().ListSlice(parameters) {
+		for _, p := range enclosingDeclaration.Store().ListSlice(parameters).All() {
 			if p.IsNil() {
 				continue
 			}

@@ -1588,7 +1588,7 @@ func hasInferenceCandidatesOrDefault(info *InferenceInfo) bool {
 }
 func hasTypeParameterDefault(tp *Type) bool {
 	if tp.symbol != nil {
-		for _, d := range ast.DeclarationNodes(tp.symbol) {
+		for _, d := range ast.DeclarationNodes(tp.symbol).All() {
 			if ast.IsTypeParameterDeclaration(d) && !d.TypeParameterDeclarationDefaultType().IsNil() {
 				return true
 			}
