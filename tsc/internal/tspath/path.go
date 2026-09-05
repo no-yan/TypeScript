@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"slices"
 	"strings"
+	"sync"
 	"unicode"
 	"unicode/utf8"
 	"unsafe"
@@ -671,6 +672,8 @@ func trimRuneCount(s string, runeCount int) string {
 // Rest special characters are either already in lower case format or
 // they have corresponding upper case character so they dont need special handling
 
+var fileNameLowerCaseCache sync.Map
+
 func ToFileNameLowerCase(fileName string) string {
 	const IWithDot = '\u0130'
 
@@ -691,6 +694,9 @@ func ToFileNameLowerCase(fileName string) string {
 		if !needsLower {
 			return fileName
 		}
+		if cached, ok := fileNameLowerCaseCache.Load(fileName); ok {
+			return cached.(string)
+		}
 		b := make([]byte, fileNameLen)
 		for i := range fileNameLen {
 			c := fileName[i]
@@ -709,15 +715,24 @@ func ToFileNameLowerCase(fileName string) string {
 		// (3) Immutability: We do not modify b after this point, so the string view
 		//     observes immutable data.
 		// (4) Non-empty: On this path len(b) > 0, so &b[0] is a valid, non-nil pointer.
-		return unsafe.String(&b[0], len(b))
+		lowered := unsafe.String(&b[0], len(b))
+		fileNameLowerCaseCache.Store(fileName, lowered)
+		return lowered
 	}
 
-	return strings.Map(func(r rune) rune {
+	if cached, ok := fileNameLowerCaseCache.Load(fileName); ok {
+		return cached.(string)
+	}
+	lowered := strings.Map(func(r rune) rune {
 		if r == IWithDot {
 			return r
 		}
 		return unicode.ToLower(r)
 	}, fileName)
+	if lowered != fileName {
+		fileNameLowerCaseCache.Store(fileName, lowered)
+	}
+	return lowered
 }
 
 func ToPath(fileName string, basePath string, useCaseSensitiveFileNames bool) Path {
