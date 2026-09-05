@@ -132,7 +132,7 @@ func (r *referenceResolver) isTypeOnlyAliasDeclaration(symbol *ast.Symbol) bool 
 }
 
 func (r *referenceResolver) getDeclarationOfAliasSymbol(symbol *ast.Symbol) *ast.Declaration {
-	return core.FindLast(symbol.Declarations, ast.IsAliasSymbolDeclaration)
+	return ast.FindLastSymbolDeclaration(symbol, ast.IsAliasSymbolDeclaration)
 }
 
 func (r *referenceResolver) getExportSymbolOfValueSymbolIfExported(symbol *ast.Symbol) *ast.Symbol {
@@ -167,15 +167,18 @@ func (r *referenceResolver) GetReferencedExportContainer(node *ast.IdentifierNod
 		}
 		parentSymbol := r.getParentOfSymbol(symbol)
 		if parentSymbol != nil {
-			if parentSymbol.Flags&ast.SymbolFlagsValueModule != 0 && parentSymbol.ValueDeclaration != nil && parentSymbol.ValueDeclaration.Kind == ast.KindSourceFile {
-				symbolFile := parentSymbol.ValueDeclaration.AsSourceFile()
-				referenceFile := ast.GetSourceFileOfNode(node)
-				// If `node` accesses an export and that export isn't in the same file, then symbol is a namespace export, so return nil.
-				symbolIsUmdExport := symbolFile != referenceFile
-				if symbolIsUmdExport {
-					return nil
+			if parentSymbol.Flags&ast.SymbolFlagsValueModule != 0 {
+				valueDecl := ast.NodeOf(parentSymbol.ValueDeclaration)
+				if valueDecl != nil && valueDecl.Kind == ast.KindSourceFile {
+					symbolFile := valueDecl.AsSourceFile()
+					referenceFile := ast.GetSourceFileOfNode(node)
+					// If `node` accesses an export and that export isn't in the same file, then symbol is a namespace export, so return nil.
+					symbolIsUmdExport := symbolFile != referenceFile
+					if symbolIsUmdExport {
+						return nil
+					}
+					return symbolFile.AsNode()
 				}
-				return symbolFile.AsNode()
 			}
 			isMatchingContainer := func(n *ast.Node) bool {
 				return (n.Kind == ast.KindModuleDeclaration || n.Kind == ast.KindEnumDeclaration) && r.getSymbolOfDeclaration(n) == parentSymbol
@@ -201,7 +204,7 @@ func (r *referenceResolver) GetReferencedImportDeclaration(node *ast.IdentifierN
 
 func (r *referenceResolver) GetReferencedValueDeclaration(node *ast.IdentifierNode) *ast.Declaration {
 	if symbol := r.getReferencedValueSymbol(node, false /*startInDeclarationContainer*/); symbol != nil {
-		return r.getExportSymbolOfValueSymbolIfExported(symbol).ValueDeclaration
+		return ast.NodeOf(r.getExportSymbolOfValueSymbolIfExported(symbol).ValueDeclaration)
 	}
 	return nil
 }
@@ -210,7 +213,11 @@ func (r *referenceResolver) GetReferencedValueDeclarations(node *ast.IdentifierN
 	var declarations []*ast.Declaration
 	if symbol := r.getReferencedValueSymbol(node, false /*startInDeclarationContainer*/); symbol != nil {
 		symbol = r.getExportSymbolOfValueSymbolIfExported(symbol)
-		for _, declaration := range symbol.Declarations {
+		for _, declarationRef := range symbol.Declarations {
+			declaration := ast.NodeOf(declarationRef)
+			if declaration == nil {
+				continue
+			}
 			switch declaration.Kind {
 			case ast.KindVariableDeclaration,
 				ast.KindParameter,
@@ -258,5 +265,5 @@ func (r *referenceResolver) GetReferencedMemberValueDeclaration(node *ast.Node) 
 	if s == nil {
 		return nil
 	}
-	return r.getExportSymbolOfValueSymbolIfExported(s).ValueDeclaration
+	return ast.NodeOf(r.getExportSymbolOfValueSymbolIfExported(s).ValueDeclaration)
 }

@@ -2505,10 +2505,12 @@ type SourceFile struct {
 	// to be an external module (previously "true").
 	ExternalModuleIndicator *Node
 
-	parseStore   *Store
-	parseRoot    NodeRef
-	parseNodeRef map[*Node]NodeRef
-	parseRefNode map[NodeRef]*Node
+	parseStoreWriteMu sync.Mutex
+	parseStoreMu      sync.RWMutex
+	parseStore        *Store
+	parseRoot         NodeRef
+	parseNodeRef      map[*Node]NodeRef
+	parseRefNode      map[NodeRef]*Node
 
 	// Fields set by binder
 
@@ -2563,9 +2565,42 @@ func (node *SourceFile) ParseOptions() SourceFileParseOptions {
 	return node.parseOptions
 }
 
-func (node *SourceFile) ParseStore() *Store { return node.parseStore }
+func (node *SourceFile) ParseStore() *Store {
+	if node == nil {
+		return nil
+	}
+	node.parseStoreMu.RLock()
+	defer node.parseStoreMu.RUnlock()
+	return node.parseStore
+}
+
+// LockParseStoreWriter acquires the per-file Store writer lease. Parser,
+// binder, checker, and emit phases transfer this lease in order. A checker
+// must hold it while appending synthetics and publishing their NodeRefs.
+func (node *SourceFile) LockParseStoreWriter() func() {
+	node.parseStoreWriteMu.Lock()
+	return node.parseStoreWriteMu.Unlock
+}
+
+func (node *SourceFile) ParseNodeRef() map[*Node]NodeRef {
+	if node == nil {
+		return nil
+	}
+	node.parseStoreMu.RLock()
+	defer node.parseStoreMu.RUnlock()
+	if node.parseNodeRef == nil {
+		return nil
+	}
+	result := make(map[*Node]NodeRef, len(node.parseNodeRef))
+	for n, ref := range node.parseNodeRef {
+		result[n] = ref
+	}
+	return result
+}
 
 func (node *SourceFile) ParseRoot() Handle {
+	node.parseStoreMu.RLock()
+	defer node.parseStoreMu.RUnlock()
 	if node.parseStore == nil || node.parseRoot == 0 {
 		return Handle{}
 	}
@@ -2573,6 +2608,8 @@ func (node *SourceFile) ParseRoot() Handle {
 }
 
 func (node *SourceFile) SetParseStore(s *Store, root Handle) {
+	node.parseStoreMu.Lock()
+	defer node.parseStoreMu.Unlock()
 	node.parseStore = s
 	if s != nil {
 		s.SetSourceFile(node)
@@ -2583,6 +2620,12 @@ func (node *SourceFile) SetParseStore(s *Store, root Handle) {
 }
 
 func (node *SourceFile) SetParseNodeRef(m map[*Node]NodeRef) {
+	node.parseStoreMu.Lock()
+	defer node.parseStoreMu.Unlock()
+	node.setParseNodeRefLocked(m)
+}
+
+func (node *SourceFile) setParseNodeRefLocked(m map[*Node]NodeRef) {
 	node.parseNodeRef = m
 	if m == nil {
 		node.parseRefNode = nil
@@ -2596,6 +2639,8 @@ func (node *SourceFile) SetParseNodeRef(m map[*Node]NodeRef) {
 }
 
 func (node *SourceFile) HandleOf(n *Node) Handle {
+	node.parseStoreMu.RLock()
+	defer node.parseStoreMu.RUnlock()
 	if node.parseStore == nil || node.parseNodeRef == nil || n == nil {
 		return Handle{}
 	}
@@ -2607,10 +2652,57 @@ func (node *SourceFile) HandleOf(n *Node) Handle {
 }
 
 func (node *SourceFile) NodeFor(ref NodeRef) *Node {
-	if node.parseRefNode == nil {
+	if node == nil || ref == 0 {
 		return nil
 	}
+	node.parseStoreMu.RLock()
+	defer node.parseStoreMu.RUnlock()
 	return node.parseRefNode[ref]
+}
+
+func (node *SourceFile) RefOf(n *Node) GlobalRef {
+	if node == nil || n == nil {
+		return 0
+	}
+	h := node.HandleOf(n)
+	if h.Ref() == 0 {
+		return 0
+	}
+	return h.Global()
+}
+
+func (file *SourceFile) NodeOf(g GlobalRef) *Node {
+	if file == nil || g == 0 {
+		return nil
+	}
+	if store := file.ParseStore(); store != nil && store.ID() == g.StoreID() {
+		return file.NodeFor(g.Ref())
+	}
+	return NodeOf(g)
+}
+
+func (node *SourceFile) AbsorbNodeRef(m map[*Node]NodeRef) {
+	if node == nil || m == nil {
+		return
+	}
+	node.parseStoreMu.Lock()
+	defer node.parseStoreMu.Unlock()
+	if node.parseNodeRef == nil {
+		node.setParseNodeRefLocked(m)
+		return
+	}
+	if node.parseRefNode == nil {
+		node.parseRefNode = make(map[NodeRef]*Node, len(node.parseNodeRef)+len(m))
+		for n, ref := range node.parseNodeRef {
+			node.parseRefNode[ref] = n
+		}
+	}
+	for n, ref := range m {
+		if node.parseNodeRef[n] == 0 {
+			node.parseNodeRef[n] = ref
+		}
+		node.parseRefNode[ref] = n
+	}
 }
 
 func (node *SourceFile) Text() string {

@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"sync/atomic"
 	"unsafe"
 
 	"github.com/microsoft/TypeScript/tsc/internal/core"
@@ -58,7 +59,7 @@ type listHeader struct {
 // Sparse side maps (symbols) remain scannable on purpose: only declaration
 // nodes use them.
 type Store struct {
-	id            StoreID // assigned by StoreSet.Add; 0 until registered
+	id            atomic.Uint32 // StoreID assigned by StoreSet.Add; 0 until registered
 	nodes         []nodeHeader
 	lists         []listHeader
 	children      []NodeRef
@@ -76,7 +77,9 @@ type Store struct {
 	scalarValues  map[uint64]uint64 // packed NodeRef/value-slot key; pointer-free
 	stringValues  map[uint64]uint32 // intern ids keyed by NodeRef/value-slot
 	objectValues  map[uint64]any    // sparse pointer/slice kind-specific values
-	sourceFile    *SourceFile       // metadata owner; SourceFile fields stay outside Store
+	externalChild map[uint64]GlobalRef
+	externalList  map[uint64]GlobalRef
+	sourceFile    *SourceFile // metadata owner; SourceFile fields stay outside Store
 }
 
 func NewStore(hint int) *Store {
@@ -258,6 +261,39 @@ func (s *Store) SetListAt(list ListRef, i int, h Handle) {
 		ref = h.id
 	}
 	s.children[int(l.start)+i] = ref
+}
+
+func (s *Store) SetExternalListAt(list ListRef, i int, child GlobalRef) {
+	if list == 0 || s == nil {
+		panic("ast: SetExternalListAt on missing list")
+	}
+	l := &s.lists[list]
+	if i < 0 || i >= int(l.len) {
+		panic("ast: list index out of range")
+	}
+	key := uint64(list)<<32 | uint64(uint32(i))
+	if child == 0 {
+		delete(s.externalList, key)
+		return
+	}
+	if s.children[int(l.start)+i] != 0 {
+		panic("ast: external list child conflicts with local child")
+	}
+	if s.externalList == nil {
+		s.externalList = make(map[uint64]GlobalRef)
+	}
+	s.externalList[key] = child
+}
+
+func (s *Store) ExternalListAt(list ListRef, i int) GlobalRef {
+	if list == 0 || s == nil {
+		return 0
+	}
+	l := &s.lists[list]
+	if i < 0 || i >= int(l.len) {
+		panic("ast: list index out of range")
+	}
+	return s.externalList[uint64(list)<<32|uint64(uint32(i))]
 }
 
 func (s *Store) SetSymbol(ref NodeRef, sym *Symbol) {
@@ -557,6 +593,35 @@ func (h Handle) SetChild(i int, c Handle) {
 		panic("ast: child index out of range")
 	}
 	h.s.children[int(n.childStart)+i] = h.refInStore(c)
+}
+
+func (h Handle) SetExternalChild(i int, child GlobalRef) {
+	h.mustLive()
+	n := &h.s.nodes[h.id]
+	if i < 0 || i >= int(n.childLen) {
+		panic("ast: child index out of range")
+	}
+	key := h.valueKey(i)
+	if child == 0 {
+		delete(h.s.externalChild, key)
+		return
+	}
+	if h.s.children[int(n.childStart)+i] != 0 {
+		panic("ast: external child conflicts with local child")
+	}
+	if h.s.externalChild == nil {
+		h.s.externalChild = make(map[uint64]GlobalRef)
+	}
+	h.s.externalChild[key] = child
+}
+
+func (h Handle) ExternalChild(i int) GlobalRef {
+	h.mustLive()
+	n := &h.s.nodes[h.id]
+	if i < 0 || i >= int(n.childLen) {
+		panic("ast: child index out of range")
+	}
+	return h.s.externalChild[h.valueKey(i)]
 }
 
 func (h Handle) SetIdent(internID uint32) {

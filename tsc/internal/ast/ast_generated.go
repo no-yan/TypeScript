@@ -703,8 +703,8 @@ func (f *NodeFactory) NewQualifiedName(left *EntityName, right *MemberName) *Nod
 	data.Right = right
 	node := f.newNode(KindQualifiedName, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotQualifiedNameLeft, f.storeHandle(left))
-		h.SetChild(slotQualifiedNameRight, f.storeHandle(right))
+		f.storeSetChild(h, slotQualifiedNameLeft, left)
+		f.storeSetChild(h, slotQualifiedNameRight, right)
 	}
 	return node
 }
@@ -752,7 +752,7 @@ func (f *NodeFactory) NewComputedPropertyName(expression *Expression) *Node {
 	data.Expression = expression
 	node := f.newNode(KindComputedPropertyName, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotComputedPropertyNameExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotComputedPropertyNameExpression, expression)
 	}
 	return node
 }
@@ -799,7 +799,7 @@ func (f *NodeFactory) NewDecorator(expression *LeftHandSideExpression) *Node {
 	data.Expression = expression
 	node := f.newNode(KindDecorator, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotDecoratorExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotDecoratorExpression, expression)
 	}
 	return node
 }
@@ -870,9 +870,9 @@ func (f *NodeFactory) NewIfStatement(expression *Expression, thenStatement *Stat
 	data.ElseStatement = elseStatement
 	node := f.newNode(KindIfStatement, data)
 	if h := f.storeAlloc(node, 3, 0); h.Ref() != 0 {
-		h.SetChild(slotIfStatementExpression, f.storeHandle(expression))
-		h.SetChild(slotIfStatementThenStatement, f.storeHandle(thenStatement))
-		h.SetChild(slotIfStatementElseStatement, f.storeHandle(elseStatement))
+		f.storeSetChild(h, slotIfStatementExpression, expression)
+		f.storeSetChild(h, slotIfStatementThenStatement, thenStatement)
+		f.storeSetChild(h, slotIfStatementElseStatement, elseStatement)
 	}
 	return node
 }
@@ -922,8 +922,8 @@ func (f *NodeFactory) NewDoStatement(statement *Statement, expression *Expressio
 	data.Expression = expression
 	node := f.newNode(KindDoStatement, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotDoStatementStatement, f.storeHandle(statement))
-		h.SetChild(slotDoStatementExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotDoStatementStatement, statement)
+		f.storeSetChild(h, slotDoStatementExpression, expression)
 	}
 	return node
 }
@@ -972,8 +972,8 @@ func (f *NodeFactory) NewWhileStatement(expression *Expression, statement *State
 	data.Statement = statement
 	node := f.newNode(KindWhileStatement, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotWhileStatementExpression, f.storeHandle(expression))
-		h.SetChild(slotWhileStatementStatement, f.storeHandle(statement))
+		f.storeSetChild(h, slotWhileStatementExpression, expression)
+		f.storeSetChild(h, slotWhileStatementStatement, statement)
 	}
 	return node
 }
@@ -1027,10 +1027,10 @@ func (f *NodeFactory) NewForStatement(initializer *ForInitializer, condition *Ex
 	data.Statement = statement
 	node := f.newNode(KindForStatement, data)
 	if h := f.storeAlloc(node, 4, 0); h.Ref() != 0 {
-		h.SetChild(slotForStatementInitializer, f.storeHandle(initializer))
-		h.SetChild(slotForStatementCondition, f.storeHandle(condition))
-		h.SetChild(slotForStatementIncrementor, f.storeHandle(incrementor))
-		h.SetChild(slotForStatementStatement, f.storeHandle(statement))
+		f.storeSetChild(h, slotForStatementInitializer, initializer)
+		f.storeSetChild(h, slotForStatementCondition, condition)
+		f.storeSetChild(h, slotForStatementIncrementor, incrementor)
+		f.storeSetChild(h, slotForStatementStatement, statement)
 	}
 	return node
 }
@@ -1090,10 +1090,10 @@ func (f *NodeFactory) NewForInOrOfStatement(kind Kind, awaitModifier *AwaitKeywo
 	data.Statement = statement
 	node := f.newNode(kind, data)
 	if h := f.storeAlloc(node, 4, 0); h.Ref() != 0 {
-		h.SetChild(slotForInOrOfStatementAwaitModifier, f.storeHandle(awaitModifier))
-		h.SetChild(slotForInOrOfStatementInitializer, f.storeHandle(initializer))
-		h.SetChild(slotForInOrOfStatementExpression, f.storeHandle(expression))
-		h.SetChild(slotForInOrOfStatementStatement, f.storeHandle(statement))
+		f.storeSetChild(h, slotForInOrOfStatementAwaitModifier, awaitModifier)
+		f.storeSetChild(h, slotForInOrOfStatementInitializer, initializer)
+		f.storeSetChild(h, slotForInOrOfStatementExpression, expression)
+		f.storeSetChild(h, slotForInOrOfStatementStatement, statement)
 	}
 	return node
 }
@@ -1142,7 +1142,7 @@ func (f *NodeFactory) NewBreakStatement(label *IdentifierNode) *Node {
 	data.Label = label
 	node := f.newNode(KindBreakStatement, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotBreakStatementLabel, f.storeHandle(label))
+		f.storeSetChild(h, slotBreakStatementLabel, label)
 	}
 	return node
 }
@@ -1184,7 +1184,7 @@ func (f *NodeFactory) NewContinueStatement(label *IdentifierNode) *Node {
 	data.Label = label
 	node := f.newNode(KindContinueStatement, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotContinueStatementLabel, f.storeHandle(label))
+		f.storeSetChild(h, slotContinueStatementLabel, label)
 	}
 	return node
 }
@@ -1227,7 +1227,7 @@ func (f *NodeFactory) NewReturnStatement(expression *Expression) *Node {
 	data.Expression = expression
 	node := f.newNode(KindReturnStatement, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotReturnStatementExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotReturnStatementExpression, expression)
 	}
 	return node
 }
@@ -1272,8 +1272,8 @@ func (f *NodeFactory) NewWithStatement(expression *Expression, statement *Statem
 	data.Statement = statement
 	node := f.newNode(KindWithStatement, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotWithStatementExpression, f.storeHandle(expression))
-		h.SetChild(slotWithStatementStatement, f.storeHandle(statement))
+		f.storeSetChild(h, slotWithStatementExpression, expression)
+		f.storeSetChild(h, slotWithStatementStatement, statement)
 	}
 	return node
 }
@@ -1323,8 +1323,8 @@ func (f *NodeFactory) NewSwitchStatement(expression *Expression, caseBlock *Case
 	data.CaseBlock = caseBlock
 	node := f.newNode(KindSwitchStatement, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotSwitchStatementExpression, f.storeHandle(expression))
-		h.SetChild(slotSwitchStatementCaseBlock, f.storeHandle(caseBlock))
+		f.storeSetChild(h, slotSwitchStatementExpression, expression)
+		f.storeSetChild(h, slotSwitchStatementCaseBlock, caseBlock)
 	}
 	return node
 }
@@ -1423,7 +1423,7 @@ func (f *NodeFactory) NewCaseOrDefaultClause(kind Kind, expression *Expression, 
 	data.Statements = statements
 	node := f.newNode(kind, data)
 	if h := f.storeAlloc(node, 1, 1); h.Ref() != 0 {
-		h.SetChild(slotCaseOrDefaultClauseExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotCaseOrDefaultClauseExpression, expression)
 		h.SetListSlot(listSlotCaseOrDefaultClauseStatements, f.storeList(statements))
 	}
 	return node
@@ -1476,7 +1476,7 @@ func (f *NodeFactory) NewThrowStatement(expression *Expression) *Node {
 	data.Expression = expression
 	node := f.newNode(KindThrowStatement, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotThrowStatementExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotThrowStatementExpression, expression)
 	}
 	return node
 }
@@ -1527,9 +1527,9 @@ func (f *NodeFactory) NewTryStatement(tryBlock *BlockNode, catchClause *CatchCla
 	data.FinallyBlock = finallyBlock
 	node := f.newNode(KindTryStatement, data)
 	if h := f.storeAlloc(node, 3, 0); h.Ref() != 0 {
-		h.SetChild(slotTryStatementTryBlock, f.storeHandle(tryBlock))
-		h.SetChild(slotTryStatementCatchClause, f.storeHandle(catchClause))
-		h.SetChild(slotTryStatementFinallyBlock, f.storeHandle(finallyBlock))
+		f.storeSetChild(h, slotTryStatementTryBlock, tryBlock)
+		f.storeSetChild(h, slotTryStatementCatchClause, catchClause)
+		f.storeSetChild(h, slotTryStatementFinallyBlock, finallyBlock)
 	}
 	return node
 }
@@ -1581,8 +1581,8 @@ func (f *NodeFactory) NewCatchClause(variableDeclaration *VariableDeclarationNod
 	data.Block = block
 	node := f.newNode(KindCatchClause, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotCatchClauseVariableDeclaration, f.storeHandle(variableDeclaration))
-		h.SetChild(slotCatchClauseBlock, f.storeHandle(block))
+		f.storeSetChild(h, slotCatchClauseVariableDeclaration, variableDeclaration)
+		f.storeSetChild(h, slotCatchClauseBlock, block)
 	}
 	return node
 }
@@ -1650,8 +1650,8 @@ func (f *NodeFactory) NewLabeledStatement(label *IdentifierNode, statement *Stat
 	data.Statement = statement
 	node := f.newNode(KindLabeledStatement, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotLabeledStatementLabel, f.storeHandle(label))
-		h.SetChild(slotLabeledStatementStatement, f.storeHandle(statement))
+		f.storeSetChild(h, slotLabeledStatementLabel, label)
+		f.storeSetChild(h, slotLabeledStatementStatement, statement)
 	}
 	return node
 }
@@ -1698,7 +1698,7 @@ func (f *NodeFactory) NewExpressionStatement(expression *Expression) *Node {
 	data.Expression = expression
 	node := f.newNode(KindExpressionStatement, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotExpressionStatementExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotExpressionStatementExpression, expression)
 	}
 	return node
 }
@@ -1800,7 +1800,7 @@ func (f *NodeFactory) NewVariableStatement(modifiers *ModifierList, declarationL
 	data.DeclarationList = declarationList
 	node := f.newNode(KindVariableStatement, data)
 	if h := f.storeAlloc(node, 1, 1); h.Ref() != 0 {
-		h.SetChild(slotVariableStatementDeclarationList, f.storeHandle(declarationList))
+		f.storeSetChild(h, slotVariableStatementDeclarationList, declarationList)
 		h.SetListSlot(listSlotVariableStatementModifiers, f.storeModifierList(modifiers))
 	}
 	return node
@@ -1852,10 +1852,10 @@ func (f *NodeFactory) NewVariableDeclaration(name *BindingName, exclamationToken
 	data.Initializer = initializer
 	node := f.newNode(KindVariableDeclaration, data)
 	if h := f.storeAlloc(node, 4, 0); h.Ref() != 0 {
-		h.SetChild(slotVariableDeclarationName, f.storeHandle(name))
-		h.SetChild(slotVariableDeclarationExclamationToken, f.storeHandle(exclamationToken))
-		h.SetChild(slotVariableDeclarationType, f.storeHandle(typeNode))
-		h.SetChild(slotVariableDeclarationInitializer, f.storeHandle(initializer))
+		f.storeSetChild(h, slotVariableDeclarationName, name)
+		f.storeSetChild(h, slotVariableDeclarationExclamationToken, exclamationToken)
+		f.storeSetChild(h, slotVariableDeclarationType, typeNode)
+		f.storeSetChild(h, slotVariableDeclarationInitializer, initializer)
 	}
 	return node
 }
@@ -2007,11 +2007,11 @@ func (f *NodeFactory) NewParameterDeclaration(modifiers *ModifierList, dotDotDot
 	data.Initializer = initializer
 	node := f.newNode(KindParameter, data)
 	if h := f.storeAlloc(node, 5, 1); h.Ref() != 0 {
-		h.SetChild(slotParameterDeclarationDotDotDotToken, f.storeHandle(dotDotDotToken))
-		h.SetChild(slotParameterDeclarationName, f.storeHandle(name))
-		h.SetChild(slotParameterDeclarationQuestionToken, f.storeHandle(questionToken))
-		h.SetChild(slotParameterDeclarationType, f.storeHandle(typeNode))
-		h.SetChild(slotParameterDeclarationInitializer, f.storeHandle(initializer))
+		f.storeSetChild(h, slotParameterDeclarationDotDotDotToken, dotDotDotToken)
+		f.storeSetChild(h, slotParameterDeclarationName, name)
+		f.storeSetChild(h, slotParameterDeclarationQuestionToken, questionToken)
+		f.storeSetChild(h, slotParameterDeclarationType, typeNode)
+		f.storeSetChild(h, slotParameterDeclarationInitializer, initializer)
 		h.SetListSlot(listSlotParameterDeclarationModifiers, f.storeModifierList(modifiers))
 	}
 	return node
@@ -2073,10 +2073,10 @@ func (f *NodeFactory) NewBindingElement(dotDotDotToken *DotDotDotToken, property
 	data.Initializer = initializer
 	node := f.newNode(KindBindingElement, data)
 	if h := f.storeAlloc(node, 4, 0); h.Ref() != 0 {
-		h.SetChild(slotBindingElementDotDotDotToken, f.storeHandle(dotDotDotToken))
-		h.SetChild(slotBindingElementPropertyName, f.storeHandle(propertyName))
-		h.SetChild(slotBindingElementName, f.storeHandle(name))
-		h.SetChild(slotBindingElementInitializer, f.storeHandle(initializer))
+		f.storeSetChild(h, slotBindingElementDotDotDotToken, dotDotDotToken)
+		f.storeSetChild(h, slotBindingElementPropertyName, propertyName)
+		f.storeSetChild(h, slotBindingElementName, name)
+		f.storeSetChild(h, slotBindingElementInitializer, initializer)
 	}
 	return node
 }
@@ -2181,11 +2181,11 @@ func (f *NodeFactory) NewFunctionDeclaration(modifiers *ModifierList, asteriskTo
 	data.Body = body
 	node := f.newNode(KindFunctionDeclaration, data)
 	if h := f.storeAlloc(node, 5, 3); h.Ref() != 0 {
-		h.SetChild(slotFunctionDeclarationAsteriskToken, f.storeHandle(asteriskToken))
-		h.SetChild(slotFunctionDeclarationName, f.storeHandle(name))
-		h.SetChild(slotFunctionDeclarationType, f.storeHandle(typeNode))
-		h.SetChild(slotFunctionDeclarationFullSignature, f.storeHandle(fullSignature))
-		h.SetChild(slotFunctionDeclarationBody, f.storeHandle(body))
+		f.storeSetChild(h, slotFunctionDeclarationAsteriskToken, asteriskToken)
+		f.storeSetChild(h, slotFunctionDeclarationName, name)
+		f.storeSetChild(h, slotFunctionDeclarationType, typeNode)
+		f.storeSetChild(h, slotFunctionDeclarationFullSignature, fullSignature)
+		f.storeSetChild(h, slotFunctionDeclarationBody, body)
 		h.SetListSlot(listSlotFunctionDeclarationModifiers, f.storeModifierList(modifiers))
 		h.SetListSlot(listSlotFunctionDeclarationTypeParameters, f.storeList(typeParameters))
 		h.SetListSlot(listSlotFunctionDeclarationParameters, f.storeList(parameters))
@@ -2246,7 +2246,7 @@ func (f *NodeFactory) NewClassDeclaration(modifiers *ModifierList, name *Identif
 	data.Members = members
 	node := f.newNode(KindClassDeclaration, data)
 	if h := f.storeAlloc(node, 1, 4); h.Ref() != 0 {
-		h.SetChild(slotClassDeclarationName, f.storeHandle(name))
+		f.storeSetChild(h, slotClassDeclarationName, name)
 		h.SetListSlot(listSlotClassDeclarationModifiers, f.storeModifierList(modifiers))
 		h.SetListSlot(listSlotClassDeclarationTypeParameters, f.storeList(typeParameters))
 		h.SetListSlot(listSlotClassDeclarationHeritageClauses, f.storeList(heritageClauses))
@@ -2305,7 +2305,7 @@ func (f *NodeFactory) NewClassExpression(modifiers *ModifierList, name *Identifi
 	data.Members = members
 	node := f.newNode(KindClassExpression, data)
 	if h := f.storeAlloc(node, 1, 4); h.Ref() != 0 {
-		h.SetChild(slotClassExpressionName, f.storeHandle(name))
+		f.storeSetChild(h, slotClassExpressionName, name)
 		h.SetListSlot(listSlotClassExpressionModifiers, f.storeModifierList(modifiers))
 		h.SetListSlot(listSlotClassExpressionTypeParameters, f.storeList(typeParameters))
 		h.SetListSlot(listSlotClassExpressionHeritageClauses, f.storeList(heritageClauses))
@@ -2416,7 +2416,7 @@ func (f *NodeFactory) NewInterfaceDeclaration(modifiers *ModifierList, name *Ide
 	data.Members = members
 	node := f.newNode(KindInterfaceDeclaration, data)
 	if h := f.storeAlloc(node, 1, 4); h.Ref() != 0 {
-		h.SetChild(slotInterfaceDeclarationName, f.storeHandle(name))
+		f.storeSetChild(h, slotInterfaceDeclarationName, name)
 		h.SetListSlot(listSlotInterfaceDeclarationModifiers, f.storeModifierList(modifiers))
 		h.SetListSlot(listSlotInterfaceDeclarationTypeParameters, f.storeList(typeParameters))
 		h.SetListSlot(listSlotInterfaceDeclarationHeritageClauses, f.storeList(heritageClauses))
@@ -2480,8 +2480,8 @@ func (f *NodeFactory) NewTypeAliasDeclaration(modifiers *ModifierList, name *Ide
 	data.Type = typeNode
 	node := f.newNode(KindTypeAliasDeclaration, data)
 	if h := f.storeAlloc(node, 2, 2); h.Ref() != 0 {
-		h.SetChild(slotTypeAliasDeclarationName, f.storeHandle(name))
-		h.SetChild(slotTypeAliasDeclarationType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotTypeAliasDeclarationName, name)
+		f.storeSetChild(h, slotTypeAliasDeclarationType, typeNode)
 		h.SetListSlot(listSlotTypeAliasDeclarationModifiers, f.storeModifierList(modifiers))
 		h.SetListSlot(listSlotTypeAliasDeclarationTypeParameters, f.storeList(typeParameters))
 	}
@@ -2496,8 +2496,8 @@ func (f *NodeFactory) NewJSTypeAliasDeclaration(modifiers *ModifierList, name *I
 	data.Type = typeNode
 	node := f.newNode(KindJSTypeAliasDeclaration, data)
 	if h := f.storeAlloc(node, 2, 2); h.Ref() != 0 {
-		h.SetChild(slotTypeAliasDeclarationName, f.storeHandle(name))
-		h.SetChild(slotTypeAliasDeclarationType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotTypeAliasDeclarationName, name)
+		f.storeSetChild(h, slotTypeAliasDeclarationType, typeNode)
 		h.SetListSlot(listSlotTypeAliasDeclarationModifiers, f.storeModifierList(modifiers))
 		h.SetListSlot(listSlotTypeAliasDeclarationTypeParameters, f.storeList(typeParameters))
 	}
@@ -2570,8 +2570,8 @@ func (f *NodeFactory) NewEnumMember(name *PropertyName, initializer *Expression)
 	data.Initializer = initializer
 	node := f.newNode(KindEnumMember, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotEnumMemberName, f.storeHandle(name))
-		h.SetChild(slotEnumMemberInitializer, f.storeHandle(initializer))
+		f.storeSetChild(h, slotEnumMemberName, name)
+		f.storeSetChild(h, slotEnumMemberInitializer, initializer)
 	}
 	return node
 }
@@ -2624,7 +2624,7 @@ func (f *NodeFactory) NewEnumDeclaration(modifiers *ModifierList, name *Identifi
 	data.Members = members
 	node := f.newNode(KindEnumDeclaration, data)
 	if h := f.storeAlloc(node, 1, 2); h.Ref() != 0 {
-		h.SetChild(slotEnumDeclarationName, f.storeHandle(name))
+		f.storeSetChild(h, slotEnumDeclarationName, name)
 		h.SetListSlot(listSlotEnumDeclarationModifiers, f.storeModifierList(modifiers))
 		h.SetListSlot(listSlotEnumDeclarationMembers, f.storeList(members))
 	}
@@ -2776,9 +2776,9 @@ func (f *NodeFactory) NewImportDeclaration(modifiers *ModifierList, importClause
 	data.Attributes = attributes
 	node := f.newNode(KindImportDeclaration, data)
 	if h := f.storeAlloc(node, 3, 1); h.Ref() != 0 {
-		h.SetChild(slotImportDeclarationImportClause, f.storeHandle(importClause))
-		h.SetChild(slotImportDeclarationModuleSpecifier, f.storeHandle(moduleSpecifier))
-		h.SetChild(slotImportDeclarationAttributes, f.storeHandle(attributes))
+		f.storeSetChild(h, slotImportDeclarationImportClause, importClause)
+		f.storeSetChild(h, slotImportDeclarationModuleSpecifier, moduleSpecifier)
+		f.storeSetChild(h, slotImportDeclarationAttributes, attributes)
 		h.SetListSlot(listSlotImportDeclarationModifiers, f.storeModifierList(modifiers))
 	}
 	return node
@@ -2792,9 +2792,9 @@ func (f *NodeFactory) NewJSImportDeclaration(modifiers *ModifierList, importClau
 	data.Attributes = attributes
 	node := f.newNode(KindJSImportDeclaration, data)
 	if h := f.storeAlloc(node, 3, 1); h.Ref() != 0 {
-		h.SetChild(slotImportDeclarationImportClause, f.storeHandle(importClause))
-		h.SetChild(slotImportDeclarationModuleSpecifier, f.storeHandle(moduleSpecifier))
-		h.SetChild(slotImportDeclarationAttributes, f.storeHandle(attributes))
+		f.storeSetChild(h, slotImportDeclarationImportClause, importClause)
+		f.storeSetChild(h, slotImportDeclarationModuleSpecifier, moduleSpecifier)
+		f.storeSetChild(h, slotImportDeclarationAttributes, attributes)
 		h.SetListSlot(listSlotImportDeclarationModifiers, f.storeModifierList(modifiers))
 	}
 	return node
@@ -2865,7 +2865,7 @@ func (f *NodeFactory) NewExternalModuleReference(expression *Expression) *Node {
 	data.Expression = expression
 	node := f.newNode(KindExternalModuleReference, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotExternalModuleReferenceExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotExternalModuleReferenceExpression, expression)
 	}
 	return node
 }
@@ -2913,7 +2913,7 @@ func (f *NodeFactory) NewNamespaceImport(name *IdentifierNode) *Node {
 	data.name = name
 	node := f.newNode(KindNamespaceImport, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotNamespaceImportName, f.storeHandle(name))
+		f.storeSetChild(h, slotNamespaceImportName, name)
 	}
 	return node
 }
@@ -3018,8 +3018,8 @@ func (f *NodeFactory) NewExportAssignment(modifiers *ModifierList, isExportEqual
 	data.Expression = expression
 	node := f.newNode(KindExportAssignment, data)
 	if h := f.storeAlloc(node, 2, 1); h.Ref() != 0 {
-		h.SetChild(slotExportAssignmentType, f.storeHandle(typeNode))
-		h.SetChild(slotExportAssignmentExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotExportAssignmentType, typeNode)
+		f.storeSetChild(h, slotExportAssignmentExpression, expression)
 		h.SetListSlot(listSlotExportAssignmentModifiers, f.storeModifierList(modifiers))
 		if isExportEquals {
 			h.SetUintValue(valueSlotExportAssignmentIsExportEquals, 1)
@@ -3069,7 +3069,7 @@ func (f *NodeFactory) NewNamespaceExportDeclaration(modifiers *ModifierList, nam
 	data.name = name
 	node := f.newNode(KindNamespaceExportDeclaration, data)
 	if h := f.storeAlloc(node, 1, 1); h.Ref() != 0 {
-		h.SetChild(slotNamespaceExportDeclarationName, f.storeHandle(name))
+		f.storeSetChild(h, slotNamespaceExportDeclarationName, name)
 		h.SetListSlot(listSlotNamespaceExportDeclarationModifiers, f.storeModifierList(modifiers))
 	}
 	return node
@@ -3117,7 +3117,7 @@ func (f *NodeFactory) NewNamespaceExport(name *ModuleExportName) *Node {
 	data.name = name
 	node := f.newNode(KindNamespaceExport, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotNamespaceExportName, f.storeHandle(name))
+		f.storeSetChild(h, slotNamespaceExportName, name)
 	}
 	return node
 }
@@ -3221,8 +3221,8 @@ func (f *NodeFactory) NewExportSpecifier(isTypeOnly bool, propertyName *ModuleEx
 	data.name = name
 	node := f.newNode(KindExportSpecifier, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotExportSpecifierPropertyName, f.storeHandle(propertyName))
-		h.SetChild(slotExportSpecifierName, f.storeHandle(name))
+		f.storeSetChild(h, slotExportSpecifierPropertyName, propertyName)
+		f.storeSetChild(h, slotExportSpecifierName, name)
 		if isTypeOnly {
 			h.SetUintValue(valueSlotExportSpecifierIsTypeOnly, 1)
 		}
@@ -3276,7 +3276,7 @@ func (f *NodeFactory) NewCallSignatureDeclaration(typeParameters *TypeParameterL
 	data.Type = typeNode
 	node := f.newNode(KindCallSignature, data)
 	if h := f.storeAlloc(node, 1, 2); h.Ref() != 0 {
-		h.SetChild(slotCallSignatureDeclarationType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotCallSignatureDeclarationType, typeNode)
 		h.SetListSlot(listSlotCallSignatureDeclarationTypeParameters, f.storeList(typeParameters))
 		h.SetListSlot(listSlotCallSignatureDeclarationParameters, f.storeList(parameters))
 	}
@@ -3325,7 +3325,7 @@ func (f *NodeFactory) NewConstructSignatureDeclaration(typeParameters *TypeParam
 	data.Type = typeNode
 	node := f.newNode(KindConstructSignature, data)
 	if h := f.storeAlloc(node, 1, 2); h.Ref() != 0 {
-		h.SetChild(slotConstructSignatureDeclarationType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotConstructSignatureDeclarationType, typeNode)
 		h.SetListSlot(listSlotConstructSignatureDeclarationTypeParameters, f.storeList(typeParameters))
 		h.SetListSlot(listSlotConstructSignatureDeclarationParameters, f.storeList(parameters))
 	}
@@ -3379,9 +3379,9 @@ func (f *NodeFactory) NewConstructorDeclaration(modifiers *ModifierList, typePar
 	data.Body = body
 	node := f.newNode(KindConstructor, data)
 	if h := f.storeAlloc(node, 3, 3); h.Ref() != 0 {
-		h.SetChild(slotConstructorDeclarationType, f.storeHandle(typeNode))
-		h.SetChild(slotConstructorDeclarationFullSignature, f.storeHandle(fullSignature))
-		h.SetChild(slotConstructorDeclarationBody, f.storeHandle(body))
+		f.storeSetChild(h, slotConstructorDeclarationType, typeNode)
+		f.storeSetChild(h, slotConstructorDeclarationFullSignature, fullSignature)
+		f.storeSetChild(h, slotConstructorDeclarationBody, body)
 		h.SetListSlot(listSlotConstructorDeclarationModifiers, f.storeModifierList(modifiers))
 		h.SetListSlot(listSlotConstructorDeclarationTypeParameters, f.storeList(typeParameters))
 		h.SetListSlot(listSlotConstructorDeclarationParameters, f.storeList(parameters))
@@ -3436,10 +3436,10 @@ func (f *NodeFactory) NewGetAccessorDeclaration(modifiers *ModifierList, name *P
 	data.Body = body
 	node := f.newNode(KindGetAccessor, data)
 	if h := f.storeAlloc(node, 4, 3); h.Ref() != 0 {
-		h.SetChild(slotGetAccessorDeclarationName, f.storeHandle(name))
-		h.SetChild(slotGetAccessorDeclarationType, f.storeHandle(typeNode))
-		h.SetChild(slotGetAccessorDeclarationFullSignature, f.storeHandle(fullSignature))
-		h.SetChild(slotGetAccessorDeclarationBody, f.storeHandle(body))
+		f.storeSetChild(h, slotGetAccessorDeclarationName, name)
+		f.storeSetChild(h, slotGetAccessorDeclarationType, typeNode)
+		f.storeSetChild(h, slotGetAccessorDeclarationFullSignature, fullSignature)
+		f.storeSetChild(h, slotGetAccessorDeclarationBody, body)
 		h.SetListSlot(listSlotGetAccessorDeclarationModifiers, f.storeModifierList(modifiers))
 		h.SetListSlot(listSlotGetAccessorDeclarationTypeParameters, f.storeList(typeParameters))
 		h.SetListSlot(listSlotGetAccessorDeclarationParameters, f.storeList(parameters))
@@ -3499,10 +3499,10 @@ func (f *NodeFactory) NewSetAccessorDeclaration(modifiers *ModifierList, name *P
 	data.Body = body
 	node := f.newNode(KindSetAccessor, data)
 	if h := f.storeAlloc(node, 4, 3); h.Ref() != 0 {
-		h.SetChild(slotSetAccessorDeclarationName, f.storeHandle(name))
-		h.SetChild(slotSetAccessorDeclarationType, f.storeHandle(typeNode))
-		h.SetChild(slotSetAccessorDeclarationFullSignature, f.storeHandle(fullSignature))
-		h.SetChild(slotSetAccessorDeclarationBody, f.storeHandle(body))
+		f.storeSetChild(h, slotSetAccessorDeclarationName, name)
+		f.storeSetChild(h, slotSetAccessorDeclarationType, typeNode)
+		f.storeSetChild(h, slotSetAccessorDeclarationFullSignature, fullSignature)
+		f.storeSetChild(h, slotSetAccessorDeclarationBody, body)
 		h.SetListSlot(listSlotSetAccessorDeclarationModifiers, f.storeModifierList(modifiers))
 		h.SetListSlot(listSlotSetAccessorDeclarationTypeParameters, f.storeList(typeParameters))
 		h.SetListSlot(listSlotSetAccessorDeclarationParameters, f.storeList(parameters))
@@ -3564,7 +3564,7 @@ func (f *NodeFactory) NewIndexSignatureDeclaration(modifiers *ModifierList, para
 	data.Type = typeNode
 	node := f.newNode(KindIndexSignature, data)
 	if h := f.storeAlloc(node, 1, 2); h.Ref() != 0 {
-		h.SetChild(slotIndexSignatureDeclarationType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotIndexSignatureDeclarationType, typeNode)
 		h.SetListSlot(listSlotIndexSignatureDeclarationModifiers, f.storeModifierList(modifiers))
 		h.SetListSlot(listSlotIndexSignatureDeclarationParameters, f.storeList(parameters))
 	}
@@ -3617,9 +3617,9 @@ func (f *NodeFactory) NewMethodSignatureDeclaration(modifiers *ModifierList, nam
 	data.Type = typeNode
 	node := f.newNode(KindMethodSignature, data)
 	if h := f.storeAlloc(node, 3, 3); h.Ref() != 0 {
-		h.SetChild(slotMethodSignatureDeclarationName, f.storeHandle(name))
-		h.SetChild(slotMethodSignatureDeclarationPostfixToken, f.storeHandle(postfixToken))
-		h.SetChild(slotMethodSignatureDeclarationType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotMethodSignatureDeclarationName, name)
+		f.storeSetChild(h, slotMethodSignatureDeclarationPostfixToken, postfixToken)
+		f.storeSetChild(h, slotMethodSignatureDeclarationType, typeNode)
 		h.SetListSlot(listSlotMethodSignatureDeclarationModifiers, f.storeModifierList(modifiers))
 		h.SetListSlot(listSlotMethodSignatureDeclarationTypeParameters, f.storeList(typeParameters))
 		h.SetListSlot(listSlotMethodSignatureDeclarationParameters, f.storeList(parameters))
@@ -3687,12 +3687,12 @@ func (f *NodeFactory) NewMethodDeclaration(modifiers *ModifierList, asteriskToke
 	data.Body = body
 	node := f.newNode(KindMethodDeclaration, data)
 	if h := f.storeAlloc(node, 6, 3); h.Ref() != 0 {
-		h.SetChild(slotMethodDeclarationAsteriskToken, f.storeHandle(asteriskToken))
-		h.SetChild(slotMethodDeclarationName, f.storeHandle(name))
-		h.SetChild(slotMethodDeclarationPostfixToken, f.storeHandle(postfixToken))
-		h.SetChild(slotMethodDeclarationType, f.storeHandle(typeNode))
-		h.SetChild(slotMethodDeclarationFullSignature, f.storeHandle(fullSignature))
-		h.SetChild(slotMethodDeclarationBody, f.storeHandle(body))
+		f.storeSetChild(h, slotMethodDeclarationAsteriskToken, asteriskToken)
+		f.storeSetChild(h, slotMethodDeclarationName, name)
+		f.storeSetChild(h, slotMethodDeclarationPostfixToken, postfixToken)
+		f.storeSetChild(h, slotMethodDeclarationType, typeNode)
+		f.storeSetChild(h, slotMethodDeclarationFullSignature, fullSignature)
+		f.storeSetChild(h, slotMethodDeclarationBody, body)
 		h.SetListSlot(listSlotMethodDeclarationModifiers, f.storeModifierList(modifiers))
 		h.SetListSlot(listSlotMethodDeclarationTypeParameters, f.storeList(typeParameters))
 		h.SetListSlot(listSlotMethodDeclarationParameters, f.storeList(parameters))
@@ -3758,10 +3758,10 @@ func (f *NodeFactory) NewPropertySignatureDeclaration(modifiers *ModifierList, n
 	data.Initializer = initializer
 	node := f.newNode(KindPropertySignature, data)
 	if h := f.storeAlloc(node, 4, 1); h.Ref() != 0 {
-		h.SetChild(slotPropertySignatureDeclarationName, f.storeHandle(name))
-		h.SetChild(slotPropertySignatureDeclarationPostfixToken, f.storeHandle(postfixToken))
-		h.SetChild(slotPropertySignatureDeclarationType, f.storeHandle(typeNode))
-		h.SetChild(slotPropertySignatureDeclarationInitializer, f.storeHandle(initializer))
+		f.storeSetChild(h, slotPropertySignatureDeclarationName, name)
+		f.storeSetChild(h, slotPropertySignatureDeclarationPostfixToken, postfixToken)
+		f.storeSetChild(h, slotPropertySignatureDeclarationType, typeNode)
+		f.storeSetChild(h, slotPropertySignatureDeclarationInitializer, initializer)
 		h.SetListSlot(listSlotPropertySignatureDeclarationModifiers, f.storeModifierList(modifiers))
 	}
 	return node
@@ -3821,10 +3821,10 @@ func (f *NodeFactory) NewPropertyDeclaration(modifiers *ModifierList, name *Prop
 	data.Initializer = initializer
 	node := f.newNode(KindPropertyDeclaration, data)
 	if h := f.storeAlloc(node, 4, 1); h.Ref() != 0 {
-		h.SetChild(slotPropertyDeclarationName, f.storeHandle(name))
-		h.SetChild(slotPropertyDeclarationPostfixToken, f.storeHandle(postfixToken))
-		h.SetChild(slotPropertyDeclarationType, f.storeHandle(typeNode))
-		h.SetChild(slotPropertyDeclarationInitializer, f.storeHandle(initializer))
+		f.storeSetChild(h, slotPropertyDeclarationName, name)
+		f.storeSetChild(h, slotPropertyDeclarationPostfixToken, postfixToken)
+		f.storeSetChild(h, slotPropertyDeclarationType, typeNode)
+		f.storeSetChild(h, slotPropertyDeclarationInitializer, initializer)
 		h.SetListSlot(listSlotPropertyDeclarationModifiers, f.storeModifierList(modifiers))
 	}
 	return node
@@ -3908,7 +3908,7 @@ func (f *NodeFactory) NewClassStaticBlockDeclaration(modifiers *ModifierList, bo
 	data.Body = body
 	node := f.newNode(KindClassStaticBlockDeclaration, data)
 	if h := f.storeAlloc(node, 1, 1); h.Ref() != 0 {
-		h.SetChild(slotClassStaticBlockDeclarationBody, f.storeHandle(body))
+		f.storeSetChild(h, slotClassStaticBlockDeclarationBody, body)
 		h.SetListSlot(listSlotClassStaticBlockDeclarationModifiers, f.storeModifierList(modifiers))
 	}
 	return node
@@ -4176,10 +4176,10 @@ func (f *NodeFactory) NewBinaryExpression(modifiers *ModifierList, left *Express
 	data.Right = right
 	node := f.newNode(KindBinaryExpression, data)
 	if h := f.storeAlloc(node, 4, 1); h.Ref() != 0 {
-		h.SetChild(slotBinaryExpressionLeft, f.storeHandle(left))
-		h.SetChild(slotBinaryExpressionType, f.storeHandle(typeNode))
-		h.SetChild(slotBinaryExpressionOperatorToken, f.storeHandle(operatorToken))
-		h.SetChild(slotBinaryExpressionRight, f.storeHandle(right))
+		f.storeSetChild(h, slotBinaryExpressionLeft, left)
+		f.storeSetChild(h, slotBinaryExpressionType, typeNode)
+		f.storeSetChild(h, slotBinaryExpressionOperatorToken, operatorToken)
+		f.storeSetChild(h, slotBinaryExpressionRight, right)
 		h.SetListSlot(listSlotBinaryExpressionModifiers, f.storeModifierList(modifiers))
 	}
 	return node
@@ -4228,7 +4228,7 @@ func (f *NodeFactory) NewPrefixUnaryExpression(operator Kind, operand *Expressio
 	data.Operand = operand
 	node := f.newNode(KindPrefixUnaryExpression, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotPrefixUnaryExpressionOperand, f.storeHandle(operand))
+		f.storeSetChild(h, slotPrefixUnaryExpressionOperand, operand)
 		h.SetUintValue(valueSlotPrefixUnaryExpressionOperator, uint64(operator))
 	}
 	return node
@@ -4277,7 +4277,7 @@ func (f *NodeFactory) NewPostfixUnaryExpression(operand *Expression, operator Ki
 	data.Operator = operator
 	node := f.newNode(KindPostfixUnaryExpression, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotPostfixUnaryExpressionOperand, f.storeHandle(operand))
+		f.storeSetChild(h, slotPostfixUnaryExpressionOperand, operand)
 		h.SetUintValue(valueSlotPostfixUnaryExpressionOperator, uint64(operator))
 	}
 	return node
@@ -4326,8 +4326,8 @@ func (f *NodeFactory) NewYieldExpression(asteriskToken *AsteriskToken, expressio
 	data.Expression = expression
 	node := f.newNode(KindYieldExpression, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotYieldExpressionAsteriskToken, f.storeHandle(asteriskToken))
-		h.SetChild(slotYieldExpressionExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotYieldExpressionAsteriskToken, asteriskToken)
+		f.storeSetChild(h, slotYieldExpressionExpression, expression)
 	}
 	return node
 }
@@ -4380,10 +4380,10 @@ func (f *NodeFactory) NewArrowFunction(modifiers *ModifierList, typeParameters *
 	data.Body = body
 	node := f.newNode(KindArrowFunction, data)
 	if h := f.storeAlloc(node, 4, 3); h.Ref() != 0 {
-		h.SetChild(slotArrowFunctionType, f.storeHandle(typeNode))
-		h.SetChild(slotArrowFunctionFullSignature, f.storeHandle(fullSignature))
-		h.SetChild(slotArrowFunctionEqualsGreaterThanToken, f.storeHandle(equalsGreaterThanToken))
-		h.SetChild(slotArrowFunctionBody, f.storeHandle(body))
+		f.storeSetChild(h, slotArrowFunctionType, typeNode)
+		f.storeSetChild(h, slotArrowFunctionFullSignature, fullSignature)
+		f.storeSetChild(h, slotArrowFunctionEqualsGreaterThanToken, equalsGreaterThanToken)
+		f.storeSetChild(h, slotArrowFunctionBody, body)
 		h.SetListSlot(listSlotArrowFunctionModifiers, f.storeModifierList(modifiers))
 		h.SetListSlot(listSlotArrowFunctionTypeParameters, f.storeList(typeParameters))
 		h.SetListSlot(listSlotArrowFunctionParameters, f.storeList(parameters))
@@ -4447,11 +4447,11 @@ func (f *NodeFactory) NewFunctionExpression(modifiers *ModifierList, asteriskTok
 	data.Body = body
 	node := f.newNode(KindFunctionExpression, data)
 	if h := f.storeAlloc(node, 5, 3); h.Ref() != 0 {
-		h.SetChild(slotFunctionExpressionAsteriskToken, f.storeHandle(asteriskToken))
-		h.SetChild(slotFunctionExpressionName, f.storeHandle(name))
-		h.SetChild(slotFunctionExpressionType, f.storeHandle(typeNode))
-		h.SetChild(slotFunctionExpressionFullSignature, f.storeHandle(fullSignature))
-		h.SetChild(slotFunctionExpressionBody, f.storeHandle(body))
+		f.storeSetChild(h, slotFunctionExpressionAsteriskToken, asteriskToken)
+		f.storeSetChild(h, slotFunctionExpressionName, name)
+		f.storeSetChild(h, slotFunctionExpressionType, typeNode)
+		f.storeSetChild(h, slotFunctionExpressionFullSignature, fullSignature)
+		f.storeSetChild(h, slotFunctionExpressionBody, body)
 		h.SetListSlot(listSlotFunctionExpressionModifiers, f.storeModifierList(modifiers))
 		h.SetListSlot(listSlotFunctionExpressionTypeParameters, f.storeList(typeParameters))
 		h.SetListSlot(listSlotFunctionExpressionParameters, f.storeList(parameters))
@@ -4509,8 +4509,8 @@ func (f *NodeFactory) NewAsExpression(expression *Expression, typeNode *TypeNode
 	data.Type = typeNode
 	node := f.newNode(KindAsExpression, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotAsExpressionExpression, f.storeHandle(expression))
-		h.SetChild(slotAsExpressionType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotAsExpressionExpression, expression)
+		f.storeSetChild(h, slotAsExpressionType, typeNode)
 	}
 	return node
 }
@@ -4554,8 +4554,8 @@ func (f *NodeFactory) NewSatisfiesExpression(expression *Expression, typeNode *T
 	data.Type = typeNode
 	node := f.newNode(KindSatisfiesExpression, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotSatisfiesExpressionExpression, f.storeHandle(expression))
-		h.SetChild(slotSatisfiesExpressionType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotSatisfiesExpressionExpression, expression)
+		f.storeSetChild(h, slotSatisfiesExpressionType, typeNode)
 	}
 	return node
 }
@@ -4606,11 +4606,11 @@ func (f *NodeFactory) NewConditionalExpression(condition *Expression, questionTo
 	data.WhenFalse = whenFalse
 	node := f.newNode(KindConditionalExpression, data)
 	if h := f.storeAlloc(node, 5, 0); h.Ref() != 0 {
-		h.SetChild(slotConditionalExpressionCondition, f.storeHandle(condition))
-		h.SetChild(slotConditionalExpressionQuestionToken, f.storeHandle(questionToken))
-		h.SetChild(slotConditionalExpressionWhenTrue, f.storeHandle(whenTrue))
-		h.SetChild(slotConditionalExpressionColonToken, f.storeHandle(colonToken))
-		h.SetChild(slotConditionalExpressionWhenFalse, f.storeHandle(whenFalse))
+		f.storeSetChild(h, slotConditionalExpressionCondition, condition)
+		f.storeSetChild(h, slotConditionalExpressionQuestionToken, questionToken)
+		f.storeSetChild(h, slotConditionalExpressionWhenTrue, whenTrue)
+		f.storeSetChild(h, slotConditionalExpressionColonToken, colonToken)
+		f.storeSetChild(h, slotConditionalExpressionWhenFalse, whenFalse)
 	}
 	return node
 }
@@ -4671,9 +4671,9 @@ func (f *NodeFactory) NewPropertyAccessExpression(expression *Expression, questi
 	node := f.newNode(KindPropertyAccessExpression, data)
 	node.Flags |= flags & NodeFlagsOptionalChain
 	if h := f.storeAlloc(node, 3, 0); h.Ref() != 0 {
-		h.SetChild(slotPropertyAccessExpressionExpression, f.storeHandle(expression))
-		h.SetChild(slotPropertyAccessExpressionQuestionDotToken, f.storeHandle(questionDotToken))
-		h.SetChild(slotPropertyAccessExpressionName, f.storeHandle(name))
+		f.storeSetChild(h, slotPropertyAccessExpressionExpression, expression)
+		f.storeSetChild(h, slotPropertyAccessExpressionQuestionDotToken, questionDotToken)
+		f.storeSetChild(h, slotPropertyAccessExpressionName, name)
 	}
 	return node
 }
@@ -4726,9 +4726,9 @@ func (f *NodeFactory) NewElementAccessExpression(expression *Expression, questio
 	node := f.newNode(KindElementAccessExpression, data)
 	node.Flags |= flags & NodeFlagsOptionalChain
 	if h := f.storeAlloc(node, 3, 0); h.Ref() != 0 {
-		h.SetChild(slotElementAccessExpressionExpression, f.storeHandle(expression))
-		h.SetChild(slotElementAccessExpressionQuestionDotToken, f.storeHandle(questionDotToken))
-		h.SetChild(slotElementAccessExpressionArgumentExpression, f.storeHandle(argumentExpression))
+		f.storeSetChild(h, slotElementAccessExpressionExpression, expression)
+		f.storeSetChild(h, slotElementAccessExpressionQuestionDotToken, questionDotToken)
+		f.storeSetChild(h, slotElementAccessExpressionArgumentExpression, argumentExpression)
 	}
 	return node
 }
@@ -4785,8 +4785,8 @@ func (f *NodeFactory) NewCallExpression(expression *Expression, questionDotToken
 	node := f.newNode(KindCallExpression, data)
 	node.Flags |= flags & NodeFlagsOptionalChain
 	if h := f.storeAlloc(node, 2, 2); h.Ref() != 0 {
-		h.SetChild(slotCallExpressionExpression, f.storeHandle(expression))
-		h.SetChild(slotCallExpressionQuestionDotToken, f.storeHandle(questionDotToken))
+		f.storeSetChild(h, slotCallExpressionExpression, expression)
+		f.storeSetChild(h, slotCallExpressionQuestionDotToken, questionDotToken)
 		h.SetListSlot(listSlotCallExpressionTypeArguments, f.storeList(typeArguments))
 		h.SetListSlot(listSlotCallExpressionArguments, f.storeList(arguments))
 	}
@@ -4838,7 +4838,7 @@ func (f *NodeFactory) NewNewExpression(expression *Expression, typeArguments *Ty
 	data.Arguments = arguments
 	node := f.newNode(KindNewExpression, data)
 	if h := f.storeAlloc(node, 1, 2); h.Ref() != 0 {
-		h.SetChild(slotNewExpressionExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotNewExpressionExpression, expression)
 		h.SetListSlot(listSlotNewExpressionTypeArguments, f.storeList(typeArguments))
 		h.SetListSlot(listSlotNewExpressionArguments, f.storeList(arguments))
 	}
@@ -4886,7 +4886,7 @@ func (f *NodeFactory) NewMetaProperty(keywordToken Kind, name *IdentifierNode) *
 	data.name = name
 	node := f.newNode(KindMetaProperty, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotMetaPropertyName, f.storeHandle(name))
+		f.storeSetChild(h, slotMetaPropertyName, name)
 		h.SetUintValue(valueSlotMetaPropertyKeywordToken, uint64(keywordToken))
 	}
 	return node
@@ -4934,7 +4934,7 @@ func (f *NodeFactory) NewNonNullExpression(expression *Expression, flags NodeFla
 	node := f.newNode(KindNonNullExpression, data)
 	node.Flags |= flags & NodeFlagsOptionalChain
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotNonNullExpressionExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotNonNullExpressionExpression, expression)
 	}
 	return node
 }
@@ -4976,7 +4976,7 @@ func (f *NodeFactory) NewSpreadElement(expression *Expression) *Node {
 	data.Expression = expression
 	node := f.newNode(KindSpreadElement, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotSpreadElementExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotSpreadElementExpression, expression)
 	}
 	return node
 }
@@ -5021,7 +5021,7 @@ func (f *NodeFactory) NewTemplateExpression(head *TemplateHeadNode, templateSpan
 	data.TemplateSpans = templateSpans
 	node := f.newNode(KindTemplateExpression, data)
 	if h := f.storeAlloc(node, 1, 1); h.Ref() != 0 {
-		h.SetChild(slotTemplateExpressionHead, f.storeHandle(head))
+		f.storeSetChild(h, slotTemplateExpressionHead, head)
 		h.SetListSlot(listSlotTemplateExpressionTemplateSpans, f.storeList(templateSpans))
 	}
 	return node
@@ -5071,8 +5071,8 @@ func (f *NodeFactory) NewTemplateSpan(expression *Expression, literal *TemplateM
 	data.Literal = literal
 	node := f.newNode(KindTemplateSpan, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotTemplateSpanExpression, f.storeHandle(expression))
-		h.SetChild(slotTemplateSpanLiteral, f.storeHandle(literal))
+		f.storeSetChild(h, slotTemplateSpanExpression, expression)
+		f.storeSetChild(h, slotTemplateSpanLiteral, literal)
 	}
 	return node
 }
@@ -5127,9 +5127,9 @@ func (f *NodeFactory) NewTaggedTemplateExpression(tag *Expression, questionDotTo
 	node := f.newNode(KindTaggedTemplateExpression, data)
 	node.Flags |= flags & NodeFlagsOptionalChain
 	if h := f.storeAlloc(node, 3, 1); h.Ref() != 0 {
-		h.SetChild(slotTaggedTemplateExpressionTag, f.storeHandle(tag))
-		h.SetChild(slotTaggedTemplateExpressionQuestionDotToken, f.storeHandle(questionDotToken))
-		h.SetChild(slotTaggedTemplateExpressionTemplate, f.storeHandle(template))
+		f.storeSetChild(h, slotTaggedTemplateExpressionTag, tag)
+		f.storeSetChild(h, slotTaggedTemplateExpressionQuestionDotToken, questionDotToken)
+		f.storeSetChild(h, slotTaggedTemplateExpressionTemplate, template)
 		h.SetListSlot(listSlotTaggedTemplateExpressionTypeArguments, f.storeList(typeArguments))
 	}
 	return node
@@ -5175,7 +5175,7 @@ func (f *NodeFactory) NewParenthesizedExpression(expression *Expression) *Node {
 	data.Expression = expression
 	node := f.newNode(KindParenthesizedExpression, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotParenthesizedExpressionExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotParenthesizedExpressionExpression, expression)
 	}
 	return node
 }
@@ -5328,7 +5328,7 @@ func (f *NodeFactory) NewSpreadAssignment(expression *Expression) *Node {
 	data.Expression = expression
 	node := f.newNode(KindSpreadAssignment, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotSpreadAssignmentExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotSpreadAssignmentExpression, expression)
 	}
 	return node
 }
@@ -5379,10 +5379,10 @@ func (f *NodeFactory) NewPropertyAssignment(modifiers *ModifierList, name *Prope
 	data.Initializer = initializer
 	node := f.newNode(KindPropertyAssignment, data)
 	if h := f.storeAlloc(node, 4, 1); h.Ref() != 0 {
-		h.SetChild(slotPropertyAssignmentName, f.storeHandle(name))
-		h.SetChild(slotPropertyAssignmentPostfixToken, f.storeHandle(postfixToken))
-		h.SetChild(slotPropertyAssignmentType, f.storeHandle(typeNode))
-		h.SetChild(slotPropertyAssignmentInitializer, f.storeHandle(initializer))
+		f.storeSetChild(h, slotPropertyAssignmentName, name)
+		f.storeSetChild(h, slotPropertyAssignmentPostfixToken, postfixToken)
+		f.storeSetChild(h, slotPropertyAssignmentType, typeNode)
+		f.storeSetChild(h, slotPropertyAssignmentInitializer, initializer)
 		h.SetListSlot(listSlotPropertyAssignmentModifiers, f.storeModifierList(modifiers))
 	}
 	return node
@@ -5444,11 +5444,11 @@ func (f *NodeFactory) NewShorthandPropertyAssignment(modifiers *ModifierList, na
 	data.ObjectAssignmentInitializer = objectAssignmentInitializer
 	node := f.newNode(KindShorthandPropertyAssignment, data)
 	if h := f.storeAlloc(node, 5, 1); h.Ref() != 0 {
-		h.SetChild(slotShorthandPropertyAssignmentName, f.storeHandle(name))
-		h.SetChild(slotShorthandPropertyAssignmentPostfixToken, f.storeHandle(postfixToken))
-		h.SetChild(slotShorthandPropertyAssignmentType, f.storeHandle(typeNode))
-		h.SetChild(slotShorthandPropertyAssignmentEqualsToken, f.storeHandle(equalsToken))
-		h.SetChild(slotShorthandPropertyAssignmentObjectAssignmentInitializer, f.storeHandle(objectAssignmentInitializer))
+		f.storeSetChild(h, slotShorthandPropertyAssignmentName, name)
+		f.storeSetChild(h, slotShorthandPropertyAssignmentPostfixToken, postfixToken)
+		f.storeSetChild(h, slotShorthandPropertyAssignmentType, typeNode)
+		f.storeSetChild(h, slotShorthandPropertyAssignmentEqualsToken, equalsToken)
+		f.storeSetChild(h, slotShorthandPropertyAssignmentObjectAssignmentInitializer, objectAssignmentInitializer)
 		h.SetListSlot(listSlotShorthandPropertyAssignmentModifiers, f.storeModifierList(modifiers))
 	}
 	return node
@@ -5500,7 +5500,7 @@ func (f *NodeFactory) NewDeleteExpression(expression *Expression) *Node {
 	data.Expression = expression
 	node := f.newNode(KindDeleteExpression, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotDeleteExpressionExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotDeleteExpressionExpression, expression)
 	}
 	return node
 }
@@ -5546,7 +5546,7 @@ func (f *NodeFactory) NewTypeOfExpression(expression *Expression) *Node {
 	data.Expression = expression
 	node := f.newNode(KindTypeOfExpression, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotTypeOfExpressionExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotTypeOfExpressionExpression, expression)
 	}
 	return node
 }
@@ -5592,7 +5592,7 @@ func (f *NodeFactory) NewVoidExpression(expression *Expression) *Node {
 	data.Expression = expression
 	node := f.newNode(KindVoidExpression, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotVoidExpressionExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotVoidExpressionExpression, expression)
 	}
 	return node
 }
@@ -5638,7 +5638,7 @@ func (f *NodeFactory) NewAwaitExpression(expression *Expression) *Node {
 	data.Expression = expression
 	node := f.newNode(KindAwaitExpression, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotAwaitExpressionExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotAwaitExpressionExpression, expression)
 	}
 	return node
 }
@@ -5682,8 +5682,8 @@ func (f *NodeFactory) NewTypeAssertion(typeNode *TypeNode, expression *Expressio
 	data.Expression = expression
 	node := f.newNode(KindTypeAssertionExpression, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotTypeAssertionType, f.storeHandle(typeNode))
-		h.SetChild(slotTypeAssertionExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotTypeAssertionType, typeNode)
+		f.storeSetChild(h, slotTypeAssertionExpression, expression)
 	}
 	return node
 }
@@ -5842,10 +5842,10 @@ func (f *NodeFactory) NewConditionalTypeNode(checkType *TypeNode, extendsType *T
 	data.FalseType = falseType
 	node := f.newNode(KindConditionalType, data)
 	if h := f.storeAlloc(node, 4, 0); h.Ref() != 0 {
-		h.SetChild(slotConditionalTypeNodeCheckType, f.storeHandle(checkType))
-		h.SetChild(slotConditionalTypeNodeExtendsType, f.storeHandle(extendsType))
-		h.SetChild(slotConditionalTypeNodeTrueType, f.storeHandle(trueType))
-		h.SetChild(slotConditionalTypeNodeFalseType, f.storeHandle(falseType))
+		f.storeSetChild(h, slotConditionalTypeNodeCheckType, checkType)
+		f.storeSetChild(h, slotConditionalTypeNodeExtendsType, extendsType)
+		f.storeSetChild(h, slotConditionalTypeNodeTrueType, trueType)
+		f.storeSetChild(h, slotConditionalTypeNodeFalseType, falseType)
 	}
 	return node
 }
@@ -5892,7 +5892,7 @@ func (f *NodeFactory) NewTypeOperatorNode(operator Kind, typeNode *TypeNode) *No
 	data.Type = typeNode
 	node := f.newNode(KindTypeOperator, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotTypeOperatorNodeType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotTypeOperatorNodeType, typeNode)
 		h.SetUintValue(valueSlotTypeOperatorNodeOperator, uint64(operator))
 	}
 	return node
@@ -5935,7 +5935,7 @@ func (f *NodeFactory) NewInferTypeNode(typeParameter *TypeParameterDeclarationNo
 	data.TypeParameter = typeParameter
 	node := f.newNode(KindInferType, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotInferTypeNodeTypeParameter, f.storeHandle(typeParameter))
+		f.storeSetChild(h, slotInferTypeNodeTypeParameter, typeParameter)
 	}
 	return node
 }
@@ -5977,7 +5977,7 @@ func (f *NodeFactory) NewArrayTypeNode(elementType *TypeNode) *Node {
 	data.ElementType = elementType
 	node := f.newNode(KindArrayType, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotArrayTypeNodeElementType, f.storeHandle(elementType))
+		f.storeSetChild(h, slotArrayTypeNodeElementType, elementType)
 	}
 	return node
 }
@@ -6021,8 +6021,8 @@ func (f *NodeFactory) NewIndexedAccessTypeNode(objectType *TypeNode, indexType *
 	data.IndexType = indexType
 	node := f.newNode(KindIndexedAccessType, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotIndexedAccessTypeNodeObjectType, f.storeHandle(objectType))
-		h.SetChild(slotIndexedAccessTypeNodeIndexType, f.storeHandle(indexType))
+		f.storeSetChild(h, slotIndexedAccessTypeNodeObjectType, objectType)
+		f.storeSetChild(h, slotIndexedAccessTypeNodeIndexType, indexType)
 	}
 	return node
 }
@@ -6065,7 +6065,7 @@ func (f *NodeFactory) NewTypeReferenceNode(typeName *EntityName, typeArguments *
 	data.TypeArguments = typeArguments
 	node := f.newNode(KindTypeReference, data)
 	if h := f.storeAlloc(node, 1, 1); h.Ref() != 0 {
-		h.SetChild(slotTypeReferenceNodeTypeName, f.storeHandle(typeName))
+		f.storeSetChild(h, slotTypeReferenceNodeTypeName, typeName)
 		h.SetListSlot(listSlotTypeReferenceNodeTypeArguments, f.storeList(typeArguments))
 	}
 	return node
@@ -6111,7 +6111,7 @@ func (f *NodeFactory) NewExpressionWithTypeArguments(expression *Expression, typ
 	data.TypeArguments = typeArguments
 	node := f.newNode(KindExpressionWithTypeArguments, data)
 	if h := f.storeAlloc(node, 1, 1); h.Ref() != 0 {
-		h.SetChild(slotExpressionWithTypeArgumentsExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotExpressionWithTypeArgumentsExpression, expression)
 		h.SetListSlot(listSlotExpressionWithTypeArgumentsTypeArguments, f.storeList(typeArguments))
 	}
 	return node
@@ -6154,7 +6154,7 @@ func (f *NodeFactory) NewLiteralTypeNode(literal *Node) *Node {
 	data.Literal = literal
 	node := f.newNode(KindLiteralType, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotLiteralTypeNodeLiteral, f.storeHandle(literal))
+		f.storeSetChild(h, slotLiteralTypeNodeLiteral, literal)
 	}
 	return node
 }
@@ -6224,9 +6224,9 @@ func (f *NodeFactory) NewTypePredicateNode(assertsModifier *AssertsKeyword, para
 	data.Type = typeNode
 	node := f.newNode(KindTypePredicate, data)
 	if h := f.storeAlloc(node, 3, 0); h.Ref() != 0 {
-		h.SetChild(slotTypePredicateNodeAssertsModifier, f.storeHandle(assertsModifier))
-		h.SetChild(slotTypePredicateNodeParameterName, f.storeHandle(parameterName))
-		h.SetChild(slotTypePredicateNodeType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotTypePredicateNodeAssertsModifier, assertsModifier)
+		f.storeSetChild(h, slotTypePredicateNodeParameterName, parameterName)
+		f.storeSetChild(h, slotTypePredicateNodeType, typeNode)
 	}
 	return node
 }
@@ -6271,8 +6271,8 @@ func (f *NodeFactory) NewImportAttribute(name *ImportAttributeName, value *Expre
 	data.Value = value
 	node := f.newNode(KindImportAttribute, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotImportAttributeName, f.storeHandle(name))
-		h.SetChild(slotImportAttributeValue, f.storeHandle(value))
+		f.storeSetChild(h, slotImportAttributeName, name)
+		f.storeSetChild(h, slotImportAttributeValue, value)
 	}
 	return node
 }
@@ -6379,7 +6379,7 @@ func (f *NodeFactory) NewTypeQueryNode(exprName *EntityName, typeArguments *Type
 	data.TypeArguments = typeArguments
 	node := f.newNode(KindTypeQuery, data)
 	if h := f.storeAlloc(node, 1, 1); h.Ref() != 0 {
-		h.SetChild(slotTypeQueryNodeExprName, f.storeHandle(exprName))
+		f.storeSetChild(h, slotTypeQueryNodeExprName, exprName)
 		h.SetListSlot(listSlotTypeQueryNodeTypeArguments, f.storeList(typeArguments))
 	}
 	return node
@@ -6434,11 +6434,11 @@ func (f *NodeFactory) NewMappedTypeNode(readonlyToken *TokenNode, typeParameter 
 	data.Members = members
 	node := f.newNode(KindMappedType, data)
 	if h := f.storeAlloc(node, 5, 1); h.Ref() != 0 {
-		h.SetChild(slotMappedTypeNodeReadonlyToken, f.storeHandle(readonlyToken))
-		h.SetChild(slotMappedTypeNodeTypeParameter, f.storeHandle(typeParameter))
-		h.SetChild(slotMappedTypeNodeNameType, f.storeHandle(nameType))
-		h.SetChild(slotMappedTypeNodeQuestionToken, f.storeHandle(questionToken))
-		h.SetChild(slotMappedTypeNodeType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotMappedTypeNodeReadonlyToken, readonlyToken)
+		f.storeSetChild(h, slotMappedTypeNodeTypeParameter, typeParameter)
+		f.storeSetChild(h, slotMappedTypeNodeNameType, nameType)
+		f.storeSetChild(h, slotMappedTypeNodeQuestionToken, questionToken)
+		f.storeSetChild(h, slotMappedTypeNodeType, typeNode)
 		h.SetListSlot(listSlotMappedTypeNodeMembers, f.storeList(members))
 	}
 	return node
@@ -6578,10 +6578,10 @@ func (f *NodeFactory) NewNamedTupleMember(dotDotDotToken *DotDotDotToken, name *
 	data.Type = typeNode
 	node := f.newNode(KindNamedTupleMember, data)
 	if h := f.storeAlloc(node, 4, 0); h.Ref() != 0 {
-		h.SetChild(slotNamedTupleMemberDotDotDotToken, f.storeHandle(dotDotDotToken))
-		h.SetChild(slotNamedTupleMemberName, f.storeHandle(name))
-		h.SetChild(slotNamedTupleMemberQuestionToken, f.storeHandle(questionToken))
-		h.SetChild(slotNamedTupleMemberType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotNamedTupleMemberDotDotDotToken, dotDotDotToken)
+		f.storeSetChild(h, slotNamedTupleMemberName, name)
+		f.storeSetChild(h, slotNamedTupleMemberQuestionToken, questionToken)
+		f.storeSetChild(h, slotNamedTupleMemberType, typeNode)
 	}
 	return node
 }
@@ -6630,7 +6630,7 @@ func (f *NodeFactory) NewOptionalTypeNode(typeNode *TypeNode) *Node {
 	data.Type = typeNode
 	node := f.newNode(KindOptionalType, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotOptionalTypeNodeType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotOptionalTypeNodeType, typeNode)
 	}
 	return node
 }
@@ -6672,7 +6672,7 @@ func (f *NodeFactory) NewRestTypeNode(typeNode *TypeNode) *Node {
 	data.Type = typeNode
 	node := f.newNode(KindRestType, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotRestTypeNodeType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotRestTypeNodeType, typeNode)
 	}
 	return node
 }
@@ -6714,7 +6714,7 @@ func (f *NodeFactory) NewParenthesizedTypeNode(typeNode *TypeNode) *Node {
 	data.Type = typeNode
 	node := f.newNode(KindParenthesizedType, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotParenthesizedTypeNodeType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotParenthesizedTypeNodeType, typeNode)
 	}
 	return node
 }
@@ -6757,7 +6757,7 @@ func (f *NodeFactory) NewFunctionTypeNode(typeParameters *TypeParameterList, par
 	data.Type = typeNode
 	node := f.newNode(KindFunctionType, data)
 	if h := f.storeAlloc(node, 1, 2); h.Ref() != 0 {
-		h.SetChild(slotFunctionTypeNodeType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotFunctionTypeNodeType, typeNode)
 		h.SetListSlot(listSlotFunctionTypeNodeTypeParameters, f.storeList(typeParameters))
 		h.SetListSlot(listSlotFunctionTypeNodeParameters, f.storeList(parameters))
 	}
@@ -6803,7 +6803,7 @@ func (f *NodeFactory) NewConstructorTypeNode(modifiers *ModifierList, typeParame
 	data.Type = typeNode
 	node := f.newNode(KindConstructorType, data)
 	if h := f.storeAlloc(node, 1, 3); h.Ref() != 0 {
-		h.SetChild(slotConstructorTypeNodeType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotConstructorTypeNodeType, typeNode)
 		h.SetListSlot(listSlotConstructorTypeNodeModifiers, f.storeModifierList(modifiers))
 		h.SetListSlot(listSlotConstructorTypeNodeTypeParameters, f.storeList(typeParameters))
 		h.SetListSlot(listSlotConstructorTypeNodeParameters, f.storeList(parameters))
@@ -6958,7 +6958,7 @@ func (f *NodeFactory) NewTemplateLiteralTypeNode(head *TemplateHeadNode, templat
 	data.TemplateSpans = templateSpans
 	node := f.newNode(KindTemplateLiteralType, data)
 	if h := f.storeAlloc(node, 1, 1); h.Ref() != 0 {
-		h.SetChild(slotTemplateLiteralTypeNodeHead, f.storeHandle(head))
+		f.storeSetChild(h, slotTemplateLiteralTypeNodeHead, head)
 		h.SetListSlot(listSlotTemplateLiteralTypeNodeTemplateSpans, f.storeList(templateSpans))
 	}
 	return node
@@ -7003,8 +7003,8 @@ func (f *NodeFactory) NewTemplateLiteralTypeSpan(typeNode *TypeNode, literal *Te
 	data.Literal = literal
 	node := f.newNode(KindTemplateLiteralTypeSpan, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotTemplateLiteralTypeSpanType, f.storeHandle(typeNode))
-		h.SetChild(slotTemplateLiteralTypeSpanLiteral, f.storeHandle(literal))
+		f.storeSetChild(h, slotTemplateLiteralTypeSpanType, typeNode)
+		f.storeSetChild(h, slotTemplateLiteralTypeSpanLiteral, literal)
 	}
 	return node
 }
@@ -7050,7 +7050,7 @@ func (f *NodeFactory) NewSyntheticExpression(typeNode any, isSpread bool, tupleN
 	data.TupleNameSource = tupleNameSource
 	node := f.newNode(KindSyntheticExpression, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotSyntheticExpressionTupleNameSource, f.storeHandle(tupleNameSource))
+		f.storeSetChild(h, slotSyntheticExpressionTupleNameSource, tupleNameSource)
 		h.SetObjectValue(valueSlotSyntheticExpressionType, typeNode)
 		if isSpread {
 			h.SetUintValue(valueSlotSyntheticExpressionIsSpread, 1)
@@ -7096,7 +7096,7 @@ func (f *NodeFactory) NewPartiallyEmittedExpression(expression *Expression) *Nod
 	data.Expression = expression
 	node := f.newNode(KindPartiallyEmittedExpression, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotPartiallyEmittedExpressionExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotPartiallyEmittedExpressionExpression, expression)
 	}
 	return node
 }
@@ -7147,8 +7147,8 @@ func (f *NodeFactory) NewJsxElement(openingElement *JsxOpeningElementNode, child
 	data.ClosingElement = closingElement
 	node := f.newNode(KindJsxElement, data)
 	if h := f.storeAlloc(node, 2, 1); h.Ref() != 0 {
-		h.SetChild(slotJsxElementOpeningElement, f.storeHandle(openingElement))
-		h.SetChild(slotJsxElementClosingElement, f.storeHandle(closingElement))
+		f.storeSetChild(h, slotJsxElementOpeningElement, openingElement)
+		f.storeSetChild(h, slotJsxElementClosingElement, closingElement)
 		h.SetListSlot(listSlotJsxElementChildren, f.storeList(children))
 	}
 	return node
@@ -7238,8 +7238,8 @@ func (f *NodeFactory) NewJsxNamespacedName(namespace *IdentifierNode, name *Iden
 	data.name = name
 	node := f.newNode(KindJsxNamespacedName, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotJsxNamespacedNameNamespace, f.storeHandle(namespace))
-		h.SetChild(slotJsxNamespacedNameName, f.storeHandle(name))
+		f.storeSetChild(h, slotJsxNamespacedNameNamespace, namespace)
+		f.storeSetChild(h, slotJsxNamespacedNameName, name)
 	}
 	return node
 }
@@ -7290,8 +7290,8 @@ func (f *NodeFactory) NewJsxOpeningElement(tagName *JsxTagNameExpression, typeAr
 	data.Attributes = attributes
 	node := f.newNode(KindJsxOpeningElement, data)
 	if h := f.storeAlloc(node, 2, 1); h.Ref() != 0 {
-		h.SetChild(slotJsxOpeningElementTagName, f.storeHandle(tagName))
-		h.SetChild(slotJsxOpeningElementAttributes, f.storeHandle(attributes))
+		f.storeSetChild(h, slotJsxOpeningElementTagName, tagName)
+		f.storeSetChild(h, slotJsxOpeningElementAttributes, attributes)
 		h.SetListSlot(listSlotJsxOpeningElementTypeArguments, f.storeList(typeArguments))
 	}
 	return node
@@ -7339,8 +7339,8 @@ func (f *NodeFactory) NewJsxSelfClosingElement(tagName *JsxTagNameExpression, ty
 	data.Attributes = attributes
 	node := f.newNode(KindJsxSelfClosingElement, data)
 	if h := f.storeAlloc(node, 2, 1); h.Ref() != 0 {
-		h.SetChild(slotJsxSelfClosingElementTagName, f.storeHandle(tagName))
-		h.SetChild(slotJsxSelfClosingElementAttributes, f.storeHandle(attributes))
+		f.storeSetChild(h, slotJsxSelfClosingElementTagName, tagName)
+		f.storeSetChild(h, slotJsxSelfClosingElementAttributes, attributes)
 		h.SetListSlot(listSlotJsxSelfClosingElementTypeArguments, f.storeList(typeArguments))
 	}
 	return node
@@ -7388,8 +7388,8 @@ func (f *NodeFactory) NewJsxFragment(openingFragment *JsxOpeningFragmentNode, ch
 	data.ClosingFragment = closingFragment
 	node := f.newNode(KindJsxFragment, data)
 	if h := f.storeAlloc(node, 2, 1); h.Ref() != 0 {
-		h.SetChild(slotJsxFragmentOpeningFragment, f.storeHandle(openingFragment))
-		h.SetChild(slotJsxFragmentClosingFragment, f.storeHandle(closingFragment))
+		f.storeSetChild(h, slotJsxFragmentOpeningFragment, openingFragment)
+		f.storeSetChild(h, slotJsxFragmentClosingFragment, closingFragment)
 		h.SetListSlot(listSlotJsxFragmentChildren, f.storeList(children))
 	}
 	return node
@@ -7484,8 +7484,8 @@ func (f *NodeFactory) NewJsxAttribute(name *JsxAttributeName, initializer *JsxAt
 	data.Initializer = initializer
 	node := f.newNode(KindJsxAttribute, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotJsxAttributeName, f.storeHandle(name))
-		h.SetChild(slotJsxAttributeInitializer, f.storeHandle(initializer))
+		f.storeSetChild(h, slotJsxAttributeName, name)
+		f.storeSetChild(h, slotJsxAttributeInitializer, initializer)
 	}
 	return node
 }
@@ -7532,7 +7532,7 @@ func (f *NodeFactory) NewJsxSpreadAttribute(expression *Expression) *Node {
 	data.Expression = expression
 	node := f.newNode(KindJsxSpreadAttribute, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotJsxSpreadAttributeExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotJsxSpreadAttributeExpression, expression)
 	}
 	return node
 }
@@ -7574,7 +7574,7 @@ func (f *NodeFactory) NewJsxClosingElement(tagName *JsxTagNameExpression) *Node 
 	data.TagName = tagName
 	node := f.newNode(KindJsxClosingElement, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotJsxClosingElementTagName, f.storeHandle(tagName))
+		f.storeSetChild(h, slotJsxClosingElementTagName, tagName)
 	}
 	return node
 }
@@ -7618,8 +7618,8 @@ func (f *NodeFactory) NewJsxExpression(dotDotDotToken *DotDotDotToken, expressio
 	data.Expression = expression
 	node := f.newNode(KindJsxExpression, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotJsxExpressionDotDotDotToken, f.storeHandle(dotDotDotToken))
-		h.SetChild(slotJsxExpressionExpression, f.storeHandle(expression))
+		f.storeSetChild(h, slotJsxExpressionDotDotDotToken, dotDotDotToken)
+		f.storeSetChild(h, slotJsxExpressionExpression, expression)
 	}
 	return node
 }
@@ -7785,7 +7785,7 @@ func (f *NodeFactory) NewJSDocTypeExpression(typeNode *TypeNode) *Node {
 	data.Type = typeNode
 	node := f.newNode(KindJSDocTypeExpression, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotJSDocTypeExpressionType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotJSDocTypeExpressionType, typeNode)
 	}
 	return node
 }
@@ -7827,7 +7827,7 @@ func (f *NodeFactory) NewJSDocNonNullableType(typeNode *TypeNode) *Node {
 	data.Type = typeNode
 	node := f.newNode(KindJSDocNonNullableType, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotJSDocNonNullableTypeType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotJSDocNonNullableTypeType, typeNode)
 	}
 	return node
 }
@@ -7869,7 +7869,7 @@ func (f *NodeFactory) NewJSDocNullableType(typeNode *TypeNode) *Node {
 	data.Type = typeNode
 	node := f.newNode(KindJSDocNullableType, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotJSDocNullableTypeType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotJSDocNullableTypeType, typeNode)
 	}
 	return node
 }
@@ -7935,7 +7935,7 @@ func (f *NodeFactory) NewJSDocVariadicType(typeNode *TypeNode) *Node {
 	data.Type = typeNode
 	node := f.newNode(KindJSDocVariadicType, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotJSDocVariadicTypeType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotJSDocVariadicTypeType, typeNode)
 	}
 	return node
 }
@@ -7977,7 +7977,7 @@ func (f *NodeFactory) NewJSDocOptionalType(typeNode *TypeNode) *Node {
 	data.Type = typeNode
 	node := f.newNode(KindJSDocOptionalType, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotJSDocOptionalTypeType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotJSDocOptionalTypeType, typeNode)
 	}
 	return node
 }
@@ -8021,8 +8021,8 @@ func (f *NodeFactory) NewJSDocTypeTag(tagName *IdentifierNode, typeExpression *N
 	data.Comment = comment
 	node := f.newNode(KindJSDocTypeTag, data)
 	if h := f.storeAlloc(node, 2, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocTypeTagTagName, f.storeHandle(tagName))
-		h.SetChild(slotJSDocTypeTagTypeExpression, f.storeHandle(typeExpression))
+		f.storeSetChild(h, slotJSDocTypeTagTagName, tagName)
+		f.storeSetChild(h, slotJSDocTypeTagTypeExpression, typeExpression)
 		h.SetListSlot(listSlotJSDocTypeTagComment, f.storeList(comment))
 	}
 	return node
@@ -8065,7 +8065,7 @@ func (f *NodeFactory) NewJSDocUnknownTag(tagName *IdentifierNode, comment *NodeL
 	data.Comment = comment
 	node := f.newNode(KindJSDocUnknownTag, data)
 	if h := f.storeAlloc(node, 1, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocUnknownTagTagName, f.storeHandle(tagName))
+		f.storeSetChild(h, slotJSDocUnknownTagTagName, tagName)
 		h.SetListSlot(listSlotJSDocUnknownTagComment, f.storeList(comment))
 	}
 	return node
@@ -8112,8 +8112,8 @@ func (f *NodeFactory) NewJSDocTemplateTag(tagName *IdentifierNode, constraint *N
 	data.Comment = comment
 	node := f.newNode(KindJSDocTemplateTag, data)
 	if h := f.storeAlloc(node, 2, 2); h.Ref() != 0 {
-		h.SetChild(slotJSDocTemplateTagTagName, f.storeHandle(tagName))
-		h.SetChild(slotJSDocTemplateTagConstraint, f.storeHandle(constraint))
+		f.storeSetChild(h, slotJSDocTemplateTagTagName, tagName)
+		f.storeSetChild(h, slotJSDocTemplateTagConstraint, constraint)
 		h.SetListSlot(listSlotJSDocTemplateTagTypeParameters, f.storeList(typeParameters))
 		h.SetListSlot(listSlotJSDocTemplateTagComment, f.storeList(comment))
 	}
@@ -8162,8 +8162,8 @@ func (f *NodeFactory) NewJSDocReturnTag(tagName *IdentifierNode, typeExpression 
 	data.Comment = comment
 	node := f.newNode(KindJSDocReturnTag, data)
 	if h := f.storeAlloc(node, 2, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocReturnTagTagName, f.storeHandle(tagName))
-		h.SetChild(slotJSDocReturnTagTypeExpression, f.storeHandle(typeExpression))
+		f.storeSetChild(h, slotJSDocReturnTagTagName, tagName)
+		f.storeSetChild(h, slotJSDocReturnTagTypeExpression, typeExpression)
 		h.SetListSlot(listSlotJSDocReturnTagComment, f.storeList(comment))
 	}
 	return node
@@ -8206,7 +8206,7 @@ func (f *NodeFactory) NewJSDocPublicTag(tagName *IdentifierNode, comment *NodeLi
 	data.Comment = comment
 	node := f.newNode(KindJSDocPublicTag, data)
 	if h := f.storeAlloc(node, 1, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocPublicTagTagName, f.storeHandle(tagName))
+		f.storeSetChild(h, slotJSDocPublicTagTagName, tagName)
 		h.SetListSlot(listSlotJSDocPublicTagComment, f.storeList(comment))
 	}
 	return node
@@ -8249,7 +8249,7 @@ func (f *NodeFactory) NewJSDocPrivateTag(tagName *IdentifierNode, comment *NodeL
 	data.Comment = comment
 	node := f.newNode(KindJSDocPrivateTag, data)
 	if h := f.storeAlloc(node, 1, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocPrivateTagTagName, f.storeHandle(tagName))
+		f.storeSetChild(h, slotJSDocPrivateTagTagName, tagName)
 		h.SetListSlot(listSlotJSDocPrivateTagComment, f.storeList(comment))
 	}
 	return node
@@ -8292,7 +8292,7 @@ func (f *NodeFactory) NewJSDocProtectedTag(tagName *IdentifierNode, comment *Nod
 	data.Comment = comment
 	node := f.newNode(KindJSDocProtectedTag, data)
 	if h := f.storeAlloc(node, 1, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocProtectedTagTagName, f.storeHandle(tagName))
+		f.storeSetChild(h, slotJSDocProtectedTagTagName, tagName)
 		h.SetListSlot(listSlotJSDocProtectedTagComment, f.storeList(comment))
 	}
 	return node
@@ -8335,7 +8335,7 @@ func (f *NodeFactory) NewJSDocReadonlyTag(tagName *IdentifierNode, comment *Node
 	data.Comment = comment
 	node := f.newNode(KindJSDocReadonlyTag, data)
 	if h := f.storeAlloc(node, 1, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocReadonlyTagTagName, f.storeHandle(tagName))
+		f.storeSetChild(h, slotJSDocReadonlyTagTagName, tagName)
 		h.SetListSlot(listSlotJSDocReadonlyTagComment, f.storeList(comment))
 	}
 	return node
@@ -8378,7 +8378,7 @@ func (f *NodeFactory) NewJSDocOverrideTag(tagName *IdentifierNode, comment *Node
 	data.Comment = comment
 	node := f.newNode(KindJSDocOverrideTag, data)
 	if h := f.storeAlloc(node, 1, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocOverrideTagTagName, f.storeHandle(tagName))
+		f.storeSetChild(h, slotJSDocOverrideTagTagName, tagName)
 		h.SetListSlot(listSlotJSDocOverrideTagComment, f.storeList(comment))
 	}
 	return node
@@ -8421,7 +8421,7 @@ func (f *NodeFactory) NewJSDocDeprecatedTag(tagName *IdentifierNode, comment *No
 	data.Comment = comment
 	node := f.newNode(KindJSDocDeprecatedTag, data)
 	if h := f.storeAlloc(node, 1, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocDeprecatedTagTagName, f.storeHandle(tagName))
+		f.storeSetChild(h, slotJSDocDeprecatedTagTagName, tagName)
 		h.SetListSlot(listSlotJSDocDeprecatedTagComment, f.storeList(comment))
 	}
 	return node
@@ -8466,8 +8466,8 @@ func (f *NodeFactory) NewJSDocSeeTag(tagName *IdentifierNode, nameExpression *Ty
 	data.Comment = comment
 	node := f.newNode(KindJSDocSeeTag, data)
 	if h := f.storeAlloc(node, 2, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocSeeTagTagName, f.storeHandle(tagName))
-		h.SetChild(slotJSDocSeeTagNameExpression, f.storeHandle(nameExpression))
+		f.storeSetChild(h, slotJSDocSeeTagTagName, tagName)
+		f.storeSetChild(h, slotJSDocSeeTagNameExpression, nameExpression)
 		h.SetListSlot(listSlotJSDocSeeTagComment, f.storeList(comment))
 	}
 	return node
@@ -8512,8 +8512,8 @@ func (f *NodeFactory) NewJSDocImplementsTag(tagName *IdentifierNode, className *
 	data.Comment = comment
 	node := f.newNode(KindJSDocImplementsTag, data)
 	if h := f.storeAlloc(node, 2, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocImplementsTagTagName, f.storeHandle(tagName))
-		h.SetChild(slotJSDocImplementsTagClassName, f.storeHandle(className))
+		f.storeSetChild(h, slotJSDocImplementsTagTagName, tagName)
+		f.storeSetChild(h, slotJSDocImplementsTagClassName, className)
 		h.SetListSlot(listSlotJSDocImplementsTagComment, f.storeList(comment))
 	}
 	return node
@@ -8558,8 +8558,8 @@ func (f *NodeFactory) NewJSDocAugmentsTag(tagName *IdentifierNode, className *Ex
 	data.Comment = comment
 	node := f.newNode(KindJSDocAugmentsTag, data)
 	if h := f.storeAlloc(node, 2, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocAugmentsTagTagName, f.storeHandle(tagName))
-		h.SetChild(slotJSDocAugmentsTagClassName, f.storeHandle(className))
+		f.storeSetChild(h, slotJSDocAugmentsTagTagName, tagName)
+		f.storeSetChild(h, slotJSDocAugmentsTagClassName, className)
 		h.SetListSlot(listSlotJSDocAugmentsTagComment, f.storeList(comment))
 	}
 	return node
@@ -8604,8 +8604,8 @@ func (f *NodeFactory) NewJSDocSatisfiesTag(tagName *IdentifierNode, typeExpressi
 	data.Comment = comment
 	node := f.newNode(KindJSDocSatisfiesTag, data)
 	if h := f.storeAlloc(node, 2, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocSatisfiesTagTagName, f.storeHandle(tagName))
-		h.SetChild(slotJSDocSatisfiesTagTypeExpression, f.storeHandle(typeExpression))
+		f.storeSetChild(h, slotJSDocSatisfiesTagTagName, tagName)
+		f.storeSetChild(h, slotJSDocSatisfiesTagTypeExpression, typeExpression)
 		h.SetListSlot(listSlotJSDocSatisfiesTagComment, f.storeList(comment))
 	}
 	return node
@@ -8650,8 +8650,8 @@ func (f *NodeFactory) NewJSDocThrowsTag(tagName *IdentifierNode, typeExpression 
 	data.Comment = comment
 	node := f.newNode(KindJSDocThrowsTag, data)
 	if h := f.storeAlloc(node, 2, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocThrowsTagTagName, f.storeHandle(tagName))
-		h.SetChild(slotJSDocThrowsTagTypeExpression, f.storeHandle(typeExpression))
+		f.storeSetChild(h, slotJSDocThrowsTagTagName, tagName)
+		f.storeSetChild(h, slotJSDocThrowsTagTypeExpression, typeExpression)
 		h.SetListSlot(listSlotJSDocThrowsTagComment, f.storeList(comment))
 	}
 	return node
@@ -8696,8 +8696,8 @@ func (f *NodeFactory) NewJSDocThisTag(tagName *IdentifierNode, typeExpression *T
 	data.Comment = comment
 	node := f.newNode(KindJSDocThisTag, data)
 	if h := f.storeAlloc(node, 2, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocThisTagTagName, f.storeHandle(tagName))
-		h.SetChild(slotJSDocThisTagTypeExpression, f.storeHandle(typeExpression))
+		f.storeSetChild(h, slotJSDocThisTagTagName, tagName)
+		f.storeSetChild(h, slotJSDocThisTagTypeExpression, typeExpression)
 		h.SetListSlot(listSlotJSDocThisTagComment, f.storeList(comment))
 	}
 	return node
@@ -8746,10 +8746,10 @@ func (f *NodeFactory) NewJSDocImportTag(tagName *IdentifierNode, importClause *I
 	data.Comment = comment
 	node := f.newNode(KindJSDocImportTag, data)
 	if h := f.storeAlloc(node, 4, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocImportTagTagName, f.storeHandle(tagName))
-		h.SetChild(slotJSDocImportTagImportClause, f.storeHandle(importClause))
-		h.SetChild(slotJSDocImportTagModuleSpecifier, f.storeHandle(moduleSpecifier))
-		h.SetChild(slotJSDocImportTagAttributes, f.storeHandle(attributes))
+		f.storeSetChild(h, slotJSDocImportTagTagName, tagName)
+		f.storeSetChild(h, slotJSDocImportTagImportClause, importClause)
+		f.storeSetChild(h, slotJSDocImportTagModuleSpecifier, moduleSpecifier)
+		f.storeSetChild(h, slotJSDocImportTagAttributes, attributes)
 		h.SetListSlot(listSlotJSDocImportTagComment, f.storeList(comment))
 	}
 	return node
@@ -8800,9 +8800,9 @@ func (f *NodeFactory) NewJSDocCallbackTag(tagName *IdentifierNode, typeExpressio
 	data.Comment = comment
 	node := f.newNode(KindJSDocCallbackTag, data)
 	if h := f.storeAlloc(node, 3, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocCallbackTagTagName, f.storeHandle(tagName))
-		h.SetChild(slotJSDocCallbackTagTypeExpression, f.storeHandle(typeExpression))
-		h.SetChild(slotJSDocCallbackTagName, f.storeHandle(name))
+		f.storeSetChild(h, slotJSDocCallbackTagTagName, tagName)
+		f.storeSetChild(h, slotJSDocCallbackTagTypeExpression, typeExpression)
+		f.storeSetChild(h, slotJSDocCallbackTagName, name)
 		h.SetListSlot(listSlotJSDocCallbackTagComment, f.storeList(comment))
 	}
 	return node
@@ -8854,8 +8854,8 @@ func (f *NodeFactory) NewJSDocOverloadTag(tagName *IdentifierNode, typeExpressio
 	data.Comment = comment
 	node := f.newNode(KindJSDocOverloadTag, data)
 	if h := f.storeAlloc(node, 2, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocOverloadTagTagName, f.storeHandle(tagName))
-		h.SetChild(slotJSDocOverloadTagTypeExpression, f.storeHandle(typeExpression))
+		f.storeSetChild(h, slotJSDocOverloadTagTagName, tagName)
+		f.storeSetChild(h, slotJSDocOverloadTagTypeExpression, typeExpression)
 		h.SetListSlot(listSlotJSDocOverloadTagComment, f.storeList(comment))
 	}
 	return node
@@ -8902,9 +8902,9 @@ func (f *NodeFactory) NewJSDocTypedefTag(tagName *IdentifierNode, typeExpression
 	data.Comment = comment
 	node := f.newNode(KindJSDocTypedefTag, data)
 	if h := f.storeAlloc(node, 3, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocTypedefTagTagName, f.storeHandle(tagName))
-		h.SetChild(slotJSDocTypedefTagTypeExpression, f.storeHandle(typeExpression))
-		h.SetChild(slotJSDocTypedefTagName, f.storeHandle(name))
+		f.storeSetChild(h, slotJSDocTypedefTagTagName, tagName)
+		f.storeSetChild(h, slotJSDocTypedefTagTypeExpression, typeExpression)
+		f.storeSetChild(h, slotJSDocTypedefTagName, name)
 		h.SetListSlot(listSlotJSDocTypedefTagComment, f.storeList(comment))
 	}
 	return node
@@ -8957,7 +8957,7 @@ func (f *NodeFactory) NewJSDocSignature(typeParameters *TypeParameterList, param
 	data.Type = typeNode
 	node := f.newNode(KindJSDocSignature, data)
 	if h := f.storeAlloc(node, 1, 2); h.Ref() != 0 {
-		h.SetChild(slotJSDocSignatureType, f.storeHandle(typeNode))
+		f.storeSetChild(h, slotJSDocSignatureType, typeNode)
 		h.SetListSlot(listSlotJSDocSignatureTypeParameters, f.storeList(typeParameters))
 		h.SetListSlot(listSlotJSDocSignatureParameters, f.storeList(parameters))
 	}
@@ -9001,7 +9001,7 @@ func (f *NodeFactory) NewJSDocNameReference(name *EntityName) *Node {
 	data.name = name
 	node := f.newNode(KindJSDocNameReference, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotJSDocNameReferenceName, f.storeHandle(name))
+		f.storeSetChild(h, slotJSDocNameReferenceName, name)
 	}
 	return node
 }
@@ -9066,8 +9066,8 @@ func (f *NodeFactory) NewModuleDeclaration(modifiers *ModifierList, keyword Kind
 	data.Body = body
 	node := f.newNode(KindModuleDeclaration, data)
 	if h := f.storeAlloc(node, 2, 1); h.Ref() != 0 {
-		h.SetChild(slotModuleDeclarationName, f.storeHandle(name))
-		h.SetChild(slotModuleDeclarationBody, f.storeHandle(body))
+		f.storeSetChild(h, slotModuleDeclarationName, name)
+		f.storeSetChild(h, slotModuleDeclarationBody, body)
 		h.SetListSlot(listSlotModuleDeclarationModifiers, f.storeModifierList(modifiers))
 		h.SetUintValue(valueSlotModuleDeclarationKeyword, uint64(keyword))
 	}
@@ -9124,8 +9124,8 @@ func (f *NodeFactory) NewImportEqualsDeclaration(modifiers *ModifierList, isType
 	data.ModuleReference = moduleReference
 	node := f.newNode(KindImportEqualsDeclaration, data)
 	if h := f.storeAlloc(node, 2, 1); h.Ref() != 0 {
-		h.SetChild(slotImportEqualsDeclarationName, f.storeHandle(name))
-		h.SetChild(slotImportEqualsDeclarationModuleReference, f.storeHandle(moduleReference))
+		f.storeSetChild(h, slotImportEqualsDeclarationName, name)
+		f.storeSetChild(h, slotImportEqualsDeclarationModuleReference, moduleReference)
 		h.SetListSlot(listSlotImportEqualsDeclarationModifiers, f.storeModifierList(modifiers))
 		if isTypeOnly {
 			h.SetUintValue(valueSlotImportEqualsDeclarationIsTypeOnly, 1)
@@ -9185,9 +9185,9 @@ func (f *NodeFactory) NewExportDeclaration(modifiers *ModifierList, isTypeOnly b
 	data.Attributes = attributes
 	node := f.newNode(KindExportDeclaration, data)
 	if h := f.storeAlloc(node, 3, 1); h.Ref() != 0 {
-		h.SetChild(slotExportDeclarationExportClause, f.storeHandle(exportClause))
-		h.SetChild(slotExportDeclarationModuleSpecifier, f.storeHandle(moduleSpecifier))
-		h.SetChild(slotExportDeclarationAttributes, f.storeHandle(attributes))
+		f.storeSetChild(h, slotExportDeclarationExportClause, exportClause)
+		f.storeSetChild(h, slotExportDeclarationModuleSpecifier, moduleSpecifier)
+		f.storeSetChild(h, slotExportDeclarationAttributes, attributes)
 		h.SetListSlot(listSlotExportDeclarationModifiers, f.storeModifierList(modifiers))
 		if isTypeOnly {
 			h.SetUintValue(valueSlotExportDeclarationIsTypeOnly, 1)
@@ -9243,9 +9243,9 @@ func (f *NodeFactory) NewImportTypeNode(isTypeOf bool, argument *TypeNode, attri
 	data.TypeArguments = typeArguments
 	node := f.newNode(KindImportType, data)
 	if h := f.storeAlloc(node, 3, 1); h.Ref() != 0 {
-		h.SetChild(slotImportTypeNodeArgument, f.storeHandle(argument))
-		h.SetChild(slotImportTypeNodeAttributes, f.storeHandle(attributes))
-		h.SetChild(slotImportTypeNodeQualifier, f.storeHandle(qualifier))
+		f.storeSetChild(h, slotImportTypeNodeArgument, argument)
+		f.storeSetChild(h, slotImportTypeNodeAttributes, attributes)
+		f.storeSetChild(h, slotImportTypeNodeQualifier, qualifier)
 		h.SetListSlot(listSlotImportTypeNodeTypeArguments, f.storeList(typeArguments))
 		if isTypeOf {
 			h.SetUintValue(valueSlotImportTypeNodeIsTypeOf, 1)
@@ -9301,8 +9301,8 @@ func (f *NodeFactory) NewImportClause(phaseModifier ImportPhaseModifierSyntaxKin
 	data.NamedBindings = namedBindings
 	node := f.newNode(KindImportClause, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotImportClauseName, f.storeHandle(name))
-		h.SetChild(slotImportClauseNamedBindings, f.storeHandle(namedBindings))
+		f.storeSetChild(h, slotImportClauseName, name)
+		f.storeSetChild(h, slotImportClauseNamedBindings, namedBindings)
 		h.SetUintValue(valueSlotImportClausePhaseModifier, uint64(phaseModifier))
 	}
 	return node
@@ -9356,8 +9356,8 @@ func (f *NodeFactory) NewImportSpecifier(isTypeOnly bool, propertyName *ModuleEx
 	data.name = name
 	node := f.newNode(KindImportSpecifier, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotImportSpecifierPropertyName, f.storeHandle(propertyName))
-		h.SetChild(slotImportSpecifierName, f.storeHandle(name))
+		f.storeSetChild(h, slotImportSpecifierPropertyName, propertyName)
+		f.storeSetChild(h, slotImportSpecifierName, name)
 		if isTypeOnly {
 			h.SetUintValue(valueSlotImportSpecifierIsTypeOnly, 1)
 		}
@@ -9435,7 +9435,7 @@ func (f *NodeFactory) NewJSDocLink(name *EntityName, text []string) *Node {
 	f.textCount++
 	node := f.newNode(KindJSDocLink, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotJSDocLinkName, f.storeHandle(name))
+		f.storeSetChild(h, slotJSDocLinkName, name)
 		h.SetObjectValue(valueSlotJSDocLinkText, text)
 	}
 	return node
@@ -9484,7 +9484,7 @@ func (f *NodeFactory) NewJSDocLinkPlain(name *EntityName, text []string) *Node {
 	f.textCount++
 	node := f.newNode(KindJSDocLinkPlain, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotJSDocLinkPlainName, f.storeHandle(name))
+		f.storeSetChild(h, slotJSDocLinkPlainName, name)
 		h.SetObjectValue(valueSlotJSDocLinkPlainText, text)
 	}
 	return node
@@ -9533,7 +9533,7 @@ func (f *NodeFactory) NewJSDocLinkCode(name *EntityName, text []string) *Node {
 	f.textCount++
 	node := f.newNode(KindJSDocLinkCode, data)
 	if h := f.storeAlloc(node, 1, 0); h.Ref() != 0 {
-		h.SetChild(slotJSDocLinkCodeName, f.storeHandle(name))
+		f.storeSetChild(h, slotJSDocLinkCodeName, name)
 		h.SetObjectValue(valueSlotJSDocLinkCodeText, text)
 	}
 	return node
@@ -9590,10 +9590,10 @@ func (f *NodeFactory) NewTypeParameterDeclaration(modifiers *ModifierList, name 
 	data.DefaultType = defaultType
 	node := f.newNode(KindTypeParameter, data)
 	if h := f.storeAlloc(node, 4, 1); h.Ref() != 0 {
-		h.SetChild(slotTypeParameterDeclarationName, f.storeHandle(name))
-		h.SetChild(slotTypeParameterDeclarationConstraint, f.storeHandle(constraint))
-		h.SetChild(slotTypeParameterDeclarationExpression, f.storeHandle(expression))
-		h.SetChild(slotTypeParameterDeclarationDefaultType, f.storeHandle(defaultType))
+		f.storeSetChild(h, slotTypeParameterDeclarationName, name)
+		f.storeSetChild(h, slotTypeParameterDeclarationConstraint, constraint)
+		f.storeSetChild(h, slotTypeParameterDeclarationExpression, expression)
+		f.storeSetChild(h, slotTypeParameterDeclarationDefaultType, defaultType)
 		h.SetListSlot(listSlotTypeParameterDeclarationModifiers, f.storeModifierList(modifiers))
 	}
 	return node
@@ -9646,8 +9646,8 @@ func (f *NodeFactory) NewSyntheticReferenceExpression(expression *Expression, th
 	data.ThisArg = thisArg
 	node := f.newNode(KindSyntheticReferenceExpression, data)
 	if h := f.storeAlloc(node, 2, 0); h.Ref() != 0 {
-		h.SetChild(slotSyntheticReferenceExpressionExpression, f.storeHandle(expression))
-		h.SetChild(slotSyntheticReferenceExpressionThisArg, f.storeHandle(thisArg))
+		f.storeSetChild(h, slotSyntheticReferenceExpressionExpression, expression)
+		f.storeSetChild(h, slotSyntheticReferenceExpressionThisArg, thisArg)
 	}
 	return node
 }
@@ -9751,9 +9751,9 @@ func (f *NodeFactory) NewJSDocParameterOrPropertyTag(kind Kind, tagName *Identif
 	data.Comment = comment
 	node := f.newNode(kind, data)
 	if h := f.storeAlloc(node, 3, 1); h.Ref() != 0 {
-		h.SetChild(slotJSDocParameterOrPropertyTagTagName, f.storeHandle(tagName))
-		h.SetChild(slotJSDocParameterOrPropertyTagName, f.storeHandle(name))
-		h.SetChild(slotJSDocParameterOrPropertyTagTypeExpression, f.storeHandle(typeExpression))
+		f.storeSetChild(h, slotJSDocParameterOrPropertyTagTagName, tagName)
+		f.storeSetChild(h, slotJSDocParameterOrPropertyTagName, name)
+		f.storeSetChild(h, slotJSDocParameterOrPropertyTagTypeExpression, typeExpression)
 		h.SetListSlot(listSlotJSDocParameterOrPropertyTagComment, f.storeList(comment))
 		if isBracketed {
 			h.SetUintValue(valueSlotJSDocParameterOrPropertyTagIsBracketed, 1)

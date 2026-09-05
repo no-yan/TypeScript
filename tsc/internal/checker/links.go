@@ -5,22 +5,44 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
 
-// nodeLinkStore is a links store keyed by node references. Values are stored directly
-// in the pages of the store which is suitable for values where sizeof(V) is small.
 type nodeLinkStore[V any] struct {
-	store core.PagedLinkStore[V]
+	store   core.PagedLinkStore[V]
+	orphans map[*ast.Node]uint64
+	next    uint64
+}
+
+func (s *nodeLinkStore[V]) key(node *ast.Node) uint64 {
+	file := ast.GetSourceFileOfNode(node)
+	if file != nil {
+		h := file.HandleOf(node)
+		if h.Ref() != 0 {
+			if g := h.Global(); g != 0 {
+				return uint64(g)
+			}
+		}
+	}
+	if s.orphans == nil {
+		s.orphans = make(map[*ast.Node]uint64)
+		s.next = 1 << 63
+	}
+	if k, ok := s.orphans[node]; ok {
+		return k
+	}
+	s.next++
+	s.orphans[node] = s.next
+	return s.next
 }
 
 func (s *nodeLinkStore[V]) Get(node *ast.Node) *V {
-	return s.store.Get(uint64(ast.GetNodeId(node)))
+	return s.store.Get(s.key(node))
 }
 
 func (s *nodeLinkStore[V]) Has(node *ast.Node) bool {
-	return s.store.Has(uint64(ast.GetNodeId(node)))
+	return s.store.Has(s.key(node))
 }
 
 func (s *nodeLinkStore[V]) TryGet(node *ast.Node) *V {
-	return s.store.TryGet(uint64(ast.GetNodeId(node)))
+	return s.store.TryGet(s.key(node))
 }
 
 // symbolArenaLinkStore is a links store keyed by symbol references. Values are stored

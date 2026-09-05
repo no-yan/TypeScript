@@ -177,7 +177,7 @@ func getImportersForExport(
 	var indirectUserDeclarations []*ast.Node
 	markSeenDirectImport := nodeSeenTracker()
 	markSeenIndirectUser := nodeSeenTracker()
-	isAvailableThroughGlobal := isSourceFileWithGlobalExports(exportInfo.exportingModuleSymbol.ValueDeclaration)
+	isAvailableThroughGlobal := isSourceFileWithGlobalExports(ast.NodeOf(exportInfo.exportingModuleSymbol.ValueDeclaration))
 
 	getDirectImports := func(moduleSymbol *ast.Symbol) []*ast.Node {
 		return allDirectImports[moduleSymbol]
@@ -308,7 +308,7 @@ func getImportersForExport(
 			return sourceFiles
 		}
 		// Module augmentations may use this module's exports without importing it.
-		for _, decl := range exportInfo.exportingModuleSymbol.Declarations {
+		for _, decl := range ast.DeclarationNodes(exportInfo.exportingModuleSymbol) {
 			if ast.IsExternalModuleAugmentation(decl) && sourceFilesSet.Has(ast.GetSourceFileOfNode(decl).FileName()) {
 				addIndirectUser(decl, false)
 			}
@@ -522,7 +522,7 @@ func getImportOrExportSymbol(node *ast.Node, symbol *ast.Symbol, checker *checke
 			if ast.IsPropertyAccessExpression(parent) {
 				// When accessing an export of a JS module, there's no alias. The symbol will still be flagged as an export even though we're at the use.
 				// So check that we are at the declaration.
-				if ast.IsBinaryExpression(grandparent) && slices.Contains(symbol.Declarations, parent) {
+				if ast.IsBinaryExpression(grandparent) && slices.Contains(ast.DeclarationNodes(symbol), parent) {
 					return getSpecialPropertyExport(grandparent, false /*useLhsSymbol*/)
 				}
 				return nil
@@ -667,7 +667,7 @@ func isExternalModuleImportEquals(node *ast.Node) bool {
 // If at an export specifier, go to the symbol it refers to. */
 func skipExportSpecifierSymbol(symbol *ast.Symbol, checker *checker.Checker) *ast.Symbol {
 	// For `export { foo } from './bar", there's nothing to skip, because it does not create a new alias. But `export { foo } does.
-	for _, declaration := range symbol.Declarations {
+	for _, declaration := range ast.DeclarationNodes(symbol) {
 		switch {
 		case ast.IsExportSpecifier(declaration) && declaration.PropertyName() == nil && declaration.Parent.Parent.ModuleSpecifier() == nil:
 			return core.OrElse(checker.GetExportSpecifierLocalTargetSymbol(declaration), symbol)
@@ -685,7 +685,7 @@ func getExportEqualsLocalSymbol(importedSymbol *ast.Symbol, checker *checker.Che
 	if importedSymbol.Flags&ast.SymbolFlagsAlias != 0 {
 		return checker.GetImmediateAliasedSymbol(importedSymbol)
 	}
-	decl := importedSymbol.ValueDeclaration
+	decl := ast.NodeOf(importedSymbol.ValueDeclaration)
 	debug.Assert(decl != nil)
 	switch {
 	case ast.IsExportAssignment(decl):
@@ -702,7 +702,7 @@ func symbolNameNoDefault(symbol *ast.Symbol) string {
 	if symbol.Name != ast.InternalSymbolNameDefault {
 		return symbol.Name
 	}
-	for _, decl := range symbol.Declarations {
+	for _, decl := range ast.DeclarationNodes(symbol) {
 		name := ast.GetNameOfDeclaration(decl)
 		if name != nil && ast.IsIdentifier(name) {
 			return name.Text()
@@ -717,7 +717,7 @@ func findModuleReferences(program *compiler.Program, sourceFiles []*ast.SourceFi
 	refs := []ModuleReference{}
 
 	for _, referencingFile := range sourceFiles {
-		searchSourceFile := searchModuleSymbol.ValueDeclaration
+		searchSourceFile := ast.NodeOf(searchModuleSymbol.ValueDeclaration)
 		if searchSourceFile != nil && searchSourceFile.Kind == ast.KindSourceFile {
 			// Check <reference path> directives
 			for _, ref := range referencingFile.ReferencedFiles {

@@ -424,7 +424,7 @@ func (walker *typeWriterWalker) writeTypeOrSymbol(node *ast.Node, isSymbolWalk b
 	symbolString.WriteString("Symbol(")
 	symbolString.WriteString(ast.EscapeAllInternalSymbolNames(fileChecker.SymbolToStringEx(symbol, node.Parent, ast.SymbolFlagsNone, checker.SymbolFormatFlagsAllowAnyNodeKind)))
 	count := 0
-	for _, declaration := range symbol.Declarations {
+	for _, declaration := range ast.DeclarationNodes(symbol) {
 		if count >= 5 {
 			fmt.Fprintf(&symbolString, " ... and %d more", len(symbol.Declarations)-count)
 			break

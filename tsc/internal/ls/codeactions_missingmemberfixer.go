@@ -50,7 +50,7 @@ func (f *missingMemberFixer) createNodeBuilder() (*checker.NodeBuilder, map[*ast
 }
 
 func (f *missingMemberFixer) createMemberFromSymbol(symbol *ast.Symbol, enclosingDeclaration *ast.Node, sourceFile *ast.SourceFile, body *ast.FunctionBody, preserveOptional preserveOptionalFlags, abstract bool) []*ast.Node {
-	declarations := symbol.Declarations
+	declarations := ast.DeclarationNodes(symbol)
 	declaration := core.FirstOrNil(declarations)
 
 	quotePreference := lsutil.GetQuotePreference(sourceFile, f.preferences)
@@ -84,7 +84,7 @@ func (f *missingMemberFixer) createMemberFromSymbol(symbol *ast.Symbol, enclosin
 
 	case ast.KindGetAccessor, ast.KindSetAccessor:
 		nodeBuilder, idToSymbol := f.createNodeBuilder()
-		accessors := ast.GetAllAccessorDeclarations(symbol.Declarations, declaration)
+		accessors := ast.GetAllAccessorDeclarations(ast.DeclarationNodes(symbol), declaration)
 		var orderedAccessors []*ast.Node
 		if accessors.SecondAccessor == nil {
 			orderedAccessors = append(orderedAccessors, accessors.FirstAccessor)

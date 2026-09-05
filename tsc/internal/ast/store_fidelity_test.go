@@ -59,3 +59,36 @@ func TestStoreRetainsSourceFileMetadataOwner(t *testing.T) {
 	assert.Equal(t, core.ScriptKindTS, store.SourceFile().ScriptKind)
 	assert.Equal(t, 17, store.SourceFile().IdentifierCount)
 }
+
+func TestStoreBridgePreservesCrossFileChildrenAsGlobalRefs(t *testing.T) {
+	storeA := NewStore(4)
+	factoryA := NewNodeFactory(NodeFactoryHooks{})
+	factoryA.AttachStore(storeA)
+	child := factoryA.NewIdentifier("external")
+	opts := SourceFileParseOptions{FileName: "/a.ts", Path: "/a.ts"}
+	sourceNode := factoryA.NewSourceFile(opts, "external", factoryA.NewNodeList([]*Node{child}), nil)
+	child.Parent = sourceNode
+	sourceFile := sourceNode.AsSourceFile()
+	sourceFile.SetParseStore(storeA, factoryA.HandleOf(sourceNode))
+	sourceFile.SetParseNodeRef(factoryA.TakeNodeRef())
+	RegisterFile(sourceFile)
+
+	storeB := NewStore(4)
+	factoryB := NewNodeFactory(NodeFactoryHooks{})
+	factoryB.AttachStore(storeB)
+	synthetic := factoryB.NewSyntheticExpression(nil, false, child)
+	syntheticHandle := factoryB.HandleOf(synthetic)
+
+	assert.Equal(t, sourceFile.RefOf(child), syntheticHandle.ExternalChild(slotSyntheticExpressionTupleNameSource))
+	expanded := ExpandStore(syntheticHandle, SourceFileParseOptions{}, "")
+	assert.Equal(t, child, expanded.AsSyntheticExpression().TupleNameSource)
+	assert.Equal(t, sourceNode, child.Parent)
+
+	jsdoc := factoryB.NewJSDoc(factoryB.NewNodeList([]*Node{child}), nil)
+	jsdocHandle := factoryB.HandleOf(jsdoc)
+	list := jsdocHandle.ListSlot(listSlotJSDocComment)
+	assert.Equal(t, sourceFile.RefOf(child), storeB.ExternalListAt(list, 0))
+	expandedJSDoc := ExpandStore(jsdocHandle, SourceFileParseOptions{}, "").AsJSDoc()
+	assert.Equal(t, child, expandedJSDoc.Comment.Nodes[0])
+	assert.Equal(t, sourceNode, child.Parent)
+}

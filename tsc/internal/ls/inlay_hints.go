@@ -302,7 +302,7 @@ func (s *inlayHintState) addParameterTypeHint(node *ast.ParameterDeclarationNode
 }
 
 func (s *inlayHintState) getParameterDeclarationTypeHints(symbol *ast.Symbol) *lsproto.StringOrInlayHintLabelParts {
-	valueDeclaration := symbol.ValueDeclaration
+	valueDeclaration := ast.NodeOf(symbol.ValueDeclaration)
 	if valueDeclaration == nil || !ast.IsParameterDeclaration(valueDeclaration) {
 		return nil
 	}
@@ -466,7 +466,7 @@ func (s *inlayHintState) getInlayHintLabelParts(node *ast.Node, idToSymbol map[*
 			identifierText := node.Text()
 			var name *ast.Node
 			if symbol := idToSymbol[node]; symbol != nil && len(symbol.Declarations) != 0 {
-				name = ast.GetNameOfDeclaration(symbol.Declarations[0])
+				name = ast.GetNameOfDeclaration(ast.NodeOf(symbol.Declarations[0]))
 			}
 			if name != nil {
 				parts = append(parts, s.getNodeDisplayPart(identifierText, name))
@@ -897,8 +897,8 @@ func (s *inlayHintState) getParameterIdentifierInfoAtPosition(signature *checker
 }
 
 func getParameterDeclarationIdentifier(symbol *ast.Symbol) *ast.IdentifierNode {
-	if symbol.ValueDeclaration != nil && ast.IsParameterDeclaration(symbol.ValueDeclaration) && ast.IsIdentifier(symbol.ValueDeclaration.Name()) {
-		return symbol.ValueDeclaration.Name()
+	if symbol.ValueDeclaration != 0 && ast.IsParameterDeclaration(ast.NodeOf(symbol.ValueDeclaration)) && ast.IsIdentifier(ast.NodeOf(symbol.ValueDeclaration).Name()) {
+		return ast.NodeOf(symbol.ValueDeclaration).Name()
 	}
 	return nil
 }

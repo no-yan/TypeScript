@@ -386,7 +386,7 @@ func (c *Checker) narrowType(f *FlowState, t *Type, expr *ast.Node, assumeTrue b
 		if !c.isMatchingReference(f.reference, expr) && c.inlineLevel < 5 {
 			symbol := c.getResolvedSymbol(expr)
 			if c.isConstantVariable(symbol) {
-				declaration := symbol.ValueDeclaration
+				declaration := ast.NodeOf(symbol.ValueDeclaration)
 				if declaration != nil && ast.IsVariableDeclaration(declaration) && declaration.Type() == nil && declaration.Initializer() != nil && c.isConstantReference(f.reference) {
 					c.inlineLevel++
 					result := c.narrowType(f, t, declaration.Initializer(), assumeTrue)
@@ -990,7 +990,7 @@ func (c *Checker) narrowTypeByPrivateIdentifierInInExpression(f *FlowState, t *T
 	}
 	classSymbol := symbol.Parent
 	var targetType *Type
-	if ast.HasStaticModifier(symbol.ValueDeclaration) {
+	if ast.HasStaticModifier(ast.NodeOf(symbol.ValueDeclaration)) {
 		targetType = c.getTypeOfSymbol(classSymbol)
 	} else {
 		targetType = c.getDeclaredTypeOfSymbol(classSymbol)
@@ -1462,7 +1462,7 @@ func (c *Checker) getCandidateDiscriminantPropertyAccess(f *FlowState, expr *ast
 		// parameter declared in the same parameter list is a candidate.
 		if ast.IsIdentifier(expr) {
 			symbol := c.getResolvedSymbol(expr)
-			declaration := c.getExportSymbolOfValueSymbolIfExported(symbol).ValueDeclaration
+			declaration := ast.NodeOf(c.getExportSymbolOfValueSymbolIfExported(symbol).ValueDeclaration)
 			if declaration != nil && (ast.IsBindingElement(declaration) || ast.IsParameterDeclaration(declaration)) && f.reference == declaration.Parent && declaration.Initializer() == nil && !hasDotDotDotToken(declaration) {
 				return declaration
 			}
@@ -1475,7 +1475,7 @@ func (c *Checker) getCandidateDiscriminantPropertyAccess(f *FlowState, expr *ast
 	case ast.IsIdentifier(expr):
 		symbol := c.getResolvedSymbol(expr)
 		if c.isConstantVariable(symbol) {
-			declaration := symbol.ValueDeclaration
+			declaration := ast.NodeOf(symbol.ValueDeclaration)
 			initializer := getCandidateVariableDeclarationInitializer(declaration)
 			// Given 'const x = obj.kind', allow 'x' as an alias for 'obj.kind'
 			if initializer != nil && ast.IsAccessExpression(initializer) && c.isMatchingReference(f.reference, initializer.Expression()) {
@@ -1755,7 +1755,7 @@ func (c *Checker) tryGetNameFromEntityNameExpression(node *ast.Node) (string, bo
 	if symbol == nil || !(c.isConstantVariable(symbol) || (symbol.Flags&ast.SymbolFlagsEnumMember != 0)) {
 		return "", false
 	}
-	declaration := symbol.ValueDeclaration
+	declaration := ast.NodeOf(symbol.ValueDeclaration)
 	if declaration == nil {
 		return "", false
 	}
@@ -1818,7 +1818,7 @@ func (c *Checker) isConstantReference(node *ast.Node) bool {
 	case ast.KindIdentifier:
 		if !ast.IsThisInTypeQuery(node) {
 			symbol := c.getResolvedSymbol(node)
-			return c.isConstantVariable(symbol) || c.isParameterOrMutableLocalVariable(symbol) && !c.isSymbolAssigned(symbol) || symbol.ValueDeclaration != nil && ast.IsFunctionExpression(symbol.ValueDeclaration)
+			return c.isConstantVariable(symbol) || c.isParameterOrMutableLocalVariable(symbol) && !c.isSymbolAssigned(symbol) || symbol.ValueDeclaration != 0 && ast.IsFunctionExpression(ast.NodeOf(symbol.ValueDeclaration))
 		}
 	case ast.KindPropertyAccessExpression, ast.KindElementAccessExpression:
 		// The resolvedSymbol property is initialized by checkPropertyAccess or checkElementAccess before we get here.
@@ -2168,7 +2168,7 @@ func (c *Checker) getExplicitTypeOfSymbol(symbol *ast.Symbol, diagnostic *ast.Di
 				return c.getTypeOfSymbol(symbol)
 			}
 		}
-		declaration := symbol.ValueDeclaration
+		declaration := ast.NodeOf(symbol.ValueDeclaration)
 		if declaration != nil {
 			if c.isDeclarationWithExplicitTypeAnnotation(declaration) {
 				return c.getTypeOfSymbol(symbol)
@@ -2476,7 +2476,7 @@ func (c *Checker) getFlowTypeInConstructor(symbol *ast.Symbol, constructor *ast.
 	reference.FlowNodeData().FlowNode = constructor.AsConstructorDeclaration().ReturnFlowNode
 	flowType := c.getFlowTypeOfProperty(reference, symbol)
 	if c.noImplicitAny && (flowType == c.autoType || flowType == c.autoArrayType) {
-		c.error(symbol.ValueDeclaration, diagnostics.Member_0_implicitly_has_an_1_type, c.symbolToString(symbol), c.TypeToString(flowType))
+		c.error(ast.NodeOf(symbol.ValueDeclaration), diagnostics.Member_0_implicitly_has_an_1_type, c.symbolToString(symbol), c.TypeToString(flowType))
 	}
 	// We don't infer a type if assignments are only null or undefined.
 	if everyType(flowType, c.IsNullableType) {
@@ -2499,7 +2499,7 @@ func (c *Checker) getFlowTypeInStaticBlocks(symbol *ast.Symbol, staticBlocks []*
 		reference.FlowNodeData().FlowNode = staticBlock.AsClassStaticBlockDeclaration().ReturnFlowNode
 		flowType := c.getFlowTypeOfProperty(reference, symbol)
 		if c.noImplicitAny && (flowType == c.autoType || flowType == c.autoArrayType) {
-			c.error(symbol.ValueDeclaration, diagnostics.Member_0_implicitly_has_an_1_type, c.symbolToString(symbol), c.TypeToString(flowType))
+			c.error(ast.NodeOf(symbol.ValueDeclaration), diagnostics.Member_0_implicitly_has_an_1_type, c.symbolToString(symbol), c.TypeToString(flowType))
 		}
 		// We don't infer a type if assignments are only null or undefined.
 		if everyType(flowType, c.IsNullableType) {
@@ -2675,7 +2675,7 @@ func (c *Checker) ensureAssignmentsMarked(symbol *ast.Symbol) {
 	if c.markedAssignmentSymbolLinks.Get(symbol).lastAssignmentPos != 0 {
 		return
 	}
-	parent := ast.FindAncestor(symbol.ValueDeclaration, ast.IsFunctionOrSourceFile)
+	parent := ast.FindAncestor(ast.NodeOf(symbol.ValueDeclaration), ast.IsFunctionOrSourceFile)
 	if parent == nil {
 		return
 	}
@@ -2710,9 +2710,9 @@ func (c *Checker) markNodeAssignmentsWorker(node *ast.Node) bool {
 				links := c.markedAssignmentSymbolLinks.Get(symbol)
 				if pos := links.lastAssignmentPos; pos == 0 || pos != math.MaxInt32 {
 					referencingFunction := ast.FindAncestor(node, ast.IsFunctionOrSourceFile)
-					declaringFunction := ast.FindAncestor(symbol.ValueDeclaration, ast.IsFunctionOrSourceFile)
+					declaringFunction := ast.FindAncestor(ast.NodeOf(symbol.ValueDeclaration), ast.IsFunctionOrSourceFile)
 					if referencingFunction == declaringFunction {
-						links.lastAssignmentPos = int32(c.extendAssignmentPosition(node, symbol.ValueDeclaration))
+						links.lastAssignmentPos = int32(c.extendAssignmentPosition(node, ast.NodeOf(symbol.ValueDeclaration)))
 					} else {
 						links.lastAssignmentPos = math.MaxInt32
 					}

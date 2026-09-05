@@ -230,13 +230,13 @@ func getSymbolKindOfConstructorPropertyMethodAccessorFunctionOrVar(typeChecker *
 	if flags&ast.SymbolFlagsVariable != 0 {
 		if isFirstDeclarationOfSymbolParameter(symbol) {
 			return ScriptElementKindParameterElement
-		} else if symbol.ValueDeclaration != nil && ast.IsVarConst(symbol.ValueDeclaration) {
+		} else if symbol.ValueDeclaration != 0 && ast.IsVarConst(ast.NodeOf(symbol.ValueDeclaration)) {
 			return ScriptElementKindConstElement
-		} else if symbol.ValueDeclaration != nil && ast.IsVarUsing(symbol.ValueDeclaration) {
+		} else if symbol.ValueDeclaration != 0 && ast.IsVarUsing(ast.NodeOf(symbol.ValueDeclaration)) {
 			return ScriptElementKindVariableUsingElement
-		} else if symbol.ValueDeclaration != nil && ast.IsVarAwaitUsing(symbol.ValueDeclaration) {
+		} else if symbol.ValueDeclaration != 0 && ast.IsVarAwaitUsing(ast.NodeOf(symbol.ValueDeclaration)) {
 			return ScriptElementKindVariableAwaitUsingElement
-		} else if core.Some(symbol.Declarations, ast.IsLet) {
+		} else if ast.SomeDeclaration(symbol, ast.IsLet) {
 			return ScriptElementKindLetElement
 		}
 		if isLocalVariableOrFunction(symbol) {
@@ -299,7 +299,7 @@ func getSymbolKindOfConstructorPropertyMethodAccessorFunctionOrVar(typeChecker *
 func isFirstDeclarationOfSymbolParameter(symbol *ast.Symbol) bool {
 	var declaration *ast.Node
 	if len(symbol.Declarations) > 0 {
-		declaration = symbol.Declarations[0]
+		declaration = ast.NodeOf(symbol.Declarations[0])
 	}
 	result := ast.FindAncestorOrQuit(declaration, func(n *ast.Node) ast.FindAncestorResult {
 		if ast.IsParameterDeclaration(n) {
@@ -319,7 +319,7 @@ func isLocalVariableOrFunction(symbol *ast.Symbol) bool {
 		return false // This is exported symbol
 	}
 
-	for _, decl := range symbol.Declarations {
+	for _, decl := range ast.DeclarationNodes(symbol) {
 		// Function expressions are local
 		if decl.Kind == ast.KindFunctionExpression {
 			return true
@@ -368,8 +368,8 @@ func GetSymbolModifiers(typeChecker *checker.Checker, symbol *ast.Symbol) Script
 func getNormalizedSymbolModifiers(typeChecker *checker.Checker, symbol *ast.Symbol) ScriptElementKindModifier {
 	var modifierSet ScriptElementKindModifier
 	if len(symbol.Declarations) > 0 {
-		declaration := symbol.Declarations[0]
-		declarations := symbol.Declarations[1:]
+		declaration := ast.DeclarationNodes(symbol)[0]
+		declarations := ast.DeclarationNodes(symbol)[1:]
 		// omit deprecated flag if some declarations are not deprecated
 		var excludeFlags ast.ModifierFlags
 		if len(declarations) > 0 &&

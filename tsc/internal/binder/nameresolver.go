@@ -80,7 +80,7 @@ loop:
 							// to make sure that they reference no variables declared after them.
 							useResult = lastLocation.Kind == ast.KindParameter ||
 								lastLocation.Flags&ast.NodeFlagsSynthesized != 0 ||
-								lastLocation == location.Type() && ast.FindAncestor(result.ValueDeclaration, ast.IsParameterDeclaration) != nil
+								lastLocation == location.Type() && ast.FindAncestor(ast.NodeOf(result.ValueDeclaration), ast.IsParameterDeclaration) != nil
 						}
 					}
 				} else if location.Kind == ast.KindConditionalType {
@@ -150,7 +150,7 @@ loop:
 			}
 			result = r.lookup(enumSymbol.Exports, name, meaning&ast.SymbolFlagsEnumMember)
 			if result != nil {
-				if nameNotFoundMessage != nil && r.CompilerOptions.GetIsolatedModules() && location.Flags&ast.NodeFlagsAmbient == 0 && ast.GetSourceFileOfNode(location) != ast.GetSourceFileOfNode(result.ValueDeclaration) {
+				if nameNotFoundMessage != nil && r.CompilerOptions.GetIsolatedModules() && location.Flags&ast.NodeFlagsAmbient == 0 && ast.GetSourceFileOfNode(location) != ast.GetSourceFileOfNode(ast.NodeOf(result.ValueDeclaration)) {
 					isolatedModulesLikeFlagName := core.IfElse(r.CompilerOptions.VerbatimModuleSyntax == core.TSTrue, "verbatimModuleSyntax", "isolatedModules")
 					r.error(originalLocation, diagnostics.Cannot_access_0_from_another_file_without_qualification_when_1_is_enabled_Use_2_instead,
 						name, isolatedModulesLikeFlagName, enumSymbol.Name+"."+name)
@@ -346,24 +346,22 @@ loop:
 func (r *NameResolver) useOuterVariableScopeInParameter(result *ast.Symbol, location *ast.Node, lastLocation *ast.Node) bool {
 	if ast.IsParameterDeclaration(lastLocation) {
 		body := location.Body()
-		if body != nil && result.ValueDeclaration != nil && result.ValueDeclaration.Pos() >= body.Pos() && result.ValueDeclaration.End() <= body.End() {
-			// check for several cases where we introduce temporaries that require moving the name/initializer of the parameter to the body
-			// - static field in a class expression
-			// - optional chaining pre-es2020
-			// - nullish coalesce pre-es2020
-			// - spread assignment in binding pattern pre-es2017
-			functionLocation := location
-			declarationRequiresScopeChange := core.TSUnknown
-			if r.GetRequiresScopeChangeCache != nil {
-				declarationRequiresScopeChange = r.GetRequiresScopeChangeCache(functionLocation)
-			}
-			if declarationRequiresScopeChange == core.TSUnknown {
-				declarationRequiresScopeChange = core.IfElse(core.Some(functionLocation.Parameters(), r.requiresScopeChange), core.TSTrue, core.TSFalse)
-				if r.SetRequiresScopeChangeCache != nil {
-					r.SetRequiresScopeChangeCache(functionLocation, declarationRequiresScopeChange)
+		if body != nil {
+			declaration := ast.NodeOf(result.ValueDeclaration)
+			if declaration != nil && declaration.Pos() >= body.Pos() && declaration.End() <= body.End() {
+				functionLocation := location
+				declarationRequiresScopeChange := core.TSUnknown
+				if r.GetRequiresScopeChangeCache != nil {
+					declarationRequiresScopeChange = r.GetRequiresScopeChangeCache(functionLocation)
 				}
+				if declarationRequiresScopeChange == core.TSUnknown {
+					declarationRequiresScopeChange = core.IfElse(core.Some(functionLocation.Parameters(), r.requiresScopeChange), core.TSTrue, core.TSFalse)
+					if r.SetRequiresScopeChangeCache != nil {
+						r.SetRequiresScopeChangeCache(functionLocation, declarationRequiresScopeChange)
+					}
+				}
+				return declarationRequiresScopeChange != core.TSTrue
 			}
-			return declarationRequiresScopeChange != core.TSTrue
 		}
 	}
 	return false
@@ -443,7 +441,11 @@ func GetLocalSymbolForExportDefault(symbol *ast.Symbol) *ast.Symbol {
 	if !isExportDefaultSymbol(symbol) || len(symbol.Declarations) == 0 {
 		return nil
 	}
-	for _, decl := range symbol.Declarations {
+	for _, declRef := range symbol.Declarations {
+		decl := ast.NodeOf(declRef)
+		if decl == nil {
+			continue
+		}
 		localSymbol := decl.LocalSymbol()
 		if localSymbol != nil {
 			return localSymbol
@@ -453,7 +455,7 @@ func GetLocalSymbolForExportDefault(symbol *ast.Symbol) *ast.Symbol {
 }
 
 func isExportDefaultSymbol(symbol *ast.Symbol) bool {
-	return symbol != nil && len(symbol.Declarations) > 0 && ast.HasSyntacticModifier(symbol.Declarations[0], ast.ModifierFlagsDefault)
+	return symbol != nil && len(symbol.Declarations) > 0 && ast.HasSyntacticModifier(ast.NodeOf(symbol.Declarations[0]), ast.ModifierFlagsDefault)
 }
 
 func getIsDeferredContext(location *ast.Node, lastLocation *ast.Node) bool {
@@ -475,8 +477,9 @@ func getIsDeferredContext(location *ast.Node, lastLocation *ast.Node) bool {
 }
 
 func isTypeParameterSymbolDeclaredInContainer(symbol *ast.Symbol, container *ast.Node) bool {
-	for _, decl := range symbol.Declarations {
-		if decl.Kind == ast.KindTypeParameter {
+	for _, declRef := range symbol.Declarations {
+		decl := ast.NodeOf(declRef)
+		if decl != nil && decl.Kind == ast.KindTypeParameter {
 			parent := decl.Parent
 			if parent == container {
 				return true

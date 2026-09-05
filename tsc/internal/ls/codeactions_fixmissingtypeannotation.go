@@ -264,7 +264,7 @@ func (f *isolatedDeclarationsFixer) createNamespaceForExpandoProperties(expandoF
 			continue
 		}
 		// skip symbols that already have a variable declaration
-		if symbol.ValueDeclaration != nil && ast.IsVariableDeclaration(symbol.ValueDeclaration) {
+		if symbol.ValueDeclaration != 0 && ast.IsVariableDeclaration(ast.NodeOf(symbol.ValueDeclaration)) {
 			continue
 		}
 
@@ -521,7 +521,7 @@ func findExpandoFunction(ch *checker.Checker, node *ast.Node) *ast.Node {
 	properties := ch.GetPropertiesOfType(targetType)
 	found := false
 	for _, p := range properties {
-		if p.ValueDeclaration == expandoDeclaration || p.ValueDeclaration == expandoDeclaration.Parent {
+		if ast.NodeOf(p.ValueDeclaration) == expandoDeclaration || ast.NodeOf(p.ValueDeclaration) == expandoDeclaration.Parent {
 			found = true
 			break
 		}
@@ -531,11 +531,11 @@ func findExpandoFunction(ch *checker.Checker, node *ast.Node) *ast.Node {
 	}
 
 	symbol := targetType.Symbol()
-	if symbol == nil || symbol.ValueDeclaration == nil {
+	if symbol == nil || symbol.ValueDeclaration == 0 {
 		return nil
 	}
 
-	fn := symbol.ValueDeclaration
+	fn := ast.NodeOf(symbol.ValueDeclaration)
 	if (ast.IsFunctionExpression(fn) || ast.IsArrowFunction(fn)) && ast.IsVariableDeclaration(fn.Parent) {
 		return fn.Parent
 	}
@@ -1247,7 +1247,7 @@ func typeParamHasDefault(tp *checker.Type) bool {
 	if sym == nil {
 		return false
 	}
-	for _, decl := range sym.Declarations {
+	for _, decl := range ast.DeclarationNodes(sym) {
 		if ast.IsTypeParameterDeclaration(decl) && decl.AsTypeParameterDeclaration().DefaultType != nil {
 			return true
 		}

@@ -64,7 +64,7 @@ func getNonModuleSymbolOfMergedModuleSymbol(symbol *ast.Symbol) *ast.Symbol {
 		return nil
 	}
 
-	if decl := core.Find(symbol.Declarations, func(d *ast.Node) bool { return !ast.IsSourceFile(d) && !ast.IsModuleDeclaration(d) }); decl != nil {
+	if decl := ast.FindSymbolDeclaration(symbol, func(d *ast.Node) bool { return !ast.IsSourceFile(d) && !ast.IsModuleDeclaration(d) }); decl != nil {
 		return decl.Symbol()
 	}
 	return nil
@@ -386,10 +386,10 @@ func isRightSideOfPropertyAccess(node *ast.Node) bool {
 }
 
 func isStaticSymbol(symbol *ast.Symbol) bool {
-	if symbol.ValueDeclaration == nil {
+	if symbol.ValueDeclaration == 0 {
 		return false
 	}
-	modifierFlags := symbol.ValueDeclaration.ModifierFlags()
+	modifierFlags := ast.NodeOf(symbol.ValueDeclaration).ModifierFlags()
 	return modifierFlags&ast.ModifierFlagsStatic != 0
 }
 
@@ -884,7 +884,7 @@ func getIntersectingMeaningFromDeclarations(node *ast.Node, symbol *ast.Symbol, 
 	}
 
 	meaning := getMeaningFromLocation(node)
-	declarations := symbol.Declarations
+	declarations := ast.DeclarationNodes(symbol)
 	if len(declarations) == 0 {
 		return meaning
 	}
@@ -971,7 +971,7 @@ func getPropertySymbolsFromBaseTypes(symbol *ast.Symbol, propertyName string, ch
 		if symbol.Flags&(ast.SymbolFlagsClass|ast.SymbolFlagsInterface) == 0 || !seen.AddIfAbsent(symbol) {
 			return nil
 		}
-		for _, declaration := range symbol.Declarations {
+		for _, declaration := range ast.DeclarationNodes(symbol) {
 			for _, typeReference := range getAllSuperTypeNodes(declaration) {
 				if propertyType := checker.GetTypeAtLocation(typeReference); propertyType != nil && propertyType.Symbol() != nil {
 					// Visit the typeReference as well to see if it directly or indirectly uses that property
@@ -1090,8 +1090,8 @@ func newCaseClauseTracker(typeChecker *checker.Checker, clauses []*ast.CaseOrDef
 				}
 			} else {
 				symbol := typeChecker.GetSymbolAtLocation(clause.Expression())
-				if symbol != nil && symbol.ValueDeclaration != nil && ast.IsEnumMember(symbol.ValueDeclaration) {
-					enumValue := typeChecker.GetConstantValue(symbol.ValueDeclaration)
+				if symbol != nil && symbol.ValueDeclaration != 0 && ast.IsEnumMember(ast.NodeOf(symbol.ValueDeclaration)) {
+					enumValue := typeChecker.GetConstantValue(ast.NodeOf(symbol.ValueDeclaration))
 					if enumValue != nil {
 						c.addValue(enumValue)
 					}

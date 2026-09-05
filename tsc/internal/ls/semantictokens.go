@@ -283,7 +283,7 @@ func (l *LanguageService) collectSemanticTokensInRange(ctx context.Context, c *c
 					tokenType = reclassifyByType(c, node, tokenType)
 
 					// Get the value declaration to check modifiers
-					if decl := symbol.ValueDeclaration; decl != nil {
+					if decl := ast.NodeOf(symbol.ValueDeclaration); decl != nil {
 						modifiers := ast.GetCombinedModifierFlags(decl)
 						nodeFlags := ast.GetCombinedNodeFlags(decl)
 
@@ -306,7 +306,7 @@ func (l *LanguageService) collectSemanticTokensInRange(ctx context.Context, c *c
 							tokenModifier |= tokenModifierDefaultLibrary
 						}
 					} else if symbol.Declarations != nil {
-						for _, decl := range symbol.Declarations {
+						for _, decl := range ast.DeclarationNodes(symbol) {
 							declSourceFile := ast.GetSourceFileOfNode(decl)
 							if declSourceFile != nil && program.IsSourceFileDefaultLibrary(declSourceFile.Path()) {
 								tokenModifier |= tokenModifierDefaultLibrary
@@ -360,9 +360,9 @@ func classifySymbol(symbol *ast.Symbol, meaning ast.SemanticMeaning) (tokenType,
 	}
 
 	// Check the value declaration
-	decl := symbol.ValueDeclaration
+	decl := ast.NodeOf(symbol.ValueDeclaration)
 	if decl == nil && len(symbol.Declarations) > 0 {
-		decl = symbol.Declarations[0]
+		decl = ast.NodeOf(symbol.Declarations[0])
 	}
 	if decl != nil {
 		if ast.IsBindingElement(decl) {

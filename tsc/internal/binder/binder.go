@@ -77,7 +77,7 @@ type Binder struct {
 	symbolArena             core.Arena[ast.Symbol]
 	flowNodeArena           core.Arena[ast.FlowNode]
 	flowListArena           core.Arena[ast.FlowList]
-	singleDeclarationsArena core.Arena[*ast.Node]
+	singleDeclarationsArena core.Arena[ast.GlobalRef]
 	expandoAssignments      []ExpandoAssignmentInfo
 }
 
@@ -122,14 +122,12 @@ func bindSourceFile(file *ast.SourceFile) {
 		b := getBinder()
 		defer putBinder(b)
 		b.file = file
+		ast.RegisterFile(file)
 		b.unreachableFlow = b.newFlowNode(ast.FlowFlagsUnreachable)
 		b.bind(file.AsNode())
 		b.bindDeferredExpandoAssignments()
 		file.SymbolCount = b.symbolCount
 		bindStore(file)
-		if root := file.ParseRoot(); root.Ref() != 0 {
-			_ = ast.ExpandStore(root, file.ParseOptions(), file.Text())
-		}
 	})
 }
 
@@ -260,7 +258,8 @@ func (b *Binder) declareSymbolEx(symbolTable ast.SymbolTable, parent *ast.Symbol
 					// export type T; - may have meant export type { T }?
 					diag.AddRelatedInfo(b.createDiagnosticForNode(node, diagnostics.Did_you_mean_0, "export type { "+node.AsTypeAliasDeclaration().Name().Text()+" }"))
 				}
-				for index, declaration := range symbol.Declarations {
+				for index, declarationRef := range symbol.Declarations {
+					declaration := ast.NodeOf(declarationRef)
 					var decl *ast.Node = ast.GetNameOfDeclaration(declaration)
 					if decl == nil {
 						decl = declaration
@@ -530,8 +529,8 @@ func (b *Binder) combineFlowLists(head *ast.FlowList, tail *ast.FlowList) *ast.F
 	return b.newFlowList(head.Flow, b.combineFlowLists(head.Next, tail))
 }
 
-func (b *Binder) newSingleDeclaration(declaration *ast.Node) []*ast.Node {
-	return b.singleDeclarationsArena.NewSlice1(declaration)
+func (b *Binder) newSingleDeclaration(declaration *ast.Node) []ast.GlobalRef {
+	return b.singleDeclarationsArena.NewSlice1(b.file.RefOf(declaration))
 }
 
 func setFlowNodeReferenced(flow *ast.FlowNode) {
@@ -966,7 +965,7 @@ func (b *Binder) bindClassLikeDeclaration(node *ast.Node) {
 	prototypeSymbol := b.newSymbol(ast.SymbolFlagsProperty|ast.SymbolFlagsPrototype, "prototype")
 	symbolExport := ast.GetExports(symbol)[prototypeSymbol.Name]
 	if symbolExport != nil {
-		b.errorOnNode(symbolExport.Declarations[0], diagnostics.Duplicate_identifier_0, ast.SymbolName(prototypeSymbol))
+		b.errorOnNode(ast.NodeOf(symbolExport.Declarations[0]), diagnostics.Duplicate_identifier_0, ast.SymbolName(prototypeSymbol))
 	}
 	ast.GetExports(symbol)[prototypeSymbol.Name] = prototypeSymbol
 	prototypeSymbol.Parent = symbol
@@ -1008,7 +1007,7 @@ func (b *Binder) addLateBoundAssignmentDeclarationToSymbol(node *ast.Node, symbo
 		assignmentSymbol = b.newSymbol(ast.SymbolFlagsNone, ast.InternalSymbolNameAssignmentDeclaration)
 		exports[ast.InternalSymbolNameAssignmentDeclaration] = assignmentSymbol
 	}
-	assignmentSymbol.Declarations = append(assignmentSymbol.Declarations, node)
+	assignmentSymbol.Declarations = append(assignmentSymbol.Declarations, b.file.RefOf(node))
 }
 
 func (b *Binder) bindModuleExportsAssignment(node *ast.Node) {
@@ -1090,10 +1089,13 @@ func (b *Binder) bindExportsOrObjectDefineProperty(node *ast.Node) {
 }
 
 func getInitializerSymbol(symbol *ast.Symbol) *ast.Symbol {
-	if symbol == nil || symbol.ValueDeclaration == nil {
+	if symbol == nil || symbol.ValueDeclaration == 0 {
 		return nil
 	}
-	declaration := symbol.ValueDeclaration
+	declaration := ast.NodeOf(symbol.ValueDeclaration)
+	if declaration == nil {
+		return nil
+	}
 	// For an assignment 'fn.xxx = ...', where 'fn' is a previously declared function or a previously
 	// declared const variable initialized with a function expression or arrow function, we add expando
 	// property declarations to the function's symbol. This also applies to class expressions in JS files,
@@ -2541,7 +2543,7 @@ func (b *Binder) addDeclarationToSymbol(symbol *ast.Symbol, node *ast.Node, symb
 	if symbol.Declarations == nil {
 		symbol.Declarations = b.newSingleDeclaration(node)
 	} else {
-		symbol.Declarations = core.AppendIfUnique(symbol.Declarations, node)
+		symbol.Declarations = core.AppendIfUnique(symbol.Declarations, b.file.RefOf(node))
 	}
 	// On merge of const enum module with class or function, reset const enum only flag (namespaces will already recalculate)
 	if symbol.Flags&ast.SymbolFlagsConstEnumOnlyModule != 0 && symbol.Flags&(ast.SymbolFlagsFunction|ast.SymbolFlagsClass|ast.SymbolFlagsRegularEnum) != 0 {
@@ -2554,13 +2556,15 @@ func (b *Binder) addDeclarationToSymbol(symbol *ast.Symbol, node *ast.Node, symb
 }
 
 func SetValueDeclaration(symbol *ast.Symbol, node *ast.Node) {
-	valueDeclaration := symbol.ValueDeclaration
+	valueDeclaration := ast.NodeOf(symbol.ValueDeclaration)
 	if valueDeclaration == nil ||
 		isAssignmentDeclaration(valueDeclaration) && !isAssignmentDeclaration(node) ||
 		valueDeclaration.Kind != node.Kind && isEffectiveModuleDeclaration(valueDeclaration) {
-		// Non-assignment declarations take precedence over assignment declarations and
-		// non-namespace declarations take precedence over namespace declarations.
-		symbol.ValueDeclaration = node
+		file := ast.GetSourceFileOfNode(node)
+		if file == nil {
+			return
+		}
+		symbol.ValueDeclaration = file.RefOf(node)
 	}
 }
 
@@ -2755,7 +2759,7 @@ func getOptionalSymbolFlagForNode(node *ast.Node) ast.SymbolFlags {
 }
 
 func isFunctionSymbol(symbol *ast.Symbol) bool {
-	d := symbol.ValueDeclaration
+	d := ast.NodeOf(symbol.ValueDeclaration)
 	if d != nil {
 		if ast.IsFunctionDeclaration(d) {
 			return true
