@@ -23,99 +23,87 @@ func NewImportElisionTransformer(opt *transformers.TransformOptions) *transforme
 	tx := &ImportElisionTransformer{compilerOptions: compilerOptions, emitResolver: opt.EmitResolver}
 	return tx.NewTransformer(tx.visit, emitContext)
 }
-
-func (tx *ImportElisionTransformer) visit(node *ast.Node) *ast.Node {
+func (tx *ImportElisionTransformer) visit(node ast.Handle) ast.Handle {
 	if ast.IsSourceFile(node) && tx.emitResolver != nil {
-		tx.emitResolver.MarkLinkedReferencesRecursively(tx.EmitContext().MostOriginal(node).AsSourceFile())
+		tx.emitResolver.MarkLinkedReferencesRecursively(ast.GetSourceFileOfNode(tx.EmitContext().MostOriginal(node)))
 	}
-
 	switch node.Kind {
 	case ast.KindImportEqualsDeclaration:
 		if ast.IsExternalModuleImportEqualsDeclaration(node) {
 			if !tx.shouldEmitAliasDeclaration(node) {
-				return nil
+				return ast.Handle{}
 			}
 		} else {
-			if !tx.shouldEmitImportEqualsDeclaration(node.AsImportEqualsDeclaration()) {
-				return nil
+			if !tx.shouldEmitImportEqualsDeclaration(node) {
+				return ast.Handle{}
 			}
 		}
 		return tx.Visitor().VisitEachChild(node)
 	case ast.KindImportDeclaration:
-		n := node.AsImportDeclaration()
-		// Do not elide a side-effect only import declaration.
-		//  import "foo";
-		if n.ImportClause != nil {
-			importClause := tx.Visitor().VisitNode(n.ImportClause)
-			if importClause == nil {
-				return nil
+		n := node
+		if !n.ImportClause().IsNil() {
+			importClause := tx.Visitor().VisitNode(n.ImportClause())
+			if importClause.IsNil() {
+				return ast.Handle{}
 			}
-			return tx.Factory().UpdateImportDeclaration(n, n.Modifiers(), importClause, n.ModuleSpecifier, tx.Visitor().VisitNode(n.Attributes))
+			return tx.Factory().UpdateImportDeclaration(n, n.Modifiers(), importClause, n.ModuleSpecifier(), tx.Visitor().VisitNode(n.Attributes()))
 		}
 		return tx.Visitor().VisitEachChild(node)
 	case ast.KindImportClause:
-		n := node.AsImportClause()
-		name := core.IfElse(tx.shouldEmitAliasDeclaration(node), n.Name(), nil)
-		namedBindings := tx.Visitor().VisitNode(n.NamedBindings)
-		if name == nil && namedBindings == nil {
-			// all import bindings were elided
-			return nil
+		n := node
+		name := core.IfElse(tx.shouldEmitAliasDeclaration(node), n.Name(), ast.Handle{})
+		namedBindings := tx.Visitor().VisitNode(n.NamedBindings())
+		if name.IsNil() && namedBindings.IsNil() {
+			return ast.Handle{}
 		}
-		return tx.Factory().UpdateImportClause(n, n.PhaseModifier, name, namedBindings)
+		return tx.Factory().UpdateImportClause(n, n.ImportClausePhaseModifier(), name, namedBindings)
 	case ast.KindNamespaceImport:
 		if !tx.shouldEmitAliasDeclaration(node) {
-			// elide unused imports
-			return nil
+			return ast.Handle{}
 		}
 		return node
 	case ast.KindNamedImports:
-		n := node.AsNamedImports()
-		elements := tx.Visitor().VisitNodes(n.Elements)
-		if len(elements.Nodes) == 0 {
-			// all import specifiers were elided
-			return nil
+		n := node
+		elements := tx.Visitor().VisitNodes(n.ElementList())
+		if node.Store().ListLen(elements) == 0 {
+			return ast.Handle{}
 		}
 		return tx.Factory().UpdateNamedImports(n, elements)
 	case ast.KindImportSpecifier:
 		if !tx.shouldEmitAliasDeclaration(node) {
-			// elide type-only or unused imports
-			return nil
+			return ast.Handle{}
 		}
 		return node
 	case ast.KindExportAssignment:
 		if !tx.compilerOptions.VerbatimModuleSyntax.IsTrue() && !tx.isValueAliasDeclaration(node) {
-			// elide unused import
-			return nil
+			return ast.Handle{}
 		}
 		return tx.Visitor().VisitEachChild(node)
 	case ast.KindExportDeclaration:
-		n := node.AsExportDeclaration()
-		var exportClause *ast.Node
-		if n.ExportClause != nil {
-			exportClause = tx.Visitor().VisitNode(n.ExportClause)
-			if exportClause == nil {
-				// all export bindings were elided
-				return nil
+		n := node
+		var exportClause ast.Handle
+		if !n.ExportClause().IsNil() {
+			exportClause = tx.Visitor().VisitNode(n.ExportClause())
+			if exportClause.IsNil() {
+				return ast.Handle{}
 			}
 		}
-		return tx.Factory().UpdateExportDeclaration(n, nil /*modifiers*/, false /*isTypeOnly*/, exportClause, tx.Visitor().VisitNode(n.ModuleSpecifier), tx.Visitor().VisitNode(n.Attributes))
+		return tx.Factory().UpdateExportDeclaration(n, 0, false, exportClause, tx.Visitor().VisitNode(n.ModuleSpecifier()), tx.Visitor().VisitNode(n.Attributes()))
 	case ast.KindNamedExports:
-		n := node.AsNamedExports()
-		elements := tx.Visitor().VisitNodes(n.Elements)
-		if len(elements.Nodes) == 0 {
-			// all export specifiers were elided
-			return nil
+		n := node
+		elements := tx.Visitor().VisitNodes(n.ElementList())
+		if node.Store().ListLen(elements) == 0 {
+			return ast.Handle{}
 		}
 		return tx.Factory().UpdateNamedExports(n, elements)
 	case ast.KindExportSpecifier:
 		if !tx.isValueAliasDeclaration(node) {
-			// elide unused export
-			return nil
+			return ast.Handle{}
 		}
 		return node
 	case ast.KindSourceFile:
 		savedCurrentSourceFile := tx.currentSourceFile
-		tx.currentSourceFile = node.AsSourceFile()
+		tx.currentSourceFile = ast.GetSourceFileOfNode(node)
 		node = tx.Visitor().VisitEachChild(node)
 		tx.currentSourceFile = savedCurrentSourceFile
 		return node
@@ -125,29 +113,21 @@ func (tx *ImportElisionTransformer) visit(node *ast.Node) *ast.Node {
 		return node
 	}
 }
-
-func (tx *ImportElisionTransformer) shouldEmitAliasDeclaration(node *ast.Node) bool {
+func (tx *ImportElisionTransformer) shouldEmitAliasDeclaration(node ast.Handle) bool {
 	return ast.IsInJSFile(node) || tx.isReferencedAliasDeclaration(node)
 }
-
-func (tx *ImportElisionTransformer) shouldEmitImportEqualsDeclaration(node *ast.ImportEqualsDeclaration) bool {
-	// preserve old compiler's behavior: emit import declaration (even if we do not consider them referenced) when
-	// - current file is not external module
-	// - import declaration is top level and target is value imported by entity name
-	return tx.shouldEmitAliasDeclaration(node.AsNode()) || (!ast.IsExternalModule(tx.currentSourceFile) && tx.isTopLevelValueImportEqualsWithEntityName(node.AsNode()))
+func (tx *ImportElisionTransformer) shouldEmitImportEqualsDeclaration(node ast.Handle) bool {
+	return tx.shouldEmitAliasDeclaration(node) || (!ast.IsExternalModule(tx.currentSourceFile) && tx.isTopLevelValueImportEqualsWithEntityName(node))
 }
-
-func (tx *ImportElisionTransformer) isReferencedAliasDeclaration(node *ast.Node) bool {
+func (tx *ImportElisionTransformer) isReferencedAliasDeclaration(node ast.Handle) bool {
 	node = tx.EmitContext().ParseNode(node)
-	return node == nil || tx.emitResolver.IsReferencedAliasDeclaration(node)
+	return node.IsNil() || tx.emitResolver.IsReferencedAliasDeclaration(node)
 }
-
-func (tx *ImportElisionTransformer) isValueAliasDeclaration(node *ast.Node) bool {
+func (tx *ImportElisionTransformer) isValueAliasDeclaration(node ast.Handle) bool {
 	node = tx.EmitContext().ParseNode(node)
-	return node == nil || tx.emitResolver.IsValueAliasDeclaration(node)
+	return node.IsNil() || tx.emitResolver.IsValueAliasDeclaration(node)
 }
-
-func (tx *ImportElisionTransformer) isTopLevelValueImportEqualsWithEntityName(node *ast.Node) bool {
+func (tx *ImportElisionTransformer) isTopLevelValueImportEqualsWithEntityName(node ast.Handle) bool {
 	node = tx.EmitContext().ParseNode(node)
-	return node != nil && tx.emitResolver.IsTopLevelValueImportEqualsWithEntityName(node)
+	return !node.IsNil() && tx.emitResolver.IsTopLevelValueImportEqualsWithEntityName(node)
 }

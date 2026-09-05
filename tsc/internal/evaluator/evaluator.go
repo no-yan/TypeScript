@@ -19,34 +19,22 @@ func NewResult(value any, isSyntacticallyString bool, resolvedOtherFiles bool, h
 	return Result{value, isSyntacticallyString, resolvedOtherFiles, hasExternalReferences}
 }
 
-type Evaluator func(expr *ast.Node, location *ast.Node) Result
+type Evaluator func(expr ast.Handle, location ast.Handle) Result
 
 func NewEvaluator(evaluateEntity Evaluator, outerExpressionsToSkip ast.OuterExpressionKinds) Evaluator {
 	var evaluate Evaluator
-	evaluate = func(expr *ast.Node, location *ast.Node) Result {
+	evaluate = func(expr ast.Handle, location ast.Handle) Result {
 		isSyntacticallyString := false
 		resolvedOtherFiles := false
 		hasExternalReferences := false
-		// It's unclear when/whether we should consider skipping other kinds of outer expressions.
-		// Type assertions intentionally break evaluation when evaluating literal types, such as:
-		//     type T = `one ${"two" as any} three`; // string
-		// But it's less clear whether such an assertion should break enum member evaluation:
-		//     enum E {
-		//       A = "one" as any
-		//     }
-		// SatisfiesExpressions and non-null assertions seem to have even less reason to break
-		// emitting enum members as literals. However, these expressions also break Babel's
-		// evaluation (but not esbuild's), and the isolatedModules errors we give depend on
-		// our evaluation results, so we're currently being conservative so as to issue errors
-		// on code that might break Babel.
 		expr = ast.SkipOuterExpressions(expr, outerExpressionsToSkip|ast.OEKParentheses)
 		switch expr.Kind {
 		case ast.KindPrefixUnaryExpression:
-			result := evaluate(expr.AsPrefixUnaryExpression().Operand, location)
+			result := evaluate(expr.PrefixUnaryExpressionOperand(), location)
 			resolvedOtherFiles = result.ResolvedOtherFiles
 			hasExternalReferences = result.HasExternalReferences
 			if value, ok := result.Value.(jsnum.Number); ok {
-				switch expr.AsPrefixUnaryExpression().Operator {
+				switch expr.PrefixUnaryExpressionOperator() {
 				case ast.KindPlusToken:
 					return Result{value, isSyntacticallyString, resolvedOtherFiles, hasExternalReferences}
 				case ast.KindMinusToken:
@@ -56,10 +44,10 @@ func NewEvaluator(evaluateEntity Evaluator, outerExpressionsToSkip ast.OuterExpr
 				}
 			}
 		case ast.KindBinaryExpression:
-			left := evaluate(expr.AsBinaryExpression().Left, location)
-			right := evaluate(expr.AsBinaryExpression().Right, location)
-			operator := expr.AsBinaryExpression().OperatorToken.Kind
-			isSyntacticallyString = (left.IsSyntacticallyString || right.IsSyntacticallyString) && expr.AsBinaryExpression().OperatorToken.Kind == ast.KindPlusToken
+			left := evaluate(expr.Left(), location)
+			right := evaluate(expr.Right(), location)
+			operator := expr.Operator().Kind
+			isSyntacticallyString = (left.IsSyntacticallyString || right.IsSyntacticallyString) && operator == ast.KindPlusToken
 			resolvedOtherFiles = left.ResolvedOtherFiles || right.ResolvedOtherFiles
 			hasExternalReferences = left.HasExternalReferences || right.HasExternalReferences
 			leftNum, leftIsNum := left.Value.(jsnum.Number)
@@ -121,18 +109,18 @@ func NewEvaluator(evaluateEntity Evaluator, outerExpressionsToSkip ast.OuterExpr
 	return evaluate
 }
 
-func evaluateTemplateExpression(expr *ast.Node, location *ast.Node, evaluate Evaluator) Result {
+func evaluateTemplateExpression(expr ast.Handle, location ast.Handle, evaluate Evaluator) Result {
 	var sb strings.Builder
-	sb.WriteString(expr.AsTemplateExpression().Head.Text())
+	sb.WriteString(expr.TemplateExpressionHead().Text())
 	resolvedOtherFiles := false
 	hasExternalReferences := false
-	for _, span := range expr.AsTemplateExpression().TemplateSpans.Nodes {
+	for _, span := range expr.TemplateSpans() {
 		spanResult := evaluate(span.Expression(), location)
 		if spanResult.Value == nil {
 			return Result{nil, true /*isSyntacticallyString*/, false, false}
 		}
 		sb.WriteString(AnyToString(spanResult.Value))
-		sb.WriteString(span.AsTemplateSpan().Literal.Text())
+		sb.WriteString(span.TemplateSpanLiteral().Text())
 		resolvedOtherFiles = resolvedOtherFiles || spanResult.ResolvedOtherFiles
 		hasExternalReferences = hasExternalReferences || spanResult.HasExternalReferences
 	}

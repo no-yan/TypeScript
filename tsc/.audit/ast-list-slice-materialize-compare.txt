@@ -1,0 +1,12 @@
+goos: linux
+goarch: amd64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Intel(R) Xeon(R) Processor
+BenchmarkListSlice-4              	 1448274	       829.0 ns/op	      32 B/op	       2 allocs/op
+BenchmarkListSlice-4              	 1450646	       826.4 ns/op	      32 B/op	       2 allocs/op
+BenchmarkListSlice-4              	 1453431	       827.2 ns/op	      32 B/op	       2 allocs/op
+BenchmarkListSliceMaterialize-4   	  319614	      3577 ns/op	    9368 B/op	      11 allocs/op
+BenchmarkListSliceMaterialize-4   	  305000	      3631 ns/op	    9368 B/op	      11 allocs/op
+BenchmarkListSliceMaterialize-4   	  333291	      3641 ns/op	    9368 B/op	      11 allocs/op
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/ast	7.075s

@@ -87,7 +87,7 @@ func BenchmarkAdvWalkStoreAllFields(b *testing.B) {
 		sink = 0
 		walkStore(root, func(h ast.Handle) {
 			loc := h.Loc()
-			sink += int(h.Kind()) + int(h.Flags()) + loc.Pos() + loc.End()
+			sink += int(h.Kind) + int(h.Flags()) + loc.Pos() + loc.End()
 		})
 	}
 	runtime.KeepAlive(sink)
@@ -131,7 +131,7 @@ func BenchmarkAdvRandomKindStore(b *testing.B) {
 	for b.Loop() {
 		sink = 0
 		for _, r := range refs {
-			sink += int(s.At(r).Kind())
+			sink += int(s.At(r).Kind)
 		}
 	}
 	runtime.KeepAlive(sink)
@@ -162,7 +162,7 @@ func BenchmarkAdvRandomAllFieldsStore(b *testing.B) {
 		for _, r := range refs {
 			h := s.At(r)
 			loc := h.Loc()
-			sink += int(h.Kind()) + int(h.Flags()) + loc.Pos() + loc.End()
+			sink += int(h.Kind) + int(h.Flags()) + loc.Pos() + loc.End()
 		}
 	}
 	runtime.KeepAlive(sink)

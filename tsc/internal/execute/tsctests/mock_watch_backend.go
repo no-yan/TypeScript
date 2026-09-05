@@ -15,6 +15,7 @@ import (
 )
 
 // MockWatchBackend implements watchmanager.WatchBackend for testing. It
+
 // records all WatchDirectory calls so tests can verify that
 // the correct watches are registered.  Events can be delivered through
 // SendEvents, which routes them only through watches whose paths

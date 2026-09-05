@@ -25,17 +25,17 @@ func tokenIsIdentifierOrKeywordOrGreaterThan(token ast.Kind) bool {
 	return token == ast.KindGreaterThanToken || tokenIsIdentifierOrKeyword(token)
 }
 
-func GetJSDocCommentRanges(f *ast.NodeFactory, commentRanges []ast.CommentRange, node *ast.Node, text string) []ast.CommentRange {
-	switch node.Kind {
+func GetJSDocCommentRanges(commentRanges []ast.CommentRange, kind ast.Kind, pos, end int, text string) []ast.CommentRange {
+	switch kind {
 	case ast.KindParameter, ast.KindTypeParameter, ast.KindFunctionExpression, ast.KindArrowFunction, ast.KindParenthesizedExpression, ast.KindVariableDeclaration, ast.KindExportSpecifier:
-		for commentRange := range scanner.GetTrailingCommentRanges(f, text, node.Pos()) {
+		for commentRange := range scanner.GetTrailingCommentRanges(text, pos) {
 			commentRanges = append(commentRanges, commentRange)
 		}
-		for commentRange := range scanner.GetLeadingCommentRanges(f, text, node.Pos()) {
+		for commentRange := range scanner.GetLeadingCommentRanges(text, pos) {
 			commentRanges = append(commentRanges, commentRange)
 		}
 	default:
-		for commentRange := range scanner.GetLeadingCommentRanges(f, text, node.Pos()) {
+		for commentRange := range scanner.GetLeadingCommentRanges(text, pos) {
 			commentRanges = append(commentRanges, commentRange)
 		}
 	}
@@ -43,7 +43,7 @@ func GetJSDocCommentRanges(f *ast.NodeFactory, commentRanges []ast.CommentRange,
 	return slices.DeleteFunc(commentRanges, func(comment ast.CommentRange) bool {
 		commentStart := comment.Pos()
 		commentLen := comment.End() - commentStart
-		return comment.End() > node.End() || commentLen < 4 || text[commentStart+1] != '*' || text[commentStart+2] != '*' || text[commentStart+3] == '/'
+		return comment.End() > end || commentLen < 4 || text[commentStart+1] != '*' || text[commentStart+2] != '*' || text[commentStart+3] == '/'
 	})
 }
 

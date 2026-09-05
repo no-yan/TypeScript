@@ -85,7 +85,7 @@ func TestParseCacheBindsBeforePublishing(t *testing.T) {
 	defer cache.Deref(key)
 
 	assert.Assert(t, file.IsBound())
-	assert.Assert(t, file.CommonJSModuleIndicator != nil)
+	assert.Assert(t, !file.CommonJSModuleIndicator.IsNil())
 }
 
 func TestRefCountingCaches(t *testing.T) {

@@ -129,6 +129,7 @@ func TestGetPackageRealpathFuncs_FollowsNodeModulesSymlinks(t *testing.T) {
 
 	// Files outside the package (e.g. node_modules symlinks) should be resolved via
 	// fs.Realpath so the cache key is the canonical realpath, not the symlink path.
+
 	assert.Equal(
 		t,
 		toRealpath("/real/bin/pkg/node_modules/dep/index.d.ts"),

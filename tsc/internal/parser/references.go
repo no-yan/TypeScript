@@ -9,35 +9,32 @@ import (
 )
 
 func collectExternalModuleReferences(file *ast.SourceFile) {
-	for _, node := range file.Statements.Nodes {
-		collectModuleReferences(file, node, false /*inAmbientModule*/)
+	root := file.ParseRoot()
+	if root.IsNil() {
+		return
 	}
-
-	if file.Flags&ast.NodeFlagsPossiblyContainsDynamicImport != 0 || ast.IsInJSFile(file.AsNode()) {
-		ast.ForEachDynamicImportOrRequireCall(file /*includeTypeSpaceImports*/, true /*requireStringLiteralLikeArgument*/, true, func(node *ast.Node, moduleSpecifier *ast.Expression) bool {
+	for _, node := range root.Statements() {
+		collectModuleReferences(file, node, false)
+	}
+	if file.Flags&ast.NodeFlagsPossiblyContainsDynamicImport != 0 || ast.IsSourceFileJS(file) {
+		ast.ForEachDynamicImportOrRequireCall(file, true, true, func(_ ast.Handle, moduleSpecifier ast.Handle) bool {
 			ast.SetImportsOfSourceFile(file, append(file.Imports(), moduleSpecifier))
 			return false
 		})
 	}
 }
 
-func collectModuleReferences(file *ast.SourceFile, node *ast.Statement, inAmbientModule bool) {
+func collectModuleReferences(file *ast.SourceFile, node ast.Handle, inAmbientModule bool) {
 	if ast.IsAnyImportOrReExport(node) {
-		moduleNameExpr := ast.GetExternalModuleName(node)
-		// TypeScript 1.0 spec (April 2014): 12.1.6
-		// An ExternalImportDeclaration in an AmbientExternalModuleDeclaration may reference other external modules
-		// only through top - level external module names. Relative external module names are not permitted.
-		if moduleNameExpr != nil && ast.IsStringLiteral(moduleNameExpr) {
-			moduleName := moduleNameExpr.Text()
+		moduleNameExpr := handleExternalModuleName(node)
+		if !moduleNameExpr.IsNil() && moduleNameExpr.Kind == ast.KindStringLiteral {
+			moduleName := handleText(moduleNameExpr)
 			if moduleName != "" && (!inAmbientModule || !tspath.IsExternalModuleNameRelative(moduleName)) {
 				ast.SetImportsOfSourceFile(file, append(file.Imports(), moduleNameExpr))
-				// !!! removed `&& p.currentNodeModulesDepth == 0`
 				if file.UsesUriStyleNodeCoreModules != core.TSTrue && !file.IsDeclarationFile {
 					if strings.HasPrefix(moduleName, "node:") && !core.ExclusivelyPrefixedNodeCoreModules[moduleName] {
-						// Presence of `node:` prefix takes precedence over unprefixed node core modules
 						file.UsesUriStyleNodeCoreModules = core.TSTrue
 					} else if file.UsesUriStyleNodeCoreModules == core.TSUnknown && core.UnprefixedNodeCoreModules[moduleName] {
-						// Avoid `unprefixedNodeCoreModules.has` for every import
 						file.UsesUriStyleNodeCoreModules = core.TSFalse
 					}
 				}
@@ -45,27 +42,43 @@ func collectModuleReferences(file *ast.SourceFile, node *ast.Statement, inAmbien
 		}
 		return
 	}
-	if ast.IsModuleDeclaration(node) && ast.IsAmbientModule(node) && (inAmbientModule || ast.HasSyntacticModifier(node, ast.ModifierFlagsAmbient) || file.IsDeclarationFile) {
-		nameText := node.AsModuleDeclaration().Name().Text()
-		// Ambient module declarations can be interpreted as augmentations for some existing external modules.
-		// This will happen in two cases:
-		// - if current file is external module then module augmentation is a ambient module declaration defined in the top level scope
-		// - if current file is not external module then module augmentation is an ambient module declaration with non-relative module name
-		//   immediately nested in top level ambient module declaration .
+	if node.Kind == ast.KindModuleDeclaration && ast.IsAmbientModule(node) && (inAmbientModule || ast.HasSyntacticModifier(node, ast.ModifierFlagsAmbient) || file.IsDeclarationFile) {
+		name := node.ModuleDeclarationName()
+		nameText := handleText(name)
 		if ast.IsExternalModule(file) || (inAmbientModule && !tspath.IsExternalModuleNameRelative(nameText)) {
-			file.ModuleAugmentations = append(file.ModuleAugmentations, node.AsModuleDeclaration().Name())
-		} else if !inAmbientModule {
+			file.ModuleAugmentations = append(file.ModuleAugmentations, name)
+			return
+		}
+		if !inAmbientModule {
 			file.AmbientModuleNames = append(file.AmbientModuleNames, nameText)
-			// An AmbientExternalModuleDeclaration declares an external module.
-			// This type of declaration is permitted only in the global module.
-			// The StringLiteral must specify a top - level external module name.
-			// Relative external module names are not permitted
-			// NOTE: body of ambient module is always a module block, if it exists
-			if node.Body() != nil {
+			if !node.Body().IsNil() {
 				for _, statement := range node.Body().Statements() {
-					collectModuleReferences(file, statement, true /*inAmbientModule*/)
+					collectModuleReferences(file, statement, true)
 				}
 			}
 		}
 	}
+}
+
+
+func handleExternalModuleName(node ast.Handle) ast.Handle {
+	switch node.Kind {
+	case ast.KindImportDeclaration, ast.KindJSImportDeclaration:
+		return node.ImportDeclarationModuleSpecifier()
+	case ast.KindExportDeclaration:
+		return node.ExportDeclarationModuleSpecifier()
+	case ast.KindImportEqualsDeclaration:
+		ref := node.ImportEqualsDeclarationModuleReference()
+		if !ref.IsNil() && ref.Kind == ast.KindExternalModuleReference {
+			return ref.Expression()
+		}
+		return ast.Handle{}
+	case ast.KindModuleDeclaration:
+		name := node.ModuleDeclarationName()
+		if !name.IsNil() && name.Kind == ast.KindStringLiteral {
+			return name
+		}
+		return ast.Handle{}
+	}
+	return ast.Handle{}
 }

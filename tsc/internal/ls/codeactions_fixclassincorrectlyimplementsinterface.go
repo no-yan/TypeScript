@@ -2,7 +2,6 @@ package ls
 
 import (
 	"context"
-
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/astnav"
 	"github.com/microsoft/TypeScript/tsc/internal/checker"
@@ -16,123 +15,90 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/scanner"
 )
 
-const fixClassIncorrectlyImplementsInterfaceFixID = "fixClassIncorrectlyImplementsInterface"
+const fixClassIncorrectlyImplementsInterfaceFixID = /*body*/ /*abstract*/ "fixClassIncorrectlyImplementsInterface"
 
-var fixClassIncorrectlyImplementsInterfaceErrorCodes = []int32{
-	diagnostics.Class_0_incorrectly_implements_interface_1.Code(),
-	diagnostics.Class_0_incorrectly_implements_class_1_Did_you_mean_to_extend_1_and_inherit_its_members_as_a_subclass.Code(),
-}
-
-var FixClassIncorrectlyImplementsInterfaceProvider = &CodeFixProvider{
-	ErrorCodes:        fixClassIncorrectlyImplementsInterfaceErrorCodes,
-	GetCodeActions:    getCodeActionsToFixClassIncorrectlyImplementsInterface,
-	FixIds:            []string{fixClassIncorrectlyImplementsInterfaceFixID},
-	GetAllCodeActions: getAllCodeActionsToFixClassIncorrectlyImplementsInterface,
-}
+var fixClassIncorrectlyImplementsInterfaceErrorCodes = []int32{diagnostics.Class_0_incorrectly_implements_interface_1.Code(), diagnostics.Class_0_incorrectly_implements_class_1_Did_you_mean_to_extend_1_and_inherit_its_members_as_a_subclass.Code()}
+var FixClassIncorrectlyImplementsInterfaceProvider = &CodeFixProvider{ErrorCodes: fixClassIncorrectlyImplementsInterfaceErrorCodes, GetCodeActions: getCodeActionsToFixClassIncorrectlyImplementsInterface, FixIds: []string{fixClassIncorrectlyImplementsInterfaceFixID}, GetAllCodeActions: getAllCodeActionsToFixClassIncorrectlyImplementsInterface}
 
 func getCodeActionsToFixClassIncorrectlyImplementsInterface(context context.Context, fixContext *CodeFixContext) ([]*CodeAction, error) {
 	classDeclaration := getClass(fixContext.SourceFile, fixContext.Span)
-	if classDeclaration == nil {
+	if classDeclaration.IsNil() {
 		return nil, nil
 	}
-
 	implementsTypes := ast.GetImplementsHeritageClauseElements(classDeclaration)
 	locale := locale.FromContext(context)
-
 	typeChecker, done := fixContext.Program.GetTypeCheckerForFile(context, fixContext.SourceFile)
 	defer done()
-
 	var actions []*CodeAction
-	for _, implementedTypeNode := range implementsTypes {
+	for _, implementedTypeNode := range implementsTypes.All() {
 		changeTracker := change.NewTracker(context, fixContext.Program.Options(), fixContext.LS.FormatOptions(), fixContext.LS.converters)
 		importAdder, err := createImportAdder(context, fixContext, typeChecker)
 		if err != nil {
 			return nil, err
 		}
-
 		addChanges(context, fixContext, changeTracker, importAdder, typeChecker, classDeclaration, implementedTypeNode)
 		changes := getChanges(changeTracker, importAdder, fixContext.SourceFile)
 		if len(changes) == 0 {
 			continue
 		}
-
-		actions = append(actions, &CodeAction{
-			Description:       diagnostics.Implement_interface_0.Localize(locale, scanner.GetTextOfNode(implementedTypeNode)),
-			Changes:           changes,
-			FixID:             fixClassIncorrectlyImplementsInterfaceFixID,
-			FixAllDescription: diagnostics.Implement_all_unimplemented_interfaces.Localize(locale),
-		})
+		actions = append(actions, &CodeAction{Description: diagnostics.Implement_interface_0.Localize(locale, scanner.GetTextOfNode(implementedTypeNode)), Changes: changes, FixID: fixClassIncorrectlyImplementsInterfaceFixID, FixAllDescription: diagnostics.Implement_all_unimplemented_interfaces.Localize(locale)})
 	}
 	return actions, nil
 }
-
 func getAllCodeActionsToFixClassIncorrectlyImplementsInterface(context context.Context, fixContext *CodeFixContext) (*CombinedCodeActions, error) {
 	typeChecker, done := fixContext.Program.GetTypeCheckerForFile(context, fixContext.SourceFile)
 	defer done()
-
 	changeTracker := change.NewTracker(context, fixContext.Program.Options(), fixContext.LS.FormatOptions(), fixContext.LS.converters)
 	importAdder, err := createImportAdder(context, fixContext, typeChecker)
 	if err != nil {
 		return nil, err
 	}
-
-	seenClassDeclarations := collections.Set[*ast.Node]{}
-
+	seenClassDeclarations := collections.Set[ast.Handle]{}
 	for _, diag := range getAllDiagnostics(context, fixContext.Program, fixContext.SourceFile) {
 		if isFixableDiagnostic(diag, fixClassIncorrectlyImplementsInterfaceErrorCodes) {
 			classDeclaration := getClass(fixContext.SourceFile, core.NewTextRange(diag.Pos(), diag.End()))
-			if classDeclaration == nil {
+			if classDeclaration.IsNil() {
 				continue
 			}
 			if seenClassDeclarations.AddIfAbsent(classDeclaration) {
 				implementsTypes := ast.GetImplementsHeritageClauseElements(classDeclaration)
-				for _, implementedTypeNode := range implementsTypes {
+				for _, implementedTypeNode := range implementsTypes.All() {
 					addChanges(context, fixContext, changeTracker, importAdder, typeChecker, classDeclaration, implementedTypeNode)
 				}
 			}
 		}
 	}
-
 	changes := getChanges(changeTracker, importAdder, fixContext.SourceFile)
 	if len(changes) == 0 {
 		return nil, nil
 	}
-
-	return &CombinedCodeActions{
-		Description: diagnostics.Implement_all_unimplemented_interfaces.Localize(locale.FromContext(context)),
-		Changes:     changes,
-	}, nil
+	return &CombinedCodeActions{Description: diagnostics.Implement_all_unimplemented_interfaces.Localize(locale.FromContext(context)), Changes: changes}, nil
 }
-
-func addChanges(context context.Context, fixContext *CodeFixContext, changeTracker *change.Tracker, importAdder autoimport.ImportAdder, typeChecker *checker.Checker, classDeclaration *ast.Node, implementedTypeNode *ast.HeritageClauseElement) {
+func addChanges(context context.Context, fixContext *CodeFixContext, changeTracker *change.Tracker, importAdder autoimport.ImportAdder, typeChecker *checker.Checker, classDeclaration ast.Handle, implementedTypeNode ast.Handle) {
 	missingMemberFixer := newMissingMemberFixer(changeTracker, fixContext.Program, typeChecker, fixContext.LS.UserPreferences(), importAdder, locale.FromContext(context))
 	constructor := getConstructor(classDeclaration)
 	implementedType := typeChecker.GetTypeAtLocation(implementedTypeNode)
 	classType := typeChecker.GetTypeAtLocation(classDeclaration)
-
 	if typeChecker.GetNumberIndexType(classType) == nil {
 		member := missingMemberFixer.createIndexSignatureDeclarationFromType(classDeclaration, implementedType, typeChecker.GetNumberType())
-		if member != nil {
+		if !member.IsNil() {
 			insertInterfaceMemberNode(changeTracker, fixContext.SourceFile, classDeclaration, constructor, member)
 		}
 	}
-
 	if typeChecker.GetStringIndexType(classType) == nil {
 		member := missingMemberFixer.createIndexSignatureDeclarationFromType(classDeclaration, implementedType, typeChecker.GetStringType())
-		if member != nil {
+		if !member.IsNil() {
 			insertInterfaceMemberNode(changeTracker, fixContext.SourceFile, classDeclaration, constructor, member)
 		}
 	}
-
 	missingMembers := getMissingMembers(typeChecker, classDeclaration, []*checker.Type{implementedType})
 	for _, member := range missingMembers {
-		memberNodes := missingMemberFixer.createMemberFromSymbol(member, classDeclaration, fixContext.SourceFile, nil /*body*/, preserveOptionalFlagsAll, false /*abstract*/)
+		memberNodes := missingMemberFixer.createMemberFromSymbol(member, classDeclaration, fixContext.SourceFile, ast.Handle{}, preserveOptionalFlagsAll, false)
 		for _, memberNode := range memberNodes {
 			insertInterfaceMemberNode(changeTracker, fixContext.SourceFile, classDeclaration, constructor, memberNode)
 		}
 	}
 }
-
 func getChanges(changeTracker *change.Tracker, importAdder autoimport.ImportAdder, sourceFile *ast.SourceFile) []*lsproto.TextEdit {
 	changes, unmappable := changeTracker.GetChanges()
 	if len(unmappable) != 0 {
@@ -144,44 +110,38 @@ func getChanges(changeTracker *change.Tracker, importAdder autoimport.ImportAdde
 	}
 	return fileChanges
 }
-
-func insertInterfaceMemberNode(changeTracker *change.Tracker, sourceFile *ast.SourceFile, classDeclaration *ast.Node, constructor *ast.Node, member *ast.Node) {
-	if constructor == nil {
+func insertInterfaceMemberNode(changeTracker *change.Tracker, sourceFile *ast.SourceFile, classDeclaration ast.Handle, constructor ast.Handle, member ast.Handle) {
+	if constructor.IsNil() {
 		changeTracker.InsertMemberAtStart(sourceFile, classDeclaration, member)
 	} else {
 		changeTracker.InsertNodeAfter(sourceFile, constructor, member)
 	}
 }
-
-func getClass(sourceFile *ast.SourceFile, span core.TextRange) *ast.Node {
+func getClass(sourceFile *ast.SourceFile, span core.TextRange) ast.Handle {
 	token := astnav.GetTokenAtPosition(sourceFile, span.Pos())
-	if token == nil {
-		return nil
+	if token.IsNil() {
+		return ast.Handle{}
 	}
 	return ast.GetContainingClass(token)
 }
-
-func getConstructor(classDeclaration *ast.Node) *ast.Node {
-	if classDeclaration == nil || classDeclaration.MemberList() == nil {
-		return nil
+func getConstructor(classDeclaration ast.Handle) ast.Handle {
+	if classDeclaration.IsNil() || classDeclaration.MemberList() == 0 {
+		return ast.Handle{}
 	}
-	for _, member := range classDeclaration.MemberList().Nodes {
-		if member != nil && ast.IsConstructorDeclaration(member) {
+	for _, member := range classDeclaration.Members() {
+		if !member.IsNil() && ast.IsConstructorDeclaration(member) {
 			return member
 		}
 	}
-	return nil
+	return ast.Handle{}
 }
-
-func getMissingMembers(typeChecker *checker.Checker, classDeclaration *ast.Node, implementedTypes []*checker.Type) []*ast.Symbol {
+func getMissingMembers(typeChecker *checker.Checker, classDeclaration ast.Handle, implementedTypes []*checker.Type) []*ast.Symbol {
 	inheritedMembers := getInheritedMembers(typeChecker, classDeclaration)
 	seenMembers := make(map[string]*ast.Symbol)
-
 	var classMembers ast.SymbolTable
 	if classDeclaration.Symbol() != nil {
 		classMembers = classDeclaration.Symbol().Members
 	}
-
 	var missingMembers []*ast.Symbol
 	for _, implementedType := range implementedTypes {
 		for _, symbol := range typeChecker.GetPropertiesOfType(implementedType) {
@@ -203,18 +163,15 @@ func getMissingMembers(typeChecker *checker.Checker, classDeclaration *ast.Node,
 	}
 	return missingMembers
 }
-
-func getInheritedMembers(typeChecker *checker.Checker, classDeclaration *ast.Node) ast.SymbolTable {
+func getInheritedMembers(typeChecker *checker.Checker, classDeclaration ast.Handle) ast.SymbolTable {
 	typeNode := ast.GetClassExtendsHeritageElement(classDeclaration)
-	if typeNode == nil {
+	if typeNode.IsNil() {
 		return ast.SymbolTable{}
 	}
-
-	baseType := typeChecker.GetTypeAtLocation(typeNode.AsNode())
+	baseType := typeChecker.GetTypeAtLocation(typeNode)
 	if baseType == nil {
 		return ast.SymbolTable{}
 	}
-
 	inheritedMembers := make(ast.SymbolTable)
 	for _, symbol := range typeChecker.GetPropertiesOfType(baseType) {
 		if symbol == nil {
@@ -227,7 +184,6 @@ func getInheritedMembers(typeChecker *checker.Checker, classDeclaration *ast.Nod
 	}
 	return inheritedMembers
 }
-
 func createImportAdder(context context.Context, fixContext *CodeFixContext, typeChecker *checker.Checker) (autoimport.ImportAdder, error) {
 	view, err := fixContext.LS.getPreparedAutoImportView(fixContext.SourceFile)
 	if err != nil {

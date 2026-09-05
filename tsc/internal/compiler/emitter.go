@@ -114,7 +114,7 @@ func getScriptTransformers(emitContext *printer.EmitContext, host printer.EmitHo
 	options := host.Options()
 
 	// JS files don't use reference calculations as they don't do import elision, no need to calculate it
-	importElisionEnabled := !options.VerbatimModuleSyntax.IsTrue() && !ast.IsInJSFile(sourceFile.AsNode())
+	importElisionEnabled := !options.VerbatimModuleSyntax.IsTrue() && !ast.IsInJSFile(sourceFile.ParseRoot())
 	jsxTransformEnabled := options.GetJSXTransformEnabled() && sourceFile.LanguageVariant == core.LanguageVariantJSX
 
 	emitResolver := host.GetEmitResolver()
@@ -178,6 +178,42 @@ func getScriptTransformers(emitContext *printer.EmitContext, host printer.EmitHo
 	return tx
 }
 
+// attachEmitView points Store.SourceFile at a metadata clone for this emit, then restores it.
+func attachEmitView(file *ast.SourceFile) (*ast.SourceFile, func()) {
+	view := file.CloneWrapper()
+	store := file.ParseStore()
+	if store == nil {
+		return view, func() {}
+	}
+	prev := store.SourceFile()
+	store.SetSourceFile(view)
+	return view, func() { store.SetSourceFile(prev) }
+}
+
+func citeProgramFile(diags []*ast.Diagnostic, view, file *ast.SourceFile) {
+	if view == file {
+		return
+	}
+	for _, d := range diags {
+		rebindDiagnosticFile(d, view, file)
+	}
+}
+
+func rebindDiagnosticFile(d *ast.Diagnostic, from, to *ast.SourceFile) {
+	if d == nil {
+		return
+	}
+	if d.File() == from {
+		d.SetFile(to)
+	}
+	for _, chain := range d.MessageChain() {
+		rebindDiagnosticFile(chain, from, to)
+	}
+	for _, info := range d.RelatedInformation() {
+		rebindDiagnosticFile(info, from, to)
+	}
+}
+
 func (e *emitter) emitJSFile(sourceFile *ast.SourceFile, jsFilePath string, sourceMapFilePath string) {
 	options := e.host.Options()
 
@@ -196,7 +232,13 @@ func (e *emitter) emitJSFile(sourceFile *ast.SourceFile, jsFilePath string, sour
 
 	emitContext, putEmitContext := printer.GetEmitContext()
 	defer putEmitContext()
-
+	releaseStore := emitContext.LockParseStoreWriter(sourceFile)
+	defer releaseStore()
+	// Script transformers replace ParseRoot with the type-erased tree on the
+	// wrapper they receive. Clone metadata only so the program file keeps the
+	// parse root. The Store is shared so Update* still reuses parse nodes.
+	sourceFile, restoreView := attachEmitView(sourceFile)
+	defer restoreView()
 	sourceFile = e.runScriptTransformers(emitContext, sourceFile)
 
 	printerOptions := printer.PrinterOptions{
@@ -233,7 +275,17 @@ func (e *emitter) emitDeclarationFile(sourceFile *ast.SourceFile, declarationFil
 
 	emitContext, putEmitContext := printer.GetEmitContext()
 	defer putEmitContext()
+	releaseStore := emitContext.LockParseStoreWriter(sourceFile)
+	defer releaseStore()
+	// Declaration transformers set IsDeclarationFile and remap triple-slash
+	// refs on the wrapper they receive. Clone metadata only so the program
+	// file stays a .ts and later JS emit is not skipped. The Store is shared
+	// so Update* still reuses parse nodes.
+	programFile := sourceFile
+	sourceFile, restoreView := attachEmitView(sourceFile)
+	defer restoreView()
 	sourceFile, diags := e.runDeclarationTransformers(emitContext, sourceFile, declarationFilePath, declarationMapPath)
+	citeProgramFile(diags, sourceFile, programFile)
 
 	for _, elem := range diags {
 		// Add declaration transform diagnostics to emit diagnostics
@@ -327,7 +379,7 @@ func (e *emitter) printSourceFile(jsFilePath string, sourceMapFilePath string, s
 		)
 	}
 
-	printer_.Write(sourceFile.AsNode(), sourceFile, e.writer, sourceMapGenerator)
+	printer_.Write(sourceFile.ParseRoot(), sourceFile, e.writer, sourceMapGenerator)
 
 	sourceMapUrlPos := -1
 	if sourceMapGenerator != nil {
@@ -570,7 +622,18 @@ func getDeclarationDiagnostics(host EmitHost, file *ast.SourceFile) []*ast.Diagn
 		return []*ast.Diagnostic{}
 	}
 	options := host.Options()
-	transform := declarations.NewDeclarationTransformer(host, nil, options, "", "")
-	transform.TransformSourceFile(file)
-	return transform.GetDiagnostics()
+	emitContext := printer.NewEmitContext()
+	releaseStore := emitContext.LockParseStoreWriter(file)
+	defer releaseStore()
+	// Declaration transformers set IsDeclarationFile and remap triple-slash
+	// refs on the wrapper they receive. Clone metadata only so a --noEmit
+	// diagnostics pass cannot drop later pending JS/d.ts emit. The Store is
+	// shared so Update* still reuses parse nodes.
+	view, restoreView := attachEmitView(file)
+	defer restoreView()
+	transform := declarations.NewDeclarationTransformer(host, emitContext, options, "", "")
+	transform.TransformSourceFile(view)
+	diags := transform.GetDiagnostics()
+	citeProgramFile(diags, view, file)
+	return diags
 }

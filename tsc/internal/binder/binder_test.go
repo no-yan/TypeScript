@@ -44,3 +44,50 @@ func BenchmarkBind(b *testing.B) {
 		})
 	}
 }
+
+func TestBindStoreSideMaps(t *testing.T) {
+	t.Parallel()
+	opts := ast.SourceFileParseOptions{FileName: "/index.ts", Path: "/index.ts"}
+	file := parser.ParseSourceFile(opts, `
+export class C {
+    constructor(x: number) { if (x) return; }
+    method() { return 1; }
+}
+`, core.ScriptKindTS)
+	BindSourceFile(file)
+	store := file.ParseStore()
+	if store == nil || store.Len() == 0 {
+		t.Fatal("bind requires a nonempty parse Store")
+	}
+	var sawSymbol, sawLocalSymbol, sawFlow, sawEndFlow, sawReturnFlow, sawLocals, sawNextContainer bool
+	ast.Walk(file.ParseRoot(), func(h ast.Handle) bool {
+		if h.Symbol() != nil {
+			sawSymbol = true
+		}
+		if h.LocalSymbol() != nil {
+			sawLocalSymbol = true
+		}
+		if h.FlowNode() != nil {
+			sawFlow = true
+		}
+		if h.EndFlowNode() != nil {
+			sawEndFlow = true
+		}
+		if h.ReturnFlowNode() != nil {
+			sawReturnFlow = true
+		}
+		if h.Locals() != nil {
+			sawLocals = true
+		}
+		if !h.NextContainer().IsNil() {
+			sawNextContainer = true
+		}
+		return false
+	})
+	if !sawSymbol || !sawLocalSymbol || !sawFlow || !sawEndFlow || !sawReturnFlow || !sawLocals || !sawNextContainer {
+		t.Fatalf(
+			"missing bound Store data: symbol=%v localSymbol=%v flow=%v endFlow=%v returnFlow=%v locals=%v nextContainer=%v",
+			sawSymbol, sawLocalSymbol, sawFlow, sawEndFlow, sawReturnFlow, sawLocals, sawNextContainer,
+		)
+	}
+}

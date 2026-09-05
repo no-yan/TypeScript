@@ -105,7 +105,7 @@ func GetModuleSpecifiersForFileWithInfo(
 }
 
 func tryGetModuleNameFromAmbientModule(moduleSymbol *ast.Symbol, checker CheckerShape) string {
-	for _, decl := range moduleSymbol.Declarations {
+	for _, decl := range ast.DeclarationNodes(moduleSymbol).All() {
 		if ast.IsModuleWithStringLiteralName(decl) && (!ast.IsModuleAugmentationExternal(decl) || !tspath.IsExternalModuleNameRelative(decl.Name().Text())) {
 			return decl.Name().Text()
 		}
@@ -121,13 +121,13 @@ func tryGetModuleNameFromAmbientModule(moduleSymbol *ast.Symbol, checker Checker
 	 * }
 	 */
 	// `import {c} from "m";` is valid, in which case, `moduleSymbol` is "ns", but the module name should be "m"
-	for _, d := range moduleSymbol.Declarations {
+	for _, d := range ast.DeclarationNodes(moduleSymbol).All() {
 		if !ast.IsModuleDeclaration(d) {
 			continue
 		}
 
 		possibleContainer := ast.FindAncestor(d, ast.IsModuleWithStringLiteralName)
-		if possibleContainer == nil || possibleContainer.Parent == nil || !ast.IsSourceFile(possibleContainer.Parent) {
+		if possibleContainer.IsNil() || possibleContainer.Parent().IsNil() || !ast.IsSourceFile(possibleContainer.Parent()) {
 			continue
 		}
 
@@ -135,8 +135,8 @@ func tryGetModuleNameFromAmbientModule(moduleSymbol *ast.Symbol, checker Checker
 		if !ok || sym == nil {
 			continue
 		}
-		exportAssignmentDecl := sym.ValueDeclaration
-		if exportAssignmentDecl == nil || exportAssignmentDecl.Kind != ast.KindExportAssignment {
+		exportAssignmentDecl := ast.NodeOf(sym.ValueDeclaration)
+		if exportAssignmentDecl.IsNil() || exportAssignmentDecl.Kind != ast.KindExportAssignment {
 			continue
 		}
 		exportSymbol := checker.GetSymbolAtLocation(exportAssignmentDecl.Expression())
@@ -371,7 +371,7 @@ func computeModuleSpecifiers(
 	var existingSpecifier string
 	for _, modulePath := range modulePaths {
 		targetPath := tspath.ToPath(modulePath.FileName, host.GetCurrentDirectory(), info.UseCaseSensitiveFileNames)
-		var existingImport *ast.StringLiteralLike
+		var existingImport ast.Handle
 		for _, importSpecifier := range importingSourceFile.Imports() {
 			resolvedModule := host.GetResolvedModuleFromModuleSpecifier(importingSourceFile, importSpecifier)
 			if resolvedModule.IsResolved() && tspath.ToPath(resolvedModule.ResolvedFileName, host.GetCurrentDirectory(), info.UseCaseSensitiveFileNames) == targetPath {
@@ -379,7 +379,7 @@ func computeModuleSpecifiers(
 				break
 			}
 		}
-		if existingImport != nil {
+		if !existingImport.IsNil() {
 			if preferences.relativePreference == RelativePreferenceNonRelative && tspath.PathIsRelative(existingImport.Text()) {
 				// If the preference is for non-relative and the module specifier is relative, ignore it
 				continue

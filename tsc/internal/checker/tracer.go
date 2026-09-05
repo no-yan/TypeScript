@@ -1,66 +1,64 @@
 package checker
 
 import (
-	"maps"
-
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/tracing"
+	"maps"
 )
 
-// Tracer records types and trace events during type checking. A nil *Tracer
-// is a valid no-op, so call sites can use `if tr := c.tracer; tr != nil` to
-// gate work that only matters under --generateTrace.
 type Tracer struct {
 	tracing      *tracing.Tracing
 	recorder     tracing.Tracer
 	checkerIndex int
 }
 
-// NewTracer creates a Tracer for the given checker index that records both
-// type-creation events and trace events through the provided tracing session.
 func NewTracer(tr *tracing.Tracing, checkerIndex int) *Tracer {
 	return &Tracer{tracing: tr, recorder: tr.NewTypeTracer(checkerIndex), checkerIndex: checkerIndex}
 }
-
 func (t *Tracer) RecordType(typ *Type) {
 	t.recorder.RecordType(wrapType(typ))
 }
+func (t *Tracer) Push(phase tracing.Phase, name string, args map[ // Tracer records types and trace events during type checking. A nil *Tracer
+// is a valid no-op, so call sites can use `if tr := c.tracer; tr != nil` to
+// gate work that only matters under --generateTrace.
+// NewTracer creates a Tracer for the given checker index that records both
+// type-creation events and trace events through the provided tracing session.
+// tracedTypeAdapter adapts a Type to the tracing.TracedType interface
 
-func (t *Tracer) Push(phase tracing.Phase, name string, args map[string]any, separateBeginAndEnd bool) func() {
+// Compute display text for types where it's valuable for trace analysis.
+// TypeScript only does this for Anonymous|Literal types, but we extend to
+// unions, intersections, and template literals since they often lack
+// firstDeclaration and the display text helps identify them.
+// Incomplete types during tracing can cause panics, which we intentionally
+// suppress (returning ""), matching TypeScript's try/catch around typeToString.
+string]any, separateBeginAndEnd bool) func() {
 	if !separateBeginAndEnd {
 		return t.tracing.Push(phase, name, t.copyWithCheckerIndex(args), separateBeginAndEnd)
 	}
-
 	args, restore := t.temporarilyAddCheckerIndex(args)
 	pop := t.tracing.Push(phase, name, args, separateBeginAndEnd)
 	restore()
-
 	return func() {
 		_, restoreEndArgs := t.temporarilyAddCheckerIndex(args)
 		defer restoreEndArgs()
 		pop()
 	}
 }
-
 func (t *Tracer) Instant(phase tracing.Phase, name string, args map[string]any) {
 	t.tracing.Instant(phase, name, t.copyWithCheckerIndex(args))
 }
-
 func (t *Tracer) copyWithCheckerIndex(args map[string]any) map[string]any {
 	withCheckerIndex := make(map[string]any, len(args)+1)
 	maps.Copy(withCheckerIndex, args)
 	withCheckerIndex["checkerId"] = t.checkerIndex
 	return withCheckerIndex
 }
-
 func (t *Tracer) temporarilyAddCheckerIndex(args map[string]any) (map[string]any, func()) {
 	if args == nil {
 		args = map[string]any{}
 	}
-
 	previous, hadPrevious := args["checkerId"]
 	args["checkerId"] = t.checkerIndex
-
 	return args, func() {
 		if hadPrevious {
 			args["checkerId"] = previous
@@ -70,7 +68,6 @@ func (t *Tracer) temporarilyAddCheckerIndex(args map[string]any) (map[string]any
 	}
 }
 
-// tracedTypeAdapter adapts a Type to the tracing.TracedType interface
 type tracedTypeAdapter struct {
 	t       *Type
 	checker *Checker
@@ -81,33 +78,27 @@ var _ tracing.TracedType = (*tracedTypeAdapter)(nil)
 func (a *tracedTypeAdapter) Id() uint32 {
 	return uint32(a.t.id)
 }
-
 func (a *tracedTypeAdapter) FormatFlags() []string {
 	return FormatTypeFlags(a.t.flags)
 }
-
 func (a *tracedTypeAdapter) IsConditional() bool {
 	return a.t.flags&TypeFlagsConditional != 0
 }
-
 func (a *tracedTypeAdapter) Symbol() *ast.Symbol {
 	return a.t.symbol
 }
-
 func (a *tracedTypeAdapter) AliasSymbol() *ast.Symbol {
 	if a.t.alias == nil {
 		return nil
 	}
 	return a.t.alias.Symbol()
 }
-
 func (a *tracedTypeAdapter) AliasTypeArguments() []tracing.TracedType {
 	if a.t.alias == nil {
 		return nil
 	}
 	return wrapTypes(a.t.alias.TypeArguments())
 }
-
 func (a *tracedTypeAdapter) IntrinsicName() string {
 	if a.t.flags&TypeFlagsIntrinsic == 0 {
 		return ""
@@ -118,21 +109,18 @@ func (a *tracedTypeAdapter) IntrinsicName() string {
 	}
 	return data.intrinsicName
 }
-
 func (a *tracedTypeAdapter) UnionTypes() []tracing.TracedType {
 	if a.t.flags&TypeFlagsUnion == 0 {
 		return nil
 	}
 	return wrapTypes(a.t.AsUnionType().types)
 }
-
 func (a *tracedTypeAdapter) IntersectionTypes() []tracing.TracedType {
 	if a.t.flags&TypeFlagsIntersection == 0 {
 		return nil
 	}
 	return wrapTypes(a.t.AsIntersectionType().types)
 }
-
 func (a *tracedTypeAdapter) IndexType() tracing.TracedType {
 	if a.t.flags&TypeFlagsIndex == 0 {
 		return nil
@@ -143,7 +131,6 @@ func (a *tracedTypeAdapter) IndexType() tracing.TracedType {
 	}
 	return wrapType(t)
 }
-
 func (a *tracedTypeAdapter) IndexedAccessObjectType() tracing.TracedType {
 	if a.t.flags&TypeFlagsIndexedAccess == 0 {
 		return nil
@@ -154,7 +141,6 @@ func (a *tracedTypeAdapter) IndexedAccessObjectType() tracing.TracedType {
 	}
 	return wrapType(t)
 }
-
 func (a *tracedTypeAdapter) IndexedAccessIndexType() tracing.TracedType {
 	if a.t.flags&TypeFlagsIndexedAccess == 0 {
 		return nil
@@ -165,7 +151,6 @@ func (a *tracedTypeAdapter) IndexedAccessIndexType() tracing.TracedType {
 	}
 	return wrapType(t)
 }
-
 func (a *tracedTypeAdapter) ConditionalCheckType() tracing.TracedType {
 	if a.t.flags&TypeFlagsConditional == 0 {
 		return nil
@@ -176,7 +161,6 @@ func (a *tracedTypeAdapter) ConditionalCheckType() tracing.TracedType {
 	}
 	return wrapType(t)
 }
-
 func (a *tracedTypeAdapter) ConditionalExtendsType() tracing.TracedType {
 	if a.t.flags&TypeFlagsConditional == 0 {
 		return nil
@@ -187,7 +171,6 @@ func (a *tracedTypeAdapter) ConditionalExtendsType() tracing.TracedType {
 	}
 	return wrapType(t)
 }
-
 func (a *tracedTypeAdapter) ConditionalTrueType() tracing.TracedType {
 	if a.t.flags&TypeFlagsConditional == 0 {
 		return nil
@@ -198,7 +181,6 @@ func (a *tracedTypeAdapter) ConditionalTrueType() tracing.TracedType {
 	}
 	return wrapType(t)
 }
-
 func (a *tracedTypeAdapter) ConditionalFalseType() tracing.TracedType {
 	if a.t.flags&TypeFlagsConditional == 0 {
 		return nil
@@ -209,7 +191,6 @@ func (a *tracedTypeAdapter) ConditionalFalseType() tracing.TracedType {
 	}
 	return wrapType(t)
 }
-
 func (a *tracedTypeAdapter) SubstitutionBaseType() tracing.TracedType {
 	if a.t.flags&TypeFlagsSubstitution == 0 {
 		return nil
@@ -220,7 +201,6 @@ func (a *tracedTypeAdapter) SubstitutionBaseType() tracing.TracedType {
 	}
 	return wrapType(t)
 }
-
 func (a *tracedTypeAdapter) SubstitutionConstraintType() tracing.TracedType {
 	if a.t.flags&TypeFlagsSubstitution == 0 {
 		return nil
@@ -231,7 +211,6 @@ func (a *tracedTypeAdapter) SubstitutionConstraintType() tracing.TracedType {
 	}
 	return wrapType(t)
 }
-
 func (a *tracedTypeAdapter) ReferenceTarget() tracing.TracedType {
 	if a.t.flags&TypeFlagsObject == 0 || a.t.objectFlags&ObjectFlagsReference == 0 {
 		return nil
@@ -242,21 +221,18 @@ func (a *tracedTypeAdapter) ReferenceTarget() tracing.TracedType {
 	}
 	return wrapType(t)
 }
-
 func (a *tracedTypeAdapter) ReferenceTypeArguments() []tracing.TracedType {
 	if a.t.flags&TypeFlagsObject == 0 || a.t.objectFlags&ObjectFlagsReference == 0 {
 		return nil
 	}
 	return wrapTypes(a.t.AsTypeReference().resolvedTypeArguments)
 }
-
-func (a *tracedTypeAdapter) ReferenceNode() *ast.Node {
+func (a *tracedTypeAdapter) ReferenceNode() ast.Handle {
 	if a.t.flags&TypeFlagsObject == 0 || a.t.objectFlags&ObjectFlagsReference == 0 {
-		return nil
+		return ast.Handle{}
 	}
 	return a.t.AsTypeReference().node
 }
-
 func (a *tracedTypeAdapter) ReverseMappedSourceType() tracing.TracedType {
 	if a.t.flags&TypeFlagsObject == 0 || a.t.objectFlags&ObjectFlagsReverseMapped == 0 {
 		return nil
@@ -267,7 +243,6 @@ func (a *tracedTypeAdapter) ReverseMappedSourceType() tracing.TracedType {
 	}
 	return wrapType(t)
 }
-
 func (a *tracedTypeAdapter) ReverseMappedMappedType() tracing.TracedType {
 	if a.t.flags&TypeFlagsObject == 0 || a.t.objectFlags&ObjectFlagsReverseMapped == 0 {
 		return nil
@@ -278,7 +253,6 @@ func (a *tracedTypeAdapter) ReverseMappedMappedType() tracing.TracedType {
 	}
 	return wrapType(t)
 }
-
 func (a *tracedTypeAdapter) ReverseMappedConstraintType() tracing.TracedType {
 	if a.t.flags&TypeFlagsObject == 0 || a.t.objectFlags&ObjectFlagsReverseMapped == 0 {
 		return nil
@@ -289,7 +263,6 @@ func (a *tracedTypeAdapter) ReverseMappedConstraintType() tracing.TracedType {
 	}
 	return wrapType(t)
 }
-
 func (a *tracedTypeAdapter) EvolvingArrayElementType() tracing.TracedType {
 	if a.t.flags&TypeFlagsObject == 0 || a.t.objectFlags&ObjectFlagsEvolvingArray == 0 {
 		return nil
@@ -300,7 +273,6 @@ func (a *tracedTypeAdapter) EvolvingArrayElementType() tracing.TracedType {
 	}
 	return wrapType(t)
 }
-
 func (a *tracedTypeAdapter) EvolvingArrayFinalType() tracing.TracedType {
 	if a.t.flags&TypeFlagsObject == 0 || a.t.objectFlags&ObjectFlagsEvolvingArray == 0 {
 		return nil
@@ -311,34 +283,23 @@ func (a *tracedTypeAdapter) EvolvingArrayFinalType() tracing.TracedType {
 	}
 	return wrapType(t)
 }
-
 func (a *tracedTypeAdapter) IsTuple() bool {
 	return a.t.objectFlags&ObjectFlagsTuple != 0
 }
-
-func (a *tracedTypeAdapter) Pattern() *ast.Node {
+func (a *tracedTypeAdapter) Pattern() ast.Handle {
 	if a.checker == nil {
-		return nil
+		return ast.Handle{}
 	}
 	return a.checker.patternForType[a.t]
 }
-
 func (a *tracedTypeAdapter) RecursionIdentity() any {
 	return getRecursionIdentity(a.t).value
 }
-
 func (a *tracedTypeAdapter) Display() string {
-	// Compute display text for types where it's valuable for trace analysis.
-	// TypeScript only does this for Anonymous|Literal types, but we extend to
-	// unions, intersections, and template literals since they often lack
-	// firstDeclaration and the display text helps identify them.
-	// Incomplete types during tracing can cause panics, which we intentionally
-	// suppress (returning ""), matching TypeScript's try/catch around typeToString.
 	if a.checker == nil {
 		return ""
 	}
-	if a.t.objectFlags&ObjectFlagsAnonymous != 0 ||
-		a.t.flags&(TypeFlagsLiteral|TypeFlagsTemplateLiteral|TypeFlagsUnion|TypeFlagsIntersection) != 0 {
+	if a.t.objectFlags&ObjectFlagsAnonymous != 0 || a.t.flags&(TypeFlagsLiteral|TypeFlagsTemplateLiteral|TypeFlagsUnion|TypeFlagsIntersection) != 0 {
 		defer func() {
 			_ = recover()
 		}()
@@ -346,14 +307,12 @@ func (a *tracedTypeAdapter) Display() string {
 	}
 	return ""
 }
-
 func wrapType(t *Type) tracing.TracedType {
 	if t == nil {
 		return nil
 	}
 	return &tracedTypeAdapter{t: t, checker: t.checker}
 }
-
 func wrapTypes(types []*Type) []tracing.TracedType {
 	if len(types) == 0 {
 		return nil

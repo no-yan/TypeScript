@@ -23,10 +23,10 @@ func TestFactoryCopySubtree(t *testing.T) {
 	emit := ast.NewFactory(ast.FactoryHooks{})
 	copied := emit.CopySubtree(root)
 
-	assert.Equal(t, ast.KindBinaryExpression, copied.Kind())
+	assert.Equal(t, ast.KindBinaryExpression, copied.Kind)
 	assert.Equal(t, "a", copied.Left().Text())
 	assert.Equal(t, "b", copied.Right().Text())
-	assert.Equal(t, ast.KindPlusToken, copied.Operator().Kind())
+	assert.Equal(t, ast.KindPlusToken, copied.Operator().Kind)
 
 	assert.Assert(t, emit.Store() != parse.Store())
 	assert.Assert(t, copied.Ref() != root.Ref())
@@ -35,12 +35,13 @@ func TestFactoryCopySubtree(t *testing.T) {
 	copied.SetParentsInChildren()
 	assert.Equal(t, copied.Ref(), copied.Left().Parent().Ref())
 
-	defer func() {
-		if recover() == nil {
-			t.Fatal("expected panic")
-		}
-	}()
+	ast.RegisterStore(parse.Store())
+	ast.RegisterStore(emit.Store())
 	copied.SetChild(0, left)
+	got := copied.Child(0)
+	assert.Equal(t, left.Store(), got.Store())
+	assert.Equal(t, left.Ref(), got.Ref())
+	assert.Equal(t, "a", got.Text())
 }
 
 func TestFactoryCopySubtreeRemapsList(t *testing.T) {
@@ -59,15 +60,27 @@ func TestFactoryCopySubtreeRemapsList(t *testing.T) {
 
 	emit := ast.NewFactory(ast.FactoryHooks{})
 	copied := emit.CopySubtree(arr)
-	assert.Equal(t, ast.KindArrayLiteralExpression, copied.Kind())
-	assert.Equal(t, 2, emit.Store().ListLen(copied.Elements()))
-	assert.Assert(t, emit.Store().ListHasTrailingComma(copied.Elements()))
-	ca := emit.Store().ListAt(copied.Elements(), 0)
-	cb := emit.Store().ListAt(copied.Elements(), 1)
+	assert.Equal(t, ast.KindArrayLiteralExpression, copied.Kind)
+	assert.Equal(t, 2, emit.Store().ListLen(copied.ElementList()))
+	assert.Assert(t, emit.Store().ListHasTrailingComma(copied.ElementList()))
+	ca := emit.Store().ListAt(copied.ElementList(), 0)
+	cb := emit.Store().ListAt(copied.ElementList(), 1)
 	assert.Equal(t, "a", ca.Text())
 	assert.Equal(t, "b", cb.Text())
 	assert.Equal(t, ast.TokenFlagsSingleQuote, ca.TokenFlags())
 	assert.Assert(t, ca.Ref() != a.Ref())
 	assert.Assert(t, ca.Store() != a.Store())
 	assert.Equal(t, copied.Store(), ca.Store())
+}
+
+func TestFactoryCopySubtreeAfterFreezeCopiesScalars(t *testing.T) {
+	t.Parallel()
+	parse := ast.NewFactory(ast.FactoryHooks{})
+	clause := parse.NewHeritageClause(ast.KindExtendsKeyword, 0)
+	parse.Store().Freeze()
+
+	emit := ast.NewFactory(ast.FactoryHooks{})
+	copied := emit.CopySubtree(clause)
+	assert.Equal(t, ast.KindHeritageClause, copied.Kind)
+	assert.Equal(t, ast.KindExtendsKeyword, copied.HeritageClauseToken())
 }

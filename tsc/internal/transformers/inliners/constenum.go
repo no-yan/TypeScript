@@ -1,8 +1,6 @@
 package inliners
 
 import (
-	"strings"
-
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/debug"
@@ -10,6 +8,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
 	"github.com/microsoft/TypeScript/tsc/internal/scanner"
 	"github.com/microsoft/TypeScript/tsc/internal/transformers"
+	"strings"
 )
 
 type ConstEnumInliningTransformer struct {
@@ -28,18 +27,17 @@ func NewConstEnumInliningTransformer(opt *transformers.TransformOptions) *transf
 	tx := &ConstEnumInliningTransformer{compilerOptions: compilerOptions, emitResolver: opt.EmitResolver}
 	return tx.NewTransformer(tx.visit, emitContext)
 }
-
-func (tx *ConstEnumInliningTransformer) visit(node *ast.Node) *ast.Node {
+func (tx *ConstEnumInliningTransformer) visit(node ast.Handle) ast.Handle {
 	switch node.Kind {
 	case ast.KindPropertyAccessExpression, ast.KindElementAccessExpression:
 		{
 			parse := tx.EmitContext().ParseNode(node)
-			if parse == nil {
+			if parse.IsNil() {
 				return tx.Visitor().VisitEachChild(node)
 			}
 			value := tx.emitResolver.GetConstantValue(parse)
 			if value != nil {
-				var replacement *ast.Node
+				var replacement ast.Handle
 				switch v := value.(type) {
 				case jsnum.Number:
 					if v.IsInf() {
@@ -57,7 +55,7 @@ func (tx *ConstEnumInliningTransformer) visit(node *ast.Node) *ast.Node {
 					}
 				case string:
 					replacement = tx.Factory().NewStringLiteral(v, ast.TokenFlagsNone)
-				case jsnum.PseudoBigInt: // technically not supported by strada, and issues a checker error, handled here for completeness
+				case jsnum.PseudoBigInt:
 					if v == (jsnum.PseudoBigInt{}) {
 						replacement = tx.Factory().NewBigIntLiteral("0", ast.TokenFlagsNone)
 					} else if !v.Negative {
@@ -66,10 +64,9 @@ func (tx *ConstEnumInliningTransformer) visit(node *ast.Node) *ast.Node {
 						replacement = tx.Factory().NewPrefixUnaryExpression(ast.KindMinusToken, tx.Factory().NewBigIntLiteral(v.Base10Value, ast.TokenFlagsNone))
 					}
 				}
-
 				if tx.compilerOptions.RemoveComments.IsFalseOrUnknown() {
 					original := tx.EmitContext().MostOriginal(node)
-					if original != nil && !ast.NodeIsSynthesized(original) {
+					if !original.IsNil() && !ast.NodeIsSynthesized(original) {
 						originalText := scanner.GetTextOfNode(original)
 						escapedText := safeMultiLineComment(originalText)
 						tx.EmitContext().AddSyntheticTrailingComment(replacement, ast.KindMultiLineCommentTrivia, escapedText, false)
@@ -82,7 +79,6 @@ func (tx *ConstEnumInliningTransformer) visit(node *ast.Node) *ast.Node {
 	}
 	return tx.Visitor().VisitEachChild(node)
 }
-
 func safeMultiLineComment(text string) string {
 	var b strings.Builder
 	b.Grow(len(text) + 2)

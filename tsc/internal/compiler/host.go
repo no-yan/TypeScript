@@ -18,14 +18,7 @@ type CompilerHost interface {
 	GetCurrentDirectory() string
 	Trace(msg *diagnostics.Message, args ...any)
 	GetSourceFile(opts ast.SourceFileParseOptions) *ast.SourceFile
-	// GetContentMappedSourceFile produces the source file for a content-mapped (foreign) file by running
-	// the given mapper's transform on the file's content. The caller resolves the mapper (and owns the
-	// failure accounting), so implementations must use it as-is. It returns nil if the file cannot be read,
-	// or an error if the transform fails or the mapper produces invalid position mappings. Implementations
-	// may cache successful results.
 	GetContentMappedSourceFiles(parseOptions ast.SourceFileParseOptions, mapper *contentmapper.Mapper) (contentmapper.SourceFiles, error)
-	// ContentMapperProject returns the project-scoped content mapper used by this host, or nil when the
-	// command line has no content mappers. The project owns transform identity and lifecycle state.
 	ContentMapperProject() contentmapper.Project
 	GetResolvedProjectReference(fileName string, path tspath.Path) *tsoptions.ParsedCommandLine
 }

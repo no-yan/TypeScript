@@ -122,6 +122,7 @@ func (c *Converters) ToLSPLocationForFeature(script Script, rng core.TextRange, 
 }
 
 // FromLSPRange converts an lsproto.Range to offsets in one Script. For a content-mapped script, results
+
 // include each virtual projection covered by segments that participate in feature; it returns no
 // results when no projection qualifies. Normal scripts return one exact span.
 func FromLSPRange[T Script](c *Converters, script T, textRange lsproto.Range, feature spanmap.Feature) []MappedSpan[T] {
@@ -129,6 +130,7 @@ func FromLSPRange[T Script](c *Converters, script T, textRange lsproto.Range, fe
 }
 
 // FromLSPRangeForSourceFile converts an lsproto.Range to offsets in a SourceFile. When the file has
+
 // supplemental content-mapper outputs, results include every qualifying virtual projection across the
 // canonical and supplemental files. Projections not participating in feature are omitted.
 func FromLSPRangeForSourceFile(c *Converters, file *ast.SourceFile, textRange lsproto.Range, feature spanmap.Feature) []MappedSpan[*ast.SourceFile] {
@@ -208,6 +210,7 @@ func (c *Converters) lspRangeToVirtual(script Script, textRange lsproto.Range, f
 }
 
 // FromLSPPosition converts an lsproto.Position to offsets in one Script. For a content-mapped script,
+
 // results include each virtual projection whose segment participates in feature; it returns no results
 // when no projection qualifies. Normal scripts return one exact position.
 func FromLSPPosition[T Script](c *Converters, script T, position lsproto.Position, feature spanmap.Feature) []MappedPosition[T] {
@@ -215,6 +218,7 @@ func FromLSPPosition[T Script](c *Converters, script T, position lsproto.Positio
 }
 
 // FromLSPPositionForSourceFile converts an lsproto.Position to offsets in a SourceFile. When the file has
+
 // supplemental content-mapper outputs, results include every qualifying virtual projection across the
 // canonical and supplemental files. Projections not participating in feature are omitted.
 func FromLSPPositionForSourceFile(c *Converters, file *ast.SourceFile, position lsproto.Position, feature spanmap.Feature) []MappedPosition[*ast.SourceFile] {

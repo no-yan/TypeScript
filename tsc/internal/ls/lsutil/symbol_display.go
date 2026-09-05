@@ -4,7 +4,6 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/checker"
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
-	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
 
 type ScriptElementKind int
@@ -12,57 +11,30 @@ type ScriptElementKind int
 const (
 	ScriptElementKindUnknown ScriptElementKind = iota
 	ScriptElementKindWarning
-	// predefined type (void) or keyword (class)
 	ScriptElementKindKeyword
-	// top level script node
 	ScriptElementKindScriptElement
-	// module foo {}
 	ScriptElementKindModuleElement
-	// class X {}
 	ScriptElementKindClassElement
-	// var x = class X {}
 	ScriptElementKindLocalClassElement
-	// interface Y {}
 	ScriptElementKindInterfaceElement
-	// type T = ...
 	ScriptElementKindTypeElement
-	// enum E {}
 	ScriptElementKindEnumElement
 	ScriptElementKindEnumMemberElement
-	// Inside module and script only.
-	// const v = ...
 	ScriptElementKindVariableElement
-	// Inside function.
 	ScriptElementKindLocalVariableElement
-	// using foo = ...
 	ScriptElementKindVariableUsingElement
-	// await using foo = ...
 	ScriptElementKindVariableAwaitUsingElement
-	// Inside module and script only.
-	// function f() {}
 	ScriptElementKindFunctionElement
-	// Inside function.
 	ScriptElementKindLocalFunctionElement
-	// class X { [public|private]* foo() {} }
 	ScriptElementKindMemberFunctionElement
-	// class X { [public|private]* [get|set] foo:number; }
 	ScriptElementKindMemberGetAccessorElement
 	ScriptElementKindMemberSetAccessorElement
-	// class X { [public|private]* foo:number; }
-	// interface Y { foo:number; }
 	ScriptElementKindMemberVariableElement
-	// class X { [public|private]* accessor foo: number; }
 	ScriptElementKindMemberAccessorVariableElement
-	// class X { constructor() { } }
-	// class X { static { } }
 	ScriptElementKindConstructorImplementationElement
-	// interface Y { ():number; }
 	ScriptElementKindCallSignatureElement
-	// interface Y { []:number; }
 	ScriptElementKindIndexSignatureElement
-	// interface Y { new():Y; }
 	ScriptElementKindConstructSignatureElement
-	// function foo(*Y*: string)
 	ScriptElementKindParameterElement
 	ScriptElementKindTypeParameterElement
 	ScriptElementKindPrimitiveType
@@ -72,13 +44,9 @@ const (
 	ScriptElementKindLetElement
 	ScriptElementKindDirectory
 	ScriptElementKindExternalModuleName
-	// String literal
 	ScriptElementKindString
-	// Jsdoc @link: in `{@link C link text}`, the before and after text "{@link " and "}"
 	ScriptElementKindLink
-	// Jsdoc @link: in `{@link C link text}`, the entity name "C"
 	ScriptElementKindLinkName
-	// Jsdoc @link: in `{@link C link text}`, the link text "link text"
 	ScriptElementKindLinkText
 )
 
@@ -109,32 +77,55 @@ const (
 	ScriptElementKindModifierCjs
 )
 
-var scriptElementKindModifierNames = []struct {
+var scriptElementKindModifierNames = []struct // predefined type (void) or keyword (class)
+// top level script node
+// module foo {}
+// class X {}
+// var x = class X {}
+// interface Y {}
+// type T = ...
+// enum E {}
+// Inside module and script only.
+// const v = ...
+// Inside function.
+// using foo = ...
+// await using foo = ...
+// Inside module and script only.
+// function f() {}
+// Inside function.
+// class X { [public|private]* foo() {} }
+// class X { [public|private]* [get|set] foo:number; }
+// class X { [public|private]* foo:number; }
+// interface Y { foo:number; }
+// class X { [public|private]* accessor foo: number; }
+// class X { constructor() { } }
+// class X { static { } }
+// interface Y { ():number; }
+// interface Y { []:number; }
+// interface Y { new():Y; }
+// function foo(*Y*: string)
+// String literal
+// Jsdoc @link: in `{@link C link text}`, the before and after text "{@link " and "}"
+// Jsdoc @link: in `{@link C link text}`, the entity name "C"
+// Jsdoc @link: in `{@link C link text}`, the link text "link text"
+// If this is a method from a mapped type, leave as a method so long as it still has a call signature, as opposed to e.g.
+// `{ [K in keyof I]: number }`.
+// FIXME: getter and setter use the same symbol. And it is rare to use only setter without getter, so in most cases the symbol always has getter flag.
+// So, even when the location is just on the declaration of setter, this function returns getter.
+// If union property is result of union of non method (property/accessors/variables), it is labeled as property
+// If this was union of all methods,
+// make sure it has call signatures before we can label it as method.
+// This is exported symbol
+// Function expressions are local
+// If the parent is not source file or module block, it is a local variable.
+// Reached source file or module block
+// Parent is in function block.
+// omit deprecated flag if some declarations are not deprecated
+// !!! include jsdoc node flags
+{
 	flag ScriptElementKindModifier
 	name string
-}{
-	{ScriptElementKindModifierPublic, "public"},
-	{ScriptElementKindModifierPrivate, "private"},
-	{ScriptElementKindModifierProtected, "protected"},
-	{ScriptElementKindModifierExported, "export"},
-	{ScriptElementKindModifierAmbient, "declare"},
-	{ScriptElementKindModifierStatic, "static"},
-	{ScriptElementKindModifierAbstract, "abstract"},
-	{ScriptElementKindModifierOptional, "optional"},
-	{ScriptElementKindModifierDeprecated, "deprecated"},
-	{ScriptElementKindModifierDts, ".d.ts"},
-	{ScriptElementKindModifierTs, ".ts"},
-	{ScriptElementKindModifierTsx, ".tsx"},
-	{ScriptElementKindModifierJs, ".js"},
-	{ScriptElementKindModifierJsx, ".jsx"},
-	{ScriptElementKindModifierJson, ".json"},
-	{ScriptElementKindModifierDmts, ".d.mts"},
-	{ScriptElementKindModifierMts, ".mts"},
-	{ScriptElementKindModifierMjs, ".mjs"},
-	{ScriptElementKindModifierDcts, ".d.cts"},
-	{ScriptElementKindModifierCts, ".cts"},
-	{ScriptElementKindModifierCjs, ".cjs"},
-}
+}{{ScriptElementKindModifierPublic, "public"}, {ScriptElementKindModifierPrivate, "private"}, {ScriptElementKindModifierProtected, "protected"}, {ScriptElementKindModifierExported, "export"}, {ScriptElementKindModifierAmbient, "declare"}, {ScriptElementKindModifierStatic, "static"}, {ScriptElementKindModifierAbstract, "abstract"}, {ScriptElementKindModifierOptional, "optional"}, {ScriptElementKindModifierDeprecated, "deprecated"}, {ScriptElementKindModifierDts, ".d.ts"}, {ScriptElementKindModifierTs, ".ts"}, {ScriptElementKindModifierTsx, ".tsx"}, {ScriptElementKindModifierJs, ".js"}, {ScriptElementKindModifierJsx, ".jsx"}, {ScriptElementKindModifierJson, ".json"}, {ScriptElementKindModifierDmts, ".d.mts"}, {ScriptElementKindModifierMts, ".mts"}, {ScriptElementKindModifierMjs, ".mjs"}, {ScriptElementKindModifierDcts, ".d.cts"}, {ScriptElementKindModifierCts, ".cts"}, {ScriptElementKindModifierCjs, ".cjs"}}
 
 func (m ScriptElementKindModifier) Strings() collections.Set[string] {
 	result := collections.Set[string]{}
@@ -146,20 +137,9 @@ func (m ScriptElementKindModifier) Strings() collections.Set[string] {
 	return result
 }
 
-var FileExtensionKindModifiers = ScriptElementKindModifierDts |
-	ScriptElementKindModifierTs |
-	ScriptElementKindModifierTsx |
-	ScriptElementKindModifierJs |
-	ScriptElementKindModifierJsx |
-	ScriptElementKindModifierJson |
-	ScriptElementKindModifierDmts |
-	ScriptElementKindModifierMts |
-	ScriptElementKindModifierMjs |
-	ScriptElementKindModifierDcts |
-	ScriptElementKindModifierCts |
-	ScriptElementKindModifierCjs
+var FileExtensionKindModifiers = ScriptElementKindModifierDts | ScriptElementKindModifierTs | ScriptElementKindModifierTsx | ScriptElementKindModifierJs | ScriptElementKindModifierJsx | ScriptElementKindModifierJson | ScriptElementKindModifierDmts | ScriptElementKindModifierMts | ScriptElementKindModifierMjs | ScriptElementKindModifierDcts | ScriptElementKindModifierCts | ScriptElementKindModifierCjs
 
-func GetSymbolKind(typeChecker *checker.Checker, symbol *ast.Symbol, location *ast.Node) ScriptElementKind {
+func GetSymbolKind(typeChecker *checker.Checker, symbol *ast.Symbol, location ast.Handle) ScriptElementKind {
 	result := getSymbolKindOfConstructorPropertyMethodAccessorFunctionOrVar(typeChecker, symbol, location)
 	if result != ScriptElementKindUnknown {
 		return result
@@ -167,7 +147,7 @@ func GetSymbolKind(typeChecker *checker.Checker, symbol *ast.Symbol, location *a
 	flags := symbol.CombinedLocalAndExportSymbolFlags()
 	if flags&ast.SymbolFlagsClass != 0 {
 		decl := ast.GetDeclarationOfKind(symbol, ast.KindClassExpression)
-		if decl != nil {
+		if !decl.IsNil() {
 			return ScriptElementKindLocalClassElement
 		}
 		return ScriptElementKindClassElement
@@ -193,26 +173,18 @@ func GetSymbolKind(typeChecker *checker.Checker, symbol *ast.Symbol, location *a
 	if flags&ast.SymbolFlagsModule != 0 {
 		return ScriptElementKindModuleElement
 	}
-
 	return ScriptElementKindUnknown
 }
-
-func getSymbolKindOfConstructorPropertyMethodAccessorFunctionOrVar(typeChecker *checker.Checker, symbol *ast.Symbol, location *ast.Node) ScriptElementKind {
+func getSymbolKindOfConstructorPropertyMethodAccessorFunctionOrVar(typeChecker *checker.Checker, symbol *ast.Symbol, location ast.Handle) ScriptElementKind {
 	var roots []*ast.Symbol
 	if typeChecker != nil {
 		roots = typeChecker.GetRootSymbols(symbol)
 	} else {
 		roots = []*ast.Symbol{symbol}
 	}
-
-	// If this is a method from a mapped type, leave as a method so long as it still has a call signature, as opposed to e.g.
-	// `{ [K in keyof I]: number }`.
-	if len(roots) == 1 &&
-		roots[0].Flags&ast.SymbolFlagsMethod != 0 &&
-		(typeChecker == nil || len(typeChecker.GetCallSignatures(typeChecker.GetNonNullableType(typeChecker.GetTypeOfSymbolAtLocation(symbol, location)))) > 0) {
+	if len(roots) == 1 && roots[0].Flags&ast.SymbolFlagsMethod != 0 && (typeChecker == nil || len(typeChecker.GetCallSignatures(typeChecker.GetNonNullableType(typeChecker.GetTypeOfSymbolAtLocation(symbol, location)))) > 0) {
 		return ScriptElementKindMemberFunctionElement
 	}
-
 	if typeChecker != nil {
 		if typeChecker.IsUndefinedSymbol(symbol) {
 			return ScriptElementKindVariableElement
@@ -220,23 +192,21 @@ func getSymbolKindOfConstructorPropertyMethodAccessorFunctionOrVar(typeChecker *
 		if typeChecker.IsArgumentsSymbol(symbol) {
 			return ScriptElementKindLocalVariableElement
 		}
-		if location.Kind == ast.KindThisKeyword && ast.IsExpression(location) ||
-			ast.IsThisInTypeQuery(location) {
+		if location.Kind == ast.KindThisKeyword && ast.IsExpression(location) || ast.IsThisInTypeQuery(location) {
 			return ScriptElementKindParameterElement
 		}
 	}
-
 	flags := symbol.CombinedLocalAndExportSymbolFlags()
 	if flags&ast.SymbolFlagsVariable != 0 {
 		if isFirstDeclarationOfSymbolParameter(symbol) {
 			return ScriptElementKindParameterElement
-		} else if symbol.ValueDeclaration != nil && ast.IsVarConst(symbol.ValueDeclaration) {
+		} else if symbol.ValueDeclaration != 0 && ast.IsVarConst(ast.NodeOf(symbol.ValueDeclaration)) {
 			return ScriptElementKindConstElement
-		} else if symbol.ValueDeclaration != nil && ast.IsVarUsing(symbol.ValueDeclaration) {
+		} else if symbol.ValueDeclaration != 0 && ast.IsVarUsing(ast.NodeOf(symbol.ValueDeclaration)) {
 			return ScriptElementKindVariableUsingElement
-		} else if symbol.ValueDeclaration != nil && ast.IsVarAwaitUsing(symbol.ValueDeclaration) {
+		} else if symbol.ValueDeclaration != 0 && ast.IsVarAwaitUsing(ast.NodeOf(symbol.ValueDeclaration)) {
 			return ScriptElementKindVariableAwaitUsingElement
-		} else if core.Some(symbol.Declarations, ast.IsLet) {
+		} else if ast.SomeDeclaration(symbol, ast.IsLet) {
 			return ScriptElementKindLetElement
 		}
 		if isLocalVariableOrFunction(symbol) {
@@ -250,8 +220,6 @@ func getSymbolKindOfConstructorPropertyMethodAccessorFunctionOrVar(typeChecker *
 		}
 		return ScriptElementKindFunctionElement
 	}
-	// FIXME: getter and setter use the same symbol. And it is rare to use only setter without getter, so in most cases the symbol always has getter flag.
-	// So, even when the location is just on the declaration of setter, this function returns getter.
 	if flags&ast.SymbolFlagsGetAccessor != 0 {
 		return ScriptElementKindMemberGetAccessorElement
 	}
@@ -267,10 +235,8 @@ func getSymbolKindOfConstructorPropertyMethodAccessorFunctionOrVar(typeChecker *
 	if flags&ast.SymbolFlagsSignature != 0 {
 		return ScriptElementKindIndexSignatureElement
 	}
-
 	if flags&ast.SymbolFlagsProperty != 0 {
 		if typeChecker != nil && flags&ast.SymbolFlagsTransient != 0 && symbol.CheckFlags&ast.CheckFlagsSynthetic != 0 {
-			// If union property is result of union of non method (property/accessors/variables), it is labeled as property
 			var unionPropertyKind ScriptElementKind
 			for _, rootSymbol := range roots {
 				if rootSymbol.Flags&(ast.SymbolFlagsPropertyOrAccessor|ast.SymbolFlagsVariable) != 0 {
@@ -279,8 +245,6 @@ func getSymbolKindOfConstructorPropertyMethodAccessorFunctionOrVar(typeChecker *
 				}
 			}
 			if unionPropertyKind == ScriptElementKindUnknown {
-				// If this was union of all methods,
-				// make sure it has call signatures before we can label it as method.
 				typeOfUnionProperty := typeChecker.GetTypeOfSymbolAtLocation(symbol, location)
 				if len(typeChecker.GetCallSignatures(typeOfUnionProperty)) > 0 {
 					return ScriptElementKindMemberFunctionElement
@@ -289,19 +253,16 @@ func getSymbolKindOfConstructorPropertyMethodAccessorFunctionOrVar(typeChecker *
 			}
 			return unionPropertyKind
 		}
-
 		return ScriptElementKindMemberVariableElement
 	}
-
 	return ScriptElementKindUnknown
 }
-
 func isFirstDeclarationOfSymbolParameter(symbol *ast.Symbol) bool {
-	var declaration *ast.Node
+	var declaration ast.Handle
 	if len(symbol.Declarations) > 0 {
-		declaration = symbol.Declarations[0]
+		declaration = ast.NodeOf(symbol.Declarations[0])
 	}
-	result := ast.FindAncestorOrQuit(declaration, func(n *ast.Node) ast.FindAncestorResult {
+	result := ast.FindAncestorOrQuit(declaration, func(n ast.Handle) ast.FindAncestorResult {
 		if ast.IsParameterDeclaration(n) {
 			return ast.FindAncestorTrue
 		}
@@ -310,47 +271,35 @@ func isFirstDeclarationOfSymbolParameter(symbol *ast.Symbol) bool {
 		}
 		return ast.FindAncestorQuit
 	})
-
-	return result != nil
+	return !result.IsNil()
 }
-
 func isLocalVariableOrFunction(symbol *ast.Symbol) bool {
 	if symbol.Parent != nil {
-		return false // This is exported symbol
+		return false
 	}
-
-	for _, decl := range symbol.Declarations {
-		// Function expressions are local
+	for _, decl := range ast.DeclarationNodes(symbol).All() {
 		if decl.Kind == ast.KindFunctionExpression {
 			return true
 		}
-
 		if decl.Kind != ast.KindVariableDeclaration && decl.Kind != ast.KindFunctionDeclaration {
 			continue
 		}
-
-		// If the parent is not source file or module block, it is a local variable.
-		parent := decl.Parent
-		for ; !ast.IsFunctionBlock(parent); parent = parent.Parent {
-			// Reached source file or module block
+		parent := decl.Parent()
+		for ; !ast.IsFunctionBlock(parent); parent = parent.Parent() {
 			if parent.Kind == ast.KindSourceFile || parent.Kind == ast.KindModuleBlock {
 				break
 			}
 		}
-
 		if ast.IsFunctionBlock(parent) {
-			// Parent is in function block.
 			return true
 		}
 	}
 	return false
 }
-
 func GetSymbolModifiers(typeChecker *checker.Checker, symbol *ast.Symbol) ScriptElementKindModifier {
 	if symbol == nil {
 		return ScriptElementKindModifierNone
 	}
-
 	modifiers := getNormalizedSymbolModifiers(typeChecker, symbol)
 	if symbol.Flags&ast.SymbolFlagsAlias != 0 && typeChecker != nil {
 		resolvedSymbol := typeChecker.GetAliasedSymbol(symbol)
@@ -361,38 +310,32 @@ func GetSymbolModifiers(typeChecker *checker.Checker, symbol *ast.Symbol) Script
 	if symbol.Flags&ast.SymbolFlagsOptional != 0 {
 		modifiers |= ScriptElementKindModifierOptional
 	}
-
 	return modifiers
 }
-
 func getNormalizedSymbolModifiers(typeChecker *checker.Checker, symbol *ast.Symbol) ScriptElementKindModifier {
 	var modifierSet ScriptElementKindModifier
 	if len(symbol.Declarations) > 0 {
-		declaration := symbol.Declarations[0]
-		declarations := symbol.Declarations[1:]
-		// omit deprecated flag if some declarations are not deprecated
+		seq := ast.DeclarationNodes(symbol)
+		declaration := seq.First()
 		var excludeFlags ast.ModifierFlags
-		if len(declarations) > 0 &&
-			isDeprecatedDeclaration(typeChecker, declaration) && // !!! include jsdoc node flags
-			core.Some(declarations, func(d *ast.Node) bool { return !isDeprecatedDeclaration(typeChecker, d) }) {
+		if seq.Len() > 1 && isDeprecatedDeclaration(typeChecker, declaration) && seq.Some(func(d ast.Handle) bool {
+			return d != declaration && !isDeprecatedDeclaration(typeChecker, d)
+		}) {
 			excludeFlags = ast.ModifierFlagsDeprecated
 		} else {
 			excludeFlags = ast.ModifierFlagsNone
 		}
 		modifierSet = getNodeModifiers(typeChecker, declaration, excludeFlags)
 	}
-
 	return modifierSet
 }
-
-func isDeprecatedDeclaration(typeChecker *checker.Checker, declaration *ast.Node) bool {
+func isDeprecatedDeclaration(typeChecker *checker.Checker, declaration ast.Handle) bool {
 	if typeChecker != nil {
 		return typeChecker.IsDeprecatedDeclaration(declaration)
 	}
 	return ast.IsDeprecatedDeclaration(declaration)
 }
-
-func getNodeModifiers(typeChecker *checker.Checker, node *ast.Node, excludeFlags ast.ModifierFlags) ScriptElementKindModifier {
+func getNodeModifiers(typeChecker *checker.Checker, node ast.Handle, excludeFlags ast.ModifierFlags) ScriptElementKindModifier {
 	var result ScriptElementKindModifier
 	var flags ast.ModifierFlags
 	if ast.IsDeclaration(node) {
@@ -402,7 +345,6 @@ func getNodeModifiers(typeChecker *checker.Checker, node *ast.Node, excludeFlags
 		}
 		flags &^= excludeFlags
 	}
-
 	if flags&ast.ModifierFlagsPrivate != 0 {
 		result |= ScriptElementKindModifierPrivate
 	}
@@ -427,12 +369,11 @@ func getNodeModifiers(typeChecker *checker.Checker, node *ast.Node, excludeFlags
 	if flags&ast.ModifierFlagsAmbient != 0 {
 		result |= ScriptElementKindModifierAmbient
 	}
-	if node.Flags&ast.NodeFlagsAmbient != 0 {
+	if node.Flags()&ast.NodeFlagsAmbient != 0 {
 		result |= ScriptElementKindModifierAmbient
 	}
 	if node.Kind == ast.KindExportAssignment {
 		result |= ScriptElementKindModifierExported
 	}
-
 	return result
 }

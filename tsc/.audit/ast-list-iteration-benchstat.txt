@@ -1,0 +1,23 @@
+goos: linux
+goarch: amd64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Intel(R) Xeon(R) Processor
+                   │ /tmp/ast-list-iteration-before.txt │ /workspace/tsc/.audit/ast-list-iteration-after.txt │
+                   │               sec/op               │           sec/op             vs base               │
+ListSlice-4                                 831.5n ± 1%                   826.8n ± 0%       ~ (p=0.305 n=10)
+DeclarationNodes-4                          4.147µ ± 0%                   4.154µ ± 0%       ~ (p=0.322 n=10)
+geomean                                     1.857µ                        1.853µ       -0.20%
+
+                   │ /tmp/ast-list-iteration-before.txt │ /workspace/tsc/.audit/ast-list-iteration-after.txt │
+                   │                B/op                │           B/op             vs base                 │
+ListSlice-4                                  32.00 ± 0%                  32.00 ± 0%       ~ (p=1.000 n=10) ¹
+DeclarationNodes-4                           32.00 ± 0%                  32.00 ± 0%       ~ (p=1.000 n=10) ¹
+geomean                                      32.00                       32.00       +0.00%
+¹ all samples are equal
+
+                   │ /tmp/ast-list-iteration-before.txt │ /workspace/tsc/.audit/ast-list-iteration-after.txt │
+                   │             allocs/op              │         allocs/op          vs base                 │
+ListSlice-4                                  2.000 ± 0%                  2.000 ± 0%       ~ (p=1.000 n=10) ¹
+DeclarationNodes-4                           2.000 ± 0%                  2.000 ± 0%       ~ (p=1.000 n=10) ¹
+geomean                                      2.000                       2.000       +0.00%
+¹ all samples are equal

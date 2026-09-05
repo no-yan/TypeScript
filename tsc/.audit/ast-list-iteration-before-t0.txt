@@ -1,0 +1,26 @@
+goos: linux
+goarch: amd64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Intel(R) Xeon(R) Processor
+BenchmarkListSlice-4          	 1439421	       838.1 ns/op	      32 B/op	       2 allocs/op
+BenchmarkListSlice-4          	 1419657	       839.0 ns/op	      32 B/op	       2 allocs/op
+BenchmarkListSlice-4          	 1433041	       832.8 ns/op	      32 B/op	       2 allocs/op
+BenchmarkListSlice-4          	 1459207	       830.3 ns/op	      32 B/op	       2 allocs/op
+BenchmarkListSlice-4          	 1433574	       840.8 ns/op	      32 B/op	       2 allocs/op
+BenchmarkListSlice-4          	 1460084	       822.0 ns/op	      32 B/op	       2 allocs/op
+BenchmarkListSlice-4          	 1439251	       837.4 ns/op	      32 B/op	       2 allocs/op
+BenchmarkListSlice-4          	 1453624	       824.5 ns/op	      32 B/op	       2 allocs/op
+BenchmarkListSlice-4          	 1440397	       829.9 ns/op	      32 B/op	       2 allocs/op
+BenchmarkListSlice-4          	 1455888	       823.4 ns/op	      32 B/op	       2 allocs/op
+BenchmarkDeclarationNodes-4   	  286688	      4150 ns/op	      32 B/op	       2 allocs/op
+BenchmarkDeclarationNodes-4   	  288766	      4166 ns/op	      32 B/op	       2 allocs/op
+BenchmarkDeclarationNodes-4   	  288886	      4146 ns/op	      32 B/op	       2 allocs/op
+BenchmarkDeclarationNodes-4   	  288877	      4144 ns/op	      32 B/op	       2 allocs/op
+BenchmarkDeclarationNodes-4   	  289315	      4147 ns/op	      32 B/op	       2 allocs/op
+BenchmarkDeclarationNodes-4   	  288862	      4154 ns/op	      32 B/op	       2 allocs/op
+BenchmarkDeclarationNodes-4   	  289539	      4153 ns/op	      32 B/op	       2 allocs/op
+BenchmarkDeclarationNodes-4   	  288943	      4144 ns/op	      32 B/op	       2 allocs/op
+BenchmarkDeclarationNodes-4   	  289333	      4145 ns/op	      32 B/op	       2 allocs/op
+BenchmarkDeclarationNodes-4   	  289320	      4146 ns/op	      32 B/op	       2 allocs/op
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/ast	24.016s

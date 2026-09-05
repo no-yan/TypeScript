@@ -5,21 +5,17 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
 )
 
-// Gets whether a node is a `static {}` block containing only a single assignment of the static `this` to the `_classThis`
-// (or similar) variable stored in the `classthis` property of the block's `EmitNode`.
-func isClassThisAssignmentBlock(emitContext *printer.EmitContext, node *ast.Node) bool {
+func isClassThisAssignmentBlock(emitContext *printer.EmitContext, node ast.Handle) bool {
 	if ast.IsClassStaticBlockDeclaration(node) {
-		n := node.AsClassStaticBlockDeclaration()
-		body := n.Body.AsBlock()
-		if len(body.Statements.Nodes) == 1 {
-			statement := body.Statements.Nodes[0]
+		n := node
+		body := n.Body()
+		if len(body.Statements()) == 1 {
+			statement := body.Statements()[0]
 			if ast.IsExpressionStatement(statement) {
 				expression := statement.Expression()
-				if ast.IsAssignmentExpression(expression, true /*excludeCompoundAssignment*/) {
-					binary := expression.AsBinaryExpression()
-					return ast.IsIdentifier(binary.Left) &&
-						emitContext.ClassThis(node) == binary.Left &&
-						binary.Right.Kind == ast.KindThisKeyword
+				if ast.IsAssignmentExpression(expression, true) {
+					binary := expression
+					return ast.IsIdentifier(binary.Left()) && emitContext.ClassThis(node) == binary.Left() && binary.Right().Kind == ast.KindThisKeyword
 				}
 			}
 		}

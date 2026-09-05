@@ -23,24 +23,22 @@ func TestGetContainingList_NamedImports(t *testing.T) {
 		Path:     "/test.ts",
 	}, text, core.ScriptKindTS)
 
-	// Find ImportSpecifier nodes (AAA and BBB)
-	var importSpecifiers []*ast.Node
-	forEachDescendantOfKind(sourceFile.AsNode(), ast.KindImportSpecifier, func(node *ast.Node) {
+	var importSpecifiers []ast.Handle
+	forEachDescendantOfKind(sourceFile.ParseRoot(), ast.KindImportSpecifier, func(node ast.Handle) {
 		importSpecifiers = append(importSpecifiers, node)
 	})
 
 	assert.Assert(t, len(importSpecifiers) == 2, "Expected 2 import specifiers, got %d", len(importSpecifiers))
 
-	// Test GetContainingList for each import specifier
 	for _, specifier := range importSpecifiers {
 		list := format.GetContainingList(specifier, sourceFile)
-		assert.Assert(t, list != nil, "GetContainingList should return non-nil for import specifier")
-		assert.Assert(t, len(list.Nodes) == 2, "Expected list with 2 elements, got %d", len(list.Nodes))
+		assert.Assert(t, list != 0, "GetContainingList should return a list for import specifier")
+		assert.Assert(t, sourceFile.ParseStore().ListLen(list) == 2, "Expected list with 2 elements, got %d", sourceFile.ParseStore().ListLen(list))
 	}
 }
 
-func forEachDescendantOfKind(node *ast.Node, kind ast.Kind, action func(*ast.Node)) {
-	node.ForEachChild(func(child *ast.Node) bool {
+func forEachDescendantOfKind(node ast.Handle, kind ast.Kind, action func(ast.Handle)) {
+	node.ForEachChild(func(child ast.Handle) bool {
 		if child.Kind == kind {
 			action(child)
 		}

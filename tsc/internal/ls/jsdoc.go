@@ -1,9 +1,6 @@
 package ls
 
 import (
-	"slices"
-	"strings"
-
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/checker"
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
@@ -11,63 +8,78 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/lsp/lsproto"
 	"github.com/microsoft/TypeScript/tsc/internal/scanner"
 	"github.com/microsoft/TypeScript/tsc/internal/spanmap"
+	"slices"
+	"strings"
 )
 
-// JSDocTagInfo mirrors Strada's `JSDocTagInfo`, but renders the tag's text as a
-// plain string instead of `SymbolDisplayPart[]`.
 type JSDocTagInfo struct {
 	Name string
 	Text string
 }
 
-// GetSymbolDocumentationComment renders a symbol's documentation comment as plain text.
-// It backs the API's Symbol.getDocumentationComment and mirrors Strada's
-// getJsDocCommentsFromDeclarations: comments are gathered from each unique declaration,
-// deduplicated, and joined with line breaks. Like Strada, it does not resolve aliases —
-// consumers resolve aliases themselves (via getAliasedSymbol) and re-query if desired.
 func GetSymbolDocumentationComment(c *checker.Checker, symbol *ast.Symbol) string {
 	if symbol == nil {
 		return ""
 	}
-	var parts []string
-	var seen collections.Set[*ast.Node]
-	for _, decl := range symbol.Declarations {
-		if decl == nil {
+	var parts []string // JSDocTagInfo mirrors Strada's `JSDocTagInfo`, but renders the tag's text as a
+	// plain string instead of `SymbolDisplayPart[]`.
+	// GetSymbolDocumentationComment renders a symbol's documentation comment as plain text.
+	// It backs the API's Symbol.getDocumentationComment and mirrors Strada's
+	// getJsDocCommentsFromDeclarations: comments are gathered from each unique declaration,
+	// deduplicated, and joined with line breaks. Like Strada, it does not resolve aliases —
+	// consumers resolve aliases themselves (via getAliasedSymbol) and re-query if desired.
+	/*commentOnly*/ // GetSymbolJSDocTags collects a symbol's JSDoc tags. It backs the API's Symbol.getJsDocTags
+	// and mirrors Strada's getJsDocTagsFromDeclarations, except each tag's text is rendered as a
+	// plain string rather than SymbolDisplayPart[]. Tags with no text have an empty Text field.
+	// Skip comments containing @typedef/@callback since they're not associated with a
+	// particular declaration, unless they also carry @param/@return (treated as local docs).
+	// declarationJSDocTags returns the JSDoc tags associated with a declaration, walking the
+	// JSDoc comment location chain like the checker's getAllJSDocTags.
+	// getJSDocTagText renders the text of a single JSDoc tag as a plain string, mirroring
+	// Strada's getCommentDisplayParts collapsed from SymbolDisplayPart[] to a string.
+	// For binding patterns, match JSDoc @param tags by position rather than by name
+	// For static members, use the checker's base constructor type resolution.
+	// This correctly handles intersection constructor types from mixins
+	// (e.g., typeof MixinClass & T) by preserving the full intersection.
+	// getJSDocParameterTagByPosition finds a JSDoc @param tag for a binding pattern parameter by position.
+	// Since binding patterns don't have a simple name, we match the @param tag at the same index as the parameter.
+	// Find the parameter's index in the parent's parameters list
+	// Get the JSDoc for the parent function/method
+	// Collect all @param tags in order
+
+	var seen collections.Set[ast.Handle]
+	for _, decl := range ast.DeclarationNodes(symbol).All() {
+		if decl.IsNil() {
 			continue
 		}
 		if !seen.AddIfAbsent(decl) {
 			continue
 		}
-		if doc := getDocumentationFromDeclaration(noMappedLocation, c, symbol, decl, decl, lsproto.MarkupKindPlainText, true /*commentOnly*/); doc != "" && !slices.Contains(parts, doc) {
+		if doc := getDocumentationFromDeclaration(noMappedLocation, c, symbol, decl, decl, lsproto.MarkupKindPlainText, true); doc != "" && !slices.Contains(parts, doc) {
 			parts = append(parts, doc)
 		}
 	}
 	return strings.Join(parts, "\n")
 }
 
-// GetSymbolJSDocTags collects a symbol's JSDoc tags. It backs the API's Symbol.getJsDocTags
-// and mirrors Strada's getJsDocTagsFromDeclarations, except each tag's text is rendered as a
-// plain string rather than SymbolDisplayPart[]. Tags with no text have an empty Text field.
 func GetSymbolJSDocTags(symbol *ast.Symbol) []JSDocTagInfo {
 	if symbol == nil {
 		return nil
 	}
 	var infos []JSDocTagInfo
-	var seen collections.Set[*ast.Node]
-	for _, decl := range symbol.Declarations {
-		if decl == nil {
+	var seen collections.Set[ast.Handle]
+	for _, decl := range ast.DeclarationNodes(symbol).All() {
+		if decl.IsNil() {
 			continue
 		}
 		if !seen.AddIfAbsent(decl) {
 			continue
 		}
 		tags := declarationJSDocTags(decl)
-		// Skip comments containing @typedef/@callback since they're not associated with a
-		// particular declaration, unless they also carry @param/@return (treated as local docs).
-		hasTypedef := core.Some(tags, func(t *ast.Node) bool {
+		hasTypedef := core.Some(tags, func(t ast.Handle) bool {
 			return t.Kind == ast.KindJSDocTypedefTag || t.Kind == ast.KindJSDocCallbackTag
 		})
-		hasParamOrReturn := core.Some(tags, func(t *ast.Node) bool {
+		hasParamOrReturn := core.Some(tags, func(t ast.Handle) bool {
 			return t.Kind == ast.KindJSDocParameterTag || t.Kind == ast.KindJSDocReturnTag
 		})
 		if hasTypedef && !hasParamOrReturn {
@@ -80,28 +92,24 @@ func GetSymbolJSDocTags(symbol *ast.Symbol) []JSDocTagInfo {
 	return infos
 }
 
-// declarationJSDocTags returns the JSDoc tags associated with a declaration, walking the
-// JSDoc comment location chain like the checker's getAllJSDocTags.
-func declarationJSDocTags(node *ast.Node) []*ast.Node {
-	if node.Flags&ast.NodeFlagsJSDoc == 0 {
-		for current := node; current != nil; current = ast.GetNextJSDocCommentLocation(current) {
+func declarationJSDocTags(node ast.Handle) []ast.Handle {
+	if node.Flags()&ast.NodeFlagsJSDoc == 0 {
+		for current := node; !current.IsNil(); current = ast.GetNextJSDocCommentLocation(current) {
 			jsdocs := current.JSDoc(nil)
 			if len(jsdocs) == 0 {
 				continue
 			}
-			lastJSDoc := jsdocs[len(jsdocs)-1].AsJSDoc()
-			if lastJSDoc.Tags != nil {
-				return lastJSDoc.Tags.Nodes
+			lastJSDoc := jsdocs[len(jsdocs)-1]
+			if tags := lastJSDoc.Tags(); len(tags) > 0 {
+				return tags
 			}
 		}
 	}
 	return nil
 }
 
-// getJSDocTagText renders the text of a single JSDoc tag as a plain string, mirroring
-// Strada's getCommentDisplayParts collapsed from SymbolDisplayPart[] to a string.
-func getJSDocTagText(tag *ast.Node) string {
-	comment := scanner.GetTextOfJSDocComment(tag.CommentList())
+func getJSDocTagText(tag ast.Handle) string {
+	comment := scanner.GetTextOfJSDocComment(tag.Store(), tag.CommentList())
 	addComment := func(s string) string {
 		if comment == "" {
 			return s
@@ -110,22 +118,22 @@ func getJSDocTagText(tag *ast.Node) string {
 	}
 	switch tag.Kind {
 	case ast.KindJSDocThrowsTag:
-		if te := tag.AsJSDocThrowsTag().TypeExpression; te != nil {
+		if te := tag.JSDocThrowsTagTypeExpression(); !te.IsNil() {
 			return addComment(scanner.GetTextOfNode(te))
 		}
 		return comment
 	case ast.KindJSDocImplementsTag:
-		return addComment(scanner.GetTextOfNode(tag.AsJSDocImplementsTag().ClassName))
+		return addComment(scanner.GetTextOfNode(tag.JSDocImplementsTagClassName()))
 	case ast.KindJSDocAugmentsTag:
-		return addComment(scanner.GetTextOfNode(tag.AsJSDocAugmentsTag().ClassName))
+		return addComment(scanner.GetTextOfNode(tag.JSDocAugmentsTagClassName()))
 	case ast.KindJSDocTemplateTag:
-		templateTag := tag.AsJSDocTemplateTag()
+		templateTag := tag
 		var b strings.Builder
-		if templateTag.Constraint != nil {
-			b.WriteString(scanner.GetTextOfNode(templateTag.Constraint))
+		if !templateTag.Constraint().IsNil() {
+			b.WriteString(scanner.GetTextOfNode(templateTag.Constraint()))
 		}
-		if templateTag.TypeParameters != nil {
-			for i, tp := range templateTag.TypeParameters.Nodes {
+		if tps := templateTag.TypeParameters(); len(tps) > 0 {
+			for i, tp := range tps {
 				if i == 0 && b.Len() != 0 {
 					b.WriteString(" ")
 				}
@@ -143,16 +151,16 @@ func getJSDocTagText(tag *ast.Node) string {
 		}
 		return b.String()
 	case ast.KindJSDocTypeTag:
-		return addComment(scanner.GetTextOfNode(tag.AsJSDocTypeTag().TypeExpression))
+		return addComment(scanner.GetTextOfNode(tag.JSDocTypeTagTypeExpression()))
 	case ast.KindJSDocSatisfiesTag:
-		return addComment(scanner.GetTextOfNode(tag.AsJSDocSatisfiesTag().TypeExpression))
+		return addComment(scanner.GetTextOfNode(tag.JSDocSatisfiesTagTypeExpression()))
 	case ast.KindJSDocSeeTag:
-		if ne := tag.AsJSDocSeeTag().NameExpression; ne != nil {
+		if ne := tag.JSDocSeeTagNameExpression(); !ne.IsNil() {
 			return addComment(scanner.GetTextOfNode(ne))
 		}
 		return comment
 	case ast.KindJSDocParameterTag, ast.KindJSDocPropertyTag:
-		if name := tag.Name(); name != nil {
+		if name := tag.Name(); !name.IsNil() {
 			return addComment(scanner.GetTextOfNode(name))
 		}
 		return comment
@@ -160,39 +168,35 @@ func getJSDocTagText(tag *ast.Node) string {
 		return comment
 	}
 }
-
-func getJSDoc(node *ast.Node) *ast.Node {
+func getJSDoc(node ast.Handle) ast.Handle {
 	return core.LastOrNil(node.JSDoc(nil))
 }
-
-func getJSDocOrTag(c *checker.Checker, node *ast.Node, seenSymbols *collections.Set[*ast.Symbol]) *ast.Node {
-	if node == nil {
-		return nil
+func getJSDocOrTag(c *checker.Checker, node ast.Handle, seenSymbols *collections.Set[*ast.Symbol]) ast.Handle {
+	if node.IsNil() {
+		return ast.Handle{}
 	}
-	if jsdoc := getJSDoc(node); jsdoc != nil {
+	if jsdoc := getJSDoc(node); !jsdoc.IsNil() {
 		return jsdoc
 	}
 	switch {
 	case ast.IsParameterDeclaration(node):
 		name := node.Name()
 		if ast.IsBindingPattern(name) {
-			// For binding patterns, match JSDoc @param tags by position rather than by name
 			return getJSDocParameterTagByPosition(c, node)
 		}
-		return getMatchingJSDocTag(c, node.Parent, name.Text(), isMatchingParameterTag, seenSymbols)
+		return getMatchingJSDocTag(c, node.Parent(), name.Text(), isMatchingParameterTag, seenSymbols)
 	case ast.IsTypeParameterDeclaration(node):
-		return getMatchingJSDocTag(c, node.Parent, node.Name().Text(), isMatchingTemplateTag, seenSymbols)
-	case ast.IsVariableDeclaration(node) && ast.IsVariableDeclarationList(node.Parent) && core.FirstOrNil(node.Parent.AsVariableDeclarationList().Declarations.Nodes) == node:
-		return getJSDocOrTag(c, node.Parent.Parent, seenSymbols)
-	case (ast.IsFunctionExpressionOrArrowFunction(node) || ast.IsClassExpression(node)) &&
-		(ast.IsVariableDeclaration(node.Parent) || ast.IsPropertyDeclaration(node.Parent) || ast.IsPropertyAssignment(node.Parent)) && node.Parent.Initializer() == node:
-		return getJSDocOrTag(c, node.Parent, seenSymbols)
-	case ast.IsBindingElement(node) && ast.IsObjectBindingPattern(node.Parent):
+		return getMatchingJSDocTag(c, node.Parent(), node.Name().Text(), isMatchingTemplateTag, seenSymbols)
+	case ast.IsVariableDeclaration(node) && ast.IsVariableDeclarationList(node.Parent()) && node.Store().ListAt(node.Parent().VariableDeclarationListDeclarations(), 0) == node:
+		return getJSDocOrTag(c, node.Parent().Parent(), seenSymbols)
+	case (ast.IsFunctionExpressionOrArrowFunction(node) || ast.IsClassExpression(node)) && (ast.IsVariableDeclaration(node.Parent()) || ast.IsPropertyDeclaration(node.Parent()) || ast.IsPropertyAssignment(node.Parent())) && node.Parent().Initializer() == node:
+		return getJSDocOrTag(c, node.Parent(), seenSymbols)
+	case ast.IsBindingElement(node) && ast.IsObjectBindingPattern(node.Parent()):
 		if name := node.PropertyNameOrName(); ast.IsIdentifier(name) {
-			if objectType := c.GetTypeAtLocation(node.Parent); objectType != nil {
+			if objectType := c.GetTypeAtLocation(node.Parent()); objectType != nil {
 				if prop := c.GetPropertyOfType(objectType, name.Text()); prop != nil {
-					for _, d := range prop.Declarations {
-						if jsdoc := getJSDoc(d); jsdoc != nil {
+					for _, d := range ast.DeclarationNodes(prop).All() {
+						if jsdoc := getJSDoc(d); !jsdoc.IsNil() {
 							return jsdoc
 						}
 					}
@@ -200,32 +204,29 @@ func getJSDocOrTag(c *checker.Checker, node *ast.Node, seenSymbols *collections.
 			}
 		}
 	}
-	if symbol := node.Symbol(); symbol != nil && node.Parent != nil {
+	if symbol := node.Symbol(); symbol != nil && !node.Parent().IsNil() {
 		if ast.IsFunctionDeclaration(node) || ast.IsMethodDeclaration(node) || ast.IsMethodSignatureDeclaration(node) || ast.IsConstructorDeclaration(node) || ast.IsConstructSignatureDeclaration(node) {
-			firstSignature := core.Find(symbol.Declarations, ast.IsFunctionLike)
-			if firstSignature != nil && node != firstSignature {
-				if jsDoc := getJSDocOrTag(c, firstSignature, seenSymbols); jsDoc != nil {
+			firstSignature := ast.FindSymbolDeclaration(symbol, ast.IsFunctionLike)
+			if !firstSignature.IsNil() && node != firstSignature {
+				if jsDoc := getJSDocOrTag(c, firstSignature, seenSymbols); !jsDoc.IsNil() {
 					return jsDoc
 				}
 			}
 		}
-		if ast.IsClassOrInterfaceLike(node.Parent) {
+		if ast.IsClassOrInterfaceLike(node.Parent()) {
 			isStatic := ast.HasStaticModifier(node)
-			classType := c.GetDeclaredTypeOfSymbol(node.Parent.Symbol())
+			classType := c.GetDeclaredTypeOfSymbol(node.Parent().Symbol())
 			if isStatic {
-				// For static members, use the checker's base constructor type resolution.
-				// This correctly handles intersection constructor types from mixins
-				// (e.g., typeof MixinClass & T) by preserving the full intersection.
 				staticBaseType := c.GetApparentType(c.GetBaseConstructorTypeOfClass(classType))
-				if prop := c.GetPropertyOfType(staticBaseType, symbol.Name); prop != nil && prop.ValueDeclaration != nil && seenSymbols.AddIfAbsent(prop) {
-					if jsDoc := getJSDocOrTag(c, prop.ValueDeclaration, seenSymbols); jsDoc != nil {
+				if prop := c.GetPropertyOfType(staticBaseType, symbol.Name); prop != nil && prop.ValueDeclaration != 0 && seenSymbols.AddIfAbsent(prop) {
+					if jsDoc := getJSDocOrTag(c, ast.NodeOf(prop.ValueDeclaration), seenSymbols); !jsDoc.IsNil() {
 						return jsDoc
 					}
 				}
 			} else {
 				for _, baseType := range c.GetBaseTypes(classType) {
-					if prop := c.GetPropertyOfType(baseType, symbol.Name); prop != nil && prop.ValueDeclaration != nil && seenSymbols.AddIfAbsent(prop) {
-						if jsDoc := getJSDocOrTag(c, prop.ValueDeclaration, seenSymbols); jsDoc != nil {
+					if prop := c.GetPropertyOfType(baseType, symbol.Name); prop != nil && prop.ValueDeclaration != 0 && seenSymbols.AddIfAbsent(prop) {
+						if jsDoc := getJSDocOrTag(c, ast.NodeOf(prop.ValueDeclaration), seenSymbols); !jsDoc.IsNil() {
 							return jsDoc
 						}
 					}
@@ -233,57 +234,47 @@ func getJSDocOrTag(c *checker.Checker, node *ast.Node, seenSymbols *collections.
 			}
 		}
 	}
-	return nil
+	return ast.Handle{}
 }
-
-func getMatchingJSDocTag(c *checker.Checker, node *ast.Node, name string, match func(*ast.Node, string) bool, seenSymbols *collections.Set[*ast.Symbol]) *ast.Node {
-	if jsdoc := getJSDocOrTag(c, node, seenSymbols); jsdoc != nil && jsdoc.Kind == ast.KindJSDoc {
-		if tags := jsdoc.AsJSDoc().Tags; tags != nil {
-			for _, tag := range tags.Nodes {
+func getMatchingJSDocTag(c *checker.Checker, node ast.Handle, name string, match func(ast.Handle, string) bool, seenSymbols *collections.Set[*ast.Symbol]) ast.Handle {
+	if jsdoc := getJSDocOrTag(c, node, seenSymbols); !jsdoc.IsNil() && jsdoc.Kind == ast.KindJSDoc {
+		if tags := jsdoc.JSDocTags(); tags != 0 {
+			for _, tag := range node.Store().ListSlice(tags).All() {
 				if match(tag, name) {
 					return tag
 				}
 			}
 		}
 	}
-	return nil
+	return ast.Handle{}
 }
 
-// getJSDocParameterTagByPosition finds a JSDoc @param tag for a binding pattern parameter by position.
-// Since binding patterns don't have a simple name, we match the @param tag at the same index as the parameter.
-func getJSDocParameterTagByPosition(c *checker.Checker, param *ast.Node) *ast.Node {
-	parent := param.Parent
-	if parent == nil {
-		return nil
+func getJSDocParameterTagByPosition(c *checker.Checker, param ast.Handle) ast.Handle {
+	parent := param.Parent()
+	if parent.IsNil() {
+		return ast.Handle{}
 	}
-
-	// Find the parameter's index in the parent's parameters list
 	params := parent.Parameters()
 	paramIndex := -1
 	for i, p := range params {
-		if p.AsNode() == param {
+		if p == param {
 			paramIndex = i
 			break
 		}
 	}
 	if paramIndex < 0 {
-		return nil
+		return ast.Handle{}
 	}
-
-	// Get the JSDoc for the parent function/method
 	jsdoc := getJSDocOrTag(c, parent, &collections.Set[*ast.Symbol]{})
-	if jsdoc == nil || jsdoc.Kind != ast.KindJSDoc {
-		return nil
+	if jsdoc.IsNil() || jsdoc.Kind != ast.KindJSDoc {
+		return ast.Handle{}
 	}
-
-	// Collect all @param tags in order
-	tags := jsdoc.AsJSDoc().Tags
-	if tags == nil {
-		return nil
+	tags := jsdoc.JSDocTags()
+	if tags == 0 {
+		return ast.Handle{}
 	}
-
 	paramTagIndex := 0
-	for _, tag := range tags.Nodes {
+	for _, tag := range param.Store().ListSlice(tags).All() {
 		if tag.Kind == ast.KindJSDocParameterTag {
 			if paramTagIndex == paramIndex {
 				return tag
@@ -291,22 +282,20 @@ func getJSDocParameterTagByPosition(c *checker.Checker, param *ast.Node) *ast.No
 			paramTagIndex++
 		}
 	}
-	return nil
+	return ast.Handle{}
 }
-
-func isMatchingParameterTag(tag *ast.Node, name string) bool {
+func isMatchingParameterTag(tag ast.Handle, name string) bool {
 	return tag.Kind == ast.KindJSDocParameterTag && isNodeWithName(tag, name)
 }
-
-func isMatchingTemplateTag(tag *ast.Node, name string) bool {
-	return tag.Kind == ast.KindJSDocTemplateTag && core.Some(tag.TypeParameters(), func(tp *ast.Node) bool { return isNodeWithName(tp, name) })
+func isMatchingTemplateTag(tag ast.Handle, name string) bool {
+	return tag.Kind == ast.KindJSDocTemplateTag && core.Some(tag.TypeParameters(), func(tp ast.Handle) bool {
+		return isNodeWithName(tp, name)
+	})
 }
-
-func isNodeWithName(node *ast.Node, name string) bool {
+func isNodeWithName(node ast.Handle, name string) bool {
 	nodeName := node.Name()
 	return ast.IsIdentifier(nodeName) && nodeName.Text() == name
 }
-
 func noMappedLocation(*ast.SourceFile, core.TextRange) (lsproto.Location, spanmap.Fidelity) {
 	return lsproto.Location{}, spanmap.FidelityNone
 }

@@ -1,49 +1,43 @@
 package scanner
 
 import (
-	"strings"
-	"unicode"
-	"unicode/utf8"
-
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/debug"
 	"github.com/microsoft/TypeScript/tsc/internal/stringutil"
+	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
 func tokenIsIdentifierOrKeyword(token ast.Kind) bool {
 	return token >= ast.KindIdentifier
 }
-
-func IdentifierToKeywordKind(node *ast.Identifier) ast.Kind {
-	return textToKeyword[node.Text]
+func IdentifierToKeywordKind(node ast.Handle) ast.Kind {
+	return textToKeyword[node.Text()]
 }
-
-func GetSourceTextOfNodeFromSourceFile(sourceFile *ast.SourceFile, node *ast.Node, includeTrivia bool) string {
+func GetSourceTextOfNodeFromSourceFile(sourceFile *ast.SourceFile, node ast.Handle, includeTrivia bool) string {
 	return GetTextOfNodeFromSourceText(sourceFile.Text(), node, includeTrivia)
 }
-
-func isJSDocTypeExpressionOrChild(node *ast.Node) bool {
+func isJSDocTypeExpressionOrChild(node ast.Handle) bool {
 	if ast.IsJSDocTypeExpression(node) {
 		return true
 	}
-	if node.Flags&(ast.NodeFlagsJSDoc|ast.NodeFlagsReparsed) == 0 {
+	if node.Flags()&(ast.NodeFlagsJSDoc|ast.NodeFlagsReparsed) == 0 {
 		return false
 	}
-	for current := node; current != nil; current = current.Parent {
+	for current := node; !current.IsNil(); current = current.Parent() {
 		if ast.IsTypeNode(current) {
 			return true
 		}
 	}
 	return false
 }
-
 func normalizeJSDocTypeSourceText(text string) string {
 	lineStarts := core.ComputeECMALineStarts(text)
 	if len(lineStarts) == 1 {
 		return stripLeadingJSDocComment(text)
 	}
-
 	var result strings.Builder
 	result.Grow(len(text))
 	newLine := core.NewLineKindLF.GetNewLineCharacter()
@@ -60,7 +54,6 @@ func normalizeJSDocTypeSourceText(text string) string {
 	}
 	return result.String()
 }
-
 func stripLeadingJSDocComment(line string) string {
 	line = strings.TrimLeftFunc(line, stringutil.IsWhiteSpaceLike)
 	if len(line) > 0 && line[0] == '*' {
@@ -68,8 +61,7 @@ func stripLeadingJSDocComment(line string) string {
 	}
 	return strings.TrimLeftFunc(line, stringutil.IsWhiteSpaceLike)
 }
-
-func GetTextOfNodeFromSourceText(sourceText string, node *ast.Node, includeTrivia bool) string {
+func GetTextOfNodeFromSourceText(sourceText string, node ast.Handle, includeTrivia bool) string {
 	if ast.NodeIsMissing(node) {
 		return ""
 	}
@@ -81,34 +73,28 @@ func GetTextOfNodeFromSourceText(sourceText string, node *ast.Node, includeTrivi
 	if isJSDocTypeExpressionOrChild(node) {
 		text = normalizeJSDocTypeSourceText(text)
 	}
-	if node.Flags&ast.NodeFlagsReparserTransformedLiteral != 0 {
-		// This is similar to `getLiteralTextOfNode` in the printer, but without the context of an `emitContext` to provide overrides
+	if node.Flags()&ast.NodeFlagsReparserTransformedLiteral != 0 {
 		if ast.IsStringLiteral(node) {
-			if node.AsStringLiteral().TokenFlags&ast.TokenFlagsSingleQuote != 0 {
+			if node.StringLiteralTokenFlags()&ast.TokenFlagsSingleQuote != 0 {
 				return "'" + text + "'"
 			}
 			return "\"" + text + "\""
 		} else if ast.IsIdentifier(node) {
 			return node.Text()
 		}
-		// Only the above node kinds are currently transformed into one another by the reparser, requiring the textual remapping.
-		// (Any reamppings done by emit transforms are handled by `getLiteralTextOfNode` in the printer)
-		// Fail on any other kinds.
 		debug.FailBadSyntaxKind(node, "Unexpected reparser-transformed node kind")
 	}
 	return text
 }
-
-func GetTextOfNode(node *ast.Node) string {
-	return GetSourceTextOfNodeFromSourceFile(ast.GetSourceFileOfNode(node), node, false /*includeTrivia*/)
+func GetTextOfNode(node ast.Handle) string {
+	return GetSourceTextOfNodeFromSourceFile(ast.GetSourceFileOfNode(node), node, false)
 }
-
-func GetTextOfJSDocComment(comment *ast.NodeList) string {
-	if comment == nil {
+func GetTextOfJSDocComment(store *ast.Store, comment ast.ListRef) string {
+	if store == nil || comment == 0 {
 		return ""
 	}
 	var b strings.Builder
-	for _, n := range comment.Nodes {
+	for _, n := range store.ListSlice(comment).All() {
 		switch n.Kind {
 		case ast.KindJSDocText:
 			b.WriteString(n.Text())
@@ -118,14 +104,12 @@ func GetTextOfJSDocComment(comment *ast.NodeList) string {
 	}
 	return strings.TrimRightFunc(b.String(), unicode.IsSpace)
 }
-
-func DeclarationNameToString(name *ast.Node) string {
-	if name == nil || name.Pos() == name.End() {
+func DeclarationNameToString(name ast.Handle) string {
+	if name.IsNil() || name.Pos() == name.End() {
 		return "(Missing)"
 	}
 	return GetTextOfNode(name)
 }
-
 func IsIdentifierText(name string, languageVariant core.LanguageVariant) bool {
 	ch, size := utf8.DecodeRuneInString(name)
 	if !IsIdentifierStart(ch) {
@@ -140,7 +124,6 @@ func IsIdentifierText(name string, languageVariant core.LanguageVariant) bool {
 	}
 	return true
 }
-
 func IsIntrinsicJsxName(name string) bool {
 	return len(name) != 0 && (name[0] >= 'a' && name[0] <= 'z' || strings.ContainsRune(name, '-'))
 }

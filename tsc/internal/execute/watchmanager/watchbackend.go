@@ -9,6 +9,7 @@ import (
 )
 
 // WatchBackend abstracts fswatch.Watcher for testing
+
 type WatchBackend interface {
 	WatchDirectory(dir string, fn fswatch.WatchCallback, recursive bool, ignore func(string) bool) (io.Closer, error)
 	WatchDirectories(requests []WatchDirectoryRequest) ([]io.Closer, error)

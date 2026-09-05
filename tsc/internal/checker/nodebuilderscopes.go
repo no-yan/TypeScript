@@ -7,19 +7,54 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/nodebuilder"
 )
 
-func cloneNodeBuilderContext(context *NodeBuilderContext) func() {
-	// Make type parameters created within this context not consume the name outside this context
-	// The symbol serializer ends up creating many sibling scopes that all need "separate" contexts when
-	// it comes to naming things - within a normal `typeToTypeNode` call, the node builder only ever descends
-	// through the type tree, so the only cases where we could have used distinct sibling scopes was when there
-	// were multiple generic overloads with similar generated type parameter names
-	// The effect:
-	// When we write out
-	// export const x: <T>(x: T) => T
-	// export const y: <T>(x: T) => T
-	// we write it out like that, rather than as
-	// export const x: <T>(x: T) => T
-	// export const y: <T_1>(x: T_1) => T_1
+func cloneNodeBuilderContext(context *NodeBuilderContext) func( // Make type parameters created within this context not consume the name outside this context
+// The symbol serializer ends up creating many sibling scopes that all need "separate" contexts when
+// it comes to naming things - within a normal `typeToTypeNode` call, the node builder only ever descends
+// through the type tree, so the only cases where we could have used distinct sibling scopes was when there
+// were multiple generic overloads with similar generated type parameter names
+// The effect:
+// When we write out
+// export const x: <T>(x: T) => T
+// export const y: <T>(x: T) => T
+// we write it out like that, rather than as
+// export const x: <T>(x: T) => T
+// export const y: <T_1>(x: T_1) => T_1
+/*skipUnionExpanding*/ // For regular function/method declarations, the enclosing declaration will already be signature.declaration,
+// so this is a no-op, but for arrow functions and function expressions, the enclosing declaration will be
+// the declaration that the arrow function / function expression is assigned to.
+//
+// If the parameters or return type include "typeof globalThis.paramName", using the wrong scope will lead
+// us to believe that we can emit "typeof paramName" instead, even though that would refer to the parameter,
+// not the global. Make sure we are in the right scope by changing the enclosingDeclaration to the function.
+//
+// We can't use the declaration directly; it may be in another file and so we may lose access to symbols
+// accessible to the current enclosing declaration, or gain access to symbols not accessible to the current
+// enclosing declaration. To keep this chain accurate, insert a fake scope into the chain which makes the
+// function's parameters visible.
+// As a performance optimization, reuse the same fake scope within this chain.
+// This is especially needed when we are working on an excessively deep type;
+// if we don't do this, then we spend all of our time adding more and more
+// scopes that need to be searched in isSymbolAccessible later. Since all we
+// really want to do is to mark certain names as unavailable, we can just keep
+// all of the names we're introducing in one large table and push/pop from it as
+// needed; isSymbolAccessible will walk upward and find the closest "fake" scope,
+// which will conveniently report on any and all faked scopes in the chain.
+//
+// It'd likely be better to store this somewhere else for isSymbolAccessible, but
+// since that API _only_ uses the enclosing declaration (and its parents), this is
+// seems like the best way to inject names into that search process.
+//
+// Note that we only check the most immediate enclosingDeclaration; the only place we
+// could potentially add another fake scope into the chain is right here, so we don't
+// traverse all ancestors.
+// We only ever need to look two declarations upward.
+// Add cleanup information only if we don't own the fake scope
+// Use a Block for this; the type of the node doesn't matter so long as it
+// has locals, and this is cheaper/easier than using a function-ish Node.
+// We did not create the current scope, so we have to clean it up
+// Can't reference the expanded parameter name, just the original, unless we've expanded the param list for some reason
+// omitted expressions are now parsed as nameless binding patterns and also have no symbol
+) {
 	restoreNames := context.typeParameterNames.EnterScope()
 	restoreNamesByText := context.typeParameterNamesByText.EnterScope()
 	restoreNamesByTextNextNameCount := context.typeParameterNamesByTextNextNameCount.EnterScope()
@@ -49,27 +84,13 @@ func (b *NodeBuilderImpl) addSymbolTypeToContext(symbol *ast.Symbol, t *Type) fu
 		}
 	}
 }
-
 func (b *NodeBuilderImpl) enterSignatureScope(signature *Signature) (expandedParams []*ast.Symbol, cleanup func()) {
-	expandedParams = b.ch.getExpandedParameters(signature, true /*skipUnionExpanding*/)[0]
+	expandedParams = b.ch.getExpandedParameters(signature, true)[0]
 	cleanup = b.enterNewScope(signature.declaration, expandedParams, signature.typeParameters, signature.parameters, signature.mapper)
 	return expandedParams, cleanup
 }
-
-func (b *NodeBuilderImpl) enterNewScope(declaration *ast.Node, expandedParams []*ast.Symbol, typeParameters []*Type, originalParameters []*ast.Symbol, mapper *TypeMapper) func() {
+func (b *NodeBuilderImpl) enterNewScope(declaration ast.Handle, expandedParams []*ast.Symbol, typeParameters []*Type, originalParameters []*ast.Symbol, mapper *TypeMapper) func() {
 	cleanupContext := cloneNodeBuilderContext(b.ctx)
-	// For regular function/method declarations, the enclosing declaration will already be signature.declaration,
-	// so this is a no-op, but for arrow functions and function expressions, the enclosing declaration will be
-	// the declaration that the arrow function / function expression is assigned to.
-	//
-	// If the parameters or return type include "typeof globalThis.paramName", using the wrong scope will lead
-	// us to believe that we can emit "typeof paramName" instead, even though that would refer to the parameter,
-	// not the global. Make sure we are in the right scope by changing the enclosingDeclaration to the function.
-	//
-	// We can't use the declaration directly; it may be in another file and so we may lose access to symbols
-	// accessible to the current enclosing declaration, or gain access to symbols not accessible to the current
-	// enclosing declaration. To keep this chain accurate, insert a fake scope into the chain which makes the
-	// function's parameters visible.
 	var cleanupParams func()
 	var cleanupTypeParams func()
 	oldEnclosingDecl := b.ctx.enclosingDeclaration
@@ -77,45 +98,27 @@ func (b *NodeBuilderImpl) enterNewScope(declaration *ast.Node, expandedParams []
 	if mapper != nil {
 		b.ctx.mapper = mapper
 	}
-	if b.ctx.enclosingDeclaration != nil && declaration != nil {
-		// As a performance optimization, reuse the same fake scope within this chain.
-		// This is especially needed when we are working on an excessively deep type;
-		// if we don't do this, then we spend all of our time adding more and more
-		// scopes that need to be searched in isSymbolAccessible later. Since all we
-		// really want to do is to mark certain names as unavailable, we can just keep
-		// all of the names we're introducing in one large table and push/pop from it as
-		// needed; isSymbolAccessible will walk upward and find the closest "fake" scope,
-		// which will conveniently report on any and all faked scopes in the chain.
-		//
-		// It'd likely be better to store this somewhere else for isSymbolAccessible, but
-		// since that API _only_ uses the enclosing declaration (and its parents), this is
-		// seems like the best way to inject names into that search process.
-		//
-		// Note that we only check the most immediate enclosingDeclaration; the only place we
-		// could potentially add another fake scope into the chain is right here, so we don't
-		// traverse all ancestors.
+	if !b.ctx.enclosingDeclaration.IsNil() && !declaration.IsNil() {
 		pushFakeScope := func(kind string, addAll func(addSymbol func(name string, symbol *ast.Symbol))) func() {
-			// We only ever need to look two declarations upward.
-			debug.Assert(b.ctx.enclosingDeclaration != nil)
-			var existingFakeScope *ast.Node
+			debug.Assert(!b.ctx.enclosingDeclaration.IsNil())
+			var existingFakeScope ast.Handle
 			if b.links.Has(b.ctx.enclosingDeclaration) {
 				links := b.links.Get(b.ctx.enclosingDeclaration)
 				if links.fakeScopeForSignatureDeclaration != nil && *links.fakeScopeForSignatureDeclaration == kind {
 					existingFakeScope = b.ctx.enclosingDeclaration
 				}
 			}
-			if existingFakeScope == nil && b.ctx.enclosingDeclaration.Parent != nil {
-				if b.links.Has(b.ctx.enclosingDeclaration.Parent) {
-					links := b.links.Get(b.ctx.enclosingDeclaration.Parent)
+			if existingFakeScope.IsNil() && !b.ctx.enclosingDeclaration.Parent().IsNil() {
+				if b.links.Has(b.ctx.enclosingDeclaration.Parent()) {
+					links := b.links.Get(b.ctx.enclosingDeclaration.Parent())
 					if links.fakeScopeForSignatureDeclaration != nil && *links.fakeScopeForSignatureDeclaration == kind {
-						existingFakeScope = b.ctx.enclosingDeclaration.Parent
+						existingFakeScope = b.ctx.enclosingDeclaration.Parent()
 					}
 				}
 			}
-			debug.Assert(existingFakeScope == nil || ast.IsBlock(existingFakeScope))
-
+			debug.Assert(existingFakeScope.IsNil() || ast.IsBlock(existingFakeScope))
 			var locals ast.SymbolTable
-			if existingFakeScope != nil {
+			if !existingFakeScope.IsNil() {
 				locals = existingFakeScope.Locals()
 			}
 			if locals == nil {
@@ -124,8 +127,7 @@ func (b *NodeBuilderImpl) enterNewScope(declaration *ast.Node, expandedParams []
 			newLocals := []string{}
 			oldLocals := []localsRecord{}
 			addAll(func(name string, symbol *ast.Symbol) {
-				// Add cleanup information only if we don't own the fake scope
-				if existingFakeScope != nil {
+				if !existingFakeScope.IsNil() {
 					oldSymbol, ok := locals[name]
 					if !ok || oldSymbol == nil {
 						newLocals = append(newLocals, name)
@@ -135,19 +137,14 @@ func (b *NodeBuilderImpl) enterNewScope(declaration *ast.Node, expandedParams []
 				}
 				locals[name] = symbol
 			})
-
-			if existingFakeScope == nil {
-				// Use a Block for this; the type of the node doesn't matter so long as it
-				// has locals, and this is cheaper/easier than using a function-ish Node.
-				fakeScope := b.f.NewBlock(b.f.NewNodeList([]*ast.Node{}), false)
+			if existingFakeScope.IsNil() {
+				fakeScope := b.f.NewBlock(b.f.NewList([]ast.Handle{}), false)
 				b.links.Get(fakeScope).fakeScopeForSignatureDeclaration = &kind
-				data := fakeScope.LocalsContainerData()
-				data.Locals = locals
-				fakeScope.Parent = b.ctx.enclosingDeclaration
+				fakeScope.SetLocals(locals)
+				fakeScope.SetParent(b.ctx.enclosingDeclaration)
 				b.ctx.enclosingDeclaration = fakeScope
 				return nil
 			} else {
-				// We did not create the current scope, so we have to clean it up
 				undo := func() {
 					for _, s := range newLocals {
 						delete(locals, s)
@@ -159,8 +156,9 @@ func (b *NodeBuilderImpl) enterNewScope(declaration *ast.Node, expandedParams []
 				return undo
 			}
 		}
-
-		if expandedParams == nil || !core.Some(expandedParams, func(p *ast.Symbol) bool { return p != nil }) {
+		if expandedParams == nil || !core.Some(expandedParams, func(p *ast.Symbol) bool {
+			return p != nil
+		}) {
 			cleanupParams = nil
 		} else {
 			cleanupParams = pushFakeScope("params", func(add func(name string, symbol *ast.Symbol)) {
@@ -173,43 +171,39 @@ func (b *NodeBuilderImpl) enterNewScope(declaration *ast.Node, expandedParams []
 						originalParam = originalParameters[pIndex]
 					}
 					if originalParameters != nil && originalParam != param {
-						// Can't reference the expanded parameter name, just the original, unless we've expanded the param list for some reason
 						if originalParam != nil {
 							add(originalParam.Name, originalParam)
 						}
-					} else if !core.Some(param.Declarations, func(d *ast.Node) bool {
-						var bindElement func(e *ast.BindingElement)
-						var bindPattern func(e *ast.BindingPattern)
-
-						bindPatternWorker := func(p *ast.BindingPattern) {
-							for _, e := range p.Elements.Nodes {
+					} else if !ast.SomeDeclaration(param, func(d ast.Handle) bool {
+						var bindElement func(e ast.Handle)
+						var bindPattern func(e ast.Handle)
+						bindPatternWorker := func(p ast.Handle) {
+							for _, e := range p.ElementsSeq().All() {
 								switch e.Kind {
 								case ast.KindOmittedExpression:
 									return
 								case ast.KindBindingElement:
-									bindElement(e.AsBindingElement())
+									bindElement(e)
 									return
 								default:
 									panic("Unhandled binding element kind")
 								}
 							}
 						}
-
-						bindElementWorker := func(e *ast.BindingElement) {
-							if e.Name() != nil && ast.IsBindingPattern(e.Name()) {
-								bindPattern(e.Name().AsBindingPattern())
+						bindElementWorker := func(e ast.Handle) {
+							if !e.Name().IsNil() && ast.IsBindingPattern(e.Name()) {
+								bindPattern(e.Name())
 								return
 							}
-							symbol := b.ch.getSymbolOfDeclaration(e.AsNode())
-							if symbol != nil { // omitted expressions are now parsed as nameless binding patterns and also have no symbol
+							symbol := b.ch.getSymbolOfDeclaration(e)
+							if symbol != nil {
 								add(symbol.Name, symbol)
 							}
 						}
 						bindElement = bindElementWorker
 						bindPattern = bindPatternWorker
-
-						if ast.IsParameterDeclaration(d) && d.Name() != nil && ast.IsBindingPattern(d.Name()) {
-							bindPattern(d.Name().AsBindingPattern())
+						if ast.IsParameterDeclaration(d) && !d.Name().IsNil() && ast.IsBindingPattern(d.Name()) {
+							bindPattern(d.Name())
 							return true
 						}
 						return false
@@ -219,8 +213,9 @@ func (b *NodeBuilderImpl) enterNewScope(declaration *ast.Node, expandedParams []
 				}
 			})
 		}
-
-		if b.ctx.flags&nodebuilder.FlagsGenerateNamesForShadowedTypeParams != 0 && typeParameters != nil && core.Some(typeParameters, func(p *Type) bool { return p != nil }) {
+		if b.ctx.flags&nodebuilder.FlagsGenerateNamesForShadowedTypeParams != 0 && typeParameters != nil && core.Some(typeParameters, func(p *Type) bool {
+			return p != nil
+		}) {
 			cleanupTypeParams = pushFakeScope("typeParams", func(add func(name string, symbol *ast.Symbol)) {
 				if typeParameters == nil {
 					return
@@ -229,14 +224,12 @@ func (b *NodeBuilderImpl) enterNewScope(declaration *ast.Node, expandedParams []
 					if typeParam == nil {
 						continue
 					}
-					typeParamName := b.typeParameterToName(typeParam).Text
+					typeParamName := b.typeParameterToName(typeParam).Text()
 					add(typeParamName, typeParam.symbol)
 				}
 			})
 		}
-
 	}
-
 	return func() {
 		if cleanupParams != nil {
 			cleanupParams()

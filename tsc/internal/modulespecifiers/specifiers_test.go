@@ -76,11 +76,11 @@ func (h *mockModuleSpecifierGenerationHost) GetDefaultResolutionModeForFile(file
 	return core.ResolutionModeNone
 }
 
-func (h *mockModuleSpecifierGenerationHost) GetResolvedModuleFromModuleSpecifier(file ast.HasFileName, moduleSpecifier *ast.StringLiteralLike) *module.ResolvedModule {
+func (h *mockModuleSpecifierGenerationHost) GetResolvedModuleFromModuleSpecifier(file ast.HasFileName, moduleSpecifier ast.Handle) *module.ResolvedModule {
 	return nil
 }
 
-func (h *mockModuleSpecifierGenerationHost) GetModeForUsageLocation(file ast.HasFileName, moduleSpecifier *ast.StringLiteralLike) core.ResolutionMode {
+func (h *mockModuleSpecifierGenerationHost) GetModeForUsageLocation(file ast.HasFileName, moduleSpecifier ast.Handle) core.ResolutionMode {
 	return core.ResolutionModeNone
 }
 

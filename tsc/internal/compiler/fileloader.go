@@ -4,11 +4,6 @@ import (
 	"cmp"
 	"errors"
 	"fmt"
-	"slices"
-	"strings"
-	"sync"
-	"sync/atomic"
-
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/contentmapper"
@@ -21,6 +16,10 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 	"github.com/zeebo/xxh3"
+	"slices"
+	"strings"
+	"sync"
+	"sync/atomic"
 )
 
 type libResolution struct {
@@ -29,8 +28,6 @@ type libResolution struct {
 	trace       []module.DiagAndArgs
 }
 
-// maxContentMapperFailures is the number of transform failures a single content mapper may accumulate
-// before it is disabled for the rest of the program.
 const maxContentMapperFailures = 5
 
 type LibFile struct {
@@ -38,12 +35,10 @@ type LibFile struct {
 	path     string
 	Replaced bool
 }
-
 type sourceFileFromReferenceDiagnostic struct {
 	message *diagnostics.Message
 	args    []any
 }
-
 type fileLoader struct {
 	opts                                           ProgramOptions
 	resolver                                       *module.Resolver
@@ -52,49 +47,33 @@ type fileLoader struct {
 	supportedExtensions                            [][]string
 	supportedExtensionsWithJsonIfResolveJsonModule [][]string
 	contentMapperExtensions                        []string
-
-	filesParser *filesParser
-	rootTasks   []*parseTask
-
-	totalFileCount atomic.Int32
-	libFileCount   atomic.Int32
-
-	factoryMu sync.Mutex
-	factory   ast.NodeFactory
-
-	projectReferenceFileMapper *projectReferenceFileMapper
-	dtsDirectories             collections.Set[tspath.Path]
-
-	pathForLibFileCache       collections.SyncMap[string, *LibFile]
-	pathForLibFileResolutions collections.SyncMap[tspath.Path, *libResolution]
-
-	// contentMapperMu guards the content-mapper bookkeeping below, which is written concurrently as
-	// content-mapped files are parsed across worker goroutines.
-	contentMapperMu          sync.Mutex
-	contentMapperFailures    map[*contentmapper.Mapper]int
-	contentMapperInitFailed  collections.Set[*contentmapper.Mapper]
-	contentMapperDiagnostics []*ast.Diagnostic
+	filesParser                                    *filesParser
+	rootTasks                                      []*parseTask
+	totalFileCount                                 atomic.Int32
+	libFileCount                                   atomic.Int32
+	factoryMu                                      sync.Mutex
+	factory                                        *ast.Factory
+	projectReferenceFileMapper                     *projectReferenceFileMapper
+	dtsDirectories                                 collections.Set[tspath.Path]
+	pathForLibFileCache                            collections.SyncMap[string, *LibFile]
+	pathForLibFileResolutions                      collections.SyncMap[tspath.Path, *libResolution]
+	contentMapperMu                                sync.Mutex
+	contentMapperFailures                          map[*contentmapper.Mapper]int
+	contentMapperInitFailed                        collections.Set[*contentmapper.Mapper]
+	contentMapperDiagnostics                       []*ast.Diagnostic
 }
-
 type redirectsFile struct {
-	// Index of file at which this redirect file needs to be iterated
 	index    int
 	fileName string
 	path     tspath.Path
 	target   tspath.Path
 }
-
 type DuplicateSourceFile struct {
-	ParseOptions ast.SourceFileParseOptions
-	// ContentMapperParseOptions are the acquire-time options for a content-mapped parse-cache entry.
-	ContentMapperParseOptions ast.SourceFileParseOptions
-	Hash                      xxh3.Uint128
-	ScriptKind                core.ScriptKind
-	// ContentMapper is the identity of the content mapper that produced this file,
-	// or "" if the file is not content-mapped.
-	ContentMapper string
-	// IsContentMapperFailureStub reports whether the file is an empty placeholder
-	// from a failed transform.
+	ParseOptions               ast.SourceFileParseOptions
+	ContentMapperParseOptions  ast.SourceFileParseOptions
+	Hash                       xxh3.Uint128
+	ScriptKind                 core.ScriptKind
+	ContentMapper              string
 	IsContentMapperFailureStub bool
 }
 
@@ -103,53 +82,37 @@ var _ ast.HasFileName = (*redirectsFile)(nil)
 func (r *redirectsFile) FileName() string {
 	return r.fileName
 }
-
 func (r *redirectsFile) Path() tspath.Path {
 	return r.path
 }
 
 type processedFiles struct {
-	resolver *module.Resolver
-	files    []*ast.SourceFile
-	// duplicateSourceFiles tracks parsed files loaded during program construction
-	// that were later dropped from the final program, such as losing filename
-	// casing variants for the same path or files hidden behind package redirect
-	// deduplication. Their parse-cache acquires still need to be balanced when
-	// the program is disposed.
-	duplicateSourceFiles          []*DuplicateSourceFile
-	filesByPath                   map[tspath.Path]*ast.SourceFile
-	projectReferenceFileMapper    *projectReferenceFileMapper
-	missingFiles                  []string
-	resolvedModules               map[tspath.Path]module.ModeAwareCache[*module.ResolvedModule]
-	typeResolutionsInFile         map[tspath.Path]module.ModeAwareCache[*module.ResolvedTypeReferenceDirective]
-	sourceFileMetaDatas           map[tspath.Path]ast.SourceFileMetaData
-	jsxRuntimeImportSpecifiers    map[tspath.Path]*jsxRuntimeImportSpecifier
-	importHelpersImportSpecifiers map[tspath.Path]*ast.StringLiteralNode
-	libFiles                      map[tspath.Path]*LibFile
-	// List of present unsupported extensions
+	resolver                             *module.Resolver
+	files                                []*ast.SourceFile
+	duplicateSourceFiles                 []*DuplicateSourceFile
+	filesByPath                          map[tspath.Path]*ast.SourceFile
+	projectReferenceFileMapper           *projectReferenceFileMapper
+	missingFiles                         []string
+	resolvedModules                      map[tspath.Path]module.ModeAwareCache[*module.ResolvedModule]
+	typeResolutionsInFile                map[tspath.Path]module.ModeAwareCache[*module.ResolvedTypeReferenceDirective]
+	sourceFileMetaDatas                  map[tspath.Path]ast.SourceFileMetaData
+	jsxRuntimeImportSpecifiers           map[tspath.Path]*jsxRuntimeImportSpecifier
+	importHelpersImportSpecifiers        map[tspath.Path]ast.Handle
+	libFiles                             map[tspath.Path]*LibFile
 	sourceFilesFoundSearchingNodeModules collections.Set[tspath.Path]
 	includeProcessor                     *includeProcessor
-	// if file was included using source file and its output is actually part of program
-	// this contains mapping from output to source file
-	outputFileToProjectReferenceSource map[tspath.Path]string
-	// Key is a file path. Value is the list of files that redirect to it (same package, different install location)
-	redirectTargetsMap map[tspath.Path][]string
-	// filesByPath for redirect files
-	redirectFilesByPath map[tspath.Path]*redirectsFile
-	// Program-level diagnostics reported when a content mapper fails fatally (reported once per mapper).
-	contentMapperDiagnostics []*ast.Diagnostic
-	finishedProcessing       bool
+	outputFileToProjectReferenceSource   map[tspath.Path]string
+	redirectTargetsMap                   map[tspath.Path][]string
+	redirectFilesByPath                  map[tspath.Path]*redirectsFile
+	contentMapperDiagnostics             []*ast.Diagnostic
+	finishedProcessing                   bool
 }
-
 type jsxRuntimeImportSpecifier struct {
 	moduleReference string
-	specifier       *ast.StringLiteralNode
+	specifier       ast.Handle
 }
 
-func processAllProgramFiles(
-	opts ProgramOptions,
-	singleThreaded bool,
-) processedFiles {
+func processAllProgramFiles(opts ProgramOptions, singleThreaded bool) processedFiles {
 	compilerOptions := opts.Config.CompilerOptions()
 	rootFiles := opts.Config.FileNames()
 	supportedExtensions := tsoptions.GetSupportedExtensions(compilerOptions, opts.Config.ContentMapperExtensions())
@@ -158,22 +121,7 @@ func processAllProgramFiles(
 	if p := opts.Config.CompilerOptions().MaxNodeModuleJsDepth; p != nil {
 		maxNodeModuleJsDepth = *p
 	}
-	loader := fileLoader{
-		opts:               opts,
-		defaultLibraryPath: tspath.GetNormalizedAbsolutePath(opts.Host.DefaultLibraryPath(), opts.Host.GetCurrentDirectory()),
-		comparePathsOptions: tspath.ComparePathsOptions{
-			UseCaseSensitiveFileNames: opts.Host.FS().UseCaseSensitiveFileNames(),
-			CurrentDirectory:          opts.Host.GetCurrentDirectory(),
-		},
-		filesParser: &filesParser{
-			wg:       core.NewWorkGroup(singleThreaded),
-			maxDepth: maxNodeModuleJsDepth,
-		},
-		rootTasks:           make([]*parseTask, 0, len(rootFiles)+len(compilerOptions.Lib)),
-		supportedExtensions: supportedExtensions,
-		supportedExtensionsWithJsonIfResolveJsonModule: supportedExtensionsWithJsonIfResolveJsonModule,
-		contentMapperExtensions:                        opts.Config.ContentMapperExtensions(),
-	}
+	loader := fileLoader{opts: opts, factory: ast.NewFactory(ast.FactoryHooks{}), defaultLibraryPath: tspath.GetNormalizedAbsolutePath(opts.Host.DefaultLibraryPath(), opts.Host.GetCurrentDirectory()), comparePathsOptions: tspath.ComparePathsOptions{UseCaseSensitiveFileNames: opts.Host.FS().UseCaseSensitiveFileNames(), CurrentDirectory: opts.Host.GetCurrentDirectory()}, filesParser: &filesParser{wg: core.NewWorkGroup(singleThreaded), maxDepth: maxNodeModuleJsDepth}, rootTasks: make([]*parseTask, 0, len(rootFiles)+len(compilerOptions.Lib)), supportedExtensions: supportedExtensions, supportedExtensionsWithJsonIfResolveJsonModule: supportedExtensionsWithJsonIfResolveJsonModule, contentMapperExtensions: opts.Config.ContentMapperExtensions()}
 	loader.addProjectReferenceTasks(singleThreaded)
 	loader.resolver = module.NewResolver(loader.projectReferenceFileMapper.host, compilerOptions, opts.TypingsLocation, opts.ProjectName, opts.Config.ContentMapperExtensions())
 	if opts.Tracing != nil {
@@ -187,46 +135,32 @@ func processAllProgramFiles(
 			name := tsoptions.GetDefaultLibFileName(compilerOptions)
 			libFile := loader.pathForLibFile(name)
 			loader.addRootTask(libFile.path, libFile, &FileIncludeReason{kind: fileIncludeKindLibFile})
-
 		} else {
 			for index, lib := range compilerOptions.Lib {
 				if name, ok := tsoptions.GetLibFileName(lib); ok {
 					libFile := loader.pathForLibFile(name)
 					loader.addRootTask(libFile.path, libFile, &FileIncludeReason{kind: fileIncludeKindLibFile, data: index})
 				}
-				// !!! error on unknown name
 			}
 		}
 	}
-
 	if len(rootFiles) > 0 {
 		loader.addAutomaticTypeDirectiveTasks()
 	}
-
 	loader.filesParser.parse(&loader, loader.rootTasks)
-
-	// Clear out loader and host to ensure its not used post program creation
 	loader.projectReferenceFileMapper.loader = nil
 	loader.projectReferenceFileMapper.host = nil
-
 	return loader.filesParser.getProcessedFiles(&loader)
 }
-
 func (p *fileLoader) toPath(file string) tspath.Path {
 	return tspath.ToPath(file, p.opts.Host.GetCurrentDirectory(), p.opts.Host.FS().UseCaseSensitiveFileNames())
 }
-
 func (p *fileLoader) addRootTask(fileName string, libFile *LibFile, includeReason *FileIncludeReason) {
 	absPath := tspath.GetNormalizedAbsolutePath(fileName, p.opts.Host.GetCurrentDirectory())
 	if p.opts.Config.CompilerOptions().AllowNonTsExtensions.IsTrue() || tspath.HasExtension(absPath) {
-		p.rootTasks = append(p.rootTasks, &parseTask{
-			normalizedFilePath: absPath,
-			libFile:            libFile,
-			includeReason:      includeReason,
-		})
+		p.rootTasks = append(p.rootTasks, &parseTask{normalizedFilePath: absPath, libFile: libFile, includeReason: includeReason})
 	}
 }
-
 func (p *fileLoader) addRootFileTask(fileName string, libFile *LibFile, includeReason *FileIncludeReason) {
 	currDir := p.opts.Host.GetCurrentDirectory()
 	absPath := tspath.GetNormalizedAbsolutePath(fileName, currDir)
@@ -235,26 +169,14 @@ func (p *fileLoader) addRootFileTask(fileName string, libFile *LibFile, includeR
 		containingFile = tspath.GetNormalizedAbsolutePath(p.opts.Config.ConfigFile.SourceFile.FileName(), currDir)
 	}
 	resolvedFile, diagnostic := p.getSourceFileFromReference(absPath, fileName, containingFile, includeReason)
-	rootTask := &parseTask{
-		normalizedFilePath: resolvedFile,
-		libFile:            libFile,
-		includeReason:      includeReason,
-	}
+	rootTask := &parseTask{normalizedFilePath: resolvedFile, libFile: libFile, includeReason: includeReason}
 	if diagnostic != nil {
 		rootTask.normalizedFilePath = absPath
 		rootTask.failedLookup = true
-		rootTask.processingDiagnostics = []*processingDiagnostic{{
-			kind: processingDiagnosticKindExplainingFileInclude,
-			data: &includeExplainingDiagnostic{
-				diagnosticReason: includeReason,
-				message:          diagnostic.message,
-				args:             diagnostic.args,
-			},
-		}}
+		rootTask.processingDiagnostics = []*processingDiagnostic{{kind: processingDiagnosticKindExplainingFileInclude, data: &includeExplainingDiagnostic{diagnosticReason: includeReason, message: diagnostic.message, args: diagnostic.args}}}
 	}
 	p.rootTasks = append(p.rootTasks, rootTask)
 }
-
 func (p *fileLoader) addAutomaticTypeDirectiveTasks() {
 	var containingDirectory string
 	compilerOptions := p.opts.Config.CompilerOptions()
@@ -264,25 +186,14 @@ func (p *fileLoader) addAutomaticTypeDirectiveTasks() {
 		containingDirectory = p.opts.Host.GetCurrentDirectory()
 	}
 	containingFileName := tspath.CombinePaths(containingDirectory, module.InferredTypesContainingFile)
-	p.rootTasks = append(p.rootTasks, &parseTask{
-		normalizedFilePath:          containingFileName,
-		isForAutomaticTypeDirective: true,
-	})
+	p.rootTasks = append(p.rootTasks, &parseTask{normalizedFilePath: containingFileName, isForAutomaticTypeDirective: true})
 }
-
-func (p *fileLoader) resolveAutomaticTypeDirectives(containingFileName string) (
-	toParse []resolvedRef,
-	typeResolutionsInFile module.ModeAwareCache[*module.ResolvedTypeReferenceDirective],
-	typeResolutionsTrace []module.DiagAndArgs,
-	pDiagnostics []*processingDiagnostic,
-) {
+func (p *fileLoader) resolveAutomaticTypeDirectives(containingFileName string) (toParse []resolvedRef, typeResolutionsInFile module.ModeAwareCache[*module.ResolvedTypeReferenceDirective], typeResolutionsTrace []module.DiagAndArgs, pDiagnostics []*processingDiagnostic) {
 	automaticTypeDirectiveNames := module.GetAutomaticTypeDirectiveNames(p.opts.Config.CompilerOptions(), p.opts.Host)
 	if len(automaticTypeDirectiveNames) != 0 {
 		toParse = make([]resolvedRef, 0, len(automaticTypeDirectiveNames))
 		typeResolutionsInFile = make(module.ModeAwareCache[*module.ResolvedTypeReferenceDirective], len(automaticTypeDirectiveNames))
 		for _, name := range automaticTypeDirectiveNames {
-			// Under node16/nodenext module resolution, load `types`/ata include names as cjs resolution results by passing an `undefined` mode.
-			// Under bundler module resolution, this also triggers the "import" condition to be used.
 			resolutionMode := core.ResolutionModeNone
 			resolved, trace := p.resolver.ResolveTypeReferenceDirective(name, containingFileName, resolutionMode, nil)
 			var traceDone func()
@@ -292,28 +203,9 @@ func (p *fileLoader) resolveAutomaticTypeDirectives(containingFileName string) (
 			typeResolutionsInFile[module.ModeAwareCacheKey{Name: name, Mode: resolutionMode}] = resolved
 			typeResolutionsTrace = append(typeResolutionsTrace, trace...)
 			if resolved.IsResolved() {
-				toParse = append(toParse, resolvedRef{
-					fileName:      resolved.ResolvedFileName,
-					increaseDepth: resolved.IsExternalLibraryImport,
-					elideOnDepth:  false,
-					includeReason: &FileIncludeReason{
-						kind: fileIncludeKindAutomaticTypeDirectiveFile,
-						data: &automaticTypeDirectiveFileData{name, resolved.PackageId},
-					},
-					packageId: resolved.PackageId,
-				})
+				toParse = append(toParse, resolvedRef{fileName: resolved.ResolvedFileName, increaseDepth: resolved.IsExternalLibraryImport, elideOnDepth: false, includeReason: &FileIncludeReason{kind: fileIncludeKindAutomaticTypeDirectiveFile, data: &automaticTypeDirectiveFileData{name, resolved.PackageId}}, packageId: resolved.PackageId})
 			} else {
-				pDiagnostics = append(pDiagnostics, &processingDiagnostic{
-					kind: processingDiagnosticKindExplainingFileInclude,
-					data: &includeExplainingDiagnostic{
-						diagnosticReason: &FileIncludeReason{
-							kind: fileIncludeKindAutomaticTypeDirectiveFile,
-							data: &automaticTypeDirectiveFileData{typeReference: name},
-						},
-						message: diagnostics.Cannot_find_type_definition_file_for_0,
-						args:    []any{name},
-					},
-				})
+				pDiagnostics = append(pDiagnostics, &processingDiagnostic{kind: processingDiagnosticKindExplainingFileInclude, data: &includeExplainingDiagnostic{diagnosticReason: &FileIncludeReason{kind: fileIncludeKindAutomaticTypeDirectiveFile, data: &automaticTypeDirectiveFileData{typeReference: name}}, message: diagnostics.Cannot_find_type_definition_file_for_0, args: []any{name}}})
 			}
 			if traceDone != nil {
 				traceDone()
@@ -322,38 +214,25 @@ func (p *fileLoader) resolveAutomaticTypeDirectives(containingFileName string) (
 	}
 	return toParse, typeResolutionsInFile, typeResolutionsTrace, pDiagnostics
 }
-
 func (p *fileLoader) addProjectReferenceTasks(singleThreaded bool) {
-	p.projectReferenceFileMapper = &projectReferenceFileMapper{
-		opts: p.opts,
-		host: p.opts.Host,
-	}
+	p.projectReferenceFileMapper = &projectReferenceFileMapper{opts: p.opts, host: p.opts.Host}
 	projectReferences := p.opts.Config.ResolvedProjectReferencePaths()
 	if len(projectReferences) == 0 {
 		return
 	}
-
-	parser := &projectReferenceParser{
-		loader: p,
-		wg:     core.NewWorkGroup(singleThreaded),
-	}
+	parser := &projectReferenceParser{loader: p, wg: core.NewWorkGroup(singleThreaded)}
 	rootTasks := createProjectReferenceParseTasks(projectReferences)
 	parser.parse(rootTasks)
 }
-
 func (p *fileLoader) sortLibs(libFiles []*ast.SourceFile) {
 	slices.SortFunc(libFiles, func(f1 *ast.SourceFile, f2 *ast.SourceFile) int {
 		return cmp.Compare(p.getDefaultLibFilePriority(f1), p.getDefaultLibFilePriority(f2))
 	})
 }
-
 func (p *fileLoader) getDefaultLibFilePriority(a *ast.SourceFile) int {
-	// defaultLibraryPath and a.FileName() are absolute and normalized; a prefix check should suffice.
 	defaultLibraryPath := tspath.RemoveTrailingDirectorySeparator(p.defaultLibraryPath)
 	aFileName := a.FileName()
-
 	if strings.HasPrefix(aFileName, defaultLibraryPath) && len(aFileName) > len(defaultLibraryPath) && aFileName[len(defaultLibraryPath)] == tspath.DirectorySeparator {
-		// avoid tspath.GetBaseFileName; we know these paths are already absolute and normalized.
 		basename := aFileName[strings.LastIndexByte(aFileName, tspath.DirectorySeparator)+1:]
 		if basename == "lib.d.ts" || basename == "lib.es6.d.ts" {
 			return 0
@@ -366,61 +245,39 @@ func (p *fileLoader) getDefaultLibFilePriority(a *ast.SourceFile) int {
 	}
 	return len(tsoptions.Libs) + 2
 }
-
 func (p *fileLoader) loadSourceFileMetaData(fileName string) ast.SourceFileMetaData {
 	packageJsonScope := p.resolver.GetPackageScopeForPath(tspath.GetDirectoryPath(fileName))
 	moduleResolutionKind := p.opts.Config.CompilerOptions().GetModuleResolutionKind()
-
 	var packageJsonType, packageJsonDirectory string
 	if packageJsonScope.Exists() {
 		packageJsonDirectory = packageJsonScope.PackageDirectory
 		if value, ok := packageJsonScope.Contents.Type.GetValue(); ok {
-			if !tspath.FileExtensionIsOneOf(fileName, []string{tspath.ExtensionMts, tspath.ExtensionCts, tspath.ExtensionMjs, tspath.ExtensionCjs}) &&
-				core.ModuleResolutionKindNode16 <= moduleResolutionKind && moduleResolutionKind <= core.ModuleResolutionKindNodeNext || strings.Contains(fileName, "/node_modules/") {
+			if !tspath.FileExtensionIsOneOf(fileName, []string{tspath.ExtensionMts, tspath.ExtensionCts, tspath.ExtensionMjs, tspath.ExtensionCjs}) && core.ModuleResolutionKindNode16 <= moduleResolutionKind && moduleResolutionKind <= core.ModuleResolutionKindNodeNext || strings.Contains(fileName, "/node_modules/") {
 				packageJsonType = value
 			}
 		}
 	}
-
 	impliedNodeFormat := ast.GetImpliedNodeFormatForFile(fileName, packageJsonType)
-	return ast.SourceFileMetaData{
-		PackageJsonType:      packageJsonType,
-		PackageJsonDirectory: packageJsonDirectory,
-		ImpliedNodeFormat:    impliedNodeFormat,
-	}
+	return ast.SourceFileMetaData{PackageJsonType: packageJsonType, PackageJsonDirectory: packageJsonDirectory, ImpliedNodeFormat: impliedNodeFormat}
 }
-
 func (p *fileLoader) parseSourceFile(t *parseTask) *ast.SourceFile {
 	if p.opts.Tracing != nil {
 		defer p.opts.Tracing.Push(tracing.PhaseParse, "createSourceFile", map[string]any{"path": t.normalizedFilePath}, true)()
 	}
 	path := p.toPath(t.normalizedFilePath)
 	options := p.projectReferenceFileMapper.getCompilerOptionsForFile(t)
-	parseOptions := ast.SourceFileParseOptions{
-		FileName:                       t.normalizedFilePath,
-		Path:                           path,
-		ExternalModuleIndicatorOptions: ast.GetExternalModuleIndicatorOptions(t.normalizedFilePath, options, t.metadata),
-	}
+	parseOptions := ast.SourceFileParseOptions{FileName: t.normalizedFilePath, Path: path, ExternalModuleIndicatorOptions: ast.GetExternalModuleIndicatorOptions(t.normalizedFilePath, options, t.metadata)}
 	if tspath.FileExtensionIsOneOf(t.normalizedFilePath, p.contentMapperExtensions) {
 		return p.parseContentMappedFile(parseOptions)
 	}
 	return p.opts.Host.GetSourceFile(parseOptions)
 }
 
-// parseContentMappedFile produces a content-mapped virtual source file via the host's content
-// mapper, preserving the original file name and retaining the untransformed text on the
-// source file. Content mapper extensions only reach the parser when content mappers are configured.
-//
-// When initialization fails, one program diagnostic is reported and the mapper is not attempted for
-// subsequent files. Other failures produce per-file diagnostics and count toward a failure budget; after
-// maxContentMapperFailures, one program diagnostic reports that the mapper was disabled and subsequent
-// files are silently substituted with empty files. It returns nil only if the file cannot be read.
 func (p *fileLoader) parseContentMappedFile(opts ast.SourceFileParseOptions) *ast.SourceFile {
 	mapper := p.opts.Config.GetContentMapperForFileName(opts.FileName)
 	label := mapper.DiagnosticName()
 	transformIdentity := p.getContentMapperTransformIdentity(mapper)
 	if p.contentMapperUnavailable(mapper) {
-		// The mapper failed initialization or exceeded its failure budget; add the file empty without re-reporting.
 		return p.emptyContentMappedFile(opts, mapper.Identity(), transformIdentity)
 	}
 	files, err := p.opts.Host.GetContentMappedSourceFiles(opts, mapper)
@@ -443,7 +300,6 @@ func (p *fileLoader) parseContentMappedFile(opts ast.SourceFileParseOptions) *as
 	}
 	return files.Canonical
 }
-
 func contentMapperTransformDiagnostic(file *ast.SourceFile, label string, err error) *ast.Diagnostic {
 	if collision, ok := errors.AsType[*contentmapper.SupplementalFileCollisionError](err); ok {
 		return contentMapperTransformDiagnosticChain(file, label, diagnostics.Content_mapper_supplemental_output_file_0_conflicts_with_an_existing_file, collision.FileName)
@@ -499,7 +355,6 @@ func contentMapperTransformDiagnostic(file *ast.SourceFile, label string, err er
 	return ast.NewDiagnostic(file, core.NewTextRange(0, 0), diagnostics.The_content_mapper_0_failed_to_transform_this_file, label)
 }
 
-// ContentMapperProjectErrorDiagnostic returns the localized diagnostic message for a project setup error.
 func ContentMapperProjectErrorDiagnostic(err error) *diagnostics.Message {
 	if projectError, ok := errors.AsType[*contentmapper.ProjectError](err); ok {
 		switch projectError.Kind {
@@ -517,22 +372,13 @@ func ContentMapperProjectErrorDiagnostic(err error) *diagnostics.Message {
 	}
 	return diagnostics.The_content_mapper_process_failed_while_handling_the_project_request
 }
-
 func contentMapperTransformDiagnosticChain(file *ast.SourceFile, label string, message *diagnostics.Message, args ...any) *ast.Diagnostic {
 	return contentMapperTransformDiagnosticWithDetail(file, label, ast.NewCompilerDiagnostic(message, args...))
 }
-
 func contentMapperTransformDiagnosticWithDetail(file *ast.SourceFile, label string, detail *ast.Diagnostic) *ast.Diagnostic {
-	return ast.NewDiagnostic(
-		file,
-		core.NewTextRange(0, 0),
-		diagnostics.The_content_mapper_0_failed_to_transform_this_file,
-		label,
-	).AddMessageChain(detail)
+	return ast.NewDiagnostic(file, core.NewTextRange(0, 0), diagnostics.The_content_mapper_0_failed_to_transform_this_file, label).AddMessageChain(detail)
 }
 
-// contentMapperMappingDiagnostic builds the diagnostic reported against a mapper that produced an
-// invalid span map, including the offsets involved so the mapper's author can locate the problem.
 func contentMapperMappingDiagnostic(file *ast.SourceFile, label string, problem *spanmap.MappingError) *ast.Diagnostic {
 	loc := core.NewTextRange(0, 0)
 	switch problem.Kind {
@@ -551,10 +397,6 @@ func contentMapperMappingDiagnostic(file *ast.SourceFile, label string, problem 
 	}
 }
 
-// emptyContentMappedFile produces an empty TypeScript source file for a content-mapped file whose
-// transform could not be used, retaining the original content for diagnostics. Importers see it as an
-// empty module rather than triggering a "cannot find module" error. It is still marked as content-mapped
-// so it is excluded from emit like a successfully mapped file.
 func (p *fileLoader) getContentMapperTransformIdentity(mapper *contentmapper.Mapper) string {
 	if project := p.opts.Host.ContentMapperProject(); project != nil {
 		if identity, err := project.Identity(mapper); err == nil {
@@ -563,21 +405,13 @@ func (p *fileLoader) getContentMapperTransformIdentity(mapper *contentmapper.Map
 	}
 	return fmt.Sprintf("%x", mapper.TransformIdentity(p.opts.Config.CompilerOptions()).Bytes())
 }
-
 func (p *fileLoader) emptyContentMappedFile(opts ast.SourceFileParseOptions, mapperIdentity string, transformIdentity string) *ast.SourceFile {
 	content, _ := p.opts.Host.FS().ReadFile(opts.FileName)
 	sourceFile := parser.ParseSourceFile(opts, "", core.ScriptKindTS)
-	sourceFile.SetContentMapperInfo(ast.ContentMapperSourceFileInfo{
-		ContentMapper:     mapperIdentity,
-		TransformIdentity: transformIdentity,
-		ParseOptions:      opts,
-		VirtualFileName:   opts.FileName + tspath.ExtensionTs,
-		OriginalText:      content,
-	})
+	sourceFile.SetContentMapperInfo(ast.ContentMapperSourceFileInfo{ContentMapper: mapperIdentity, TransformIdentity: transformIdentity, ParseOptions: opts, VirtualFileName: opts.FileName + tspath.ExtensionTs, OriginalText: content})
 	return sourceFile
 }
 
-// ContentMapperInitializationDiagnostic returns a fileless diagnostic for a mapper initialization failure.
 func ContentMapperInitializationDiagnostic(label string, err error) *ast.Diagnostic {
 	if initializeError, ok := errors.AsType[*contentmapper.InitializeError](err); ok && label == "" {
 		label = initializeError.MapperName
@@ -606,7 +440,6 @@ func ContentMapperInitializationDiagnostic(label string, err error) *ast.Diagnos
 	return diagnostic.AddMessageChain(ast.NewCompilerDiagnostic(diagnostics.The_content_mapper_process_could_not_be_started_or_initialized))
 }
 
-// ContentMapperProjectDiagnostic returns a fileless diagnostic for project setup or mapper initialization.
 func ContentMapperProjectDiagnostic(err error) *ast.Diagnostic {
 	if _, ok := errors.AsType[*contentmapper.InitializeError](err); ok {
 		return ContentMapperInitializationDiagnostic("", err)
@@ -614,7 +447,6 @@ func ContentMapperProjectDiagnostic(err error) *ast.Diagnostic {
 	return ast.NewCompilerDiagnostic(ContentMapperProjectErrorDiagnostic(err))
 }
 
-// contentMapperUnavailable reports whether mapper failed initialization or exceeded its failure budget.
 func (p *fileLoader) contentMapperUnavailable(mapper *contentmapper.Mapper) bool {
 	if mapper == nil {
 		return false
@@ -623,7 +455,6 @@ func (p *fileLoader) contentMapperUnavailable(mapper *contentmapper.Mapper) bool
 	defer p.contentMapperMu.Unlock()
 	return p.contentMapperInitFailed.Has(mapper) || p.contentMapperFailures[mapper] >= maxContentMapperFailures
 }
-
 func (p *fileLoader) recordContentMapperInitializationFailure(mapper *contentmapper.Mapper, label string, err error) {
 	p.contentMapperMu.Lock()
 	defer p.contentMapperMu.Unlock()
@@ -634,9 +465,6 @@ func (p *fileLoader) recordContentMapperInitializationFailure(mapper *contentmap
 	p.contentMapperDiagnostics = append(p.contentMapperDiagnostics, ContentMapperInitializationDiagnostic(label, err))
 }
 
-// recordContentMapperFailure counts a transform failure for mapper. It returns whether the failure
-// should be reported for this file (false once the mapper is already disabled). On the failure that
-// reaches maxContentMapperFailures it appends a single program diagnostic disabling the mapper.
 func (p *fileLoader) recordContentMapperFailure(mapper *contentmapper.Mapper, label string) bool {
 	p.contentMapperMu.Lock()
 	defer p.contentMapperMu.Unlock()
@@ -648,15 +476,10 @@ func (p *fileLoader) recordContentMapperFailure(mapper *contentmapper.Mapper, la
 	}
 	p.contentMapperFailures[mapper]++
 	if p.contentMapperFailures[mapper] >= maxContentMapperFailures {
-		p.contentMapperDiagnostics = append(p.contentMapperDiagnostics, ast.NewCompilerDiagnostic(
-			diagnostics.The_content_mapper_0_failed_1_times_and_will_not_be_used,
-			label,
-			maxContentMapperFailures,
-		))
+		p.contentMapperDiagnostics = append(p.contentMapperDiagnostics, ast.NewCompilerDiagnostic(diagnostics.The_content_mapper_0_failed_1_times_and_will_not_be_used, label, maxContentMapperFailures))
 	}
 	return true
 }
-
 func (p *fileLoader) isSupportedExtension(canonicalFileName string) bool {
 	for _, group := range p.supportedExtensionsWithJsonIfResolveJsonModule {
 		if tspath.FileExtensionIsOneOf(canonicalFileName, group) {
@@ -665,17 +488,10 @@ func (p *fileLoader) isSupportedExtension(canonicalFileName string) bool {
 	}
 	return false
 }
-
-func (p *fileLoader) getSourceFileFromReference(
-	fileName string,
-	referenceText string,
-	containingFile string,
-	includeReason *FileIncludeReason,
-) (string, *sourceFileFromReferenceDiagnostic) {
+func (p *fileLoader) getSourceFileFromReference(fileName string, referenceText string, containingFile string, includeReason *FileIncludeReason) (string, *sourceFileFromReferenceDiagnostic) {
 	options := p.opts.Config.CompilerOptions()
 	allowNonTsExtensions := options.AllowNonTsExtensions.IsTrue()
 	diagnosticFileName := tspath.NormalizeSlashes(referenceText)
-
 	if tspath.HasExtension(fileName) {
 		canonicalFileName := tspath.GetCanonicalFileName(fileName, p.opts.Host.FS().UseCaseSensitiveFileNames())
 		if !allowNonTsExtensions && !p.isSupportedExtension(canonicalFileName) {
@@ -684,74 +500,42 @@ func (p *fileLoader) getSourceFileFromReference(
 			}
 			return "", &sourceFileFromReferenceDiagnostic{message: diagnostics.File_0_has_an_unsupported_extension_The_only_supported_extensions_are_1, args: []any{diagnosticFileName, "'" + strings.Join(core.Flatten(p.supportedExtensions), "', '") + "'"}}
 		}
-
 		if !p.opts.Host.FS().FileExists(fileName) {
 			return "", &sourceFileFromReferenceDiagnostic{message: diagnostics.File_0_not_found, args: []any{diagnosticFileName}}
 		}
-
 		if includeReason.isReferencedFile() && tspath.GetCanonicalFileName(containingFile, p.opts.Host.FS().UseCaseSensitiveFileNames()) == canonicalFileName {
 			return "", &sourceFileFromReferenceDiagnostic{message: diagnostics.A_file_cannot_have_a_reference_to_itself}
 		}
 		return fileName, nil
 	}
-
 	if allowNonTsExtensions && p.opts.Host.FS().FileExists(fileName) {
 		return fileName, nil
 	}
-
 	if allowNonTsExtensions {
 		return "", &sourceFileFromReferenceDiagnostic{message: diagnostics.File_0_not_found, args: []any{diagnosticFileName}}
 	}
-
 	for _, ext := range p.supportedExtensions[0] {
 		candidate := fileName + ext
 		if p.opts.Host.FS().FileExists(candidate) {
 			return candidate, nil
 		}
 	}
-
 	return "", &sourceFileFromReferenceDiagnostic{message: diagnostics.Could_not_resolve_the_path_0_with_the_extensions_Colon_1, args: []any{diagnosticFileName, "'" + strings.Join(core.Flatten(p.supportedExtensions), "', '") + "'"}}
 }
-
 func (p *fileLoader) resolveTripleslashPathReference(moduleName string, containingFile string, index int) (*resolvedRef, *processingDiagnostic) {
 	basePath := tspath.GetDirectoryPath(containingFile)
 	referencedFileName := moduleName
-
 	if !tspath.IsRootedDiskPath(moduleName) {
 		referencedFileName = tspath.CombinePaths(basePath, moduleName)
 	}
 	normalizedFileName := tspath.NormalizePath(referencedFileName)
-	includeReason := &FileIncludeReason{
-		kind: fileIncludeKindReferenceFile,
-		data: &referencedFileData{
-			file:  p.toPath(containingFile),
-			index: index,
-		},
-	}
-
-	resolvedFileName, diagnostic := p.getSourceFileFromReference(
-		normalizedFileName,
-		moduleName,
-		containingFile,
-		includeReason,
-	)
+	includeReason := &FileIncludeReason{kind: fileIncludeKindReferenceFile, data: &referencedFileData{file: p.toPath(containingFile), index: index}}
+	resolvedFileName, diagnostic := p.getSourceFileFromReference(normalizedFileName, moduleName, containingFile, includeReason)
 	if diagnostic != nil {
-		return nil, &processingDiagnostic{
-			kind: processingDiagnosticKindExplainingFileInclude,
-			data: &includeExplainingDiagnostic{
-				diagnosticReason: includeReason,
-				message:          diagnostic.message,
-				args:             diagnostic.args,
-			},
-		}
+		return nil, &processingDiagnostic{kind: processingDiagnosticKindExplainingFileInclude, data: &includeExplainingDiagnostic{diagnosticReason: includeReason, message: diagnostic.message, args: diagnostic.args}}
 	}
-
-	return &resolvedRef{
-		fileName:      resolvedFileName,
-		includeReason: includeReason,
-	}, nil
+	return &resolvedRef{fileName: resolvedFileName, includeReason: includeReason}, nil
 }
-
 func (p *fileLoader) resolveTypeReferenceDirectives(t *parseTask) {
 	file := t.file
 	if len(file.TypeReferenceDirectives) == 0 {
@@ -761,7 +545,6 @@ func (p *fileLoader) resolveTypeReferenceDirectives(t *parseTask) {
 		defer p.opts.Tracing.Push(tracing.PhaseProgram, "resolveTypeReferenceDirectiveNamesWorker", map[string]any{"containingFileName": file.FileName()}, false)()
 	}
 	meta := t.metadata
-
 	typeResolutionsInFile := make(module.ModeAwareCache[*module.ResolvedTypeReferenceDirective], len(file.TypeReferenceDirectives))
 	var typeResolutionsTrace []module.DiagAndArgs
 	for index, ref := range file.TypeReferenceDirectives {
@@ -773,39 +556,22 @@ func (p *fileLoader) resolveTypeReferenceDirectives(t *parseTask) {
 			traceDone = p.opts.Tracing.Push(tracing.PhaseProgram, "processTypeReferenceDirective", map[string]any{"directive": ref.FileName, "hasResolved": resolved.IsResolved(), "refKind": int(fileIncludeKindTypeReferenceDirective), "refPath": string(t.path)}, false)
 		}
 		typeResolutionsInFile[module.ModeAwareCacheKey{Name: ref.FileName, Mode: resolutionMode}] = resolved
-		includeReason := &FileIncludeReason{
-			kind: fileIncludeKindTypeReferenceDirective,
-			data: &referencedFileData{
-				file:  t.path,
-				index: index,
-			},
-		}
+		includeReason := &FileIncludeReason{kind: fileIncludeKindTypeReferenceDirective, data: &referencedFileData{file: t.path, index: index}}
 		typeResolutionsTrace = append(typeResolutionsTrace, trace...)
-
 		if resolved.IsResolved() {
-			t.addSubTask(resolvedRef{
-				fileName:      resolved.ResolvedFileName,
-				increaseDepth: resolved.IsExternalLibraryImport,
-				elideOnDepth:  false,
-				includeReason: includeReason,
-				packageId:     resolved.PackageId,
-			}, nil)
+			t.addSubTask(resolvedRef{fileName: resolved.ResolvedFileName, increaseDepth: resolved.IsExternalLibraryImport, elideOnDepth: false, includeReason: includeReason, packageId: resolved.PackageId}, nil)
 		} else {
-			t.processingDiagnostics = append(t.processingDiagnostics, &processingDiagnostic{
-				kind: processingDiagnosticKindUnknownReference,
-				data: includeReason,
-			})
+			t.processingDiagnostics = append(t.processingDiagnostics, &processingDiagnostic{kind: processingDiagnosticKindUnknownReference, data: includeReason})
 		}
 		if traceDone != nil {
 			traceDone()
 		}
 	}
-
 	t.typeResolutionsInFile = typeResolutionsInFile
 	t.typeResolutionsTrace = typeResolutionsTrace
 }
 
-const externalHelpersModuleNameText = "tslib" // TODO(jakebailey): dedupe
+const externalHelpersModuleNameText = "tslib"
 
 func (p *fileLoader) resolveImportsAndModuleAugmentations(t *parseTask) {
 	if p.opts.Tracing != nil {
@@ -813,12 +579,9 @@ func (p *fileLoader) resolveImportsAndModuleAugmentations(t *parseTask) {
 	}
 	file := t.file
 	meta := t.metadata
-
-	moduleNames := make([]*ast.Node, 0, len(file.Imports())+len(file.ModuleAugmentations)+2)
-
+	moduleNames := make([]ast.Handle, 0, len(file.Imports())+len(file.ModuleAugmentations)+2)
 	isJavaScriptFile := ast.IsSourceFileJS(file)
 	isExternalModuleFile := ast.IsExternalModule(file)
-
 	redirect, fileName := p.projectReferenceFileMapper.getRedirectForResolution(file)
 	optionsForFile := module.GetCompilerOptionsWithRedirect(p.opts.Config.CompilerOptions(), redirect)
 	if isJavaScriptFile || (!file.IsDeclarationFile && (optionsForFile.GetIsolatedModules() || isExternalModuleFile)) {
@@ -828,106 +591,63 @@ func (p *fileLoader) resolveImportsAndModuleAugmentations(t *parseTask) {
 			t.importHelpersImportSpecifier = specifier
 		}
 	}
-
 	if isJavaScriptFile || file.ScriptKind == core.ScriptKindTSX {
 		jsxImport := ast.GetJSXRuntimeImport(ast.GetJSXImplicitImportBase(optionsForFile, file), optionsForFile)
 		if jsxImport != "" {
 			specifier := p.createSyntheticImport(jsxImport, file)
 			moduleNames = append(moduleNames, specifier)
-			t.jsxRuntimeImportSpecifier = &jsxRuntimeImportSpecifier{
-				moduleReference: jsxImport,
-				specifier:       specifier,
-			}
+			t.jsxRuntimeImportSpecifier = &jsxRuntimeImportSpecifier{moduleReference: jsxImport, specifier: specifier}
 		}
 	}
-
 	importsStart := len(moduleNames)
-
 	moduleNames = append(moduleNames, file.Imports()...)
 	for _, imp := range file.ModuleAugmentations {
 		if imp.Kind == ast.KindStringLiteral {
 			moduleNames = append(moduleNames, imp)
 		}
-		// Do nothing if it's an Identifier; we don't need to do module resolution for `declare global`.
 	}
-
 	if len(moduleNames) != 0 {
 		resolutionsInFile := make(module.ModeAwareCache[*module.ResolvedModule], len(moduleNames))
 		var resolutionsTrace []module.DiagAndArgs
-
 		for index, entry := range moduleNames {
 			moduleName := entry.Text()
 			if moduleName == "" {
 				continue
 			}
-
 			mode := getModeForUsageLocation(file.FileName(), meta, entry, optionsForFile)
 			resolvedModule, trace := p.resolver.ResolveModuleName(moduleName, fileName, mode, redirect)
 			resolutionsInFile[module.ModeAwareCacheKey{Name: moduleName, Mode: mode}] = resolvedModule
 			resolutionsTrace = append(resolutionsTrace, trace...)
-
 			if !resolvedModule.IsResolved() {
 				continue
 			}
-
 			resolvedFileName := resolvedModule.ResolvedFileName
 			isFromNodeModulesSearch := resolvedModule.IsExternalLibraryImport
-			// Don't treat redirected files as JS files.
 			isJsFile := !resolvedModule.ResolvedUsingExtraExtensions && !tspath.FileExtensionIsOneOf(resolvedFileName, tspath.SupportedTSExtensionsWithJsonFlat) && p.projectReferenceFileMapper.getRedirectParsedCommandLineForResolution(ast.NewHasFileName(resolvedFileName, p.toPath(resolvedFileName))) == nil
 			isJsFileFromNodeModules := isFromNodeModulesSearch && isJsFile && strings.Contains(resolvedFileName, "/node_modules/")
-
-			// add file to program only if:
-			// - resolution was successful
-			// - noResolve is falsy
-			// - module name comes from the list of imports
-			// - it's not a top level JavaScript module that exceeded the search max
-
 			importIndex := index - importsStart
-
-			shouldAddFile := moduleName != "" &&
-				module.GetResolutionDiagnostic(optionsForFile, resolvedModule, file) == nil &&
-				!optionsForFile.NoResolve.IsTrue() &&
-				!(isJsFile && !optionsForFile.GetAllowJS()) &&
-				(importIndex < 0 || (importIndex < len(file.Imports()) && (ast.IsInJSFile(file.Imports()[importIndex]) || file.Imports()[importIndex].Flags&ast.NodeFlagsJSDoc == 0)))
-
+			shouldAddFile := moduleName != "" && module.GetResolutionDiagnostic(optionsForFile, resolvedModule, file) == nil && !optionsForFile.NoResolve.IsTrue() && !(isJsFile && !optionsForFile.GetAllowJS()) && (importIndex < 0 || (importIndex < len(file.Imports()) && (ast.IsInJSFile(file.Imports()[importIndex]) || file.Imports()[importIndex].Flags()&ast.NodeFlagsJSDoc == 0)))
 			if shouldAddFile {
-				t.addSubTask(resolvedRef{
-					fileName:      resolvedFileName,
-					increaseDepth: resolvedModule.IsExternalLibraryImport,
-					elideOnDepth:  isJsFileFromNodeModules,
-					includeReason: &FileIncludeReason{
-						kind: fileIncludeKindImport,
-						data: &referencedFileData{
-							file:      t.path,
-							index:     importIndex,
-							synthetic: core.IfElse(importIndex < 0, entry, nil),
-						},
-					},
-					packageId: resolvedModule.PackageId,
-				}, nil)
+				t.addSubTask(resolvedRef{fileName: resolvedFileName, increaseDepth: resolvedModule.IsExternalLibraryImport, elideOnDepth: isJsFileFromNodeModules, includeReason: &FileIncludeReason{kind: fileIncludeKindImport, data: &referencedFileData{file: t.path, index: importIndex, synthetic: core.IfElse(importIndex < 0, entry, ast.Handle{})}}, packageId: resolvedModule.PackageId}, nil)
 			}
 		}
-
 		t.resolutionsInFile = resolutionsInFile
 		t.resolutionsTrace = resolutionsTrace
 	}
 }
-
-func (p *fileLoader) createSyntheticImport(text string, file *ast.SourceFile) *ast.StringLiteralNode {
+func (p *fileLoader) createSyntheticImport(text string, file *ast.SourceFile) ast.Handle {
 	p.factoryMu.Lock()
 	defer p.factoryMu.Unlock()
 	externalHelpersModuleReference := p.factory.NewStringLiteral(text, ast.TokenFlagsNone)
-	importDecl := p.factory.NewImportDeclaration(nil, nil, externalHelpersModuleReference, nil)
-	externalHelpersModuleReference.Parent = importDecl
-	importDecl.Parent = file.AsNode()
+	importDecl := p.factory.NewImportDeclaration(0, ast.Handle{}, externalHelpersModuleReference, ast.Handle{})
+	externalHelpersModuleReference.SetParent(importDecl)
+	importDecl.SetParent(file.ParseRoot())
 	return externalHelpersModuleReference
 }
-
 func (p *fileLoader) pathForLibFile(name string) *LibFile {
 	if cached, ok := p.pathForLibFileCache.Load(name); ok {
 		return cached
 	}
-
 	path := tspath.CombinePaths(p.defaultLibraryPath, name)
 	replaced := false
 	if p.opts.Config.CompilerOptions().LibReplacement.IsTrue() && name != "lib.d.ts" {
@@ -938,28 +658,18 @@ func (p *fileLoader) pathForLibFile(name string) *LibFile {
 			path = resolution.ResolvedFileName
 			replaced = true
 		}
-		p.pathForLibFileResolutions.LoadOrStore(p.toPath(resolveFrom), &libResolution{
-			libraryName: libraryName,
-			resolution:  resolution,
-			trace:       trace,
-		})
+		p.pathForLibFileResolutions.LoadOrStore(p.toPath(resolveFrom), &libResolution{libraryName: libraryName, resolution: resolution, trace: trace})
 	}
-
 	libPath, _ := p.pathForLibFileCache.LoadOrStore(name, &LibFile{name, path, replaced})
 	return libPath
 }
-
 func (p *fileLoader) resolveLibrary(libraryName, resolveFrom string) (*module.ResolvedModule, []module.DiagAndArgs) {
 	if tr := p.opts.Tracing; tr != nil {
 		defer tr.Push(tracing.PhaseProgram, "resolveLibrary", map[string]any{"resolveFrom": resolveFrom}, false)()
 	}
 	return p.resolver.ResolveModuleName(libraryName, resolveFrom, core.ModuleKindCommonJS, nil)
 }
-
 func getLibraryNameFromLibFileName(libFileName string) string {
-	// Support resolving to lib.dom.d.ts -> @typescript/lib-dom, and
-	//                      lib.dom.iterable.d.ts -> @typescript/lib-dom/iterable
-	//                      lib.es2015.symbol.wellknown.d.ts -> @typescript/lib-es2015/symbol-wellknown
 	components := strings.Split(libFileName, ".")
 	var path strings.Builder
 	path.WriteString("@typescript/lib-")
@@ -978,7 +688,6 @@ func getLibraryNameFromLibFileName(libFileName string) string {
 	}
 	return path.String()
 }
-
 func getInferredLibraryNameResolveFrom(options *core.CompilerOptions, currentDirectory string, libFileName string) string {
 	var containingDirectory string
 	if options.ConfigFilePath != "" {
@@ -988,7 +697,6 @@ func getInferredLibraryNameResolveFrom(options *core.CompilerOptions, currentDir
 	}
 	return tspath.CombinePaths(containingDirectory, "__lib_node_modules_lookup_"+libFileName+"__.ts")
 }
-
 func getModeForTypeReferenceDirectiveInFile(ref *ast.FileReference, file *ast.SourceFile, meta ast.SourceFileMetaData, options *core.CompilerOptions) core.ResolutionMode {
 	if ref.ResolutionMode != core.ResolutionModeNone {
 		return ref.ResolutionMode
@@ -996,7 +704,6 @@ func getModeForTypeReferenceDirectiveInFile(ref *ast.FileReference, file *ast.So
 		return getDefaultResolutionModeForFile(file.FileName(), meta, options)
 	}
 }
-
 func getDefaultResolutionModeForFile(fileName string, meta ast.SourceFileMetaData, options *core.CompilerOptions) core.ResolutionMode {
 	if importSyntaxAffectsModuleResolution(options) {
 		return ast.GetImpliedNodeFormatForEmitWorker(fileName, options.GetEmitModuleKind(), meta)
@@ -1004,64 +711,51 @@ func getDefaultResolutionModeForFile(fileName string, meta ast.SourceFileMetaDat
 		return core.ResolutionModeNone
 	}
 }
-
-func getModeForUsageLocation(fileName string, meta ast.SourceFileMetaData, usage *ast.StringLiteralLike, options *core.CompilerOptions) core.ResolutionMode {
-	if ast.IsImportDeclaration(usage.Parent) || usage.Parent.Kind == ast.KindJSImportDeclaration || ast.IsExportDeclaration(usage.Parent) || ast.IsJSDocImportTag(usage.Parent) {
-		isTypeOnly := ast.IsExclusivelyTypeOnlyImportOrExport(usage.Parent)
+func getModeForUsageLocation(fileName string, meta ast.SourceFileMetaData, usage ast.Handle, options *core.CompilerOptions) core.ResolutionMode {
+	if ast.IsImportDeclaration(usage.Parent()) || usage.Parent().Kind == ast.KindJSImportDeclaration || ast.IsExportDeclaration(usage.Parent()) || ast.IsJSDocImportTag(usage.Parent()) {
+		isTypeOnly := ast.IsExclusivelyTypeOnlyImportOrExport(usage.Parent())
 		if isTypeOnly {
 			var override core.ResolutionMode
 			var ok bool
-			switch usage.Parent.Kind {
+			switch usage.Parent().Kind {
 			case ast.KindImportDeclaration, ast.KindJSImportDeclaration:
-				override, ok = usage.Parent.AsImportDeclaration().Attributes.GetResolutionModeOverride()
+				override, ok = usage.Parent().ImportDeclarationAttributes().ResolutionModeOverride()
 			case ast.KindExportDeclaration:
-				override, ok = usage.Parent.AsExportDeclaration().Attributes.GetResolutionModeOverride()
+				override, ok = usage.Parent().ExportDeclarationAttributes().ResolutionModeOverride()
 			case ast.KindJSDocImportTag:
-				override, ok = usage.Parent.AsJSDocImportTag().Attributes.GetResolutionModeOverride()
+				override, ok = usage.Parent().JSDocImportTagAttributes().ResolutionModeOverride()
 			}
 			if ok {
 				return override
 			}
 		}
 	}
-	if ast.IsLiteralTypeNode(usage.Parent) && ast.IsImportTypeNode(usage.Parent.Parent) {
-		if override, ok := usage.Parent.Parent.AsImportTypeNode().Attributes.GetResolutionModeOverride(); ok {
+	if ast.IsLiteralTypeNode(usage.Parent()) && ast.IsImportTypeNode(usage.Parent().Parent()) {
+		if override, ok := usage.Parent().Parent().ImportTypeNodeAttributes().ResolutionModeOverride(); ok {
 			return override
 		}
 	}
-
 	if options != nil && importSyntaxAffectsModuleResolution(options) {
 		return getEmitSyntaxForUsageLocationWorker(fileName, meta, usage, options)
 	}
-
 	return core.ResolutionModeNone
 }
-
 func importSyntaxAffectsModuleResolution(options *core.CompilerOptions) bool {
 	moduleResolution := options.GetModuleResolutionKind()
-	return core.ModuleResolutionKindNode16 <= moduleResolution && moduleResolution <= core.ModuleResolutionKindNodeNext ||
-		options.GetResolvePackageJsonExports() || options.GetResolvePackageJsonImports()
+	return core.ModuleResolutionKindNode16 <= moduleResolution && moduleResolution <= core.ModuleResolutionKindNodeNext || options.GetResolvePackageJsonExports() || options.GetResolvePackageJsonImports()
 }
-
-func getEmitSyntaxForUsageLocationWorker(fileName string, meta ast.SourceFileMetaData, usage *ast.Node, options *core.CompilerOptions) core.ResolutionMode {
-	if ast.IsRequireCall(usage.Parent, false /*requireStringLiteralLikeArgument*/) || ast.IsExternalModuleReference(usage.Parent) && ast.IsImportEqualsDeclaration(usage.Parent.Parent) {
+func getEmitSyntaxForUsageLocationWorker(fileName string, meta ast.SourceFileMetaData, usage ast.Handle, options *core.CompilerOptions) core.ResolutionMode {
+	if ast.IsRequireCall(usage.Parent(), false) || ast.IsExternalModuleReference(usage.Parent()) && ast.IsImportEqualsDeclaration(usage.Parent().Parent()) {
 		return core.ModuleKindCommonJS
 	}
 	fileEmitMode := ast.GetEmitModuleFormatOfFileWorker(fileName, options, meta)
-	if ast.IsImportCall(ast.WalkUpParenthesizedExpressions(usage.Parent)) {
+	if ast.IsImportCall(ast.WalkUpParenthesizedExpressions(usage.Parent())) {
 		if ast.ShouldTransformImportCall(fileName, options, fileEmitMode) {
 			return core.ModuleKindCommonJS
 		} else {
 			return core.ModuleKindESNext
 		}
 	}
-	// If we're in --module preserve on an input file, we know that an import
-	// is an import. But if this is a declaration file, we'd prefer to use the
-	// impliedNodeFormat. Since we want things to be consistent between the two,
-	// we need to issue errors when the user writes ESM syntax in a definitely-CJS
-	// file, until/unless declaration emit can indicate a true ESM import. On the
-	// other hand, writing CJS syntax in a definitely-ESM file is fine, since declaration
-	// emit preserves the CJS syntax.
 	if fileEmitMode == core.ModuleKindCommonJS {
 		return core.ModuleKindCommonJS
 	} else {

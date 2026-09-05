@@ -26,10 +26,54 @@ func (g GlobalRef) Ref() NodeRef     { return NodeRef(g) }
 // deterministic ids across runs.
 type StoreSet struct {
 	mu     sync.RWMutex
-	stores []*Store // index i holds the Store with StoreID i+1
+	stores []*Store      // index i holds the Store with StoreID i+1
+	files  []*SourceFile // parallel to stores; nil until SetFile
 }
 
 func NewStoreSet() *StoreSet { return &StoreSet{} }
+
+var (
+	identityOnce   sync.Once
+	identityStores *StoreSet
+)
+
+func identitySet() *StoreSet {
+	identityOnce.Do(func() { identityStores = NewStoreSet() })
+	return identityStores
+}
+
+func RegisterFile(file *SourceFile) {
+	identitySet().BindFile(file)
+}
+
+func RegisterStore(s *Store) StoreID {
+	if s == nil {
+		panic("ast: RegisterStore nil")
+	}
+	if id := s.ID(); id != 0 {
+		return id
+	}
+	return identitySet().Add(s)
+}
+
+// UnregisterStore nils the identity slot. It does not compact, reset s.id, or
+// empty side maps, so StoreIDs are never reused. NodeOf on that id returns
+// Handle{}. Idempotent on nil or already-removed Stores.
+func UnregisterStore(s *Store) {
+	if s == nil {
+		return
+	}
+	identitySet().Remove(s)
+}
+
+// RegisteredStoreCount is the number of non-nil identity slots.
+func RegisteredStoreCount() int {
+	return identitySet().liveCount()
+}
+
+func NodeOf(g GlobalRef) Handle {
+	return identitySet().At(g)
+}
 
 // Add registers a Store and assigns its StoreID. A Store belongs to at
 // most one StoreSet; registering it twice panics.
@@ -39,13 +83,100 @@ func (ss *StoreSet) Add(s *Store) StoreID {
 	}
 	ss.mu.Lock()
 	defer ss.mu.Unlock()
-	if s.id != 0 {
+	id := StoreID(len(ss.stores) + 1)
+	if !s.id.CompareAndSwap(0, uint32(id)) {
 		panic("ast: Store already registered")
 	}
-	id := StoreID(len(ss.stores) + 1)
-	s.id = id
 	ss.stores = append(ss.stores, s)
+	ss.files = append(ss.files, nil)
 	return id
+}
+
+func (ss *StoreSet) BindFile(file *SourceFile) {
+	if ss == nil || file == nil {
+		return
+	}
+	s := file.ParseStore()
+	if s == nil {
+		return
+	}
+	if s.ID() == 0 {
+		ss.Add(s)
+	} else {
+		ss.adopt(s)
+	}
+	ss.SetFile(s.ID(), file)
+}
+
+func (ss *StoreSet) Remove(s *Store) {
+	if ss == nil || s == nil {
+		return
+	}
+	id := s.ID()
+	if id == 0 {
+		return
+	}
+	ss.mu.Lock()
+	defer ss.mu.Unlock()
+	idx := int(id - 1)
+	if idx < 0 || idx >= len(ss.stores) {
+		return
+	}
+	ss.stores[idx] = nil
+	ss.files[idx] = nil
+}
+
+func (ss *StoreSet) liveCount() int {
+	if ss == nil {
+		return 0
+	}
+	ss.mu.RLock()
+	defer ss.mu.RUnlock()
+	n := 0
+	for _, s := range ss.stores {
+		if s != nil {
+			n++
+		}
+	}
+	return n
+}
+
+func (ss *StoreSet) adopt(s *Store) {
+	if s == nil || s.id.Load() == 0 {
+		return
+	}
+	ss.mu.Lock()
+	defer ss.mu.Unlock()
+	idx := int(s.id.Load() - 1)
+	for len(ss.stores) <= idx {
+		ss.stores = append(ss.stores, nil)
+		ss.files = append(ss.files, nil)
+	}
+	ss.stores[idx] = s
+}
+
+func (ss *StoreSet) SetFile(id StoreID, file *SourceFile) {
+	if id == 0 {
+		panic("ast: SetFile missing StoreID")
+	}
+	ss.mu.Lock()
+	defer ss.mu.Unlock()
+	if int(id) > len(ss.stores) {
+		panic("ast: SetFile unknown StoreID")
+	}
+	ss.files[id-1] = file
+}
+
+func (ss *StoreSet) File(id StoreID) *SourceFile {
+	if id == 0 {
+		return nil
+	}
+	ss.mu.RLock()
+	defer ss.mu.RUnlock()
+	if int(id) > len(ss.files) {
+		return nil
+	}
+	return ss.files[id-1]
 }
 
 func (ss *StoreSet) Store(id StoreID) *Store {
@@ -73,7 +204,20 @@ func (s *Store) ID() StoreID {
 	if s == nil {
 		return 0
 	}
-	return s.id
+	return StoreID(s.id.Load())
+}
+
+// GlobalRef returns the process-wide identity for ref without constructing a
+// Handle. It has the same registration requirement as Handle.Global.
+func (s *Store) GlobalRef(ref NodeRef) GlobalRef {
+	if s == nil || ref == 0 {
+		return 0
+	}
+	id := StoreID(s.id.Load())
+	if id == 0 {
+		panic("ast: Global on unregistered Store")
+	}
+	return MakeGlobalRef(id, ref)
 }
 
 // Global returns the process-wide identity of the node. It panics on a
@@ -83,8 +227,9 @@ func (h Handle) Global() GlobalRef {
 	if h.id == 0 || h.s == nil {
 		return 0
 	}
-	if h.s.id == 0 {
+	id := StoreID(h.s.id.Load())
+	if id == 0 {
 		panic("ast: Global on unregistered Store")
 	}
-	return MakeGlobalRef(h.s.id, h.id)
+	return MakeGlobalRef(id, h.id)
 }
