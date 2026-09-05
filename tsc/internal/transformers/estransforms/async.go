@@ -5,7 +5,6 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
 	"github.com/microsoft/TypeScript/tsc/internal/transformers"
-	"slices"
 )
 
 type asyncContextFlags int
@@ -17,7 +16,7 @@ const (
 
 type lexicalArgumentsInfo struct {
 	binding ast.Handle
-	used bool
+	used    bool
 }
 type asyncTransformer struct {
 	transformers.Transformer
@@ -25,8 +24,8 @@ type asyncTransformer struct {
 	contextFlags                    asyncContextFlags
 	enclosingFunctionParameterNames *collections.Set[string]
 	lexicalArguments                lexicalArgumentsInfo
-	asyncBodyVisitor *ast.HandleVisitor
-	fallbackNodeVisitor *ast.HandleVisitor
+	asyncBodyVisitor                *ast.HandleVisitor
+	fallbackNodeVisitor             *ast.HandleVisitor
 }
 
 func newAsyncTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
@@ -342,7 +341,7 @@ func (tx *asyncTransformer) recordDeclarationName(node ast.Handle, names *collec
 	}
 }
 func (tx *asyncTransformer) isVariableDeclarationListWithCollidingName(node ast.Handle) bool {
-	return !node.IsNil() && ast.IsVariableDeclarationList(node) && node.Flags()&ast.NodeFlagsBlockScoped == 0 && slices.ContainsFunc(node.Store().ListSlice(node.VariableDeclarationListDeclarations()), tx.collidesWithParameterName)
+	return !node.IsNil() && ast.IsVariableDeclarationList(node) && node.Flags()&ast.NodeFlagsBlockScoped == 0 && node.DeclarationsSeq().Some(tx.collidesWithParameterName)
 }
 func (tx *asyncTransformer) visitVariableDeclarationListWithCollidingNames(node ast.Handle, hasReceiver bool) ast.Handle {
 	tx.hoistVariableDeclarationList(node)
@@ -612,7 +611,7 @@ func assignmentTargetContainsSuperProperty(node ast.Handle) bool {
 	case ast.KindParenthesizedExpression:
 		return assignmentTargetContainsSuperProperty(node.ParenthesizedExpressionExpression())
 	case ast.KindArrayLiteralExpression:
-		return slices.ContainsFunc(node.Store().ListSlice(node.ArrayLiteralExpressionElements()), assignmentTargetContainsSuperProperty)
+		return node.ElementsSeq().Some(assignmentTargetContainsSuperProperty)
 	case ast.KindObjectLiteralExpression:
 		for _, prop := range node.Store().ListSlice(node.ObjectLiteralExpressionProperties()) {
 			switch prop.Kind {

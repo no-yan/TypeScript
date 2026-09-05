@@ -30,7 +30,7 @@ type superAccessState struct {
 	hasSuperPropertyAssignment bool
 	superBinding               ast.Handle
 	superIndexBinding          ast.Handle
-	superAccessVisitor *ast.HandleVisitor
+	superAccessVisitor         *ast.HandleVisitor
 }
 
 func (s *superAccessState) initSuperAccessVisitor(emitContext *printer.EmitContext, factory *printer.NodeFactory) {
@@ -82,7 +82,8 @@ func (s *superAccessState) substituteCallExpressionWithSuperAccess(call ast.Hand
 	if call.ArgumentList() != 0 {
 		visitedArgs := visitor.VisitNodes(call.ArgumentList())
 		if visitedArgs != 0 {
-			allArgs = append(allArgs, target.Store().ListSlice(visitedArgs)...)
+			// append variadic needs []Handle.
+			allArgs = append(allArgs, target.Store().ListSlice(visitedArgs).Slice()...)
 		}
 	}
 	result := s.factory.NewCallExpression(callTarget, ast.Handle{}, 0, s.factory.NewList(allArgs), ast.NodeFlagsNone)
