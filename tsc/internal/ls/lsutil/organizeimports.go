@@ -233,9 +233,9 @@ func getModuleSpecifierExpression(declaration ast.Handle) ast.Handle {
 	case ast.KindImportDeclaration:
 		return declaration.ModuleSpecifier()
 	case ast.KindVariableStatement:
-		declarations := declaration.Store().ListSlice(declaration.VariableStatementDeclarationList().VariableDeclarationListDeclarations())
-		if len(declarations) > 0 {
-			initializer := declarations[0].Initializer()
+		decls := declaration.VariableStatementDeclarationList().VariableDeclarationListDeclarations()
+		if declaration.Store().ListLen(decls) > 0 {
+			initializer := declaration.Store().ListAt(decls, 0).Initializer()
 			if !initializer.IsNil() && initializer.Kind == ast.KindCallExpression {
 				callExpr := initializer
 				if len(callExpr.Arguments()) > 0 {

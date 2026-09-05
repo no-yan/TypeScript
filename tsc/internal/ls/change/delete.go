@@ -8,7 +8,6 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/format"
 	"github.com/microsoft/TypeScript/tsc/internal/scanner"
 	"github.com/microsoft/TypeScript/tsc/internal/stringutil"
-	"slices"
 )
 
 func deleteDeclaration(t *Tracker, deletedNodesInLists map[ // deleteDeclaration deletes a node with smart handling for different node types.
@@ -41,7 +40,7 @@ ast.Handle]bool, sourceFile *ast.SourceFile, node ast.Handle) {
 	switch node.Kind {
 	case ast.KindParameter:
 		oldFunction := node.Parent()
-		if oldFunction.Kind == ast.KindArrowFunction && len(oldFunction.Store().ListSlice(oldFunction.ArrowFunctionParameters())) == 1 && astnav.FindChildOfKind(oldFunction, ast.KindOpenParenToken, sourceFile).IsNil() {
+		if oldFunction.Kind == ast.KindArrowFunction && oldFunction.Store().ListLen(oldFunction.ArrowFunctionParameters()) == 1 && astnav.FindChildOfKind(oldFunction, ast.KindOpenParenToken, sourceFile).IsNil() {
 			t.ReplaceRangeWithText(sourceFile, t.GetAdjustedRange(sourceFile, node, node, LeadingTriviaOptionIncludeAll, TrailingTriviaOptionInclude), "()")
 		} else {
 			deleteNodeInList(t, deletedNodesInLists, sourceFile, node)
@@ -60,7 +59,8 @@ ast.Handle]bool, sourceFile *ast.SourceFile, node ast.Handle) {
 		deleteNode(t, sourceFile, node, leadingTrivia, TrailingTriviaOptionInclude)
 	case ast.KindBindingElement:
 		pattern := node.Parent()
-		preserveComma := pattern.Kind == ast.KindArrayBindingPattern && node != pattern.Store().ListSlice(pattern.BindingPatternElements())[len(pattern.Store().ListSlice(pattern.BindingPatternElements()))-1]
+		elems := pattern.BindingPatternElements()
+		preserveComma := pattern.Kind == ast.KindArrayBindingPattern && pattern.Store().ListLen(elems) > 0 && node != pattern.Store().ListAt(elems, pattern.Store().ListLen(elems)-1)
 		if preserveComma {
 			deleteNode(t, sourceFile, node, LeadingTriviaOptionIncludeAll, TrailingTriviaOptionExclude)
 		} else {
@@ -72,7 +72,7 @@ ast.Handle]bool, sourceFile *ast.SourceFile, node ast.Handle) {
 		deleteNodeInList(t, deletedNodesInLists, sourceFile, node)
 	case ast.KindImportSpecifier:
 		namedImports := node.Parent()
-		if len(namedImports.Store().ListSlice(namedImports.NamedImportsElements())) == 1 {
+		if namedImports.Store().ListLen(namedImports.NamedImportsElements()) == 1 {
 			deleteImportBinding(t, sourceFile, namedImports)
 		} else {
 			deleteNodeInList(t, deletedNodesInLists, sourceFile, node)
@@ -96,7 +96,7 @@ ast.Handle]bool, sourceFile *ast.SourceFile, node ast.Handle) {
 			deleteNode(t, sourceFile, node, LeadingTriviaOptionIncludeAll, TrailingTriviaOptionInclude)
 		} else if node.Parent().Kind == ast.KindImportClause && node.Parent().ImportClauseName() == node {
 			deleteDefaultImport(t, sourceFile, node.Parent())
-		} else if node.Parent().Kind == ast.KindCallExpression && slices.Contains(node.Store().ListSlice(node.Parent().CallExpressionArguments()), node) {
+		} else if node.Parent().Kind == ast.KindCallExpression && node.Store().ListIndexOf(node.Parent().CallExpressionArguments(), node) >= 0 {
 			deleteNodeInList(t, deletedNodesInLists, sourceFile, node)
 		} else {
 			deleteNode(t, sourceFile, node, LeadingTriviaOptionIncludeAll, TrailingTriviaOptionInclude)
@@ -141,7 +141,7 @@ func deleteVariableDeclaration(t *Tracker, deletedNodesInLists map[ast.Handle]bo
 		t.DeleteNodeRange(sourceFile, openParen, closeParen, LeadingTriviaOptionIncludeAll, TrailingTriviaOptionInclude)
 		return
 	}
-	if len(parent.Store().ListSlice(parent.VariableDeclarationListDeclarations())) != 1 {
+	if parent.Store().ListLen(parent.VariableDeclarationListDeclarations()) != 1 {
 		deleteNodeInList(t, deletedNodesInLists, sourceFile, node)
 		return
 	}
@@ -170,7 +170,7 @@ func deleteNode(t *Tracker, sourceFile *ast.SourceFile, node ast.Handle, leading
 func deleteNodeInList(t *Tracker, deletedNodesInLists map[ast.Handle]bool, sourceFile *ast.SourceFile, node ast.Handle) {
 	containingList := format.GetContainingList(node, sourceFile)
 	debug.Assert(containingList != 0, "containingList should not be nil")
-	index := slices.Index(node.Store().ListSlice(containingList), node)
+	index := node.Store().ListIndexOf(containingList, node)
 	debug.Assert(index != -1, "node should be in containing list")
 	if node.Store().ListLen(containingList) == 1 {
 		deleteNode(t, sourceFile, node, LeadingTriviaOptionIncludeAll, TrailingTriviaOptionInclude)

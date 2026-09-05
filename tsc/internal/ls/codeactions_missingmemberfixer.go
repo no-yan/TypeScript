@@ -41,7 +41,7 @@ func (f *missingMemberFixer) createNodeBuilder() (*checker.NodeBuilder, map[ast.
 }
 func (f *missingMemberFixer) createMemberFromSymbol(symbol *ast.Symbol, enclosingDeclaration ast.Handle, sourceFile *ast.SourceFile, body ast.Handle, preserveOptional preserveOptionalFlags, abstract bool) []ast.Handle {
 	declarations := ast.DeclarationNodes(symbol)
-	declaration := core.FirstOrNil(declarations)
+	declaration := declarations.First()
 	quotePreference := lsutil.GetQuotePreference(sourceFile, f.preferences)
 	ambient := enclosingDeclaration.Flags()&ast.NodeFlagsAmbient != 0
 	signatureOnly := ambient || abstract
@@ -69,7 +69,7 @@ func (f *missingMemberFixer) createMemberFromSymbol(symbol *ast.Symbol, enclosin
 		return append(nodes, f.changeTracker.HandleFactory.NewPropertyDeclaration(modifiers, createPropertyName(f.changeTracker.HandleFactory, declarationName, quotePreference), questionToken, typeNode, ast.Handle{}))
 	case ast.KindGetAccessor, ast.KindSetAccessor:
 		nodeBuilder, idToSymbol := f.createNodeBuilder()
-		accessors := ast.GetAllAccessorDeclarations(ast.DeclarationNodes(symbol), declaration)
+		accessors := ast.GetAllAccessorDeclarations(ast.DeclarationNodes(symbol).Slice(), declaration)
 		var orderedAccessors []ast.Handle
 		if accessors.SecondAccessor.IsNil() {
 			orderedAccessors = append(orderedAccessors, accessors.FirstAccessor)
@@ -95,7 +95,7 @@ func (f *missingMemberFixer) createMemberFromSymbol(symbol *ast.Symbol, enclosin
 		if len(signatures) == 0 {
 			return nil
 		}
-		if len(declarations) == 1 {
+		if declarations.Len() == 1 {
 			method := f.createSignatureDeclarationFromSignature(core.FirstOrNil(signatures), ast.KindMethodDeclaration, sourceFile, enclosingDeclaration, f.createBody(body, quotePreference, signatureOnly), modifiers, declarationName, preserveOptional)
 			if !method.IsNil() {
 				nodes = append(nodes, method)
@@ -114,8 +114,8 @@ func (f *missingMemberFixer) createMemberFromSymbol(symbol *ast.Symbol, enclosin
 		if signatureOnly {
 			return nodes
 		}
-		if len(declarations) > len(signatures) {
-			signature := f.typeChecker.GetSignatureFromDeclaration(core.LastOrNil(declarations))
+		if declarations.Len() > len(signatures) {
+			signature := f.typeChecker.GetSignatureFromDeclaration(declarations.Last())
 			method := f.createSignatureDeclarationFromSignature(signature, ast.KindMethodDeclaration, sourceFile, enclosingDeclaration, f.createBody(body, quotePreference, false), modifiers, declarationName, preserveOptional)
 			if !method.IsNil() {
 				nodes = append(nodes, method)
@@ -274,7 +274,7 @@ func (f *missingMemberFixer) createSignatureDeclarationFromSignatures(signatures
 			questionToken = f.changeTracker.HandleFactory.NewToken(ast.KindQuestionToken)
 		}
 		rest := f.changeTracker.HandleFactory.NewParameterDeclaration(0, f.changeTracker.HandleFactory.NewToken(ast.KindDotDotDotToken), f.changeTracker.HandleFactory.NewIdentifier(restParameterName), questionToken, f.changeTracker.HandleFactory.NewArrayTypeNode(f.changeTracker.HandleFactory.NewKeywordTypeNode(ast.KindUnknownKeyword)), ast.Handle{})
-		parameters = f.changeTracker.HandleFactory.NewList(append(enclosingDeclaration.Store().ListSlice(parameters), rest))
+		parameters = f.changeTracker.HandleFactory.NewList(append(enclosingDeclaration.Store().ListSlice(parameters).Slice(), rest))
 	}
 	methodName := core.IfElse(name.IsNil(), f.changeTracker.HandleFactory.NewIdentifier(""), createPropertyName(f.changeTracker.HandleFactory, name, quotePreference))
 	return f.changeTracker.HandleFactory.NewMethodDeclaration(modifiers, ast.Handle{}, methodName, core.IfElse(optional, f.changeTracker.HandleFactory.NewToken(ast.KindQuestionToken), ast.Handle{}), 0, parameters, f.getReturnTypeFromSignatures(signatures, enclosingDeclaration, nodeBuilder, idToSymbol), ast.Handle{}, f.createBody(body, quotePreference, false))

@@ -3,7 +3,6 @@ package lsutil
 import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/astnav"
-	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/scanner"
 )
 
@@ -74,7 +73,7 @@ func IsCompletedNode(n ast.Handle, sourceFile *ast.SourceFile) bool {
 		if n.TemplateExpressionTemplateSpans() == 0 {
 			return false
 		}
-		lastSpan := core.LastOrNil(n.Store().ListSlice(n.TemplateExpressionTemplateSpans()))
+		lastSpan := n.Store().ListSlice(n.TemplateExpressionTemplateSpans()).Last()
 		return IsCompletedNode(lastSpan, sourceFile)
 	case ast.KindTemplateSpan:
 		return ast.NodeIsPresent(n.TemplateSpanLiteral())

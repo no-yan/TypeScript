@@ -19,175 +19,175 @@ import (
 )
 
 var (
-	SignatureHelpTriggerCharacters = []string{// SignatureHelpTriggerCharacters and SignatureHelpRetriggerCharacters are the characters that trigger and
-	// re-trigger signature help. They are advertised both in the static server capabilities and in the dynamic
-	// content-mapper registration, so they live here to keep those two declarations in sync.
-	// Just for enclosingDeclaration for printing types
-	// Decide whether to show signature help
-	// We are at the beginning of the file
-	// was undefined
-	// was "invoked"
-	// was "characterTyped"
-	// was "retrigger"
-	// Emulate VS Code's toTsTriggerReason.
-	// Only need to be careful if the user typed a character and signature help wasn't showing.
-	// Bail out quickly in the middle of a string or comment, don't provide signature help unless the user explicitly requested it.
-	// Extra syntactic and semantic filtering of signature help
-	// For JS files, try a fallback that searches all source files for declarations
-	// with matching names that have call signatures. This is a heuristic for untyped JS code.
-	// return typeChecker.runWithCancellationToken(cancellationToken, typeChecker =>
-	// Check client capabilities for activeParameter handling
-	// Converting signatureHelpParameter to *lsproto.ParameterInformation
-	// If client supports per-signature activeParameter, set it on SignatureInformation
-	// If client doesn't support per-signature activeParameter, set it on the top-level SignatureHelp
-	// Creating display label
-	// createJSSignatureHelpItems is a fallback for JavaScript files when normal signature help
-	// doesn't produce results. It searches all source files for declarations with matching names
-	// that have call signatures.
-	// See if we can find some symbol with the call expression name that has call signatures.
-	/*useFullPrefix*/ // A contextual signature for an anonymous inline function type (e.g. a callback
-	// argument) has a synthetic symbol whose name is an internal marker such as
-	// "\xFEtype". There is no meaningful name to show, so render the signature with
-	// no prefix (as we already do when there is no call target symbol) rather than
-	// leaking the internal name.
-	// Check client capabilities for activeParameter handling
-	// Converting []signatureInformation to []*lsproto.SignatureInformation
-	// Set VS-specific colorized label if we have classified runs
-	// If client supports per-signature activeParameter, set it on each SignatureInformation
-	// If client doesn't support per-signature activeParameter, set it on the top-level SignatureHelp
-	// computeActiveParameter calculates the active parameter index for a signature,
-	// handling variadic signatures and null support appropriately.
-	// No parameters, return nil (omit the field)
-	// Middle rest parameter - we can't accurately highlight, so indicate "no active parameter"
-	// null means "no parameter is active"
-	// Client doesn't support null, use out-of-range index (defaults to 0 per LSP spec)
-	// Clamp to last parameter for trailing rest parameters
-	// Generate documentation from the signature's declaration
-	/*commentOnly*/ // Add ": " prefix
-	// Use a temporary writer for p.Write since the printer calls Clear() on its writer
+	SignatureHelpTriggerCharacters = []string{ // SignatureHelpTriggerCharacters and SignatureHelpRetriggerCharacters are the characters that trigger and
+		// re-trigger signature help. They are advertised both in the static server capabilities and in the dynamic
+		// content-mapper registration, so they live here to keep those two declarations in sync.
+		// Just for enclosingDeclaration for printing types
+		// Decide whether to show signature help
+		// We are at the beginning of the file
+		// was undefined
+		// was "invoked"
+		// was "characterTyped"
+		// was "retrigger"
+		// Emulate VS Code's toTsTriggerReason.
+		// Only need to be careful if the user typed a character and signature help wasn't showing.
+		// Bail out quickly in the middle of a string or comment, don't provide signature help unless the user explicitly requested it.
+		// Extra syntactic and semantic filtering of signature help
+		// For JS files, try a fallback that searches all source files for declarations
+		// with matching names that have call signatures. This is a heuristic for untyped JS code.
+		// return typeChecker.runWithCancellationToken(cancellationToken, typeChecker =>
+		// Check client capabilities for activeParameter handling
+		// Converting signatureHelpParameter to *lsproto.ParameterInformation
+		// If client supports per-signature activeParameter, set it on SignatureInformation
+		// If client doesn't support per-signature activeParameter, set it on the top-level SignatureHelp
+		// Creating display label
+		// createJSSignatureHelpItems is a fallback for JavaScript files when normal signature help
+		// doesn't produce results. It searches all source files for declarations with matching names
+		// that have call signatures.
+		// See if we can find some symbol with the call expression name that has call signatures.
+		/*useFullPrefix*/ // A contextual signature for an anonymous inline function type (e.g. a callback
+		// argument) has a synthetic symbol whose name is an internal marker such as
+		// "\xFEtype". There is no meaningful name to show, so render the signature with
+		// no prefix (as we already do when there is no call target symbol) rather than
+		// leaking the internal name.
+		// Check client capabilities for activeParameter handling
+		// Converting []signatureInformation to []*lsproto.SignatureInformation
+		// Set VS-specific colorized label if we have classified runs
+		// If client supports per-signature activeParameter, set it on each SignatureInformation
+		// If client doesn't support per-signature activeParameter, set it on the top-level SignatureHelp
+		// computeActiveParameter calculates the active parameter index for a signature,
+		// handling variadic signatures and null support appropriately.
+		// No parameters, return nil (omit the field)
+		// Middle rest parameter - we can't accurately highlight, so indicate "no active parameter"
+		// null means "no parameter is active"
+		// Client doesn't support null, use out-of-range index (defaults to 0 per LSP spec)
+		// Clamp to last parameter for trailing rest parameters
+		// Generate documentation from the signature's declaration
+		/*commentOnly*/ // Add ": " prefix
+		// Use a temporary writer for p.Write since the printer calls Clear() on its writer
 
-	// Creating type parameter display label
-	// Creating display label for parameters like, (a: string, b: number)
-	// Use a temporary writer for p.Write since the printer calls Clear() on its writer
+		// Creating type parameter display label
+		// Creating display label for parameters like, (a: string, b: number)
+		// Use a temporary writer for p.Write since the printer calls Clear() on its writer
 
-	// Creating display label for type parameters like, <T, U>
-	// Creating display parts for parameters. For example, (a: string, b: number)
-	// Use a temporary writer for p.Write since the printer calls Clear() on its writer
+		// Creating display label for type parameters like, <T, U>
+		// Creating display parts for parameters. For example, (a: string, b: number)
+		// Use a temporary writer for p.Write since the printer calls Clear() on its writer
 
-	// createSignatureHelpParameterFromLabel creates a signatureHelpParameter from a pre-computed label string.
-	/*commentOnly*/ // Represents the signature of something callable. A signature
-	// can have a label, like a function-name, a doc-comment, and
-	// a set of parameters.
-	// The Label of this signature. Will be shown in
-	// the UI.
-	// The human-readable doc-comment of this signature. Will be shown
-	// in the UI but can be omitted.
-	// The Parameters of this signature.
-	// Needed only here, not in lsp
-	// Classified text runs for VS colorized label
-	// This can happen in the case of an unresolved symbol.
-	// There's a possibility that `startingToken.parent` contains only `startingToken` and
-	// missing nodes, none of which are valid to be returned by `findPrecedingToken`. In that
-	// case, the preceding token we want is actually higher up the tree—almost definitely the
-	// next parent, but theoretically the situation with missing nodes might be happening on
-	// multiple nested levels.
-	/*excludeJSDoc*/ // If the node is not a subspan of its parent, this is a big problem.
-	// There have been crashes that might be caused by this violation.
-	// For contextual invocations (e.g., arrow functions with contextual types),
-	// always return immediately without checking the position.
-	// This ensures that when inside a callback's parameter list, we show the callback's
-	// signature, not the outer call's signature.
-	// Remember the first (innermost) argument info we find
-	// If the position is at the end boundary of an argument list, keep the
-	// innermost call. This covers cases like foo(bar("x"|)) where the cursor is
-	// still inside the inner invocation, just before its closing paren.
-	// If any call's span contains the position, return it.
-	// We walk from inner to outer, so this naturally prefers the innermost call
-	// when multiple calls contain the position.
-	// No call's span contains the position. Fall back to the innermost call we found.
-	// This covers boundary positions that are still syntactically associated with that
-	// invocation, such as being at the end of the argument list or on the close paren.
-	/** argumentCount is the *apparent* number of arguments. */ // Returns relevant information for the argument list and the current argument if we are
-	// in the argument of an invocation; returns undefined otherwise.
-	// There are 3 cases to handle:
-	//   1. The token introduces a list, and should begin a signature help session
-	//   2. The token is either not associated with a list, or ends a list, so the session should end
-	//   3. The token is buried inside a list, and should give signature help
-	//
-	// The following are examples of each:
-	//
-	//    Case 1:
-	//          foo<#T, U>(#a, b)    -> The token introduces a list, and should begin a signature help session
-	//    Case 2:
-	//          fo#o<T, U>#(a, b)#   -> The token is either not associated with a list, or ends a list, so the session should end
-	//    Case 3:
-	//          foo<T#, U#>(a#, #b#) -> The token is buried inside a list, and should give signature help
-	// Find out if 'node' is an argument, a type argument, or neither
-	// Check if we're actually inside the template;
-	// otherwise we'll fall out and return undefined.
-	// If we're just after a template tail, don't show signature help.
-	// Provide a signature help for JSX opening element or JSX self-closing element.
-	// This is not guarantee that JSX tag-name is resolved into stateless function component. (that is done in "getSignatureHelpItems")
-	// i.e
-	//      export function MainButton(props: ButtonProps, context: any): JSX.Element { ... }
-	//      <MainButton /*signatureHelp*/
-	// spanIndex is either the index for a given template span.
-	// This does not give appropriate results for a NoSubstitutionTemplateLiteral
-	// Because the TemplateStringsArray is the first argument, we have to offset each substitution expression by 1.
-	// There are three cases we can encounter:
-	//      1. We are precisely in the template literal (argIndex = 0).
-	//      2. We are in or to the right of the substitution expression (argIndex = spanIndex + 1).
-	//      3. We are directly to the right of the template literal, but because we look for the token on the left,
-	//          not enough to put us in the substitution expression; we should consider ourselves part of
-	//          the *next* span's expression by offsetting the index (argIndex = (spanIndex + 1) + 1).
-	//
-	// Example: f  `# abcd $#{#  1 + 1#  }# efghi ${ #"#hello"#  }  #  `
-	//              ^       ^ ^       ^   ^          ^ ^      ^     ^
-	// Case:        1       1 3       2   1          3 2      2     1
-	// The argument count for a list is normally the number of non-comma children it has.
-	// For example, if you have "Foo(a,b)" then there will be three children of the arg
-	// list 'a' '<comma>' 'b'. So, in this case the arg count will be 2. However, there
-	// is a small subtlety. If you have "Foo(a,)", then the child list will just have
-	// 'a' '<comma>'. So, in the case where the last child is a comma, we increase the
-	// arg count by one to compensate.
-	// We use full start and skip trivia on the end because we want to include trivia on
-	// both sides. For example,
-	//
-	//    foo(   /*comment */     a, b, c      /*comment*/     )
-	//        |                                               |
-	//
-	// The applicable span is from the first bar to the second bar (inclusive,
-	// but not including parentheses).
-	// If the user has just opened a list, and there are no arguments.
-	// For example, foo(    )
-	//                  |  |
-	// The span should include positions inside the parentheses.
-	// If the argument list is empty (Pos == End), extend the span to include at least
-	// one position. This handles foo(|) where the cursor is right after the opening paren.
-	// ensureMinimumSpanSize ensures that a span includes at least one position.
-	// TextRange.Contains uses a half-open interval, so an empty span would not contain
+		// createSignatureHelpParameterFromLabel creates a signatureHelpParameter from a pre-computed label string.
+		/*commentOnly*/ // Represents the signature of something callable. A signature
+		// can have a label, like a function-name, a doc-comment, and
+		// a set of parameters.
+		// The Label of this signature. Will be shown in
+		// the UI.
+		// The human-readable doc-comment of this signature. Will be shown
+		// in the UI but can be omitted.
+		// The Parameters of this signature.
+		// Needed only here, not in lsp
+		// Classified text runs for VS colorized label
+		// This can happen in the case of an unresolved symbol.
+		// There's a possibility that `startingToken.parent` contains only `startingToken` and
+		// missing nodes, none of which are valid to be returned by `findPrecedingToken`. In that
+		// case, the preceding token we want is actually higher up the tree—almost definitely the
+		// next parent, but theoretically the situation with missing nodes might be happening on
+		// multiple nested levels.
+		/*excludeJSDoc*/ // If the node is not a subspan of its parent, this is a big problem.
+		// There have been crashes that might be caused by this violation.
+		// For contextual invocations (e.g., arrow functions with contextual types),
+		// always return immediately without checking the position.
+		// This ensures that when inside a callback's parameter list, we show the callback's
+		// signature, not the outer call's signature.
+		// Remember the first (innermost) argument info we find
+		// If the position is at the end boundary of an argument list, keep the
+		// innermost call. This covers cases like foo(bar("x"|)) where the cursor is
+		// still inside the inner invocation, just before its closing paren.
+		// If any call's span contains the position, return it.
+		// We walk from inner to outer, so this naturally prefers the innermost call
+		// when multiple calls contain the position.
+		// No call's span contains the position. Fall back to the innermost call we found.
+		// This covers boundary positions that are still syntactically associated with that
+		// invocation, such as being at the end of the argument list or on the close paren.
+		/** argumentCount is the *apparent* number of arguments. */ // Returns relevant information for the argument list and the current argument if we are
+		// in the argument of an invocation; returns undefined otherwise.
+		// There are 3 cases to handle:
+		//   1. The token introduces a list, and should begin a signature help session
+		//   2. The token is either not associated with a list, or ends a list, so the session should end
+		//   3. The token is buried inside a list, and should give signature help
+		//
+		// The following are examples of each:
+		//
+		//    Case 1:
+		//          foo<#T, U>(#a, b)    -> The token introduces a list, and should begin a signature help session
+		//    Case 2:
+		//          fo#o<T, U>#(a, b)#   -> The token is either not associated with a list, or ends a list, so the session should end
+		//    Case 3:
+		//          foo<T#, U#>(a#, #b#) -> The token is buried inside a list, and should give signature help
+		// Find out if 'node' is an argument, a type argument, or neither
+		// Check if we're actually inside the template;
+		// otherwise we'll fall out and return undefined.
+		// If we're just after a template tail, don't show signature help.
+		// Provide a signature help for JSX opening element or JSX self-closing element.
+		// This is not guarantee that JSX tag-name is resolved into stateless function component. (that is done in "getSignatureHelpItems")
+		// i.e
+		//      export function MainButton(props: ButtonProps, context: any): JSX.Element { ... }
+		//      <MainButton /*signatureHelp*/
+		// spanIndex is either the index for a given template span.
+		// This does not give appropriate results for a NoSubstitutionTemplateLiteral
+		// Because the TemplateStringsArray is the first argument, we have to offset each substitution expression by 1.
+		// There are three cases we can encounter:
+		//      1. We are precisely in the template literal (argIndex = 0).
+		//      2. We are in or to the right of the substitution expression (argIndex = spanIndex + 1).
+		//      3. We are directly to the right of the template literal, but because we look for the token on the left,
+		//          not enough to put us in the substitution expression; we should consider ourselves part of
+		//          the *next* span's expression by offsetting the index (argIndex = (spanIndex + 1) + 1).
+		//
+		// Example: f  `# abcd $#{#  1 + 1#  }# efghi ${ #"#hello"#  }  #  `
+		//              ^       ^ ^       ^   ^          ^ ^      ^     ^
+		// Case:        1       1 3       2   1          3 2      2     1
+		// The argument count for a list is normally the number of non-comma children it has.
+		// For example, if you have "Foo(a,b)" then there will be three children of the arg
+		// list 'a' '<comma>' 'b'. So, in this case the arg count will be 2. However, there
+		// is a small subtlety. If you have "Foo(a,)", then the child list will just have
+		// 'a' '<comma>'. So, in the case where the last child is a comma, we increase the
+		// arg count by one to compensate.
+		// We use full start and skip trivia on the end because we want to include trivia on
+		// both sides. For example,
+		//
+		//    foo(   /*comment */     a, b, c      /*comment*/     )
+		//        |                                               |
+		//
+		// The applicable span is from the first bar to the second bar (inclusive,
+		// but not including parentheses).
+		// If the user has just opened a list, and there are no arguments.
+		// For example, foo(    )
+		//                  |  |
+		// The span should include positions inside the parentheses.
+		// If the argument list is empty (Pos == End), extend the span to include at least
+		// one position. This handles foo(|) where the cursor is right after the opening paren.
+		// ensureMinimumSpanSize ensures that a span includes at least one position.
+		// TextRange.Contains uses a half-open interval, so an empty span would not contain
 
-	// the cursor immediately after typing an opening paren in a call like foo(bar(|)).
-	// Find the list that starts right *after* the < or ( token.
-	// If the user has just opened a list, consider this item 0.
-	// findListItemInfo can return undefined if we are not in parent's argument list
-	// or type argument list. This includes cases where the cursor is:
-	//   - To the right of the closing parenthesis, non-substitution template, or template tail.
-	//   - Between the type arguments and the arguments (greater than token)
-	//   - On the target of the call (parent.func)
-	//   - On the 'new' keyword in a 'new' expression
-	// Find the index of the argument that contains the node.
-	// for optional function condition
-	// argumentCount is either 1 or (numSpans + 1) to account for the template strings array argument.
-	// We need to adjust the end position for the case where the template does not have a tail.
-	// Otherwise, we will not show signature help past the expression.
-	// For example,
-	//
-	//      ` ${ 1 + 1 foo(10)
-	//       |       |
-	// This is because a Missing node has no width. However, what we actually want is to include trivia
-	// leading up to the next token in case the user is about to type in a TemplateMiddle or TemplateTail.
-	"(", ",", "<"}
+		// the cursor immediately after typing an opening paren in a call like foo(bar(|)).
+		// Find the list that starts right *after* the < or ( token.
+		// If the user has just opened a list, consider this item 0.
+		// findListItemInfo can return undefined if we are not in parent's argument list
+		// or type argument list. This includes cases where the cursor is:
+		//   - To the right of the closing parenthesis, non-substitution template, or template tail.
+		//   - Between the type arguments and the arguments (greater than token)
+		//   - On the target of the call (parent.func)
+		//   - On the 'new' keyword in a 'new' expression
+		// Find the index of the argument that contains the node.
+		// for optional function condition
+		// argumentCount is either 1 or (numSpans + 1) to account for the template strings array argument.
+		// We need to adjust the end position for the case where the template does not have a tail.
+		// Otherwise, we will not show signature help past the expression.
+		// For example,
+		//
+		//      ` ${ 1 + 1 foo(10)
+		//       |       |
+		// This is because a Missing node has no width. However, what we actually want is to include trivia
+		// leading up to the next token in case the user is about to type in a TemplateMiddle or TemplateTail.
+		"(", ",", "<"}
 	SignatureHelpRetriggerCharacters = []string{")"}
 )
 
@@ -851,7 +851,7 @@ func getImmediatelyContainingArgumentInfo(node ast.Handle, position int, sourceF
 		if isTemplateTail(node) && !isInsideTemplateLiteral(node, position, sourceFile) {
 			return nil
 		}
-		spanIndex := ast.IndexOfNode(templateSpan.Store().ListSlice(templateSpan.Parent().TemplateExpressionTemplateSpans()), templateSpan)
+		spanIndex := templateSpan.Store().ListIndexOf(templateSpan.Parent().TemplateExpressionTemplateSpans(), templateSpan)
 		argumentIndex := getArgumentIndexForTemplatePiece(spanIndex, node, position, sourceFile)
 		return getArgumentListInfoForTemplate(tagExpression, argumentIndex, sourceFile)
 	} else if ast.IsJsxOpeningLikeElement(parent) {
@@ -1148,7 +1148,7 @@ func getTokenFromNodeList(nodeList ast.ListRef, nodeListParent ast.Handle, sourc
 func getArgumentListInfoForTemplate(tagExpression ast.Handle, argumentIndex int, sourceFile *ast.SourceFile) *argumentListInfo {
 	argumentCount := 1
 	if !isNoSubstitutionTemplateLiteral(tagExpression.Template()) {
-		argumentCount = len(tagExpression.Template().Store().ListSlice(tagExpression.Template().TemplateExpressionTemplateSpans())) + 1
+		argumentCount = tagExpression.Template().Store().ListLen(tagExpression.Template().TemplateExpressionTemplateSpans()) + 1
 	}
 	if argumentIndex != 0 {
 		debug.Assert(argumentIndex < argumentCount)
