@@ -107,7 +107,7 @@ func (ch *PseudoChecker) typeFromVariable(declaration ast.Handle) *PseudoType {
 		return NewPseudoTypeDirect(t)
 	}
 	init := declaration.Initializer()
-	if !init.IsNil() && declaration.Symbol() != nil && (len(declaration.Symbol().Declarations) == 1 || core.CountWhere(ast.DeclarationNodes(declaration.Symbol()), ast.IsVariableDeclaration) == 1) {
+	if !init.IsNil() && declaration.Symbol() != nil && (len(declaration.Symbol().Declarations) == 1 || ast.DeclarationNodes(declaration.Symbol()).Count(ast.IsVariableDeclaration) == 1) {
 		if !isContextuallyTyped(declaration) {
 			if ast.IsVarConst(declaration) && ast.IsTemplateExpression(init) {
 				return NewPseudoTypeNoResult(declaration)
@@ -437,9 +437,9 @@ func typeNodeCouldReferToUndefined(node ast.Handle) bool {
 	case ast.KindTypeReference, ast.KindIndexedAccessType, ast.KindTypeQuery, ast.KindOptionalType, ast.KindRestType, ast.KindImportType:
 		return true
 	case ast.KindIntersectionType:
-		return core.Some(node.Store().ListSlice(node.IntersectionTypeNodeTypes()), typeNodeCouldReferToUndefined)
+		return node.Store().ListSlice(node.IntersectionTypeNodeTypes()).Some(typeNodeCouldReferToUndefined)
 	case ast.KindUnionType:
-		return core.Some(node.Store().ListSlice(node.UnionTypeNodeTypes()), typeNodeCouldReferToUndefined)
+		return node.Store().ListSlice(node.UnionTypeNodeTypes()).Some(typeNodeCouldReferToUndefined)
 	case ast.KindConditionalType:
 		return true
 	case ast.KindTypeOperator:
