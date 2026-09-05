@@ -16677,7 +16677,7 @@ func (c *Checker) addInheritedMembers(symbols ast.SymbolTable, baseSymbols []*as
 		if !isStaticPrivateIdentifierProperty(base) {
 			if s, ok := symbols[base.Name]; !ok || s.Flags&ast.SymbolFlagsValue == 0 {
 				if symbols == nil {
-					symbols = make(ast.SymbolTable)
+					symbols = make(ast.SymbolTable, len(baseSymbols))
 				}
 				symbols[base.Name] = base
 			}
@@ -22043,50 +22043,63 @@ func (c *Checker) UnionTypes() iter.Seq[*Type] {
 	return maps.Values(c.unionTypes)
 }
 func (c *Checker) addTypesToUnion(sourceTypes []*Type) ([]*Type, TypeFlags) {
-	types := make([]*Type, 0, len(sourceTypes))
-	var includes TypeFlags
-	addType := func(t *Type) {
-		flags := t.flags
-		if flags&TypeFlagsNever != 0 {
-			return
+	capHint := 0
+	for _, t := range sourceTypes {
+		if t.flags&TypeFlagsUnion != 0 {
+			capHint += len(t.AsUnionType().types)
+		} else {
+			capHint++
 		}
-		includes |= flags & TypeFlagsIncludesMask
-		if flags&TypeFlagsInstantiable != 0 {
-			includes |= TypeFlagsIncludesInstantiable
-		}
-		if flags&TypeFlagsIntersection != 0 && t.objectFlags&ObjectFlagsIsConstrainedTypeVariable != 0 {
-			includes |= TypeFlagsIncludesConstrainedTypeVariable
-		}
-		if t == c.wildcardType {
-			includes |= TypeFlagsIncludesWildcard
-		}
-		if c.isErrorType(t) {
-			includes |= TypeFlagsIncludesError
-		}
-		if !c.strictNullChecks && flags&TypeFlagsNullable != 0 {
-			if t.objectFlags&ObjectFlagsContainsWideningType == 0 {
-				includes |= TypeFlagsIncludesNonWideningType
-			}
-			return
-		}
-		types = append(types, t)
 	}
+	types := make([]*Type, 0, capHint)
+	var includes TypeFlags
 	var lastType *Type
 	for _, t := range sourceTypes {
-		if t != lastType {
-			if t.flags&TypeFlagsUnion != 0 {
-				u := t.AsUnionType()
-				if t.alias != nil || u.origin != nil {
-					includes |= TypeFlagsUnion
-				}
-				for _, s := range u.types {
-					addType(s)
-				}
-			} else {
-				addType(t)
-			}
-			lastType = t
+		if t == lastType {
+			continue
 		}
+		isUnion := t.flags&TypeFlagsUnion != 0
+		var unionTypes []*Type
+		n := 1
+		if isUnion {
+			u := t.AsUnionType()
+			if t.alias != nil || u.origin != nil {
+				includes |= TypeFlagsUnion
+			}
+			unionTypes = u.types
+			n = len(unionTypes)
+		}
+		for i := 0; i < n; i++ {
+			s := t
+			if isUnion {
+				s = unionTypes[i]
+			}
+			flags := s.flags
+			if flags&TypeFlagsNever != 0 {
+				continue
+			}
+			includes |= flags & TypeFlagsIncludesMask
+			if flags&TypeFlagsInstantiable != 0 {
+				includes |= TypeFlagsIncludesInstantiable
+			}
+			if flags&TypeFlagsIntersection != 0 && s.objectFlags&ObjectFlagsIsConstrainedTypeVariable != 0 {
+				includes |= TypeFlagsIncludesConstrainedTypeVariable
+			}
+			if s == c.wildcardType {
+				includes |= TypeFlagsIncludesWildcard
+			}
+			if c.isErrorType(s) {
+				includes |= TypeFlagsIncludesError
+			}
+			if !c.strictNullChecks && flags&TypeFlagsNullable != 0 {
+				if s.objectFlags&ObjectFlagsContainsWideningType == 0 {
+					includes |= TypeFlagsIncludesNonWideningType
+				}
+				continue
+			}
+			types = append(types, s)
+		}
+		lastType = t
 	}
 	if len(types) >= 2 {
 		slices.SortStableFunc(types, CompareTypes)
