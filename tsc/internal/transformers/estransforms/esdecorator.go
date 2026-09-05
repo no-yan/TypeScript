@@ -24,9 +24,9 @@ type lexicalEntry struct {
 	next                    *lexicalEntry
 	classInfoData           *classInfo
 	savedPendingExpressions []ast.Handle
-	classThisData  ast.Handle
-	classSuperData ast.Handle
-	depth          int
+	classThisData           ast.Handle
+	classSuperData          ast.Handle
+	depth                   int
 }
 
 type memberInfo struct {
@@ -67,18 +67,18 @@ type esDecoratorTransformer struct {
 	pendingExpressions                         []ast.Handle
 	outerThis                                  ast.Handle
 	shouldTransformPrivateStaticElementsInFile bool
-	outerThisVisitor *ast.HandleVisitor
-	discardedVisitor *ast.HandleVisitor
-	modifierVisitor *ast.HandleVisitor
-	exportStrippingModifierVisitor *ast.HandleVisitor
-	classElementVisitor *ast.HandleVisitor
-	nonConstructorClassElementVisitor *ast.HandleVisitor
-	constructorClassElementVisitor *ast.HandleVisitor
-	arrayAssignmentVisitor *ast.HandleVisitor
-	objectAssignmentVisitor *ast.HandleVisitor
-	staticOnlyModifierVisitor *ast.HandleVisitor
-	asyncOnlyModifierVisitor *ast.HandleVisitor
-	accessorStrippingModifierVisitor *ast.HandleVisitor
+	outerThisVisitor                           *ast.HandleVisitor
+	discardedVisitor                           *ast.HandleVisitor
+	modifierVisitor                            *ast.HandleVisitor
+	exportStrippingModifierVisitor             *ast.HandleVisitor
+	classElementVisitor                        *ast.HandleVisitor
+	nonConstructorClassElementVisitor          *ast.HandleVisitor
+	constructorClassElementVisitor             *ast.HandleVisitor
+	arrayAssignmentVisitor                     *ast.HandleVisitor
+	objectAssignmentVisitor                    *ast.HandleVisitor
+	staticOnlyModifierVisitor                  *ast.HandleVisitor
+	asyncOnlyModifierVisitor                   *ast.HandleVisitor
+	accessorStrippingModifierVisitor           *ast.HandleVisitor
 }
 
 func newESDecoratorTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
@@ -606,12 +606,14 @@ func (tx *esDecoratorTransformer) transformClassLike(node ast.Handle) ast.Handle
 				break
 			}
 		}
+		// Slice once for member splice/append into newMembers.
+		membersSlice := node.Store().ListSlice(members).Slice()
 		if !leadingStaticBlock.IsNil() {
-			newMembers = append(newMembers, node.Store().ListSlice(members)[:existingNamedEvaluationHelperBlockIndex+1]...)
+			newMembers = append(newMembers, membersSlice[:existingNamedEvaluationHelperBlockIndex+1]...)
 			newMembers = append(newMembers, leadingStaticBlock)
-			newMembers = append(newMembers, node.Store().ListSlice(members)[existingNamedEvaluationHelperBlockIndex+1:]...)
+			newMembers = append(newMembers, membersSlice[existingNamedEvaluationHelperBlockIndex+1:]...)
 		} else {
-			newMembers = append(newMembers, node.Store().ListSlice(members)...)
+			newMembers = append(newMembers, membersSlice...)
 		}
 		if !syntheticConstructor.IsNil() {
 			newMembers = append(newMembers, syntheticConstructor)
@@ -814,7 +816,8 @@ func (tx *esDecoratorTransformer) visitConstructorDeclaration(node ast.Handle) a
 		initializerStatements := tx.prepareConstructor(tx.classInfoStack)
 		if len(initializerStatements) > 0 {
 			stmts := []ast.Handle{}
-			prologue, rest := tx.Factory().SplitStandardPrologue(ctor.Body().Store().ListSlice(ctor.Body().BlockStatements()))
+			// SplitStandardPrologue partitions []Handle.
+			prologue, rest := tx.Factory().SplitStandardPrologue(ctor.Body().StatementsSeq().Slice())
 			stmts = append(stmts, prologue...)
 			superStatementIndices := transformers.FindSuperStatementIndexPath(rest, 0)
 			if len(superStatementIndices) > 0 {
@@ -1186,7 +1189,8 @@ func (tx *esDecoratorTransformer) visitCallExpression(node ast.Handle) ast.Handl
 	if ast.IsSuperProperty(call.Expression()) && !tx.classThis.IsNil() {
 		expression := tx.Visitor().VisitNode(call.Expression())
 		argumentsList := tx.Visitor().VisitNodes(call.ArgumentList())
-		invocation := tx.Factory().NewFunctionCallCall(expression, tx.classThis, node.Store().ListSlice(argumentsList))
+		// NewFunctionCallCall takes []Handle arguments.
+		invocation := tx.Factory().NewFunctionCallCall(expression, tx.classThis, node.Store().ListSlice(argumentsList).Slice())
 		tx.EmitContext().SetOriginal(invocation, node)
 		invocation.SetLoc(node.Loc())
 		return invocation
