@@ -21,7 +21,7 @@ func GetSymbolDocumentationComment(c *checker.Checker, symbol *ast.Symbol) strin
 	if symbol == nil {
 		return ""
 	}
-	var parts []string// JSDocTagInfo mirrors Strada's `JSDocTagInfo`, but renders the tag's text as a
+	var parts []string // JSDocTagInfo mirrors Strada's `JSDocTagInfo`, but renders the tag's text as a
 	// plain string instead of `SymbolDisplayPart[]`.
 	// GetSymbolDocumentationComment renders a symbol's documentation comment as plain text.
 	// It backs the API's Symbol.getDocumentationComment and mirrors Strada's
@@ -187,7 +187,7 @@ func getJSDocOrTag(c *checker.Checker, node ast.Handle, seenSymbols *collections
 		return getMatchingJSDocTag(c, node.Parent(), name.Text(), isMatchingParameterTag, seenSymbols)
 	case ast.IsTypeParameterDeclaration(node):
 		return getMatchingJSDocTag(c, node.Parent(), node.Name().Text(), isMatchingTemplateTag, seenSymbols)
-	case ast.IsVariableDeclaration(node) && ast.IsVariableDeclarationList(node.Parent()) && core.FirstOrNil(node.Store().ListSlice(node.Parent().VariableDeclarationListDeclarations())) == node:
+	case ast.IsVariableDeclaration(node) && ast.IsVariableDeclarationList(node.Parent()) && node.Store().ListAt(node.Parent().VariableDeclarationListDeclarations(), 0) == node:
 		return getJSDocOrTag(c, node.Parent().Parent(), seenSymbols)
 	case (ast.IsFunctionExpressionOrArrowFunction(node) || ast.IsClassExpression(node)) && (ast.IsVariableDeclaration(node.Parent()) || ast.IsPropertyDeclaration(node.Parent()) || ast.IsPropertyAssignment(node.Parent())) && node.Parent().Initializer() == node:
 		return getJSDocOrTag(c, node.Parent(), seenSymbols)

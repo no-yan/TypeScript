@@ -1190,13 +1190,14 @@ func (l *LanguageService) getCompletionData(ctx context.Context, typeChecker *ch
 		}
 	}
 	addPropertySymbol := func(symbol *ast.Symbol, insertAwait bool, insertQuestionDot bool) {
-		computedPropertyName := core.FirstNonNil(ast.DeclarationNodes(symbol), func(decl ast.Handle) ast.Handle {
+		declWithComputedName := ast.DeclarationNodes(symbol).FirstMatching(func(decl ast.Handle) bool {
 			name := ast.GetNameOfDeclaration(decl)
-			if !name.IsNil() && name.Kind == ast.KindComputedPropertyName {
-				return name
-			}
-			return ast.Handle{}
+			return !name.IsNil() && name.Kind == ast.KindComputedPropertyName
 		})
+		var computedPropertyName ast.Handle
+		if !declWithComputedName.IsNil() {
+			computedPropertyName = ast.GetNameOfDeclaration(declWithComputedName)
+		}
 		if !computedPropertyName.IsNil() {
 			leftMostName := getLeftMostName(computedPropertyName.Expression())
 			var nameSymbol *ast.Symbol
@@ -1590,8 +1591,8 @@ func (l *LanguageService) getCompletionData(ctx context.Context, typeChecker *ch
 			return globalsSearchContinue, nil
 		}
 		var elements []ast.Handle
-		if importAttributes.ImportAttributesAttributes() != 0 {
-			elements = importAttributes.Store().ListSlice(importAttributes.ImportAttributesAttributes())
+		if attrs := importAttributes.ImportAttributesAttributes(); attrs != 0 {
+			elements = importAttributes.Store().ListSlice(attrs).Slice()
 		}
 		attributeNames := core.Map(elements, func(el ast.Handle) string {
 			return el.ImportAttributeName().Text()
@@ -1906,7 +1907,7 @@ func (l *LanguageService) completionInfoFromData(ctx context.Context, typeChecke
 	}
 	caseClause := ast.FindAncestor(contextToken, ast.IsCaseClause)
 	if !caseClause.IsNil() && (contextToken.Kind == ast.KindCaseKeyword || ast.IsNodeDescendantOf(contextToken, caseClause.Expression())) {
-		tracker := newCaseClauseTracker(typeChecker, caseClause.Store().ListSlice(caseClause.Parent().CaseBlockClauses()))
+		tracker := newCaseClauseTracker(typeChecker, caseClause.Store().ListSlice(caseClause.Parent().CaseBlockClauses()).Slice())
 		literals = core.Filter(literals, func(literal literalValue) bool {
 			return !tracker.hasValue(literal)
 		})
@@ -2276,7 +2277,7 @@ func (l *LanguageService) getEntryForObjectLiteralMethodCompletion(ctx context.C
 func (l *LanguageService) createObjectLiteralMethod(snippetPrinter *snippetPrinter, typeChecker *checker.Checker, symbol *ast.Symbol, enclosingDeclaration ast.Handle, file *ast.SourceFile, isSnippet bool) ast.Handle {
 	factory := snippetPrinter.factory
 	emitContext := snippetPrinter.emitContext
-	declaration := core.FirstOrNil(ast.DeclarationNodes(symbol))
+	declaration := ast.DeclarationNodes(symbol).First()
 	if !isObjectLiteralMethodCompletionCandidateDeclaration(declaration) {
 		return ast.Handle{}
 	}
@@ -2312,8 +2313,9 @@ func (l *LanguageService) createObjectLiteralMethod(snippetPrinter *snippetPrint
 	if typeNode.IsNil() || typeNode.Kind != ast.KindFunctionType {
 		return ast.Handle{}
 	}
-	parameters := make([]ast.Handle, 0, len(typeNode.Store().ListSlice(typeNode.FunctionTypeNodeParameters())))
-	for _, parameter := range typeNode.Store().ListSlice(typeNode.FunctionTypeNodeParameters()) {
+	paramList := typeNode.FunctionTypeNodeParameters()
+	parameters := make([]ast.Handle, 0, typeNode.Store().ListLen(paramList))
+	for _, parameter := range typeNode.Store().ListSlice(paramList) {
 		parameters = append(parameters, factory.NewParameterDeclaration(0, parameter.ParameterDeclarationDotDotDotToken(), factory.DeepCloneNode(parameter.Name()), ast.Handle{}, ast.Handle{}, parameter.ParameterDeclarationInitializer()))
 	}
 	body := factory.NewBlock(factory.NewList(nil), true)
@@ -4572,7 +4574,7 @@ func getJSDocParameterCompletions(ctx context.Context, file *ast.SourceFile, pos
 	isJS := ast.IsSourceFileJS(file)
 	isSnippet := false
 	paramTagCount := 0
-	var tags []ast.Handle
+	var tags ast.NodeSeq = ast.EmptyNodeSeq
 	if jsDoc.JSDocTags() != 0 {
 		tags = jsDoc.Store().ListSlice(jsDoc.JSDocTags())
 	}
@@ -4742,7 +4744,7 @@ func getJSDocParameterNameCompletions(tag ast.Handle) []*CompletionItem {
 	if !ast.IsFunctionLike(fn) {
 		return nil
 	}
-	var tags []ast.Handle
+	var tags ast.NodeSeq = ast.EmptyNodeSeq
 	if jsDoc.JSDocTags() != 0 {
 		tags = jsDoc.Store().ListSlice(jsDoc.JSDocTags())
 	}
@@ -4751,7 +4753,7 @@ func getJSDocParameterNameCompletions(tag ast.Handle) []*CompletionItem {
 			return nil
 		}
 		name := param.Name().Text()
-		if core.Some(tags, func(t ast.Handle) bool {
+		if tags.Some(func(t ast.Handle) bool {
 			return t != tag && ast.IsJSDocParameterTag(t) && ast.IsIdentifier(t.Name()) && t.Name().Text() == name
 		}) || nameThusFar != "" && !strings.HasPrefix(name, nameThusFar) {
 			return nil

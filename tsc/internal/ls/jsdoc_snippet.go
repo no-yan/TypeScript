@@ -186,9 +186,9 @@ func getCommentOwnerInfoWorker(commentOwner ast.Handle, generateReturnInDocTempl
 		}
 		return &commentOwnerInfo{commentOwner: commentOwner}, false
 	case ast.KindVariableStatement:
-		declarations := commentOwner.Store().ListSlice(commentOwner.VariableStatementDeclarationList().VariableDeclarationListDeclarations())
-		if len(declarations) == 1 {
-			if initializer := declarations[0].VariableDeclarationInitializer(); !initializer.IsNil() {
+		decls := commentOwner.VariableStatementDeclarationList().VariableDeclarationListDeclarations()
+		if commentOwner.Store().ListLen(decls) == 1 {
+			if initializer := commentOwner.Store().ListAt(decls, 0).VariableDeclarationInitializer(); !initializer.IsNil() {
 				if host := getRightHandSideOfAssignment(initializer); !host.IsNil() {
 					return &commentOwnerInfo{commentOwner: commentOwner, parameters: host.Parameters(), hasReturn: hasReturn(host, generateReturnInDocTemplate)}, false
 				}

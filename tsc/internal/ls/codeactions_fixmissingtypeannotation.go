@@ -17,116 +17,116 @@ import (
 	"strconv"
 )
 
-var isolatedDeclarationsFixErrorCodes = []int32{// IsolatedDeclarationsFixProvider is the CodeFixProvider for isolatedDeclarations-related type annotation fixes.
-// canHaveTypeAnnotationKinds are the node kinds that can have type annotations added.
-// declarationEmitNodeBuilderFlags are the node builder flags used for declaration emit.
-// typeof X
-// widened literal type
-// Match TS ordering: Full annotation, Relative annotation, Widened annotation,
-// Full inline, Relative inline, Widened inline, Full extract
-// extractAsVariable only in Full mode
-// importAdder may be nil if the auto-import registry is not available;
-// type node transformation still works without it, just without adding imports.
-// Add any symbols that need to be imported to existing import declarations
-// Add import edits if import adder has fixes
-// isolatedDeclarationsFixer encapsulates the state for fixing isolated declarations errors.
-// set by inferType/relativeType when the target was mutated (e.g., spread decomposition)
-// skip symbols that already have a variable declaration
-// Set the flags for namespace
-// needsParenthesizedExpressionForAssertion checks if an expression needs parentheses for an assertion.
-// createAsExpression creates an `expr as Type` expression, parenthesizing if needed.
-// No inline assertions for expando members
-// Go's IsDeclaration is broader than TS's isDeclaration (e.g. CallExpression has DeclarationData
-// in Go but is not a declaration kind in TS). Use isNamedDeclarationKind to match TS behavior.
-// No inline assertions on binding patterns
-// No inline assertions on enum members
-// No support for typeof in extends clauses
-// Can't inline type spread elements
-// Can't use typeof on unique symbols
-// Insert `: expr as Type` after the shorthand property name
-// Replace expression with `(expression) satisfies Type as Type` or `expression satisfies Type as Type`
-// Array literals should be marked as const
-// Identifiers or entity names can already be typeof-ed
-// Handle spread elements: walk up to the spread's parent and handle const assertions
-// findExpandoFunction finds the function declaration that has expando properties assigned to it.
-// isExpandoPropertyDeclarationForFix matches TS's isExpandoPropertyDeclaration which includes
-// PropertyAccessExpression, ElementAccessExpression, and BinaryExpression. The shared
-// ast.IsExpandoPropertyDeclaration was narrowed to BinaryExpression only for checker purposes.
+var isolatedDeclarationsFixErrorCodes = []int32{ // IsolatedDeclarationsFixProvider is the CodeFixProvider for isolatedDeclarations-related type annotation fixes.
+	// canHaveTypeAnnotationKinds are the node kinds that can have type annotations added.
+	// declarationEmitNodeBuilderFlags are the node builder flags used for declaration emit.
+	// typeof X
+	// widened literal type
+	// Match TS ordering: Full annotation, Relative annotation, Widened annotation,
+	// Full inline, Relative inline, Widened inline, Full extract
+	// extractAsVariable only in Full mode
+	// importAdder may be nil if the auto-import registry is not available;
+	// type node transformation still works without it, just without adding imports.
+	// Add any symbols that need to be imported to existing import declarations
+	// Add import edits if import adder has fixes
+	// isolatedDeclarationsFixer encapsulates the state for fixing isolated declarations errors.
+	// set by inferType/relativeType when the target was mutated (e.g., spread decomposition)
+	// skip symbols that already have a variable declaration
+	// Set the flags for namespace
+	// needsParenthesizedExpressionForAssertion checks if an expression needs parentheses for an assertion.
+	// createAsExpression creates an `expr as Type` expression, parenthesizing if needed.
+	// No inline assertions for expando members
+	// Go's IsDeclaration is broader than TS's isDeclaration (e.g. CallExpression has DeclarationData
+	// in Go but is not a declaration kind in TS). Use isNamedDeclarationKind to match TS behavior.
+	// No inline assertions on binding patterns
+	// No inline assertions on enum members
+	// No support for typeof in extends clauses
+	// Can't inline type spread elements
+	// Can't use typeof on unique symbols
+	// Insert `: expr as Type` after the shorthand property name
+	// Replace expression with `(expression) satisfies Type as Type` or `expression satisfies Type as Type`
+	// Array literals should be marked as const
+	// Identifiers or entity names can already be typeof-ed
+	// Handle spread elements: walk up to the spread's parent and handle const assertions
+	// findExpandoFunction finds the function declaration that has expando properties assigned to it.
+	// isExpandoPropertyDeclarationForFix matches TS's isExpandoPropertyDeclaration which includes
+	// PropertyAccessExpression, ElementAccessExpression, and BinaryExpression. The shared
+	// ast.IsExpandoPropertyDeclaration was narrowed to BinaryExpression only for checker purposes.
 
-// Some late bound expando members use the whole expression as the declaration.
-// Avoid creating duplicate fixes for the same node
-// Deep clone the expression so synthesized nodes don't reference original source positions
-// Create: const <BaseName>: <type> = <expression>;
-// Replace the heritage expression with the base class name
-// Create a temporary variable for complex expressions
-// Use a new identifier to avoid referencing original source positions
-// Extract each binding element as a separate variable with type annotation
-// If the enclosing variable statement has multiple declarations, preserve the non-destructuring ones
-// Build property access expression
-// Handle computed property names: create a temp variable for the computed expression
-// Use property name text (handles identifiers, string literals, numeric literals)
-// emitBindingElementVariable creates a variable declaration for a single binding element,
-// handling default initializers by creating a ternary `temp === undefined ? default : temp`.
-// Create a temp variable to hold the accessed value, then use a conditional expression
-// to apply the default: temp === undefined ? defaultValue : temp
-// Handle Relative mode first: return typeof X for identifiers
-// Handle Widened mode: return widened literal type if different
-// widened type is same, no fix needed
-// For parameters that require adding implicit undefined, add it to the type
-// createTypeOfFromEntityNameExpression creates a `typeof X` type query node.
-// typeFromArraySpreadElements decomposes an array literal with spread elements into
-// separate variables, returning a tuple type of typeof references.
-// typeFromObjectSpreadAssignment decomposes an object literal with spread assignments into
-// separate variables, returning an intersection type of typeof references.
-// typeFromSpreads is the generic spread decomposition function, ported from TS's typeFromSpreads.
-// It splits a literal with spread elements into separate const variables and returns a composed type.
-// makeSpreadVariable creates a const variable for a spread expression and adds it to the decomposition.
-// finalizesVariablePart finalizes accumulated non-spread properties into a variable.
-// isConstAssertion checks if a node is an `as const` or `<const>` assertion.
-// relativeType creates a typeof expression for a node, used in TypePrintMode.Relative.
-// Instead of spelling out the full type, returns `typeof X` for identifiers.
-// For object/array literals with spreads, decomposes into separate variables.
-// typeToMinimizedReferenceType converts a type to a type node, then trims trailing
-// type arguments that match their defaults. Ported from TS's
-// services/codefixes/helpers.ts typeToMinimizedReferenceType.
-// !!! When truncation tracking is supported, check if the type was truncated
-// and return factory.NewKeywordTypeNode(ast.KindAnyKeyword) instead of the truncated node.
-// Trim trailing default type arguments
-// Convert import type references (e.g. import("./path").Name) to simple type references
-// and collect symbols that need to be imported
-// endOfRequiredTypeParameters finds the number of type arguments that are
-// actually required (i.e., differ from their defaults). Ported from TS's
-// services/codefixes/helpers.ts endOfRequiredTypeParameters.
-// Skip cutoff positions where the local type parameter has no default.
-// This matches TS's check for constraint === undefined on localTypeParameters,
-// which in practice skips type parameters without defaults (e.g. Set<T>
-// where T has no default should not have <unknown> elided).
-// typeParamHasDefault checks if a type parameter has a default type declaration.
-// Parenthesize paren-less arrow function parameters (`x => ...`) so the inserted `: T`
-// produces `(x: T) => ...` instead of the invalid `x: T => ...`. Queued after the type
-// annotation so that the `)` edit at param.End() sorts after the annotation insertion.
-// typeToStringForDiag converts a type node to a string for use in diagnostic descriptions.
-// It reuses the change tracker's EmitContext so that generated identifier names are resolved
-// consistently with the actual code edits, and passes the source file so that the printer's
-// name generator can check for conflicts with existing file-level identifiers.
-// findAncestorWithMissingType walks up the ancestor chain to find a node that
-// can have a type annotation and is missing one.
-// findBestFittingNode walks up from the token to find the node that best fits the diagnostic span.
-// isNamedDeclarationKind matches TS's isDeclarationKind, which is narrower than Go's IsDeclaration.
-// Go's IsDeclaration returns true for any node with DeclarationData (including CallExpression),
-// while TS's isDeclaration only returns true for specific named declaration kinds.
-// isValueSignatureDeclaration checks if a node is a function-like declaration that produces a value.
-// getIdentifierNameForNode derives a meaningful variable name from a node expression.
-// For property access expressions like `obj.foo`, returns "foo". Otherwise returns "newLocal".
-// Ported from TS's getIdentifierForNode in services/refactors/helpers.ts.
-// addSymbolToExistingImport finds the existing import declaration for the symbol's module
-// and adds the symbol name to the named imports.
-// Find the module specifier for this symbol
-// Walk the source file's import declarations to find the one importing from the same module
-// Check if this import is from the same module
-// Found the matching import - add the symbol to named imports
-// Add to existing named imports
-diagnostics.Function_must_have_an_explicit_return_type_annotation_with_isolatedDeclarations.Code(), diagnostics.Method_must_have_an_explicit_return_type_annotation_with_isolatedDeclarations.Code(), diagnostics.At_least_one_accessor_must_have_an_explicit_type_annotation_with_isolatedDeclarations.Code(), diagnostics.Variable_must_have_an_explicit_type_annotation_with_isolatedDeclarations.Code(), diagnostics.Parameter_must_have_an_explicit_type_annotation_with_isolatedDeclarations.Code(), diagnostics.Property_must_have_an_explicit_type_annotation_with_isolatedDeclarations.Code(), diagnostics.Expression_type_can_t_be_inferred_with_isolatedDeclarations.Code(), diagnostics.Binding_elements_with_initializers_can_t_be_exported_directly_with_isolatedDeclarations.Code(), diagnostics.Computed_property_names_on_class_or_object_literals_cannot_be_inferred_with_isolatedDeclarations.Code(), diagnostics.Computed_properties_must_be_number_or_string_literals_variables_or_dotted_expressions_with_isolatedDeclarations.Code(), diagnostics.Enum_member_initializers_must_be_computable_without_references_to_external_symbols_with_isolatedDeclarations.Code(), diagnostics.Extends_clause_can_t_contain_an_expression_with_isolatedDeclarations.Code(), diagnostics.Objects_that_contain_shorthand_properties_can_t_be_inferred_with_isolatedDeclarations.Code(), diagnostics.Objects_that_contain_spread_assignments_can_t_be_inferred_with_isolatedDeclarations.Code(), diagnostics.Arrays_with_spread_elements_can_t_inferred_with_isolatedDeclarations.Code(), diagnostics.Default_exports_can_t_be_inferred_with_isolatedDeclarations.Code(), diagnostics.Only_const_arrays_can_be_inferred_with_isolatedDeclarations.Code(), diagnostics.Assigning_properties_to_functions_without_declaring_them_is_not_supported_with_isolatedDeclarations_Add_an_explicit_declaration_for_the_properties_assigned_to_this_function.Code(), diagnostics.Declaration_emit_for_this_parameter_requires_implicitly_adding_undefined_to_its_type_This_is_not_supported_with_isolatedDeclarations.Code(), diagnostics.Type_containing_private_name_0_can_t_be_used_with_isolatedDeclarations.Code(), diagnostics.Add_satisfies_and_a_type_assertion_to_this_expression_satisfies_T_as_T_to_make_the_type_explicit.Code()}
+	// Some late bound expando members use the whole expression as the declaration.
+	// Avoid creating duplicate fixes for the same node
+	// Deep clone the expression so synthesized nodes don't reference original source positions
+	// Create: const <BaseName>: <type> = <expression>;
+	// Replace the heritage expression with the base class name
+	// Create a temporary variable for complex expressions
+	// Use a new identifier to avoid referencing original source positions
+	// Extract each binding element as a separate variable with type annotation
+	// If the enclosing variable statement has multiple declarations, preserve the non-destructuring ones
+	// Build property access expression
+	// Handle computed property names: create a temp variable for the computed expression
+	// Use property name text (handles identifiers, string literals, numeric literals)
+	// emitBindingElementVariable creates a variable declaration for a single binding element,
+	// handling default initializers by creating a ternary `temp === undefined ? default : temp`.
+	// Create a temp variable to hold the accessed value, then use a conditional expression
+	// to apply the default: temp === undefined ? defaultValue : temp
+	// Handle Relative mode first: return typeof X for identifiers
+	// Handle Widened mode: return widened literal type if different
+	// widened type is same, no fix needed
+	// For parameters that require adding implicit undefined, add it to the type
+	// createTypeOfFromEntityNameExpression creates a `typeof X` type query node.
+	// typeFromArraySpreadElements decomposes an array literal with spread elements into
+	// separate variables, returning a tuple type of typeof references.
+	// typeFromObjectSpreadAssignment decomposes an object literal with spread assignments into
+	// separate variables, returning an intersection type of typeof references.
+	// typeFromSpreads is the generic spread decomposition function, ported from TS's typeFromSpreads.
+	// It splits a literal with spread elements into separate const variables and returns a composed type.
+	// makeSpreadVariable creates a const variable for a spread expression and adds it to the decomposition.
+	// finalizesVariablePart finalizes accumulated non-spread properties into a variable.
+	// isConstAssertion checks if a node is an `as const` or `<const>` assertion.
+	// relativeType creates a typeof expression for a node, used in TypePrintMode.Relative.
+	// Instead of spelling out the full type, returns `typeof X` for identifiers.
+	// For object/array literals with spreads, decomposes into separate variables.
+	// typeToMinimizedReferenceType converts a type to a type node, then trims trailing
+	// type arguments that match their defaults. Ported from TS's
+	// services/codefixes/helpers.ts typeToMinimizedReferenceType.
+	// !!! When truncation tracking is supported, check if the type was truncated
+	// and return factory.NewKeywordTypeNode(ast.KindAnyKeyword) instead of the truncated node.
+	// Trim trailing default type arguments
+	// Convert import type references (e.g. import("./path").Name) to simple type references
+	// and collect symbols that need to be imported
+	// endOfRequiredTypeParameters finds the number of type arguments that are
+	// actually required (i.e., differ from their defaults). Ported from TS's
+	// services/codefixes/helpers.ts endOfRequiredTypeParameters.
+	// Skip cutoff positions where the local type parameter has no default.
+	// This matches TS's check for constraint === undefined on localTypeParameters,
+	// which in practice skips type parameters without defaults (e.g. Set<T>
+	// where T has no default should not have <unknown> elided).
+	// typeParamHasDefault checks if a type parameter has a default type declaration.
+	// Parenthesize paren-less arrow function parameters (`x => ...`) so the inserted `: T`
+	// produces `(x: T) => ...` instead of the invalid `x: T => ...`. Queued after the type
+	// annotation so that the `)` edit at param.End() sorts after the annotation insertion.
+	// typeToStringForDiag converts a type node to a string for use in diagnostic descriptions.
+	// It reuses the change tracker's EmitContext so that generated identifier names are resolved
+	// consistently with the actual code edits, and passes the source file so that the printer's
+	// name generator can check for conflicts with existing file-level identifiers.
+	// findAncestorWithMissingType walks up the ancestor chain to find a node that
+	// can have a type annotation and is missing one.
+	// findBestFittingNode walks up from the token to find the node that best fits the diagnostic span.
+	// isNamedDeclarationKind matches TS's isDeclarationKind, which is narrower than Go's IsDeclaration.
+	// Go's IsDeclaration returns true for any node with DeclarationData (including CallExpression),
+	// while TS's isDeclaration only returns true for specific named declaration kinds.
+	// isValueSignatureDeclaration checks if a node is a function-like declaration that produces a value.
+	// getIdentifierNameForNode derives a meaningful variable name from a node expression.
+	// For property access expressions like `obj.foo`, returns "foo". Otherwise returns "newLocal".
+	// Ported from TS's getIdentifierForNode in services/refactors/helpers.ts.
+	// addSymbolToExistingImport finds the existing import declaration for the symbol's module
+	// and adds the symbol name to the named imports.
+	// Find the module specifier for this symbol
+	// Walk the source file's import declarations to find the one importing from the same module
+	// Check if this import is from the same module
+	// Found the matching import - add the symbol to named imports
+	// Add to existing named imports
+	diagnostics.Function_must_have_an_explicit_return_type_annotation_with_isolatedDeclarations.Code(), diagnostics.Method_must_have_an_explicit_return_type_annotation_with_isolatedDeclarations.Code(), diagnostics.At_least_one_accessor_must_have_an_explicit_type_annotation_with_isolatedDeclarations.Code(), diagnostics.Variable_must_have_an_explicit_type_annotation_with_isolatedDeclarations.Code(), diagnostics.Parameter_must_have_an_explicit_type_annotation_with_isolatedDeclarations.Code(), diagnostics.Property_must_have_an_explicit_type_annotation_with_isolatedDeclarations.Code(), diagnostics.Expression_type_can_t_be_inferred_with_isolatedDeclarations.Code(), diagnostics.Binding_elements_with_initializers_can_t_be_exported_directly_with_isolatedDeclarations.Code(), diagnostics.Computed_property_names_on_class_or_object_literals_cannot_be_inferred_with_isolatedDeclarations.Code(), diagnostics.Computed_properties_must_be_number_or_string_literals_variables_or_dotted_expressions_with_isolatedDeclarations.Code(), diagnostics.Enum_member_initializers_must_be_computable_without_references_to_external_symbols_with_isolatedDeclarations.Code(), diagnostics.Extends_clause_can_t_contain_an_expression_with_isolatedDeclarations.Code(), diagnostics.Objects_that_contain_shorthand_properties_can_t_be_inferred_with_isolatedDeclarations.Code(), diagnostics.Objects_that_contain_spread_assignments_can_t_be_inferred_with_isolatedDeclarations.Code(), diagnostics.Arrays_with_spread_elements_can_t_inferred_with_isolatedDeclarations.Code(), diagnostics.Default_exports_can_t_be_inferred_with_isolatedDeclarations.Code(), diagnostics.Only_const_arrays_can_be_inferred_with_isolatedDeclarations.Code(), diagnostics.Assigning_properties_to_functions_without_declaring_them_is_not_supported_with_isolatedDeclarations_Add_an_explicit_declaration_for_the_properties_assigned_to_this_function.Code(), diagnostics.Declaration_emit_for_this_parameter_requires_implicitly_adding_undefined_to_its_type_This_is_not_supported_with_isolatedDeclarations.Code(), diagnostics.Type_containing_private_name_0_can_t_be_used_with_isolatedDeclarations.Code(), diagnostics.Add_satisfies_and_a_type_assertion_to_this_expression_satisfies_T_as_T_to_make_the_type_explicit.Code()}
 
 const fixMissingTypeAnnotationOnExportsFixID = "fixMissingTypeAnnotationOnExports"
 
@@ -771,7 +771,7 @@ func (f *isolatedDeclarationsFixer) typeFromArraySpreadElements(node ast.Handle,
 	}
 	factory := f.changeTracker.HandleFactory
 	return f.typeFromSpreads(node, name, isInConstContext, func(n ast.Handle) []ast.Handle {
-		return n.Store().ListSlice(n.ArrayLiteralExpressionElements())
+		return n.Store().ListSlice(n.ArrayLiteralExpressionElements()).Slice()
 	}, ast.IsSpreadElement, func(expr ast.Handle) ast.Handle {
 		return factory.NewSpreadElement(expr)
 	}, func(elements []ast.Handle) ast.Handle {
@@ -793,7 +793,7 @@ func (f *isolatedDeclarationsFixer) typeFromObjectSpreadAssignment(node ast.Hand
 	factory := f.changeTracker.HandleFactory
 	return f.typeFromSpreads(node, name, isInConstContext, func(n ast.Handle) []ast.Handle {
 		if n.ObjectLiteralExpressionProperties() != 0 {
-			return n.Store().ListSlice(n.ObjectLiteralExpressionProperties())
+			return n.Store().ListSlice(n.ObjectLiteralExpressionProperties()).Slice()
 		}
 		return nil
 	}, ast.IsSpreadAssignment, func(expr ast.Handle) ast.Handle {
