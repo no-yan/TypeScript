@@ -2569,3 +2569,31 @@ func TestOmitTrailingSemicolon(t *testing.T) {
 		t.Fatalf("omit EmitSourceFile(for) = %q, want %q", got, "for (;;) { }")
 	}
 }
+
+// Regression: EmitContext.VisitEmbeddedStatement is installed as the visitor's
+// Hooks.VisitEmbeddedStatement, so calling visitor.VisitEmbeddedStatement (or
+// EmitContext.VisitIterationBody) from a transformer used to re-enter the hook
+// and overflow the stack.
+func TestVisitIterationBodyDoesNotRecurse(t *testing.T) {
+	t.Parallel()
+
+	file := parsetestutil.ParseTypeScript("for (;;) { a!; }", false /*jsx*/)
+	emitContext := printer.NewEmitContext()
+
+	var visitor *ast.HandleVisitor
+	visitor = emitContext.NewNodeVisitor(func(node ast.Handle) ast.Handle {
+		switch node.Kind {
+		case ast.KindNonNullExpression:
+			node = node.Expression()
+		case ast.KindForStatement:
+			body := emitContext.VisitIterationBody(node.Statement(), visitor)
+			node = visitor.Factory.UpdateForStatement(node, node.Initializer(), node.Condition(), node.Incrementor(), body)
+		default:
+			node = visitor.VisitEachChild(node)
+		}
+		return node
+	})
+	file = visitor.VisitSourceFile(file)
+
+	emittestutil.CheckEmit(t, emitContext, file, "for (;;) {\n    a;\n}")
+}

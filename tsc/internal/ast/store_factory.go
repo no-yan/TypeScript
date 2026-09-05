@@ -222,6 +222,19 @@ func (v *HandleVisitor) VisitEmbeddedStatement(node Handle) Handle {
 	if v != nil && v.Hooks.VisitEmbeddedStatement != nil {
 		return v.Hooks.VisitEmbeddedStatement(node, v)
 	}
+	return v.DefaultVisitEmbeddedStatement(node)
+}
+
+// DefaultVisitEmbeddedStatement visits an embedded statement without consulting
+// Hooks.VisitEmbeddedStatement. Hook implementations must call this instead of
+// VisitEmbeddedStatement, which would re-enter the hook and recurse forever.
+//
+// TODO: the generated Handle.VisitEachChild visits if/do/while/for bodies via
+// VisitNode, so the VisitEmbeddedStatement/VisitIterationBody hooks never fire
+// from there (unlike the pointer NodeVisitor, whose generated VisitEachChild
+// routes those bodies through visitEmbeddedStatement/visitIterationBody).
+// Route those bodies through the hooks in the generator to match.
+func (v *HandleVisitor) DefaultVisitEmbeddedStatement(node Handle) Handle {
 	if node.IsNil() || v == nil || v.Visit == nil {
 		return node
 	}

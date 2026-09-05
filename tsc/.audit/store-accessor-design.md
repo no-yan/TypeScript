@@ -111,6 +111,10 @@ go test ./internal/binder -run '^$' -bench . -count 5   # 存在すれば
 
 判定は `benchstat` で行い、E2E で有意差が出ない段は取り込まない。提案 1 は generator の変更で完結し、公開 API(`Handle.XxxField()`)は変えない。
 
+### 提案 2 の実装結果 (2026-09-03、attempt 016)
+
+**revert.** `generateStorePolymorphic` を kind→slot テーブル化したが、同一プロセス A/B（`AccPolyExpression` vs 旧 switch）で med −0.9%・p=0.076。有意差なしのため generator / generated とも戻した。詳細は `tsc/.audit/attempts/016-poly-slot-table.md`。
+
 ### 提案 1 の実装結果 (2026-09-03、attempt 015)
 
 `childAt` / `childAtSlow` を追加し、生成 getter を `return h.childAt(slot)` に変更（291 件）。`Child` は bounds 付きで `childAt` に委譲。

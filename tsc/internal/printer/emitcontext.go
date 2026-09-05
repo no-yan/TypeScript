@@ -816,7 +816,7 @@ func (c *EmitContext) VisitEmbeddedStatement(node ast.Handle, visitor *ast.Handl
 	if node.IsNil() {
 		return ast.Handle{}
 	}
-	embeddedStatement := visitor.VisitEmbeddedStatement(node)
+	embeddedStatement := visitor.DefaultVisitEmbeddedStatement(node)
 	if embeddedStatement.IsNil() || ast.IsNotEmittedStatement(embeddedStatement) {
 		emptyStatement := visitor.Factory.NewEmptyStatement()
 		emptyStatement.SetLoc(node.Loc())
