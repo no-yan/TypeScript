@@ -126,6 +126,10 @@ func bindSourceFile(file *ast.SourceFile) {
 		b.bind(file.AsNode())
 		b.bindDeferredExpandoAssignments()
 		file.SymbolCount = b.symbolCount
+		bindStore(file)
+		if root := file.ParseRoot(); root.Ref() != 0 {
+			_ = ast.ExpandStore(root, file.ParseOptions(), file.Text())
+		}
 	})
 }
 
