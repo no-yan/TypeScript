@@ -768,7 +768,7 @@ func setFieldFromValue(field reflect.Value, val any) {
 		return
 	}
 
-	switch field.Kind {
+	switch field.Kind() {
 	case reflect.Bool:
 		if b, ok := val.(bool); ok {
 			field.SetBool(b)
@@ -836,7 +836,7 @@ func serializeField(field reflect.Value) any {
 		return serializer(field.Interface())
 	}
 
-	switch field.Kind {
+	switch field.Kind() {
 	case reflect.Bool:
 		return field.Bool()
 	case reflect.Int:

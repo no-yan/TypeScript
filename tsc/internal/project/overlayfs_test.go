@@ -181,7 +181,7 @@ func TestProcessChanges(t *testing.T) {
 
 		fh := fs.getFile(uri.FileName())
 		assert.Assert(t, fh != nil)
-		assert.Equal(t, fh.Kind, core.ScriptKindTS)
+		assert.Equal(t, fh.Kind(), core.ScriptKindTS)
 	})
 
 	t.Run("open extensionless file preserves unknown script kind", func(t *testing.T) {
@@ -201,7 +201,7 @@ func TestProcessChanges(t *testing.T) {
 
 		fh := fs.getFile(uri.FileName())
 		assert.Assert(t, fh != nil)
-		assert.Equal(t, fh.Kind, core.ScriptKindUnknown)
+		assert.Equal(t, fh.Kind(), core.ScriptKindUnknown)
 	})
 
 	t.Run("extensionless disk file preserves unknown script kind", func(t *testing.T) {
@@ -210,7 +210,7 @@ func TestProcessChanges(t *testing.T) {
 
 		fh := fs.getFile("/script")
 		assert.Assert(t, fh != nil)
-		assert.Equal(t, fh.Kind, core.ScriptKindUnknown)
+		assert.Equal(t, fh.Kind(), core.ScriptKindUnknown)
 	})
 
 	t.Run("watch change on overlay marks as not matching disk", func(t *testing.T) {

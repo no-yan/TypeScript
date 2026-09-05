@@ -78,14 +78,14 @@ func TestParseCacheBindsBeforePublishing(t *testing.T) {
 		FileName: fileName,
 		Path:     tspath.Path(fileName),
 	}
-	key := NewParseCacheKey(parseOptions, fileHandle.Hash(), fileHandle.Kind)
+	key := NewParseCacheKey(parseOptions, fileHandle.Hash(), fileHandle.Kind())
 	cache := NewParseCache(RefCountCacheOptions{})
 
 	file := cache.Acquire(key, fileHandle)
 	defer cache.Deref(key)
 
 	assert.Assert(t, file.IsBound())
-	assert.Assert(t, file.CommonJSModuleIndicator != nil)
+	assert.Assert(t, !file.CommonJSModuleIndicator.IsNil())
 }
 
 func TestRefCountingCaches(t *testing.T) {

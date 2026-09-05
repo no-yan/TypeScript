@@ -257,7 +257,7 @@ func (d *DocumentIdentifier) UnmarshalJSONFrom(dec *json.Decoder) error {
 	if err != nil {
 		return err
 	}
-	switch tok.Kind {
+	switch tok.Kind() {
 	case '"':
 		d.FileName = tok.String()
 		return nil
@@ -283,7 +283,7 @@ func (d *DocumentIdentifier) UnmarshalJSONFrom(dec *json.Decoder) error {
 		}
 		return nil
 	default:
-		return fmt.Errorf("DocumentIdentifier: expected string or object, got %v", tok.Kind)
+		return fmt.Errorf("DocumentIdentifier: expected string or object, got %v", tok.Kind())
 	}
 }
 

@@ -48,7 +48,7 @@ func (s *Session) APIUpdateTemporary(ctx context.Context, baseSnapshot *Snapshot
 	var scriptKind core.ScriptKind
 	if existing != nil {
 		version = existing.Version() + 1
-		scriptKind = existing.Kind
+		scriptKind = existing.Kind()
 		fileChanges.Changed.Add(uri)
 	} else {
 		scriptKind = core.GetScriptKindFromFileName(uri.FileName())

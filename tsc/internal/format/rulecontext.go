@@ -105,39 +105,7 @@ func isOptionEnabledOrUndefined(optionName optionSelector) contextPredicate {
 	}
 }
 func isForContext(context *FormattingContext) bool {
-	return context.contextNode.Kind( ///
-	/// Contexts
-	///
-	// equals in binding elements func foo([[x, y] = [1, 2]])
-	// equals in type X = ...
-	// equal in import a = module('a');
-	// equal in export = 1
-	// equal in let a = 0
-	// equal in p = 0
-	// "in" keyword in for (let x in []) { }
-	// "in" keyword in [P in keyof T] T[P]
-	// Technically, "of" is not a binary operator, but format it the same way as "in"
-	// This check is done before an open brace in a control construct, a function, or a typescript block declaration
-	// IMPORTANT!!! This method must return true ONLY for nodes with open and close braces as immediate children
-	// This means we are in a context that looks like a block to the user, but in the grammar is actually not a node (it's a class, module, enum, object type literal, etc).
-	// case ast.KindMemberFunctionDeclaration:
-	// case ast.KindMethodSignature:
-	// case ast.KindConstructorDeclaration:
-	// case ast.KindSimpleArrowFunctionExpression:
-	// case ast.KindParenthesizedArrowFunctionExpression:
-	// This one is not truly a function, but for formatting purposes, it acts just like one
-	// In a codefix scenario, we can't rely on parents being set. So just always return true.
-	// TODO
-	// case ast.KindElseClause:
-	// && context.contextNode.parent.Kind != ast.KindInterfaceDeclaration;
-	// !!! TODO: very different from strada, but strada's logic here is wonky - find the first ancestor without a parent? that's just the source file.
-	// Can't remove semicolon after `foo`; it would parse as a method declaration:
-	//
-	// interface I {
-	//   foo;
-	//   () void
-	// }
-	) == ast.KindForStatement
+	return context.contextNode.Kind == ast.KindForStatement
 }
 func isNotForContext(context *FormattingContext) bool {
 	return !isForContext(context)
