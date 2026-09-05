@@ -2325,7 +2325,7 @@ func findOriginatingJSDocSatisfiesTag(sourceFile *ast.SourceFile, node ast.Handl
 		}
 		var firstSatisfiesTag ast.Handle
 		for _, jsDoc := range current.EagerJSDoc(sourceFile) {
-			for _, tag := range jsDoc.TagsSeq() {
+			for _, tag := range jsDoc.TagsSeq().All() {
 				if !ast.IsJSDocSatisfiesTag(tag) {
 					continue
 				}

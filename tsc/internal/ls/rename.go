@@ -205,7 +205,7 @@ func nodeIsEligibleForRename(node ast.Handle) bool {
 }
 
 func (l *LanguageService) renameBlockedReason(sourceFile *ast.SourceFile, node ast.Handle, symbol *ast.Symbol, ch *checker.Checker, program *compiler.Program) *diagnostics.Message {
-	for _, declaration := range ast.DeclarationNodes(symbol) {
+	for _, declaration := range ast.DeclarationNodes(symbol).All() {
 		if isDefinedInLibraryFile(program, declaration) {
 			return diagnostics.You_cannot_rename_elements_that_are_defined_in_the_standard_TypeScript_library
 		}
@@ -238,14 +238,14 @@ func wouldRenameInOtherNodeModules(originalFile *ast.SourceFile, symbol *ast.Sym
 	}
 	originalPackage := module.ParseNodeModuleFromPath(originalFile.FileName(), false)
 	if originalPackage == "" {
-		for _, declaration := range declarations {
+		for _, declaration := range declarations.All() {
 			if isInsideNodeModules(ast.GetSourceFileOfNode(declaration).FileName()) {
 				return diagnostics.You_cannot_rename_elements_that_are_defined_in_a_node_modules_folder
 			}
 		}
 		return nil
 	}
-	for _, declaration := range declarations {
+	for _, declaration := range declarations.All() {
 		declPackage := module.ParseNodeModuleFromPath(ast.GetSourceFileOfNode(declaration).FileName(), false)
 		if declPackage != "" && declPackage != originalPackage {
 			return diagnostics.You_cannot_rename_elements_that_are_defined_in_another_node_modules_folder

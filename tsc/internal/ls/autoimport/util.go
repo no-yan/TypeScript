@@ -101,7 +101,7 @@ func getPackageNamesInNodeModules(nodeModulesDir string, fs vfs.FS) *collections
 	return packageNames
 }
 func getDefaultLikeExportNameFromDeclaration(symbol *ast.Symbol) string {
-	for _, d := range ast.DeclarationNodes(symbol) {
+	for _, d := range ast.DeclarationNodes(symbol).All() {
 		if ast.IsExportAssignment(d) {
 			if innerExpression := ast.SkipOuterExpressions(d.Expression(), ast.OEKAll); ast.IsIdentifier(innerExpression) {
 				return innerExpression.Text()

@@ -194,7 +194,7 @@ func (c *Checker) checkGrammarModifiers(node ast.Handle) bool {
 	flags := ast.ModifierFlagsNone
 	sawExportBeforeDecorators := false
 	hasLeadingDecorators := false
-	for _, modifier := range node.ModifierNodesSeq() {
+	for _, modifier := range node.ModifierNodesSeq().All() {
 		if ast.IsDecorator(modifier) {
 			if !ast.NodeCanBeDecorated(c.legacyDecorators, node, node.Parent(), node.Parent().Parent()) {
 				if node.Kind == ast.KindMethodDeclaration && !ast.NodeIsPresent(node.Body()) {
@@ -747,7 +747,7 @@ func (c *Checker) checkGrammarHeritageClause(node ast.Handle) bool {
 		listType := scanner.TokenToString(node.HeritageClauseToken())
 		return c.grammarErrorAtPos(node, s.ListLoc(types).Pos(), 0, diagnostics.X_0_list_cannot_be_empty, listType)
 	}
-	for _, n := range s.ListSlice(types) {
+	for _, n := range s.ListSlice(types).All() {
 		if c.checkGrammarExpressionWithTypeArguments(n) {
 			return true
 		}
@@ -764,7 +764,7 @@ func (c *Checker) checkGrammarClassDeclarationHeritageClauses(node ast.Handle, f
 	seenExtendsClause := false
 	seenImplementsClause := false
 	if !c.checkGrammarModifiers(node) && node.HeritageClauses() != 0 {
-		for _, heritageClauseNode := range node.HeritageClauseNodesSeq() {
+		for _, heritageClauseNode := range node.HeritageClauseNodesSeq().All() {
 			heritageClause := heritageClauseNode
 			if heritageClause.HeritageClauseToken() == ast.KindExtendsKeyword {
 				if seenExtendsClause {
@@ -795,7 +795,7 @@ func (c *Checker) checkGrammarClassDeclarationHeritageClauses(node ast.Handle, f
 func (c *Checker) checkGrammarInterfaceDeclaration(node ast.Handle) bool {
 	if node.HeritageClauses() != 0 {
 		seenExtendsClause := false
-		for _, heritageClauseNode := range node.HeritageClauseNodesSeq() {
+		for _, heritageClauseNode := range node.HeritageClauseNodesSeq().All() {
 			heritageClause := heritageClauseNode
 			switch heritageClause.HeritageClauseToken() {
 			case ast.KindExtendsKeyword:
@@ -845,7 +845,7 @@ func (c *Checker) checkGrammarForInvalidExclamationToken(postfixToken ast.Handle
 }
 func (c *Checker) checkGrammarObjectLiteralExpression(node ast.Handle, inDestructuring bool) bool {
 	seen := make(map[string]DeclarationMeaning)
-	for _, prop := range node.PropertiesSeq() {
+	for _, prop := range node.PropertiesSeq().All() {
 		if prop.Kind == ast.KindSpreadAssignment {
 			spreadAssignment := prop
 			if inDestructuring {
@@ -880,13 +880,13 @@ func (c *Checker) checkGrammarObjectLiteralExpression(node ast.Handle, inDestruc
 		modifiers := prop.ModifierNodesSeq()
 		if modifiers.Len() != 0 {
 			if ast.CanHaveModifiers(prop) {
-				for _, mod := range modifiers {
+				for _, mod := range modifiers.All() {
 					if ast.IsModifier(mod) && (mod.Kind != ast.KindAsyncKeyword || prop.Kind != ast.KindMethodDeclaration) {
 						c.grammarErrorOnNode(mod, diagnostics.X_0_modifier_cannot_be_used_here, scanner.GetTextOfNode(mod))
 					}
 				}
 			} else if ast.CanHaveIllegalModifiers(prop) {
-				for _, mod := range modifiers {
+				for _, mod := range modifiers.All() {
 					if ast.IsModifier(mod) {
 						c.grammarErrorOnNode(mod, diagnostics.X_0_modifier_cannot_be_used_here, scanner.GetTextOfNode(mod))
 					}
@@ -945,7 +945,7 @@ func (c *Checker) checkGrammarJsxElement(node ast.Handle) bool {
 	c.checkGrammarJsxName(node.TagName())
 	c.checkGrammarTypeArguments(node, node.TypeArgumentList())
 	var seen collections.Set[string]
-	for _, attrNode := range node.Attributes().PropertiesSeq() {
+	for _, attrNode := range node.Attributes().PropertiesSeq().All() {
 		if attrNode.Kind == ast.KindJsxSpreadAttribute {
 			continue
 		}
@@ -1320,7 +1320,7 @@ func (c *Checker) checkGrammarForEsModuleMarkerInBindingName(name ast.Handle) bo
 			return c.grammarErrorOnNodeSkippedOnNoEmit(name, diagnostics.Identifier_expected_esModule_is_reserved_as_an_exported_marker_when_transforming_ECMAScript_modules)
 		}
 	} else {
-		for _, element := range name.ElementsSeq() {
+		for _, element := range name.ElementsSeq().All() {
 			if !element.Name().IsNil() {
 				return c.checkGrammarForEsModuleMarkerInBindingName(element.Name())
 			}
@@ -1334,7 +1334,7 @@ func (c *Checker) checkGrammarNameInLetOrConstDeclarations(name ast.Handle) bool
 			return c.grammarErrorOnNode(name, diagnostics.X_let_is_not_allowed_to_be_used_as_a_name_in_let_or_const_declarations)
 		}
 	} else {
-		for _, element := range name.ElementsSeq() {
+		for _, element := range name.ElementsSeq().All() {
 			bindingElement := element
 			if !bindingElement.Name().IsNil() {
 				c.checkGrammarNameInLetOrConstDeclarations(bindingElement.Name())
@@ -1664,7 +1664,7 @@ func (c *Checker) checkGrammarTopLevelElementForRequiredDeclareModifier(node ast
 	return c.grammarErrorOnFirstToken(node, diagnostics.Top_level_declarations_in_d_ts_files_must_start_with_either_a_declare_or_export_modifier)
 }
 func (c *Checker) checkGrammarTopLevelElementsForRequiredDeclareModifier(file *ast.SourceFile) bool {
-	for _, decl := range file.ParseRoot().StatementsSeq() {
+	for _, decl := range file.ParseRoot().StatementsSeq().All() {
 		if ast.IsDeclarationNode(decl) || decl.Kind == ast.KindVariableStatement {
 			if c.checkGrammarTopLevelElementForRequiredDeclareModifier(decl) {
 				return true
@@ -1742,7 +1742,7 @@ func (c *Checker) checkGrammarImportClause(node ast.Handle) bool {
 }
 func (c *Checker) checkGrammarTypeOnlyNamedImportsOrExports(namedBindings ast.Handle) bool {
 	nodeList := namedBindings.ElementList()
-	for _, specifier := range namedBindings.Store().ListSlice(nodeList) {
+	for _, specifier := range namedBindings.Store().ListSlice(nodeList).All() {
 		var specifierIsTypeOnly bool
 		var message *diagnostics.Message
 		if specifier.Kind == ast.KindImportSpecifier {

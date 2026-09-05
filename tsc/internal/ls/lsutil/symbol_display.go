@@ -277,7 +277,7 @@ func isLocalVariableOrFunction(symbol *ast.Symbol) bool {
 	if symbol.Parent != nil {
 		return false
 	}
-	for _, decl := range ast.DeclarationNodes(symbol) {
+	for _, decl := range ast.DeclarationNodes(symbol).All() {
 		if decl.Kind == ast.KindFunctionExpression {
 			return true
 		}

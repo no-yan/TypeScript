@@ -76,7 +76,7 @@ func getQualifiedLeftMeaning(rightMeaning ast.SymbolFlags) ast.SymbolFlags {
 }
 func (c *Checker) getWithAlternativeContainers(container *ast.Symbol, symbol *ast.Symbol, enclosingDeclaration ast.Handle, meaning ast.SymbolFlags) []*ast.Symbol {
 	var additionalContainers []*ast.Symbol
-	for _, d := range ast.DeclarationNodes(container) {
+	for _, d := range ast.DeclarationNodes(container).All() {
 		if s := c.getFileSymbolIfFileSymbolExportEqualsContainer(d, container); s != nil {
 			additionalContainers = append(additionalContainers, s)
 		}
@@ -221,7 +221,7 @@ func (c *Checker) getContainersOfSymbol(symbol *ast.Symbol, enclosingDeclaration
 		return c.getWithAlternativeContainers(container, symbol, enclosingDeclaration, meaning)
 	}
 	var candidates []*ast.Symbol
-	for _, d := range ast.DeclarationNodes(symbol) {
+	for _, d := range ast.DeclarationNodes(symbol).All() {
 		if !ast.IsAmbientModule(d) && !d.Parent().IsNil() {
 			if hasNonGlobalAugmentationExternalModuleSymbol(d.Parent()) {
 				sym := c.getSymbolOfDeclaration(d.Parent())
@@ -546,7 +546,7 @@ func (c *Checker) needsQualification(symbol *ast.Symbol, enclosingDeclaration as
 }
 func isPropertyOrMethodDeclarationSymbol(symbol *ast.Symbol) bool {
 	if len(symbol.Declarations) > 0 {
-		for _, declaration := range ast.DeclarationNodes(symbol) {
+		for _, declaration := range ast.DeclarationNodes(symbol).All() {
 			switch declaration.Kind {
 			case ast.KindPropertyDeclaration, ast.KindMethodDeclaration, ast.KindGetAccessor, ast.KindSetAccessor:
 				continue
@@ -628,7 +628,7 @@ func (c *Checker) isSymbolAccessibleWorker(symbol *ast.Symbol, enclosingDeclarat
 			return *result
 		}
 		var symbolExternalModule *ast.Symbol
-		for _, d := range ast.DeclarationNodes(symbol) {
+		for _, d := range ast.DeclarationNodes(symbol).All() {
 			if s := c.getExternalModuleContainer(d); s != nil {
 				symbolExternalModule = s
 				break

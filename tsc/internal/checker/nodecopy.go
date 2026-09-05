@@ -425,7 +425,7 @@ func getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recoveryBoundary) *as
 		}
 		if node.Kind == ast.KindJSDocTypeLiteral {
 			var members []ast.Handle
-			for _, t := range node.JSDocPropertyTagsSeq() {
+			for _, t := range node.JSDocPropertyTagsSeq().All() {
 				if t.Kind != ast.KindJSDocPropertyTag && t.Kind != ast.KindJSDocParameterTag {
 					continue
 				}

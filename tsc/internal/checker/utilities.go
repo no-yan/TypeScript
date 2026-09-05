@@ -1026,7 +1026,7 @@ func getEnclosingContainer(node ast.Handle) ast.Handle {
 }
 func getDeclarationsOfKind(symbol *ast.Symbol, kind ast.Kind) []ast.Handle {
 	var out []ast.Handle
-	for _, d := range ast.DeclarationNodes(symbol) {
+	for _, d := range ast.DeclarationNodes(symbol).All() {
 		if d.Kind == kind {
 			out = append(out, d)
 		}
@@ -1088,7 +1088,7 @@ func tryGetPropertyAccessOrIdentifierToString(expr ast.Handle) string {
 func allDeclarationsInSameSourceFile(symbol *ast.Symbol) bool {
 	if len(symbol.Declarations) > 1 {
 		var sourceFile *ast.SourceFile
-		for i, d := range ast.DeclarationNodes(symbol) {
+		for i, d := range ast.DeclarationNodes(symbol).All() {
 			if i == 0 {
 				sourceFile = ast.GetSourceFileOfNode(d)
 			} else if ast.GetSourceFileOfNode(d) != sourceFile {

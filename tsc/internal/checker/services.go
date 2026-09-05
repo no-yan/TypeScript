@@ -583,7 +583,7 @@ func (c *Checker) getTypeParameterConstraintForPositionAcrossSignatures(signatur
 func (c *Checker) getTypeArgumentConstraint(node ast.Handle) *Type {
 	var typeArgumentPosition int = -1
 	if ast.HasTypeArguments(node.Parent()) {
-		for i, arg := range node.Parent().TypeArgumentsSeq() {
+		for i, arg := range node.Parent().TypeArgumentsSeq().All() {
 			if arg == node {
 				typeArgumentPosition = i
 				break
@@ -743,7 +743,7 @@ func (c *Checker) GetContextualTypeForArrayLiteralAtPosition(contextualArrayType
 	}
 	firstSpreadIndex, lastSpreadIndex := -1, -1
 	elementIndex := 0
-	for i, elem := range arrayLiteral.ElementsSeq() {
+	for i, elem := range arrayLiteral.ElementsSeq().All() {
 		if elem.Pos() < position {
 			elementIndex++
 		}
@@ -849,7 +849,7 @@ func (c *Checker) IsLibSymbolForHoverVerbosity(symbol *ast.Symbol) bool {
 	if symbol == nil {
 		return false
 	}
-	for _, decl := range ast.DeclarationNodes(symbol) {
+	for _, decl := range ast.DeclarationNodes(symbol).All() {
 		sf := ast.GetSourceFileOfNode(decl)
 		if sf != nil && c.program.IsSourceFileDefaultLibrary(sf.Path()) {
 			return true

@@ -3581,7 +3581,7 @@ func (p *Printer) emitShebangIfNeeded(node *ast.SourceFile) {
 	}
 }
 func (p *Printer) emitPrologueDirectives(statements ast.ListRef) int {
-	for i, statement := range p.currentSourceFile.ParseStore().ListSlice(statements) {
+	for i, statement := range p.currentSourceFile.ParseStore().ListSlice(statements).All() {
 		if ast.IsPrologueDirective(statement) {
 			p.writeLine()
 			p.emitStatement(statement)
@@ -4623,7 +4623,7 @@ func (p *Printer) generateAllNames(owner ast.Handle, nodes ast.ListRef) {
 	if nodes == 0 {
 		return
 	}
-	for _, node := range owner.ListSlice(nodes) {
+	for _, node := range owner.ListSlice(nodes).All() {
 		p.generateNames(node)
 	}
 }
@@ -4689,7 +4689,7 @@ func (p *Printer) generateAllMemberNames(owner ast.Handle, nodes ast.ListRef) {
 	if nodes == 0 {
 		return
 	}
-	for _, node := range owner.ListSlice(nodes) {
+	for _, node := range owner.ListSlice(nodes).All() {
 		p.generateMemberNames(node)
 	}
 }

@@ -120,7 +120,7 @@ func (tx *RuntimeSyntaxTransformer) recordDeclarationInScope(node ast.Handle) {
 		tx.recordDeclarationInScope(node.VariableStatementDeclarationList())
 		return
 	case ast.KindVariableDeclarationList:
-		for _, decl := range node.Store().ListSlice(node.VariableDeclarationListDeclarations()) {
+		for _, decl := range node.Store().ListSlice(node.VariableDeclarationListDeclarations()).All() {
 			tx.recordDeclarationInScope(decl)
 		}
 		return

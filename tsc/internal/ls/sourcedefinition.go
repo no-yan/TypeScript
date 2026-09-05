@@ -156,7 +156,7 @@ func getSourceDefCheckerInfo(ctx context.Context, program *compiler.Program, fil
 		}
 	}
 	if sym := c.GetSymbolAtLocation(resolveNode); sym != nil {
-		for _, d := range ast.DeclarationNodes(sym) {
+		for _, d := range ast.DeclarationNodes(sym).All() {
 			if !ast.IsImportSpecifier(d) && !ast.IsImportClause(d) && !ast.IsNamespaceImport(d) && !ast.IsImportEqualsDeclaration(d) {
 				continue
 			}

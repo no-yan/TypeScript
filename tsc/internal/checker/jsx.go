@@ -249,7 +249,7 @@ func (c *Checker) discriminateContextualTypeByJSXAttributes(node ast.Handle, con
 }
 func (c *Checker) elaborateJsxComponents(node ast.Handle, source *Type, target *Type, relation *Relation, diagnosticOutput *[]*ast.Diagnostic) bool {
 	reportedError := false
-	for _, prop := range node.PropertiesSeq() {
+	for _, prop := range node.PropertiesSeq().All() {
 		if !ast.IsJsxSpreadAttribute(prop) && !isHyphenatedJsxName(prop.Name().Text()) {
 			nameType := c.getStringLiteralType(prop.Name().Text())
 			if nameType != nil && nameType.flags&TypeFlagsNever == 0 {
@@ -334,7 +334,7 @@ type JsxElaborationElement struct {
 func (c *Checker) generateJsxChildren(node ast.Handle, getInvalidTextDiagnostic func() (*diagnostics.Message, []any)) iter.Seq[JsxElaborationElement] {
 	return func(yield func(JsxElaborationElement) bool) {
 		memberOffset := 0
-		for i, child := range node.ChildrenSeq() {
+		for i, child := range node.ChildrenSeq().All() {
 			nameType := c.getNumberLiteralType(jsnum.Number(i - memberOffset))
 			e := c.getElaborationElementForJsxChild(child, nameType, getInvalidTextDiagnostic)
 			if !e.errorNode.IsNil() {
@@ -656,7 +656,7 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 		attributesSymbol = attributes.Symbol()
 		attributeParent = attributes
 		contextualType := c.getContextualType(attributes, ContextFlagsNone)
-		for _, attributeDecl := range attributes.PropertiesSeq() {
+		for _, attributeDecl := range attributes.PropertiesSeq().All() {
 			member := attributeDecl.Symbol()
 			if ast.IsJsxAttribute(attributeDecl) {
 				exprType := c.checkJsxAttribute(attributeDecl, checkMode)
@@ -787,7 +787,7 @@ func (c *Checker) checkJsxAttribute(node ast.Handle, checkMode CheckMode) *Type 
 }
 func (c *Checker) checkJsxChildren(node ast.Handle, checkMode CheckMode) []*Type {
 	var childTypes []*Type
-	for _, child := range node.ChildrenSeq() {
+	for _, child := range node.ChildrenSeq().All() {
 		if ast.IsJsxText(child) {
 			if !child.JsxTextContainsOnlyTriviaWhiteSpaces() {
 				childTypes = append(childTypes, c.stringType)

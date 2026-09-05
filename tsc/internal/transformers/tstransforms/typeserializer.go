@@ -99,7 +99,7 @@ func (s *metadataSerializer) serializeParameterTypesOfNode(node ast.Handle, cont
 	}
 	var expressions []ast.Handle
 	parameters := getParametersOfDecoratedDeclaration(valueDeclaration, container)
-	for i, parameter := range node.Store().ListSlice(parameters) {
+	for i, parameter := range node.Store().ListSlice(parameters).All() {
 		if i == 0 && ast.IsIdentifier(parameter.Name()) && parameter.Name().Text() == "this" {
 			continue
 		}
@@ -173,12 +173,7 @@ func (s *metadataSerializer) serializeTypeNode(node ast.Handle) ast.Handle {
 		defer func() {
 			s.c.serializingConditionalTypeBranch = oldState
 		}()
-		return s.serializeUnionOrIntersectionConstituents(func(yield func(int, ast.Handle) bool) {
-			if !yield(0, node.ConditionalTypeNodeTrueType()) {
-				return
-			}
-			yield(1, node.ConditionalTypeNodeFalseType())
-		}, false)
+		return s.serializeUnionOrIntersectionConstituents(ast.NodeSequence([]ast.Handle{node.ConditionalTypeNodeTrueType(), node.ConditionalTypeNodeFalseType()}), false)
 	case ast.KindTypeOperator:
 		if node.TypeOperatorNodeOperator() == ast.KindReadonlyKeyword {
 			return s.serializeTypeNode(node.Type())
@@ -197,7 +192,7 @@ func (s *metadataSerializer) serializeTypeNode(node ast.Handle) ast.Handle {
 }
 func (s *metadataSerializer) serializeUnionOrIntersectionConstituents(types ast.NodeSeq, isIntersection bool) ast.Handle {
 	var serializedType ast.Handle
-	for _, typeNode := range types {
+	for _, typeNode := range types.All() {
 		typeNode = ast.SkipTypeParentheses(typeNode)
 		if typeNode.Kind == ast.KindNeverKeyword {
 			if isIntersection {

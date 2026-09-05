@@ -720,7 +720,7 @@ func (c *EmitContext) addDefaultValueAssignmentsIfNeeded(nodeList ast.ListRef) a
 	}
 	seq := c.storeFile.ParseStore().ListSlice(nodeList)
 	var result []ast.Handle
-	for i, parameter := range seq {
+	for i, parameter := range seq.All() {
 		updated := c.addDefaultValueAssignmentIfNeeded(parameter)
 		if updated != parameter {
 			if result == nil {

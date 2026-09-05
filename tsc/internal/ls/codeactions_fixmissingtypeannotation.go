@@ -528,7 +528,7 @@ func (f *isolatedDeclarationsFixer) transformExtendsClauseWithExpression(classDe
 	cd := classDecl
 	var extendsClause ast.Handle
 	if cd.HeritageClauses() != 0 {
-		for _, clause := range cd.Store().ListSlice(cd.HeritageClauses()) {
+		for _, clause := range cd.Store().ListSlice(cd.HeritageClauses()).All() {
 			if clause.HeritageClauseToken() == ast.KindExtendsKeyword {
 				extendsClause = clause
 				break
@@ -612,7 +612,7 @@ func (f *isolatedDeclarationsFixer) transformDestructuringPatterns(bindingPatter
 func (f *isolatedDeclarationsFixer) extractBindingElements(bindingPattern ast.Handle, baseExpr ast.Handle, newNodes *[]ast.Handle, enclosingVarStmt ast.Handle) {
 	factory := f.changeTracker.HandleFactory
 	if ast.IsObjectBindingPattern(bindingPattern) {
-		for _, element := range bindingPattern.Store().ListSlice(bindingPattern.BindingPatternElements()) {
+		for _, element := range bindingPattern.Store().ListSlice(bindingPattern.BindingPatternElements()).All() {
 			if ast.IsOmittedExpression(element) {
 				continue
 			}
@@ -645,7 +645,7 @@ func (f *isolatedDeclarationsFixer) extractBindingElements(bindingPattern ast.Ha
 			}
 		}
 	} else if ast.IsArrayBindingPattern(bindingPattern) {
-		for i, element := range bindingPattern.Store().ListSlice(bindingPattern.BindingPatternElements()) {
+		for i, element := range bindingPattern.Store().ListSlice(bindingPattern.BindingPatternElements()).All() {
 			if ast.IsOmittedExpression(element) {
 				continue
 			}
@@ -980,7 +980,7 @@ func typeParamHasDefault(tp *checker.Type) bool {
 	if sym == nil {
 		return false
 	}
-	for _, decl := range ast.DeclarationNodes(sym) {
+	for _, decl := range ast.DeclarationNodes(sym).All() {
 		if ast.IsTypeParameterDeclaration(decl) && !decl.TypeParameterDeclarationDefaultType().IsNil() {
 			return true
 		}

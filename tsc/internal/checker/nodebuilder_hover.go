@@ -99,7 +99,7 @@ func (b *NodeBuilderImpl) expandClassDecl(symbol *ast.Symbol) ast.Handle {
 	name := ast.SymbolName(symbol)
 	b.ctx.approximateLength += 9 + len(name)
 	var classLikeDeclarations []ast.Handle
-	for _, d := range ast.DeclarationNodes(symbol) {
+	for _, d := range ast.DeclarationNodes(symbol).All() {
 		if ast.IsClassLike(d) {
 			classLikeDeclarations = append(classLikeDeclarations, d)
 		}
@@ -209,7 +209,7 @@ func (b *NodeBuilderImpl) expandInterfaceDecl(symbol *ast.Symbol) ast.Handle {
 	b.ctx.approximateLength += 14 + len(name)
 	interfaceType := b.ch.getDeclaredTypeOfClassOrInterface(symbol)
 	var interfaceDeclarations []ast.Handle
-	for _, d := range ast.DeclarationNodes(symbol) {
+	for _, d := range ast.DeclarationNodes(symbol).All() {
 		if ast.IsInterfaceDeclaration(d) {
 			interfaceDeclarations = append(interfaceDeclarations, d)
 		}

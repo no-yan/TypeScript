@@ -79,14 +79,7 @@ func (s *Store) ListSlice(list ListRef) NodeSeq {
 	if s == nil || list == 0 {
 		return EmptyNodeSeq
 	}
-	return func(yield func(int, Handle) bool) {
-		n := s.ListLen(list)
-		for i := 0; i < n; i++ {
-			if !yield(i, s.ListAt(list, i)) {
-				return
-			}
-		}
-	}
+	return NodeSeq{s: s, list: list}
 }
 
 func (h Handle) ListSlice(list ListRef) NodeSeq {

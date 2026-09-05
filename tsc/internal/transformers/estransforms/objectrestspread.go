@@ -414,7 +414,7 @@ func (ch *objectRestSpreadTransformer) chunkObjectLiteralElements(list ast.ListR
 	}
 	var chunkObject []ast.Handle
 	objects := make([]ast.Handle, 0, 1)
-	for _, e := range store.ListSlice(list) {
+	for _, e := range store.ListSlice(list).All() {
 		if e.Kind == ast.KindSpreadAssignment {
 			if len(chunkObject) > 0 {
 				objects = append(objects, ch.Factory().NewObjectLiteralExpression(ch.Factory().NewList(chunkObject), false))

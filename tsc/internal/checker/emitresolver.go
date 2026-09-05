@@ -200,7 +200,7 @@ func (r *EmitResolver) markLinkedAliases(node ast.Handle) {
 		}
 		visited[ast.GetSymbolId(exportSymbol)] = struct{}{}
 		var nextSymbol *ast.Symbol
-		for _, declaration := range ast.DeclarationNodes(exportSymbol) {
+		for _, declaration := range ast.DeclarationNodes(exportSymbol).All() {
 			r.declarationLinks.Get(declaration).isVisible = core.TSTrue
 			if ast.IsInternalModuleImportEqualsDeclaration(declaration) {
 				internalModuleReference := declaration.ImportEqualsDeclarationModuleReference()
@@ -267,7 +267,7 @@ func (r *EmitResolver) hasVisibleDeclarations(symbol *ast.Symbol, shouldComputeA
 	} else {
 		addVisibleAlias = noopAddVisibleAlias
 	}
-	for _, declaration := range ast.DeclarationNodes(symbol) {
+	for _, declaration := range ast.DeclarationNodes(symbol).All() {
 		if ast.IsIdentifier(declaration) {
 			continue
 		}
@@ -364,7 +364,7 @@ func (r *EmitResolver) IsImportRequiredByAugmentation(decl ast.Handle) bool {
 		merged := r.checker.getMergedSymbol(s)
 		if merged != s {
 			if len(merged.Declarations) > 0 {
-				for _, d := range ast.DeclarationNodes(merged) {
+				for _, d := range ast.DeclarationNodes(merged).All() {
 					declFile := ast.GetSourceFileOfNode(d)
 					if declFile == importTarget {
 						return true

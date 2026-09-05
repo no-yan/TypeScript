@@ -136,20 +136,7 @@ func DeclarationNodes(symbol *Symbol) NodeSeq {
 	if symbol == nil {
 		return EmptyNodeSeq
 	}
-	decls := symbol.Declarations
-	return func(yield func(int, Handle) bool) {
-		dense := 0
-		for _, g := range decls {
-			n := NodeOf(g)
-			if n.IsNil() {
-				continue
-			}
-			if !yield(dense, n) {
-				return
-			}
-			dense++
-		}
-	}
+	return NodeSeq{decls: symbol.Declarations}
 }
 
 func SomeDeclaration(symbol *Symbol, pred func(Handle) bool) bool {

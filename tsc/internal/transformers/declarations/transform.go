@@ -283,7 +283,7 @@ func (tx *DeclarationTransformer) transformSourceFile(node *ast.SourceFile) ast.
 	if ast.IsExternalOrCommonJSModule(node) {
 		if ast.IsInJSFile(root) {
 			if exportEquals := node.Symbol.Exports[ast.InternalSymbolNameExportEquals]; exportEquals != nil && len(exportEquals.Declarations) > 1 {
-				for _, n := range ast.DeclarationNodes(exportEquals) {
+				for _, n := range ast.DeclarationNodes(exportEquals).All() {
 					tx.state.addDiagnostic(createDiagnosticForNode(n, diagnostics.Multiple_module_exports_assignments_cannot_be_serialized_for_declaration_emit))
 				}
 			}
@@ -321,7 +321,7 @@ func (tx *DeclarationTransformer) transformAndReplaceLatePaintedStatements(state
 		tx.lateStatementReplacementMap[id] = result
 	}
 	results := make([]ast.Handle, 0, tx.EmitContext().StoreFile().ParseStore().ListLen(statements))
-	for _, statement := range tx.EmitContext().StoreFile().ParseStore().ListSlice(statements) {
+	for _, statement := range tx.EmitContext().StoreFile().ParseStore().ListSlice(statements).All() {
 		if !ast.IsLateVisibilityPaintedStatement(statement) {
 			results = append(results, statement)
 			continue
@@ -338,7 +338,7 @@ func (tx *DeclarationTransformer) transformAndReplaceLatePaintedStatements(state
 		}
 		if replacement.Kind == ast.KindSyntaxList {
 			if !tx.needsScopeFixMarker || !tx.resultHasExternalModuleIndicator {
-				for _, elem := range replacement.Store().ListSlice(replacement.SyntaxListChildren()) {
+				for _, elem := range replacement.Store().ListSlice(replacement.SyntaxListChildren()).All() {
 					if needsScopeMarker(elem) {
 						tx.needsScopeFixMarker = true
 					}
@@ -1363,7 +1363,7 @@ func (tx *DeclarationTransformer) buildClassMembers(classNode ast.Handle, extraM
 	var parameterProperties []ast.Handle
 	if !ctor.IsNil() {
 		oldDiag := tx.state.getSymbolAccessibilityDiagnostic
-		for _, param := range ctor.Store().ListSlice(ctor.ConstructorDeclarationParameters()) {
+		for _, param := range ctor.Store().ListSlice(ctor.ConstructorDeclarationParameters()).All() {
 			if !ast.HasSyntacticModifier(param, ast.ModifierFlagsParameterPropertyModifier) || tx.shouldStripInternal(param) {
 				continue
 			}
@@ -1516,7 +1516,7 @@ func isClassExtendingNull(node ast.Handle) bool {
 func (tx *DeclarationTransformer) collectThisPropertyAssignments(classNode ast.Handle) []ast.Handle {
 	members := classNode.MemberList()
 	seen := collections.Set[thisPropertyAssignmentKey]{}
-	for _, member := range classNode.Store().ListSlice(members) {
+	for _, member := range classNode.Store().ListSlice(members).All() {
 		if !member.Name().IsNil() {
 			isStatic := ast.IsStatic(member)
 			seen.Add(getThisPropertyAssignmentKey(member.Name(), member, isStatic))
@@ -1528,7 +1528,7 @@ func (tx *DeclarationTransformer) collectThisPropertyAssignments(classNode ast.H
 	defer func() {
 		tx.thisPropertyAssignmentsCollected = nil
 	}()
-	for _, n := range classNode.Store().ListSlice(members) {
+	for _, n := range classNode.Store().ListSlice(members).All() {
 		tx.thisPropertyVisitor.VisitEachChild(n)
 	}
 	return tx.thisPropertyAssignmentsCollected
@@ -1640,7 +1640,7 @@ func (tx *DeclarationTransformer) ensureModifiers(node ast.Handle) ast.ListRef {
 		modsSeq := node.Store().ListSlice(mods)
 		if canReuseModifierNodes(modsSeq) {
 			filtered := make([]ast.Handle, 0, modsSeq.Len())
-			for _, m := range modsSeq {
+			for _, m := range modsSeq.All() {
 				if ast.IsModifier(m) {
 					filtered = append(filtered, m)
 				}
@@ -1703,7 +1703,7 @@ func (tx *DeclarationTransformer) updateParamList(node ast.Handle, params ast.Li
 		return tx.Factory().NewList([]ast.Handle{})
 	}
 	results := make([]ast.Handle, node.Store().ListLen(params))
-	for i, p := range node.Store().ListSlice(params) {
+	for i, p := range node.Store().ListSlice(params).All() {
 		results[i] = tx.ensureParameter(p)
 	}
 	return tx.Factory().NewList(results)
@@ -1875,7 +1875,7 @@ func (tx *DeclarationTransformer) stripDeclareModifiers(node ast.Handle) ast.Han
 		flags := node.ModifierFlags()
 		if flags&ast.ModifierFlagsAmbient != 0 {
 			var filtered []ast.Handle
-			for _, m := range node.Store().ListSlice(mods) {
+			for _, m := range node.Store().ListSlice(mods).All() {
 				if isNotDeclareModifier(m) {
 					filtered = append(filtered, m)
 				}
@@ -2080,7 +2080,7 @@ func (tx *DeclarationTransformer) createFullExpandoBlock(id ast.GlobalRef) ast.H
 		var name ast.Handle
 		var host []ast.Handle
 		if !n.IsNil() && n.Kind == ast.KindSyntaxList {
-			for _, c := range n.Store().ListSlice(n.SyntaxListChildren()) {
+			for _, c := range n.Store().ListSlice(n.SyntaxListChildren()).All() {
 				if !c.Name().IsNil() {
 					name = tx.Factory().DeepCloneNode(c.Name())
 					if c.Modifiers() != 0 {

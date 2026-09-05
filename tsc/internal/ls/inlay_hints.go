@@ -610,7 +610,7 @@ func (s *inlayHintState) getInlayHintLabelParts(node ast.Handle, idToSymbol map[
 			visitForDisplayParts(node.PrefixUnaryExpressionOperand())
 		case ast.KindTemplateLiteralType:
 			visitForDisplayParts(node.TemplateLiteralTypeNodeHead())
-			for _, span := range node.Store().ListSlice(node.TemplateLiteralTypeNodeTemplateSpans()) {
+			for _, span := range node.Store().ListSlice(node.TemplateLiteralTypeNodeTemplateSpans()).All() {
 				visitForDisplayParts(span)
 			}
 		case ast.KindTemplateHead:
@@ -640,7 +640,7 @@ func (s *inlayHintState) getInlayHintLabelParts(node ast.Handle, idToSymbol map[
 		}
 	}
 	visitDisplayPartList = func(nodes ast.NodeSeq, separator string) {
-		for i, n := range nodes {
+		for i, n := range nodes.All() {
 			if i > 0 {
 				parts = append(parts, &lsproto.InlayHintLabelPart{Value: separator})
 			}

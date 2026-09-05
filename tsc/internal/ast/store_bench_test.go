@@ -224,7 +224,7 @@ func BenchmarkListSlice(b *testing.B) {
 	b.ReportAllocs()
 	var sink int
 	for b.Loop() {
-		for i, h := range s.ListSlice(list) {
+		for i, h := range s.ListSlice(list).All() {
 			sink += i + int(h.Kind)
 		}
 	}
@@ -245,7 +245,7 @@ func BenchmarkDeclarationNodes(b *testing.B) {
 	b.ReportAllocs()
 	var sink int
 	for b.Loop() {
-		for i, h := range ast.DeclarationNodes(sym) {
+		for i, h := range ast.DeclarationNodes(sym).All() {
 			sink += i + int(h.Kind)
 		}
 	}

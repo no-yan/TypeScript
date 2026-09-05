@@ -283,7 +283,7 @@ func documentationFromRootSymbols(getMappedLocation documentationLocationMapper,
 			}
 			continue
 		}
-		for _, declaration := range decls {
+		for _, declaration := range decls.All() {
 			if documentation := getDocumentationFromDeclaration(getMappedLocation, c, rootSymbol, declaration, node, contentFormat, commentOnly); documentation != "" {
 				docs = core.AppendIfUnique(docs, documentation)
 			}
@@ -301,7 +301,7 @@ func getDocumentationFromDeclaration(getMappedLocation documentationLocationMapp
 		writeComments(getMappedLocation, &b, c, jsdoc.Comments(), isMarkdown)
 		if jsdoc.Kind == ast.KindJSDoc && !commentOnly {
 			if tags := jsdoc.JSDocTags(); tags != 0 {
-				for _, tag := range declaration.Store().ListSlice(tags) {
+				for _, tag := range declaration.Store().ListSlice(tags).All() {
 					if tag.Kind == ast.KindJSDocTypeTag || tag.Kind == ast.KindJSDocTypedefTag || tag.Kind == ast.KindJSDocCallbackTag {
 						continue
 					}
@@ -928,7 +928,7 @@ func getCallOrNewExpression(node ast.Handle) ast.Handle {
 func containsTypedefTag(jsdoc ast.Handle) bool {
 	if jsdoc.Kind == ast.KindJSDoc {
 		if tags := jsdoc.JSDocTags(); tags != 0 {
-			for _, tag := range jsdoc.Store().ListSlice(tags) {
+			for _, tag := range jsdoc.Store().ListSlice(tags).All() {
 				if tag.Kind == ast.KindJSDocTypedefTag || tag.Kind == ast.KindJSDocCallbackTag {
 					return true
 				}

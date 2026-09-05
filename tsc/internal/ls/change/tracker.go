@@ -535,7 +535,7 @@ func (t *Tracker) tryComputeIndentationFromExistingMembers(sourceFile *ast.Sourc
 	if tabSize <= 0 {
 		tabSize = 4
 	}
-	for _, member := range node.Store().ListSlice(members) {
+	for _, member := range node.Store().ListSlice(members).All() {
 		if member.IsNil() {
 			continue
 		}

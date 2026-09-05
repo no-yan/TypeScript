@@ -402,7 +402,7 @@ func getDeclarationsFromType(t *checker.Type) []ast.Handle {
 	var result []ast.Handle
 	for _, t := range t.Distributed() {
 		if t.Symbol() != nil {
-			for _, decl := range ast.DeclarationNodes(t.Symbol()) {
+			for _, decl := range ast.DeclarationNodes(t.Symbol()).All() {
 				result = core.AppendIfUnique(result, decl)
 			}
 		}

@@ -221,7 +221,7 @@ func (l *LanguageService) collectSemanticTokensInRange(ctx context.Context, c *c
 							tokenModifier |= tokenModifierDefaultLibrary
 						}
 					} else if symbol.Declarations != nil {
-						for _, decl := range ast.DeclarationNodes(symbol) {
+						for _, decl := range ast.DeclarationNodes(symbol).All() {
 							declSourceFile := ast.GetSourceFileOfNode(decl)
 							if declSourceFile != nil && program.IsSourceFileDefaultLibrary(declSourceFile.Path()) {
 								tokenModifier |= tokenModifierDefaultLibrary

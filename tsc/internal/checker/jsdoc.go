@@ -23,7 +23,7 @@ func (c *Checker) checkUnmatchedJSDocParameters(node ast.Handle) {
 	isJs := ast.IsInJSFile(node)
 	parameters := collections.Set[string]{}
 	excludedParameters := collections.Set[int]{}
-	for i, param := range node.ParametersSeq() {
+	for i, param := range node.ParametersSeq().All() {
 		name := param.ParameterDeclarationName()
 		if ast.IsIdentifier(name) {
 			parameters.Add(name.Text())
