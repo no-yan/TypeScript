@@ -64,7 +64,7 @@ func getSetAccessorTypeAnnotationNode(node ast.Handle) ast.Handle {
 	return ast.Handle{}
 }
 func getAccessorTypeNode(node ast.Handle, container ast.Handle) ast.Handle {
-	accessors := ast.GetAllAccessorDeclarations(container.Members(), node)
+	accessors := ast.GetAllAccessorDeclarations(container.MembersSeq(), node)
 	if !accessors.SetAccessor.IsNil() {
 		return getSetAccessorTypeAnnotationNode(accessors.SetAccessor)
 	}
@@ -113,7 +113,7 @@ func (s *metadataSerializer) serializeParameterTypesOfNode(node ast.Handle, cont
 }
 func getParametersOfDecoratedDeclaration(node ast.Handle, container ast.Handle) ast.ListRef {
 	if !container.IsNil() && node.Kind == ast.KindGetAccessor {
-		acc := ast.GetAllAccessorDeclarations(container.Members(), node)
+		acc := ast.GetAllAccessorDeclarations(container.MembersSeq(), node)
 		if !acc.SetAccessor.IsNil() {
 			return acc.SetAccessor.ParameterList()
 		}

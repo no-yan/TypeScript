@@ -203,7 +203,7 @@ func (c *Checker) checkGrammarModifiers(node ast.Handle) bool {
 					return c.grammarErrorOnFirstToken(node, diagnostics.Decorators_are_not_valid_here)
 				}
 			} else if c.legacyDecorators && (node.Kind == ast.KindGetAccessor || node.Kind == ast.KindSetAccessor) {
-				accessors := ast.GetAllAccessorDeclarationsForDeclaration(node, ast.DeclarationNodes(c.getSymbolOfDeclaration(node)).Slice())
+				accessors := ast.GetAllAccessorDeclarationsForDeclaration(node, ast.DeclarationNodes(c.getSymbolOfDeclaration(node)))
 				if ast.HasDecorators(accessors.FirstAccessor) && node == accessors.SecondAccessor {
 					return c.grammarErrorOnFirstToken(node, diagnostics.Decorators_cannot_be_applied_to_multiple_get_Slashset_accessors_of_the_same_name)
 				}
