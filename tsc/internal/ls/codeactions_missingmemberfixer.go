@@ -69,7 +69,7 @@ func (f *missingMemberFixer) createMemberFromSymbol(symbol *ast.Symbol, enclosin
 		return append(nodes, f.changeTracker.HandleFactory.NewPropertyDeclaration(modifiers, createPropertyName(f.changeTracker.HandleFactory, declarationName, quotePreference), questionToken, typeNode, ast.Handle{}))
 	case ast.KindGetAccessor, ast.KindSetAccessor:
 		nodeBuilder, idToSymbol := f.createNodeBuilder()
-		accessors := ast.GetAllAccessorDeclarations(ast.DeclarationNodes(symbol).Slice(), declaration)
+		accessors := ast.GetAllAccessorDeclarations(ast.DeclarationNodes(symbol), declaration)
 		var orderedAccessors []ast.Handle
 		if accessors.SecondAccessor.IsNil() {
 			orderedAccessors = append(orderedAccessors, accessors.FirstAccessor)

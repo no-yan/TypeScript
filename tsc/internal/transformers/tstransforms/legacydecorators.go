@@ -628,7 +628,7 @@ func getAllDecoratorsOfAccessors(accessor ast.Handle, parent ast.Handle, useLega
 	if accessor.Body().IsNil() {
 		return nil
 	}
-	decls := ast.GetAllAccessorDeclarations(parent.Members(), accessor)
+	decls := ast.GetAllAccessorDeclarations(parent.MembersSeq(), accessor)
 	var firstAccessorWithDecorators ast.Handle
 	if ast.HasDecorators(decls.FirstAccessor) {
 		firstAccessorWithDecorators = decls.FirstAccessor

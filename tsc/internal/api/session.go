@@ -2931,7 +2931,7 @@ func (s *Session) handleGetTypePredicateOfSignature(ctx context.Context, params 
 	}
 
 	resp := &TypePredicateResponse{
-		Kind:           int32(pred.Kind),
+		Kind:           int32(pred.Kind()),
 		ParameterIndex: pred.ParameterIndex(),
 		ParameterName:  pred.ParameterName(),
 	}

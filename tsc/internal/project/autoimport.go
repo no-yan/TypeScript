@@ -160,7 +160,7 @@ func (a *autoImportRegistryCloneHost) GetSourceFile(fileName string, path tspath
 		FileName: fileName,
 		Path:     path,
 	}
-	key := NewParseCacheKey(opts, fh.Hash(), fh.Kind)
+	key := NewParseCacheKey(opts, fh.Hash(), fh.Kind())
 	result := a.parseCache.Acquire(key, fh)
 
 	a.filesMu.Lock()
