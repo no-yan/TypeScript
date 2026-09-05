@@ -4,7 +4,6 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/checker"
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
-	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
 
 type ScriptElementKind int
@@ -78,7 +77,7 @@ const (
 	ScriptElementKindModifierCjs
 )
 
-var scriptElementKindModifierNames = []struct// predefined type (void) or keyword (class)
+var scriptElementKindModifierNames = []struct // predefined type (void) or keyword (class)
 // top level script node
 // module foo {}
 // class X {}
@@ -316,11 +315,11 @@ func GetSymbolModifiers(typeChecker *checker.Checker, symbol *ast.Symbol) Script
 func getNormalizedSymbolModifiers(typeChecker *checker.Checker, symbol *ast.Symbol) ScriptElementKindModifier {
 	var modifierSet ScriptElementKindModifier
 	if len(symbol.Declarations) > 0 {
-		declaration := ast.DeclarationNodes(symbol)[0]
-		declarations := ast.DeclarationNodes(symbol)[1:]
+		seq := ast.DeclarationNodes(symbol)
+		declaration := seq.First()
 		var excludeFlags ast.ModifierFlags
-		if len(declarations) > 0 && isDeprecatedDeclaration(typeChecker, declaration) && core.Some(declarations, func(d ast.Handle) bool {
-			return !isDeprecatedDeclaration(typeChecker, d)
+		if seq.Len() > 1 && isDeprecatedDeclaration(typeChecker, declaration) && seq.Some(func(d ast.Handle) bool {
+			return d != declaration && !isDeprecatedDeclaration(typeChecker, d)
 		}) {
 			excludeFlags = ast.ModifierFlagsDeprecated
 		} else {

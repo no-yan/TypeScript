@@ -36,38 +36,38 @@ type renameEditKey struct {
 	textRange lsproto.Range
 }
 
-func deduplicateRenameEdits(mappedEdits []mappedRenameEdit) (// RenameInfo represents the result of a rename validation check.
-// It is used by the `textDocument/prepareRename` LSP handler.
-/*isRename*/ /*implementations*/ /*defaultProjectData*/ /*forRename*/ // Defense-in-depth: validate rename eligibility even if the client skipped prepareRename.
-// Use getRenameInfoForNode directly with the already-resolved node to avoid
-// re-resolving the position and polluting state baselines.
-// The occurrence lies outside a verbatim span of a content-mapped file, so it cannot be
-// written back to the original text. Skip it and keep renaming the remaining occurrences.
-// renameEditRange returns the LSP range at which a rename occurrence should be edited. For occurrences in
-// content-mapped files it maps the transformed range strictly, returning ok=false when the occurrence is
-// not fully within a single verbatim span, so the caller can skip an edit that cannot be applied to the
-// original text.
-// getRenameInfoForNode performs detailed validation for a rename operation on a specific node.
-// Allow renaming of string literal types with contextual string literal types
-// Only allow a symbol to be renamed if it actually has at least one declaration.
-// renameBlockedReason returns a non-nil diagnostic message if the rename should be blocked
-// because the symbol is a library definition, a default keyword, or would cross node_modules boundaries.
-// Cannot rename `default` as in `import { default as foo } from "./someModule"`
-// isDefinedInLibraryFile checks if a declaration is from a default library file (e.g., lib.d.ts).
-// wouldRenameInOtherNodeModules checks if renaming the symbol would affect node_modules.
-/*isFolder*/ // Original source file is not in node_modules.
-// Original source file is in node_modules.
-/*isFolder*/ // getRenameInfoForModule handles rename validation for module specifiers.
-// Span should only be the last component of the path. + 1 to account for the quote character.
-/*includeJSDoc*/ // Adjust the new name based on the old path that an import specifier resolves to.
-// For example, if specifier "a.js" resolves to file a.ts, renaming "a.js" -> "b.js" should mean file rename a.ts -> b.ts.
-/*extensions*/ /*extensions*/ /*extensions*/ /*extensions*/ // In `const o = { x }; o.x`, symbolAtLocation at `x` in `{ x }` is the property symbol.
-// For a binding element `const { x } = o;`, symbolAtLocation at `x` is the property symbol.
-// If the original symbol was using this alias, just rename the alias.
-// If the symbol for the node is same as declared node symbol use prefix text
-// If the node is a numerical indexing literal, then add quotes around the property access.
-/*includeJSDoc*/ // Exclude the quotes
-map[lsproto.DocumentUri][]*lsproto.TextEdit, bool) {
+func deduplicateRenameEdits(mappedEdits []mappedRenameEdit) ( // RenameInfo represents the result of a rename validation check.
+	// It is used by the `textDocument/prepareRename` LSP handler.
+	/*isRename*/ /*implementations*/ /*defaultProjectData*/ /*forRename*/ // Defense-in-depth: validate rename eligibility even if the client skipped prepareRename.
+	// Use getRenameInfoForNode directly with the already-resolved node to avoid
+	// re-resolving the position and polluting state baselines.
+	// The occurrence lies outside a verbatim span of a content-mapped file, so it cannot be
+	// written back to the original text. Skip it and keep renaming the remaining occurrences.
+	// renameEditRange returns the LSP range at which a rename occurrence should be edited. For occurrences in
+	// content-mapped files it maps the transformed range strictly, returning ok=false when the occurrence is
+	// not fully within a single verbatim span, so the caller can skip an edit that cannot be applied to the
+	// original text.
+	// getRenameInfoForNode performs detailed validation for a rename operation on a specific node.
+	// Allow renaming of string literal types with contextual string literal types
+	// Only allow a symbol to be renamed if it actually has at least one declaration.
+	// renameBlockedReason returns a non-nil diagnostic message if the rename should be blocked
+	// because the symbol is a library definition, a default keyword, or would cross node_modules boundaries.
+	// Cannot rename `default` as in `import { default as foo } from "./someModule"`
+	// isDefinedInLibraryFile checks if a declaration is from a default library file (e.g., lib.d.ts).
+	// wouldRenameInOtherNodeModules checks if renaming the symbol would affect node_modules.
+	/*isFolder*/ // Original source file is not in node_modules.
+	// Original source file is in node_modules.
+	/*isFolder*/ // getRenameInfoForModule handles rename validation for module specifiers.
+	// Span should only be the last component of the path. + 1 to account for the quote character.
+	/*includeJSDoc*/ // Adjust the new name based on the old path that an import specifier resolves to.
+	// For example, if specifier "a.js" resolves to file a.ts, renaming "a.js" -> "b.js" should mean file rename a.ts -> b.ts.
+	/*extensions*/ /*extensions*/ /*extensions*/ /*extensions*/ // In `const o = { x }; o.x`, symbolAtLocation at `x` in `{ x }` is the property symbol.
+	// For a binding element `const { x } = o;`, symbolAtLocation at `x` is the property symbol.
+	// If the original symbol was using this alias, just rename the alias.
+	// If the symbol for the node is same as declared node symbol use prefix text
+	// If the node is a numerical indexing literal, then add quotes around the property access.
+	/*includeJSDoc*/ // Exclude the quotes
+	map[lsproto.DocumentUri][]*lsproto.TextEdit, bool) {
 	editTexts := make(map[renameEditKey]string)
 	uniqueEdits := make([]mappedRenameEdit, 0, len(mappedEdits))
 	for _, mappedEdit := range mappedEdits {
@@ -233,7 +233,7 @@ func wouldRenameInOtherNodeModules(originalFile *ast.SourceFile, symbol *ast.Sym
 		}
 	}
 	declarations := ast.DeclarationNodes(sym)
-	if len(declarations) == 0 {
+	if declarations.Len() == 0 {
 		return nil
 	}
 	originalPackage := module.ParseNodeModuleFromPath(originalFile.FileName(), false)
@@ -343,7 +343,7 @@ func (l *LanguageService) getTextForRename(originalNode ast.Handle, entry *Refer
 			} else {
 				originalSymbol = ch.GetSymbolAtLocation(originalNode)
 			}
-			if originalSymbol != nil && slices.Contains(ast.DeclarationNodes(originalSymbol), parent) {
+			if originalSymbol != nil && ast.DeclarationNodes(originalSymbol).Some(func(d ast.Handle) bool { return d == parent }) {
 				return name + " as " + newText
 			}
 			return newText
