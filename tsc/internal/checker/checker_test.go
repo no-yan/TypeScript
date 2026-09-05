@@ -45,9 +45,9 @@ foo.bar;`
 	c, done := p.GetTypeChecker(t.Context())
 	defer done()
 	file := p.GetSourceFile("/foo.ts")
-	interfaceId := file.ParseRoot().Statements()[0].Name()
-	varId := file.ParseRoot().Statements()[1].VariableStatementDeclarationList().Store().ListAt(file.ParseRoot().Statements()[1].VariableStatementDeclarationList().VariableDeclarationListDeclarations(), 0).Name()
-	propAccess := file.ParseRoot().Statements()[2].Expression()
+	interfaceId := file.ParseRoot().StatementsSeq().At(0).Name()
+	varId := file.ParseRoot().StatementsSeq().At(1).VariableStatementDeclarationList().Store().ListAt(file.ParseRoot().StatementsSeq().At(1).VariableStatementDeclarationList().VariableDeclarationListDeclarations(), 0).Name()
+	propAccess := file.ParseRoot().StatementsSeq().At(2).Expression()
 	nodes := []ast.Handle{interfaceId, varId, propAccess}
 	for _, node := range nodes {
 		symbol := c.GetSymbolAtLocation(node)

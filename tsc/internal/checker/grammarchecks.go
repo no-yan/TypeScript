@@ -3,7 +3,6 @@ package checker
 import (
 	"fmt"
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
-	"github.com/microsoft/TypeScript/tsc/internal/binder"
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/debug"
@@ -621,13 +620,25 @@ func (c *Checker) checkGrammarForUseStrictSimpleParameterList(node ast.Handle) b
 		body := node.Body()
 		var useStrictDirective ast.Handle
 		if !body.IsNil() && ast.IsBlock(body) {
-			useStrictDirective = binder.FindUseStrictPrologue(ast.GetSourceFileOfNode(node), body.StatementsSeq().Slice())
+			sourceFile := ast.GetSourceFileOfNode(node)
+			for _, statement := range body.StatementsSeq().All() {
+				if !ast.IsPrologueDirective(statement) {
+					break
+				}
+				nodeText := scanner.GetSourceTextOfNodeFromSourceFile(sourceFile, statement.Expression(), false)
+				if nodeText == "\"use strict\"" || nodeText == "'use strict'" {
+					useStrictDirective = statement
+					break
+				}
+			}
 		}
 		if !useStrictDirective.IsNil() {
-			nonSimpleParameters := core.Filter(node.ParametersSeq().Slice(), func(n ast.Handle) bool {
-				parameter := n
-				return !parameter.Initializer().IsNil() || ast.IsBindingPattern(parameter.Name()) || isRestParameter(parameter)
-			})
+			var nonSimpleParameters []ast.Handle
+			for _, n := range node.ParametersSeq().All() {
+				if !n.Initializer().IsNil() || ast.IsBindingPattern(n.Name()) || isRestParameter(n) {
+					nonSimpleParameters = append(nonSimpleParameters, n)
+				}
+			}
 			if len(nonSimpleParameters) != 0 {
 				for _, parameter := range nonSimpleParameters {
 					err := c.error(parameter, diagnostics.This_parameter_is_not_allowed_with_use_strict_directive)

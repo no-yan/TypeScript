@@ -1244,10 +1244,9 @@ func (c *Checker) narrowTypeBySwitchOnTypeOf(t *Type, data *ast.FlowSwitchClause
 	if witnesses == nil {
 		return t
 	}
-	clauses := data.SwitchStatement.Store().ListSlice(data.SwitchStatement.SwitchStatementCaseBlock().CaseBlockClauses()).Slice()
-	defaultIndex := core.FindIndex(clauses, func(clause ast.Handle) bool {
-		return clause.Kind == ast.KindDefaultClause
-	})
+	list := data.SwitchStatement.SwitchStatementCaseBlock().CaseBlockClauses()
+	store := data.SwitchStatement.Store()
+	defaultIndex := switchDefaultClauseIndex(store, list)
 	clauseStart := int(data.ClauseStart)
 	clauseEnd := int(data.ClauseEnd)
 	hasDefaultClause := clauseStart == clauseEnd || (defaultIndex >= clauseStart && defaultIndex < clauseEnd)
@@ -1266,34 +1265,38 @@ func (c *Checker) narrowTypeBySwitchOnTypeOf(t *Type, data *ast.FlowSwitchClause
 	}))
 }
 func (c *Checker) narrowTypeBySwitchOnTrue(f *FlowState, t *Type, data *ast.FlowSwitchClauseData) *Type {
-	clauses := data.SwitchStatement.Store().ListSlice(data.SwitchStatement.SwitchStatementCaseBlock().CaseBlockClauses()).Slice()
-	defaultIndex := core.FindIndex(clauses, func(clause ast.Handle) bool {
-		return clause.Kind == ast.KindDefaultClause
-	})
+	list := data.SwitchStatement.SwitchStatementCaseBlock().CaseBlockClauses()
+	store := data.SwitchStatement.Store()
+	defaultIndex := switchDefaultClauseIndex(store, list)
 	clauseStart := int(data.ClauseStart)
 	clauseEnd := int(data.ClauseEnd)
 	hasDefaultClause := clauseStart == clauseEnd || (defaultIndex >= clauseStart && defaultIndex < clauseEnd)
 	for i := range clauseStart {
-		clause := clauses[i]
+		clause := store.ListAt(list, i)
 		if clause.Kind == ast.KindCaseClause {
 			t = c.narrowType(f, t, clause.Expression(), false)
 		}
 	}
 	if hasDefaultClause {
-		for i := clauseEnd; i < len(clauses); i++ {
-			clause := clauses[i]
+		ln := store.ListLen(list)
+		for i := clauseEnd; i < ln; i++ {
+			clause := store.ListAt(list, i)
 			if clause.Kind == ast.KindCaseClause {
 				t = c.narrowType(f, t, clause.Expression(), false)
 			}
 		}
 		return t
 	}
-	return c.getUnionType(core.Map(clauses[clauseStart:clauseEnd], func(clause ast.Handle) *Type {
+	mapped := make([]*Type, 0, clauseEnd-clauseStart)
+	for i := clauseStart; i < clauseEnd; i++ {
+		clause := store.ListAt(list, i)
 		if clause.Kind == ast.KindCaseClause {
-			return c.narrowType(f, t, clause.Expression(), true)
+			mapped = append(mapped, c.narrowType(f, t, clause.Expression(), true))
+		} else {
+			mapped = append(mapped, c.neverType)
 		}
-		return c.neverType
-	}))
+	}
+	return c.getUnionType(mapped)
 }
 func (c *Checker) narrowTypeBySwitchOptionalChainContainment(t *Type, data *ast.FlowSwitchClauseData, clauseCheck func(t *Type) bool) *Type {
 	everyClauseChecks := data.ClauseStart != data.ClauseEnd && core.Every(c.getSwitchClauseTypes(data.SwitchStatement)[data.ClauseStart:data.ClauseEnd], clauseCheck)
@@ -1940,9 +1943,12 @@ func (c *Checker) eachTypeContainedIn(source *Type, types []*Type) bool {
 func (c *Checker) getSwitchClauseTypeOfWitnesses(node ast.Handle) []string {
 	links := c.switchStatementLinks.Get(node)
 	if !links.witnessesComputed {
-		clauses := node.Store().ListSlice(node.SwitchStatementCaseBlock().CaseBlockClauses()).Slice()
-		witnesses := make([]string, len(clauses))
-		for i, clause := range clauses {
+		list := node.SwitchStatementCaseBlock().CaseBlockClauses()
+		store := node.Store()
+		ln := store.ListLen(list)
+		witnesses := make([]string, ln)
+		for i := range ln {
+			clause := store.ListAt(list, i)
 			if clause.Kind == ast.KindCaseClause {
 				if !ast.IsStringLiteralLike(clause.Expression()) {
 					witnesses = nil
@@ -1972,13 +1978,26 @@ func (c *Checker) getNotEqualFactsFromTypeofSwitch(start int, end int, witnesses
 	}
 	return facts
 }
+
+func switchDefaultClauseIndex(store *ast.Store, list ast.ListRef) int {
+	ln := store.ListLen(list)
+	for i := range ln {
+		if store.ListAt(list, i).Kind == ast.KindDefaultClause {
+			return i
+		}
+	}
+	return -1
+}
+
 func (c *Checker) getSwitchClauseTypes(node ast.Handle) []*Type {
 	links := c.switchStatementLinks.Get(node)
 	if !links.switchTypesComputed {
-		clauses := node.Store().ListSlice(node.SwitchStatementCaseBlock().CaseBlockClauses()).Slice()
-		types := make([]*Type, len(clauses))
-		for i, clause := range clauses {
-			types[i] = c.getTypeOfSwitchClause(clause)
+		list := node.SwitchStatementCaseBlock().CaseBlockClauses()
+		store := node.Store()
+		ln := store.ListLen(list)
+		types := make([]*Type, ln)
+		for i := range ln {
+			types[i] = c.getTypeOfSwitchClause(store.ListAt(list, i))
 		}
 		links.switchTypes = types
 		links.switchTypesComputed = true
