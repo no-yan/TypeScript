@@ -75,7 +75,7 @@ const (
 
 type DiagnosticAndArguments struct {
 	message   *diagnostics.Message
-	arguments []any// Source type is a constituent of an outer intersection
+	arguments []any // Source type is a constituent of an outer intersection
 	// Target type is a constituent of an outer intersection
 	// This function exists to constrain the types of values that can be used as recursion IDs.
 	// We have excluded types that may simplify to other forms, so types must have identical flags
@@ -1070,7 +1070,7 @@ func (c *Checker) elaborateObjectLiteral(node ast.Handle, source *Type, target *
 		return false
 	}
 	reportedError := false
-	for _, prop := range node.Properties() {
+	for _, prop := range node.PropertiesSeq() {
 		if ast.IsSpreadAssignment(prop) {
 			continue
 		}
@@ -1101,7 +1101,7 @@ func (c *Checker) elaborateArrayLiteral(node ast.Handle, source *Type, target *T
 		}
 	}
 	reportedError := false
-	for i, element := range node.Elements() {
+	for i, element := range node.ElementsSeq() {
 		if ast.IsOmittedExpression(element) || c.isTupleLikeType(target) && c.getPropertyOfType(target, jsnum.Number(i).String()) == nil {
 			continue
 		}
@@ -1198,7 +1198,7 @@ func (c *Checker) checkExpressionForMutableLocationWithContextualType(next ast.H
 	return result
 }
 func (c *Checker) elaborateArrowFunction(node ast.Handle, source *Type, target *Type, relation *Relation, diagnosticOutput *[]*ast.Diagnostic) bool {
-	if ast.IsBlock(node.Body()) || core.Some(node.Parameters(), hasType) {
+	if ast.IsBlock(node.Body()) || node.ParametersSeq().Some(hasType) {
 		return false
 	}
 	sourceSig := c.getSingleCallSignature(source)
@@ -2370,12 +2370,12 @@ func (c *Checker) getTupleElementLabelFromBindingElement(node ast.Handle, index 
 			return name + "_n"
 		case ast.KindArrayBindingPattern:
 			if hasDotDotDotToken(node) {
-				elements := node.Name().Elements()
-				lastElement := core.LastOrNil(elements)
+				elements := node.Name().ElementsSeq()
+				lastElement := elements.Last()
 				lastElementIsBindingElementRest := !lastElement.IsNil() && ast.IsBindingElement(lastElement) && hasDotDotDotToken(lastElement)
-				elementCount := len(elements) - core.IfElse(lastElementIsBindingElementRest, 1, 0)
+				elementCount := elements.Len() - core.IfElse(lastElementIsBindingElementRest, 1, 0)
 				if index < elementCount {
-					element := elements[index]
+					element := elements.At(index)
 					if ast.IsBindingElement(element) {
 						return c.getTupleElementLabelFromBindingElement(element, index, elementFlags)
 					}
@@ -2993,7 +2993,7 @@ func (r *Relater) hasExcessProperties(source *Type, target *Type, reportErrors b
 					} else {
 						var objectLiteralDeclaration ast.Handle
 						if source.symbol != nil {
-							objectLiteralDeclaration = core.FirstOrNil(ast.DeclarationNodes(source.symbol))
+							objectLiteralDeclaration = ast.DeclarationNodes(source.symbol).First()
 						}
 						var suggestion string
 						if prop.ValueDeclaration != 0 && ast.IsObjectLiteralElement(ast.NodeOf(prop.ValueDeclaration)) && !ast.FindAncestor(ast.NodeOf(prop.ValueDeclaration), func(d ast.Handle) bool {

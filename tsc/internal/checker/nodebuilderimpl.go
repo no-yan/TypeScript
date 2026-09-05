@@ -28,7 +28,7 @@ type CompositeSymbolIdentity struct {
 type TrackedSymbolArgs struct {
 	symbol               *ast.Symbol
 	enclosingDeclaration ast.Handle
-	meaning ast.SymbolFlags
+	meaning              ast.SymbolFlags
 }
 type SerializedTypeEntry struct {
 	node           ast.Handle
@@ -227,7 +227,7 @@ func (b *NodeBuilderImpl) appendReferenceToType(root ast.Handle, ref ast.Handle)
 		return b.f.UpdateImportTypeNode(imprt, imprt.IsTypeOf(), imprt.Argument(), imprt.Attributes(), qualifier, ref.TypeArgumentList())
 	} else if ast.IsTypeReferenceNode(root) {
 		typeRef := root
-		if b.ctx.flags&nodebuilder.FlagsUseInstantiationExpressions != 0 && typeRef.TypeArgumentList() != 0 && len(typeRef.TypeArguments()) != 0 {
+		if b.ctx.flags&nodebuilder.FlagsUseInstantiationExpressions != 0 && typeRef.TypeArgumentList() != 0 && typeRef.TypeArgumentsSeq().Len() != 0 {
 			expr := b.createExpressionWithTypeArguments(b.createAccessExpression(typeRef.TypeName()), typeRef.TypeArgumentList())
 			for _, id := range getAccessStack(ref) {
 				expr = b.f.NewPropertyAccessExpression(expr, ast.Handle{}, id, ast.NodeFlagsNone)
@@ -424,7 +424,7 @@ func (b *NodeBuilderImpl) existingTypeNodeIsNotReferenceOrIsReferenceWithCompati
 	if existingTarget == nil || existingTarget != t.AsTypeReference().target {
 		return true
 	}
-	return len(existing.TypeArguments()) >= b.ch.getMinTypeArgumentCount(t.AsTypeReference().target.AsInterfaceType().TypeParameters())
+	return existing.TypeArgumentsSeq().Len() >= b.ch.getMinTypeArgumentCount(t.AsTypeReference().target.AsInterfaceType().TypeParameters())
 }
 func (b *NodeBuilderImpl) tryReuseExistingNonParameterTypeNode(existing ast.Handle, t *Type, host ast.Handle, annotationType *Type) ast.Handle {
 	if host.IsNil() {
@@ -778,7 +778,13 @@ func (b *NodeBuilderImpl) getNameOfSymbolAsWritten(symbol *ast.Symbol) string {
 		return "default"
 	}
 	if len(symbol.Declarations) > 0 {
-		name := core.FirstNonNil(ast.DeclarationNodes(symbol), ast.GetNameOfDeclaration)
+		var name ast.Handle
+		for _, d := range ast.DeclarationNodes(symbol) {
+			if n := ast.GetNameOfDeclaration(d); !n.IsNil() {
+				name = n
+				break
+			}
+		}
 		if !name.IsNil() {
 			if ast.IsComputedPropertyName(name) && symbol.CheckFlags&ast.CheckFlagsLate == 0 {
 				if b.ch.valueSymbolLinks.Has(symbol) && b.ch.valueSymbolLinks.Get(symbol).nameType != nil && b.ch.valueSymbolLinks.Get(symbol).nameType.flags&TypeFlagsStringOrNumberLiteral != 0 {
@@ -790,7 +796,7 @@ func (b *NodeBuilderImpl) getNameOfSymbolAsWritten(symbol *ast.Symbol) string {
 			}
 			return scanner.DeclarationNameToString(name)
 		}
-		declaration := ast.DeclarationNodes(symbol)[0]
+		declaration := ast.DeclarationNodes(symbol).First()
 		if !declaration.Parent().IsNil() && declaration.Parent().Kind == ast.KindVariableDeclaration {
 			return scanner.DeclarationNameToString(declaration.Parent().VariableDeclarationName())
 		}
@@ -961,7 +967,7 @@ func tryGetModuleSpecifierFromDeclarationWorker(node ast.Handle) ast.Handle {
 		if requireCall.IsNil() {
 			return ast.Handle{}
 		}
-		return requireCall.Arguments()[0]
+		return requireCall.ArgumentsSeq().At(0)
 	case ast.KindImportDeclaration, ast.KindExportDeclaration, ast.KindJSDocImportTag:
 		return node.ModuleSpecifier()
 	case ast.KindImportEqualsDeclaration:
@@ -1002,9 +1008,13 @@ func tryGetModuleSpecifierFromDeclarationWorker(node ast.Handle) ast.Handle {
 func (b *NodeBuilderImpl) getSpecifierForModuleSymbol(symbol *ast.Symbol, overrideImportMode core.ResolutionMode) string {
 	file := ast.GetDeclarationOfKind(symbol, ast.KindSourceFile)
 	if file.IsNil() {
-		equivalentSymbol := core.FirstNonNil(ast.DeclarationNodes(symbol), func(d ast.Handle) *ast.Symbol {
-			return b.ch.getFileSymbolIfFileSymbolExportEqualsContainer(d, symbol)
-		})
+		var equivalentSymbol *ast.Symbol
+		for _, d := range ast.DeclarationNodes(symbol) {
+			if s := b.ch.getFileSymbolIfFileSymbolExportEqualsContainer(d, symbol); s != nil {
+				equivalentSymbol = s
+				break
+			}
+		}
 		if equivalentSymbol != nil {
 			file = ast.GetDeclarationOfKind(equivalentSymbol, ast.KindSourceFile)
 		}
@@ -1123,7 +1133,7 @@ func (b *NodeBuilderImpl) typeParameterToName(typeParameter *Type) ast.Handle {
 		return b.f.NewIdentifier("(Missing type parameter)")
 	}
 	if typeParameter.symbol != nil && len(typeParameter.symbol.Declarations) > 0 {
-		decl := ast.DeclarationNodes(typeParameter.symbol)[0]
+		decl := ast.DeclarationNodes(typeParameter.symbol).First()
 		if !decl.IsNil() && ast.IsTypeParameterDeclaration(decl) {
 			result = b.setTextRange(result, decl.Name())
 		}
@@ -1297,7 +1307,7 @@ func (b *NodeBuilderImpl) symbolToParameterDeclaration(parameterSymbol *ast.Symb
 	parameterTypeNode := b.serializeTypeForDeclaration(parameterDeclaration, parameterType, parameterSymbol, true)
 	var modifiers ast.ListRef
 	if b.ctx.flags&nodebuilder.FlagsOmitParameterModifiers == 0 && preserveModifierFlags && !parameterDeclaration.IsNil() && ast.CanHaveModifiers(parameterDeclaration) {
-		originals := core.Filter(parameterDeclaration.ModifierNodes(), ast.IsModifier)
+		originals := core.Filter(parameterDeclaration.ModifierNodesSeq().Slice(), ast.IsModifier)
 		clones := core.Map(originals, func(node ast.Handle) ast.Handle {
 			return b.f.DeepCloneNode(node)
 		})
@@ -1722,7 +1732,7 @@ func (b *NodeBuilderImpl) serializeTypeForDeclaration(declaration ast.Handle, t 
 		if symbol != nil {
 			declaration = ast.NodeOf(symbol.ValueDeclaration)
 			if declaration.IsNil() {
-				declaration = core.FirstOrNil(ast.DeclarationNodes(symbol))
+				declaration = ast.DeclarationNodes(symbol).First()
 			}
 		}
 	}
@@ -2011,7 +2021,7 @@ func (b *NodeBuilderImpl) addPropertyToElementList(propertySymbol *ast.Symbol, t
 	b.ctx.enclosingDeclaration = ast.Handle{}
 	if isLateBoundName(propertySymbol.Name) {
 		if len(propertySymbol.Declarations) > 0 {
-			decl := ast.DeclarationNodes(propertySymbol)[0]
+			decl := ast.DeclarationNodes(propertySymbol).First()
 			if b.ch.hasLateBindableName(decl) {
 				if ast.IsBinaryExpression(decl) {
 					name := ast.GetNameOfDeclaration(decl)
@@ -2061,9 +2071,9 @@ func (b *NodeBuilderImpl) addPropertyToElementList(propertySymbol *ast.Symbol, t
 					typeElements = append(typeElements, setter)
 				}
 				return typeElements
-			} else if propertySymbol.Parent != nil && propertySymbol.Parent.Flags&ast.SymbolFlagsClass != 0 && !propDeclaration.IsNil() && !core.Find(propDeclaration.ModifierNodes(), func(m ast.Handle) bool {
+			} else if propertySymbol.Parent != nil && propertySymbol.Parent.Flags&ast.SymbolFlagsClass != 0 && !propDeclaration.IsNil() && !propDeclaration.ModifierNodesSeq().Some(func(m ast.Handle) bool {
 				return m.Kind == ast.KindAccessorKeyword
-			}).IsNil() {
+			}) {
 				fakeGetterSignature := b.ch.newSignature(SignatureFlagsNone, ast.Handle{}, nil, nil, nil, propertyType, nil, 0)
 				fakeGetterDeclaration := b.signatureToSignatureDeclarationHelper(fakeGetterSignature, ast.KindGetAccessor, &SignatureToSignatureDeclarationOptions{name: propertyName})
 				b.setCommentRange(fakeGetterDeclaration, propDeclaration)
@@ -2434,7 +2444,7 @@ func (b *NodeBuilderImpl) typeReferenceToTypeNode(t *Type) ast.Handle {
 			arity := b.ch.getTypeReferenceArity(t)
 			tupleConstituentNodes := b.mapToTypeNodes(typeArguments[0:arity], false)
 			if tupleConstituentNodes != 0 {
-				elems := b.e.StoreFactory().Store().ListSlice(tupleConstituentNodes)
+				elems := b.e.StoreFactory().Store().ListSlice(tupleConstituentNodes).Slice()
 				for i := 0; i < len(elems); i++ {
 					flags := t.Target().AsTupleType().elementInfos[i].flags
 					labeledElementDeclaration := t.Target().AsTupleType().elementInfos[i].labeledDeclaration
@@ -2505,7 +2515,7 @@ func (b *NodeBuilderImpl) typeReferenceToTypeNode(t *Type) ast.Handle {
 			if typeParams != nil {
 				typeParameterCount = min(len(typeParams), len(typeArguments))
 				if b.ch.isReferenceToType(t, b.ch.getGlobalIterableType()) || b.ch.isReferenceToType(t, b.ch.getGlobalIterableIteratorType()) || b.ch.isReferenceToType(t, b.ch.getGlobalAsyncIterableType()) || b.ch.isReferenceToType(t, b.ch.getGlobalAsyncIterableIteratorType()) {
-					if t.AsTypeReference().node.IsNil() || !ast.IsTypeReferenceNode(t.AsTypeReference().node) || t.AsTypeReference().node.TypeArguments() == nil || len(t.AsTypeReference().node.TypeArguments()) < typeParameterCount {
+					if t.AsTypeReference().node.IsNil() || !ast.IsTypeReferenceNode(t.AsTypeReference().node) || t.AsTypeReference().node.TypeArgumentsSeq().Len() < typeParameterCount {
 						for typeParameterCount > 0 {
 							typeArgument := typeArguments[typeParameterCount-1]
 							typeParameter := t.Target().AsInterfaceType().TypeParameters()[typeParameterCount-1]

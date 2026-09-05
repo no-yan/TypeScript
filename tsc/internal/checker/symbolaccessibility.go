@@ -75,9 +75,12 @@ func getQualifiedLeftMeaning(rightMeaning ast.SymbolFlags) ast.SymbolFlags {
 	return ast.SymbolFlagsNamespace
 }
 func (c *Checker) getWithAlternativeContainers(container *ast.Symbol, symbol *ast.Symbol, enclosingDeclaration ast.Handle, meaning ast.SymbolFlags) []*ast.Symbol {
-	additionalContainers := core.MapNonNil(ast.DeclarationNodes(container), func(d ast.Handle) *ast.Symbol {
-		return c.getFileSymbolIfFileSymbolExportEqualsContainer(d, container)
-	})
+	var additionalContainers []*ast.Symbol
+	for _, d := range ast.DeclarationNodes(container) {
+		if s := c.getFileSymbolIfFileSymbolExportEqualsContainer(d, container); s != nil {
+			additionalContainers = append(additionalContainers, s)
+		}
+	}
 	var reexportContainers []*ast.Symbol
 	if !enclosingDeclaration.IsNil() {
 		reexportContainers = c.getAlternativeContainingModules(symbol, enclosingDeclaration)
@@ -175,7 +178,7 @@ func (c *Checker) getVariableDeclarationOfObjectLiteral(symbol *ast.Symbol, mean
 	if len(symbol.Declarations) == 0 {
 		return nil
 	}
-	firstDecl := ast.DeclarationNodes(symbol)[0]
+	firstDecl := ast.DeclarationNodes(symbol).First()
 	if firstDecl.Parent().IsNil() {
 		return nil
 	}
@@ -624,7 +627,13 @@ func (c *Checker) isSymbolAccessibleWorker(symbol *ast.Symbol, enclosingDeclarat
 		if result != nil {
 			return *result
 		}
-		symbolExternalModule := core.FirstNonNil(ast.DeclarationNodes(symbol), c.getExternalModuleContainer)
+		var symbolExternalModule *ast.Symbol
+		for _, d := range ast.DeclarationNodes(symbol) {
+			if s := c.getExternalModuleContainer(d); s != nil {
+				symbolExternalModule = s
+				break
+			}
+		}
 		if symbolExternalModule != nil {
 			enclosingExternalModule := c.getExternalModuleContainer(enclosingDeclaration)
 			if symbolExternalModule != enclosingExternalModule {

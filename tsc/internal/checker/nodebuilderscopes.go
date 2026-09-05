@@ -178,7 +178,7 @@ func (b *NodeBuilderImpl) enterNewScope(declaration ast.Handle, expandedParams [
 						var bindElement func(e ast.Handle)
 						var bindPattern func(e ast.Handle)
 						bindPatternWorker := func(p ast.Handle) {
-							for _, e := range p.Elements() {
+							for _, e := range p.ElementsSeq() {
 								switch e.Kind {
 								case ast.KindOmittedExpression:
 									return
