@@ -11,7 +11,7 @@ type TypeEraserTransformer struct {
 	transformers.Transformer
 	compilerOptions *core.CompilerOptions
 	parentNode      ast.Handle
-	currentNode ast.Handle
+	currentNode     ast.Handle
 }
 
 func NewTypeEraserTransformer(opt *transformers.TransformOptions) *transformers.Transformer {
@@ -154,7 +154,7 @@ func (tx *TypeEraserTransformer) visit(node ast.Handle) ast.Handle {
 			if modifiers == 0 {
 				modifiers = tx.Factory().NewModifierList(visited)
 			} else {
-				modifiers = tx.Factory().NewModifierList(slices.Concat(node.Store().ListSlice(modifiers), visited))
+				modifiers = tx.Factory().NewModifierList(slices.Concat(node.Store().ListSlice(modifiers).Slice(), visited))
 			}
 		}
 		return tx.Factory().UpdateParameterDeclaration(n, modifiers, n.DotDotDotToken(), tx.Visitor().VisitNode(n.Name()), ast.Handle{}, ast.Handle{}, tx.Visitor().VisitNode(n.Initializer()))

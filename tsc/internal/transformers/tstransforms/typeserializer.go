@@ -17,7 +17,7 @@ type metadataSerializer struct {
 	c                metadataSerializerContext
 }
 type metadataSerializerContext struct {
-	currentLexicalScope ast.Handle
+	currentLexicalScope              ast.Handle
 	currentNameScope                 ast.Handle
 	serializingConditionalTypeBranch bool
 }
@@ -173,7 +173,12 @@ func (s *metadataSerializer) serializeTypeNode(node ast.Handle) ast.Handle {
 		defer func() {
 			s.c.serializingConditionalTypeBranch = oldState
 		}()
-		return s.serializeUnionOrIntersectionConstituents([]ast.Handle{node.ConditionalTypeNodeTrueType(), node.ConditionalTypeNodeFalseType()}, false)
+		return s.serializeUnionOrIntersectionConstituents(func(yield func(int, ast.Handle) bool) {
+			if !yield(0, node.ConditionalTypeNodeTrueType()) {
+				return
+			}
+			yield(1, node.ConditionalTypeNodeFalseType())
+		}, false)
 	case ast.KindTypeOperator:
 		if node.TypeOperatorNodeOperator() == ast.KindReadonlyKeyword {
 			return s.serializeTypeNode(node.Type())
@@ -190,7 +195,7 @@ func (s *metadataSerializer) serializeTypeNode(node ast.Handle) ast.Handle {
 	}
 	return s.f.NewIdentifier("Object")
 }
-func (s *metadataSerializer) serializeUnionOrIntersectionConstituents(types []ast.Handle, isIntersection bool) ast.Handle {
+func (s *metadataSerializer) serializeUnionOrIntersectionConstituents(types ast.NodeSeq, isIntersection bool) ast.Handle {
 	var serializedType ast.Handle
 	for _, typeNode := range types {
 		typeNode = ast.SkipTypeParentheses(typeNode)
