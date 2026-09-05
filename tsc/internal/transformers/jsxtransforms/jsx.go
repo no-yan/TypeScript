@@ -17,10 +17,10 @@ import (
 
 type JSXTransformer struct {
 	transformers.Transformer
-	compilerOptions     *core.CompilerOptions
-	emitResolver        printer.EmitResolver
-	importSpecifier     string
-	filenameDeclaration ast.Handle
+	compilerOptions                *core.CompilerOptions
+	emitResolver                   printer.EmitResolver
+	importSpecifier                string
+	filenameDeclaration            ast.Handle
 	utilizedImplicitRuntimeImports collections.OrderedMap[string, map[string]ast.Handle]
 	inJsxChild                     bool
 	currentSourceFile              *ast.SourceFile
@@ -240,7 +240,7 @@ func (tx *JSXTransformer) visitJsxFragment(fragment ast.Handle) ast.Handle {
 	location := core.NewTextRange(scanner.SkipTrivia(tx.currentSourceFile.Text(), fragment.Pos()), fragment.End())
 	return tagTransform(tx, fragment.OpeningFragment(), fragment.ChildList(), location)
 }
-func (tx *JSXTransformer) convertJsxChildrenToChildrenPropObject(children []ast.Handle) ast.Handle {
+func (tx *JSXTransformer) convertJsxChildrenToChildrenPropObject(children ast.NodeSeq) ast.Handle {
 	prop := tx.convertJsxChildrenToChildrenPropAssignment(children)
 	if prop.IsNil() {
 		return ast.Handle{}
@@ -253,8 +253,8 @@ func (tx *JSXTransformer) transformJsxChildToExpression(node ast.Handle) ast.Han
 	defer tx.setInChild(prev)
 	return tx.Visitor().Visit(node)
 }
-func (tx *JSXTransformer) convertJsxChildrenToChildrenPropAssignment(children []ast.Handle) ast.Handle {
-	nonWhitespceChildren := ast.GetSemanticJsxChildren(children)
+func (tx *JSXTransformer) convertJsxChildrenToChildrenPropAssignment(children ast.NodeSeq) ast.Handle {
+	nonWhitespceChildren := ast.GetSemanticJsxChildren(children.Slice())
 	if len(nonWhitespceChildren) == 1 && (nonWhitespceChildren[0].Kind != ast.KindJsxExpression || nonWhitespceChildren[0].JsxExpressionDotDotDotToken().IsNil()) {
 		result := tx.transformJsxChildToExpression(nonWhitespceChildren[0])
 		if result.IsNil() {
@@ -441,7 +441,7 @@ func (tx *JSXTransformer) transformJsxAttributeInitializer(node ast.Handle) ast.
 func (tx *JSXTransformer) visitJsxOpeningLikeElementOrFragmentJSX(tagName ast.Handle, object ast.Handle, keyAttr ast.Handle, children ast.ListRef, location core.TextRange) ast.Handle {
 	var nonWhitespaceChildren []ast.Handle
 	if children != 0 {
-		nonWhitespaceChildren = ast.GetSemanticJsxChildren(tagName.Store().ListSlice(children))
+		nonWhitespaceChildren = ast.GetSemanticJsxChildren(tagName.Store().ListSlice(children).Slice())
 	}
 	isStaticChildren := len(nonWhitespaceChildren) > 1 || (len(nonWhitespaceChildren) == 1 && ast.IsJsxExpression(nonWhitespaceChildren[0]) && !nonWhitespaceChildren[0].JsxExpressionDotDotDotToken().IsNil())
 	args := make([]ast.Handle, 0, 3)
