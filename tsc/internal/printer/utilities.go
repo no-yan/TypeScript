@@ -8,7 +8,6 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/sourcemap"
 	"github.com/microsoft/TypeScript/tsc/internal/stringutil"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
-	"slices"
 	"strconv"
 	"strings"
 	"unicode/utf8"
@@ -400,8 +399,8 @@ func siblingNodePositionsAreComparable(emitContext *EmitContext, previousNode as
 	}
 	parentNodeArray := getContainingNodeArray(previousNode)
 	if parentNodeArray != 0 {
-		prevNodeIndex := slices.Index(previousNode.Store().ListSlice(parentNodeArray), previousNode)
-		return prevNodeIndex >= 0 && slices.Index(previousNode.Store().ListSlice(parentNodeArray), nextNode) == prevNodeIndex+1
+		prevNodeIndex := previousNode.Store().ListIndexOf(parentNodeArray, previousNode)
+		return prevNodeIndex >= 0 && previousNode.Store().ListIndexOf(parentNodeArray, nextNode) == prevNodeIndex+1
 	}
 	return false
 }

@@ -2325,18 +2325,16 @@ func findOriginatingJSDocSatisfiesTag(sourceFile *ast.SourceFile, node ast.Handl
 		}
 		var firstSatisfiesTag ast.Handle
 		for _, jsDoc := range current.EagerJSDoc(sourceFile) {
-			if tags := jsDoc.JSDocTags(); tags != 0 {
-				for _, tag := range node.Store().ListSlice(tags) {
-					if !ast.IsJSDocSatisfiesTag(tag) {
-						continue
-					}
-					if firstSatisfiesTag.IsNil() {
-						firstSatisfiesTag = tag
-					}
-					if typeExpr := tag.JSDocSatisfiesTagTypeExpression(); !typeExpr.IsNil() {
-						if t := typeExpr.Type(); !t.IsNil() && t.Loc() == targetType.Loc() {
-							return tag
-						}
+			for _, tag := range jsDoc.TagsSeq() {
+				if !ast.IsJSDocSatisfiesTag(tag) {
+					continue
+				}
+				if firstSatisfiesTag.IsNil() {
+					firstSatisfiesTag = tag
+				}
+				if typeExpr := tag.JSDocSatisfiesTagTypeExpression(); !typeExpr.IsNil() {
+					if t := typeExpr.Type(); !t.IsNil() && t.Loc() == targetType.Loc() {
+						return tag
 					}
 				}
 			}

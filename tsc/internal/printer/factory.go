@@ -226,7 +226,7 @@ func (f *NodeFactory) RestoreEnclosingLabel(node ast.Handle, outermostLabeledSta
 
 func (f *NodeFactory) CreateForOfBindingStatement(node ast.Handle, boundValue ast.Handle) ast.Handle {
 	if ast.IsVariableDeclarationList(node) {
-		firstDeclaration := node.Store().ListSlice(node.VariableDeclarationListDeclarations())[0]
+		firstDeclaration := node.Store().ListAt(node.VariableDeclarationListDeclarations(), 0)
 		updatedDeclaration := f.UpdateVariableDeclaration(firstDeclaration, firstDeclaration.Name(), ast.Handle{}, ast.Handle{}, boundValue)
 		statement := f.NewVariableStatement(0, f.UpdateVariableDeclarationList(node, f.NewList([]ast.Handle{updatedDeclaration}), node.Flags()))
 		statement.SetLoc(node.Loc())

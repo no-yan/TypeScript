@@ -114,12 +114,7 @@ func (ct *ChangeTrackerWriter) assignPositionsToNodeArray(nodes ast.ListRef, v *
 		panic("if nodes is 0, visited should not be 0")
 	}
 	store := v.Factory.Store()
-	elems := store.ListSlice(visited)
-	if visited == nodes {
-		copied := make([]ast.Handle, len(elems))
-		copy(copied, elems)
-		elems = copied
-	}
+	elems := store.ListSlice(visited).Slice()
 	return v.Factory.List(core.NewTextRange(ct.getPos(nodes), ct.getEnd(nodes)), elems...)
 }
 func (ct *ChangeTrackerWriter) Write(text string) {

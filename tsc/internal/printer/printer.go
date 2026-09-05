@@ -930,9 +930,9 @@ func (p *Printer) emitModifierList(parentNode ast.Handle, modifiers ast.ListRef,
 	if modifiers == 0 || parentNode.Store().ListLen(modifiers) == 0 {
 		return parentNode.Pos()
 	}
-	if core.Every(parentNode.Store().ListSlice(modifiers), ast.IsModifier) {
+	if parentNode.Store().ListSlice(modifiers).Every(ast.IsModifier) {
 		p.emitList((*Printer).emitKeywordNode, parentNode, modifiers, LFModifiers)
-	} else if core.Every(parentNode.Store().ListSlice(modifiers), ast.IsDecorator) {
+	} else if parentNode.Store().ListSlice(modifiers).Every(ast.IsDecorator) {
 		if !allowDecorators {
 			return parentNode.Pos()
 		}
@@ -975,7 +975,7 @@ func (p *Printer) emitModifierList(parentNode ast.Handle, modifiers ast.ListRef,
 				textRange = core.NewTextRange(textRange.Pos(), parentNode.Store().ListLoc(modifiers).End())
 			}
 			if allowDecorators || lastMode == ModeModifiers {
-				p.emitListItems((*Printer).emitModifierLike, parentNode, parentNode.Store().ListSlice(modifiers)[start:pos], core.IfElse(lastMode == ModeModifiers, LFModifiers, LFDecorators), false, textRange)
+				p.emitListItems((*Printer).emitModifierLike, parentNode, parentNode.Store().ListSlice(modifiers).Slice()[start:pos], core.IfElse(lastMode == ModeModifiers, LFModifiers, LFDecorators), false, textRange)
 			}
 			start = pos
 			lastMode = mode
@@ -985,7 +985,8 @@ func (p *Printer) emitModifierList(parentNode ast.Handle, modifiers ast.ListRef,
 			p.OnAfterEmitNodeList(modifiers)
 		}
 	}
-	return greatestEnd(parentNode.Pos(), core.LastOrNil(parentNode.Store().ListSlice(modifiers)))
+	n := parentNode.Store().ListLen(modifiers)
+	return greatestEnd(parentNode.Pos(), parentNode.Store().ListAt(modifiers, n-1))
 }
 func (p *Printer) emitTypeParameter(node ast.Handle) {
 	state := p.enterNode(node)
@@ -1080,7 +1081,7 @@ func canEmitSimpleArrowHead(parentNode ast.Handle, parameters ast.ListRef) bool 
 	}
 	parent := parentNode
 	parameter := parentNode.Store().ListAt(parameters, 0)
-	return parameter.Pos() == parent.Pos() && parent.TypeParameterList() == 0 && parent.Type().IsNil() && (parent.Modifiers() == 0 || len(parent.Store().ListSlice(parent.Modifiers())) == 0) && !parentNode.Store().ListHasTrailingComma(parameters) && parameter.Modifiers() == 0 && parameter.DotDotDotToken().IsNil() && parameter.QuestionToken().IsNil() && parameter.Type().IsNil() && parameter.Initializer().IsNil() && ast.IsIdentifier(parameter.Name())
+	return parameter.Pos() == parent.Pos() && parent.TypeParameterList() == 0 && parent.Type().IsNil() && (parent.Modifiers() == 0 || parent.Store().ListLen(parent.Modifiers()) == 0) && !parentNode.Store().ListHasTrailingComma(parameters) && parameter.Modifiers() == 0 && parameter.DotDotDotToken().IsNil() && parameter.QuestionToken().IsNil() && parameter.Type().IsNil() && parameter.Initializer().IsNil() && ast.IsIdentifier(parameter.Name())
 }
 func (p *Printer) emitParametersForArrow(parentNode ast.Handle, parameters ast.ListRef) {
 	if canEmitSimpleArrowHead(parentNode, parameters) {
@@ -3705,7 +3706,7 @@ func (p *Printer) emitListRange(emit func(p *Printer, node ast.Handle), parentNo
 		}
 	} else {
 		end := min(start+count, length)
-		p.emitListItems(emit, parentNode, parentNode.Store().ListSlice(children)[start:end], format, p.hasTrailingComma(parentNode, children), parentNode.Store().ListLoc(children))
+		p.emitListItems(emit, parentNode, parentNode.Store().ListSlice(children).Slice()[start:end], format, p.hasTrailingComma(parentNode, children), parentNode.Store().ListLoc(children))
 	}
 	if p.OnAfterEmitNodeList != nil {
 		p.OnAfterEmitNodeList(children)
