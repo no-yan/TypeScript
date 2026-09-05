@@ -8,7 +8,6 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/compiler"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/debug"
-	"slices"
 )
 
 type ImpExpKind int32
@@ -40,7 +39,7 @@ type ExportInfo struct {
 }
 type LocationAndSymbol struct {
 	importLocation ast.Handle
-	importSymbol *ast.Symbol
+	importSymbol   *ast.Symbol
 }
 type ImportsResult struct {
 	importSearches   []LocationAndSymbol
@@ -431,7 +430,7 @@ func getImportOrExportSymbol(node ast.Handle, symbol *ast.Symbol, checker *check
 		grandparent := parent.Parent()
 		if symbol.ExportSymbol != nil {
 			if ast.IsPropertyAccessExpression(parent) {
-				if ast.IsBinaryExpression(grandparent) && slices.Contains(ast.DeclarationNodes(symbol), parent) {
+				if ast.IsBinaryExpression(grandparent) && ast.DeclarationNodes(symbol).Some(func(d ast.Handle) bool { return d == parent }) {
 					return getSpecialPropertyExport(grandparent, false)
 				}
 				return nil

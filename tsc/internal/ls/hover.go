@@ -15,7 +15,6 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
 	"github.com/microsoft/TypeScript/tsc/internal/scanner"
 	"github.com/microsoft/TypeScript/tsc/internal/spanmap"
-	"slices"
 	"strings"
 )
 
@@ -254,7 +253,7 @@ func documentationFromAlias(getMappedLocation documentationLocationMapper, c *ch
 		candidates = append(candidates, aliasedSymbol.ExportSymbol)
 	}
 	for _, candidate := range candidates {
-		aliasedDeclaration := core.OrElse(ast.NodeOf(candidate.ValueDeclaration), core.FirstOrNil(ast.DeclarationNodes(candidate)))
+		aliasedDeclaration := core.OrElse(ast.NodeOf(candidate.ValueDeclaration), ast.DeclarationNodes(candidate).First())
 		if aliasedDeclaration.IsNil() {
 			continue
 		}
@@ -277,11 +276,14 @@ func documentationFromRootSymbols(getMappedLocation documentationLocationMapper,
 		if rootSymbol == nil {
 			continue
 		}
-		declarations := ast.DeclarationNodes(rootSymbol)
-		if len(declarations) == 0 && rootSymbol.ValueDeclaration != 0 {
-			declarations = []ast.Handle{ast.NodeOf(rootSymbol.ValueDeclaration)}
+		decls := ast.DeclarationNodes(rootSymbol)
+		if decls.Len() == 0 && rootSymbol.ValueDeclaration != 0 {
+			if documentation := getDocumentationFromDeclaration(getMappedLocation, c, rootSymbol, ast.NodeOf(rootSymbol.ValueDeclaration), node, contentFormat, commentOnly); documentation != "" {
+				docs = core.AppendIfUnique(docs, documentation)
+			}
+			continue
 		}
-		for _, declaration := range declarations {
+		for _, declaration := range decls {
 			if documentation := getDocumentationFromDeclaration(getMappedLocation, c, rootSymbol, declaration, node, contentFormat, commentOnly); documentation != "" {
 				docs = core.AppendIfUnique(docs, documentation)
 			}
@@ -689,7 +691,7 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol *ast.Symbol
 					writeTypeClassified(t, container, typeFormatFlags)
 				}
 			}
-			setDeclaration(core.OrElse(ast.NodeOf(symbol.ValueDeclaration), core.FirstOrNil(ast.DeclarationNodes(symbol))))
+			setDeclaration(core.OrElse(ast.NodeOf(symbol.ValueDeclaration), ast.DeclarationNodes(symbol).First()))
 		}
 		if flags&ast.SymbolFlagsEnumMember != 0 {
 			writeNewLine()
@@ -707,7 +709,7 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol *ast.Symbol
 		if flags&(ast.SymbolFlagsFunction|ast.SymbolFlagsMethod) != 0 {
 			isMethod := flags&ast.SymbolFlagsMethod != 0
 			prefix := core.IfElse(isMethod, "method", "function ")
-			if ast.IsIdentifier(node) && (ast.IsFunctionLikeDeclaration(node.Parent()) || ast.IsMethodSignatureDeclaration(node.Parent())) && node.Parent().Name() == node && slices.Contains(ast.DeclarationNodes(symbol), node.Parent()) {
+			if ast.IsIdentifier(node) && (ast.IsFunctionLikeDeclaration(node.Parent()) || ast.IsMethodSignatureDeclaration(node.Parent())) && node.Parent().Name() == node && ast.DeclarationNodes(symbol).Some(func(d ast.Handle) bool { return d == node.Parent() }) {
 				setDeclaration(node.Parent())
 				signatures := []*checker.Signature{c.GetSignatureFromDeclaration(node.Parent())}
 				writeSignatures(signatures, prefix, isMethod, symbol)

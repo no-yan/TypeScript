@@ -49,7 +49,7 @@ func (l *LanguageService) provideDefinitionAtPosition(ctx context.Context, progr
 	defer done()
 	if node.Kind == ast.KindOverrideKeyword {
 		if sym := getSymbolForOverriddenMember(c, node); sym != nil {
-			return l.createDefinitionLocations(originSelectionRange, clientSupportsLink, ast.DeclarationNodes(sym), nil, spanmap.FeatureDefinition)
+			return l.createDefinitionLocations(originSelectionRange, clientSupportsLink, ast.DeclarationNodes(sym).Slice(), nil, spanmap.FeatureDefinition)
 		}
 	}
 	if ast.IsJumpStatementTarget(node) {
@@ -124,7 +124,7 @@ func (l *LanguageService) provideTypeDefinitionAtPosition(ctx context.Context, p
 			return l.createDefinitionLocations(originSelectionRange, clientSupportsLink, declarations, nil, spanmap.FeatureTypeDefinition)
 		}
 		if symbol.Flags&ast.SymbolFlagsValue == 0 && symbol.Flags&ast.SymbolFlagsType != 0 {
-			return l.createDefinitionLocations(originSelectionRange, clientSupportsLink, ast.DeclarationNodes(symbol), nil, spanmap.FeatureTypeDefinition)
+			return l.createDefinitionLocations(originSelectionRange, clientSupportsLink, ast.DeclarationNodes(symbol).Slice(), nil, spanmap.FeatureTypeDefinition)
 		}
 	}
 	return lsproto.LocationOrLocationsOrDefinitionLinksOrNull{}
@@ -164,7 +164,7 @@ func combineDefinitionResponses(results []lsproto.DefinitionResponse, links bool
 func getDeclarationNameForKeyword(node ast.Handle) ast.Handle {
 	if node.Kind >= ast.KindFirstKeyword && node.Kind <= ast.KindLastKeyword {
 		if ast.IsVariableDeclarationList(node.Parent()) {
-			if decl := core.FirstOrNil(node.Store().ListSlice(node.Parent().VariableDeclarationListDeclarations())); !decl.IsNil() && !decl.Name().IsNil() {
+			if decl := node.Store().ListSlice(node.Parent().VariableDeclarationListDeclarations()).First(); !decl.IsNil() && !decl.Name().IsNil() {
 				return decl.Name()
 			}
 		} else if !node.Parent().Name().IsNil() && node.Pos() < node.Parent().Name().Pos() {
@@ -239,7 +239,7 @@ func getDeclarationsFromLocation(c *checker.Checker, node ast.Handle) []ast.Hand
 		shorthandSymbol := c.GetResolvedSymbol(node)
 		var declarations []ast.Handle
 		if shorthandSymbol != nil {
-			declarations = ast.DeclarationNodes(shorthandSymbol)
+			declarations = ast.DeclarationNodes(shorthandSymbol).Slice()
 		}
 		contextualDeclarations := getDeclarationsFromObjectLiteralElement(c, node)
 		return core.Concatenate(declarations, contextualDeclarations)
@@ -256,7 +256,7 @@ func getDeclarationsFromLocation(c *checker.Checker, node ast.Handle) []ast.Hand
 				var result []ast.Handle
 				for _, unionType := range types {
 					if prop := c.GetPropertyOfType(unionType, name); prop != nil {
-						result = append(result, ast.DeclarationNodes(prop)...)
+						result = append(result, ast.DeclarationNodes(prop).Slice()...)
 					}
 				}
 				return result
@@ -280,7 +280,7 @@ func getDeclarationsFromLocation(c *checker.Checker, node ast.Handle) []ast.Hand
 			return objectLiteralElementDeclarations
 		}
 		if len(symbol.Declarations) > 0 {
-			return ast.DeclarationNodes(symbol)
+			return ast.DeclarationNodes(symbol).Slice()
 		}
 	}
 	if indexInfos := c.GetIndexSignaturesAtLocation(node); len(indexInfos) != 0 {
@@ -310,7 +310,7 @@ func getDeclarationsFromObjectLiteralElement(c *checker.Checker, node ast.Handle
 	}
 	var result []ast.Handle
 	for _, prop := range properties {
-		result = append(result, ast.DeclarationNodes(prop)...)
+		result = append(result, ast.DeclarationNodes(prop).Slice()...)
 	}
 	return result
 }

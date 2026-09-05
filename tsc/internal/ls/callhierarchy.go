@@ -329,12 +329,14 @@ func findAllInitialDeclarations(c *checker.Checker, node ast.Handle) []ast.Handl
 		file string
 		pos  int
 	}
-	indices := make([]int, len(symbol.Declarations))
+	// Materialize once for sorted random-access / []Handle result boundary.
+	decls := ast.DeclarationNodes(symbol).Slice()
+	indices := make([]int, len(decls))
 	for i := range indices {
 		indices[i] = i
 	}
-	keys := make([]declKey, len(symbol.Declarations))
-	for i, decl := range ast.DeclarationNodes(symbol) {
+	keys := make([]declKey, len(decls))
+	for i, decl := range decls {
 		keys[i] = declKey{file: ast.GetSourceFileOfNode(decl).FileName(), pos: decl.Pos()}
 	}
 	slices.SortFunc(indices, func(a, b int) int {
@@ -346,7 +348,7 @@ func findAllInitialDeclarations(c *checker.Checker, node ast.Handle) []ast.Handl
 	var declarations []ast.Handle
 	var lastDecl ast.Handle
 	for _, i := range indices {
-		decl := ast.DeclarationNodes(symbol)[i]
+		decl := decls[i]
 		if isValidCallHierarchyDeclaration(decl) {
 			if lastDecl.IsNil() || lastDecl.Parent() != decl.Parent() || lastDecl.End() != decl.Pos() {
 				declarations = append(declarations, decl)

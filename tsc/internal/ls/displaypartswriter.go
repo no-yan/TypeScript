@@ -14,7 +14,7 @@ var _ printer.EmitTextWriter = &displayPartsWriter{}
 
 type displayPartsWriter struct {
 	builder strings.Builder
-	runs    []*// displayPartsWriter implements EmitTextWriter and captures classified text runs
+	runs    []* // displayPartsWriter implements EmitTextWriter and captures classified text runs
 	// for VS colorized labels, while also building a plain string.
 	// When vsCapability is false, only the plain string is built; runs are skipped.
 	// WriteClassified writes text with an explicit classification type.
@@ -189,9 +189,6 @@ func classificationForSymbol(symbol *ast.Symbol) lsproto.ClassificationTypeName 
 }
 
 func isFirstDeclarationOfSymbolParameter(symbol *ast.Symbol) bool {
-	declarations := ast.DeclarationNodes(symbol)
-	if len(declarations) == 0 {
-		return false
-	}
-	return declarations[0].Kind == ast.KindParameter
+	first := ast.DeclarationNodes(symbol).First()
+	return !first.IsNil() && first.Kind == ast.KindParameter
 }

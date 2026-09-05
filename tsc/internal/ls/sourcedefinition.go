@@ -134,7 +134,7 @@ func getSourceDefCheckerInfo(ctx context.Context, program *compiler.Program, fil
 	if len(declarations) == 0 && isPropertyName {
 		if left := node.Parent().Expression(); !left.IsNil() {
 			if prop := c.GetPropertyOfType(c.GetTypeAtLocation(left), node.Text()); prop != nil {
-				declarations = ast.DeclarationNodes(prop)
+				declarations = ast.DeclarationNodes(prop).Slice()
 			}
 		}
 	}
