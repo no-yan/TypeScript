@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
+	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"gotest.tools/v3/assert"
 )
 
@@ -44,6 +45,18 @@ func TestSetChildPreservesForeignIdentity(t *testing.T) {
 	assert.Equal(t, name.Store(), got.Store())
 	assert.Equal(t, name.Ref(), got.Ref())
 	assert.Equal(t, name.Global(), got.Global())
+	assert.Assert(t, name.Parent().IsNil())
+}
+
+func TestSetChildDoesNotParentForeignChild(t *testing.T) {
+	src := ast.NewFactory(ast.FactoryHooks{})
+	dst := ast.NewFactory(ast.FactoryHooks{})
+	ast.RegisterStore(src.Store())
+	ast.RegisterStore(dst.Store())
+
+	name := src.Identifier("x")
+	access := dst.NewPropertyAccessExpression(dst.NewKeywordExpression(ast.KindThisKeyword), ast.Handle{}, name, ast.NodeFlagsNone)
+	dst.Finish(access, core.NewTextRange(0, 3))
 	assert.Assert(t, name.Parent().IsNil())
 }
 

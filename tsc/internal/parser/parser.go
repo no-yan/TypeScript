@@ -88,6 +88,7 @@ type Parser struct {
 	notParenthesizedArrow      collections.Set[int]
 	stringSliceArena           core.Arena[string]
 	jsdocInfos                 []JSDocInfo
+	lazyJSDoc                  []ast.NodeRef
 	possibleAwaitSpans         []int
 	jsdocCommentsSpace         []string
 	jsdocCommentRangesSpace    []ast.CommentRange
@@ -128,25 +129,47 @@ func (p *Parser) newList(loc core.TextRange, nodes []ast.Handle) ast.ListRef {
 	return p.factory.List(loc, nodes...)
 }
 
+func (p *Parser) eachList(list ast.ListRef, fn func(ast.Handle)) {
+	s := p.factory.Store()
+	n := s.ListLen(list)
+	for i := 0; i < n; i++ {
+		fn(s.ListAt(list, i))
+	}
+}
+
 func (p *Parser) listHandles(list ast.ListRef) []ast.Handle {
-	if list == 0 {
+	s := p.factory.Store()
+	n := s.ListLen(list)
+	if n == 0 {
 		return nil
 	}
-	n := p.factory.Store().ListLen(list)
 	out := make([]ast.Handle, n)
 	for i := 0; i < n; i++ {
-		out[i] = p.factory.Store().ListAt(list, i)
+		out[i] = s.ListAt(list, i)
 	}
 	return out
 }
 
 func (p *Parser) listSome(list ast.ListRef, pred func(ast.Handle) bool) bool {
-	for _, h := range p.listHandles(list) {
-		if pred(h) {
+	s := p.factory.Store()
+	n := s.ListLen(list)
+	for i := 0; i < n; i++ {
+		if pred(s.ListAt(list, i)) {
 			return true
 		}
 	}
 	return false
+}
+
+func (p *Parser) listFind(list ast.ListRef, pred func(ast.Handle) bool) int {
+	s := p.factory.Store()
+	n := s.ListLen(list)
+	for i := 0; i < n; i++ {
+		if pred(s.ListAt(list, i)) {
+			return i
+		}
+	}
+	return -1
 }
 
 func (p *Parser) listLast(list ast.ListRef) ast.Handle {
@@ -162,9 +185,9 @@ func (p *Parser) listLast(list ast.ListRef) ast.Handle {
 
 func (p *Parser) modifiersToFlags(list ast.ListRef) ast.ModifierFlags {
 	var flags ast.ModifierFlags
-	for _, h := range p.listHandles(list) {
+	p.eachList(list, func(h ast.Handle) {
 		flags |= ast.ModifierToFlag(h.Kind())
-	}
+	})
 	return flags
 }
 
@@ -277,7 +300,6 @@ func ParseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptK
 	p.finishSourceFile(result, isDeclarationFile && p.scriptKind != core.ScriptKindJSON)
 	result.SetParseStore(p.factory.Store(), root)
 	ast.SetExternalModuleIndicator(result, p.opts.ExternalModuleIndicatorOptions)
-	result.RecordParseIdentifiers()
 	if p.scriptKind == core.ScriptKindJSON {
 		stmts := root.SourceFileStatements()
 		if stmts != 0 && p.factory.Store().ListLen(stmts) > 0 {
@@ -287,7 +309,6 @@ func ParseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptK
 	} else {
 		collectExternalModuleReferences(result)
 		if p.isJavaScript() {
-			p.checkJSSyntaxTree(root)
 			result.SetJSDiagnostics(attachFileToDiagnostics(p.jsDiagnostics, result))
 		}
 	}
@@ -508,6 +529,7 @@ type ParserState struct {
 	diagnosticsLen              int
 	jsDiagnosticsLen            int
 	jsdocInfosLen               int
+	lazyJSDocLen                int
 	reparsedClonesLen           int
 	statementHasAwaitIdentifier bool
 	hasParseError               bool
@@ -520,6 +542,7 @@ func (p *Parser) mark() ParserState {
 		diagnosticsLen:              len(p.diagnostics),
 		jsDiagnosticsLen:            len(p.jsDiagnostics),
 		jsdocInfosLen:               len(p.jsdocInfos),
+		lazyJSDocLen:                len(p.lazyJSDoc),
 		reparsedClonesLen:           len(p.reparsedClones),
 		statementHasAwaitIdentifier: p.statementHasAwaitIdentifier,
 		hasParseError:               p.hasParseError,
@@ -533,6 +556,7 @@ func (p *Parser) rewind(state ParserState) {
 	p.diagnostics = p.diagnostics[0:state.diagnosticsLen]
 	p.jsDiagnostics = p.jsDiagnostics[0:state.jsDiagnosticsLen]
 	p.jsdocInfos = p.jsdocInfos[0:state.jsdocInfosLen]
+	p.lazyJSDoc = p.lazyJSDoc[0:state.lazyJSDocLen]
 	p.reparsedClones = p.reparsedClones[0:state.reparsedClonesLen]
 	p.statementHasAwaitIdentifier = state.statementHasAwaitIdentifier
 	p.hasParseError = state.hasParseError
@@ -633,6 +657,7 @@ func (p *Parser) finishSourceFile(result *ast.SourceFile, isDeclarationFile bool
 	result.IdentifierCount = p.identifierCount
 	if !p.isJavaScript() {
 		result.SetHasLazyJSDoc(true)
+		result.SetLazyJSDocRefs(p.lazyJSDoc)
 	}
 }
 
@@ -778,7 +803,7 @@ func (p *Parser) parseListIndex(kind ParsingContext, parseElement func(p *Parser
 	}
 	p.reparseList = outerReparseList
 	p.parsingContexts = saveParsingContexts
-	return slices.Clone(list)
+	return list
 }
 
 func (p *Parser) parseList(kind ParsingContext, parseElement func(p *Parser) ast.Handle) ast.ListRef {
@@ -842,7 +867,7 @@ func (p *Parser) parseDelimitedList(kind ParsingContext, parseElement func(p *Pa
 		}
 	}
 	p.parsingContexts = saveParsingContexts
-	return p.newList(core.NewTextRange(pos, p.nodePos()), slices.Clone(list))
+	return p.newList(core.NewTextRange(pos, p.nodePos()), list)
 }
 
 // Return a non-nil (but possibly empty) NodeList if parsing was successful, a missing NodeList if the opening
@@ -1272,9 +1297,9 @@ func (p *Parser) parseDeclaration() ast.Handle {
 		// if node {
 		// 	return node
 		// }
-		for _, m := range p.listHandles(modifiers) {
+		p.eachList(modifiers, func(m ast.Handle) {
 			m.SetFlags(m.Flags() | ast.NodeFlagsAmbient)
-		}
+		})
 		saveContextFlags := p.contextFlags
 		p.setContextFlags(ast.NodeFlagsAmbient, true)
 		result := p.parseDeclarationWorker(pos, jsdoc, modifiers)
@@ -1919,13 +1944,13 @@ func (p *Parser) parseClassDeclarationOrExpression(pos int, jsdoc jsdocScannerIn
 	if result.Flags()&ast.NodeFlagsJavaScriptFile != 0 {
 		p.checkJSSyntax(result)
 		if heritageClauses != 0 {
-			for _, clause := range p.listHandles(heritageClauses) {
+			p.eachList(heritageClauses, func(clause ast.Handle) {
 				if clause.HeritageClauseToken() == ast.KindExtendsKeyword {
-					for _, expr := range p.listHandles(clause.HeritageClauseTypes()) {
+					p.eachList(clause.HeritageClauseTypes(), func(expr ast.Handle) {
 						p.checkJSSyntax(expr)
-					}
+					})
 				}
-			}
+			})
 		}
 	}
 	return result
@@ -2050,9 +2075,9 @@ func (p *Parser) parseClassElement() ast.Handle {
 	if tokenIsIdentifierOrKeyword(p.token) || p.token == ast.KindStringLiteral || p.token == ast.KindNumericLiteral || p.token == ast.KindBigIntLiteral || p.token == ast.KindAsteriskToken || p.token == ast.KindOpenBracketToken {
 		isAmbient := modifiers != 0 && p.listSome(modifiers, isDeclareModifier)
 		if isAmbient {
-			for _, m := range p.listHandles(modifiers) {
+			p.eachList(modifiers, func(m ast.Handle) {
 				m.SetFlags(m.Flags() | ast.NodeFlagsAmbient)
-			}
+			})
 			saveContextFlags := p.contextFlags
 			p.setContextFlags(ast.NodeFlagsAmbient, true)
 			result := p.parsePropertyOrMethodDeclaration(pos, jsdoc, modifiers)
@@ -2827,7 +2852,7 @@ func (p *Parser) parseUnionOrIntersectionType(operator ast.Kind, parseConstituen
 		for p.parseOptional(operator) {
 			types = append(types, p.parseFunctionOrConstructorTypeToError(isUnionType, parseConstituentType))
 		}
-		typeNode = p.createUnionOrIntersectionTypeNode(operator, p.newList(core.NewTextRange(pos, p.nodePos()), slices.Clone(types)))
+		typeNode = p.createUnionOrIntersectionTypeNode(operator, p.newList(core.NewTextRange(pos, p.nodePos()), types))
 		p.finishHandle(typeNode, pos)
 	}
 	return typeNode
@@ -3502,7 +3527,7 @@ func (p *Parser) parseParameterEx(inOuterAwaitContext bool, allowAmbiguity bool)
 			modifiers, ast.Handle{} /*dotDotDotToken*/, p.createIdentifier(true /*isIdentifier*/), ast.Handle{} /*questionToken*/, p.parseTypeAnnotation(), ast.Handle{}, /*initializer*/
 		)
 		if modifiers != 0 {
-			p.parseErrorAtRange(p.listHandles(modifiers)[0].Loc(), diagnostics.Neither_decorators_nor_modifiers_may_be_applied_to_this_parameters)
+			p.parseErrorAtRange(p.factory.Store().ListAt(modifiers, 0).Loc(), diagnostics.Neither_decorators_nor_modifiers_may_be_applied_to_this_parameters)
 		}
 		p.withJSDoc(p.finishHandle(result, pos), jsdoc)
 		return result
@@ -4061,7 +4086,7 @@ func (p *Parser) parseModifiersEx(allowDecorators bool, permitConstAsModifier bo
 		}
 	}
 	if len(list) != 0 {
-		return p.newList(core.NewTextRange(pos, p.nodePos()), slices.Clone(list))
+		return p.newList(core.NewTextRange(pos, p.nodePos()), list)
 	}
 	return 0
 }
@@ -4935,12 +4960,19 @@ func (p *Parser) parseJsxElementOrSelfClosingElementOrFragment(inExpressionConte
 				lastChild.JsxElementOpeningElement().SetParent(newLast)
 			}
 			if lastChild.JsxElementChildren() != 0 {
-				for _, c := range p.listHandles(lastChild.JsxElementChildren()) {
+				p.eachList(lastChild.JsxElementChildren(), func(c ast.Handle) {
 					c.SetParent(newLast)
-				}
+				})
 			}
 			newClosingElement.SetParent(newLast)
-			children = p.newList(core.NewTextRange(p.factory.Store().ListLoc(children).Pos(), newLast.End()), append(p.listHandles(children)[0:len(p.listHandles(children))-1], newLast))
+			s := p.factory.Store()
+			n := s.ListLen(children)
+			kept := make([]ast.Handle, 0, n)
+			for i := 0; i < n-1; i++ {
+				kept = append(kept, s.ListAt(children, i))
+			}
+			kept = append(kept, newLast)
+			children = p.newList(core.NewTextRange(s.ListLoc(children).Pos(), newLast.End()), kept)
 			closingElement = lastChild.JsxElementClosingElement()
 		} else {
 			closingElement = p.parseJsxClosingElement(opening, inExpressionContext)
@@ -5911,9 +5943,9 @@ func (p *Parser) unparseExpressionWithTypeArguments(expression ast.Handle, typeA
 		expression.SetParent(result)
 	}
 	if typeArguments != 0 {
-		for _, a := range p.listHandles(typeArguments) {
+		p.eachList(typeArguments, func(a ast.Handle) {
 			a.SetParent(result)
-		}
+		})
 	}
 }
 
@@ -6832,48 +6864,52 @@ func (p *Parser) jsErrorAtRange(loc core.TextRange, message *diagnostics.Message
 }
 
 func (p *Parser) checkJSDecoratorSyntax(node ast.Handle) {
-	modifiers := p.listHandles(node.Modifiers())
-	if len(modifiers) == 0 {
+	modifiers := node.Modifiers()
+	s := p.factory.Store()
+	if s.ListLen(modifiers) == 0 {
 		return
 	}
 
 	if ast.CanHaveIllegalDecorators(node) {
-		for _, modifier := range modifiers {
+		n := s.ListLen(modifiers)
+		for i := 0; i < n; i++ {
+			modifier := s.ListAt(modifiers, i)
 			if modifier.Kind() == ast.KindDecorator {
 				p.jsErrorAtRange(modifier.Loc(), diagnostics.Decorators_are_not_valid_here)
 				break
 			}
 		}
 	} else if ast.CanHaveDecorators(node) {
-		decoratorIndex := core.FindIndex(modifiers, func(m ast.Handle) bool { return m.Kind() == ast.KindDecorator })
+		decoratorIndex := p.listFind(modifiers, func(m ast.Handle) bool { return m.Kind() == ast.KindDecorator })
 		if decoratorIndex >= 0 {
 			if node.Kind() == ast.KindClassDeclaration {
-				exportIndex := core.FindIndex(modifiers, isExportModifier)
+				exportIndex := p.listFind(modifiers, isExportModifier)
 				if exportIndex >= 0 {
-					defaultIndex := core.FindIndex(modifiers, func(m ast.Handle) bool {
+					defaultIndex := p.listFind(modifiers, func(m ast.Handle) bool {
 						return m.Kind() == ast.KindDefaultKeyword
 					})
 					if decoratorIndex > exportIndex && defaultIndex >= 0 && decoratorIndex < defaultIndex {
-						// Decorator between `export` and `default`
-						p.jsErrorAtRange(modifiers[decoratorIndex].Loc(), diagnostics.Decorators_are_not_valid_here)
+						p.jsErrorAtRange(s.ListAt(modifiers, decoratorIndex).Loc(), diagnostics.Decorators_are_not_valid_here)
 					} else if decoratorIndex < exportIndex {
-						// Find a trailing decorator after the export keyword
 						trailingDecoratorIndex := -1
-						for i := exportIndex; i < len(modifiers); i++ {
-							if modifiers[i].Kind() == ast.KindDecorator {
+						n := s.ListLen(modifiers)
+						for i := exportIndex; i < n; i++ {
+							if s.ListAt(modifiers, i).Kind() == ast.KindDecorator {
 								trailingDecoratorIndex = i
 								break
 							}
 						}
 						if trailingDecoratorIndex >= 0 {
+							trailing := s.ListAt(modifiers, trailingDecoratorIndex)
+							first := s.ListAt(modifiers, decoratorIndex)
 							diag := ast.NewDiagnostic(
 								nil,
-								core.NewTextRange(scanner.SkipTrivia(p.sourceText, modifiers[trailingDecoratorIndex].Loc().Pos()), modifiers[trailingDecoratorIndex].Loc().End()),
+								core.NewTextRange(scanner.SkipTrivia(p.sourceText, trailing.Loc().Pos()), trailing.Loc().End()),
 								diagnostics.Decorators_may_not_appear_after_export_or_export_default_if_they_also_appear_before_export,
 							)
 							diag.AddRelatedInfo(ast.NewDiagnostic(
 								nil,
-								core.NewTextRange(scanner.SkipTrivia(p.sourceText, modifiers[decoratorIndex].Loc().Pos()), modifiers[decoratorIndex].Loc().End()),
+								core.NewTextRange(scanner.SkipTrivia(p.sourceText, first.Loc().Pos()), first.Loc().End()),
 								diagnostics.Decorator_used_before_export_here,
 							))
 							p.jsDiagnostics = append(p.jsDiagnostics, diag)
@@ -6958,13 +6994,13 @@ func (p *Parser) checkJSSyntax(node ast.Handle) ast.Handle {
 		}
 		fallthrough
 	case ast.KindVariableStatement, ast.KindPropertyDeclaration:
-		for _, modifier := range p.listHandles(node.Modifiers()) {
+		p.eachList(node.Modifiers(), func(modifier ast.Handle) {
 			if modifier.Flags()&ast.NodeFlagsReparsed == 0 && modifier.Kind() != ast.KindDecorator && ast.ModifierToFlag(modifier.Kind())&ast.ModifierFlagsJavaScript == 0 {
 				p.jsErrorAtRange(modifier.Loc(), diagnostics.The_0_modifier_can_only_be_used_in_TypeScript_files, scanner.TokenToString(modifier.Kind()))
 			}
-		}
+		})
 	case ast.KindParameter:
-		if core.Some(p.listHandles(node.Modifiers()), func(m ast.Handle) bool { return ast.IsModifierKind(m.Kind()) }) {
+		if p.listSome(node.Modifiers(), func(m ast.Handle) bool { return ast.IsModifierKind(m.Kind()) }) {
 			p.jsErrorAtRange(p.factory.Store().ListLoc(node.Modifiers()), diagnostics.Parameter_modifiers_can_only_be_used_in_TypeScript_files)
 		}
 	case ast.KindCallExpression, ast.KindNewExpression, ast.KindExpressionWithTypeArguments, ast.KindJsxSelfClosingElement,
@@ -6974,15 +7010,4 @@ func (p *Parser) checkJSSyntax(node ast.Handle) ast.Handle {
 		}
 	}
 	return node
-}
-
-func (p *Parser) checkJSSyntaxTree(node ast.Handle) {
-	if node.IsNil() {
-		return
-	}
-	p.checkJSSyntax(node)
-	node.ForEachChild(func(child ast.Handle) bool {
-		p.checkJSSyntaxTree(child)
-		return false
-	})
 }

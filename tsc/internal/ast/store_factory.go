@@ -48,21 +48,13 @@ func (f *Factory) Store() *Store { return f.store }
 
 func (f *Factory) Seal() { f.store.Seal() }
 
-// Finish sets parser-owned source locations and parent edges after a native
-// constructor has populated the node. It mirrors the Store work performed by
-// Parser.finishNode on the dual-write NodeFactory path.
+// Finish sets parser-owned source locations after a native constructor has
+// populated the node. Same-store parents are written by SetChild and SetListSlot.
 func (f *Factory) Finish(h Handle, loc core.TextRange) Handle {
 	if h.Store() != f.store || h.Ref() == 0 {
 		panic("ast: Finish Handle from a different Store")
 	}
 	h.SetLoc(loc)
-	h.ForEachChild(func(child Handle) bool {
-		if child.Store() != h.Store() {
-			return false
-		}
-		child.SetParent(h)
-		return false
-	})
 	return h
 }
 

@@ -198,6 +198,28 @@ func TestGeneratedHandleFactoryAccessorsAndFinish(t *testing.T) {
 	typ := f.Finish(f.NewKeywordTypeNode(ast.KindNumberKeyword), core.NewTextRange(13, 13))
 	declaration.SetVariableDeclarationType(typ)
 	assert.Equal(t, typ.Ref(), declaration.VariableDeclarationType().Ref())
+	assert.Equal(t, declaration.Ref(), typ.Parent().Ref())
+}
+
+func TestFinishParentsNamedAndListChildren(t *testing.T) {
+	t.Parallel()
+	f := ast.NewFactory(ast.FactoryHooks{})
+	left := f.NewIdentifier("a")
+	right := f.NewIdentifier("b")
+	op := f.NewToken(ast.KindPlusToken)
+	bin := f.Finish(f.NewBinaryExpression(0, left, ast.Handle{}, op, right), core.NewTextRange(0, 5))
+	assert.Equal(t, bin.Ref(), left.Parent().Ref())
+	assert.Equal(t, bin.Ref(), right.Parent().Ref())
+	assert.Equal(t, bin.Ref(), op.Parent().Ref())
+
+	a := f.NewIdentifier("x")
+	b := f.NewIdentifier("y")
+	elems := f.List(core.NewTextRange(1, 5), a, b)
+	assert.Assert(t, a.Parent().IsNil())
+	assert.Assert(t, b.Parent().IsNil())
+	arr := f.Finish(f.NewArrayLiteralExpression(elems, false), core.NewTextRange(0, 6))
+	assert.Equal(t, arr.Ref(), a.Parent().Ref())
+	assert.Equal(t, arr.Ref(), b.Parent().Ref())
 }
 
 func TestFactoryUpdateReusesHandleAndListRef(t *testing.T) {

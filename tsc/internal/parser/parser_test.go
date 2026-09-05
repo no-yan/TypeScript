@@ -5,6 +5,7 @@ import (
 	"iter"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -38,6 +39,32 @@ func BenchmarkParse(b *testing.B) {
 
 			for b.Loop() {
 				parser.ParseSourceFile(opts, sourceText, scriptKind)
+			}
+		})
+	}
+}
+
+func BenchmarkWarmJSDoc(b *testing.B) {
+	for _, f := range fixtures.BenchFixtures {
+		if f.Name() != "empty.ts" && f.Name() != "checker.ts" && f.Name() != "dom.generated.d.ts" {
+			continue
+		}
+		b.Run(f.Name(), func(b *testing.B) {
+			f.SkipIfNotExist(b)
+			fileName := tspath.GetNormalizedAbsolutePath(f.Path(), "/")
+			path := tspath.ToPath(fileName, "/", osvfs.FS().UseCaseSensitiveFileNames())
+			sourceText := f.ReadFile(b)
+			scriptKind := core.GetScriptKindFromFileName(fileName)
+			opts := ast.SourceFileParseOptions{FileName: fileName, Path: path}
+			files := make([]*ast.SourceFile, b.N)
+			for i := range b.N {
+				files[i] = parser.ParseSourceFile(opts, sourceText, scriptKind)
+			}
+			runtime.GC()
+			runtime.GC()
+			b.ResetTimer()
+			for i := range b.N {
+				files[i].WarmJSDoc()
 			}
 		})
 	}
@@ -443,12 +470,12 @@ func TestJSDocTypeCastDoesNotErrorInJavaScript(t *testing.T) {
 
 func TestJSDocDeprecatedTagParses(t *testing.T) {
 	t.Parallel()
-	sourceText := "/** @deprecated */ export const x = 1;\n"
+	sourceText := "/** @deprecated */ export const x = 1;\nexport const y = 2;\n"
 	file := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: "/index.ts", Path: "/index.ts"}, sourceText, core.ScriptKindTS)
 	file.WarmJSDoc()
-	stmt := file.ParseRoot().Statements()[0]
-	tag := ast.GetJSDocDeprecatedTag(stmt)
-	assert.Assert(t, !tag.IsNil(), "expected @deprecated tag on the export")
+	stmts := file.ParseRoot().Statements()
+	assert.Assert(t, !ast.GetJSDocDeprecatedTag(stmts[0]).IsNil(), "expected @deprecated tag on the export")
+	assert.Assert(t, ast.GetJSDocDeprecatedTag(stmts[1]).IsNil(), "unmarked statement should stay cold")
 }
 
 func TestSourceFilePositionMapWithNonASCIIStringLiteral(t *testing.T) {
