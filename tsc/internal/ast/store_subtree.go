@@ -264,7 +264,7 @@ func (h Handle) computeSubtreeFacts() SubtreeFacts {
 		return propagateHandleList(h.ModifierNodes(), propagateHandle) |
 			propagateHandle(h.Name()) |
 			eraseableList(h.TypeParameters()) |
-			propagateHandleList(h.ListSlice(h.HeritageClauses()), propagateHandle) |
+			propagateHandleList(h.ListSlice(h.HeritageClauses()).Slice(), propagateHandle) |
 			propagateHandleList(h.Members(), propagateHandle)
 	case KindHeritageClause:
 		if h.HeritageClauseToken() == KindImplementsKeyword {
@@ -422,7 +422,7 @@ func (h Handle) computeSubtreeFacts() SubtreeFacts {
 		return propagateHandle(h.Expression()) | eraseableList(h.TypeArguments())
 	case KindJsxElement:
 		return propagateHandle(h.JsxElementOpeningElement()) |
-			propagateHandleList(h.ListSlice(h.JsxElementChildren()), propagateHandle) |
+			propagateHandleList(h.ListSlice(h.JsxElementChildren()).Slice(), propagateHandle) |
 			propagateHandle(h.JsxElementClosingElement()) |
 			SubtreeContainsJsx
 	case KindJsxAttributes:

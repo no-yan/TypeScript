@@ -210,3 +210,46 @@ func BenchmarkCopySubtree(b *testing.B) {
 	runtime.KeepAlive(src)
 	runtime.KeepAlive(root)
 }
+
+const nodeSeqBenchCount = 256
+
+func BenchmarkListSlice(b *testing.B) {
+	f := ast.NewFactoryHint(ast.FactoryHooks{}, nodeSeqBenchCount+8)
+	elems := make([]ast.Handle, nodeSeqBenchCount)
+	for i := range elems {
+		elems[i] = f.NewIdentifier("n" + strconv.Itoa(i))
+	}
+	list := f.List(core.UndefinedTextRange(), elems...)
+	s := f.Store()
+	b.ReportAllocs()
+	var sink int
+	for b.Loop() {
+		for i, h := range s.ListSlice(list) {
+			sink += i + int(h.Kind)
+		}
+	}
+	runtime.KeepAlive(sink)
+	runtime.KeepAlive(f)
+}
+
+func BenchmarkDeclarationNodes(b *testing.B) {
+	s := ast.NewStore(nodeSeqBenchCount + 8)
+	ast.RegisterStore(s)
+	decls := make([]ast.GlobalRef, 0, nodeSeqBenchCount)
+	for i := range nodeSeqBenchCount {
+		h := s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
+		h.SetIdent(s.Intern("d" + strconv.Itoa(i)))
+		decls = append(decls, h.Global())
+	}
+	sym := &ast.Symbol{Name: "bench", Declarations: decls}
+	b.ReportAllocs()
+	var sink int
+	for b.Loop() {
+		for i, h := range ast.DeclarationNodes(sym) {
+			sink += i + int(h.Kind)
+		}
+	}
+	runtime.KeepAlive(sink)
+	runtime.KeepAlive(sym)
+	runtime.KeepAlive(s)
+}

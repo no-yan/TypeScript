@@ -186,7 +186,7 @@ func (v *HandleVisitor) DefaultVisitNode(node Handle) Handle {
 	if visited.IsNil() || visited.Kind != KindSyntaxList {
 		return visited
 	}
-	kids := visited.Store().ListSlice(visited.SyntaxListChildren())
+	kids := visited.Store().ListSlice(visited.SyntaxListChildren()).Slice()
 	if len(kids) != 1 {
 		panic("Expected only a single node to be written to output")
 	}
@@ -250,7 +250,7 @@ func (v *HandleVisitor) liftToBlock(node Handle) Handle {
 	}
 	var nodes []Handle
 	if node.Kind == KindSyntaxList {
-		nodes = node.Store().ListSlice(node.SyntaxListChildren())
+		nodes = node.Store().ListSlice(node.SyntaxListChildren()).Slice()
 	} else {
 		nodes = []Handle{node}
 	}
@@ -291,7 +291,7 @@ func appendVisitedHandle(out []Handle, visited Handle) []Handle {
 		return out
 	}
 	if visited.Kind == KindSyntaxList {
-		return append(out, visited.Store().ListSlice(visited.SyntaxListChildren())...)
+		return append(out, visited.Store().ListSlice(visited.SyntaxListChildren()).Slice()...)
 	}
 	return append(out, visited)
 }
@@ -394,7 +394,7 @@ func (f *Factory) RelocateList(list ListRef, loc core.TextRange) ListRef {
 	if list == 0 {
 		return f.List(loc)
 	}
-	return f.List(loc, f.store.ListSlice(list)...)
+	return f.List(loc, f.store.ListSlice(list).Slice()...)
 }
 
 func (f *Factory) NewModifier(kind Kind) Handle {
