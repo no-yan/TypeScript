@@ -648,14 +648,14 @@ func getIntersectingMeaningFromDeclarations(node ast.Handle, symbol *ast.Symbol,
 
 func getAllSuperTypeNodes(node ast.Handle) []ast.Handle {
 	if ast.IsInterfaceDeclaration(node) {
-		return ast.GetHeritageElements(node, ast.KindExtendsKeyword)
+		return ast.GetHeritageElements(node, ast.KindExtendsKeyword).Slice()
 	}
 	if ast.IsClassLike(node) {
 		var elems []ast.Handle
 		if el := ast.GetClassExtendsHeritageElement(node); !el.IsNil() {
 			elems = append(elems, el)
 		}
-		return append(elems, ast.GetImplementsHeritageClauseElements(node)...)
+		return append(elems, ast.GetImplementsHeritageClauseElements(node).Slice()...)
 	}
 	return nil
 }

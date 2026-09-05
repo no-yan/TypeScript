@@ -30,7 +30,7 @@ func getCodeActionsToFixClassIncorrectlyImplementsInterface(context context.Cont
 	typeChecker, done := fixContext.Program.GetTypeCheckerForFile(context, fixContext.SourceFile)
 	defer done()
 	var actions []*CodeAction
-	for _, implementedTypeNode := range implementsTypes {
+	for _, implementedTypeNode := range implementsTypes.All() {
 		changeTracker := change.NewTracker(context, fixContext.Program.Options(), fixContext.LS.FormatOptions(), fixContext.LS.converters)
 		importAdder, err := createImportAdder(context, fixContext, typeChecker)
 		if err != nil {
@@ -62,7 +62,7 @@ func getAllCodeActionsToFixClassIncorrectlyImplementsInterface(context context.C
 			}
 			if seenClassDeclarations.AddIfAbsent(classDeclaration) {
 				implementsTypes := ast.GetImplementsHeritageClauseElements(classDeclaration)
-				for _, implementedTypeNode := range implementsTypes {
+				for _, implementedTypeNode := range implementsTypes.All() {
 					addChanges(context, fixContext, changeTracker, importAdder, typeChecker, classDeclaration, implementedTypeNode)
 				}
 			}

@@ -3056,30 +3056,31 @@ func (c *Checker) checkFunctionOrConstructorSymbolWorker(symbol *ast.Symbol) {
 	var lastSeenNonAmbientDeclaration ast.Handle
 	var previousDeclaration ast.Handle
 	// Overload agreement helpers index and partition declarations.
-	declarations := ast.DeclarationNodes(symbol).Slice()
+	declarations := ast.DeclarationNodes(symbol)
 	isConstructor := symbol.Flags&ast.SymbolFlagsConstructor != 0
 	duplicateFunctionDeclaration := false
 	multipleConstructorImplementation := false
 	hasNonAmbientClass := false
 	var functionDeclarations []ast.Handle
-	getCanonicalOverload := func(overloads []ast.Handle, implementation ast.Handle) ast.Handle {
-		implementationSharesContainerWithFirstOverload := !implementation.IsNil() && implementation.Parent() == overloads[0].Parent()
+	getCanonicalOverload := func(overloads ast.NodeSeq, implementation ast.Handle) ast.Handle {
+		first := overloads.First()
+		implementationSharesContainerWithFirstOverload := !implementation.IsNil() && implementation.Parent() == first.Parent()
 		if implementationSharesContainerWithFirstOverload {
 			return implementation
 		}
-		return overloads[0]
+		return first
 	}
-	checkFlagAgreementBetweenOverloads := func(overloads []ast.Handle, implementation ast.Handle, flagsToCheck ast.ModifierFlags, someOverloadFlags ast.ModifierFlags, allOverloadFlags ast.ModifierFlags) {
+	checkFlagAgreementBetweenOverloads := func(overloads ast.NodeSeq, implementation ast.Handle, flagsToCheck ast.ModifierFlags, someOverloadFlags ast.ModifierFlags, allOverloadFlags ast.ModifierFlags) {
 		someButNotAllOverloadFlags := someOverloadFlags ^ allOverloadFlags
 		if someButNotAllOverloadFlags != 0 {
 			canonicalFlags := c.getEffectiveDeclarationFlags(getCanonicalOverload(overloads, implementation), flagsToCheck)
 			groups := make(map[*ast.SourceFile][]ast.Handle)
-			for _, overload := range overloads {
+			for _, overload := range overloads.All() {
 				sourceFile := ast.GetSourceFileOfNode(overload)
 				groups[sourceFile] = append(groups[sourceFile], overload)
 			}
 			for _, overloadsInFile := range groups {
-				canonicalFlagsForFile := c.getEffectiveDeclarationFlags(getCanonicalOverload(overloadsInFile, implementation), flagsToCheck)
+				canonicalFlagsForFile := c.getEffectiveDeclarationFlags(getCanonicalOverload(ast.NodeSequence(overloadsInFile), implementation), flagsToCheck)
 				for _, overload := range overloadsInFile {
 					deviation := c.getEffectiveDeclarationFlags(overload, flagsToCheck) ^ canonicalFlags
 					deviationInFile := c.getEffectiveDeclarationFlags(overload, flagsToCheck) ^ canonicalFlagsForFile
@@ -3097,10 +3098,10 @@ func (c *Checker) checkFunctionOrConstructorSymbolWorker(symbol *ast.Symbol) {
 			}
 		}
 	}
-	checkQuestionTokenAgreementBetweenOverloads := func(overloads []ast.Handle, implementation ast.Handle, someHaveQuestionToken bool, allHaveQuestionToken bool) {
+	checkQuestionTokenAgreementBetweenOverloads := func(overloads ast.NodeSeq, implementation ast.Handle, someHaveQuestionToken bool, allHaveQuestionToken bool) {
 		if someHaveQuestionToken != allHaveQuestionToken {
 			canonicalHasQuestionToken := isOptionalDeclaration(getCanonicalOverload(overloads, implementation))
-			for _, o := range overloads {
+			for _, o := range overloads.All() {
 				if isOptionalDeclaration(o) != canonicalHasQuestionToken {
 					c.error(ast.GetNameOfDeclaration(o), diagnostics.Overload_signatures_must_all_be_optional_or_required)
 				}
@@ -3151,7 +3152,7 @@ func (c *Checker) checkFunctionOrConstructorSymbolWorker(symbol *ast.Symbol) {
 			}
 		}
 	}
-	for _, node := range declarations {
+	for _, node := range declarations.All() {
 		inAmbientContext := node.Flags()&ast.NodeFlagsAmbient != 0
 		inAmbientContextOrInterface := inAmbientContext || !node.Parent().IsNil() && (ast.IsInterfaceDeclaration(node.Parent()) || ast.IsTypeLiteralNode(node.Parent()))
 		if inAmbientContextOrInterface {
@@ -3200,14 +3201,14 @@ func (c *Checker) checkFunctionOrConstructorSymbolWorker(symbol *ast.Symbol) {
 			c.error(core.OrElse(ast.GetNameOfDeclaration(declaration), declaration), diagnostics.Duplicate_function_implementation)
 		}
 	}
-	if hasNonAmbientClass && !isConstructor && symbol.Flags&ast.SymbolFlagsFunction != 0 && len(declarations) != 0 {
+	if hasNonAmbientClass && !isConstructor && symbol.Flags&ast.SymbolFlagsFunction != 0 && declarations.Len() != 0 {
 		var relatedDiagnostics []*ast.Diagnostic
-		for _, declaration := range declarations {
+		for _, declaration := range declarations.All() {
 			if ast.IsClassDeclaration(declaration) {
 				relatedDiagnostics = append(relatedDiagnostics, createDiagnosticForNode(declaration, diagnostics.Consider_adding_a_declare_modifier_to_this_class))
 			}
 		}
-		for _, declaration := range declarations {
+		for _, declaration := range declarations.All() {
 			var diagnostic *diagnostics.Message
 			switch declaration.Kind {
 			case ast.KindClassDeclaration:
@@ -3816,7 +3817,7 @@ func (c *Checker) checkClassLikeDeclaration(node ast.Handle) {
 	}
 	c.checkMembersForOverrideModifier(node, classType, typeWithThis, staticType)
 	implementedTypeNodes := ast.GetImplementsHeritageClauseElements(node)
-	for _, typeRefNode := range implementedTypeNodes {
+	for _, typeRefNode := range implementedTypeNodes.All() {
 		if ast.IsExpressionWithTypeArguments(typeRefNode) {
 			expr := typeRefNode.Expression()
 			if !ast.IsEntityNameExpression(expr) || ast.IsOptionalChain(expr) {
@@ -4434,7 +4435,7 @@ func (c *Checker) checkInterfaceDeclaration(node ast.Handle) {
 		}
 	}
 	c.checkObjectTypeForDuplicateDeclarations(node, false)
-	for _, heritageElement := range ast.GetExtendsHeritageClauseElements(node) {
+	for _, heritageElement := range ast.GetExtendsHeritageClauseElements(node).All() {
 		if ast.IsExpressionWithTypeArguments(heritageElement) {
 			expr := heritageElement.Expression()
 			if !ast.IsEntityNameExpression(expr) || ast.IsOptionalChain(expr) {
@@ -14695,7 +14696,7 @@ func (c *Checker) isThislessInterface(symbol *ast.Symbol) bool {
 				return false
 			}
 			baseTypeNodes := ast.GetExtendsHeritageClauseElements(declaration)
-			for _, node := range baseTypeNodes {
+			for _, node := range baseTypeNodes.All() {
 				name := ast.GetHeritageClauseElementName(node)
 				if ast.IsEntityName(name) || ast.IsEntityNameExpression(name) {
 					baseSymbol := c.resolveEntityName(name, ast.SymbolFlagsType, true, false, ast.Handle{})
@@ -16585,7 +16586,7 @@ func (c *Checker) resolveBaseTypesOfInterface(t *Type) {
 	data := t.AsInterfaceType()
 	for _, declaration := range ast.DeclarationNodes(t.symbol).All() {
 		if ast.IsInterfaceDeclaration(declaration) {
-			for _, node := range ast.GetExtendsHeritageClauseElements(declaration) {
+			for _, node := range ast.GetExtendsHeritageClauseElements(declaration).All() {
 				baseType := c.getReducedType(c.getTypeFromTypeNode(node))
 				if !c.isErrorType(baseType) {
 					if c.isValidBaseType(baseType) {
@@ -16676,7 +16677,7 @@ func (c *Checker) addInheritedMembers(symbols ast.SymbolTable, baseSymbols []*as
 		if !isStaticPrivateIdentifierProperty(base) {
 			if s, ok := symbols[base.Name]; !ok || s.Flags&ast.SymbolFlagsValue == 0 {
 				if symbols == nil {
-					symbols = make(ast.SymbolTable)
+					symbols = make(ast.SymbolTable, len(baseSymbols))
 				}
 				symbols[base.Name] = base
 			}
@@ -22042,50 +22043,63 @@ func (c *Checker) UnionTypes() iter.Seq[*Type] {
 	return maps.Values(c.unionTypes)
 }
 func (c *Checker) addTypesToUnion(sourceTypes []*Type) ([]*Type, TypeFlags) {
-	types := make([]*Type, 0, len(sourceTypes))
-	var includes TypeFlags
-	addType := func(t *Type) {
-		flags := t.flags
-		if flags&TypeFlagsNever != 0 {
-			return
+	capHint := 0
+	for _, t := range sourceTypes {
+		if t.flags&TypeFlagsUnion != 0 {
+			capHint += len(t.AsUnionType().types)
+		} else {
+			capHint++
 		}
-		includes |= flags & TypeFlagsIncludesMask
-		if flags&TypeFlagsInstantiable != 0 {
-			includes |= TypeFlagsIncludesInstantiable
-		}
-		if flags&TypeFlagsIntersection != 0 && t.objectFlags&ObjectFlagsIsConstrainedTypeVariable != 0 {
-			includes |= TypeFlagsIncludesConstrainedTypeVariable
-		}
-		if t == c.wildcardType {
-			includes |= TypeFlagsIncludesWildcard
-		}
-		if c.isErrorType(t) {
-			includes |= TypeFlagsIncludesError
-		}
-		if !c.strictNullChecks && flags&TypeFlagsNullable != 0 {
-			if t.objectFlags&ObjectFlagsContainsWideningType == 0 {
-				includes |= TypeFlagsIncludesNonWideningType
-			}
-			return
-		}
-		types = append(types, t)
 	}
+	types := make([]*Type, 0, capHint)
+	var includes TypeFlags
 	var lastType *Type
 	for _, t := range sourceTypes {
-		if t != lastType {
-			if t.flags&TypeFlagsUnion != 0 {
-				u := t.AsUnionType()
-				if t.alias != nil || u.origin != nil {
-					includes |= TypeFlagsUnion
-				}
-				for _, s := range u.types {
-					addType(s)
-				}
-			} else {
-				addType(t)
-			}
-			lastType = t
+		if t == lastType {
+			continue
 		}
+		isUnion := t.flags&TypeFlagsUnion != 0
+		var unionTypes []*Type
+		n := 1
+		if isUnion {
+			u := t.AsUnionType()
+			if t.alias != nil || u.origin != nil {
+				includes |= TypeFlagsUnion
+			}
+			unionTypes = u.types
+			n = len(unionTypes)
+		}
+		for i := 0; i < n; i++ {
+			s := t
+			if isUnion {
+				s = unionTypes[i]
+			}
+			flags := s.flags
+			if flags&TypeFlagsNever != 0 {
+				continue
+			}
+			includes |= flags & TypeFlagsIncludesMask
+			if flags&TypeFlagsInstantiable != 0 {
+				includes |= TypeFlagsIncludesInstantiable
+			}
+			if flags&TypeFlagsIntersection != 0 && s.objectFlags&ObjectFlagsIsConstrainedTypeVariable != 0 {
+				includes |= TypeFlagsIncludesConstrainedTypeVariable
+			}
+			if s == c.wildcardType {
+				includes |= TypeFlagsIncludesWildcard
+			}
+			if c.isErrorType(s) {
+				includes |= TypeFlagsIncludesError
+			}
+			if !c.strictNullChecks && flags&TypeFlagsNullable != 0 {
+				if s.objectFlags&ObjectFlagsContainsWideningType == 0 {
+					includes |= TypeFlagsIncludesNonWideningType
+				}
+				continue
+			}
+			types = append(types, s)
+		}
+		lastType = t
 	}
 	if len(types) >= 2 {
 		slices.SortStableFunc(types, CompareTypes)
@@ -23748,7 +23762,7 @@ func (c *Checker) getUniqAssociatedNamesFromTupleType(t *TypeReference, restSymb
 	return names
 }
 func hasRestParameter(signature ast.Handle) bool {
-	last := core.LastOrNil(signature.Parameters())
+	last := signature.ParametersSeq().Last()
 	return !last.IsNil() && isRestParameter(last)
 }
 func isRestParameter(param ast.Handle) bool {

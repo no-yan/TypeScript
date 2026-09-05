@@ -1742,20 +1742,20 @@ func GetContainingClass(node Handle) Handle {
 	return FindAncestor(node.Parent(), IsClassLike)
 }
 
-func GetExtendsHeritageClauseElements(node Handle) []Handle {
+func GetExtendsHeritageClauseElements(node Handle) NodeSeq {
 	return GetHeritageElements(node, KindExtendsKeyword)
 }
 
-func GetImplementsHeritageClauseElements(node Handle) []Handle {
+func GetImplementsHeritageClauseElements(node Handle) NodeSeq {
 	return GetHeritageElements(node, KindImplementsKeyword)
 }
 
-func GetHeritageElements(node Handle, kind Kind) []Handle {
+func GetHeritageElements(node Handle, kind Kind) NodeSeq {
 	clause := GetHeritageClause(node, kind)
 	if clause.IsNil() {
-		return nil
+		return EmptyNodeSeq
 	}
-	return clause.Types()
+	return clause.TypesSeq()
 }
 
 // GetHeritageClauseElementName returns the expression or type name of a heritage clause element.
@@ -3105,11 +3105,7 @@ func IsClassOrTypeElement(node Handle) bool {
 }
 
 func GetClassExtendsHeritageElement(node Handle) Handle {
-	heritageElements := GetHeritageElements(node, KindExtendsKeyword)
-	if len(heritageElements) > 0 {
-		return heritageElements[0]
-	}
-	return Handle{}
+	return GetHeritageElements(node, KindExtendsKeyword).First()
 }
 
 func IsTypeKeywordToken(node Handle) bool {
