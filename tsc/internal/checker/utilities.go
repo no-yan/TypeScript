@@ -1217,7 +1217,7 @@ func (c *Checker) isUncheckedJSSuggestion(node ast.Handle, suggestion *ast.Symbo
 					declarationFile = ast.GetSourceFileOfNode(firstDeclaration)
 				}
 			}
-			suggestionHasNoExtendsOrDecorators := suggestion == nil || suggestion.ValueDeclaration == 0 || !ast.IsClassLike(ast.NodeOf(suggestion.ValueDeclaration)) || len(ast.GetExtendsHeritageClauseElements(ast.NodeOf(suggestion.ValueDeclaration))) != 0 || ast.ClassOrConstructorParameterIsDecorated(false, ast.NodeOf(suggestion.ValueDeclaration))
+			suggestionHasNoExtendsOrDecorators := suggestion == nil || suggestion.ValueDeclaration == 0 || !ast.IsClassLike(ast.NodeOf(suggestion.ValueDeclaration)) || ast.GetExtendsHeritageClauseElements(ast.NodeOf(suggestion.ValueDeclaration)).Len() != 0 || ast.ClassOrConstructorParameterIsDecorated(false, ast.NodeOf(suggestion.ValueDeclaration))
 			return !(file != declarationFile && declarationFile != nil && ast.IsGlobalSourceFile(declarationFile.ParseRoot())) && !(excludeClasses && suggestion != nil && suggestion.Flags&ast.SymbolFlagsClass != 0 && suggestionHasNoExtendsOrDecorators) && !(!node.IsNil() && excludeClasses && ast.IsPropertyAccessExpression(node) && node.Expression().Kind == ast.KindThisKeyword && suggestionHasNoExtendsOrDecorators)
 		}
 	}

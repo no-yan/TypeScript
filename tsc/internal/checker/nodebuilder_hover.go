@@ -244,10 +244,10 @@ func (b *NodeBuilderImpl) hoverHeritageClauses(declarations []ast.Handle) []ast.
 	var extendsTypes []ast.Handle
 	var implementsTypes []ast.Handle
 	for _, declaration := range declarations {
-		for _, heritageElement := range ast.GetExtendsHeritageClauseElements(declaration) {
+		for _, heritageElement := range ast.GetExtendsHeritageClauseElements(declaration).All() {
 			extendsTypes = append(extendsTypes, b.f.DeepCloneNode(heritageElement))
 		}
-		for _, heritageElement := range ast.GetImplementsHeritageClauseElements(declaration) {
+		for _, heritageElement := range ast.GetImplementsHeritageClauseElements(declaration).All() {
 			implementsTypes = append(implementsTypes, b.f.DeepCloneNode(heritageElement))
 		}
 	}
