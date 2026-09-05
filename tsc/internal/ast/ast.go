@@ -16,10 +16,10 @@ import (
 
 // parseJSDocForNode is the package-level function for lazily parsing JSDoc.
 // It is set by the parser package via init().
-var parseJSDocForNode func(*SourceFile, *Node) []*Node
+var parseJSDocForNode func(*SourceFile, Handle) []Handle
 
 // SetParseJSDocForNode registers the lazy JSDoc parse function. Called from parser's init().
-func SetParseJSDocForNode(fn func(*SourceFile, *Node) []*Node) {
+func SetParseJSDocForNode(fn func(*SourceFile, Handle) []Handle) {
 	parseJSDocForNode = fn
 }
 
@@ -45,14 +45,14 @@ func visitNodes(v Visitor, nodes []*Node) bool {
 
 func visitNodeList(v Visitor, nodeList *NodeList) bool {
 	if nodeList != nil {
-		return visitNodes(v, nodeList.Nodes)
+		return visitNodes(v, nodeList.nodes)
 	}
 	return false
 }
 
 func visitModifiers(v Visitor, modifiers *ModifierList) bool {
 	if modifiers != nil {
-		return visitNodes(v, modifiers.Nodes)
+		return visitNodes(v, modifiers.nodes)
 	}
 	return false
 }
@@ -95,6 +95,10 @@ func (f *NodeFactory) TextCount() int {
 	return f.textCount
 }
 
+func (f *NodeFactory) storeNodesEqual(a, b *Node) bool {
+	return a == b
+}
+
 func (f *NodeFactory) AsNodeFactory() *NodeFactory {
 	return f
 }
@@ -122,13 +126,13 @@ func cloneNode(updated *Node, original *Node, hooks NodeFactoryHooks) *Node {
 
 type NodeList struct {
 	Loc   core.TextRange
-	Nodes []*Node
+	nodes []*Node
 }
 
 func (f *NodeFactory) NewNodeList(nodes []*Node) *NodeList {
 	list := f.nodeListArena.New()
 	list.Loc = core.UndefinedTextRange()
-	list.Nodes = nodes
+	list.nodes = nodes
 	return list
 }
 
@@ -136,15 +140,15 @@ func (list *NodeList) Pos() int { return list.Loc.Pos() }
 func (list *NodeList) End() int { return list.Loc.End() }
 
 func (list *NodeList) HasTrailingComma() bool {
-	if len(list.Nodes) == 0 {
+	if len(list.nodes) == 0 {
 		return false
 	}
-	last := list.Nodes[len(list.Nodes)-1]
+	last := list.nodes[len(list.nodes)-1]
 	return last.End() < list.End()
 }
 
 func (list *NodeList) Clone(f NodeFactoryCoercible) *NodeList {
-	result := f.AsNodeFactory().NewNodeList(list.Nodes)
+	result := f.AsNodeFactory().NewNodeList(list.nodes)
 	result.Loc = list.Loc
 	return result
 }
@@ -159,15 +163,21 @@ type ModifierList struct {
 func (f *NodeFactory) NewModifierList(nodes []*Node) *ModifierList {
 	list := f.modifierListArena.New()
 	list.Loc = core.UndefinedTextRange()
-	list.Nodes = nodes
-	list.ModifierFlags = ModifiersToFlags(nodes)
+	list.nodes = nodes
+	var flags ModifierFlags
+	for _, modifier := range nodes {
+		if modifier != nil {
+			flags |= ModifierToFlag(modifier.Kind)
+		}
+	}
+	list.ModifierFlags = flags
 	return list
 }
 
 func (list *ModifierList) Clone(f *NodeFactory) *ModifierList {
 	res := f.modifierListArena.New()
 	res.Loc = list.Loc
-	res.Nodes = list.Nodes
+	res.nodes = list.nodes
 	res.ModifierFlags = list.ModifierFlags
 	return res
 }
@@ -205,7 +215,6 @@ func (n *Node) IterChildren() iter.Seq[*Node] {
 	}
 }
 func (n *Node) Clone(f NodeFactoryCoercible) *Node        { return n.data.Clone(f) }
-func (n *Node) VisitEachChild(v *NodeVisitor) *Node       { return n.data.VisitEachChild(v) }
 func (n *Node) Name() *DeclarationName                    { return n.data.Name() }
 func (n *Node) Modifiers() *ModifierList                  { return n.data.Modifiers() }
 func (n *Node) FlowNodeData() *FlowNodeBase               { return n.data.FlowNodeData() }
@@ -214,7 +223,7 @@ func (n *Node) ExportableData() *ExportableBase           { return n.data.Export
 func (n *Node) LocalsContainerData() *LocalsContainerBase { return n.data.LocalsContainerData() }
 func (n *Node) FunctionLikeData() *FunctionLikeBase       { return n.data.FunctionLikeData() }
 func (n *Node) ParameterList() *ParameterList             { return n.data.FunctionLikeData().Parameters }
-func (n *Node) Parameters() []*ParameterDeclarationNode   { return n.ParameterList().Nodes }
+func (n *Node) Parameters() []*Node                       { return n.ParameterList().nodes }
 func (n *Node) ClassLikeData() *ClassLikeBase             { return n.data.ClassLikeData() }
 func (n *Node) BodyData() *BodyBase                       { return n.data.BodyData() }
 func (n *Node) SubtreeFacts() SubtreeFacts                { return n.data.SubtreeFacts() }
@@ -229,13 +238,15 @@ func (n *Node) Decorators() []*Node {
 	if n.Modifiers() == nil {
 		return nil
 	}
-	return core.Filter(n.Modifiers().Nodes, IsDecorator)
+	return core.Filter(n.Modifiers().nodes, func(node *Node) bool {
+		return node.Kind == KindDecorator
+	})
 }
 
 type MutableNode Node
 
-func (n *Node) AsMutable() *MutableNode                     { return (*MutableNode)(n) }
-func (n *MutableNode) SetModifiers(modifiers *ModifierList) { n.data.setModifiers(modifiers) }
+func (n *Node) AsMutable() *Node                     { return (*Node)(n) }
+func (n *Node) SetModifiers(modifiers *ModifierList) { n.data.setModifiers(modifiers) }
 
 func (n *Node) Symbol() *Symbol {
 	data := n.DeclarationData()
@@ -395,7 +406,7 @@ func (n *Node) RawText() string {
 	panic("Unhandled case in Node.RawText: " + n.Kind.String())
 }
 
-func (m *MutableNode) SetExpression(expr *Node) {
+func (m *Node) SetExpression(expr *Node) {
 	n := (*Node)(m)
 	switch n.Kind {
 	case KindPropertyAccessExpression:
@@ -486,7 +497,7 @@ func (n *Node) ArgumentList() *NodeList {
 func (n *Node) Arguments() []*Node {
 	list := n.ArgumentList()
 	if list != nil {
-		return list.Nodes
+		return list.nodes
 	}
 	return nil
 }
@@ -518,7 +529,7 @@ func (n *Node) TypeArgumentList() *NodeList {
 func (n *Node) TypeArguments() []*Node {
 	list := n.TypeArgumentList()
 	if list != nil {
-		return list.Nodes
+		return list.nodes
 	}
 	return nil
 }
@@ -547,7 +558,7 @@ func (n *Node) TypeParameterList() *NodeList {
 func (n *Node) TypeParameters() []*Node {
 	list := n.TypeParameterList()
 	if list != nil {
-		return list.Nodes
+		return list.nodes
 	}
 	return nil
 }
@@ -573,7 +584,7 @@ func (n *Node) MemberList() *NodeList {
 func (n *Node) Members() []*Node {
 	list := n.MemberList()
 	if list != nil {
-		return list.Nodes
+		return list.nodes
 	}
 	return nil
 }
@@ -595,7 +606,7 @@ func (n *Node) StatementList() *NodeList {
 func (n *Node) Statements() []*Node {
 	list := n.StatementList()
 	if list != nil {
-		return list.Nodes
+		return list.nodes
 	}
 	return nil
 }
@@ -620,7 +631,7 @@ func (n *Node) ModifierFlags() ModifierFlags {
 func (n *Node) ModifierNodes() []*Node {
 	modifiers := n.Modifiers()
 	if modifiers != nil {
-		return modifiers.Nodes
+		return modifiers.nodes
 	}
 	return nil
 }
@@ -685,7 +696,7 @@ func (n *Node) Type() *Node {
 	return nil
 }
 
-func (m *MutableNode) SetType(t *Node) {
+func (m *Node) SetType(t *Node) {
 	n := (*Node)(m)
 	switch m.Kind {
 	case KindVariableDeclaration:
@@ -773,7 +784,7 @@ func (n *Node) Initializer() *Node {
 	panic("Unhandled case in Node.Initializer")
 }
 
-func (m *MutableNode) SetInitializer(initializer *Node) {
+func (m *Node) SetInitializer(initializer *Node) {
 	n := (*Node)(m)
 	switch n.Kind {
 	case KindVariableDeclaration:
@@ -945,7 +956,7 @@ func (n *Node) CommentList() *NodeList {
 func (n *Node) Comments() []*Node {
 	list := n.CommentList()
 	if list != nil {
-		return list.Nodes
+		return list.nodes
 	}
 	return nil
 }
@@ -1035,7 +1046,7 @@ func (n *Node) PropertyList() *NodeList {
 func (n *Node) Properties() []*Node {
 	list := n.PropertyList()
 	if list != nil {
-		return list.Nodes
+		return list.nodes
 	}
 	return nil
 }
@@ -1059,7 +1070,7 @@ func (n *Node) ElementList() *NodeList {
 func (n *Node) Elements() []*Node {
 	list := n.ElementList()
 	if list != nil {
-		return list.Nodes
+		return list.nodes
 	}
 	return nil
 }
@@ -1088,7 +1099,7 @@ func (n *Node) PostfixToken() *Node {
 	return nil
 }
 
-func (n *Node) QuestionToken() *TokenNode {
+func (n *Node) QuestionToken() *Node {
 	switch n.Kind {
 	case KindParameter:
 		return n.AsParameterDeclaration().QuestionToken
@@ -1158,7 +1169,7 @@ func (n *Node) Contains(descendant *Node) bool {
 			return true
 		}
 		parent := descendant.Parent
-		if parent == nil && !IsSourceFile(descendant) {
+		if parent == nil && descendant.Kind != KindSourceFile {
 			panic("descendant is not parented")
 		}
 		descendant = parent
@@ -1262,28 +1273,28 @@ type (
 	AnyImportOrRequireStatement = Node // AnyImportSyntax | RequireVariableStatement
 )
 
-func IsWriteOnlyAccess(node *Node) bool {
+func IsWriteOnlyAccess(node Handle) bool {
 	return accessKind(node) == AccessKindWrite
 }
 
-func IsWriteAccess(node *Node) bool {
+func IsWriteAccess(node Handle) bool {
 	return accessKind(node) != AccessKindRead
 }
 
-func IsWriteAccessForReference(node *Node) bool {
+func IsWriteAccessForReference(node Handle) bool {
 	decl := GetDeclarationFromName(node)
-	return (decl != nil && declarationIsWriteAccess(decl)) || node.Kind == KindDefaultKeyword || IsWriteAccess(node)
+	return (!decl.IsNil() && declarationIsWriteAccess(decl)) || node.Kind() == KindDefaultKeyword || IsWriteAccess(node)
 }
 
-func GetDeclarationFromName(name *Node) *Declaration {
-	if name == nil || name.Parent == nil {
-		return nil
+func GetDeclarationFromName(name Handle) Handle {
+	if name.IsNil() || name.Parent().IsNil() {
+		return Handle{}
 	}
-	parent := name.Parent
-	switch name.Kind {
+	parent := name.Parent()
+	switch name.Kind() {
 	case KindStringLiteral, KindNoSubstitutionTemplateLiteral, KindNumericLiteral:
 		if IsComputedPropertyName(parent) {
-			return parent.Parent
+			return parent.Parent()
 		}
 		fallthrough
 	case KindIdentifier:
@@ -1291,25 +1302,21 @@ func GetDeclarationFromName(name *Node) *Declaration {
 			if parent.Name() == name {
 				return parent
 			}
-			return nil
+			return Handle{}
 		}
 		if IsQualifiedName(parent) {
-			tag := parent.Parent
+			tag := parent.Parent()
 			if IsJSDocParameterTag(tag) && tag.Name() == parent {
 				return tag
 			}
-			return nil
+			return Handle{}
 		}
-		binExp := parent.Parent
+		binExp := parent.Parent()
 		if IsBinaryExpression(binExp) && GetAssignmentDeclarationKind(binExp) != JSDeclarationKindNone {
-			// (binExp.left as BindableStaticNameExpression).symbol || binExp.symbol
-			leftHasSymbol := false
-			if binExp.AsBinaryExpression().Left != nil && binExp.AsBinaryExpression().Left.Symbol() != nil {
-				leftHasSymbol = true
-			}
-			if leftHasSymbol || binExp.Symbol() != nil {
-				if GetNameOfDeclaration(binExp.AsNode()) == name {
-					return binExp.AsNode()
+			left := binExp.Left()
+			if (!left.IsNil() && left.Symbol() != nil) || binExp.Symbol() != nil {
+				if GetNameOfDeclaration(binExp) == name {
+					return binExp
 				}
 			}
 		}
@@ -1318,19 +1325,19 @@ func GetDeclarationFromName(name *Node) *Declaration {
 			return parent
 		}
 	}
-	return nil
+	return Handle{}
 }
 
-func declarationIsWriteAccess(decl *Node) bool {
-	if decl == nil {
+func declarationIsWriteAccess(decl Handle) bool {
+	if decl.IsNil() {
 		return false
 	}
 	// Consider anything in an ambient declaration to be a write access since it may be coming from JS.
-	if decl.Flags&NodeFlagsAmbient != 0 {
+	if decl.Flags()&NodeFlagsAmbient != 0 {
 		return true
 	}
 
-	switch decl.Kind {
+	switch decl.Kind() {
 	case KindBinaryExpression,
 		KindBindingElement,
 		KindClassDeclaration,
@@ -1359,37 +1366,13 @@ func declarationIsWriteAccess(decl *Node) bool {
 
 	case KindPropertyAssignment:
 		// In `({ x: y } = 0);`, `x` is not a write access.
-		return !IsArrayLiteralOrObjectLiteralDestructuringPattern(decl.Parent)
+		return !IsArrayLiteralOrObjectLiteralDestructuringPattern(decl.Parent())
 
 	case KindFunctionDeclaration, KindFunctionExpression, KindConstructor, KindMethodDeclaration, KindGetAccessor, KindSetAccessor:
-		// functions considered write if they provide a value (have a body)
-		switch decl.Kind {
-		case KindFunctionDeclaration:
-			return decl.AsFunctionDeclaration().Body != nil
-		case KindFunctionExpression:
-			return decl.AsFunctionExpression().Body != nil
-		case KindConstructor:
-			// constructor node stores body on the parent? treat same as others
-			return decl.AsConstructorDeclaration().Body != nil
-		case KindMethodDeclaration:
-			return decl.AsMethodDeclaration().Body != nil
-		case KindGetAccessor:
-			return decl.AsGetAccessorDeclaration().Body != nil
-		case KindSetAccessor:
-			return decl.AsSetAccessorDeclaration().Body != nil
-		}
-		return false
+		return !decl.Body().IsNil()
 
 	case KindVariableDeclaration, KindPropertyDeclaration:
-		// variable/property write if initializer present or is in catch clause
-		var hasInit bool
-		switch decl.Kind {
-		case KindVariableDeclaration:
-			hasInit = decl.AsVariableDeclaration().Initializer != nil
-		case KindPropertyDeclaration:
-			hasInit = decl.AsPropertyDeclaration().Initializer != nil
-		}
-		return hasInit || IsCatchClause(decl.Parent)
+		return !decl.Initializer().IsNil() || IsCatchClause(decl.Parent())
 
 	case KindMethodSignature, KindPropertySignature, KindJSDocPropertyTag, KindJSDocParameterTag:
 		return false
@@ -1400,14 +1383,14 @@ func declarationIsWriteAccess(decl *Node) bool {
 	}
 }
 
-func IsArrayLiteralOrObjectLiteralDestructuringPattern(node *Node) bool {
+func IsArrayLiteralOrObjectLiteralDestructuringPattern(node Handle) bool {
 	if !(IsArrayLiteralExpression(node) || IsObjectLiteralExpression(node)) {
 		return false
 	}
-	parent := node.Parent
+	parent := node.Parent()
 	// [a,b,c] from:
 	// [a, b, c] = someExpression;
-	if IsBinaryExpression(parent) && parent.AsBinaryExpression().Left == node && parent.AsBinaryExpression().OperatorToken.Kind == KindEqualsToken {
+	if IsBinaryExpression(parent) && parent.Left() == node && parent.Operator().Kind() == KindEqualsToken {
 		return true
 	}
 	// [a, b, c] from:
@@ -1417,38 +1400,38 @@ func IsArrayLiteralOrObjectLiteralDestructuringPattern(node *Node) bool {
 	}
 	// {x, a: {a, b, c} } = someExpression
 	if IsPropertyAssignment(parent) {
-		return IsArrayLiteralOrObjectLiteralDestructuringPattern(parent.Parent)
+		return IsArrayLiteralOrObjectLiteralDestructuringPattern(parent.Parent())
 	}
 	// [a, b, c] of
 	// [x, [a, b, c] ] = someExpression
 	return IsArrayLiteralOrObjectLiteralDestructuringPattern(parent)
 }
 
-func accessKind(node *Node) AccessKind {
-	parent := node.Parent
-	if parent == nil {
+func accessKind(node Handle) AccessKind {
+	parent := node.Parent()
+	if parent.IsNil() {
 		return AccessKindRead
 	}
-	switch parent.Kind {
+	switch parent.Kind() {
 	case KindParenthesizedExpression:
 		return accessKind(parent)
 	case KindPrefixUnaryExpression:
-		operator := parent.AsPrefixUnaryExpression().Operator
+		operator := parent.PrefixUnaryExpressionOperator()
 		if operator == KindPlusPlusToken || operator == KindMinusMinusToken {
 			return AccessKindReadWrite
 		}
 		return AccessKindRead
 	case KindPostfixUnaryExpression:
-		operator := parent.AsPostfixUnaryExpression().Operator
+		operator := parent.PostfixUnaryExpressionOperator()
 		if operator == KindPlusPlusToken || operator == KindMinusMinusToken {
 			return AccessKindReadWrite
 		}
 		return AccessKindRead
 	case KindBinaryExpression:
-		if parent.AsBinaryExpression().Left == node {
-			operator := parent.AsBinaryExpression().OperatorToken
-			if IsAssignmentOperator(operator.Kind) {
-				if operator.Kind == KindEqualsToken {
+		if parent.Left() == node {
+			operator := parent.Operator()
+			if IsAssignmentOperator(operator.Kind()) {
+				if operator.Kind() == KindEqualsToken {
 					return AccessKindWrite
 				}
 				return AccessKindReadWrite
@@ -1456,27 +1439,27 @@ func accessKind(node *Node) AccessKind {
 		}
 		return AccessKindRead
 	case KindPropertyAccessExpression:
-		if parent.AsPropertyAccessExpression().Name() != node {
+		if parent.Name() != node {
 			return AccessKindRead
 		}
 		return accessKind(parent)
 	case KindPropertyAssignment:
-		parentAccess := accessKind(parent.Parent)
+		parentAccess := accessKind(parent.Parent())
 		// In `({ x: varname }) = { x: 1 }`, the left `x` is a read, the right `x` is a write.
-		if node == parent.AsPropertyAssignment().Name() {
+		if node == parent.Name() {
 			return reverseAccessKind(parentAccess)
 		}
 		return parentAccess
 	case KindShorthandPropertyAssignment:
 		// Assume it's the local variable being accessed, since we don't check public properties for --noUnusedLocals.
-		if node == parent.AsShorthandPropertyAssignment().ObjectAssignmentInitializer {
+		if node == parent.ShorthandPropertyAssignmentObjectAssignmentInitializer() {
 			return AccessKindRead
 		}
-		return accessKind(parent.Parent)
+		return accessKind(parent.Parent())
 	case KindArrayLiteralExpression:
 		return accessKind(parent)
 	case KindForInStatement, KindForOfStatement:
-		if node == parent.AsForInOrOfStatement().Initializer {
+		if node == parent.Initializer() {
 			return AccessKindWrite
 		}
 		return AccessKindRead
@@ -1509,8 +1492,68 @@ const (
 
 func (node *DeclarationBase) DeclarationData() *DeclarationBase { return node }
 
-func IsDeclarationNode(node *Node) bool {
-	return node.DeclarationData() != nil
+func IsDeclarationNode(node Handle) bool {
+	if node.IsNil() {
+		return false
+	}
+	switch node.Kind() {
+	case KindArrowFunction,
+		KindBinaryExpression,
+		KindBindingElement,
+		KindCallExpression,
+		KindCallSignature,
+		KindClassDeclaration,
+		KindClassExpression,
+		KindClassStaticBlockDeclaration,
+		KindConstructSignature,
+		KindConstructor,
+		KindEnumDeclaration,
+		KindEnumMember,
+		KindExportAssignment,
+		KindExportDeclaration,
+		KindExportSpecifier,
+		KindFunctionDeclaration,
+		KindFunctionExpression,
+		KindGetAccessor,
+		KindImportClause,
+		KindImportDeclaration,
+		KindImportEqualsDeclaration,
+		KindImportSpecifier,
+		KindIndexSignature,
+		KindInterfaceDeclaration,
+		KindJSDocSignature,
+		KindJSDocTypeLiteral,
+		KindJSTypeAliasDeclaration,
+		KindJsxAttribute,
+		KindJsxAttributes,
+		KindMappedType,
+		KindMethodDeclaration,
+		KindMethodSignature,
+		KindMissingDeclaration,
+		KindModuleDeclaration,
+		KindNamedTupleMember,
+		KindNamespaceExport,
+		KindNamespaceExportDeclaration,
+		KindNamespaceImport,
+		KindNoSubstitutionTemplateLiteral,
+		KindObjectLiteralExpression,
+		KindParameter,
+		KindPropertyAssignment,
+		KindPropertyDeclaration,
+		KindPropertySignature,
+		KindSemicolonClassElement,
+		KindSetAccessor,
+		KindShorthandPropertyAssignment,
+		KindSourceFile,
+		KindSpreadAssignment,
+		KindTypeAliasDeclaration,
+		KindTypeLiteral,
+		KindTypeParameter,
+		KindVariableDeclaration:
+		return true
+	default:
+		return false
+	}
 }
 
 // ExportableBase
@@ -1526,8 +1569,35 @@ func (node *ModifiersBase) setModifiers(modifiers *ModifierList) { node.modifier
 
 func (node *LocalsContainerBase) LocalsContainerData() *LocalsContainerBase { return node }
 
-func IsLocalsContainer(node *Node) bool {
-	return node.LocalsContainerData() != nil
+func IsLocalsContainer(node Handle) bool {
+	if node.IsNil() {
+		return false
+	}
+	switch node.Kind() {
+	case KindBlock,
+		KindCaseBlock,
+		KindCatchClause,
+		KindClassStaticBlockDeclaration,
+		KindConditionalType,
+		KindForInStatement,
+		KindForOfStatement,
+		KindForStatement,
+		KindFunctionDeclaration,
+		KindFunctionExpression,
+		KindArrowFunction,
+		KindConstructor,
+		KindMethodDeclaration,
+		KindGetAccessor,
+		KindSetAccessor,
+		KindMappedType,
+		KindModuleDeclaration,
+		KindSourceFile,
+		KindTypeAliasDeclaration,
+		KindJSTypeAliasDeclaration:
+		return true
+	default:
+		return false
+	}
 }
 
 // FunctionLikeBase
@@ -1556,13 +1626,34 @@ func (node *FunctionLikeWithBodyBase) BodyData() *BodyBase { return &node.BodyBa
 
 func (node *FlowNodeBase) FlowNodeData() *FlowNodeBase { return node }
 
+func pointerStringLiteralLike(n *Node) bool {
+	return n != nil && (n.Kind == KindStringLiteral || n.Kind == KindNoSubstitutionTemplateLiteral)
+}
+
+func pointerStringOrNumericLiteralLike(n *Node) bool {
+	return pointerStringLiteralLike(n) || (n != nil && n.Kind == KindNumericLiteral)
+}
+
+func pointerBindingPattern(n *Node) bool {
+	return n != nil && (n.Kind == KindObjectBindingPattern || n.Kind == KindArrayBindingPattern)
+}
+
+func sourceFileOfPointer(node *Node) *SourceFile {
+	for n := node; n != nil; n = n.Parent {
+		if n.Kind == KindSourceFile {
+			return n.AsSourceFile()
+		}
+	}
+	return nil
+}
+
 // if you provide nil for file, this code will walk to the root of the tree to find the file
 func (node *Node) JSDoc(file *SourceFile) []*Node {
 	if node.Flags&NodeFlagsHasJSDoc == 0 {
 		return nil
 	}
 	if file == nil {
-		file = GetSourceFileOfNode(node)
+		file = sourceFileOfPointer(node)
 		if file == nil {
 			return nil
 		}
@@ -1580,7 +1671,7 @@ func (node *Node) EagerJSDoc(file *SourceFile) []*Node {
 		return nil
 	}
 	if file == nil {
-		file = GetSourceFileOfNode(node)
+		file = sourceFileOfPointer(node)
 		if file == nil {
 			return nil
 		}
@@ -1744,7 +1835,7 @@ func (node *BindingPattern) propagateSubtreeFacts() SubtreeFacts {
 }
 
 func (node *ParameterDeclaration) computeSubtreeFacts() SubtreeFacts {
-	if node.name != nil && IsThisIdentifier(node.name) {
+	if node.name != nil && node.name.Kind == KindIdentifier && node.name.Text() == "this" {
 		return SubtreeContainsTypeScript
 	} else {
 		return propagateModifierListSubtreeFacts(node.modifiers) |
@@ -1826,8 +1917,8 @@ func (node *HeritageClause) computeSubtreeFacts() SubtreeFacts {
 	}
 }
 
-func IsTypeOrJSTypeAliasDeclaration(node *Node) bool {
-	return node.Kind == KindTypeAliasDeclaration || node.Kind == KindJSTypeAliasDeclaration
+func IsTypeOrJSTypeAliasDeclaration(node Handle) bool {
+	return node.Kind() == KindTypeAliasDeclaration || node.Kind() == KindJSTypeAliasDeclaration
 }
 
 func (node *EnumMember) computeSubtreeFacts() SubtreeFacts {
@@ -1863,7 +1954,7 @@ func (node *ModuleDeclaration) propagateSubtreeFacts() SubtreeFacts {
 }
 
 func (node *ImportEqualsDeclaration) computeSubtreeFacts() SubtreeFacts {
-	if node.IsTypeOnly || !IsExternalModuleReference(node.ModuleReference) {
+	if node.IsTypeOnly || !(node.ModuleReference != nil && node.ModuleReference.Kind == KindExternalModuleReference) {
 		return SubtreeContainsTypeScript
 	} else {
 		return propagateModifierListSubtreeFacts(node.modifiers) |
@@ -1872,8 +1963,8 @@ func (node *ImportEqualsDeclaration) computeSubtreeFacts() SubtreeFacts {
 	}
 }
 
-func IsImportDeclarationOrJSImportDeclaration(node *Node) bool {
-	return node.Kind == KindImportDeclaration || node.Kind == KindJSImportDeclaration
+func IsImportDeclarationOrJSImportDeclaration(node Handle) bool {
+	return node.Kind() == KindImportDeclaration || node.Kind() == KindJSImportDeclaration
 }
 
 func (node *ImportSpecifier) computeSubtreeFacts() SubtreeFacts {
@@ -1898,8 +1989,8 @@ func (node *ExportAssignment) computeSubtreeFacts() SubtreeFacts {
 	return propagateModifierListSubtreeFacts(node.modifiers) | propagateSubtreeFacts(node.Type) | propagateSubtreeFacts(node.Expression) | core.IfElse(node.IsExportEquals, SubtreeContainsTypeScript, SubtreeFactsNone)
 }
 
-func IsAnyExportAssignment(node *Node) bool {
-	return node.Kind == KindExportAssignment
+func IsAnyExportAssignment(node Handle) bool {
+	return node.Kind() == KindExportAssignment
 }
 
 func (node *ExportDeclaration) computeSubtreeFacts() SubtreeFacts {
@@ -2043,9 +2134,10 @@ func (node *BinaryExpression) computeSubtreeFacts() SubtreeFacts {
 		propagateSubtreeFacts(node.Type) |
 		propagateSubtreeFacts(node.OperatorToken) |
 		propagateSubtreeFacts(node.Right) |
-		core.IfElse(node.OperatorToken.Kind == KindInKeyword && IsPrivateIdentifier(node.Left), SubtreeContainsClassFields|SubtreeContainsPrivateIdentifierInExpression, SubtreeFactsNone)
+		core.IfElse(node.OperatorToken.Kind == KindInKeyword && (node.Left != nil && node.Left.Kind == KindPrivateIdentifier), SubtreeContainsClassFields|SubtreeContainsPrivateIdentifierInExpression, SubtreeFactsNone)
 	if node.OperatorToken.Kind == KindEqualsToken {
-		if (IsObjectLiteralExpression(node.Left) || IsArrayLiteralExpression(node.Left)) && ContainsObjectRestOrSpread(node.Left) {
+		if ((node.Left != nil && node.Left.Kind == KindObjectLiteralExpression) || (node.Left != nil && node.Left.Kind == KindArrayLiteralExpression)) &&
+			node.Left.SubtreeFacts()&(SubtreeContainsObjectRestOrSpread|SubtreeContainsESObjectRestOrSpread) != 0 {
 			facts |= SubtreeContainsObjectRestOrSpread
 		}
 	}
@@ -2109,7 +2201,7 @@ func (node *SatisfiesExpression) propagateSubtreeFacts() SubtreeFacts {
 
 func (node *PropertyAccessExpression) computeSubtreeFacts() SubtreeFacts {
 	privateName := SubtreeFactsNone
-	if !IsIdentifier(node.name) {
+	if !(node.name != nil && node.name.Kind == KindIdentifier) {
 		privateName = SubtreeContainsPrivateIdentifierInExpression
 	}
 	return propagateSubtreeFacts(node.Expression) |
@@ -2211,14 +2303,14 @@ func (node *ExpressionWithTypeArguments) computeSubtreeFacts() SubtreeFacts {
 		propagateEraseableSyntaxListSubtreeFacts(node.TypeArguments)
 }
 
-func (node *ImportAttributesNode) GetResolutionModeOverride( /* !!! grammarErrorOnNode?: (node: Node, diagnostic: DiagnosticMessage) => void*/ ) (core.ResolutionMode, bool) {
+func (node *Node) GetResolutionModeOverride( /* !!! grammarErrorOnNode?: (node: Node, diagnostic: DiagnosticMessage) => void*/ ) (core.ResolutionMode, bool) {
 	if node == nil {
 		return core.ResolutionModeNone, false
 	}
 
 	attributes := node.AsImportAttributes().Attributes
 
-	if len(attributes.Nodes) != 1 {
+	if len(attributes.nodes) != 1 {
 		// !!!
 		// grammarErrorOnNode?.(
 		//     node,
@@ -2229,8 +2321,8 @@ func (node *ImportAttributesNode) GetResolutionModeOverride( /* !!! grammarError
 		return core.ResolutionModeNone, false
 	}
 
-	elem := attributes.Nodes[0].AsImportAttribute()
-	if !IsStringLiteralLike(elem.Name()) {
+	elem := attributes.nodes[0].AsImportAttribute()
+	if !pointerStringLiteralLike(elem.Name()) {
 		return core.ResolutionModeNone, false
 	}
 	if elem.Name().Text() != "resolution-mode" {
@@ -2243,7 +2335,7 @@ func (node *ImportAttributesNode) GetResolutionModeOverride( /* !!! grammarError
 		// );
 		return core.ResolutionModeNone, false
 	}
-	if !IsStringLiteralLike(elem.Value) {
+	if !pointerStringLiteralLike(elem.Value) {
 		return core.ResolutionModeNone, false
 	}
 	if elem.Value.Text() != "import" && elem.Value.Text() != "require" {
@@ -2451,8 +2543,17 @@ type HasFileName interface {
 	Path() tspath.Path
 }
 
+// NilFile reports a missing file, including a typed-nil *SourceFile inside the interface.
+func NilFile(file HasFileName) bool {
+	if file == nil {
+		return true
+	}
+	sf, ok := file.(*SourceFile)
+	return ok && sf == nil
+}
+
 type TokenCacheKey struct {
-	parent *Node
+	parent Handle
 	loc    core.TextRange
 }
 
@@ -2467,8 +2568,8 @@ type SourceFile struct {
 	parseOptions      SourceFileParseOptions
 	text              string
 	contentMapperInfo *ContentMapperSourceFileInfo
-	Statements        *NodeList  // NodeList[*Statement]
-	EndOfFileToken    *TokenNode // TokenNode[*EndOfFileToken]
+	Statements        *NodeList // NodeList[*Statement]
+	EndOfFileToken    *Node     // TokenNode[*EndOfFileToken]
 
 	// Fields for lazily-computed data owned by packages outside ast.
 	dataMu sync.Mutex
@@ -2483,12 +2584,14 @@ type SourceFile struct {
 	IsDeclarationFile           bool
 	UsesUriStyleNodeCoreModules core.Tristate
 	IdentifierCount             int
-	imports                     []*LiteralLikeNode // []LiteralLikeNode
-	ModuleAugmentations         []*ModuleName      // []ModuleName
+	imports                     []Handle
+	ModuleAugmentations         []Handle
 	AmbientModuleNames          []string
 	CommentDirectives           []CommentDirective
 	jsdocCache                  map[*Node][]*Node
+	jsdocHandleCache            map[Handle][]Handle
 	jsdocMu                     sync.RWMutex
+	jsdocWarmOnce               sync.Once
 	hasLazyJSDoc                bool
 	identifiersOnce             sync.Once
 	identifiers                 collections.Set[string]
@@ -2500,17 +2603,15 @@ type SourceFile struct {
 	CheckJsDirective            *CheckJsDirective
 	NodeCount                   int
 	TextCount                   int
-	CommonJSModuleIndicator     *Node
+	CommonJSModuleIndicator     Handle
 	// If this is the SourceFile itself, then this module was "forced"
 	// to be an external module (previously "true").
-	ExternalModuleIndicator *Node
+	ExternalModuleIndicator Handle
 
 	parseStoreWriteMu sync.Mutex
 	parseStoreMu      sync.RWMutex
 	parseStore        *Store
 	parseRoot         NodeRef
-	parseNodeRef      map[*Node]NodeRef
-	parseRefNode      []*Node
 
 	// Fields set by binder
 
@@ -2530,8 +2631,8 @@ type SourceFile struct {
 
 	Hash             xxh3.Uint128
 	tokenCacheMu     sync.Mutex
-	tokenCache       map[TokenCacheKey]*Node
-	tokenFactory     *NodeFactory
+	tokenCache       map[TokenCacheKey]Handle
+	tokenFactory     *Factory
 	declarationMapMu sync.Mutex
 	declarationMap   map[string][]*Node
 	nameTableOnce    sync.Once
@@ -2543,7 +2644,18 @@ type SourceFile struct {
 	positionMap     *PositionMap
 }
 
-func (f *NodeFactory) NewSourceFile(opts SourceFileParseOptions, text string, statements *NodeList, endOfFileToken *TokenNode) *Node {
+func NewSourceFileMetadata(opts SourceFileParseOptions, text string) *SourceFile {
+	if tspath.GetEncodedRootLength(opts.FileName) == 0 || opts.FileName != tspath.NormalizePath(opts.FileName) {
+		panic(fmt.Sprintf("fileName should be normalized and absolute: %q", opts.FileName))
+	}
+	data := &SourceFile{}
+	data.fileName = opts.FileName
+	data.parseOptions = opts
+	data.text = text
+	return data
+}
+
+func (f *NodeFactory) NewSourceFile(opts SourceFileParseOptions, text string, statements *NodeList, endOfFileToken *Node) *Node {
 	if tspath.GetEncodedRootLength(opts.FileName) == 0 || opts.FileName != tspath.NormalizePath(opts.FileName) {
 		panic(fmt.Sprintf("fileName should be normalized and absolute: %q", opts.FileName))
 	}
@@ -2553,12 +2665,7 @@ func (f *NodeFactory) NewSourceFile(opts SourceFileParseOptions, text string, st
 	data.text = text
 	data.Statements = statements
 	data.EndOfFileToken = endOfFileToken
-	node := f.newNode(KindSourceFile, data)
-	if h := f.storeAlloc(node, slotSourceFileCount, listSlotSourceFileCount); h.Ref() != 0 {
-		h.SetChild(slotSourceFileEndOfFileToken, f.storeHandle(endOfFileToken))
-		h.SetListSlot(listSlotSourceFileStatements, f.storeList(statements))
-	}
-	return node
+	return f.newNode(KindSourceFile, data)
 }
 
 func (node *SourceFile) ParseOptions() SourceFileParseOptions {
@@ -2582,22 +2689,6 @@ func (node *SourceFile) LockParseStoreWriter() func() {
 	return node.parseStoreWriteMu.Unlock
 }
 
-func (node *SourceFile) ParseNodeRef() map[*Node]NodeRef {
-	if node == nil {
-		return nil
-	}
-	node.parseStoreMu.RLock()
-	defer node.parseStoreMu.RUnlock()
-	if node.parseNodeRef == nil {
-		return nil
-	}
-	result := make(map[*Node]NodeRef, len(node.parseNodeRef))
-	for n, ref := range node.parseNodeRef {
-		result[n] = ref
-	}
-	return result
-}
-
 func (node *SourceFile) ParseRoot() Handle {
 	node.parseStoreMu.RLock()
 	defer node.parseStoreMu.RUnlock()
@@ -2607,9 +2698,35 @@ func (node *SourceFile) ParseRoot() Handle {
 	return node.parseStore.At(node.parseRoot)
 }
 
+func (node *SourceFile) Pos() int {
+	if node == nil {
+		return 0
+	}
+	if root := node.ParseRoot(); !root.IsNil() {
+		return root.Pos()
+	}
+	return node.Loc.Pos()
+}
+
+func (node *SourceFile) End() int {
+	if node == nil {
+		return 0
+	}
+	if root := node.ParseRoot(); !root.IsNil() {
+		return root.End()
+	}
+	return node.Loc.End()
+}
+
+func (node *SourceFile) BoundLocals() SymbolTable {
+	if node == nil {
+		return nil
+	}
+	return node.ParseRoot().Locals()
+}
+
 func (node *SourceFile) SetParseStore(s *Store, root Handle) {
 	node.parseStoreMu.Lock()
-	defer node.parseStoreMu.Unlock()
 	node.parseStore = s
 	if s != nil {
 		s.SetSourceFile(node)
@@ -2617,103 +2734,24 @@ func (node *SourceFile) SetParseStore(s *Store, root Handle) {
 	if root.s == s {
 		node.parseRoot = root.id
 	}
+	node.parseStoreMu.Unlock()
+	// RegisterFile -> BindFile -> ParseStore takes RLock. Go RWMutex is not reentrant.
+	if s != nil {
+		RegisterFile(node)
+	}
 }
 
-func (node *SourceFile) SetParseNodeRef(m map[*Node]NodeRef) {
-	node.parseStoreMu.Lock()
-	defer node.parseStoreMu.Unlock()
-	node.setParseNodeRefLocked(m)
-}
-
-func (node *SourceFile) setParseNodeRefLocked(m map[*Node]NodeRef) {
-	node.parseNodeRef = m
-	if m == nil {
-		node.parseRefNode = nil
-		return
-	}
-	rev := make([]*Node, len(m)+1)
-	for n, ref := range m {
-		if int(ref) >= len(rev) {
-			rev = append(rev, make([]*Node, int(ref)-len(rev)+1)...)
-		}
-		rev[ref] = n
-	}
-	node.parseRefNode = rev
-}
-
-func (node *SourceFile) HandleOf(n *Node) Handle {
-	node.parseStoreMu.RLock()
-	defer node.parseStoreMu.RUnlock()
-	if node.parseStore == nil || node.parseNodeRef == nil || n == nil {
-		return Handle{}
-	}
-	ref, ok := node.parseNodeRef[n]
-	if !ok {
-		return Handle{}
-	}
-	return node.parseStore.At(ref)
-}
-
-func (node *SourceFile) NodeFor(ref NodeRef) *Node {
-	if node == nil || ref == 0 {
-		return nil
-	}
-	node.parseStoreMu.RLock()
-	defer node.parseStoreMu.RUnlock()
-	if int(ref) >= len(node.parseRefNode) {
-		return nil
-	}
-	return node.parseRefNode[ref]
-}
-
-func (node *SourceFile) RefOf(n *Node) GlobalRef {
-	if node == nil || n == nil {
-		return 0
-	}
-	h := node.HandleOf(n)
-	if h.Ref() == 0 {
-		return 0
-	}
-	return h.Global()
-}
-
-func (file *SourceFile) NodeOf(g GlobalRef) *Node {
-	if file == nil || g == 0 {
-		return nil
-	}
-	if store := file.ParseStore(); store != nil && store.ID() == g.StoreID() {
-		return file.NodeFor(g.Ref())
-	}
-	return NodeOf(g)
-}
-
-func (node *SourceFile) AbsorbNodeRef(m map[*Node]NodeRef) {
-	if node == nil || m == nil {
+// SetParseRoot swaps the syntax root without rebinding the Store or re-running bind.
+// Emit transformers use this so JS type-erasure does not replace the parse tree
+// used by declaration emit.
+func (node *SourceFile) SetParseRoot(root Handle) {
+	if node == nil {
 		return
 	}
 	node.parseStoreMu.Lock()
 	defer node.parseStoreMu.Unlock()
-	if node.parseNodeRef == nil {
-		node.setParseNodeRefLocked(m)
-		return
-	}
-	if node.parseRefNode == nil {
-		node.parseRefNode = make([]*Node, len(node.parseNodeRef)+1)
-		for n, ref := range node.parseNodeRef {
-			if int(ref) >= len(node.parseRefNode) {
-				node.parseRefNode = append(node.parseRefNode, make([]*Node, int(ref)-len(node.parseRefNode)+1)...)
-			}
-			node.parseRefNode[ref] = n
-		}
-	}
-	for n, ref := range m {
-		if node.parseNodeRef[n] == 0 {
-			node.parseNodeRef[n] = ref
-		}
-		if int(ref) >= len(node.parseRefNode) {
-			node.parseRefNode = append(node.parseRefNode, make([]*Node, int(ref)-len(node.parseRefNode)+1)...)
-		}
-		node.parseRefNode[ref] = n
+	if root.s == node.parseStore {
+		node.parseRoot = root.id
 	}
 }
 
@@ -2849,17 +2887,27 @@ func (node *SourceFile) IsContentMapperSupplemental() bool {
 }
 
 func (file *SourceFile) HasIdentifier(name string) bool {
+	file.RecordParseIdentifiers()
+	return file.identifiers.Has(name)
+}
+
+func (file *SourceFile) RecordParseIdentifiers() {
+	if file == nil {
+		return
+	}
 	file.identifiersOnce.Do(func() {
 		file.identifiers = collectIdentifiersForSourceFile(file)
 	})
-	return file.identifiers.Has(name)
 }
 
 func collectIdentifiersForSourceFile(sourceFile *SourceFile) collections.Set[string] {
 	var identifiers collections.Set[string]
-	var collect func(*Node) bool
-	collect = func(node *Node) bool {
-		switch node.Kind {
+	var collect StoreVisitor
+	collect = func(node Handle) bool {
+		if node.Flags()&NodeFlagsSynthesized != 0 {
+			return false
+		}
+		switch node.Kind() {
 		case KindIdentifier,
 			KindPrivateIdentifier,
 			KindStringLiteral,
@@ -2871,7 +2919,7 @@ func collectIdentifiersForSourceFile(sourceFile *SourceFile) collections.Set[str
 		node.ForEachChild(collect)
 		return false
 	}
-	collect(sourceFile.AsNode())
+	collect(sourceFile.ParseRoot())
 	return identifiers
 }
 
@@ -2883,7 +2931,7 @@ func (node *SourceFile) Path() tspath.Path {
 	return node.parseOptions.Path
 }
 
-func (node *SourceFile) Imports() []*LiteralLikeNode {
+func (node *SourceFile) Imports() []Handle {
 	return node.imports
 }
 
@@ -2915,35 +2963,70 @@ func (node *SourceFile) SetJSDocCache(cache map[*Node][]*Node) {
 	node.jsdocCache = cache
 }
 
+func (node *SourceFile) SetJSDocHandleCache(cache map[Handle][]Handle) {
+	node.jsdocHandleCache = cache
+}
+
+func (node *SourceFile) JSDocHandles(h Handle) []Handle {
+	if node == nil {
+		return nil
+	}
+	node.jsdocMu.RLock()
+	docs := node.jsdocHandleCache[h]
+	node.jsdocMu.RUnlock()
+	return docs
+}
+
+func (node *SourceFile) CacheJSDocHandles(h Handle, docs []Handle) {
+	if node == nil {
+		return
+	}
+	node.jsdocMu.Lock()
+	if node.jsdocHandleCache == nil {
+		node.jsdocHandleCache = make(map[Handle][]Handle)
+	}
+	node.jsdocHandleCache[h] = docs
+	node.jsdocMu.Unlock()
+}
+
 func (node *SourceFile) SetHasLazyJSDoc(lazy bool) {
 	node.hasLazyJSDoc = lazy
 }
 
-func (node *SourceFile) resolveJSDoc(n *Node) []*Node {
-	if parseJSDocForNode == nil {
-		panic("resolveJSDoc called but parseJSDocForNode is not registered; ensure the parser package is imported")
+func (node *SourceFile) WarmJSDoc() {
+	if node == nil {
+		return
 	}
-	// Fast path: check cache under read lock
-	node.jsdocMu.RLock()
-	if jsdocs, ok := node.jsdocCache[n]; ok {
-		node.jsdocMu.RUnlock()
-		return jsdocs
-	}
-	node.jsdocMu.RUnlock()
+	node.jsdocWarmOnce.Do(func() {
+		if !node.hasLazyJSDoc {
+			return
+		}
+		unlock := node.LockParseStoreWriter()
+		defer unlock()
+		if parseJSDocForNode == nil {
+			node.hasLazyJSDoc = false
+			return
+		}
+		var walk func(Handle)
+		walk = func(h Handle) {
+			if h.IsNil() {
+				return
+			}
+			if h.Flags()&NodeFlagsHasJSDoc != 0 {
+				node.CacheJSDocHandles(h, parseJSDocForNode(node, h))
+			}
+			h.ForEachChild(func(c Handle) bool {
+				walk(c)
+				return false
+			})
+		}
+		walk(node.ParseRoot())
+		node.hasLazyJSDoc = false
+	})
+}
 
-	// Slow path: parse and cache under write lock
-	node.jsdocMu.Lock()
-	defer node.jsdocMu.Unlock()
-	// Double-check after acquiring write lock
-	if jsdocs, ok := node.jsdocCache[n]; ok {
-		return jsdocs
-	}
-	jsdocs := parseJSDocForNode(node, n)
-	if node.jsdocCache == nil {
-		node.jsdocCache = make(map[*Node][]*Node)
-	}
-	node.jsdocCache[n] = jsdocs
-	return jsdocs
+func (node *SourceFile) resolveJSDoc(n *Node) []*Node {
+	return nil
 }
 
 func (node *SourceFile) BindDiagnostics() []*Diagnostic {
@@ -2967,7 +3050,6 @@ func (node *SourceFile) IsJS() bool {
 }
 
 func (node *SourceFile) copyFrom(other *SourceFile) {
-	// Do not copy fields set by NewSourceFile (Text, FileName, Path, or Statements)
 	if other.contentMapperInfo != nil {
 		node.SetContentMapperInfo(*other.contentMapperInfo)
 	}
@@ -2986,6 +3068,28 @@ func (node *SourceFile) copyFrom(other *SourceFile) {
 	node.CommonJSModuleIndicator = other.CommonJSModuleIndicator
 	node.ExternalModuleIndicator = other.ExternalModuleIndicator
 	node.Flags |= other.Flags
+	other.RecordParseIdentifiers()
+	node.identifiers = other.identifiers
+	node.identifiersOnce.Do(func() {})
+}
+
+// CloneWrapper copies file metadata onto a new *SourceFile that shares the
+// parse Store and root. It does not rebind Store.SourceFile. Emit uses the
+// clone as the output view so declaration flags and remapped references stay
+// off the program file.
+func (node *SourceFile) CloneWrapper() *SourceFile {
+	if node == nil {
+		return nil
+	}
+	cloned := NewSourceFileMetadata(node.parseOptions, node.text)
+	cloned.copyFrom(node)
+	cloned.Symbol = node.Symbol
+	cloned.Locals = node.Locals
+	node.parseStoreMu.RLock()
+	cloned.parseStore = node.parseStore
+	cloned.parseRoot = node.parseRoot
+	node.parseStoreMu.RUnlock()
+	return cloned
 }
 
 func (node *SourceFile) Clone(f NodeFactoryCoercible) *Node {
@@ -2999,21 +3103,12 @@ func (node *SourceFile) computeSubtreeFacts() SubtreeFacts {
 	return propagateNodeListSubtreeFacts(node.Statements, propagateSubtreeFacts)
 }
 
-func (f *NodeFactory) UpdateSourceFile(node *SourceFile, statements *StatementList, endOfFileToken *TokenNode) *Node {
+func (f *NodeFactory) UpdateSourceFile(node *SourceFile, statements *StatementList, endOfFileToken *Node) *Node {
 	if statements != node.Statements || endOfFileToken != node.EndOfFileToken {
 		updated := f.NewSourceFile(node.parseOptions, node.text, statements, endOfFileToken).AsSourceFile()
 		updated.copyFrom(node)
 		if store := node.ParseStore(); store != nil {
-			handle := f.HandleOf(updated.AsNode())
-			if handle.Ref() != 0 {
-				refs := node.ParseNodeRef()
-				if refs == nil {
-					refs = make(map[*Node]NodeRef)
-				}
-				refs[updated.AsNode()] = handle.Ref()
-				updated.SetParseStore(store, handle)
-				updated.SetParseNodeRef(refs)
-			}
+			updated.SetParseStore(store, node.ParseRoot())
 		}
 		return updateNode(updated.AsNode(), node.AsNode(), f.hooks)
 	}
@@ -3044,9 +3139,9 @@ func (file *SourceFile) GetNameTable() map[string]int {
 
 		var walk func(node *Node) bool
 		walk = func(node *Node) bool {
-			if IsIdentifier(node) && !IsTagName(node) && node.Text() != "" ||
-				IsStringOrNumericLiteralLike(node) && literalIsName(node) ||
-				IsPrivateIdentifier(node) {
+			if (node != nil && node.Kind == KindIdentifier) && node.Text() != "" ||
+				pointerStringOrNumericLiteralLike(node) && literalIsName(node) ||
+				(node != nil && node.Kind == KindPrivateIdentifier) {
 				text := node.Text()
 				if _, ok := nameTable[text]; ok {
 					nameTable[text] = -1
@@ -3094,36 +3189,37 @@ func (node *SourceFile) GetOrCreateToken(
 	kind Kind,
 	pos int,
 	end int,
-	parent *Node,
+	parent Handle,
 	flags TokenFlags,
-) *TokenNode {
+) Handle {
 	node.tokenCacheMu.Lock()
 	defer node.tokenCacheMu.Unlock()
 	loc := core.NewTextRange(pos, end)
 	key := TokenCacheKey{parent, loc}
 	if token, ok := node.tokenCache[key]; ok {
-		if token.Kind != kind {
-			panic(fmt.Sprintf("Token cache mismatch: %v != %v", token.Kind, kind))
+		if token.Kind() != kind {
+			panic(fmt.Sprintf("Token cache mismatch: %v != %v", token.Kind(), kind))
 		}
 		return token
 	}
-	if parent.Flags&NodeFlagsReparsed != 0 {
-		panic(fmt.Sprintf("Cannot create token from reparsed node of kind %v", parent.Kind))
+	if !parent.IsNil() && parent.Flags()&NodeFlagsReparsed != 0 {
+		panic(fmt.Sprintf("Cannot create token from reparsed node of kind %v", parent.Kind()))
 	}
 	if node.tokenCache == nil {
-		node.tokenCache = make(map[TokenCacheKey]*Node)
+		node.tokenCache = make(map[TokenCacheKey]Handle)
 	}
 	token := createToken(kind, node, pos, end, flags)
-	token.Loc = loc
-	token.Parent = parent
+	token.SetLoc(loc)
+	token.SetParent(parent)
 	node.tokenCache[key] = token
 	return token
 }
 
-// `kind` should be a token kind.
-func createToken(kind Kind, file *SourceFile, pos, end int, flags TokenFlags) *Node {
+func createToken(kind Kind, file *SourceFile, pos, end int, flags TokenFlags) Handle {
+	// Tokens are SourceFile-private. The parse Store is frozen after bind;
+	// GetOrCreateToken still AllocSlots, so they cannot share it.
 	if file.tokenFactory == nil {
-		file.tokenFactory = NewNodeFactory(NodeFactoryHooks{})
+		file.tokenFactory = NewFactoryOn(NewStore(16), FactoryHooks{})
 	}
 	text := file.text[pos:end]
 	switch kind {
@@ -3140,16 +3236,16 @@ func createToken(kind Kind, file *SourceFile, pos, end int, flags TokenFlags) *N
 	case KindNoSubstitutionTemplateLiteral:
 		return file.tokenFactory.NewNoSubstitutionTemplateLiteral(text, flags)
 	case KindTemplateHead:
-		return file.tokenFactory.NewTemplateHead(text, "" /*rawText*/, flags)
+		return file.tokenFactory.NewTemplateHead(text, "", flags)
 	case KindTemplateMiddle:
-		return file.tokenFactory.NewTemplateMiddle(text, "" /*rawText*/, flags)
+		return file.tokenFactory.NewTemplateMiddle(text, "", flags)
 	case KindTemplateTail:
-		return file.tokenFactory.NewTemplateTail(text, "" /*rawText*/, flags)
+		return file.tokenFactory.NewTemplateTail(text, "", flags)
 	case KindIdentifier:
 		return file.tokenFactory.NewIdentifier(text)
 	case KindPrivateIdentifier:
 		return file.tokenFactory.NewPrivateIdentifier(text)
-	default: // Punctuation and keywords
+	default:
 		return file.tokenFactory.NewToken(kind)
 	}
 }
@@ -3167,7 +3263,7 @@ func (node *SourceFile) computeDeclarationMap() map[string][]*Node {
 	result := make(map[string][]*Node)
 
 	addDeclaration := func(declaration *Node) {
-		name := GetDeclarationName(declaration)
+		name := pointerDeclarationNameText(declaration)
 		if name != "" {
 			result[name] = append(result[name], declaration)
 		}
@@ -3177,7 +3273,7 @@ func (node *SourceFile) computeDeclarationMap() map[string][]*Node {
 	visit = func(node *Node) bool {
 		switch node.Kind {
 		case KindFunctionDeclaration, KindFunctionExpression, KindMethodDeclaration, KindMethodSignature:
-			declarationName := GetDeclarationName(node)
+			declarationName := pointerDeclarationNameText(node)
 			if declarationName != "" {
 				declarations := result[declarationName]
 				var lastDeclaration *Node
@@ -3205,14 +3301,14 @@ func (node *SourceFile) computeDeclarationMap() map[string][]*Node {
 			}
 		case KindParameter:
 			// Only consider parameter properties
-			if !HasSyntacticModifier(node, ModifierFlagsParameterPropertyModifier) {
+			if node.ModifierFlags()&ModifierFlagsParameterPropertyModifier == 0 {
 				break
 			}
 			fallthrough
 		case KindVariableDeclaration, KindBindingElement:
 			name := node.Name()
 			if name != nil {
-				if IsBindingPattern(name) {
+				if pointerBindingPattern(name) {
 					node.Name().ForEachChild(visit)
 				} else {
 					if node.Initializer() != nil {
@@ -3228,7 +3324,7 @@ func (node *SourceFile) computeDeclarationMap() map[string][]*Node {
 			//    export {a, b as B} from "mod";
 			exportClause := node.AsExportDeclaration().ExportClause
 			if exportClause != nil {
-				if IsNamedExports(exportClause) {
+				if exportClause != nil && exportClause.Kind == KindNamedExports {
 					for _, element := range exportClause.Elements() {
 						visit(element)
 					}
@@ -3259,7 +3355,7 @@ func (node *SourceFile) computeDeclarationMap() map[string][]*Node {
 				}
 			}
 		case KindBinaryExpression:
-			switch GetAssignmentDeclarationKind(node) {
+			switch JSDeclarationKindNone {
 			case JSDeclarationKindExportsProperty, JSDeclarationKindThisProperty, JSDeclarationKindProperty:
 				addDeclaration(node)
 			}
@@ -3273,9 +3369,33 @@ func (node *SourceFile) computeDeclarationMap() map[string][]*Node {
 	return result
 }
 
-func GetDeclarationName(declaration *Node) string {
+func pointerDeclarationNameText(declaration *Node) string {
+	if declaration == nil {
+		return ""
+	}
+	name := declaration.Name()
+	if name == nil {
+		return ""
+	}
+	if name.Kind == KindComputedPropertyName {
+		expr := name.AsComputedPropertyName().Expression
+		if expr == nil {
+			return ""
+		}
+		if pointerStringOrNumericLiteralLike(expr) {
+			return expr.Text()
+		}
+		if expr.Kind == KindPropertyAccessExpression {
+			return expr.AsPropertyAccessExpression().Name().Text()
+		}
+		return ""
+	}
+	return name.Text()
+}
+
+func GetDeclarationName(declaration Handle) string {
 	name := GetNonAssignedNameOfDeclaration(declaration)
-	if name != nil {
+	if !name.IsNil() {
 		if IsComputedPropertyName(name) {
 			if IsStringOrNumericLiteralLike(name.Expression()) {
 				return name.Expression().Text()

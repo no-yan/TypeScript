@@ -608,13 +608,7 @@ func (s *Snapshot) dispose(session *Session) {
 			if contentMapperProject := project.Program.ContentMapperProject(); contentMapperProject != nil {
 				_ = contentMapperProject.Close()
 			}
-			// This program is no longer referenced by any snapshot.
-			// Mark its checker pool as discarded so its idle-cleanup timer stops
-			// keeping the pool alive, allowing the pool and any idle checkers it
-			// still references to be reclaimed when the pool is garbage-collected.
-			if project.checkerPool != nil {
-				project.checkerPool.Discard()
-			}
+			project.Program.Close()
 			for _, file := range project.Program.SourceFiles() {
 				if !file.IsContentMapperFailureStub() && !file.IsContentMapperSupplemental() {
 					if file.ContentMapper() != "" {

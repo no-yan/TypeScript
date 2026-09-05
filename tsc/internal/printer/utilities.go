@@ -2,17 +2,16 @@ package printer
 
 import (
 	"fmt"
-	"slices"
-	"strconv"
-	"strings"
-	"unicode/utf8"
-
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/scanner"
 	"github.com/microsoft/TypeScript/tsc/internal/sourcemap"
 	"github.com/microsoft/TypeScript/tsc/internal/stringutil"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
+	"slices"
+	"strconv"
+	"strings"
+	"unicode/utf8"
 )
 
 type getLiteralTextFlags int
@@ -33,27 +32,90 @@ const (
 	QuoteCharBacktick    QuoteChar = '`'
 )
 
-var jsxEscapedCharsMap = map[rune]string{
-	'"':  "&quot;",
-	'\'': "&apos;",
-}
-
-var escapedCharsMap = map[rune]string{
-	'\t':     `\t`,
-	'\v':     `\v`,
-	'\f':     `\f`,
-	'\b':     `\b`,
-	'\r':     `\r`,
-	'\n':     `\n`,
-	'\\':     `\\`,
-	'"':      `\"`,
-	'\'':     `\'`,
-	'`':      "\\`",
-	'$':      `\$`,     // when quoteChar == '`'
-	'\u2028': `\u2028`, // lineSeparator
-	'\u2029': `\u2029`, // paragraphSeparator
-	'\u0085': `\u0085`, // nextLine
-}
+var jsxEscapedCharsMap = map[ // when quoteChar == '`'
+// lineSeparator
+// paragraphSeparator
+// nextLine
+// Based heavily on the abstract 'Quote'/'QuoteJSONString' operation from ECMA-262 (24.3.2.2),
+// but augmented for a few select characters (e.g. lineSeparator, paragraphSeparator, nextLine)
+// Note that this doesn't actually wrap the input in double quotes.
+// A stray byte that is not valid UTF-8 (for example, a fragment of a
+// surrogate sentinel left behind by code that sliced the string by
+// byte). Escape it as the Unicode replacement character so the output
+// is always well-formed rather than containing raw invalid bytes.
+// This consists of the first 19 unprintable ASCII characters, canonical escapes, lineSeparator,
+// paragraphSeparator, and nextLine. The latter three are just desirable to suppress new lines in
+// the language service. These characters should be escaped when printing, and if any characters are added,
+// `escapedCharsMap` and/or `jsxEscapedCharsMap` must be updated. Note that this *does not* include the 'delete'
+// character. There is no reason for this other than that JSON.stringify does not handle it either.
+// Template strings preserve simple LF newlines, still encode CRLF (or CR).
+// Write string up to this point
+// Template strings preserve simple LF newlines, but still must escape CRLF. Left alone, the
+// above cases for `\r` and `\n` would inadvertently escape CRLF as two independent characters.
+// encode as surrogate pair
+// If the null character is followed by digits, print as a hex escape to prevent the result from
+// parsing as an octal (which is forbidden in strict mode)
+// Otherwise, keep printing a literal \0 for the null character
+// A synthetic node has no original text, nor does a node without a parent as we would be unable to find the
+// containing SourceFile. We also cannot use the original text if the literal was unterminated and the caller has
+// requested proper termination of unterminated literals
+// For a numeric literal, we cannot use the original text if the original text was an invalid literal
+// We also cannot use the original text if the literal contains numeric separators, but numeric separators
+// are not permitted
+// Finally, we do not use the original text of a BigInt literal
+// TODO(rbuckton): The reason as to why we do not use the original text for bigints is not mentioned in the
+// original compiler source. It could be that this is no longer necessary, in which case bigint literals should
+// use the same code path as numeric literals, above
+// If we don't need to downlevel and we can reach the original source text using
+// the node's parent reference, then simply get the text as it was originally written.
+/*includeTrivia*/ // If we can't reach the original source text, use the canonical form if it's a number,
+// or a (possibly escaped) quoted form of the original text if it's string-like.
+// Write leading quote character
+// Write text
+// Write trailing quote character
+// If a NoSubstitutionTemplateLiteral appears to have a substitution in it, the original text
+// had to include a backslash: `not \${a} substitution`.
+// Write leading quote character
+// Write text
+// If rawText is set, it is expected to be valid.
+// Write trailing quote character
+/*includeComments*/ /*includeComments*/ /*includeComments*/ /*includeComments*/ // TODO(rbuckton)
+// if ast.IsJSDocTag(node) {
+//     if ast.IsJSDocTypeLiteral(node.parent) {
+// 		return 0
+// 	 }
+// 	 return node.parent.tags
+// }
+// For performance, do not call `MostOriginal` for `nodeB` if `nodeA` doesn't even
+// have a parent node.
+// avoid using reflect (via core.IsNil) for common cases
+// /// <reference path="..." />
+// /// <reference types="..." />
+// /// <reference lib="..." />
+// /// <reference no-default-lib="..." />
+// /// <amd-dependency path="..." />
+// /// <amd-module />
+// Tabs = TabSize = indent size and go to next tabStop
+// Single space
+// lineCharacterCache provides cached line/character lookups for a source file,
+// optimized for monotonically increasing positions (e.g., during source map emit).
+//
+// When positions increase within the same line, only the delta between the last
+// position and the new position needs to be scanned for UTF-16 code unit counts,
+// turning what would be O(n²) into O(n) for long lines.
+//
+// Character offsets are measured in UTF-16 code units per the source map specification.
+// getLineAndCharacter returns the 0-based line number and UTF-16 code unit
+// offset from the start of that line for the given byte position.
+// When pos is beyond the source text (e.g., for error-recovery tokens like
+// missing closing braces), we can't slice past the text end. Compute the
+// UTF-16 length up to EOF and add the remaining byte offset arithmetically,
+// matching TypeScript's computeLineAndCharacterOfPosition which uses
+// arithmetic (position - lineStarts[lineNumber]) and handles this implicitly.
+// Incremental: only count UTF-16 code units from the last cached position.
+// Full computation from line start.
+rune]string{'"': "&quot;", '\'': "&apos;"}
+var escapedCharsMap = map[rune]string{'\t': `\t`, '\v': `\v`, '\f': `\f`, '\b': `\b`, '\r': `\r`, '\n': `\n`, '\\': `\\`, '"': `\"`, '\'': `\'`, '`': "\\`", '$': `\$`, '\u2028': `\u2028`, '\u2029': `\u2029`, '\u0085': `\u0085`}
 
 func encodeJsxCharacterEntity(b *strings.Builder, charCode rune) {
 	hexCharCode := strings.ToUpper(strconv.FormatUint(uint64(charCode), 16))
@@ -61,7 +123,6 @@ func encodeJsxCharacterEntity(b *strings.Builder, charCode rune) {
 	b.WriteString(hexCharCode)
 	b.WriteByte(';')
 }
-
 func encodeUtf16EscapeSequence(b *strings.Builder, charCode rune) {
 	hexCharCode := strings.ToUpper(strconv.FormatUint(uint64(charCode), 16))
 	b.WriteString(`\u`)
@@ -71,31 +132,17 @@ func encodeUtf16EscapeSequence(b *strings.Builder, charCode rune) {
 	b.WriteString(hexCharCode)
 }
 
-// Based heavily on the abstract 'Quote'/'QuoteJSONString' operation from ECMA-262 (24.3.2.2),
-// but augmented for a few select characters (e.g. lineSeparator, paragraphSeparator, nextLine)
-// Note that this doesn't actually wrap the input in double quotes.
 func escapeStringWorker(s string, quoteChar QuoteChar, flags getLiteralTextFlags, b *strings.Builder) {
 	pos := 0
 	i := 0
 	for i < len(s) {
 		ch, size := stringutil.DecodeJSStringRune(s[i:])
-
 		escape := false
 		if ch >= 0xD800 && ch <= 0xDFFF {
 			escape = true
 		} else if ch == utf8.RuneError && size == 1 {
-			// A stray byte that is not valid UTF-8 (for example, a fragment of a
-			// surrogate sentinel left behind by code that sliced the string by
-			// byte). Escape it as the Unicode replacement character so the output
-			// is always well-formed rather than containing raw invalid bytes.
 			escape = true
 		}
-
-		// This consists of the first 19 unprintable ASCII characters, canonical escapes, lineSeparator,
-		// paragraphSeparator, and nextLine. The latter three are just desirable to suppress new lines in
-		// the language service. These characters should be escaped when printing, and if any characters are added,
-		// `escapedCharsMap` and/or `jsxEscapedCharsMap` must be updated. Note that this *does not* include the 'delete'
-		// character. There is no reason for this other than that JSON.stringify does not handle it either.
 		switch ch {
 		case '\\':
 			if flags&getLiteralTextFlagsJsxAttributeEscape == 0 {
@@ -109,7 +156,6 @@ func escapeStringWorker(s string, quoteChar QuoteChar, flags getLiteralTextFlags
 			escape = true
 		case '\n':
 			if quoteChar != QuoteCharBacktick {
-				// Template strings preserve simple LF newlines, still encode CRLF (or CR).
 				escape = true
 			}
 		default:
@@ -117,13 +163,10 @@ func escapeStringWorker(s string, quoteChar QuoteChar, flags getLiteralTextFlags
 				escape = true
 			}
 		}
-
 		if escape {
 			if pos < i {
-				// Write string up to this point
 				b.WriteString(s[pos:i])
 			}
-
 			switch {
 			case flags&getLiteralTextFlagsJsxAttributeEscape != 0:
 				if ch == 0 {
@@ -133,15 +176,11 @@ func escapeStringWorker(s string, quoteChar QuoteChar, flags getLiteralTextFlags
 				} else {
 					encodeJsxCharacterEntity(b, ch)
 				}
-
 			default:
 				if ch == '\r' && quoteChar == QuoteCharBacktick && i+1 < len(s) && s[i+1] == '\n' {
-					// Template strings preserve simple LF newlines, but still must escape CRLF. Left alone, the
-					// above cases for `\r` and `\n` would inadvertently escape CRLF as two independent characters.
 					size++
 					b.WriteString(`\r\n`)
 				} else if ch > 0xffff {
-					// encode as surrogate pair
 					ch -= 0x10000
 					encodeUtf16EscapeSequence(b, (ch&0b11111111110000000000>>10)+0xD800)
 					encodeUtf16EscapeSequence(b, (ch&0b00000000001111111111)+0xDC00)
@@ -149,11 +188,8 @@ func escapeStringWorker(s string, quoteChar QuoteChar, flags getLiteralTextFlags
 					encodeUtf16EscapeSequence(b, ch)
 				} else if ch == 0 {
 					if i+1 < len(s) && stringutil.IsDigit(rune(s[i+1])) {
-						// If the null character is followed by digits, print as a hex escape to prevent the result from
-						// parsing as an octal (which is forbidden in strict mode)
 						b.WriteString(`\x00`)
 					} else {
-						// Otherwise, keep printing a literal \0 for the null character
 						b.WriteString(`\0`)
 					}
 				} else {
@@ -166,117 +202,76 @@ func escapeStringWorker(s string, quoteChar QuoteChar, flags getLiteralTextFlags
 			}
 			pos = i + size
 		}
-
 		i += size
 	}
-
 	if pos < i {
 		b.WriteString(s[pos:])
 	}
 }
-
 func EscapeString(s string, quoteChar QuoteChar) string {
 	var b strings.Builder
 	b.Grow(len(s) + 2)
 	escapeStringWorker(s, quoteChar, getLiteralTextFlagsNeverAsciiEscape, &b)
 	return b.String()
 }
-
 func escapeNonAsciiString(s string, quoteChar QuoteChar) string {
 	var b strings.Builder
 	b.Grow(len(s) + 2)
 	escapeStringWorker(s, quoteChar, getLiteralTextFlagsNone, &b)
 	return b.String()
 }
-
 func escapeJsxAttributeString(s string, quoteChar QuoteChar) string {
 	var b strings.Builder
 	b.Grow(len(s) + 2)
 	escapeStringWorker(s, quoteChar, getLiteralTextFlagsJsxAttributeEscape|getLiteralTextFlagsNeverAsciiEscape, &b)
 	return b.String()
 }
-
-func canUseOriginalText(node *ast.LiteralLikeNode, flags getLiteralTextFlags) bool {
-	// A synthetic node has no original text, nor does a node without a parent as we would be unable to find the
-	// containing SourceFile. We also cannot use the original text if the literal was unterminated and the caller has
-	// requested proper termination of unterminated literals
-	if ast.NodeIsSynthesized(node) || node.Parent == nil || flags&getLiteralTextFlagsTerminateUnterminatedLiterals != 0 && ast.IsUnterminatedLiteral(node) {
+func canUseOriginalText(node ast.Handle, flags getLiteralTextFlags) bool {
+	if ast.NodeIsSynthesized(node) || node.Parent().IsNil() || flags&getLiteralTextFlagsTerminateUnterminatedLiterals != 0 && ast.IsUnterminatedLiteral(node) {
 		return false
 	}
-
-	if node.Kind == ast.KindNumericLiteral {
-		tokenFlags := node.AsNumericLiteral().TokenFlags
-		// For a numeric literal, we cannot use the original text if the original text was an invalid literal
+	if node.Kind() == ast.KindNumericLiteral {
+		tokenFlags := node.NumericLiteralTokenFlags()
 		if tokenFlags&ast.TokenFlagsIsInvalid != 0 {
 			return false
 		}
-		// We also cannot use the original text if the literal contains numeric separators, but numeric separators
-		// are not permitted
 		if tokenFlags&ast.TokenFlagsContainsSeparator != 0 {
 			return flags&getLiteralTextFlagsAllowNumericSeparator != 0
 		}
 	}
-
-	// Finally, we do not use the original text of a BigInt literal
-	// TODO(rbuckton): The reason as to why we do not use the original text for bigints is not mentioned in the
-	// original compiler source. It could be that this is no longer necessary, in which case bigint literals should
-	// use the same code path as numeric literals, above
-	return node.Kind != ast.KindBigIntLiteral
+	return node.Kind() != ast.KindBigIntLiteral
 }
-
-func getLiteralText(node *ast.LiteralLikeNode, sourceFile *ast.SourceFile, flags getLiteralTextFlags) string {
-	// If we don't need to downlevel and we can reach the original source text using
-	// the node's parent reference, then simply get the text as it was originally written.
+func getLiteralText(node ast.Handle, sourceFile *ast.SourceFile, flags getLiteralTextFlags) string {
 	if sourceFile != nil && canUseOriginalText(node, flags) {
-		return scanner.GetSourceTextOfNodeFromSourceFile(sourceFile, node, false /*includeTrivia*/)
+		return scanner.GetSourceTextOfNodeFromSourceFile(sourceFile, node, false)
 	}
-
-	// If we can't reach the original source text, use the canonical form if it's a number,
-	// or a (possibly escaped) quoted form of the original text if it's string-like.
-	switch node.Kind {
+	switch node.Kind() {
 	case ast.KindStringLiteral:
 		var b strings.Builder
 		var quoteChar QuoteChar
-		if node.AsStringLiteral().TokenFlags&ast.TokenFlagsSingleQuote != 0 {
+		if node.StringLiteralTokenFlags()&ast.TokenFlagsSingleQuote != 0 {
 			quoteChar = QuoteCharSingleQuote
 		} else {
 			quoteChar = QuoteCharDoubleQuote
 		}
-
 		text := node.Text()
-
-		// Write leading quote character
 		b.Grow(len(text) + 2)
 		b.WriteRune(rune(quoteChar))
-
-		// Write text
 		escapeStringWorker(text, quoteChar, flags, &b)
-
-		// Write trailing quote character
 		b.WriteRune(rune(quoteChar))
 		return b.String()
-
-	case ast.KindNoSubstitutionTemplateLiteral,
-		ast.KindTemplateHead,
-		ast.KindTemplateMiddle,
-		ast.KindTemplateTail:
-
-		// If a NoSubstitutionTemplateLiteral appears to have a substitution in it, the original text
-		// had to include a backslash: `not \${a} substitution`.
+	case ast.KindNoSubstitutionTemplateLiteral, ast.KindTemplateHead, ast.KindTemplateMiddle, ast.KindTemplateTail:
 		var b strings.Builder
 		text := node.Text()
-		rawText := node.TemplateLiteralLikeData().RawText
+		rawText := node.RawText()
 		raw := len(rawText) > 0 || len(text) == 0
-
 		var textLen int
 		if raw {
 			textLen = len(rawText)
 		} else {
 			textLen = len(text)
 		}
-
-		// Write leading quote character
-		switch node.Kind {
+		switch node.Kind() {
 		case ast.KindNoSubstitutionTemplateLiteral:
 			b.Grow(2 + textLen)
 			b.WriteRune('`')
@@ -290,18 +285,13 @@ func getLiteralText(node *ast.LiteralLikeNode, sourceFile *ast.SourceFile, flags
 			b.Grow(2 + textLen)
 			b.WriteRune('}')
 		}
-
-		// Write text
 		switch {
 		case len(rawText) > 0 || len(text) == 0:
-			// If rawText is set, it is expected to be valid.
 			b.WriteString(rawText)
 		default:
 			escapeStringWorker(text, QuoteCharBacktick, flags, &b)
 		}
-
-		// Write trailing quote character
-		switch node.Kind {
+		switch node.Kind() {
 		case ast.KindNoSubstitutionTemplateLiteral:
 			b.WriteRune('`')
 		case ast.KindTemplateHead:
@@ -312,10 +302,8 @@ func getLiteralText(node *ast.LiteralLikeNode, sourceFile *ast.SourceFile, flags
 			b.WriteRune('`')
 		}
 		return b.String()
-
 	case ast.KindNumericLiteral, ast.KindBigIntLiteral:
 		return node.Text()
-
 	case ast.KindRegularExpressionLiteral:
 		if flags&getLiteralTextFlagsTerminateUnterminatedLiterals != 0 && ast.IsUnterminatedLiteral(node) {
 			var b strings.Builder
@@ -332,51 +320,37 @@ func getLiteralText(node *ast.LiteralLikeNode, sourceFile *ast.SourceFile, flags
 			return b.String()
 		}
 		return node.Text()
-
 	default:
 		panic("Unsupported LiteralLikeNode")
 	}
 }
-
-func isNotPrologueDirective(node *ast.Node) bool {
+func isNotPrologueDirective(node ast.Handle) bool {
 	return !ast.IsPrologueDirective(node)
 }
-
 func RangeIsOnSingleLine(r core.TextRange, sourceFile *ast.SourceFile) bool {
 	return rangeStartIsOnSameLineAsRangeEnd(r, r, sourceFile)
 }
-
 func RangeStartPositionsAreOnSameLine(range1 core.TextRange, range2 core.TextRange, sourceFile *ast.SourceFile) bool {
-	return PositionsAreOnSameLine(
-		getStartPositionOfRange(range1, sourceFile, false /*includeComments*/),
-		getStartPositionOfRange(range2, sourceFile, false /*includeComments*/),
-		sourceFile,
-	)
+	return PositionsAreOnSameLine(getStartPositionOfRange(range1, sourceFile, false), getStartPositionOfRange(range2, sourceFile, false), sourceFile)
 }
-
 func rangeEndPositionsAreOnSameLine(range1 core.TextRange, range2 core.TextRange, sourceFile *ast.SourceFile) bool {
 	return PositionsAreOnSameLine(range1.End(), range2.End(), sourceFile)
 }
-
 func rangeStartIsOnSameLineAsRangeEnd(range1 core.TextRange, range2 core.TextRange, sourceFile *ast.SourceFile) bool {
-	return PositionsAreOnSameLine(getStartPositionOfRange(range1, sourceFile, false /*includeComments*/), range2.End(), sourceFile)
+	return PositionsAreOnSameLine(getStartPositionOfRange(range1, sourceFile, false), range2.End(), sourceFile)
 }
-
 func rangeEndIsOnSameLineAsRangeStart(range1 core.TextRange, range2 core.TextRange, sourceFile *ast.SourceFile) bool {
-	return PositionsAreOnSameLine(range1.End(), getStartPositionOfRange(range2, sourceFile, false /*includeComments*/), sourceFile)
+	return PositionsAreOnSameLine(range1.End(), getStartPositionOfRange(range2, sourceFile, false), sourceFile)
 }
-
 func getStartPositionOfRange(r core.TextRange, sourceFile *ast.SourceFile, includeComments bool) int {
 	if ast.PositionIsSynthesized(r.Pos()) {
 		return -1
 	}
 	return scanner.SkipTriviaEx(sourceFile.Text(), r.Pos(), &scanner.SkipTriviaOptions{StopAtComments: includeComments})
 }
-
 func PositionsAreOnSameLine(pos1 int, pos2 int, sourceFile *ast.SourceFile) bool {
 	return GetLinesBetweenPositions(sourceFile, pos1, pos2) == 0
 }
-
 func GetLinesBetweenPositions(sourceFile *ast.SourceFile, pos1 int, pos2 int) int {
 	if pos1 == pos2 {
 		return 0
@@ -393,23 +367,19 @@ func GetLinesBetweenPositions(sourceFile *ast.SourceFile, pos1 int, pos2 int) in
 		return upperLine - lowerLine
 	}
 }
-
 func getLinesBetweenRangeEndAndRangeStart(range1 core.TextRange, range2 core.TextRange, sourceFile *ast.SourceFile, includeSecondRangeComments bool) int {
 	range2Start := getStartPositionOfRange(range2, sourceFile, includeSecondRangeComments)
 	return GetLinesBetweenPositions(sourceFile, range1.End(), range2Start)
 }
-
 func getLinesBetweenPositionAndPrecedingNonWhitespaceCharacter(pos int, stopPos int, sourceFile *ast.SourceFile, includeComments bool) int {
 	startPos := scanner.SkipTriviaEx(sourceFile.Text(), pos, &scanner.SkipTriviaOptions{StopAtComments: includeComments})
 	prevPos := getPreviousNonWhitespacePosition(startPos, stopPos, sourceFile)
 	return GetLinesBetweenPositions(sourceFile, core.IfElse(prevPos >= 0, prevPos, stopPos), startPos)
 }
-
 func getLinesBetweenPositionAndNextNonWhitespaceCharacter(pos int, stopPos int, sourceFile *ast.SourceFile, includeComments bool) int {
 	nextPos := scanner.SkipTriviaEx(sourceFile.Text(), pos, &scanner.SkipTriviaOptions{StopAtComments: includeComments})
 	return GetLinesBetweenPositions(sourceFile, pos, core.IfElse(stopPos < nextPos, stopPos, nextPos))
 }
-
 func getPreviousNonWhitespacePosition(pos int, stopPos int, sourceFile *ast.SourceFile) int {
 	for ; pos >= stopPos; pos-- {
 		if !stringutil.IsWhiteSpaceLike(rune(sourceFile.Text()[pos])) {
@@ -418,35 +388,29 @@ func getPreviousNonWhitespacePosition(pos int, stopPos int, sourceFile *ast.Sour
 	}
 	return -1
 }
-
-func siblingNodePositionsAreComparable(emitContext *EmitContext, previousNode *ast.Node, nextNode *ast.Node) bool {
+func siblingNodePositionsAreComparable(emitContext *EmitContext, previousNode ast.Handle, nextNode ast.Handle) bool {
 	if nextNode.Pos() < previousNode.End() {
 		return false
 	}
-
 	previousNode = emitContext.MostOriginal(previousNode)
 	nextNode = emitContext.MostOriginal(nextNode)
-	parent := previousNode.Parent
-	if parent == nil || parent != nextNode.Parent {
+	parent := previousNode.Parent()
+	if parent.IsNil() || parent != nextNode.Parent() {
 		return false
 	}
-
 	parentNodeArray := getContainingNodeArray(previousNode)
-	if parentNodeArray != nil {
-		prevNodeIndex := slices.Index(parentNodeArray.Nodes, previousNode)
-		return prevNodeIndex >= 0 && slices.Index(parentNodeArray.Nodes, nextNode) == prevNodeIndex+1
+	if parentNodeArray != 0 {
+		prevNodeIndex := slices.Index(previousNode.Store().ListSlice(parentNodeArray), previousNode)
+		return prevNodeIndex >= 0 && slices.Index(previousNode.Store().ListSlice(parentNodeArray), nextNode) == prevNodeIndex+1
 	}
-
 	return false
 }
-
-func getContainingNodeArray(node *ast.Node) *ast.NodeList {
-	parent := node.Parent
-	if parent == nil {
-		return nil
+func getContainingNodeArray(node ast.Handle) ast.ListRef {
+	parent := node.Parent()
+	if parent.IsNil() {
+		return 0
 	}
-
-	switch node.Kind {
+	switch node.Kind() {
 	case ast.KindTypeParameter:
 		switch {
 		case ast.IsFunctionLike(parent) || ast.IsClassLike(parent) || ast.IsInterfaceDeclaration(parent) || ast.IsTypeOrJSTypeAliasDeclaration(parent):
@@ -454,70 +418,60 @@ func getContainingNodeArray(node *ast.Node) *ast.NodeList {
 		case ast.IsInferTypeNode(parent):
 			break
 		default:
-			panic(fmt.Sprintf("Unexpected TypeParameter parent: %#v", parent.Kind))
+			panic(fmt.Sprintf("Unexpected TypeParameter parent: %#v", parent.Kind()))
 		}
-
 	case ast.KindParameter:
-		return node.Parent.FunctionLikeData().Parameters
+		return node.Parent().ParameterList()
 	case ast.KindTemplateLiteralTypeSpan:
-		return node.Parent.AsTemplateLiteralTypeNode().TemplateSpans
+		return node.Parent().TemplateLiteralTypeNodeTemplateSpans()
 	case ast.KindTemplateSpan:
-		return node.Parent.AsTemplateExpression().TemplateSpans
+		return node.Parent().TemplateExpressionTemplateSpans()
 	case ast.KindDecorator:
-		if canHaveDecorators(node.Parent) {
-			if modifiers := node.Parent.Modifiers(); modifiers != nil {
-				return &modifiers.NodeList
+		if canHaveDecorators(node.Parent()) {
+			if modifiers := node.Parent().Modifiers(); modifiers != 0 {
+				return modifiers
 			}
 		}
-		return nil
+		return 0
 	case ast.KindHeritageClause:
-		if ast.IsClassLike(node.Parent) {
-			return node.Parent.ClassLikeData().HeritageClauses
+		if ast.IsClassLike(node.Parent()) {
+			return node.Parent().HeritageClauses()
 		} else {
-			return node.Parent.AsInterfaceDeclaration().HeritageClauses
+			return node.Parent().InterfaceDeclarationHeritageClauses()
 		}
 	}
-
-	// TODO(rbuckton)
-	// if ast.IsJSDocTag(node) {
-	//     if ast.IsJSDocTypeLiteral(node.parent) {
-	// 		return nil
-	// 	 }
-	// 	 return node.parent.tags
-	// }
-
-	switch parent.Kind {
+	switch parent.Kind() {
 	case ast.KindTypeLiteral, ast.KindInterfaceDeclaration:
 		if ast.IsTypeElement(node) {
 			return parent.MemberList()
 		}
 	case ast.KindUnionType:
-		return parent.AsUnionTypeNode().Types
+		return parent.UnionTypeNodeTypes()
 	case ast.KindIntersectionType:
-		return parent.AsIntersectionTypeNode().Types
+		return parent.IntersectionTypeNodeTypes()
 	case ast.KindArrayLiteralExpression, ast.KindTupleType, ast.KindNamedImports, ast.KindNamedExports:
 		return parent.ElementList()
 	case ast.KindObjectLiteralExpression, ast.KindJsxAttributes:
 		return parent.PropertyList()
 	case ast.KindCallExpression:
-		p := parent.AsCallExpression()
+		p := parent
 		switch {
 		case ast.IsTypeNode(node):
-			return p.TypeArguments
-		case node != p.Expression:
-			return p.Arguments
+			return p.TypeArgumentList()
+		case node != p.Expression():
+			return p.ArgumentList()
 		}
 	case ast.KindNewExpression:
-		p := parent.AsNewExpression()
+		p := parent
 		switch {
 		case ast.IsTypeNode(node):
-			return p.TypeArguments
-		case node != p.Expression:
-			return p.Arguments
+			return p.TypeArgumentList()
+		case node != p.Expression():
+			return p.ArgumentList()
 		}
 	case ast.KindJsxElement, ast.KindJsxFragment:
 		if ast.IsJsxChild(node) {
-			return parent.Children()
+			return parent.ChildList()
 		}
 	case ast.KindJsxOpeningElement, ast.KindJsxSelfClosingElement:
 		if ast.IsTypeNode(node) {
@@ -526,7 +480,7 @@ func getContainingNodeArray(node *ast.Node) *ast.NodeList {
 	case ast.KindBlock, ast.KindModuleBlock, ast.KindCaseClause, ast.KindDefaultClause:
 		return parent.StatementList()
 	case ast.KindCaseBlock:
-		return parent.AsCaseBlock().Clauses
+		return parent.CaseBlockClauses()
 	case ast.KindClassDeclaration, ast.KindClassExpression:
 		if ast.IsClassElement(node) {
 			return parent.MemberList()
@@ -540,50 +494,32 @@ func getContainingNodeArray(node *ast.Node) *ast.NodeList {
 			return parent.StatementList()
 		}
 	}
-
 	if ast.IsModifier(node) {
-		if modifiers := parent.Modifiers(); modifiers != nil {
-			return &modifiers.NodeList
+		if modifiers := parent.Modifiers(); modifiers != 0 {
+			return modifiers
 		}
 	}
-
-	return nil
+	return 0
 }
-
-func canHaveDecorators(node *ast.Node) bool {
-	switch node.Kind {
-	case ast.KindParameter,
-		ast.KindPropertyDeclaration,
-		ast.KindMethodDeclaration,
-		ast.KindGetAccessor,
-		ast.KindSetAccessor,
-		ast.KindClassExpression,
-		ast.KindClassDeclaration:
+func canHaveDecorators(node ast.Handle) bool {
+	switch node.Kind() {
+	case ast.KindParameter, ast.KindPropertyDeclaration, ast.KindMethodDeclaration, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindClassExpression, ast.KindClassDeclaration:
 		return true
 	}
 	return false
 }
-
-func originalNodesHaveSameParent(emitContext *EmitContext, nodeA *ast.Node, nodeB *ast.Node) bool {
+func originalNodesHaveSameParent(emitContext *EmitContext, nodeA ast.Handle, nodeB ast.Handle) bool {
 	nodeA = emitContext.MostOriginal(nodeA)
-	if nodeA.Parent != nil {
-		// For performance, do not call `MostOriginal` for `nodeB` if `nodeA` doesn't even
-		// have a parent node.
+	if !nodeA.Parent().IsNil() {
 		nodeB = emitContext.MostOriginal(nodeB)
-		return nodeA.Parent == nodeB.Parent
+		return nodeA.Parent() == nodeB.Parent()
 	}
 	return false
 }
-
 func tryGetEnd(node interface{ End() int }) (int, bool) {
-	// avoid using reflect (via core.IsNil) for common cases
 	switch v := node.(type) {
-	case (*ast.Node):
-		if v != nil {
-			return v.End(), true
-		}
-	case (*ast.NodeList):
-		if v != nil {
+	case (ast.Handle):
+		if !v.IsNil() {
 			return v.End(), true
 		}
 	case (*ast.ModifierList):
@@ -601,7 +537,6 @@ func tryGetEnd(node interface{ End() int }) (int, bool) {
 	}
 	return 0, false
 }
-
 func greatestEnd(end int, nodes ...interface{ End() int }) int {
 	for i := len(nodes) - 1; i >= 0; i-- {
 		node := nodes[i]
@@ -611,24 +546,19 @@ func greatestEnd(end int, nodes ...interface{ End() int }) int {
 	}
 	return end
 }
-
-func skipSynthesizedParentheses(node *ast.Node) *ast.Node {
-	for node.Kind == ast.KindParenthesizedExpression && ast.NodeIsSynthesized(node) {
+func skipSynthesizedParentheses(node ast.Handle) ast.Handle {
+	for node.Kind() == ast.KindParenthesizedExpression && ast.NodeIsSynthesized(node) {
 		node = node.Expression()
 	}
 	return node
 }
-
-func isNewExpressionWithoutArguments(node *ast.Node) bool {
-	return node.Kind == ast.KindNewExpression && node.ArgumentList() == nil
+func isNewExpressionWithoutArguments(node ast.Handle) bool {
+	return node.Kind() == ast.KindNewExpression && node.ArgumentList() == 0
 }
-
-func isBinaryOperation(node *ast.Node, token ast.Kind) bool {
+func isBinaryOperation(node ast.Handle, token ast.Kind) bool {
 	node = ast.SkipPartiallyEmittedExpressions(node)
-	return node.Kind == ast.KindBinaryExpression &&
-		node.AsBinaryExpression().OperatorToken.Kind == token
+	return node.Kind() == ast.KindBinaryExpression && node.BinaryExpressionOperatorToken().Kind() == token
 }
-
 func mixingBinaryOperatorsRequiresParentheses(a ast.Kind, b ast.Kind) bool {
 	if a == ast.KindQuestionQuestionToken {
 		return b == ast.KindAmpersandAmpersandToken || b == ast.KindBarBarToken
@@ -638,8 +568,7 @@ func mixingBinaryOperatorsRequiresParentheses(a ast.Kind, b ast.Kind) bool {
 	}
 	return false
 }
-
-func isImmediatelyInvokedFunctionExpressionOrArrowFunction(node *ast.Expression) bool {
+func isImmediatelyInvokedFunctionExpressionOrArrowFunction(node ast.Handle) bool {
 	node = ast.SkipPartiallyEmittedExpressions(node)
 	if !ast.IsCallExpression(node) {
 		return false
@@ -647,11 +576,9 @@ func isImmediatelyInvokedFunctionExpressionOrArrowFunction(node *ast.Expression)
 	node = ast.SkipPartiallyEmittedExpressions(node.Expression())
 	return ast.IsFunctionExpression(node) || ast.IsArrowFunction(node)
 }
-
 func hasLeadingHash(text string) bool {
 	return len(text) > 0 && text[0] == '#'
 }
-
 func removeLeadingHash(text string) string {
 	if hasLeadingHash(text) {
 		return text[1:]
@@ -659,7 +586,6 @@ func removeLeadingHash(text string) string {
 		return text
 	}
 }
-
 func ensureLeadingHash(text string) string {
 	if hasLeadingHash(text) {
 		return text
@@ -667,7 +593,6 @@ func ensureLeadingHash(text string) string {
 		return "#" + text
 	}
 }
-
 func FormatGeneratedName(privateName bool, prefix string, base string, suffix string) string {
 	name := removeLeadingHash(prefix) + removeLeadingHash(base) + removeLeadingHash(suffix)
 	if privateName {
@@ -675,11 +600,9 @@ func FormatGeneratedName(privateName bool, prefix string, base string, suffix st
 	}
 	return name
 }
-
 func isASCIIWordCharacter(ch rune) bool {
 	return stringutil.IsASCIILetter(ch) || stringutil.IsDigit(ch) || ch == '_'
 }
-
 func makeIdentifierFromModuleName(moduleName string) string {
 	moduleName = tspath.GetBaseFileName(moduleName)
 	var builder strings.Builder
@@ -703,7 +626,6 @@ func makeIdentifierFromModuleName(moduleName string) string {
 	}
 	return builder.String()
 }
-
 func findSpanEndWithEmitContext[T any](c *EmitContext, array []T, test func(c *EmitContext, value T) bool, start int) int {
 	i := start
 	for i < len(array) && test(c, array[i]) {
@@ -711,7 +633,6 @@ func findSpanEndWithEmitContext[T any](c *EmitContext, array []T, test func(c *E
 	}
 	return i
 }
-
 func findSpanEnd[T any](array []T, test func(value T) bool, start int) int {
 	i := start
 	for i < len(array) && test(array[i]) {
@@ -719,7 +640,6 @@ func findSpanEnd[T any](array []T, test func(value T) bool, start int) int {
 	}
 	return i
 }
-
 func skipWhiteSpaceSingleLine(text string, pos *int) {
 	for *pos < len(text) {
 		ch, size := utf8.DecodeRuneInString(text[*pos:])
@@ -729,13 +649,11 @@ func skipWhiteSpaceSingleLine(text string, pos *int) {
 		*pos += size
 	}
 }
-
 func matchWhiteSpaceSingleLine(text string, pos *int) bool {
 	startPos := *pos
 	skipWhiteSpaceSingleLine(text, pos)
 	return *pos != startPos
 }
-
 func matchRune(text string, pos *int, expected rune) bool {
 	ch, size := utf8.DecodeRuneInString(text[*pos:])
 	if ch == expected {
@@ -744,7 +662,6 @@ func matchRune(text string, pos *int, expected rune) bool {
 	}
 	return false
 }
-
 func matchString(text string, pos *int, expected string) bool {
 	textPos := *pos
 	expectedPos := 0
@@ -752,19 +669,15 @@ func matchString(text string, pos *int, expected string) bool {
 		if textPos >= len(text) {
 			return false
 		}
-
 		expectedRune, expectedSize := utf8.DecodeRuneInString(expected[expectedPos:])
 		if !matchRune(text, &textPos, expectedRune) {
 			return false
 		}
-
 		expectedPos += expectedSize
 	}
-
 	*pos = textPos
 	return true
 }
-
 func matchQuotedString(text string, pos *int) bool {
 	textPos := *pos
 	var quoteChar rune
@@ -787,17 +700,8 @@ func matchQuotedString(text string, pos *int) bool {
 	return false
 }
 
-// /// <reference path="..." />
-// /// <reference types="..." />
-// /// <reference lib="..." />
-// /// <reference no-default-lib="..." />
-// /// <amd-dependency path="..." />
-// /// <amd-module />
 func IsRecognizedTripleSlashComment(text string, commentRange ast.CommentRange) bool {
-	if commentRange.Kind == ast.KindSingleLineCommentTrivia &&
-		commentRange.Len() > 2 &&
-		text[commentRange.Pos()+1] == '/' &&
-		text[commentRange.Pos()+2] == '/' {
+	if commentRange.Kind == ast.KindSingleLineCommentTrivia && commentRange.Len() > 2 && text[commentRange.Pos()+1] == '/' && text[commentRange.Pos()+2] == '/' {
 		text = text[commentRange.Pos()+3 : commentRange.End()]
 		pos := 0
 		skipWhiteSpaceSingleLine(text, &pos)
@@ -809,10 +713,7 @@ func IsRecognizedTripleSlashComment(text string, commentRange ast.CommentRange) 
 			if !matchWhiteSpaceSingleLine(text, &pos) {
 				return false
 			}
-			if !matchString(text, &pos, "path") &&
-				!matchString(text, &pos, "types") &&
-				!matchString(text, &pos, "lib") &&
-				!matchString(text, &pos, "no-default-lib") {
+			if !matchString(text, &pos, "path") && !matchString(text, &pos, "types") && !matchString(text, &pos, "lib") && !matchString(text, &pos, "no-default-lib") {
 				return false
 			}
 			skipWhiteSpaceSingleLine(text, &pos)
@@ -846,23 +747,14 @@ func IsRecognizedTripleSlashComment(text string, commentRange ast.CommentRange) 
 		index := strings.Index(text[pos:], "/>")
 		return index != -1
 	}
-
 	return false
 }
-
 func isJSDocLikeText(text string, comment ast.CommentRange) bool {
-	return comment.Kind == ast.KindMultiLineCommentTrivia &&
-		comment.Len() >= 5 &&
-		text[comment.Pos()+2] == '*' &&
-		text[comment.Pos()+3] != '/'
+	return comment.Kind == ast.KindMultiLineCommentTrivia && comment.Len() >= 5 && text[comment.Pos()+2] == '*' && text[comment.Pos()+3] != '/'
 }
-
 func IsPinnedComment(text string, comment ast.CommentRange) bool {
-	return comment.Kind == ast.KindMultiLineCommentTrivia &&
-		comment.Len() > 5 &&
-		text[comment.Pos()+2] == '!'
+	return comment.Kind == ast.KindMultiLineCommentTrivia && comment.Len() > 5 && text[comment.Pos()+2] == '!'
 }
-
 func calculateIndent(text string, pos int, end int) int {
 	currentLineIndent := 0
 	indentSize := GetDefaultIndentSize()
@@ -872,26 +764,15 @@ func calculateIndent(text string, pos int, end int) int {
 			break
 		}
 		if ch == '\t' {
-			// Tabs = TabSize = indent size and go to next tabStop
 			currentLineIndent += indentSize - (currentLineIndent % indentSize)
 		} else {
-			// Single space
 			currentLineIndent++
 		}
 		pos += size
 	}
-
 	return currentLineIndent
 }
 
-// lineCharacterCache provides cached line/character lookups for a source file,
-// optimized for monotonically increasing positions (e.g., during source map emit).
-//
-// When positions increase within the same line, only the delta between the last
-// position and the new position needs to be scanned for UTF-16 code unit counts,
-// turning what would be O(n²) into O(n) for long lines.
-//
-// Character offsets are measured in UTF-16 code units per the source map specification.
 type lineCharacterCache struct {
 	lineMap    []core.TextPos
 	text       string
@@ -902,28 +783,16 @@ type lineCharacterCache struct {
 }
 
 func newLineCharacterCache(source sourcemap.Source) *lineCharacterCache {
-	return &lineCharacterCache{
-		lineMap: source.ECMALineMap(),
-		text:    source.Text(),
-	}
+	return &lineCharacterCache{lineMap: source.ECMALineMap(), text: source.Text()}
 }
 
-// getLineAndCharacter returns the 0-based line number and UTF-16 code unit
-// offset from the start of that line for the given byte position.
 func (c *lineCharacterCache) getLineAndCharacter(pos int) (line int, character core.UTF16Offset) {
 	line = scanner.ComputeLineOfPosition(c.lineMap, pos)
 	lineStart := int(c.lineMap[line])
-	// When pos is beyond the source text (e.g., for error-recovery tokens like
-	// missing closing braces), we can't slice past the text end. Compute the
-	// UTF-16 length up to EOF and add the remaining byte offset arithmetically,
-	// matching TypeScript's computeLineAndCharacterOfPosition which uses
-	// arithmetic (position - lineStarts[lineNumber]) and handles this implicitly.
 	endPos := min(pos, len(c.text))
 	if c.hasCached && line == c.cachedLine && endPos >= c.cachedPos {
-		// Incremental: only count UTF-16 code units from the last cached position.
 		character = c.cachedChar + core.UTF16Len(c.text[c.cachedPos:endPos])
 	} else {
-		// Full computation from line start.
 		character = core.UTF16Len(c.text[lineStart:endPos])
 	}
 	cachedChar := character

@@ -95,32 +95,28 @@ func TestStoreSetFile(t *testing.T) {
 	assert.Assert(t, ss.File(0) == nil)
 }
 
+func registeredSourceFile() (*ast.SourceFile, ast.Handle) {
+	factory := ast.NewFactory(ast.FactoryHooks{})
+	eof := factory.NewToken(ast.KindEndOfFile)
+	root := factory.NewSourceFile(0, eof)
+	opts := ast.SourceFileParseOptions{FileName: "/index.ts", Path: "/index.ts"}
+	file := ast.NewSourceFileMetadata(opts, "")
+	file.SetParseStore(factory.Store(), root)
+	return file, root
+}
+
 // TestSourceFileRefsAreSafeAcrossParallelCheckers is intended to run under
-// -race. Each checker owns its NodeFactory map, then merges newly allocated
-// nodes into the SourceFile index while other checkers resolve GlobalRefs.
+// -race. Checkers resolve RegisterFile identity (ParseRoot, Store.At, GlobalRef)
+// on a shared file.
 func TestSourceFileRefsAreSafeAcrossParallelCheckers(t *testing.T) {
 	t.Parallel()
-	store := ast.NewStore(64)
-	parseFactory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
-	parseFactory.AttachStore(store)
-	opts := ast.SourceFileParseOptions{FileName: "/index.ts", Path: "/index.ts"}
-	root := parseFactory.NewSourceFile(opts, "", nil, nil)
-	file := root.AsSourceFile()
-	rootHandle := parseFactory.HandleOf(root)
-	file.SetParseStore(store, rootHandle)
-	file.SetParseNodeRef(parseFactory.TakeNodeRef())
-
-	stores := ast.NewStoreSet()
-	id := stores.Add(store)
-	stores.SetFile(id, file)
+	file, root := registeredSourceFile()
+	store := file.ParseStore()
 
 	const checkers = 16
-	nodes := make([]*ast.Node, checkers)
-	refs := make([]ast.NodeRef, checkers)
-	plainFactory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	handles := make([]ast.Handle, checkers)
 	for i := range checkers {
-		nodes[i] = plainFactory.NewIdentifier("synthetic")
-		refs[i] = store.Alloc(ast.KindIdentifier, ast.NodeFlagsSynthesized, core.UndefinedTextRange(), 0).Ref()
+		handles[i] = store.Alloc(ast.KindIdentifier, ast.NodeFlagsSynthesized, core.UndefinedTextRange(), 0)
 	}
 
 	var wg sync.WaitGroup
@@ -128,32 +124,25 @@ func TestSourceFileRefsAreSafeAcrossParallelCheckers(t *testing.T) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			private := file.ParseNodeRef()
-			private[nodes[i]] = refs[i]
-			file.AbsorbNodeRef(private)
-			assert.Equal(t, nodes[i], file.NodeFor(refs[i]))
-			assert.Equal(t, refs[i], file.HandleOf(nodes[i]).Ref())
-			assert.Equal(t, nodes[i], stores.NodeOf(ast.MakeGlobalRef(id, refs[i])))
-			assert.Equal(t, root, file.NodeFor(rootHandle.Ref()))
+			g := handles[i].Global()
+			assert.Equal(t, handles[i].Ref(), ast.NodeOf(g).Ref())
+			assert.Equal(t, handles[i].Ref(), store.At(handles[i].Ref()).Ref())
+			assert.Equal(t, store, ast.NodeOf(g).Store())
+			assert.Equal(t, root.Ref(), file.ParseRoot().Ref())
 		}()
 	}
 	wg.Wait()
 
 	for i := range checkers {
-		assert.Equal(t, nodes[i], file.NodeFor(refs[i]))
+		assert.Equal(t, handles[i].Ref(), ast.NodeOf(handles[i].Global()).Ref())
 	}
 }
 
 func TestSourceFileSerializesParseStoreWriters(t *testing.T) {
 	t.Parallel()
-	store := ast.NewStore(512)
-	parseFactory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
-	parseFactory.AttachStore(store)
-	opts := ast.SourceFileParseOptions{FileName: "/index.ts", Path: "/index.ts"}
-	root := parseFactory.NewSourceFile(opts, "", nil, nil)
-	file := root.AsSourceFile()
-	file.SetParseStore(store, parseFactory.HandleOf(root))
-	file.SetParseNodeRef(parseFactory.TakeNodeRef())
+	file, root := registeredSourceFile()
+	store := file.ParseStore()
+	before := store.Len()
 
 	const writers = 4
 	const nodesPerWriter = 128
@@ -165,16 +154,47 @@ func TestSourceFileSerializesParseStoreWriters(t *testing.T) {
 			unlock := file.LockParseStoreWriter()
 			defer unlock()
 
-			factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
-			factory.AttachStoreMap(store, file.ParseNodeRef())
+			factory := ast.NewFactoryOn(store, ast.FactoryHooks{})
 			for node := range nodesPerWriter {
 				factory.NewIdentifier(string(rune('a' + (writer+node)%26)))
 			}
-			file.AbsorbNodeRef(factory.TakeNodeRef())
 		}()
 	}
 	wg.Wait()
 
-	assert.Equal(t, 1+writers*nodesPerWriter, store.Len())
-	assert.Equal(t, store.Len(), len(file.ParseNodeRef()))
+	assert.Equal(t, before+writers*nodesPerWriter, store.Len())
+	assert.Equal(t, root.Ref(), file.ParseRoot().Ref())
+	assert.Equal(t, root.Ref(), store.At(root.Ref()).Ref())
+	assert.Equal(t, root.Ref(), ast.NodeOf(root.Global()).Ref())
+}
+
+func TestUnregisterStoreNilsIdentitySlot(t *testing.T) {
+	t.Parallel()
+	s := ast.NewStore(2)
+	id := ast.RegisterStore(s)
+	h := s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
+	g := h.Global()
+	assert.Equal(t, h.Ref(), ast.NodeOf(g).Ref())
+	ast.UnregisterStore(s)
+	assert.Equal(t, ast.Handle{}, ast.NodeOf(g))
+	assert.Equal(t, id, s.ID())
+	ast.UnregisterStore(s)
+	ast.UnregisterStore(nil)
+}
+
+func TestGetSourceFileOfNodeWalksParentThenNil(t *testing.T) {
+	t.Parallel()
+	file, root := registeredSourceFile()
+	ctor := file.ParseStore().Alloc(ast.KindConstructor, 0, core.UndefinedTextRange(), 0)
+	ctor.SetParent(root)
+
+	synthStore := ast.NewStore(4)
+	ast.RegisterStore(synthStore)
+	t.Cleanup(func() { ast.UnregisterStore(synthStore) })
+	synth := synthStore.Alloc(ast.KindPropertyAccessExpression, ast.NodeFlagsSynthesized, core.UndefinedTextRange(), 2)
+	synth.SetParent(ctor)
+	assert.Equal(t, file, ast.GetSourceFileOfNode(synth))
+
+	orphan := synthStore.Alloc(ast.KindFunctionType, ast.NodeFlagsSynthesized, core.UndefinedTextRange(), 0)
+	assert.Assert(t, ast.GetSourceFileOfNode(orphan) == nil)
 }

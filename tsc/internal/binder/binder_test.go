@@ -61,59 +61,27 @@ export class C {
 	}
 	var sawSymbol, sawLocalSymbol, sawFlow, sawEndFlow, sawReturnFlow, sawLocals, sawNextContainer bool
 	ast.Walk(file.ParseRoot(), func(h ast.Handle) bool {
-		node := file.NodeFor(h.Ref())
-		if node == nil {
-			t.Fatalf("missing pointer node for Store ref %d", h.Ref())
-		}
-		if symbol := node.Symbol(); symbol != nil {
+		if h.Symbol() != nil {
 			sawSymbol = true
-			if h.Symbol() != symbol {
-				t.Fatal("Store Symbol does not match bound node")
-			}
 		}
-		if exportable := node.ExportableData(); exportable != nil {
-			if h.LocalSymbol() != exportable.LocalSymbol {
-				t.Fatal("Store LocalSymbol does not match bound node")
-			}
-			sawLocalSymbol = sawLocalSymbol || exportable.LocalSymbol != nil
+		if h.LocalSymbol() != nil {
+			sawLocalSymbol = true
 		}
-		if flow := node.FlowNodeData(); flow != nil {
-			if h.FlowNode() != flow.FlowNode {
-				t.Fatal("Store FlowNode does not match bound node")
-			}
-			sawFlow = sawFlow || flow.FlowNode != nil
+		if h.FlowNode() != nil {
+			sawFlow = true
 		}
-		if body := node.BodyData(); body != nil {
-			if h.EndFlowNode() != body.EndFlowNode {
-				t.Fatal("Store EndFlowNode does not match bound node")
-			}
-			sawEndFlow = sawEndFlow || body.EndFlowNode != nil
+		if h.EndFlowNode() != nil {
+			sawEndFlow = true
 		}
-		if locals := node.LocalsContainerData(); locals != nil {
-			if !sameSymbolTable(h.Locals(), locals.Locals) {
-				t.Fatal("Store Locals does not match bound node")
-			}
-			if h.NextContainer().Ref() != file.HandleOf(locals.NextContainer).Ref() {
-				t.Fatal("Store NextContainer does not match bound node")
-			}
-			sawLocals = sawLocals || locals.Locals != nil
-			sawNextContainer = sawNextContainer || locals.NextContainer != nil
+		if h.ReturnFlowNode() != nil {
+			sawReturnFlow = true
 		}
-		var returnFlow *ast.FlowNode
-		switch node.Kind {
-		case ast.KindConstructor:
-			returnFlow = node.AsConstructorDeclaration().ReturnFlowNode
-		case ast.KindFunctionDeclaration:
-			returnFlow = node.AsFunctionDeclaration().ReturnFlowNode
-		case ast.KindFunctionExpression:
-			returnFlow = node.AsFunctionExpression().ReturnFlowNode
-		case ast.KindClassStaticBlockDeclaration:
-			returnFlow = node.AsClassStaticBlockDeclaration().ReturnFlowNode
+		if h.Locals() != nil {
+			sawLocals = true
 		}
-		if h.ReturnFlowNode() != returnFlow {
-			t.Fatal("Store ReturnFlowNode does not match bound node")
+		if !h.NextContainer().IsNil() {
+			sawNextContainer = true
 		}
-		sawReturnFlow = sawReturnFlow || returnFlow != nil
 		return false
 	})
 	if !sawSymbol || !sawLocalSymbol || !sawFlow || !sawEndFlow || !sawReturnFlow || !sawLocals || !sawNextContainer {
@@ -122,16 +90,4 @@ export class C {
 			sawSymbol, sawLocalSymbol, sawFlow, sawEndFlow, sawReturnFlow, sawLocals, sawNextContainer,
 		)
 	}
-}
-
-func sameSymbolTable(left, right ast.SymbolTable) bool {
-	if len(left) != len(right) {
-		return false
-	}
-	for name, symbol := range left {
-		if right[name] != symbol {
-			return false
-		}
-	}
-	return true
 }

@@ -1,9 +1,6 @@
 package tsoptions
 
 import (
-	"strconv"
-	"strings"
-
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
@@ -11,20 +8,33 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/stringutil"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 	"github.com/microsoft/TypeScript/tsc/internal/vfs"
+	"strconv"
+	"strings"
 )
 
-func (p *commandLineParser) AlternateMode() *AlternateModeDiagnostics {
+func (p *commandLineParser) AlternateMode( // tsc -b invoked with no extra arguments; act as if invoked with "tsc -b ."
+// Nonsensical combinations
+/*allowShort*/ /*allowShort*/ // removes at most two leading '-' from the input string
+// this function adds a compiler diagnostic if the file cannot be read
+// !!! Divergence: the returned error will not give a useful message
+// errors = append(errors, ast.NewCompilerDiagnostic(diagnostics.Cannot_read_file_0_Colon_1, *e));
+// Check to see if no argument was provided (e.g. "--locale" is the last command-line argument).
+// !!! Make sure this parseInt matches JS parseInt
+// boolean flag has optional value true, false, others
+// check next argument as boolean flag value
+// try to consume next argument as value for boolean flag; do not consume argument if it is not "true" or "false"
+// If not a primitive, the possible types are specified in what is effectively a map of options.
+// do nothing: only string and enum/object types currently allowed as list entries
+// 				!!! we don't actually have number list options, so I didn't implement number list parsing
+) *AlternateModeDiagnostics {
 	return p.workerDiagnostics.didYouMean.alternateMode
 }
-
 func (p *commandLineParser) OptionsDeclarations() []*CommandLineOption {
 	return p.workerDiagnostics.didYouMean.OptionDeclarations
 }
-
 func (p *commandLineParser) UnknownOptionDiagnostic() *diagnostics.Message {
 	return p.workerDiagnostics.didYouMean.UnknownOptionDiagnostic
 }
-
 func (p *commandLineParser) UnknownDidYouMeanDiagnostic() *diagnostics.Message {
 	return p.workerDiagnostics.didYouMean.UnknownDidYouMeanDiagnostic
 }
@@ -40,10 +50,7 @@ type commandLineParser struct {
 	responseFileStack collections.Set[tspath.Path]
 }
 
-func ParseCommandLine(
-	commandLine []string,
-	host ParseConfigHost,
-) *ParsedCommandLine {
+func ParseCommandLine(commandLine []string, host ParseConfigHost) *ParsedCommandLine {
 	if commandLine == nil {
 		commandLine = []string{}
 	}
@@ -51,20 +58,13 @@ func ParseCommandLine(
 	options := convertToOptionsWithAbsolutePaths(parser.options.Clone(), CommandLineCompilerOptionsMap, host.GetCurrentDirectory())
 	compilerOptions := convertMapToOptions(options, &compilerOptionsParser{&core.CompilerOptions{}}).CompilerOptions
 	watchOptions := convertMapToOptions(options, &watchOptionsParser{&core.WatchOptions{}}).WatchOptions
-	result := NewParsedCommandLine(compilerOptions, parser.fileNames, tspath.ComparePathsOptions{
-		UseCaseSensitiveFileNames: host.FS().UseCaseSensitiveFileNames(),
-		CurrentDirectory:          host.GetCurrentDirectory(),
-	})
+	result := NewParsedCommandLine(compilerOptions, parser.fileNames, tspath.ComparePathsOptions{UseCaseSensitiveFileNames: host.FS().UseCaseSensitiveFileNames(), CurrentDirectory: host.GetCurrentDirectory()})
 	result.ParsedConfig.WatchOptions = watchOptions
 	result.Errors = parser.errors
 	result.Raw = parser.options
 	return result
 }
-
-func ParseBuildCommandLine(
-	commandLine []string,
-	host ParseConfigHost,
-) *ParsedBuildCommandLine {
+func ParseBuildCommandLine(commandLine []string, host ParseConfigHost) *ParsedBuildCommandLine {
 	if commandLine == nil {
 		commandLine = []string{}
 	}
@@ -76,26 +76,10 @@ func ParseBuildCommandLine(
 			ParseCompilerOptions(key, value, compilerOptions)
 		}
 	}
-	result := &ParsedBuildCommandLine{
-		BuildOptions:    convertMapToOptions(parser.options, &buildOptionsParser{&core.BuildOptions{}}).BuildOptions,
-		CompilerOptions: compilerOptions,
-		WatchOptions:    convertMapToOptions(parser.options, &watchOptionsParser{&core.WatchOptions{}}).WatchOptions,
-		Projects:        parser.fileNames,
-		Errors:          parser.errors,
-		Raw:             parser.options,
-
-		comparePathsOptions: tspath.ComparePathsOptions{
-			UseCaseSensitiveFileNames: host.FS().UseCaseSensitiveFileNames(),
-			CurrentDirectory:          host.GetCurrentDirectory(),
-		},
-	}
-
+	result := &ParsedBuildCommandLine{BuildOptions: convertMapToOptions(parser.options, &buildOptionsParser{&core.BuildOptions{}}).BuildOptions, CompilerOptions: compilerOptions, WatchOptions: convertMapToOptions(parser.options, &watchOptionsParser{&core.WatchOptions{}}).WatchOptions, Projects: parser.fileNames, Errors: parser.errors, Raw: parser.options, comparePathsOptions: tspath.ComparePathsOptions{UseCaseSensitiveFileNames: host.FS().UseCaseSensitiveFileNames(), CurrentDirectory: host.GetCurrentDirectory()}}
 	if len(result.Projects) == 0 {
-		// tsc -b invoked with no extra arguments; act as if invoked with "tsc -b ."
 		result.Projects = append(result.Projects, ".")
 	}
-
-	// Nonsensical combinations
 	if result.BuildOptions.Clean.IsTrue() && result.BuildOptions.Force.IsTrue() {
 		result.Errors = append(result.Errors, ast.NewCompilerDiagnostic(diagnostics.Options_0_and_1_cannot_be_combined, "clean", "force"))
 	}
@@ -108,29 +92,14 @@ func ParseBuildCommandLine(
 	if result.CompilerOptions.Watch.IsTrue() && result.BuildOptions.Dry.IsTrue() {
 		result.Errors = append(result.Errors, ast.NewCompilerDiagnostic(diagnostics.Options_0_and_1_cannot_be_combined, "watch", "dry"))
 	}
-
 	return result
 }
-
-func parseCommandLineWorker(
-	parseCommandLineWithDiagnostics *ParseCommandLineWorkerDiagnostics,
-	commandLine []string,
-	fs vfs.FS,
-	currentDirectory string,
-) *commandLineParser {
-	parser := &commandLineParser{
-		fs:                fs,
-		currentDirectory:  currentDirectory,
-		workerDiagnostics: parseCommandLineWithDiagnostics,
-		fileNames:         []string{},
-		options:           &collections.OrderedMap[string, any]{},
-		errors:            []*ast.Diagnostic{},
-	}
+func parseCommandLineWorker(parseCommandLineWithDiagnostics *ParseCommandLineWorkerDiagnostics, commandLine []string, fs vfs.FS, currentDirectory string) *commandLineParser {
+	parser := &commandLineParser{fs: fs, currentDirectory: currentDirectory, workerDiagnostics: parseCommandLineWithDiagnostics, fileNames: []string{}, options: &collections.OrderedMap[string, any]{}, errors: []*ast.Diagnostic{}}
 	parser.optionsMap = GetNameMapFromList(parser.OptionsDeclarations())
 	parser.parseStrings(commandLine)
 	return parser
 }
-
 func (p *commandLineParser) parseStrings(args []string) {
 	i := 0
 	for i < len(args) {
@@ -144,15 +113,15 @@ func (p *commandLineParser) parseStrings(args []string) {
 			p.parseResponseFile(s[1:])
 		case '-':
 			inputOptionName := getInputOptionName(s)
-			opt := p.optionsMap.GetOptionDeclarationFromName(inputOptionName, true /*allowShort*/)
+			opt := p.optionsMap.GetOptionDeclarationFromName(inputOptionName, true)
 			if opt != nil {
 				i = p.parseOptionValue(args, i, opt, p.workerDiagnostics.OptionTypeMismatchDiagnostic)
 			} else {
-				watchOpt := WatchNameMap.GetOptionDeclarationFromName(inputOptionName, true /*allowShort*/)
+				watchOpt := WatchNameMap.GetOptionDeclarationFromName(inputOptionName, true)
 				if watchOpt != nil {
 					i = p.parseOptionValue(args, i, watchOpt, watchOptionsDidYouMeanDiagnostics.OptionTypeMismatchDiagnostic)
 				} else {
-					p.errors = append(p.errors, p.createUnknownOptionError(inputOptionName, s, nil, nil))
+					p.errors = append(p.errors, p.createUnknownOptionError(inputOptionName, s, ast.Handle{}, nil))
 				}
 			}
 		default:
@@ -160,12 +129,9 @@ func (p *commandLineParser) parseStrings(args []string) {
 		}
 	}
 }
-
 func getInputOptionName(input string) string {
-	// removes at most two leading '-' from the input string
 	return strings.TrimPrefix(strings.TrimPrefix(input, "-"), "-")
 }
-
 func (p *commandLineParser) parseResponseFile(fileName string) {
 	fileName = tspath.GetNormalizedAbsolutePath(fileName, p.currentDirectory)
 	path := tspath.ToPath(fileName, p.currentDirectory, p.fs.UseCaseSensitiveFileNames())
@@ -174,7 +140,6 @@ func (p *commandLineParser) parseResponseFile(fileName string) {
 	}
 	p.responseFileStack.Add(path)
 	defer p.responseFileStack.Delete(path)
-
 	fileContents, errors := tryReadFile(fileName, func(fileName string) (string, bool) {
 		if p.fs == nil {
 			return "", false
@@ -183,11 +148,9 @@ func (p *commandLineParser) parseResponseFile(fileName string) {
 		return read, err
 	}, p.errors)
 	p.errors = errors
-
 	if fileContents == "" {
 		return
 	}
-
 	var args []string
 	text := []rune(fileContents)
 	textLength := len(text)
@@ -220,26 +183,15 @@ func (p *commandLineParser) parseResponseFile(fileName string) {
 	}
 	p.parseStrings(args)
 }
-
 func tryReadFile(fileName string, readFile func(string) (string, bool), errors []*ast.Diagnostic) (string, []*ast.Diagnostic) {
-	// this function adds a compiler diagnostic if the file cannot be read
 	text, e := readFile(fileName)
-
 	if !e {
-		// !!! Divergence: the returned error will not give a useful message
-		// errors = append(errors, ast.NewCompilerDiagnostic(diagnostics.Cannot_read_file_0_Colon_1, *e));
 		text = ""
 		errors = append(errors, ast.NewCompilerDiagnostic(diagnostics.Cannot_read_file_0, fileName))
 	}
 	return text, errors
 }
-
-func (p *commandLineParser) parseOptionValue(
-	args []string,
-	i int,
-	opt *CommandLineOption,
-	diag *diagnostics.Message,
-) int {
+func (p *commandLineParser) parseOptionValue(args []string, i int, opt *CommandLineOption, diag *diagnostics.Message) int {
 	if opt.IsTSConfigOnly && i <= len(args) {
 		optValue := ""
 		if i < len(args) {
@@ -265,14 +217,13 @@ func (p *commandLineParser) parseOptionValue(
 			}
 		}
 	} else {
-		// Check to see if no argument was provided (e.g. "--locale" is the last command-line argument).
 		if i >= len(args) {
 			if opt.Kind != "boolean" {
 				p.errors = append(p.errors, ast.NewCompilerDiagnostic(diag, opt.Name, getCompilerOptionValueTypeString(opt)))
 				if opt.Kind == "list" {
 					p.options.Set(opt.Name, []string{})
 				} else if opt.Kind == "enum" {
-					p.errors = append(p.errors, createDiagnosticForInvalidEnumType(opt, nil, nil))
+					p.errors = append(p.errors, createDiagnosticForInvalidEnumType(opt, nil, ast.Handle{}))
 				}
 			} else {
 				p.options.Set(opt.Name, true)
@@ -282,7 +233,6 @@ func (p *commandLineParser) parseOptionValue(
 		if args[i] != "null" {
 			switch opt.Kind {
 			case "number":
-				// !!! Make sure this parseInt matches JS parseInt
 				num, e := strconv.Atoi(args[i])
 				if e == nil {
 					if num >= opt.minValue {
@@ -295,21 +245,17 @@ func (p *commandLineParser) parseOptionValue(
 				}
 				i++
 			case "boolean":
-				// boolean flag has optional value true, false, others
 				optValue := args[i]
-
-				// check next argument as boolean flag value
 				if optValue == "false" {
 					p.options.Set(opt.Name, false)
 				} else {
 					p.options.Set(opt.Name, true)
 				}
-				// try to consume next argument as value for boolean flag; do not consume argument if it is not "true" or "false"
 				if optValue == "false" || optValue == "true" {
 					i++
 				}
 			case "string":
-				val, err := validateJsonOptionValue(opt, args[i], nil, nil)
+				val, err := validateJsonOptionValue(opt, args[i], ast.Handle{}, nil)
 				if err == nil {
 					p.options.Set(opt.Name, val)
 				} else {
@@ -324,10 +270,9 @@ func (p *commandLineParser) parseOptionValue(
 					i++
 				}
 			case "listOrElement":
-				// If not a primitive, the possible types are specified in what is effectively a map of options.
 				panic("listOrElement not supported here")
 			default:
-				val, err := convertJsonOptionOfEnumType(opt, strings.TrimFunc(args[i], stringutil.IsWhiteSpaceLike), nil, nil)
+				val, err := convertJsonOptionOfEnumType(opt, strings.TrimFunc(args[i], stringutil.IsWhiteSpaceLike), ast.Handle{}, nil)
 				p.options.Set(opt.Name, val)
 				p.errors = append(p.errors, err...)
 				i++
@@ -339,11 +284,9 @@ func (p *commandLineParser) parseOptionValue(
 	}
 	return i
 }
-
 func (p *commandLineParser) parseListTypeOption(opt *CommandLineOption, value string) ([]any, []*ast.Diagnostic) {
 	return ParseListTypeOption(opt, value)
 }
-
 func ParseListTypeOption(opt *CommandLineOption, value string) ([]any, []*ast.Diagnostic) {
 	value = strings.TrimSpace(value)
 	var errors []*ast.Diagnostic
@@ -351,7 +294,7 @@ func ParseListTypeOption(opt *CommandLineOption, value string) ([]any, []*ast.Di
 		return []any{}, errors
 	}
 	if opt.Kind == "listOrElement" && !strings.ContainsRune(value, ',') {
-		val, err := validateJsonOptionValue(opt, value, nil, nil)
+		val, err := validateJsonOptionValue(opt, value, ast.Handle{}, nil)
 		if err != nil {
 			return []any{}, err
 		}
@@ -364,7 +307,7 @@ func ParseListTypeOption(opt *CommandLineOption, value string) ([]any, []*ast.Di
 	switch opt.Elements().Kind {
 	case "string":
 		elements := core.MapFiltered(values, func(v string) (any, bool) {
-			val, err := validateJsonOptionValue(opt.Elements(), v, nil, nil)
+			val, err := validateJsonOptionValue(opt.Elements(), v, ast.Handle{}, nil)
 			if s, ok := val.(string); ok && len(err) == 0 && s != "" {
 				return s, true
 			}
@@ -373,12 +316,10 @@ func ParseListTypeOption(opt *CommandLineOption, value string) ([]any, []*ast.Di
 		})
 		return elements, errors
 	case "boolean", "object", "number":
-		// do nothing: only string and enum/object types currently allowed as list entries
-		// 				!!! we don't actually have number list options, so I didn't implement number list parsing
 		panic("List of " + opt.Elements().Kind + " is not yet supported.")
 	default:
 		result := core.MapFiltered(values, func(v string) (any, bool) {
-			val, err := convertJsonOptionOfEnumType(opt.Elements(), strings.TrimFunc(v, stringutil.IsWhiteSpaceLike), nil, nil)
+			val, err := convertJsonOptionOfEnumType(opt.Elements(), strings.TrimFunc(v, stringutil.IsWhiteSpaceLike), ast.Handle{}, nil)
 			if s, ok := val.(string); ok && len(err) == 0 && s != "" {
 				return s, true
 			}
@@ -388,13 +329,7 @@ func ParseListTypeOption(opt *CommandLineOption, value string) ([]any, []*ast.Di
 		return result, errors
 	}
 }
-
-func convertJsonOptionOfEnumType(
-	opt *CommandLineOption,
-	value string,
-	valueExpression *ast.Expression,
-	sourceFile *ast.SourceFile,
-) (any, []*ast.Diagnostic) {
+func convertJsonOptionOfEnumType(opt *CommandLineOption, value string, valueExpression ast.Handle, sourceFile *ast.SourceFile) (any, []*ast.Diagnostic) {
 	if value == "" {
 		return nil, nil
 	}

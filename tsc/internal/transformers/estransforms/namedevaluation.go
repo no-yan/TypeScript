@@ -1,42 +1,29 @@
 package estransforms
 
 import (
-	"slices"
-
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/debug"
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
+	"slices"
 )
 
-/**
- * Gets whether a node is a `static {}` block containing only a single call to the `__setFunctionName` helper where that
- * call's second argument is the value stored in the `assignedName` property of the block's `EmitNode`.
- * @internal
- */
-func isClassNamedEvaluationHelperBlock(emitContext *printer.EmitContext, node *ast.Node) bool {
-	if !ast.IsClassStaticBlockDeclaration(node) || len(node.AsClassStaticBlockDeclaration().Body.Statements()) != 1 {
+func isClassNamedEvaluationHelperBlock(emitContext *printer.EmitContext, node ast.Handle) bool {
+	if !ast.IsClassStaticBlockDeclaration(node) || len(node.ClassStaticBlockDeclarationBody().Statements()) != 1 {
 		return false
 	}
-
-	statement := node.AsClassStaticBlockDeclaration().Body.Statements()[0]
+	statement := node.ClassStaticBlockDeclarationBody().Statements()[0]
 	if ast.IsExpressionStatement(statement) {
 		expression := statement.Expression()
 		if emitContext.IsCallToHelper(expression, "__setFunctionName") {
-			arguments := expression.AsCallExpression().Arguments
-			return len(arguments.Nodes) >= 2 &&
-				arguments.Nodes[1] == emitContext.AssignedName(node.AsNode())
+			arguments := expression.CallExpressionArguments()
+			return node.Store().ListLen(arguments) >= 2 && node.Store().ListAt(arguments, 1) == emitContext.AssignedName(node)
 		}
 	}
 	return false
 }
 
-/**
- * Gets whether a `ClassLikeDeclaration` has a `static {}` block containing only a single call to the
- * `__setFunctionName` helper.
- * @internal
- */
-func classHasExplicitlyAssignedName(emitContext *printer.EmitContext, node *ast.ClassLikeDeclaration) bool {
-	if assignedName := emitContext.AssignedName(node); assignedName != nil {
+func classHasExplicitlyAssignedName(emitContext *printer.EmitContext, node ast.Handle) bool {
+	if assignedName := emitContext.AssignedName(node); !assignedName.IsNil() {
 		for _, member := range node.Members() {
 			if isClassNamedEvaluationHelperBlock(emitContext, member) {
 				return true
@@ -46,30 +33,22 @@ func classHasExplicitlyAssignedName(emitContext *printer.EmitContext, node *ast.
 	return false
 }
 
-/**
- * Gets whether a `ClassLikeDeclaration` has a declared name or contains a `static {}` block containing only a single
- * call to the `__setFunctionName` helper.
- * @internal
- */
-func classHasDeclaredOrExplicitlyAssignedName(emitContext *printer.EmitContext, node *ast.ClassLikeDeclaration) bool {
-	return node.Name() != nil || classHasExplicitlyAssignedName(emitContext, node)
+func classHasDeclaredOrExplicitlyAssignedName(emitContext *printer.EmitContext, node ast.Handle) bool {
+	return !node.Name().IsNil() || classHasExplicitlyAssignedName(emitContext, node)
 }
 
-type anonymousFunctionDefinition = ast.Node // ClassExpression | FunctionExpression | ArrowFunction
+type anonymousFunctionDefinition = ast.Handle
 
-// Indicates whether an expression is an anonymous function definition.
-//
-// See https://tc39.es/ecma262/#sec-isanonymousfunctiondefinition
-func isAnonymousFunctionDefinition(emitContext *printer.EmitContext, node *ast.Expression, cb func(*anonymousFunctionDefinition) bool) bool {
+func isAnonymousFunctionDefinition(emitContext *printer.EmitContext, node ast.Handle, cb func(ast.Handle) bool) bool {
 	node = ast.SkipOuterExpressions(node, ast.OEKAll)
-	switch node.Kind {
+	switch node.Kind() {
 	case ast.KindClassExpression:
 		if classHasDeclaredOrExplicitlyAssignedName(emitContext, node) {
 			return false
 		}
 		break
 	case ast.KindFunctionExpression:
-		if node.AsFunctionExpression().Name() != nil {
+		if !node.FunctionExpressionName().IsNil() {
 			return false
 		}
 		break
@@ -83,22 +62,20 @@ func isAnonymousFunctionDefinition(emitContext *printer.EmitContext, node *ast.E
 	}
 	return true
 }
-
-func isNamedEvaluation(emitContext *printer.EmitContext, node *ast.Node) bool {
+func isNamedEvaluation(emitContext *printer.EmitContext, node ast.Handle) bool {
 	return isNamedEvaluationAnd(emitContext, node, nil)
 }
-
-func isNamedEvaluationAnd(emitContext *printer.EmitContext, node *ast.Node, cb func(*anonymousFunctionDefinition) bool) bool {
+func isNamedEvaluationAnd(emitContext *printer.EmitContext, node ast.Handle, cb func(ast.Handle) bool) bool {
 	if !ast.IsNamedEvaluationSource(node) {
 		return false
 	}
-	switch node.Kind {
+	switch node.Kind() {
 	case ast.KindShorthandPropertyAssignment:
-		return isAnonymousFunctionDefinition(emitContext, node.AsShorthandPropertyAssignment().ObjectAssignmentInitializer, cb)
+		return isAnonymousFunctionDefinition(emitContext, node.ShorthandPropertyAssignmentObjectAssignmentInitializer(), cb)
 	case ast.KindPropertyAssignment, ast.KindVariableDeclaration, ast.KindParameter, ast.KindBindingElement, ast.KindPropertyDeclaration:
 		return isAnonymousFunctionDefinition(emitContext, node.Initializer(), cb)
 	case ast.KindBinaryExpression:
-		return isAnonymousFunctionDefinition(emitContext, node.AsBinaryExpression().Right, cb)
+		return isAnonymousFunctionDefinition(emitContext, node.BinaryExpressionRight(), cb)
 	case ast.KindExportAssignment:
 		return isAnonymousFunctionDefinition(emitContext, node.Expression(), cb)
 	default:
@@ -107,429 +84,194 @@ func isNamedEvaluationAnd(emitContext *printer.EmitContext, node *ast.Node, cb f
 	}
 }
 
-// Gets a string literal to use as the assigned name of an anonymous class or function declaration.
-func getAssignedNameOfIdentifier(emitContext *printer.EmitContext, name *ast.IdentifierNode, expression *ast.Node /*WrappedExpression<AnonymousFunctionDefinition>*/) *ast.StringLiteralNode {
+func getAssignedNameOfIdentifier(emitContext *printer.EmitContext, name ast.Handle, expression ast.Handle) ast.Handle {
 	original := emitContext.MostOriginal(ast.SkipOuterExpressions(expression, ast.OEKAll))
-	if (ast.IsClassDeclaration(original) || ast.IsFunctionDeclaration(original)) &&
-		original.Name() == nil && ast.HasSyntacticModifier(original, ast.ModifierFlagsDefault) {
+	if (ast.IsClassDeclaration(original) || ast.IsFunctionDeclaration(original)) && original.Name().IsNil() && ast.HasSyntacticModifier(original, ast.ModifierFlagsDefault) {
 		return emitContext.Factory.NewStringLiteral("default", ast.TokenFlagsNone)
 	}
 	return emitContext.Factory.NewStringLiteralFromNode(name)
 }
-
-func getAssignedNameOfPropertyName(emitContext *printer.EmitContext, name *ast.PropertyName, assignedNameText string) (assignedName *ast.Expression, updatedName *ast.PropertyName) {
+func getAssignedNameOfPropertyName(emitContext *printer.EmitContext, name ast.Handle, assignedNameText string) (assignedName ast.Handle, updatedName ast.Handle) {
 	factory := emitContext.Factory
 	if len(assignedNameText) > 0 {
 		assignedName := factory.NewStringLiteral(assignedNameText, ast.TokenFlagsNone)
 		return assignedName, name
 	}
-
 	if ast.IsPropertyNameLiteral(name) || ast.IsPrivateIdentifier(name) {
 		assignedName := factory.NewStringLiteralFromNode(name)
 		return assignedName, name
 	}
-
 	expression := name.Expression()
 	if ast.IsPropertyNameLiteral(expression) && !ast.IsIdentifier(expression) {
 		assignedName := factory.NewStringLiteralFromNode(expression)
 		return assignedName, name
 	}
-
 	debug.Assert(ast.IsComputedPropertyName(name), "Expected computed property name")
-
 	assignedName = factory.NewGeneratedNameForNode(name)
 	emitContext.AddVariableDeclaration(assignedName)
-
 	key := factory.NewPropKeyHelper(expression)
 	assignment := factory.NewAssignmentExpression(assignedName, key)
-	updatedName = factory.UpdateComputedPropertyName(name.AsComputedPropertyName(), assignment)
+	updatedName = factory.UpdateComputedPropertyName(name, assignment)
 	return assignedName, updatedName
 }
 
-// Creates a class `static {}` block used to dynamically set the name of a class.
-//
-// The assignedName parameter is the expression used to resolve the assigned name at runtime. This expression should not produce
-// side effects.
-// The thisExpression parameter overrides the expression to use for the actual `this` reference. This can be used to provide an
-// expression that has already had its `EmitFlags` set or may have been tracked to prevent substitution.
-func createClassNamedEvaluationHelperBlock(emitContext *printer.EmitContext, assignedName *ast.Expression, thisExpression *ast.Expression) *ast.Node {
-	// produces:
-	//
-	//  static { __setFunctionName(this, "C"); }
-	//
-
-	if thisExpression == nil {
+func createClassNamedEvaluationHelperBlock(emitContext *printer.EmitContext, assignedName ast.Handle, thisExpression ast.Handle) ast.Handle {
+	if thisExpression.IsNil() {
 		thisExpression = emitContext.Factory.NewThisExpression()
 	}
-
 	factory := emitContext.Factory
-	expression := factory.NewSetFunctionNameHelper(thisExpression, assignedName, "" /*prefix*/)
+	expression := factory.NewSetFunctionNameHelper(thisExpression, assignedName, "")
 	statement := factory.NewExpressionStatement(expression)
-	body := factory.NewBlock(factory.NewNodeList([]*ast.Statement{statement}), false /*multiLine*/)
-	block := factory.NewClassStaticBlockDeclaration(nil /*modifiers*/, body)
-
-	// We use `emitNode.assignedName` to indicate this is a NamedEvaluation helper block
-	// and to stash the expression used to resolve the assigned name.
+	body := factory.NewBlock(factory.NewList([]ast.Handle{statement}), false)
+	block := factory.NewClassStaticBlockDeclaration(0, body)
 	emitContext.SetAssignedName(block, assignedName)
-	return block.AsNode()
+	return block
 }
 
-// Injects a class `static {}` block used to dynamically set the name of a class, if one does not already exist.
-func injectClassNamedEvaluationHelperBlockIfMissing(
-	emitContext *printer.EmitContext,
-	node *ast.ClassLikeDeclaration,
-	assignedName *ast.Expression,
-	thisExpression *ast.Expression,
-) *ast.ClassLikeDeclaration {
-	// given:
-	//
-	//  let C = class {
-	//  };
-	//
-	// produces:
-	//
-	//  let C = class {
-	//      static { __setFunctionName(this, "C"); }
-	//  };
-
-	// NOTE: If the class has a `_classThis` assignment block, this helper will be injected after that block.
-
+func injectClassNamedEvaluationHelperBlockIfMissing(emitContext *printer.EmitContext, node ast.Handle, assignedName ast.Handle, thisExpression ast.Handle) ast.Handle {
 	if classHasExplicitlyAssignedName(emitContext, node) {
 		return node
 	}
-
 	factory := emitContext.Factory
 	namedEvaluationBlock := createClassNamedEvaluationHelperBlock(emitContext, assignedName, thisExpression)
-	if node.Name() != nil {
-		emitContext.SetSourceMapRange(namedEvaluationBlock.Body().Statements()[0], node.Name().Loc)
+	if !node.Name().IsNil() {
+		emitContext.SetSourceMapRange(namedEvaluationBlock.Body().Statements()[0], node.Name().Loc())
 	}
-
-	insertionIndex := slices.IndexFunc(node.Members(), func(n *ast.Node) bool {
+	insertionIndex := slices.IndexFunc(node.Members(), func(n ast.Handle) bool {
 		return isClassThisAssignmentBlock(emitContext, n)
 	}) + 1
 	leading := slices.Clone(node.Members()[:insertionIndex])
 	trailing := slices.Clone(node.Members()[insertionIndex:])
-
-	var members []*ast.ClassElement
+	var members []ast.Handle
 	members = append(members, leading...)
 	members = append(members, namedEvaluationBlock)
 	members = append(members, trailing...)
-	membersList := factory.NewNodeList(members)
-	membersList.Loc = node.MemberList().Loc
-
+	membersList := factory.List(node.Store().ListLoc(node.MemberList()), members...)
 	oldNode := node
 	if ast.IsClassDeclaration(node) {
-		node = factory.UpdateClassDeclaration(
-			node.AsClassDeclaration(),
-			node.Modifiers(),
-			node.Name(),
-			node.TypeParameterList(),
-			node.AsClassDeclaration().HeritageClauses,
-			membersList,
-		)
+		node = factory.UpdateClassDeclaration(node, node.Modifiers(), node.Name(), node.TypeParameterList(), node.ClassDeclarationHeritageClauses(), membersList)
 	} else {
-		node = factory.UpdateClassExpression(
-			node.AsClassExpression(),
-			node.Modifiers(),
-			node.Name(),
-			node.TypeParameterList(),
-			node.AsClassExpression().HeritageClauses,
-			membersList,
-		)
+		node = factory.UpdateClassExpression(node, node.Modifiers(), node.Name(), node.TypeParameterList(), node.ClassExpressionHeritageClauses(), membersList)
 	}
-
 	emitContext.SetAssignedName(node, assignedName)
-
-	// Transfer ClassThis from old to new node, since UpdateClassExpression creates
-	// a new node that won't have ClassThis set on it.
-	if ct := emitContext.ClassThis(oldNode); ct != nil {
+	if ct := emitContext.ClassThis(oldNode); !ct.IsNil() {
 		emitContext.SetClassThis(node, ct)
 	}
-
 	return node
 }
-
-func finishTransformNamedEvaluation(
-	emitContext *printer.EmitContext,
-	expression *ast.Node, // WrappedExpression<AnonymousFunctionDefinition>,
-	assignedName *ast.Expression,
-	ignoreEmptyStringLiteral bool,
-) *ast.Expression {
+func finishTransformNamedEvaluation(emitContext *printer.EmitContext, expression ast.Handle, assignedName ast.Handle, ignoreEmptyStringLiteral bool) ast.Handle {
 	if ignoreEmptyStringLiteral && ast.IsStringLiteral(assignedName) && len(assignedName.Text()) == 0 {
 		return expression
 	}
-
 	factory := emitContext.Factory
 	innerExpression := ast.SkipOuterExpressions(expression, ast.OEKAll)
-
-	var updatedExpression *ast.Expression
+	var updatedExpression ast.Handle
 	if ast.IsClassExpression(innerExpression) {
-		updatedExpression = injectClassNamedEvaluationHelperBlockIfMissing(emitContext, innerExpression, assignedName, nil /*thisExpression*/)
+		updatedExpression = injectClassNamedEvaluationHelperBlockIfMissing(emitContext, innerExpression, assignedName, ast.Handle{})
 	} else {
-		updatedExpression = factory.NewSetFunctionNameHelper(innerExpression, assignedName, "" /*prefix*/)
+		updatedExpression = factory.NewSetFunctionNameHelper(innerExpression, assignedName, "")
 	}
-
 	return factory.RestoreOuterExpressions(expression, updatedExpression, ast.OEKAll)
 }
-
-func transformNamedEvaluationOfPropertyAssignment(context *printer.EmitContext, node *ast.PropertyAssignment /*NamedEvaluation & PropertyAssignment*/, ignoreEmptyStringLiteral bool, assignedNameText string) *ast.Expression {
-	// 13.2.5.5 RS: PropertyDefinitionEvaluation
-	//   PropertyAssignment : PropertyName `:` AssignmentExpression
-	//     ...
-	//     5. If IsAnonymousFunctionDefinition(|AssignmentExpression|) is *true* and _isProtoSetter_ is *false*, then
-	//        a. Let _popValue_ be ? NamedEvaluation of |AssignmentExpression| with argument _propKey_.
-	//     ...
-
+func transformNamedEvaluationOfPropertyAssignment(context *printer.EmitContext, node ast.Handle, ignoreEmptyStringLiteral bool, assignedNameText string) ast.Handle {
 	factory := context.Factory
 	assignedName, name := getAssignedNameOfPropertyName(context, node.Name(), assignedNameText)
-	initializer := finishTransformNamedEvaluation(context, node.Initializer, assignedName, ignoreEmptyStringLiteral)
-	return factory.UpdatePropertyAssignment(node, nil /*modifiers*/, name, nil /*postfixToken*/, nil /*typeNode*/, initializer)
+	initializer := finishTransformNamedEvaluation(context, node.Initializer(), assignedName, ignoreEmptyStringLiteral)
+	return factory.UpdatePropertyAssignment(node, 0, name, ast.Handle{}, ast.Handle{}, initializer)
 }
-
-func transformNamedEvaluationOfShorthandAssignmentProperty(emitContext *printer.EmitContext, node *ast.ShorthandPropertyAssignment /*NamedEvaluation & ShorthandPropertyAssignment*/, ignoreEmptyStringLiteral bool, assignedNameText string) *ast.Expression {
-	// 13.15.5.3 RS: PropertyDestructuringAssignmentEvaluation
-	//   AssignmentProperty : IdentifierReference Initializer?
-	//     ...
-	//     4. If |Initializer?| is present and _v_ is *undefined*, then
-	//        a. If IsAnonymousFunctionDefinition(|Initializer|) is *true*, then
-	//           i. Set _v_ to ? NamedEvaluation of |Initializer| with argument _P_.
-	//     ...
-
+func transformNamedEvaluationOfShorthandAssignmentProperty(emitContext *printer.EmitContext, node ast.Handle, ignoreEmptyStringLiteral bool, assignedNameText string) ast.Handle {
 	factory := emitContext.Factory
-	var assignedName *ast.Expression
+	var assignedName ast.Handle
 	if len(assignedNameText) > 0 {
 		assignedName = factory.NewStringLiteral(assignedNameText, ast.TokenFlagsNone)
 	} else {
-		assignedName = getAssignedNameOfIdentifier(emitContext, node.Name(), node.ObjectAssignmentInitializer)
+		assignedName = getAssignedNameOfIdentifier(emitContext, node.Name(), node.ObjectAssignmentInitializer())
 	}
-	objectAssignmentInitializer := finishTransformNamedEvaluation(emitContext, node.ObjectAssignmentInitializer, assignedName, ignoreEmptyStringLiteral)
-	return factory.UpdateShorthandPropertyAssignment(
-		node,
-		nil, /*modifiers*/
-		node.Name(),
-		nil, /*postfixToken*/
-		nil, /*typeNode*/
-		node.EqualsToken,
-		objectAssignmentInitializer,
-	)
+	objectAssignmentInitializer := finishTransformNamedEvaluation(emitContext, node.ObjectAssignmentInitializer(), assignedName, ignoreEmptyStringLiteral)
+	return factory.UpdateShorthandPropertyAssignment(node, 0, node.Name(), ast.Handle{}, ast.Handle{}, node.EqualsToken(), objectAssignmentInitializer)
 }
-
-func transformNamedEvaluationOfVariableDeclaration(emitContext *printer.EmitContext, node *ast.VariableDeclaration /*NamedEvaluation & VariableDeclaration*/, ignoreEmptyStringLiteral bool, assignedNameText string) *ast.Expression {
-	// 14.3.1.2 RS: Evaluation
-	//   LexicalBinding : BindingIdentifier Initializer
-	//     ...
-	//     3. If IsAnonymousFunctionDefinition(|Initializer|) is *true*, then
-	//        a. Let _value_ be ? NamedEvaluation of |Initializer| with argument _bindingId_.
-	//     ...
-	//
-	// 14.3.2.1 RS: Evaluation
-	//   VariableDeclaration : BindingIdentifier Initializer
-	//     ...
-	//     3. If IsAnonymousFunctionDefinition(|Initializer|) is *true*, then
-	//        a. Let _value_ be ? NamedEvaluation of |Initializer| with argument _bindingId_.
-	//     ...
-
+func transformNamedEvaluationOfVariableDeclaration(emitContext *printer.EmitContext, node ast.Handle, ignoreEmptyStringLiteral bool, assignedNameText string) ast.Handle {
 	factory := emitContext.Factory
-	var assignedName *ast.Expression
+	var assignedName ast.Handle
 	if len(assignedNameText) > 0 {
 		assignedName = factory.NewStringLiteral(assignedNameText, ast.TokenFlagsNone)
 	} else {
-		assignedName = getAssignedNameOfIdentifier(emitContext, node.Name(), node.Initializer)
+		assignedName = getAssignedNameOfIdentifier(emitContext, node.Name(), node.Initializer())
 	}
-	initializer := finishTransformNamedEvaluation(emitContext, node.Initializer, assignedName, ignoreEmptyStringLiteral)
-	return factory.UpdateVariableDeclaration(
-		node,
-		node.Name(),
-		nil, /*exclamationToken*/
-		nil, /*typeNode*/
-		initializer,
-	)
+	initializer := finishTransformNamedEvaluation(emitContext, node.Initializer(), assignedName, ignoreEmptyStringLiteral)
+	return factory.UpdateVariableDeclaration(node, node.Name(), ast.Handle{}, ast.Handle{}, initializer)
 }
-
-func transformNamedEvaluationOfParameterDeclaration(emitContext *printer.EmitContext, node *ast.ParameterDeclaration /*NamedEvaluation & ParameterDeclaration*/, ignoreEmptyStringLiteral bool, assignedNameText string) *ast.Expression {
-	// 8.6.3 RS: IteratorBindingInitialization
-	//   SingleNameBinding : BindingIdentifier Initializer?
-	//     ...
-	//     5. If |Initializer| is present and _v_ is *undefined*, then
-	//        a. If IsAnonymousFunctionDefinition(|Initializer|) is *true*, then
-	//           i. Set _v_ to ? NamedEvaluation of |Initializer| with argument _bindingId_.
-	//     ...
-	//
-	// 14.3.3.3 RS: KeyedBindingInitialization
-	//   SingleNameBinding : BindingIdentifier Initializer?
-	//     ...
-	//     4. If |Initializer| is present and _v_ is *undefined*, then
-	//        a. If IsAnonymousFunctionDefinition(|Initializer|) is *true*, then
-	//           i. Set _v_ to ? NamedEvaluation of |Initializer| with argument _bindingId_.
-	//     ...
-
+func transformNamedEvaluationOfParameterDeclaration(emitContext *printer.EmitContext, node ast.Handle, ignoreEmptyStringLiteral bool, assignedNameText string) ast.Handle {
 	factory := emitContext.Factory
-	var assignedName *ast.Expression
+	var assignedName ast.Handle
 	if len(assignedNameText) > 0 {
 		assignedName = factory.NewStringLiteral(assignedNameText, ast.TokenFlagsNone)
 	} else {
-		assignedName = getAssignedNameOfIdentifier(emitContext, node.Name(), node.Initializer)
+		assignedName = getAssignedNameOfIdentifier(emitContext, node.Name(), node.Initializer())
 	}
-	initializer := finishTransformNamedEvaluation(emitContext, node.Initializer, assignedName, ignoreEmptyStringLiteral)
-	return factory.UpdateParameterDeclaration(
-		node,
-		nil, /*modifiers*/
-		node.DotDotDotToken,
-		node.Name(),
-		nil, /*questionToken*/
-		nil, /*typeNode*/
-		initializer,
-	)
+	initializer := finishTransformNamedEvaluation(emitContext, node.Initializer(), assignedName, ignoreEmptyStringLiteral)
+	return factory.UpdateParameterDeclaration(node, 0, node.DotDotDotToken(), node.Name(), ast.Handle{}, ast.Handle{}, initializer)
 }
-
-func transformNamedEvaluationOfBindingElement(emitContext *printer.EmitContext, node *ast.BindingElement /*NamedEvaluation & BindingElement*/, ignoreEmptyStringLiteral bool, assignedNameText string) *ast.Expression {
-	// 8.6.3 RS: IteratorBindingInitialization
-	//   SingleNameBinding : BindingIdentifier Initializer?
-	//     ...
-	//     5. If |Initializer| is present and _v_ is *undefined*, then
-	//        a. If IsAnonymousFunctionDefinition(|Initializer|) is *true*, then
-	//           i. Set _v_ to ? NamedEvaluation of |Initializer| with argument _bindingId_.
-	//     ...
-	//
-	// 14.3.3.3 RS: KeyedBindingInitialization
-	//   SingleNameBinding : BindingIdentifier Initializer?
-	//     ...
-	//     4. If |Initializer| is present and _v_ is *undefined*, then
-	//        a. If IsAnonymousFunctionDefinition(|Initializer|) is *true*, then
-	//           i. Set _v_ to ? NamedEvaluation of |Initializer| with argument _bindingId_.
-	//     ...
-
+func transformNamedEvaluationOfBindingElement(emitContext *printer.EmitContext, node ast.Handle, ignoreEmptyStringLiteral bool, assignedNameText string) ast.Handle {
 	factory := emitContext.Factory
-	var assignedName *ast.Expression
+	var assignedName ast.Handle
 	if len(assignedNameText) > 0 {
 		assignedName = factory.NewStringLiteral(assignedNameText, ast.TokenFlagsNone)
 	} else {
-		assignedName = getAssignedNameOfIdentifier(emitContext, node.Name(), node.Initializer)
+		assignedName = getAssignedNameOfIdentifier(emitContext, node.Name(), node.Initializer())
 	}
-	initializer := finishTransformNamedEvaluation(emitContext, node.Initializer, assignedName, ignoreEmptyStringLiteral)
-	return factory.UpdateBindingElement(
-		node,
-		node.DotDotDotToken,
-		node.PropertyName,
-		node.Name(),
-		initializer,
-	)
+	initializer := finishTransformNamedEvaluation(emitContext, node.Initializer(), assignedName, ignoreEmptyStringLiteral)
+	return factory.UpdateBindingElement(node, node.DotDotDotToken(), node.PropertyName(), node.Name(), initializer)
 }
-
-func transformNamedEvaluationOfPropertyDeclaration(emitContext *printer.EmitContext, node *ast.PropertyDeclaration /*NamedEvaluation & PropertyDeclaration*/, ignoreEmptyStringLiteral bool, assignedNameText string) *ast.Expression {
-	// 10.2.1.3 RS: EvaluateBody
-	//   Initializer : `=` AssignmentExpression
-	//     ...
-	//     3. If IsAnonymousFunctionDefinition(|AssignmentExpression|) is *true*, then
-	//        a. Let _value_ be ? NamedEvaluation of |Initializer| with argument _functionObject_.[[ClassFieldInitializerName]].
-	//     ...
-
+func transformNamedEvaluationOfPropertyDeclaration(emitContext *printer.EmitContext, node ast.Handle, ignoreEmptyStringLiteral bool, assignedNameText string) ast.Handle {
 	factory := emitContext.Factory
 	assignedName, name := getAssignedNameOfPropertyName(emitContext, node.Name(), assignedNameText)
-	initializer := finishTransformNamedEvaluation(emitContext, node.Initializer, assignedName, ignoreEmptyStringLiteral)
-	return factory.UpdatePropertyDeclaration(
-		node,
-		node.Modifiers(),
-		name,
-		nil, /*postfixToken*/
-		nil, /*typeNode*/
-		initializer,
-	)
+	initializer := finishTransformNamedEvaluation(emitContext, node.Initializer(), assignedName, ignoreEmptyStringLiteral)
+	return factory.UpdatePropertyDeclaration(node, node.Modifiers(), name, ast.Handle{}, ast.Handle{}, initializer)
 }
-
-func transformNamedEvaluationOfAssignmentExpression(emitContext *printer.EmitContext, node *ast.BinaryExpression /*NamedEvaluation & BinaryExpression*/, ignoreEmptyStringLiteral bool, assignedNameText string) *ast.Expression {
-	// 13.15.2 RS: Evaluation
-	//   AssignmentExpression : LeftHandSideExpression `=` AssignmentExpression
-	//     1. If |LeftHandSideExpression| is neither an |ObjectLiteral| nor an |ArrayLiteral|, then
-	//        a. Let _lref_ be ? Evaluation of |LeftHandSideExpression|.
-	//        b. If IsAnonymousFunctionDefinition(|AssignmentExpression|) and IsIdentifierRef of |LeftHandSideExpression| are both *true*, then
-	//           i. Let _rval_ be ? NamedEvaluation of |AssignmentExpression| with argument _lref_.[[ReferencedName]].
-	//     ...
-	//
-	//   AssignmentExpression : LeftHandSideExpression `&&=` AssignmentExpression
-	//     ...
-	//     5. If IsAnonymousFunctionDefinition(|AssignmentExpression|) is *true* and IsIdentifierRef of |LeftHandSideExpression| is *true*, then
-	//        a. Let _rval_ be ? NamedEvaluation of |AssignmentExpression| with argument _lref_.[[ReferencedName]].
-	//     ...
-	//
-	//   AssignmentExpression : LeftHandSideExpression `||=` AssignmentExpression
-	//     ...
-	//     5. If IsAnonymousFunctionDefinition(|AssignmentExpression|) is *true* and IsIdentifierRef of |LeftHandSideExpression| is *true*, then
-	//        a. Let _rval_ be ? NamedEvaluation of |AssignmentExpression| with argument _lref_.[[ReferencedName]].
-	//     ...
-	//
-	//   AssignmentExpression : LeftHandSideExpression `??=` AssignmentExpression
-	//     ...
-	//     4. If IsAnonymousFunctionDefinition(|AssignmentExpression|) is *true* and IsIdentifierRef of |LeftHandSideExpression| is *true*, then
-	//        a. Let _rval_ be ? NamedEvaluation of |AssignmentExpression| with argument _lref_.[[ReferencedName]].
-	//     ...
-
+func transformNamedEvaluationOfAssignmentExpression(emitContext *printer.EmitContext, node ast.Handle, ignoreEmptyStringLiteral bool, assignedNameText string) ast.Handle {
 	factory := emitContext.Factory
-	var assignedName *ast.Expression
+	var assignedName ast.Handle
 	if len(assignedNameText) > 0 {
 		assignedName = factory.NewStringLiteral(assignedNameText, ast.TokenFlagsNone)
 	} else {
-		assignedName = getAssignedNameOfIdentifier(emitContext, node.Left, node.Right)
+		assignedName = getAssignedNameOfIdentifier(emitContext, node.Left(), node.Right())
 	}
-	right := finishTransformNamedEvaluation(emitContext, node.Right, assignedName, ignoreEmptyStringLiteral)
-	return factory.UpdateBinaryExpression(
-		node,
-		nil, /*modifiers*/
-		node.Left,
-		nil, /*typeNode*/
-		node.OperatorToken,
-		right,
-	)
+	right := finishTransformNamedEvaluation(emitContext, node.Right(), assignedName, ignoreEmptyStringLiteral)
+	return factory.UpdateBinaryExpression(node, 0, node.Left(), ast.Handle{}, node.OperatorToken(), right)
 }
-
-func transformNamedEvaluationOfExportAssignment(emitContext *printer.EmitContext, node *ast.ExportAssignment /*NamedEvaluation & ExportAssignment*/, ignoreEmptyStringLiteral bool, assignedNameText string) *ast.Expression {
-	// 16.2.3.7 RS: Evaluation
-	//   ExportDeclaration : `export` `default` AssignmentExpression `;`
-	//     1. If IsAnonymousFunctionDefinition(|AssignmentExpression|) is *true*, then
-	//        a. Let _value_ be ? NamedEvaluation of |AssignmentExpression| with argument `"default"`.
-	//     ...
-
-	// NOTE: Since emit for `export =` translates to `module.exports = ...`, the assigned name of the class or function
-	// is `""`.
-
+func transformNamedEvaluationOfExportAssignment(emitContext *printer.EmitContext, node ast.Handle, ignoreEmptyStringLiteral bool, assignedNameText string) ast.Handle {
 	factory := emitContext.Factory
-	var assignedName *ast.Expression
+	var assignedName ast.Handle
 	if len(assignedNameText) > 0 {
 		assignedName = factory.NewStringLiteral(assignedNameText, ast.TokenFlagsNone)
-	} else if node.IsExportEquals {
+	} else if node.IsExportEquals() {
 		assignedName = factory.NewStringLiteral("", ast.TokenFlagsNone)
 	} else {
 		assignedName = factory.NewStringLiteral("default", ast.TokenFlagsNone)
 	}
-	expression := finishTransformNamedEvaluation(emitContext, node.Expression, assignedName, ignoreEmptyStringLiteral)
-	return factory.UpdateExportAssignment(
-		node,
-		nil, /*modifiers*/
-		node.IsExportEquals,
-		nil, /*typeNode*/
-		expression,
-	)
+	expression := finishTransformNamedEvaluation(emitContext, node.Expression(), assignedName, ignoreEmptyStringLiteral)
+	return factory.UpdateExportAssignment(node, 0, node.IsExportEquals(), ast.Handle{}, expression)
 }
 
-// Performs a shallow transformation of a `NamedEvaluation` node, such that a valid name will be assigned.
-func transformNamedEvaluation(context *printer.EmitContext, node *ast.Node /*NamedEvaluation*/, ignoreEmptyStringLiteral bool, assignedName string) *ast.Expression {
-	switch node.Kind {
+func transformNamedEvaluation(context *printer.EmitContext, node ast.Handle, ignoreEmptyStringLiteral bool, assignedName string) ast.Handle {
+	switch node.Kind() {
 	case ast.KindPropertyAssignment:
-		return transformNamedEvaluationOfPropertyAssignment(context, node.AsPropertyAssignment(), ignoreEmptyStringLiteral, assignedName)
+		return transformNamedEvaluationOfPropertyAssignment(context, node, ignoreEmptyStringLiteral, assignedName)
 	case ast.KindShorthandPropertyAssignment:
-		return transformNamedEvaluationOfShorthandAssignmentProperty(context, node.AsShorthandPropertyAssignment(), ignoreEmptyStringLiteral, assignedName)
+		return transformNamedEvaluationOfShorthandAssignmentProperty(context, node, ignoreEmptyStringLiteral, assignedName)
 	case ast.KindVariableDeclaration:
-		return transformNamedEvaluationOfVariableDeclaration(context, node.AsVariableDeclaration(), ignoreEmptyStringLiteral, assignedName)
+		return transformNamedEvaluationOfVariableDeclaration(context, node, ignoreEmptyStringLiteral, assignedName)
 	case ast.KindParameter:
-		return transformNamedEvaluationOfParameterDeclaration(context, node.AsParameterDeclaration(), ignoreEmptyStringLiteral, assignedName)
+		return transformNamedEvaluationOfParameterDeclaration(context, node, ignoreEmptyStringLiteral, assignedName)
 	case ast.KindBindingElement:
-		return transformNamedEvaluationOfBindingElement(context, node.AsBindingElement(), ignoreEmptyStringLiteral, assignedName)
+		return transformNamedEvaluationOfBindingElement(context, node, ignoreEmptyStringLiteral, assignedName)
 	case ast.KindPropertyDeclaration:
-		return transformNamedEvaluationOfPropertyDeclaration(context, node.AsPropertyDeclaration(), ignoreEmptyStringLiteral, assignedName)
+		return transformNamedEvaluationOfPropertyDeclaration(context, node, ignoreEmptyStringLiteral, assignedName)
 	case ast.KindBinaryExpression:
-		return transformNamedEvaluationOfAssignmentExpression(context, node.AsBinaryExpression(), ignoreEmptyStringLiteral, assignedName)
+		return transformNamedEvaluationOfAssignmentExpression(context, node, ignoreEmptyStringLiteral, assignedName)
 	case ast.KindExportAssignment:
-		return transformNamedEvaluationOfExportAssignment(context, node.AsExportAssignment(), ignoreEmptyStringLiteral, assignedName)
+		return transformNamedEvaluationOfExportAssignment(context, node, ignoreEmptyStringLiteral, assignedName)
 	default:
 		debug.Fail("Unhandled case in transformNamedEvaluation")
 		return node

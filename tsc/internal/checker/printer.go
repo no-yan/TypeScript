@@ -1,65 +1,54 @@
 package checker
 
 import (
-	"strings"
-
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/nodebuilder"
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
+	"strings"
 )
 
-// TODO: Memoize once per checker to retain threadsafety
 func createPrinterWithDefaults(emitContext *printer.EmitContext) *printer.Printer {
 	return printer.NewPrinter(printer.PrinterOptions{}, printer.PrintHandlers{}, emitContext)
 }
-
 func createPrinterWithRemoveComments(emitContext *printer.EmitContext) *printer.Printer {
 	return printer.NewPrinter(printer.PrinterOptions{RemoveComments: true}, printer.PrintHandlers{}, emitContext)
 }
-
 func createPrinterWithRemoveCommentsOmitTrailingSemicolon(emitContext *printer.EmitContext) *printer.Printer {
-	return printer.NewPrinter(printer.PrinterOptions{
-		RemoveComments:        true,
-		OmitTrailingSemicolon: true,
-	}, printer.PrintHandlers{}, emitContext)
+	return printer.NewPrinter(printer.PrinterOptions{RemoveComments: true, OmitTrailingSemicolon: true}, printer.PrintHandlers{}, emitContext)
 }
-
 func createPrinterWithRemoveCommentsOmitTrailingSemicolonNeverAsciiEscape(emitContext *printer.EmitContext) *printer.Printer {
-	return printer.NewPrinter(printer.PrinterOptions{
-		RemoveComments:        true,
-		OmitTrailingSemicolon: true,
-		NeverAsciiEscape:      true,
-	}, printer.PrintHandlers{}, emitContext)
+	return printer.NewPrinter(printer.PrinterOptions{RemoveComments: true, OmitTrailingSemicolon: true, NeverAsciiEscape: true}, printer.PrintHandlers{}, emitContext)
 }
-
 func createPrinterWithRemoveCommentsNeverAsciiEscape(emitContext *printer.EmitContext) *printer.Printer {
-	return printer.NewPrinter(printer.PrinterOptions{
-		RemoveComments:   true,
-		NeverAsciiEscape: true,
-	}, printer.PrintHandlers{}, emitContext)
+	return printer.NewPrinter(printer.PrinterOptions{RemoveComments: true, NeverAsciiEscape: true}, printer.PrintHandlers{}, emitContext)
 }
-
 func (c *Checker) TypeToString(t *Type) string {
-	return c.typeToString(t, nil)
+	return c.typeToString(t, // TODO: Memoize once per checker to retain threadsafety
+		// Serialization of types can lead to (lazy) resolution of members, which can cause diagnostics that again require
+		// serialization of types. This can potentially result in infinite recursion and stack overflows. To prevent that,
+		// after a certain number of recursive invocations the function simply returns "?".
+		// The unresolved type gets a synthesized comment on `any` to hint to users that it's not a plain `any`.
+		// Otherwise, we always strip comments out.
+		// hard cutoff matching Strada's absoluteMaximumLength
+		// add neverAsciiEscape for GH#39027
+		// TODO: GH#18217
+		/*sourceFile*/ // TODO: GH#18217
+		// TODO: GH#18217
+		/*sourceFile*/ // ExpandSymbolForHover produces declaration strings for a symbol with verbosity support for expandable hover.
+		// TypeParameterToStringEx renders a type parameter declaration (e.g. "T extends Foo") with optional verbosity support.
+		ast.Handle{})
 }
-
-func (c *Checker) typeToString(t *Type, enclosingDeclaration *ast.Node) string {
+func (c *Checker) typeToString(t *Type, enclosingDeclaration ast.Handle) string {
 	return c.typeToStringEx(t, enclosingDeclaration, TypeFormatFlagsAllowUniqueESSymbolType|TypeFormatFlagsUseAliasDefinedOutsideCurrentScope, nil)
 }
-
 func toNodeBuilderFlags(flags TypeFormatFlags) nodebuilder.Flags {
 	return nodebuilder.Flags(flags & TypeFormatFlagsNodeBuilderFlagsMask)
 }
-
-func (c *Checker) TypeToStringEx(t *Type, enclosingDeclaration *ast.Node, flags TypeFormatFlags, vc *VerbosityContext) string {
+func (c *Checker) TypeToStringEx(t *Type, enclosingDeclaration ast.Handle, flags TypeFormatFlags, vc *VerbosityContext) string {
 	return c.typeToStringEx(t, enclosingDeclaration, flags, vc)
 }
-
-func (c *Checker) typeToStringEx(t *Type, enclosingDeclaration *ast.Node, flags TypeFormatFlags, vc *VerbosityContext) string {
-	// Serialization of types can lead to (lazy) resolution of members, which can cause diagnostics that again require
-	// serialization of types. This can potentially result in infinite recursion and stack overflows. To prevent that,
-	// after a certain number of recursive invocations the function simply returns "?".
+func (c *Checker) typeToStringEx(t *Type, enclosingDeclaration ast.Handle, flags TypeFormatFlags, vc *VerbosityContext) string {
 	if c.serializationLevel >= maxSerializationLevel {
 		return "?"
 	}
@@ -83,11 +72,9 @@ func (c *Checker) typeToStringEx(t *Type, enclosingDeclaration *ast.Node, flags 
 	c.serializationLevel++
 	typeNode := nodeBuilder.TypeToTypeNode(t, enclosingDeclaration, combinedFlags, nodebuilder.InternalFlagsNone, nil)
 	c.serializationLevel--
-	if typeNode == nil {
+	if typeNode.IsNil() {
 		panic("should always get typenode")
 	}
-	// The unresolved type gets a synthesized comment on `any` to hint to users that it's not a plain `any`.
-	// Otherwise, we always strip comments out.
 	var p *printer.Printer
 	if t == c.unresolvedType {
 		p = createPrinterWithDefaults(nodeBuilder.EmitContext())
@@ -95,15 +82,14 @@ func (c *Checker) typeToStringEx(t *Type, enclosingDeclaration *ast.Node, flags 
 		p = createPrinterWithRemoveComments(nodeBuilder.EmitContext())
 	}
 	var sourceFile *ast.SourceFile
-	if enclosingDeclaration != nil {
+	if !enclosingDeclaration.IsNil() {
 		sourceFile = ast.GetSourceFileOfNode(enclosingDeclaration)
 	}
 	p.Write(typeNode, sourceFile, writer, nil)
 	result := writer.String()
-
 	maxLength := defaultMaximumTruncationLength * 2
 	if vc != nil && vc.MaxTruncationLength > 0 {
-		maxLength = vc.MaxTruncationLength * 10 // hard cutoff matching Strada's absoluteMaximumLength
+		maxLength = vc.MaxTruncationLength * 10
 	}
 	if noTruncation {
 		maxLength = noTruncationMaximumTruncationLength * 2
@@ -116,23 +102,18 @@ func (c *Checker) typeToStringEx(t *Type, enclosingDeclaration *ast.Node, flags 
 	}
 	return result
 }
-
 func (c *Checker) SymbolToString(s *ast.Symbol) string {
 	return c.symbolToString(s)
 }
-
 func (c *Checker) symbolToString(symbol *ast.Symbol) string {
-	return c.symbolToStringEx(symbol, nil, ast.SymbolFlagsAll, SymbolFormatFlagsAllowAnyNodeKind)
+	return c.symbolToStringEx(symbol, ast.Handle{}, ast.SymbolFlagsAll, SymbolFormatFlagsAllowAnyNodeKind)
 }
-
-func (c *Checker) SymbolToStringEx(symbol *ast.Symbol, enclosingDeclaration *ast.Node, meaning ast.SymbolFlags, flags SymbolFormatFlags) string {
+func (c *Checker) SymbolToStringEx(symbol *ast.Symbol, enclosingDeclaration ast.Handle, meaning ast.SymbolFlags, flags SymbolFormatFlags) string {
 	return c.symbolToStringEx(symbol, enclosingDeclaration, meaning, flags)
 }
-
-func (c *Checker) symbolToStringEx(symbol *ast.Symbol, enclosingDeclaration *ast.Node, meaning ast.SymbolFlags, flags SymbolFormatFlags) string {
+func (c *Checker) symbolToStringEx(symbol *ast.Symbol, enclosingDeclaration ast.Handle, meaning ast.SymbolFlags, flags SymbolFormatFlags) string {
 	writer, putWriter := printer.GetSingleLineStringWriter()
 	defer putWriter()
-
 	nodeFlags := nodebuilder.FlagsIgnoreErrors
 	internalNodeFlags := nodebuilder.InternalFlagsNone
 	if flags&SymbolFormatFlagsUseOnlyExternalAliasing != 0 {
@@ -150,41 +131,35 @@ func (c *Checker) symbolToStringEx(symbol *ast.Symbol, enclosingDeclaration *ast
 	if flags&SymbolFormatFlagsWriteComputedProps != 0 {
 		internalNodeFlags |= nodebuilder.InternalFlagsWriteComputedProps
 	}
-
 	nodeBuilder, release := c.getNodeBuilder()
 	defer release()
 	var sourceFile *ast.SourceFile
-	if enclosingDeclaration != nil {
+	if !enclosingDeclaration.IsNil() {
 		sourceFile = ast.GetSourceFileOfNode(enclosingDeclaration)
 	}
 	var printer_ *printer.Printer
-	// add neverAsciiEscape for GH#39027
-	if enclosingDeclaration != nil && enclosingDeclaration.Kind == ast.KindSourceFile {
+	if !enclosingDeclaration.IsNil() && enclosingDeclaration.Kind() == ast.KindSourceFile {
 		printer_ = createPrinterWithRemoveCommentsOmitTrailingSemicolonNeverAsciiEscape(nodeBuilder.EmitContext())
 	} else {
 		printer_ = createPrinterWithRemoveCommentsOmitTrailingSemicolon(nodeBuilder.EmitContext())
 	}
-
-	var builder func(symbol *ast.Symbol, meaning ast.SymbolFlags, enclosingDeclaration *ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker nodebuilder.SymbolTracker) *ast.Node
+	var builder func(symbol *ast.Symbol, meaning ast.SymbolFlags, enclosingDeclaration ast.Handle, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker nodebuilder.SymbolTracker) ast.Handle
 	if flags&SymbolFormatFlagsAllowAnyNodeKind != 0 {
 		builder = nodeBuilder.SymbolToNode
 	} else {
 		builder = nodeBuilder.SymbolToEntityName
 	}
-	entity := builder(symbol, meaning, enclosingDeclaration, nodeFlags, internalNodeFlags, nil) // TODO: GH#18217
-	printer_.Write(entity /*sourceFile*/, sourceFile, writer, nil)                              // TODO: GH#18217
+	entity := builder(symbol, meaning, enclosingDeclaration, nodeFlags, internalNodeFlags, nil)
+	printer_.Write(entity, sourceFile, writer, nil)
 	return writer.String()
 }
-
 func (c *Checker) signatureToString(signature *Signature) string {
-	return c.signatureToStringEx(signature, nil, TypeFormatFlagsNone, nil)
+	return c.signatureToStringEx(signature, ast.Handle{}, TypeFormatFlagsNone, nil)
 }
-
-func (c *Checker) SignatureToStringEx(signature *Signature, enclosingDeclaration *ast.Node, flags TypeFormatFlags, vc *VerbosityContext) string {
+func (c *Checker) SignatureToStringEx(signature *Signature, enclosingDeclaration ast.Handle, flags TypeFormatFlags, vc *VerbosityContext) string {
 	return c.signatureToStringEx(signature, enclosingDeclaration, flags, vc)
 }
-
-func (c *Checker) signatureToStringEx(signature *Signature, enclosingDeclaration *ast.Node, flags TypeFormatFlags, vc *VerbosityContext) string {
+func (c *Checker) signatureToStringEx(signature *Signature, enclosingDeclaration ast.Handle, flags TypeFormatFlags, vc *VerbosityContext) string {
 	isConstructor := signature.flags&SignatureFlagsConstruct != 0 && flags&TypeFormatFlagsWriteCallStyleSignature == 0
 	var sigOutput ast.Kind
 	if flags&TypeFormatFlagsWriteArrowStyleSignature != 0 {
@@ -200,7 +175,6 @@ func (c *Checker) signatureToStringEx(signature *Signature, enclosingDeclaration
 			sigOutput = ast.KindCallSignature
 		}
 	}
-
 	nodeBuilder, release := c.getNodeBuilder()
 	defer release()
 	oldVerbosity := nodeBuilder.verbosity
@@ -212,7 +186,7 @@ func (c *Checker) signatureToStringEx(signature *Signature, enclosingDeclaration
 	sig := nodeBuilder.SignatureToSignatureDeclaration(signature, sigOutput, enclosingDeclaration, combinedFlags, nodebuilder.InternalFlagsNone, nil)
 	p := createPrinterWithRemoveCommentsOmitTrailingSemicolonNeverAsciiEscape(nodeBuilder.EmitContext())
 	var sourceFile *ast.SourceFile
-	if enclosingDeclaration != nil {
+	if !enclosingDeclaration.IsNil() {
 		sourceFile = ast.GetSourceFileOfNode(enclosingDeclaration)
 	}
 	if flags&TypeFormatFlagsMultilineObjectLiterals != 0 {
@@ -225,31 +199,27 @@ func (c *Checker) signatureToStringEx(signature *Signature, enclosingDeclaration
 	p.Write(sig, sourceFile, writer, nil)
 	return writer.String()
 }
-
 func (c *Checker) typePredicateToString(typePredicate *TypePredicate) string {
-	return c.typePredicateToStringEx(typePredicate, nil, TypeFormatFlagsUseAliasDefinedOutsideCurrentScope)
+	return c.typePredicateToStringEx(typePredicate, ast.Handle{}, TypeFormatFlagsUseAliasDefinedOutsideCurrentScope)
 }
-
-func (c *Checker) typePredicateToStringEx(typePredicate *TypePredicate, enclosingDeclaration *ast.Node, flags TypeFormatFlags) string {
+func (c *Checker) typePredicateToStringEx(typePredicate *TypePredicate, enclosingDeclaration ast.Handle, flags TypeFormatFlags) string {
 	writer, putWriter := printer.GetSingleLineStringWriter()
 	defer putWriter()
 	nodeBuilder, release := c.getNodeBuilder()
 	defer release()
 	combinedFlags := toNodeBuilderFlags(flags) | nodebuilder.FlagsIgnoreErrors | nodebuilder.FlagsWriteTypeParametersInQualifiedName
-	predicate := nodeBuilder.TypePredicateToTypePredicateNode(typePredicate, enclosingDeclaration, combinedFlags, nodebuilder.InternalFlagsNone, nil) // TODO: GH#18217
+	predicate := nodeBuilder.TypePredicateToTypePredicateNode(typePredicate, enclosingDeclaration, combinedFlags, nodebuilder.InternalFlagsNone, nil)
 	printer_ := createPrinterWithRemoveComments(nodeBuilder.EmitContext())
 	var sourceFile *ast.SourceFile
-	if enclosingDeclaration != nil {
+	if !enclosingDeclaration.IsNil() {
 		sourceFile = ast.GetSourceFileOfNode(enclosingDeclaration)
 	}
-	printer_.Write(predicate /*sourceFile*/, sourceFile, writer, nil)
+	printer_.Write(predicate, sourceFile, writer, nil)
 	return writer.String()
 }
-
 func (c *Checker) valueToString(value any) string {
 	return ValueToString(value)
 }
-
 func (c *Checker) formatUnionTypes(types []*Type, expandingEnum bool) []*Type {
 	var result []*Type
 	var flags TypeFlags
@@ -284,19 +254,16 @@ func (c *Checker) formatUnionTypes(types []*Type, expandingEnum bool) []*Type {
 	}
 	return result
 }
-
-func (c *Checker) TypeToTypeNode(t *Type, enclosingDeclaration *ast.Node, flags nodebuilder.Flags, idToSymbol map[*ast.IdentifierNode]*ast.Symbol) *ast.TypeNode {
+func (c *Checker) TypeToTypeNode(t *Type, enclosingDeclaration ast.Handle, flags nodebuilder.Flags, idToSymbol map[ast.Handle]*ast.Symbol) ast.Handle {
 	nodeBuilder := c.getNodeBuilderEx(idToSymbol)
 	return nodeBuilder.TypeToTypeNode(t, enclosingDeclaration, flags, nodebuilder.InternalFlagsNone, nil)
 }
-
-func (c *Checker) SignatureToSignatureDeclaration(signature *Signature, kind ast.Kind, enclosingDeclaration *ast.Node, flags nodebuilder.Flags) *ast.Node {
+func (c *Checker) SignatureToSignatureDeclaration(signature *Signature, kind ast.Kind, enclosingDeclaration ast.Handle, flags nodebuilder.Flags) ast.Handle {
 	nodeBuilder, release := c.getNodeBuilder()
 	defer release()
 	return nodeBuilder.SignatureToSignatureDeclaration(signature, kind, enclosingDeclaration, flags, nodebuilder.InternalFlagsNone, nil)
 }
 
-// ExpandSymbolForHover produces declaration strings for a symbol with verbosity support for expandable hover.
 func (c *Checker) ExpandSymbolForHover(symbol *ast.Symbol, meaning ast.SymbolFlags, vc *VerbosityContext) string {
 	nodeBuilder, release := c.getNodeBuilder()
 	defer release()
@@ -324,8 +291,7 @@ func (c *Checker) ExpandSymbolForHover(symbol *ast.Symbol, meaning ast.SymbolFla
 	return b.String()
 }
 
-// TypeParameterToStringEx renders a type parameter declaration (e.g. "T extends Foo") with optional verbosity support.
-func (c *Checker) TypeParameterToStringEx(t *Type, enclosingDeclaration *ast.Node, vc *VerbosityContext) string {
+func (c *Checker) TypeParameterToStringEx(t *Type, enclosingDeclaration ast.Handle, vc *VerbosityContext) string {
 	nodeBuilder, release := c.getNodeBuilder()
 	defer release()
 	oldVerbosity := nodeBuilder.verbosity
@@ -334,23 +300,21 @@ func (c *Checker) TypeParameterToStringEx(t *Type, enclosingDeclaration *ast.Nod
 		nodeBuilder.verbosity = oldVerbosity
 	}()
 	typeParamNode := nodeBuilder.TypeParameterToDeclaration(t, enclosingDeclaration, nodebuilder.FlagsIgnoreErrors, nodebuilder.InternalFlagsNone, nil)
-	if typeParamNode == nil {
+	if typeParamNode.IsNil() {
 		return c.TypeToString(t)
 	}
 	p := createPrinterWithRemoveComments(nodeBuilder.EmitContext())
 	var sourceFile *ast.SourceFile
-	if enclosingDeclaration != nil {
+	if !enclosingDeclaration.IsNil() {
 		sourceFile = ast.GetSourceFileOfNode(enclosingDeclaration)
 	}
 	return p.Emit(typeParamNode, sourceFile)
 }
-
-func (c *Checker) TypeToTypeNodeEx(t *Type, enclosingDeclaration *ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, idToSymbol map[*ast.IdentifierNode]*ast.Symbol) *ast.TypeNode {
+func (c *Checker) TypeToTypeNodeEx(t *Type, enclosingDeclaration ast.Handle, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, idToSymbol map[ast.Handle]*ast.Symbol) ast.Handle {
 	nodeBuilder := c.getNodeBuilderEx(idToSymbol)
 	return nodeBuilder.TypeToTypeNode(t, enclosingDeclaration, flags, internalFlags, nil)
 }
-
-func (c *Checker) TypePredicateToTypePredicateNode(t *TypePredicate, enclosingDeclaration *ast.Node, flags nodebuilder.Flags, idToSymbol map[*ast.IdentifierNode]*ast.Symbol) *ast.TypePredicateNodeNode {
+func (c *Checker) TypePredicateToTypePredicateNode(t *TypePredicate, enclosingDeclaration ast.Handle, flags nodebuilder.Flags, idToSymbol map[ast.Handle]*ast.Symbol) ast.Handle {
 	nodeBuilder := c.getNodeBuilderEx(idToSymbol)
 	return nodeBuilder.TypePredicateToTypePredicateNode(t, enclosingDeclaration, flags, nodebuilder.InternalFlagsNone, nil)
 }

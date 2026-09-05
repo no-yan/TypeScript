@@ -2,53 +2,46 @@ package printer
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
-
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/debug"
+	"strconv"
+	"strings"
 )
 
 type NodeFactory struct {
-	ast.NodeFactory
+	*ast.Factory
 	emitContext *EmitContext
 }
 
 func NewNodeFactory(context *EmitContext) *NodeFactory {
-	return &NodeFactory{
-		NodeFactory: *ast.NewNodeFactory(ast.NodeFactoryHooks{
-			OnCreate: context.onCreate,
-			OnUpdate: context.onUpdate,
-			OnClone:  context.onClone,
-		}),
-		emitContext: context,
-	}
+	return &NodeFactory{Factory: ast.NewFactory(context.factoryHooks()), emitContext: context}
 }
 
-func (f *NodeFactory) newGeneratedIdentifier(kind GeneratedIdentifierFlags, text string, node *ast.Node, options AutoGenerateOptions) *ast.IdentifierNode {
-	id := AutoGenerateId(nextAutoGenerateId.Add(1))
+func (f *NodeFactory) ReleaseArenas() {}
 
+func (f *NodeFactory) NewList(nodes []ast.Handle) ast.ListRef {
+	loc := core.UndefinedTextRange()
+	if f.emitContext != nil {
+		return f.emitContext.StoreFactory().List(loc, nodes...)
+	}
+	return ast.NewFactory(ast.FactoryHooks{}).List(loc, nodes...)
+}
+func (f *NodeFactory) newGeneratedIdentifier(kind GeneratedIdentifierFlags, text string, node ast.Handle, options AutoGenerateOptions) ast.Handle {
+	id := AutoGenerateId(nextAutoGenerateId.Add(1))
 	if len(text) == 0 {
 		switch {
-		case node == nil:
+		case node.IsNil():
 			text = fmt.Sprintf("(auto@%d)", id)
 		case ast.IsMemberName(node):
 			text = node.Text()
 		default:
 			text = fmt.Sprintf("(generated@%v)", f.emitContext.NodeIdentity(f.emitContext.getNodeForGeneratedNameWorker(node, id)))
 		}
-		text = FormatGeneratedName(false /*privateName*/, options.Prefix, text, options.Suffix)
+		text = FormatGeneratedName(false, options.Prefix, text, options.Suffix)
 	}
-
 	name := f.NewIdentifier(text)
-	autoGenerate := &AutoGenerateInfo{
-		Id:     id,
-		Flags:  kind | (options.Flags & ^GeneratedIdentifierFlagsKindMask),
-		Prefix: options.Prefix,
-		Suffix: options.Suffix,
-		Node:   node,
-	}
+	autoGenerate := &AutoGenerateInfo{Id: id, Flags: kind | (options.Flags & ^GeneratedIdentifierFlagsKindMask), Prefix: options.Prefix, Suffix: options.Suffix, Node: node}
 	if f.emitContext.autoGenerate == nil {
 		f.emitContext.autoGenerate = make(map[ast.GlobalRef]*AutoGenerateInfo)
 	}
@@ -56,79 +49,57 @@ func (f *NodeFactory) newGeneratedIdentifier(kind GeneratedIdentifierFlags, text
 	return name
 }
 
-// Allocates a new temp variable name, but does not record it in the environment. It is recommended to pass this to either
-// `AddVariableDeclaration` or `AddLexicalDeclaration` to ensure it is properly tracked, if you are not otherwise handling
-// it yourself.
-func (f *NodeFactory) NewTempVariable() *ast.IdentifierNode {
+func (f *NodeFactory) NewTempVariable() ast.Handle {
 	return f.NewTempVariableEx(AutoGenerateOptions{})
 }
 
-// Allocates a new temp variable name, but does not record it in the environment. It is recommended to pass this to either
-// `AddVariableDeclaration` or `AddLexicalDeclaration` to ensure it is properly tracked, if you are not otherwise handling
-// it yourself.
-func (f *NodeFactory) NewTempVariableEx(options AutoGenerateOptions) *ast.IdentifierNode {
-	return f.newGeneratedIdentifier(GeneratedIdentifierFlagsAuto, "", nil /*node*/, options)
+func (f *NodeFactory) NewTempVariableEx(options AutoGenerateOptions) ast.Handle {
+	return f.newGeneratedIdentifier(GeneratedIdentifierFlagsAuto, "", ast.Handle{}, options)
 }
 
-// Allocates a new loop variable name.
-func (f *NodeFactory) NewLoopVariable() *ast.IdentifierNode {
+func (f *NodeFactory) NewLoopVariable() ast.Handle {
 	return f.NewLoopVariableEx(AutoGenerateOptions{})
 }
 
-// Allocates a new loop variable name.
-func (f *NodeFactory) NewLoopVariableEx(options AutoGenerateOptions) *ast.IdentifierNode {
-	return f.newGeneratedIdentifier(GeneratedIdentifierFlagsLoop, "", nil /*node*/, options)
+func (f *NodeFactory) NewLoopVariableEx(options AutoGenerateOptions) ast.Handle {
+	return f.newGeneratedIdentifier(GeneratedIdentifierFlagsLoop, "", ast.Handle{}, options)
 }
 
-// Allocates a new unique name based on the provided text.
-func (f *NodeFactory) NewUniqueName(text string) *ast.IdentifierNode {
+func (f *NodeFactory) NewUniqueName(text string) ast.Handle {
 	return f.NewUniqueNameEx(text, AutoGenerateOptions{})
 }
 
-// Allocates a new unique name based on the provided text.
-func (f *NodeFactory) NewUniqueNameEx(text string, options AutoGenerateOptions) *ast.IdentifierNode {
-	return f.newGeneratedIdentifier(GeneratedIdentifierFlagsUnique, text, nil /*node*/, options)
+func (f *NodeFactory) NewUniqueNameEx(text string, options AutoGenerateOptions) ast.Handle {
+	return f.newGeneratedIdentifier(GeneratedIdentifierFlagsUnique, text, ast.Handle{}, options)
 }
 
-// Allocates a new unique name based on the provided node.
-func (f *NodeFactory) NewGeneratedNameForNode(node *ast.Node) *ast.IdentifierNode {
+func (f *NodeFactory) NewGeneratedNameForNode(node ast.Handle) ast.Handle {
 	return f.NewGeneratedNameForNodeEx(node, AutoGenerateOptions{})
 }
 
-// Allocates a new unique name based on the provided node.
-func (f *NodeFactory) NewGeneratedNameForNodeEx(node *ast.Node, options AutoGenerateOptions) *ast.IdentifierNode {
+func (f *NodeFactory) NewGeneratedNameForNodeEx(node ast.Handle, options AutoGenerateOptions) ast.Handle {
 	if len(options.Prefix) > 0 || len(options.Suffix) > 0 {
 		options.Flags |= GeneratedIdentifierFlagsOptimistic
 	}
-
 	return f.newGeneratedIdentifier(GeneratedIdentifierFlagsNode, "", node, options)
 }
-
-func (f *NodeFactory) newGeneratedPrivateIdentifier(kind GeneratedIdentifierFlags, text string, node *ast.Node, options AutoGenerateOptions) *ast.PrivateIdentifierNode {
+func (f *NodeFactory) newGeneratedPrivateIdentifier(kind GeneratedIdentifierFlags, text string, node ast.Handle, options AutoGenerateOptions) ast.Handle {
 	id := AutoGenerateId(nextAutoGenerateId.Add(1))
-
 	if len(text) == 0 {
 		switch {
-		case node == nil:
+		case node.IsNil():
 			text = fmt.Sprintf("(auto@%d)", id)
 		case ast.IsMemberName(node):
 			text = node.Text()
 		default:
 			text = fmt.Sprintf("(generated@%v)", f.emitContext.NodeIdentity(f.emitContext.getNodeForGeneratedNameWorker(node, id)))
 		}
-		text = FormatGeneratedName(true /*privateName*/, options.Prefix, text, options.Suffix)
+		text = FormatGeneratedName(true, options.Prefix, text, options.Suffix)
 	} else if !strings.HasPrefix(text, "#") {
 		panic("First character of private identifier must be #: " + text)
 	}
-
 	name := f.NewPrivateIdentifier(text)
-	autoGenerate := &AutoGenerateInfo{
-		Id:     id,
-		Flags:  kind | (options.Flags &^ GeneratedIdentifierFlagsKindMask),
-		Prefix: options.Prefix,
-		Suffix: options.Suffix,
-		Node:   node,
-	}
+	autoGenerate := &AutoGenerateInfo{Id: id, Flags: kind | (options.Flags &^ GeneratedIdentifierFlagsKindMask), Prefix: options.Prefix, Suffix: options.Suffix, Node: node}
 	if f.emitContext.autoGenerate == nil {
 		f.emitContext.autoGenerate = make(map[ast.GlobalRef]*AutoGenerateInfo)
 	}
@@ -136,131 +107,86 @@ func (f *NodeFactory) newGeneratedPrivateIdentifier(kind GeneratedIdentifierFlag
 	return name
 }
 
-// Allocates a new unique private name based on the provided text.
-func (f *NodeFactory) NewUniquePrivateName(text string) *ast.PrivateIdentifierNode {
+func (f *NodeFactory) NewUniquePrivateName(text string) ast.Handle {
 	return f.NewUniquePrivateNameEx(text, AutoGenerateOptions{})
 }
 
-// Allocates a new unique private name based on the provided text.
-func (f *NodeFactory) NewUniquePrivateNameEx(text string, options AutoGenerateOptions) *ast.PrivateIdentifierNode {
-	return f.newGeneratedPrivateIdentifier(GeneratedIdentifierFlagsUnique, text, nil /*node*/, options)
+func (f *NodeFactory) NewUniquePrivateNameEx(text string, options AutoGenerateOptions) ast.Handle {
+	return f.newGeneratedPrivateIdentifier(GeneratedIdentifierFlagsUnique, text, ast.Handle{}, options)
 }
 
-// Allocates a new unique private name based on the provided node.
-func (f *NodeFactory) NewGeneratedPrivateNameForNode(node *ast.Node) *ast.PrivateIdentifierNode {
+func (f *NodeFactory) NewGeneratedPrivateNameForNode(node ast.Handle) ast.Handle {
 	return f.NewGeneratedPrivateNameForNodeEx(node, AutoGenerateOptions{})
 }
 
-// Allocates a new unique private name based on the provided node.
-func (f *NodeFactory) NewGeneratedPrivateNameForNodeEx(node *ast.Node, options AutoGenerateOptions) *ast.PrivateIdentifierNode {
+func (f *NodeFactory) NewGeneratedPrivateNameForNodeEx(node ast.Handle, options AutoGenerateOptions) ast.Handle {
 	if len(options.Prefix) > 0 || len(options.Suffix) > 0 {
 		options.Flags |= GeneratedIdentifierFlagsOptimistic
 	}
-
 	return f.newGeneratedPrivateIdentifier(GeneratedIdentifierFlagsNode, "", node, options)
 }
 
-// Allocates a new StringLiteral whose source text is derived from the provided node. This is often used to create a
-// string representation of an Identifier or NumericLiteral.
-func (f *NodeFactory) NewStringLiteralFromNode(textSourceNode *ast.Node) *ast.Node {
+func (f *NodeFactory) NewStringLiteralFromNode(textSourceNode ast.Handle) ast.Handle {
 	var text string
-	switch textSourceNode.Kind {
-	case ast.KindIdentifier,
-		ast.KindPrivateIdentifier,
-		ast.KindJsxNamespacedName,
-		ast.KindStringLiteral,
-		ast.KindNumericLiteral,
-		ast.KindBigIntLiteral,
-		ast.KindNoSubstitutionTemplateLiteral,
-		ast.KindTemplateHead,
-		ast.KindTemplateMiddle,
-		ast.KindTemplateTail,
-		ast.KindRegularExpressionLiteral:
+	switch textSourceNode.Kind() {
+	case ast.KindIdentifier, ast.KindPrivateIdentifier, ast.KindJsxNamespacedName, ast.KindStringLiteral, ast.KindNumericLiteral, ast.KindBigIntLiteral, ast.KindNoSubstitutionTemplateLiteral, ast.KindTemplateHead, ast.KindTemplateMiddle, ast.KindTemplateTail, ast.KindRegularExpressionLiteral:
 		text = textSourceNode.Text()
 	}
 	node := f.NewStringLiteral(text, ast.TokenFlagsNone)
 	f.emitContext.SetTextSource(node, textSourceNode)
 	return node
 }
-
-//
-// Common Tokens
-//
-
-func (f *NodeFactory) NewThisExpression() *ast.Expression {
+func (f *NodeFactory) NewThisExpression() ast.Handle {
 	return f.NewKeywordExpression(ast.KindThisKeyword)
 }
-
-func (f *NodeFactory) NewTrueExpression() *ast.Expression {
+func (f *NodeFactory) NewTrueExpression() ast.Handle {
 	return f.NewKeywordExpression(ast.KindTrueKeyword)
 }
-
-func (f *NodeFactory) NewFalseExpression() *ast.Expression {
+func (f *NodeFactory) NewFalseExpression() ast.Handle {
 	return f.NewKeywordExpression(ast.KindFalseKeyword)
 }
-
-//
-// Common Operators
-//
-
-func (f *NodeFactory) NewCommaExpression(left *ast.Expression, right *ast.Expression) *ast.Expression {
-	return f.NewBinaryExpression(nil /*modifiers*/, left, nil /*typeNode*/, f.NewToken(ast.KindCommaToken), right)
+func (f *NodeFactory) NewCommaExpression(left ast.Handle, right ast.Handle) ast.Handle {
+	return f.NewBinaryExpression(0, left, ast.Handle{}, f.NewToken(ast.KindCommaToken), right)
+}
+func (f *NodeFactory) NewAssignmentExpression(left ast.Handle, right ast.Handle) ast.Handle {
+	return f.NewBinaryExpression(0, left, ast.Handle{}, f.NewToken(ast.KindEqualsToken), right)
+}
+func (f *NodeFactory) NewLogicalORExpression(left ast.Handle, right ast.Handle) ast.Handle {
+	return f.NewBinaryExpression(0, left, ast.Handle{}, f.NewToken(ast.KindBarBarToken), right)
+}
+func (f *NodeFactory) NewLogicalANDExpression(left ast.Handle, right ast.Handle) ast.Handle {
+	return f.NewBinaryExpression(0, left, ast.Handle{}, f.NewToken(ast.KindAmpersandAmpersandToken), right)
 }
 
-func (f *NodeFactory) NewAssignmentExpression(left *ast.Expression, right *ast.Expression) *ast.Expression {
-	return f.NewBinaryExpression(nil /*modifiers*/, left, nil /*typeNode*/, f.NewToken(ast.KindEqualsToken), right)
+func (f *NodeFactory) NewStrictEqualityExpression(left ast.Handle, right ast.Handle) ast.Handle {
+	return f.NewBinaryExpression(0, left, ast.Handle{}, f.NewToken(ast.KindEqualsEqualsEqualsToken), right)
 }
-
-func (f *NodeFactory) NewLogicalORExpression(left *ast.Expression, right *ast.Expression) *ast.Expression {
-	return f.NewBinaryExpression(nil /*modifiers*/, left, nil /*typeNode*/, f.NewToken(ast.KindBarBarToken), right)
+func (f *NodeFactory) NewStrictInequalityExpression(left ast.Handle, right ast.Handle) ast.Handle {
+	return f.NewBinaryExpression(0, left, ast.Handle{}, f.NewToken(ast.KindExclamationEqualsEqualsToken), right)
 }
-
-func (f *NodeFactory) NewLogicalANDExpression(left *ast.Expression, right *ast.Expression) *ast.Expression {
-	return f.NewBinaryExpression(nil /*modifiers*/, left, nil /*typeNode*/, f.NewToken(ast.KindAmpersandAmpersandToken), right)
-}
-
-// func (f *NodeFactory) NewLogicalANDExpression(left *ast.Expression, right *ast.Expression) *ast.Expression
-// func (f *NodeFactory) NewBitwiseORExpression(left *ast.Expression, right *ast.Expression) *ast.Expression
-// func (f *NodeFactory) NewBitwiseXORExpression(left *ast.Expression, right *ast.Expression) *ast.Expression
-// func (f *NodeFactory) NewBitwiseANDExpression(left *ast.Expression, right *ast.Expression) *ast.Expression
-func (f *NodeFactory) NewStrictEqualityExpression(left *ast.Expression, right *ast.Expression) *ast.Expression {
-	return f.NewBinaryExpression(nil /*modifiers*/, left, nil /*typeNode*/, f.NewToken(ast.KindEqualsEqualsEqualsToken), right)
-}
-
-func (f *NodeFactory) NewStrictInequalityExpression(left *ast.Expression, right *ast.Expression) *ast.Expression {
-	return f.NewBinaryExpression(nil /*modifiers*/, left, nil /*typeNode*/, f.NewToken(ast.KindExclamationEqualsEqualsToken), right)
-}
-
-//
-// Compound Nodes
-//
-
-func (f *NodeFactory) NewVoidZeroExpression() *ast.Expression {
+func (f *NodeFactory) NewVoidZeroExpression() ast.Handle {
 	return f.NewVoidExpression(f.NewNumericLiteral("0", ast.TokenFlagsNone))
 }
-
-func flattenCommaElement(node *ast.Expression, expressions []*ast.Expression) []*ast.Expression {
-	if ast.IsBinaryExpression(node) && ast.NodeIsSynthesized(node) && node.AsBinaryExpression().OperatorToken.Kind == ast.KindCommaToken {
-		expressions = flattenCommaElement(node.AsBinaryExpression().Left, expressions)
-		expressions = flattenCommaElement(node.AsBinaryExpression().Right, expressions)
+func flattenCommaElement(node ast.Handle, expressions []ast.Handle) []ast.Handle {
+	if ast.IsBinaryExpression(node) && ast.NodeIsSynthesized(node) && node.BinaryExpressionOperatorToken().Kind() == ast.KindCommaToken {
+		expressions = flattenCommaElement(node.BinaryExpressionLeft(), expressions)
+		expressions = flattenCommaElement(node.BinaryExpressionRight(), expressions)
 	} else {
 		expressions = append(expressions, node)
 	}
 	return expressions
 }
-
-func flattenCommaElements(expressions []*ast.Expression) []*ast.Expression {
-	var result []*ast.Expression
+func flattenCommaElements(expressions []ast.Handle) []ast.Handle {
+	var result []ast.Handle
 	for _, expression := range expressions {
 		result = flattenCommaElement(expression, result)
 	}
 	return result
 }
 
-// Converts a slice of expressions into a single comma-delimited expression. Returns nil if expressions is nil or empty.
-func (f *NodeFactory) InlineExpressions(expressions []*ast.Expression) *ast.Expression {
+func (f *NodeFactory) InlineExpressions(expressions []ast.Handle) ast.Handle {
 	if len(expressions) == 0 {
-		return nil
+		return ast.Handle{}
 	}
 	if len(expressions) == 1 {
 		return expressions[0]
@@ -272,74 +198,47 @@ func (f *NodeFactory) InlineExpressions(expressions []*ast.Expression) *ast.Expr
 	}
 	return expression
 }
-
-//
-// Utilities
-//
-
-func (f *NodeFactory) CreateExpressionFromEntityName(node *ast.Node) *ast.Expression {
+func (f *NodeFactory) CreateExpressionFromEntityName(node ast.Handle) ast.Handle {
 	if ast.IsQualifiedName(node) {
-		left := f.CreateExpressionFromEntityName(node.AsQualifiedName().Left)
-		right := node.AsQualifiedName().Right.Clone(f.AsNodeFactory())
-		right.Loc = node.AsQualifiedName().Right.Loc
-		// TODO(rbuckton): Does this need to be parented?
-		right.Parent = node.AsQualifiedName().Right.Parent
-		propAccess := f.NewPropertyAccessExpression(left, nil, right, ast.NodeFlagsNone)
-		propAccess.Loc = node.Loc
+		left := f.CreateExpressionFromEntityName(node.QualifiedNameLeft())
+		right := f.DeepCloneNode(node.QualifiedNameRight())
+		right.SetLoc(node.QualifiedNameRight().Loc())
+		right.SetParent(node.QualifiedNameRight().Parent())
+		propAccess := f.NewPropertyAccessExpression(left, ast.Handle{}, right, ast.NodeFlagsNone)
+		propAccess.SetLoc(node.Loc())
 		return propAccess
 	}
-	res := node.Clone(f.AsNodeFactory())
-	res.Loc = node.Loc
-	// TODO(rbuckton): Does this need to be parented?
-	res.Parent = node.Parent
+	res := f.DeepCloneNode(node)
+	res.SetLoc(node.Loc())
+	res.SetParent(node.Parent())
 	return res
 }
-
-func (f *NodeFactory) RestoreEnclosingLabel(node *ast.Node, outermostLabeledStatement *ast.LabeledStatement) *ast.Node {
-	if outermostLabeledStatement == nil {
+func (f *NodeFactory) RestoreEnclosingLabel(node ast.Handle, outermostLabeledStatement ast.Handle) ast.Handle {
+	if outermostLabeledStatement.IsNil() {
 		return node
 	}
 	innerLabel := node
-	if ast.IsLabeledStatement(outermostLabeledStatement.Statement) {
-		innerLabel = f.RestoreEnclosingLabel(node, outermostLabeledStatement.Statement.AsLabeledStatement())
+	if ast.IsLabeledStatement(outermostLabeledStatement.Statement()) {
+		innerLabel = f.RestoreEnclosingLabel(node, outermostLabeledStatement.Statement())
 	}
-	return f.UpdateLabeledStatement(
-		outermostLabeledStatement,
-		outermostLabeledStatement.Label,
-		innerLabel,
-	)
+	return f.UpdateLabeledStatement(outermostLabeledStatement, outermostLabeledStatement.Label(), innerLabel)
 }
 
-// CreateForOfBindingStatement creates a statement to bind the iteration value.
-func (f *NodeFactory) CreateForOfBindingStatement(node *ast.Node, boundValue *ast.Node) *ast.Node {
+func (f *NodeFactory) CreateForOfBindingStatement(node ast.Handle, boundValue ast.Handle) ast.Handle {
 	if ast.IsVariableDeclarationList(node) {
-		firstDeclaration := node.AsVariableDeclarationList().Declarations.Nodes[0]
-		updatedDeclaration := f.UpdateVariableDeclaration(
-			firstDeclaration.AsVariableDeclaration(),
-			firstDeclaration.Name(),
-			nil, /*exclamationToken*/
-			nil, /*type*/
-			boundValue,
-		)
-		statement := f.NewVariableStatement(
-			nil,
-			f.UpdateVariableDeclarationList(
-				node.AsVariableDeclarationList(),
-				f.NewNodeList([]*ast.Node{updatedDeclaration}),
-				node.AsVariableDeclarationList().Flags,
-			),
-		)
-		statement.Loc = node.Loc
+		firstDeclaration := node.Store().ListSlice(node.VariableDeclarationListDeclarations())[0]
+		updatedDeclaration := f.UpdateVariableDeclaration(firstDeclaration, firstDeclaration.Name(), ast.Handle{}, ast.Handle{}, boundValue)
+		statement := f.NewVariableStatement(0, f.UpdateVariableDeclarationList(node, f.NewList([]ast.Handle{updatedDeclaration}), node.Flags()))
+		statement.SetLoc(node.Loc())
 		return statement
 	}
 	updatedExpression := f.NewAssignmentExpression(node, boundValue)
-	updatedExpression.Loc = node.Loc
+	updatedExpression.SetLoc(node.Loc())
 	statement := f.NewExpressionStatement(updatedExpression)
-	statement.Loc = node.Loc
+	statement.SetLoc(node.Loc())
 	return statement
 }
-
-func (f *NodeFactory) NewTypeCheck(value *ast.Node, tag string) *ast.Node {
+func (f *NodeFactory) NewTypeCheck(value ast.Handle, tag string) ast.Handle {
 	if tag == "null" {
 		return f.NewStrictEqualityExpression(value, f.NewKeywordExpression(ast.KindNullKeyword))
 	} else if tag == "undefined" {
@@ -348,101 +247,61 @@ func (f *NodeFactory) NewTypeCheck(value *ast.Node, tag string) *ast.Node {
 		return f.NewStrictEqualityExpression(f.NewTypeOfExpression(value), f.NewStringLiteral(tag, ast.TokenFlagsNone))
 	}
 }
-
-func (f *NodeFactory) NewMethodCall(object *ast.Node, methodName *ast.Node, argumentsList []*ast.Node) *ast.Node {
-	// Preserve the optionality of `object`.
-	if ast.IsCallExpression(object) && (object.Flags&ast.NodeFlagsOptionalChain != 0) {
-		return f.NewCallExpression(
-			f.NewPropertyAccessExpression(object, nil, methodName, ast.NodeFlagsNone),
-			nil,
-			nil,
-			f.NewNodeList(argumentsList),
-			ast.NodeFlagsOptionalChain,
-		)
+func (f *NodeFactory) NewMethodCall(object ast.Handle, methodName ast.Handle, argumentsList []ast.Handle) ast.Handle {
+	if ast.IsCallExpression(object) && (object.Flags()&ast.NodeFlagsOptionalChain != 0) {
+		return f.NewCallExpression(f.NewPropertyAccessExpression(object, ast.Handle{}, methodName, ast.NodeFlagsNone), ast.Handle{}, 0, f.NewList(argumentsList), ast.NodeFlagsOptionalChain)
 	}
-	return f.NewCallExpression(
-		f.NewPropertyAccessExpression(object, nil, methodName, ast.NodeFlagsNone),
-		nil,
-		nil,
-		f.NewNodeList(argumentsList),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewPropertyAccessExpression(object, ast.Handle{}, methodName, ast.NodeFlagsNone), ast.Handle{}, 0, f.NewList(argumentsList), ast.NodeFlagsNone)
 }
-
-func (f *NodeFactory) NewGlobalMethodCall(globalObjectName string, methodName string, argumentsList []*ast.Node) *ast.Node {
+func (f *NodeFactory) NewGlobalMethodCall(globalObjectName string, methodName string, argumentsList []ast.Handle) ast.Handle {
 	return f.NewMethodCall(f.NewIdentifier(globalObjectName), f.NewIdentifier(methodName), argumentsList)
 }
-
-func (f *NodeFactory) NewFunctionCallCall(target *ast.Expression, thisArg *ast.Expression, argumentsList []*ast.Node) *ast.Node {
-	if thisArg == nil {
+func (f *NodeFactory) NewFunctionCallCall(target ast.Handle, thisArg ast.Handle, argumentsList []ast.Handle) ast.Handle {
+	if thisArg.IsNil() {
 		panic("Attempted to construct function call call without this argument expression")
 	}
-	args := append([]*ast.Expression{thisArg}, argumentsList...)
+	args := append([]ast.Handle{thisArg}, argumentsList...)
 	return f.NewMethodCall(target, f.NewIdentifier("call"), args)
 }
-
-func (f *NodeFactory) NewArraySliceCall(array *ast.Expression, start int) *ast.Node {
-	var args []*ast.Node
+func (f *NodeFactory) NewArraySliceCall(array ast.Handle, start int) ast.Handle {
+	var args []ast.Handle
 	if start != 0 {
 		args = append(args, f.NewNumericLiteral(strconv.Itoa(start), ast.TokenFlagsNone))
 	}
 	return f.NewMethodCall(array, f.NewIdentifier("slice"), args)
 }
 
-// Determines whether a node is a parenthesized expression that can be ignored when recreating outer expressions.
-//
-// A parenthesized expression can be ignored when all of the following are true:
-//
-// - It's `pos` and `end` are not -1
-// - It does not have a custom source map range
-// - It does not have a custom comment range
-// - It does not have synthetic leading or trailing comments
-//
-// If an outermost parenthesized expression is ignored, but the containing expression requires a parentheses around
-// the expression to maintain precedence, a new parenthesized expression should be created automatically when
-// the containing expression is created/updated.
-func (f *NodeFactory) isIgnorableParen(node *ast.Expression) bool {
-	return ast.IsParenthesizedExpression(node) &&
-		ast.NodeIsSynthesized(node) &&
-		ast.RangeIsSynthesized(f.emitContext.SourceMapRange(node)) &&
-		ast.RangeIsSynthesized(f.emitContext.CommentRange(node)) // &&
-	// len(emitContext.SyntheticLeadingComments(node)) == 0 &&
-	// len(emitContext.SyntheticTrailingComments(node)) == 0
+func (f *NodeFactory) isIgnorableParen(node ast.Handle) bool {
+	return ast.IsParenthesizedExpression(node) && ast.NodeIsSynthesized(node) && ast.RangeIsSynthesized(f.emitContext.SourceMapRange(node)) && ast.RangeIsSynthesized(f.emitContext.CommentRange(node))
 }
-
-func (f *NodeFactory) updateOuterExpression(outerExpression *ast.Expression /*OuterExpression*/, expression *ast.Expression) *ast.Expression {
-	switch outerExpression.Kind {
+func (f *NodeFactory) updateOuterExpression(outerExpression ast.Handle, expression ast.Handle) ast.Handle {
+	switch outerExpression.Kind() {
 	case ast.KindParenthesizedExpression:
-		return f.UpdateParenthesizedExpression(outerExpression.AsParenthesizedExpression(), expression)
+		return f.UpdateParenthesizedExpression(outerExpression, expression)
 	case ast.KindTypeAssertionExpression:
-		return f.UpdateTypeAssertion(outerExpression.AsTypeAssertion(), outerExpression.Type(), expression)
+		return f.UpdateTypeAssertion(outerExpression, outerExpression.Type(), expression)
 	case ast.KindAsExpression:
-		return f.UpdateAsExpression(outerExpression.AsAsExpression(), expression, outerExpression.Type())
+		return f.UpdateAsExpression(outerExpression, expression, outerExpression.Type())
 	case ast.KindSatisfiesExpression:
-		return f.UpdateSatisfiesExpression(outerExpression.AsSatisfiesExpression(), expression, outerExpression.Type())
+		return f.UpdateSatisfiesExpression(outerExpression, expression, outerExpression.Type())
 	case ast.KindNonNullExpression:
-		return f.UpdateNonNullExpression(outerExpression.AsNonNullExpression(), expression, outerExpression.Flags)
+		return f.UpdateNonNullExpression(outerExpression, expression, outerExpression.Flags())
 	case ast.KindExpressionWithTypeArguments:
-		return f.UpdateExpressionWithTypeArguments(outerExpression.AsExpressionWithTypeArguments(), expression, outerExpression.TypeArgumentList())
+		return f.UpdateExpressionWithTypeArguments(outerExpression, expression, outerExpression.TypeArgumentList())
 	case ast.KindPartiallyEmittedExpression:
-		return f.UpdatePartiallyEmittedExpression(outerExpression.AsPartiallyEmittedExpression(), expression)
+		return f.UpdatePartiallyEmittedExpression(outerExpression, expression)
 	default:
-		panic(fmt.Sprintf("Unexpected outer expression kind: %s", outerExpression.Kind))
+		panic(fmt.Sprintf("Unexpected outer expression kind: %s", outerExpression.Kind()))
 	}
 }
-
-func (f *NodeFactory) RestoreOuterExpressions(outerExpression *ast.Expression, innerExpression *ast.Expression, kinds ast.OuterExpressionKinds) *ast.Expression {
-	if outerExpression != nil && ast.IsOuterExpression(outerExpression, kinds) && !f.isIgnorableParen(outerExpression) {
-		return f.updateOuterExpression(
-			outerExpression,
-			f.RestoreOuterExpressions(outerExpression.Expression(), innerExpression, ast.OEKAll),
-		)
+func (f *NodeFactory) RestoreOuterExpressions(outerExpression ast.Handle, innerExpression ast.Handle, kinds ast.OuterExpressionKinds) ast.Handle {
+	if !outerExpression.IsNil() && ast.IsOuterExpression(outerExpression, kinds) && !f.isIgnorableParen(outerExpression) {
+		return f.updateOuterExpression(outerExpression, f.RestoreOuterExpressions(outerExpression.Expression(), innerExpression, ast.OEKAll))
 	}
 	return innerExpression
 }
 
-// Ensures `"use strict"` is the first statement of a slice of statements.
-func (f *NodeFactory) EnsureUseStrict(statements []*ast.Statement) []*ast.Statement {
+func (f *NodeFactory) EnsureUseStrict(statements []ast.Handle) []ast.Handle {
 	for _, statement := range statements {
 		if ast.IsPrologueDirective(statement) && statement.Expression().Text() == "use strict" {
 			return statements
@@ -451,12 +310,11 @@ func (f *NodeFactory) EnsureUseStrict(statements []*ast.Statement) []*ast.Statem
 		}
 	}
 	useStrictPrologue := f.NewExpressionStatement(f.NewStringLiteral("use strict", ast.TokenFlagsNone))
-	statements = append([]*ast.Statement{useStrictPrologue}, statements...)
+	statements = append([]ast.Handle{useStrictPrologue}, statements...)
 	return statements
 }
 
-// Splits a slice of statements into two parts: standard prologue statements and the rest of the statements
-func (f *NodeFactory) SplitStandardPrologue(source []*ast.Statement) (prologue []*ast.Statement, rest []*ast.Statement) {
+func (f *NodeFactory) SplitStandardPrologue(source []ast.Handle) (prologue []ast.Handle, rest []ast.Handle) {
 	for i, statement := range source {
 		if !ast.IsPrologueDirective(statement) {
 			return source[:i], source[i:]
@@ -465,8 +323,7 @@ func (f *NodeFactory) SplitStandardPrologue(source []*ast.Statement) (prologue [
 	return source, nil
 }
 
-// Splits a slice of statements into two parts: custom prologue statements (e.g., with `EFCustomPrologue` set) and the rest of the statements
-func (f *NodeFactory) SplitCustomPrologue(source []*ast.Statement) (prologue []*ast.Statement, rest []*ast.Statement) {
+func (f *NodeFactory) SplitCustomPrologue(source []ast.Handle) (prologue []ast.Handle, rest []ast.Handle) {
 	for i, statement := range source {
 		if ast.IsPrologueDirective(statement) || f.emitContext.EmitFlags(statement)&EFCustomPrologue == 0 {
 			return source[:i], source[i:]
@@ -475,33 +332,27 @@ func (f *NodeFactory) SplitCustomPrologue(source []*ast.Statement) (prologue []*
 	return nil, source
 }
 
-//
-// Declaration Names
-//
-
 type NameOptions struct {
-	AllowComments   bool // indicates whether comments may be emitted for the name.
-	AllowSourceMaps bool // indicates whether source maps may be emitted for the name.
+	AllowComments   bool
+	AllowSourceMaps bool
 }
-
 type AssignedNameOptions struct {
-	AllowComments      bool // indicates whether comments may be emitted for the name.
-	AllowSourceMaps    bool // indicates whether source maps may be emitted for the name.
-	IgnoreAssignedName bool // indicates whether the assigned name of a declaration shouldn't be considered.
+	AllowComments      bool
+	AllowSourceMaps    bool
+	IgnoreAssignedName bool
 }
 
-func (f *NodeFactory) getName(node *ast.Declaration, emitFlags EmitFlags, opts AssignedNameOptions) *ast.IdentifierNode {
-	var nodeName *ast.IdentifierNode
-	if node != nil {
+func (f *NodeFactory) getName(node ast.Handle, emitFlags EmitFlags, opts AssignedNameOptions) ast.Handle {
+	var nodeName ast.Handle
+	if !node.IsNil() {
 		if opts.IgnoreAssignedName {
 			nodeName = ast.GetNonAssignedNameOfDeclaration(node)
 		} else {
 			nodeName = ast.GetNameOfDeclaration(node)
 		}
 	}
-
-	if nodeName != nil {
-		name := nodeName.Clone(f)
+	if !nodeName.IsNil() {
+		name := f.DeepCloneNode(nodeName)
 		if !opts.AllowComments {
 			emitFlags |= EFNoComments
 		}
@@ -511,55 +362,37 @@ func (f *NodeFactory) getName(node *ast.Declaration, emitFlags EmitFlags, opts A
 		f.emitContext.AddEmitFlags(name, emitFlags)
 		return name
 	}
-
 	return f.NewGeneratedNameForNode(node)
 }
 
-// Gets the local name of a declaration. This is primarily used for declarations that can be referred to by name in the
-// declaration's immediate scope (classes, enums, namespaces). A local name will *never* be prefixed with a module or
-// namespace export modifier like "exports." when emitted as an expression.
-func (f *NodeFactory) GetLocalName(node *ast.Declaration) *ast.IdentifierNode {
+func (f *NodeFactory) GetLocalName(node ast.Handle) ast.Handle {
 	return f.GetLocalNameEx(node, AssignedNameOptions{})
 }
 
-// Gets the local name of a declaration. This is primarily used for declarations that can be referred to by name in the
-// declaration's immediate scope (classes, enums, namespaces). A local name will *never* be prefixed with a module or
-// namespace export modifier like "exports." when emitted as an expression.
-func (f *NodeFactory) GetLocalNameEx(node *ast.Declaration, opts AssignedNameOptions) *ast.IdentifierNode {
+func (f *NodeFactory) GetLocalNameEx(node ast.Handle, opts AssignedNameOptions) ast.Handle {
 	return f.getName(node, EFLocalName, opts)
 }
 
-// Gets the export name of a declaration. This is primarily used for declarations that can be
-// referred to by name in the declaration's immediate scope (classes, enums, namespaces). An
-// export name will *always* be prefixed with an module or namespace export modifier like
-// `"exports."` when emitted as an expression if the name points to an exported symbol.
-func (f *NodeFactory) GetExportName(node *ast.Declaration) *ast.IdentifierNode {
+func (f *NodeFactory) GetExportName(node ast.Handle) ast.Handle {
 	return f.GetExportNameEx(node, AssignedNameOptions{})
 }
 
-// Gets the export name of a declaration. This is primarily used for declarations that can be
-// referred to by name in the declaration's immediate scope (classes, enums, namespaces). An
-// export name will *always* be prefixed with an module or namespace export modifier like
-// `"exports."` when emitted as an expression if the name points to an exported symbol.
-func (f *NodeFactory) GetExportNameEx(node *ast.Declaration, opts AssignedNameOptions) *ast.IdentifierNode {
+func (f *NodeFactory) GetExportNameEx(node ast.Handle, opts AssignedNameOptions) ast.Handle {
 	return f.getName(node, EFExportName, opts)
 }
 
-// Gets the name of a declaration to use during emit.
-func (f *NodeFactory) GetDeclarationName(node *ast.Declaration) *ast.IdentifierNode {
+func (f *NodeFactory) GetDeclarationName(node ast.Handle) ast.Handle {
 	return f.GetDeclarationNameEx(node, NameOptions{})
 }
 
-// Gets the name of a declaration to use during emit.
-func (f *NodeFactory) GetDeclarationNameEx(node *ast.Declaration, opts NameOptions) *ast.IdentifierNode {
+func (f *NodeFactory) GetDeclarationNameEx(node ast.Handle, opts NameOptions) ast.Handle {
 	return f.getName(node, EFNone, AssignedNameOptions{AllowComments: opts.AllowComments, AllowSourceMaps: opts.AllowSourceMaps})
 }
-
-func (f *NodeFactory) GetNamespaceMemberName(ns *ast.IdentifierNode, name *ast.IdentifierNode, opts NameOptions) *ast.IdentifierNode {
+func (f *NodeFactory) GetNamespaceMemberName(ns ast.Handle, name ast.Handle, opts NameOptions) ast.Handle {
 	if !f.emitContext.HasAutoGenerateInfo(name) {
-		name = name.Clone(f)
+		name = f.DeepCloneNode(name)
 	}
-	qualifiedName := f.NewPropertyAccessExpression(ns, nil /*questionDotToken*/, name, ast.NodeFlagsNone)
+	qualifiedName := f.NewPropertyAccessExpression(ns, ast.Handle{}, name, ast.NodeFlagsNone)
 	f.emitContext.AssignCommentAndSourceMapRanges(qualifiedName, name)
 	if !opts.AllowComments {
 		f.emitContext.AddEmitFlags(qualifiedName, EFNoComments)
@@ -570,106 +403,50 @@ func (f *NodeFactory) GetNamespaceMemberName(ns *ast.IdentifierNode, name *ast.I
 	return qualifiedName
 }
 
-// Gets the export name of a declaration for use in expressions.
-//
-// An export name will *always* be prefixed with a module or namespace export modifier like
-// `"exports."` when emitted as an expression if the name points to an exported symbol.
-func (f *NodeFactory) GetExternalModuleOrNamespaceExportName(ns *ast.IdentifierNode, node *ast.Declaration, allowComments bool, allowSourceMaps bool) *ast.Node {
-	if ns != nil && ast.HasSyntacticModifier(node, ast.ModifierFlagsExport) {
+func (f *NodeFactory) GetExternalModuleOrNamespaceExportName(ns ast.Handle, node ast.Handle, allowComments bool, allowSourceMaps bool) ast.Handle {
+	if !ns.IsNil() && ast.HasSyntacticModifier(node, ast.ModifierFlagsExport) {
 		nameOpts := NameOptions{AllowComments: allowComments, AllowSourceMaps: allowSourceMaps}
 		return f.GetNamespaceMemberName(ns, f.GetDeclarationNameEx(node, nameOpts), nameOpts)
 	}
 	return f.GetExportNameEx(node, AssignedNameOptions{AllowComments: allowComments, AllowSourceMaps: allowSourceMaps})
 }
 
-//
-// Emit Helpers
-//
-
-// Allocates a new Identifier representing a reference to a helper function.
-func (f *NodeFactory) NewUnscopedHelperName(name string) *ast.IdentifierNode {
+func (f *NodeFactory) NewUnscopedHelperName(name string) ast.Handle {
 	node := f.NewIdentifier(name)
 	f.emitContext.SetEmitFlags(node, EFHelperName)
 	return node
 }
-
-// TypeScript Helpers
-
-func (f *NodeFactory) NewDecorateHelper(decoratorExpressions []*ast.Node, target *ast.Node, memberName *ast.Node, descriptor *ast.Node) *ast.Expression {
+func (f *NodeFactory) NewDecorateHelper(decoratorExpressions []ast.Handle, target ast.Handle, memberName ast.Handle, descriptor ast.Handle) ast.Handle {
 	f.emitContext.RequestEmitHelper(decorateHelper)
-
-	var argumentsArray []*ast.Node
-	argumentsArray = append(argumentsArray, f.NewArrayLiteralExpression(f.NewNodeList(decoratorExpressions), true))
+	var argumentsArray []ast.Handle
+	argumentsArray = append(argumentsArray, f.NewArrayLiteralExpression(f.NewList(decoratorExpressions), true))
 	argumentsArray = append(argumentsArray, target)
-	if memberName != nil {
+	if !memberName.IsNil() {
 		argumentsArray = append(argumentsArray, memberName)
-		if descriptor != nil {
+		if !descriptor.IsNil() {
 			argumentsArray = append(argumentsArray, descriptor)
 		}
 	}
-
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__decorate"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList(argumentsArray),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__decorate"), ast.Handle{}, 0, f.NewList(argumentsArray), ast.NodeFlagsNone)
 }
-
-func (f *NodeFactory) NewMetadataHelper(metadataKey string, metadataValue *ast.Node) *ast.Node {
+func (f *NodeFactory) NewMetadataHelper(metadataKey string, metadataValue ast.Handle) ast.Handle {
 	f.emitContext.RequestEmitHelper(metadataHelper)
-
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__metadata"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Node{
-			f.NewStringLiteral(metadataKey, ast.TokenFlagsNone),
-			metadataValue,
-		}),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__metadata"), ast.Handle{}, 0, f.NewList([]ast.Handle{f.NewStringLiteral(metadataKey, ast.TokenFlagsNone), metadataValue}), ast.NodeFlagsNone)
 }
-
-func (f *NodeFactory) NewParamHelper(expression *ast.Node, parameterOffset int, location core.TextRange) *ast.Expression {
+func (f *NodeFactory) NewParamHelper(expression ast.Handle, parameterOffset int, location core.TextRange) ast.Handle {
 	f.emitContext.RequestEmitHelper(paramHelper)
-	helper := f.NewCallExpression(
-		f.NewUnscopedHelperName("__param"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Expression{f.NewNumericLiteral(strconv.Itoa(parameterOffset), ast.TokenFlagsNone), expression}),
-		ast.NodeFlagsNone,
-	)
-	helper.Loc = location
+	helper := f.NewCallExpression(f.NewUnscopedHelperName("__param"), ast.Handle{}, 0, f.NewList([]ast.Handle{f.NewNumericLiteral(strconv.Itoa(parameterOffset), ast.TokenFlagsNone), expression}), ast.NodeFlagsNone)
+	helper.SetLoc(location)
 	return helper
 }
-
-// ESNext Helpers
-
-func (f *NodeFactory) NewAddDisposableResourceHelper(envBinding *ast.Expression, value *ast.Expression, async bool) *ast.Expression {
+func (f *NodeFactory) NewAddDisposableResourceHelper(envBinding ast.Handle, value ast.Handle, async bool) ast.Handle {
 	f.emitContext.RequestEmitHelper(addDisposableResourceHelper)
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__addDisposableResource"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Expression{envBinding, value, f.NewKeywordExpression(core.IfElse(async, ast.KindTrueKeyword, ast.KindFalseKeyword))}),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__addDisposableResource"), ast.Handle{}, 0, f.NewList([]ast.Handle{envBinding, value, f.NewKeywordExpression(core.IfElse(async, ast.KindTrueKeyword, ast.KindFalseKeyword))}), ast.NodeFlagsNone)
 }
-
-func (f *NodeFactory) NewDisposeResourcesHelper(envBinding *ast.Expression) *ast.Expression {
+func (f *NodeFactory) NewDisposeResourcesHelper(envBinding ast.Handle) ast.Handle {
 	f.emitContext.RequestEmitHelper(disposeResourcesHelper)
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__disposeResources"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Expression{envBinding}),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__disposeResources"), ast.Handle{}, 0, f.NewList([]ast.Handle{envBinding}), ast.NodeFlagsNone)
 }
-
-// Class Fields Helpers
 
 type PrivateIdentifierKind string
 
@@ -680,633 +457,283 @@ const (
 	PrivateIdentifierKindUntransformed PrivateIdentifierKind = "untransformed"
 )
 
-func (f *NodeFactory) NewClassPrivateFieldGetHelper(receiver *ast.Expression, state *ast.IdentifierNode, kind PrivateIdentifierKind, fn *ast.IdentifierNode) *ast.Expression {
+func (f *NodeFactory) NewClassPrivateFieldGetHelper(receiver ast.Handle, state ast.Handle, kind PrivateIdentifierKind, fn ast.Handle) ast.Handle {
 	f.emitContext.RequestEmitHelper(classPrivateFieldGetHelper)
-	var args []*ast.Node
-	if fn == nil {
-		args = []*ast.Node{receiver, state, f.NewStringLiteral(string(kind), ast.TokenFlagsNone)}
+	var args []ast.Handle
+	if fn.IsNil() {
+		args = []ast.Handle{receiver, state, f.NewStringLiteral(string(kind), ast.TokenFlagsNone)}
 	} else {
-		args = []*ast.Node{receiver, state, f.NewStringLiteral(string(kind), ast.TokenFlagsNone), fn}
+		args = []ast.Handle{receiver, state, f.NewStringLiteral(string(kind), ast.TokenFlagsNone), fn}
 	}
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__classPrivateFieldGet"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList(args),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__classPrivateFieldGet"), ast.Handle{}, 0, f.NewList(args), ast.NodeFlagsNone)
 }
-
-func (f *NodeFactory) NewClassPrivateFieldSetHelper(receiver *ast.Expression, state *ast.IdentifierNode, value *ast.Expression, kind PrivateIdentifierKind, fn *ast.IdentifierNode) *ast.Expression {
+func (f *NodeFactory) NewClassPrivateFieldSetHelper(receiver ast.Handle, state ast.Handle, value ast.Handle, kind PrivateIdentifierKind, fn ast.Handle) ast.Handle {
 	f.emitContext.RequestEmitHelper(classPrivateFieldSetHelper)
-	var args []*ast.Node
-	if fn == nil {
-		args = []*ast.Node{receiver, state, value, f.NewStringLiteral(string(kind), ast.TokenFlagsNone)}
+	var args []ast.Handle
+	if fn.IsNil() {
+		args = []ast.Handle{receiver, state, value, f.NewStringLiteral(string(kind), ast.TokenFlagsNone)}
 	} else {
-		args = []*ast.Node{receiver, state, value, f.NewStringLiteral(string(kind), ast.TokenFlagsNone), fn}
+		args = []ast.Handle{receiver, state, value, f.NewStringLiteral(string(kind), ast.TokenFlagsNone), fn}
 	}
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__classPrivateFieldSet"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList(args),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__classPrivateFieldSet"), ast.Handle{}, 0, f.NewList(args), ast.NodeFlagsNone)
 }
-
-func (f *NodeFactory) NewClassPrivateFieldInHelper(state *ast.IdentifierNode, receiver *ast.Expression) *ast.Expression {
+func (f *NodeFactory) NewClassPrivateFieldInHelper(state ast.Handle, receiver ast.Handle) ast.Handle {
 	f.emitContext.RequestEmitHelper(classPrivateFieldInHelper)
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__classPrivateFieldIn"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Expression{state, receiver}),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__classPrivateFieldIn"), ast.Handle{}, 0, f.NewList([]ast.Handle{state, receiver}), ast.NodeFlagsNone)
 }
 
-// Creates `Object.defineProperty(target, name, descriptor)`.
-func (f *NodeFactory) NewObjectDefinePropertyCall(target *ast.Expression, name *ast.Expression, descriptor *ast.Expression) *ast.Expression {
-	return f.NewCallExpression(
-		f.NewPropertyAccessExpression(
-			f.NewIdentifier("Object"),
-			nil,
-			f.NewIdentifier("defineProperty"),
-			ast.NodeFlagsNone,
-		),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Expression{target, name, descriptor}),
-		ast.NodeFlagsNone,
-	)
+func (f *NodeFactory) NewObjectDefinePropertyCall(target ast.Handle, name ast.Handle, descriptor ast.Handle) ast.Handle {
+	return f.NewCallExpression(f.NewPropertyAccessExpression(f.NewIdentifier("Object"), ast.Handle{}, f.NewIdentifier("defineProperty"), ast.NodeFlagsNone), ast.Handle{}, 0, f.NewList([]ast.Handle{target, name, descriptor}), ast.NodeFlagsNone)
 }
 
-// Creates `Reflect.get(target, propertyKey, receiver)`.
-func (f *NodeFactory) NewReflectGetCall(target *ast.Expression, propertyKey *ast.Expression, receiver *ast.Expression) *ast.Expression {
-	return f.NewCallExpression(
-		f.NewPropertyAccessExpression(
-			f.NewIdentifier("Reflect"),
-			nil,
-			f.NewIdentifier("get"),
-			ast.NodeFlagsNone,
-		),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Expression{target, propertyKey, receiver}),
-		ast.NodeFlagsNone,
-	)
+func (f *NodeFactory) NewReflectGetCall(target ast.Handle, propertyKey ast.Handle, receiver ast.Handle) ast.Handle {
+	return f.NewCallExpression(f.NewPropertyAccessExpression(f.NewIdentifier("Reflect"), ast.Handle{}, f.NewIdentifier("get"), ast.NodeFlagsNone), ast.Handle{}, 0, f.NewList([]ast.Handle{target, propertyKey, receiver}), ast.NodeFlagsNone)
 }
 
-// Creates `Reflect.set(target, propertyKey, value, receiver)`.
-func (f *NodeFactory) NewReflectSetCall(target *ast.Expression, propertyKey *ast.Expression, value *ast.Expression, receiver *ast.Expression) *ast.Expression {
-	return f.NewCallExpression(
-		f.NewPropertyAccessExpression(
-			f.NewIdentifier("Reflect"),
-			nil,
-			f.NewIdentifier("set"),
-			ast.NodeFlagsNone,
-		),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Expression{target, propertyKey, value, receiver}),
-		ast.NodeFlagsNone,
-	)
+func (f *NodeFactory) NewReflectSetCall(target ast.Handle, propertyKey ast.Handle, value ast.Handle, receiver ast.Handle) ast.Handle {
+	return f.NewCallExpression(f.NewPropertyAccessExpression(f.NewIdentifier("Reflect"), ast.Handle{}, f.NewIdentifier("set"), ast.NodeFlagsNone), ast.Handle{}, 0, f.NewList([]ast.Handle{target, propertyKey, value, receiver}), ast.NodeFlagsNone)
 }
 
-// Creates `target.bind(thisArg, ...args)`.
-func (f *NodeFactory) NewFunctionBindCall(target *ast.Expression, thisArg *ast.Expression, argumentsList []*ast.Node) *ast.Expression {
-	args := make([]*ast.Node, 0, 1+len(argumentsList))
+func (f *NodeFactory) NewFunctionBindCall(target ast.Handle, thisArg ast.Handle, argumentsList []ast.Handle) ast.Handle {
+	args := make([]ast.Handle, 0, 1+len(argumentsList))
 	args = append(args, thisArg)
 	args = append(args, argumentsList...)
 	return f.NewMethodCall(target, f.NewIdentifier("bind"), args)
 }
 
-// Creates `(() => { ...statements })()` — an immediately invoked arrow function.
-func (f *NodeFactory) NewImmediatelyInvokedArrowFunction(statements []*ast.Statement) *ast.Expression {
-	arrow := f.NewArrowFunction(
-		nil,                          /*modifiers*/
-		nil,                          /*typeParameters*/
-		f.NewNodeList([]*ast.Node{}), /*parameters*/
-		nil,                          /*returnType*/
-		nil,                          /*fullSignature*/
-		f.NewToken(ast.KindEqualsGreaterThanToken), /*equalsGreaterThanToken*/
-		f.NewBlock(f.NewNodeList(statements), true),
-	)
-	return f.NewCallExpression(
-		f.NewParenthesizedExpression(arrow),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Node{}),
-		ast.NodeFlagsNone,
-	)
+func (f *NodeFactory) NewImmediatelyInvokedArrowFunction(statements []ast.Handle) ast.Handle {
+	arrow := f.NewArrowFunction(0, 0, f.NewList([]ast.Handle{}), ast.Handle{}, ast.Handle{}, f.NewToken(ast.KindEqualsGreaterThanToken), f.NewBlock(f.NewList(statements), true))
+	return f.NewCallExpression(f.NewParenthesizedExpression(arrow), ast.Handle{}, 0, f.NewList([]ast.Handle{}), ast.NodeFlagsNone)
 }
 
-// Creates `export default <expression>;`.
-func (f *NodeFactory) NewExportDefault(expression *ast.Expression) *ast.Statement {
-	return f.NewExportAssignment(nil, false, nil, expression)
+func (f *NodeFactory) NewExportDefault(expression ast.Handle) ast.Handle {
+	return f.NewExportAssignment(0, false, ast.Handle{}, expression)
 }
 
-// Creates `export { <name> };`.
-func (f *NodeFactory) NewExternalModuleExport(name *ast.IdentifierNode) *ast.Statement {
-	specifier := f.NewExportSpecifier(false, nil, name)
-	namedExports := f.NewNamedExports(f.NewNodeList([]*ast.Node{specifier}))
-	return f.NewExportDeclaration(nil, false, namedExports, nil, nil)
+func (f *NodeFactory) NewExternalModuleExport(name ast.Handle) ast.Handle {
+	specifier := f.NewExportSpecifier(false, ast.Handle{}, name)
+	namedExports := f.NewNamedExports(f.NewList([]ast.Handle{specifier}))
+	return f.NewExportDeclaration(0, false, namedExports, ast.Handle{}, ast.Handle{})
 }
 
-// ES2018 Helpers
-// Chains a sequence of expressions using the __assign helper or Object.assign if available in the target
-func (f *NodeFactory) NewAssignHelper(attributesSegments []*ast.Expression, scriptTarget core.ScriptTarget) *ast.Expression {
-	return f.NewCallExpression(f.NewPropertyAccessExpression(f.NewIdentifier("Object"), nil, f.NewIdentifier("assign"), ast.NodeFlagsNone), nil, nil, f.NewNodeList(attributesSegments), ast.NodeFlagsNone)
+func (f *NodeFactory) NewAssignHelper(attributesSegments []ast.Handle, scriptTarget core.ScriptTarget) ast.Handle {
+	return f.NewCallExpression(f.NewPropertyAccessExpression(f.NewIdentifier("Object"), ast.Handle{}, f.NewIdentifier("assign"), ast.NodeFlagsNone), ast.Handle{}, 0, f.NewList(attributesSegments), ast.NodeFlagsNone)
 }
-
-// ES2018 Destructuring Helpers
-
-func (f *NodeFactory) NewRestHelper(value *ast.Expression, elements []*ast.Node, computedTempVariables []*ast.Node, location core.TextRange) *ast.Expression {
+func (f *NodeFactory) NewRestHelper(value ast.Handle, elements []ast.Handle, computedTempVariables []ast.Handle, location core.TextRange) ast.Handle {
 	f.emitContext.RequestEmitHelper(restHelper)
-	var propertyNames []*ast.Node
+	var propertyNames []ast.Handle
 	computedTempVariableOffset := 0
 	for i, element := range elements {
 		if i == len(elements)-1 {
 			break
 		}
 		propertyName := ast.TryGetPropertyNameOfBindingOrAssignmentElement(element)
-		if propertyName != nil {
+		if !propertyName.IsNil() {
 			if ast.IsComputedPropertyName(propertyName) {
 				debug.Assert(computedTempVariables != nil, "Encountered computed property name but 'computedTempVariables' argument was not provided.")
 				temp := computedTempVariables[computedTempVariableOffset]
 				computedTempVariableOffset++
-				// typeof _tmp === "symbol" ? _tmp : _tmp + ""
-				propertyNames = append(propertyNames, f.NewConditionalExpression(
-					f.NewTypeCheck(temp, "symbol"),
-					f.NewToken(ast.KindQuestionToken),
-					temp,
-					f.NewToken(ast.KindColonToken),
-					f.NewBinaryExpression(nil, temp, nil, f.NewToken(ast.KindPlusToken), f.NewStringLiteral("", ast.TokenFlagsNone)),
-				))
+				propertyNames = append(propertyNames, f.NewConditionalExpression(f.NewTypeCheck(temp, "symbol"), f.NewToken(ast.KindQuestionToken), temp, f.NewToken(ast.KindColonToken), f.NewBinaryExpression(0, temp, ast.Handle{}, f.NewToken(ast.KindPlusToken), f.NewStringLiteral("", ast.TokenFlagsNone))))
 			} else {
 				propertyNames = append(propertyNames, f.NewStringLiteralFromNode(propertyName))
 			}
 		}
 	}
-	propNames := f.NewArrayLiteralExpression(f.NewNodeList(propertyNames), false)
-	propNames.Loc = location
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__rest"),
-		nil,
-		nil,
-		f.NewNodeList([]*ast.Node{
-			value,
-			propNames,
-		}),
-		ast.NodeFlagsNone,
-	)
+	propNames := f.NewArrayLiteralExpression(f.NewList(propertyNames), false)
+	propNames.SetLoc(location)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__rest"), ast.Handle{}, 0, f.NewList([]ast.Handle{value, propNames}), ast.NodeFlagsNone)
 }
 
-// ES2018 Helpers
-
-// Allocates a new Call expression to the `__await` helper.
-func (f *NodeFactory) NewAwaitHelper(expression *ast.Expression) *ast.Expression {
+func (f *NodeFactory) NewAwaitHelper(expression ast.Handle) ast.Handle {
 	f.emitContext.RequestEmitHelper(awaitHelper)
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__await"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Expression{expression}),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__await"), ast.Handle{}, 0, f.NewList([]ast.Handle{expression}), ast.NodeFlagsNone)
 }
 
-// Allocates a new Call expression to the `__asyncGenerator` helper.
-func (f *NodeFactory) NewAsyncGeneratorHelper(
-	generatorFunc *ast.Expression,
-	hasLexicalThis bool,
-) *ast.Expression {
+func (f *NodeFactory) NewAsyncGeneratorHelper(generatorFunc ast.Handle, hasLexicalThis bool) ast.Handle {
 	f.emitContext.RequestEmitHelper(awaitHelper)
 	f.emitContext.RequestEmitHelper(asyncGeneratorHelper)
-
-	// Mark this node as originally an async function body
 	f.emitContext.AddEmitFlags(generatorFunc, EFAsyncFunctionBody|EFReuseTempVariableScope)
-
-	var thisArg *ast.Expression
+	var thisArg ast.Handle
 	if hasLexicalThis {
 		thisArg = f.NewKeywordExpression(ast.KindThisKeyword)
 	} else {
 		thisArg = f.NewVoidZeroExpression()
 	}
-
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__asyncGenerator"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Expression{
-			thisArg,
-			f.NewIdentifier("arguments"),
-			generatorFunc,
-		}),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__asyncGenerator"), ast.Handle{}, 0, f.NewList([]ast.Handle{thisArg, f.NewIdentifier("arguments"), generatorFunc}), ast.NodeFlagsNone)
 }
 
-// Allocates a new Call expression to the `__asyncDelegator` helper.
-func (f *NodeFactory) NewAsyncDelegatorHelper(expression *ast.Expression) *ast.Expression {
+func (f *NodeFactory) NewAsyncDelegatorHelper(expression ast.Handle) ast.Handle {
 	f.emitContext.RequestEmitHelper(awaitHelper)
 	f.emitContext.RequestEmitHelper(asyncDelegatorHelper)
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__asyncDelegator"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Expression{expression}),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__asyncDelegator"), ast.Handle{}, 0, f.NewList([]ast.Handle{expression}), ast.NodeFlagsNone)
 }
 
-// Allocates a new Call expression to the `__asyncValues` helper.
-func (f *NodeFactory) NewAsyncValuesHelper(expression *ast.Expression) *ast.Expression {
+func (f *NodeFactory) NewAsyncValuesHelper(expression ast.Handle) ast.Handle {
 	f.emitContext.RequestEmitHelper(asyncValuesHelper)
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__asyncValues"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Expression{expression}),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__asyncValues"), ast.Handle{}, 0, f.NewList([]ast.Handle{expression}), ast.NodeFlagsNone)
 }
 
-// !!! ES2017 Helpers
-
-// Allocates a new Call expression to the `__awaiter` helper.
-func (f *NodeFactory) NewAwaiterHelper(
-	hasLexicalThis bool,
-	argumentsExpression *ast.Expression,
-	parameters *ast.NodeList,
-	body *ast.BlockNode,
-) *ast.Expression {
+func (f *NodeFactory) NewAwaiterHelper(hasLexicalThis bool, argumentsExpression ast.Handle, parameters ast.ListRef, body ast.Handle) ast.Handle {
 	f.emitContext.RequestEmitHelper(awaiterHelper)
-
-	var params *ast.NodeList
-	if parameters != nil {
+	var params ast.ListRef
+	if parameters != 0 {
 		params = parameters
 	} else {
-		params = f.NewNodeList([]*ast.Node{})
+		params = f.NewList([]ast.Handle{})
 	}
-
-	generatorFunc := f.NewFunctionExpression(
-		nil, /*modifiers*/
-		f.NewToken(ast.KindAsteriskToken),
-		nil, /*name*/
-		nil, /*typeParameters*/
-		params,
-		nil, /*returnType*/
-		nil, /*fullSignature*/
-		body,
-	)
-
-	// Mark this node as originally an async function body
+	generatorFunc := f.NewFunctionExpression(0, f.NewToken(ast.KindAsteriskToken), ast.Handle{}, 0, params, ast.Handle{}, ast.Handle{}, body)
 	f.emitContext.AddEmitFlags(generatorFunc, EFAsyncFunctionBody|EFReuseTempVariableScope)
-
-	var thisArg *ast.Expression
+	var thisArg ast.Handle
 	if hasLexicalThis {
 		thisArg = f.NewKeywordExpression(ast.KindThisKeyword)
 	} else {
 		thisArg = f.NewVoidZeroExpression()
 	}
-
-	var argsArg *ast.Expression
-	if argumentsExpression != nil {
+	var argsArg ast.Handle
+	if !argumentsExpression.IsNil() {
 		argsArg = argumentsExpression
 	} else {
 		argsArg = f.NewVoidZeroExpression()
 	}
-
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__awaiter"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Expression{
-			thisArg,
-			argsArg,
-			f.NewVoidZeroExpression(),
-			generatorFunc,
-		}),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__awaiter"), ast.Handle{}, 0, f.NewList([]ast.Handle{thisArg, argsArg, f.NewVoidZeroExpression(), generatorFunc}), ast.NodeFlagsNone)
 }
-
-// ES Decorator Helpers
-
-func (f *NodeFactory) NewESDecorateClassContextObject(nameExpr *ast.Expression, metadata *ast.IdentifierNode) *ast.Expression {
-	props := []*ast.Node{
-		f.NewPropertyAssignment(nil, f.NewIdentifier("kind"), nil, nil, f.NewStringLiteral("class", 0)),
-		f.NewPropertyAssignment(nil, f.NewIdentifier("name"), nil, nil, nameExpr),
-		f.NewPropertyAssignment(nil, f.NewIdentifier("metadata"), nil, nil, metadata),
-	}
-	return f.NewObjectLiteralExpression(f.NewNodeList(props), false)
+func (f *NodeFactory) NewESDecorateClassContextObject(nameExpr ast.Handle, metadata ast.Handle) ast.Handle {
+	props := []ast.Handle{f.NewPropertyAssignment(0, f.NewIdentifier("kind"), ast.Handle{}, ast.Handle{}, f.NewStringLiteral("class", 0)), f.NewPropertyAssignment(0, f.NewIdentifier("name"), ast.Handle{}, ast.Handle{}, nameExpr), f.NewPropertyAssignment(0, f.NewIdentifier("metadata"), ast.Handle{}, ast.Handle{}, metadata)}
+	return f.NewObjectLiteralExpression(f.NewList(props), false)
 }
-
-func (f *NodeFactory) NewESDecorateClassElementAccessGetMethod(
-	nameComputed bool,
-	nameExpr *ast.Expression,
-) *ast.Node {
-	var accessor *ast.Expression
+func (f *NodeFactory) NewESDecorateClassElementAccessGetMethod(nameComputed bool, nameExpr ast.Handle) ast.Handle {
+	var accessor ast.Handle
 	if nameComputed {
-		accessor = f.NewElementAccessExpression(f.NewIdentifier("obj"), nil, nameExpr, ast.NodeFlagsNone)
+		accessor = f.NewElementAccessExpression(f.NewIdentifier("obj"), ast.Handle{}, nameExpr, ast.NodeFlagsNone)
 	} else {
-		accessor = f.NewPropertyAccessExpression(f.NewIdentifier("obj"), nil, nameExpr, ast.NodeFlagsNone)
+		accessor = f.NewPropertyAccessExpression(f.NewIdentifier("obj"), ast.Handle{}, nameExpr, ast.NodeFlagsNone)
 	}
-
-	objParam := f.NewParameterDeclaration(nil, nil, f.NewIdentifier("obj"), nil, nil, nil)
-
-	arrow := f.NewArrowFunction(
-		nil, nil,
-		f.NewNodeList([]*ast.Node{objParam}),
-		nil, nil,
-		f.NewToken(ast.KindEqualsGreaterThanToken),
-		accessor,
-	)
-
-	return f.NewPropertyAssignment(nil, f.NewIdentifier("get"), nil, nil, arrow)
+	objParam := f.NewParameterDeclaration(0, ast.Handle{}, f.NewIdentifier("obj"), ast.Handle{}, ast.Handle{}, ast.Handle{})
+	arrow := f.NewArrowFunction(0, 0, f.NewList([]ast.Handle{objParam}), ast.Handle{}, ast.Handle{}, f.NewToken(ast.KindEqualsGreaterThanToken), accessor)
+	return f.NewPropertyAssignment(0, f.NewIdentifier("get"), ast.Handle{}, ast.Handle{}, arrow)
 }
-
-func (f *NodeFactory) NewESDecorateClassElementAccessSetMethod(
-	nameComputed bool,
-	nameExpr *ast.Expression,
-) *ast.Node {
-	var accessor *ast.Expression
+func (f *NodeFactory) NewESDecorateClassElementAccessSetMethod(nameComputed bool, nameExpr ast.Handle) ast.Handle {
+	var accessor ast.Handle
 	if nameComputed {
-		accessor = f.NewElementAccessExpression(f.NewIdentifier("obj"), nil, nameExpr, ast.NodeFlagsNone)
+		accessor = f.NewElementAccessExpression(f.NewIdentifier("obj"), ast.Handle{}, nameExpr, ast.NodeFlagsNone)
 	} else {
-		accessor = f.NewPropertyAccessExpression(f.NewIdentifier("obj"), nil, nameExpr, ast.NodeFlagsNone)
+		accessor = f.NewPropertyAccessExpression(f.NewIdentifier("obj"), ast.Handle{}, nameExpr, ast.NodeFlagsNone)
 	}
-
 	assignment := f.NewAssignmentExpression(accessor, f.NewIdentifier("value"))
 	stmt := f.NewExpressionStatement(assignment)
-	body := f.NewBlock(f.NewNodeList([]*ast.Node{stmt}), false)
-
-	objParam := f.NewParameterDeclaration(nil, nil, f.NewIdentifier("obj"), nil, nil, nil)
-	valueParam := f.NewParameterDeclaration(nil, nil, f.NewIdentifier("value"), nil, nil, nil)
-
-	arrow := f.NewArrowFunction(
-		nil, nil,
-		f.NewNodeList([]*ast.Node{objParam, valueParam}),
-		nil, nil,
-		f.NewToken(ast.KindEqualsGreaterThanToken),
-		body,
-	)
-
-	return f.NewPropertyAssignment(nil, f.NewIdentifier("set"), nil, nil, arrow)
+	body := f.NewBlock(f.NewList([]ast.Handle{stmt}), false)
+	objParam := f.NewParameterDeclaration(0, ast.Handle{}, f.NewIdentifier("obj"), ast.Handle{}, ast.Handle{}, ast.Handle{})
+	valueParam := f.NewParameterDeclaration(0, ast.Handle{}, f.NewIdentifier("value"), ast.Handle{}, ast.Handle{}, ast.Handle{})
+	arrow := f.NewArrowFunction(0, 0, f.NewList([]ast.Handle{objParam, valueParam}), ast.Handle{}, ast.Handle{}, f.NewToken(ast.KindEqualsGreaterThanToken), body)
+	return f.NewPropertyAssignment(0, f.NewIdentifier("set"), ast.Handle{}, ast.Handle{}, arrow)
 }
-
-func (f *NodeFactory) NewESDecorateClassElementAccessHasMethod(
-	nameComputed bool,
-	nameExpr *ast.Expression,
-) *ast.Node {
-	// The property name for the "in" expression
-	var propertyName *ast.Expression
-	if !nameComputed && nameExpr != nil && ast.IsIdentifier(nameExpr) {
+func (f *NodeFactory) NewESDecorateClassElementAccessHasMethod(nameComputed bool, nameExpr ast.Handle) ast.Handle {
+	var propertyName ast.Handle
+	if !nameComputed && !nameExpr.IsNil() && ast.IsIdentifier(nameExpr) {
 		propertyName = f.NewStringLiteralFromNode(nameExpr)
 	} else {
 		propertyName = nameExpr
 	}
-
-	objParam := f.NewParameterDeclaration(nil, nil, f.NewIdentifier("obj"), nil, nil, nil)
-	inExpr := f.NewBinaryExpression(nil, propertyName, nil, f.NewToken(ast.KindInKeyword), f.NewIdentifier("obj"))
-
-	arrow := f.NewArrowFunction(
-		nil, nil,
-		f.NewNodeList([]*ast.Node{objParam}),
-		nil, nil,
-		f.NewToken(ast.KindEqualsGreaterThanToken),
-		inExpr,
-	)
-
-	return f.NewPropertyAssignment(nil, f.NewIdentifier("has"), nil, nil, arrow)
+	objParam := f.NewParameterDeclaration(0, ast.Handle{}, f.NewIdentifier("obj"), ast.Handle{}, ast.Handle{}, ast.Handle{})
+	inExpr := f.NewBinaryExpression(0, propertyName, ast.Handle{}, f.NewToken(ast.KindInKeyword), f.NewIdentifier("obj"))
+	arrow := f.NewArrowFunction(0, 0, f.NewList([]ast.Handle{objParam}), ast.Handle{}, ast.Handle{}, f.NewToken(ast.KindEqualsGreaterThanToken), inExpr)
+	return f.NewPropertyAssignment(0, f.NewIdentifier("has"), ast.Handle{}, ast.Handle{}, arrow)
 }
 
-// Creates the "access" object for a class element decorator context.
-//
-// 15.7.3 CreateDecoratorAccessObject (kind, name)
-//
-//  2. If _kind_ is ~field~, ~method~, ~accessor~, or ~getter~, then
-//     a. Let _getAccess_ be a new Abstract Closure with parameters (_object_) that captures _kind_ and _name_ ...
-//     b. Perform ! CreateDataPropertyOrThrow(_access_, "get", _getAccess_).
-//  3. If _kind_ is ~field~, ~accessor~, or ~setter~, then
-//     a. Let _setAccess_ be a new Abstract Closure with parameters (_object_, _value_) that captures _kind_ and _name_ ...
-//     b. Perform ! CreateDataPropertyOrThrow(_access_, "set", _setAccess_).
-func (f *NodeFactory) NewESDecorateClassElementAccessObject(
-	nameComputed bool,
-	nameExpr *ast.Expression,
-	hasGet bool,
-	hasSet bool,
-) *ast.Expression {
-	accessProps := []*ast.Node{}
-
-	// "has" method: obj => name in obj
+func (f *NodeFactory) NewESDecorateClassElementAccessObject(nameComputed bool, nameExpr ast.Handle, hasGet bool, hasSet bool) ast.Handle {
+	accessProps := []ast.Handle{}
 	accessProps = append(accessProps, f.NewESDecorateClassElementAccessHasMethod(nameComputed, nameExpr))
-
-	// "get" method: obj => obj.name or obj => obj[name]
 	if hasGet {
 		accessProps = append(accessProps, f.NewESDecorateClassElementAccessGetMethod(nameComputed, nameExpr))
 	}
-
-	// "set" method: (obj, value) => { obj.name = value; } or (obj, value) => { obj[name] = value; }
 	if hasSet {
 		accessProps = append(accessProps, f.NewESDecorateClassElementAccessSetMethod(nameComputed, nameExpr))
 	}
-
-	return f.NewObjectLiteralExpression(f.NewNodeList(accessProps), false)
+	return f.NewObjectLiteralExpression(f.NewList(accessProps), false)
 }
-
-func (f *NodeFactory) NewESDecorateClassElementContextObject(
-	kind string,
-	nameComputed bool,
-	nameExpr *ast.Expression,
-	isStatic bool,
-	isPrivate bool,
-	hasGet bool,
-	hasSet bool,
-	metadata *ast.IdentifierNode,
-) *ast.Expression {
-	// Build the name value for the context's "name" property
-	var nameValue *ast.Expression
-	if !nameComputed && nameExpr != nil && (ast.IsPrivateIdentifier(nameExpr) || ast.IsIdentifier(nameExpr)) {
+func (f *NodeFactory) NewESDecorateClassElementContextObject(kind string, nameComputed bool, nameExpr ast.Handle, isStatic bool, isPrivate bool, hasGet bool, hasSet bool, metadata ast.Handle) ast.Handle {
+	var nameValue ast.Handle
+	if !nameComputed && !nameExpr.IsNil() && (ast.IsPrivateIdentifier(nameExpr) || ast.IsIdentifier(nameExpr)) {
 		nameValue = f.NewStringLiteralFromNode(nameExpr)
 	} else {
 		nameValue = nameExpr
 	}
-
-	// Build the access object with has/get/set arrow functions
 	accessObj := f.NewESDecorateClassElementAccessObject(nameComputed, nameExpr, hasGet, hasSet)
-
-	var staticExpr *ast.Node
+	var staticExpr ast.Handle
 	if isStatic {
 		staticExpr = f.NewTrueExpression()
 	} else {
 		staticExpr = f.NewFalseExpression()
 	}
-
-	var privateExpr *ast.Node
+	var privateExpr ast.Handle
 	if isPrivate {
 		privateExpr = f.NewTrueExpression()
 	} else {
 		privateExpr = f.NewFalseExpression()
 	}
-
-	props := []*ast.Node{
-		f.NewPropertyAssignment(nil, f.NewIdentifier("kind"), nil, nil, f.NewStringLiteral(kind, 0)),
-		f.NewPropertyAssignment(nil, f.NewIdentifier("name"), nil, nil, nameValue),
-		f.NewPropertyAssignment(nil, f.NewIdentifier("static"), nil, nil, staticExpr),
-		f.NewPropertyAssignment(nil, f.NewIdentifier("private"), nil, nil, privateExpr),
-		f.NewPropertyAssignment(nil, f.NewIdentifier("access"), nil, nil, accessObj),
-		f.NewPropertyAssignment(nil, f.NewIdentifier("metadata"), nil, nil, metadata),
-	}
-	return f.NewObjectLiteralExpression(f.NewNodeList(props), false)
+	props := []ast.Handle{f.NewPropertyAssignment(0, f.NewIdentifier("kind"), ast.Handle{}, ast.Handle{}, f.NewStringLiteral(kind, 0)), f.NewPropertyAssignment(0, f.NewIdentifier("name"), ast.Handle{}, ast.Handle{}, nameValue), f.NewPropertyAssignment(0, f.NewIdentifier("static"), ast.Handle{}, ast.Handle{}, staticExpr), f.NewPropertyAssignment(0, f.NewIdentifier("private"), ast.Handle{}, ast.Handle{}, privateExpr), f.NewPropertyAssignment(0, f.NewIdentifier("access"), ast.Handle{}, ast.Handle{}, accessObj), f.NewPropertyAssignment(0, f.NewIdentifier("metadata"), ast.Handle{}, ast.Handle{}, metadata)}
+	return f.NewObjectLiteralExpression(f.NewList(props), false)
 }
-
-func (f *NodeFactory) NewESDecorateHelper(ctor *ast.Expression, descriptorIn *ast.Expression, decorators *ast.Expression, contextIn *ast.Expression, initializers *ast.Expression, extraInitializers *ast.Expression) *ast.Expression {
+func (f *NodeFactory) NewESDecorateHelper(ctor ast.Handle, descriptorIn ast.Handle, decorators ast.Handle, contextIn ast.Handle, initializers ast.Handle, extraInitializers ast.Handle) ast.Handle {
 	f.emitContext.RequestEmitHelper(esDecorateHelper)
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__esDecorate"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Expression{ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers}),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__esDecorate"), ast.Handle{}, 0, f.NewList([]ast.Handle{ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers}), ast.NodeFlagsNone)
 }
-
-func (f *NodeFactory) NewRunInitializersHelper(thisArg *ast.Expression, initializers *ast.Expression, value *ast.Expression) *ast.Expression {
+func (f *NodeFactory) NewRunInitializersHelper(thisArg ast.Handle, initializers ast.Handle, value ast.Handle) ast.Handle {
 	f.emitContext.RequestEmitHelper(runInitializersHelper)
-	var arguments []*ast.Expression
-	if value != nil {
-		arguments = []*ast.Expression{thisArg, initializers, value}
+	var arguments []ast.Handle
+	if !value.IsNil() {
+		arguments = []ast.Handle{thisArg, initializers, value}
 	} else {
-		arguments = []*ast.Expression{thisArg, initializers}
+		arguments = []ast.Handle{thisArg, initializers}
 	}
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__runInitializers"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList(arguments),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__runInitializers"), ast.Handle{}, 0, f.NewList(arguments), ast.NodeFlagsNone)
 }
-
-// ES2015 Helpers
-
-func (f *NodeFactory) NewTemplateObjectHelper(cookedArray *ast.Expression, rawArray *ast.Expression) *ast.Expression {
+func (f *NodeFactory) NewTemplateObjectHelper(cookedArray ast.Handle, rawArray ast.Handle) ast.Handle {
 	f.emitContext.RequestEmitHelper(makeTemplateObjectHelper)
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__makeTemplateObject"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Expression{cookedArray, rawArray}),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__makeTemplateObject"), ast.Handle{}, 0, f.NewList([]ast.Handle{cookedArray, rawArray}), ast.NodeFlagsNone)
 }
-
-func (f *NodeFactory) NewPropKeyHelper(expr *ast.Expression) *ast.Expression {
+func (f *NodeFactory) NewPropKeyHelper(expr ast.Handle) ast.Handle {
 	f.emitContext.RequestEmitHelper(propKeyHelper)
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__propKey"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Expression{expr}),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__propKey"), ast.Handle{}, 0, f.NewList([]ast.Handle{expr}), ast.NodeFlagsNone)
 }
-
-func (f *NodeFactory) NewSetFunctionNameHelper(fn *ast.Expression, name *ast.Expression, prefix string) *ast.Expression {
+func (f *NodeFactory) NewSetFunctionNameHelper(fn ast.Handle, name ast.Handle, prefix string) ast.Handle {
 	f.emitContext.RequestEmitHelper(setFunctionNameHelper)
-	var arguments []*ast.Expression
+	var arguments []ast.Handle
 	if len(prefix) > 0 {
-		arguments = []*ast.Expression{fn, name, f.NewStringLiteral(prefix, ast.TokenFlagsNone)}
+		arguments = []ast.Handle{fn, name, f.NewStringLiteral(prefix, ast.TokenFlagsNone)}
 	} else {
-		arguments = []*ast.Expression{fn, name}
+		arguments = []ast.Handle{fn, name}
 	}
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__setFunctionName"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList(arguments),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__setFunctionName"), ast.Handle{}, 0, f.NewList(arguments), ast.NodeFlagsNone)
 }
 
-// ES Module Helpers
-
-// Allocates a new Call expression to the `__importDefault` helper.
-func (f *NodeFactory) NewImportDefaultHelper(expression *ast.Expression) *ast.Expression {
+func (f *NodeFactory) NewImportDefaultHelper(expression ast.Handle) ast.Handle {
 	f.emitContext.RequestEmitHelper(importDefaultHelper)
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__importDefault"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Expression{expression}),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__importDefault"), ast.Handle{}, 0, f.NewList([]ast.Handle{expression}), ast.NodeFlagsNone)
 }
 
-// Allocates a new Call expression to the `__importStar` helper.
-func (f *NodeFactory) NewImportStarHelper(expression *ast.Expression) *ast.Expression {
+func (f *NodeFactory) NewImportStarHelper(expression ast.Handle) ast.Handle {
 	f.emitContext.RequestEmitHelper(importStarHelper)
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__importStar"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Expression{expression}),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__importStar"), ast.Handle{}, 0, f.NewList([]ast.Handle{expression}), ast.NodeFlagsNone)
 }
 
-// Allocates a new Call expression to the `__exportStar` helper.
-func (f *NodeFactory) NewExportStarHelper(moduleExpression *ast.Expression, exportsExpression *ast.Expression) *ast.Expression {
+func (f *NodeFactory) NewExportStarHelper(moduleExpression ast.Handle, exportsExpression ast.Handle) ast.Handle {
 	f.emitContext.RequestEmitHelper(exportStarHelper)
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__exportStar"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList([]*ast.Expression{moduleExpression, exportsExpression}),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__exportStar"), ast.Handle{}, 0, f.NewList([]ast.Handle{moduleExpression, exportsExpression}), ast.NodeFlagsNone)
+}
+func (f *NodeFactory) NewAssignmentTargetWrapper(paramName ast.Handle, expression ast.Handle) ast.Handle {
+	setAccessor := f.NewSetAccessorDeclaration(0, f.NewIdentifier("value"), 0, f.NewList([]ast.Handle{f.NewParameterDeclaration(0, ast.Handle{}, paramName, ast.Handle{}, ast.Handle{}, ast.Handle{})}), ast.Handle{}, ast.Handle{}, f.NewBlock(f.NewList([]ast.Handle{f.NewExpressionStatement(expression)}), false))
+	objLiteral := f.NewObjectLiteralExpression(f.NewList([]ast.Handle{setAccessor}), false)
+	return f.NewPropertyAccessExpression(f.NewParenthesizedExpression(objLiteral), ast.Handle{}, f.NewIdentifier("value"), ast.NodeFlagsNone)
 }
 
-func (f *NodeFactory) NewAssignmentTargetWrapper(paramName *ast.IdentifierNode, expression *ast.Expression) *ast.Node {
-	setAccessor := f.NewSetAccessorDeclaration(
-		nil, /*modifiers*/
-		f.NewIdentifier("value"),
-		nil, /*typeParameters*/
-		f.NewNodeList([]*ast.Node{
-			f.NewParameterDeclaration(nil, nil, paramName, nil, nil, nil),
-		}),
-		nil, /*returnType*/
-		nil, /*fullSignature*/
-		f.NewBlock(f.NewNodeList([]*ast.Node{
-			f.NewExpressionStatement(expression),
-		}), false),
-	)
-	objLiteral := f.NewObjectLiteralExpression(f.NewNodeList([]*ast.Node{setAccessor}), false)
-	// Explicit parens required because of v8 regression (https://bugs.chromium.org/p/v8/issues/detail?id=9560)
-	return f.NewPropertyAccessExpression(
-		f.NewParenthesizedExpression(objLiteral),
-		nil, /*questionDotToken*/
-		f.NewIdentifier("value"),
-		ast.NodeFlagsNone,
-	)
-}
-
-// Allocates a new Call expression to the `__rewriteRelativeImportExtension` helper.
-func (f *NodeFactory) NewRewriteRelativeImportExtensionsHelper(firstArgument *ast.Node, preserveJsx bool) *ast.Expression {
+func (f *NodeFactory) NewRewriteRelativeImportExtensionsHelper(firstArgument ast.Handle, preserveJsx bool) ast.Handle {
 	f.emitContext.RequestEmitHelper(rewriteRelativeImportExtensionsHelper)
-	var arguments []*ast.Expression
+	var arguments []ast.Handle
 	if preserveJsx {
-		arguments = []*ast.Expression{firstArgument, f.NewToken(ast.KindTrueKeyword)}
+		arguments = []ast.Handle{firstArgument, f.NewToken(ast.KindTrueKeyword)}
 	} else {
-		arguments = []*ast.Expression{firstArgument}
+		arguments = []ast.Handle{firstArgument}
 	}
-	return f.NewCallExpression(
-		f.NewUnscopedHelperName("__rewriteRelativeImportExtension"),
-		nil, /*questionDotToken*/
-		nil, /*typeArguments*/
-		f.NewNodeList(arguments),
-		ast.NodeFlagsNone,
-	)
+	return f.NewCallExpression(f.NewUnscopedHelperName("__rewriteRelativeImportExtension"), ast.Handle{}, 0, f.NewList(arguments), ast.NodeFlagsNone)
 }

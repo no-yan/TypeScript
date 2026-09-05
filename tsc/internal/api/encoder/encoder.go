@@ -27,7 +27,6 @@ const (
 	NodeOffsetParent
 	NodeOffsetData
 	NodeOffsetFlags
-	// NodeSize is the number of bytes that represents a single node in the encoded format.
 	NodeSize
 )
 
@@ -319,7 +318,7 @@ func encodeParseOptions(opts ast.ExternalModuleIndicatorOptions) uint32 {
 
 // NodeIndexTable maps between AST nodes and their encoder indices for O(1) node handle resolution.
 type NodeIndexTable struct {
-	Nodes      []*ast.Node // index → node (for resolution)
+	Nodes      []ast.Handle // index → node (for resolution)
 	sortedOnce sync.Once
 	sortedIdx  []uint32 // indices into Nodes, sorted by node ID; built lazily
 }
@@ -329,24 +328,24 @@ var nodeIndexTableKey = ast.NewSourceFileDataKey[*NodeIndexTable]()
 // GetIndex returns the encoder index for the given node.
 // On the first call the sortedIdx array is built (O(n log n) sort on a flat []uint32),
 // then subsequent calls use binary search (O(log n)). This turns out to be much faster than
-// building a map[*ast.Node]uint32 and not significantly slower for lookups.
-func (t *NodeIndexTable) GetIndex(node *ast.Node) uint32 {
+// building a map[ast.Handle]uint32 and not significantly slower for lookups.
+func (t *NodeIndexTable) GetIndex(node ast.Handle) uint32 {
 	t.sortedOnce.Do(func() {
 		idx := make([]uint32, 0, len(t.Nodes))
 		for i, n := range t.Nodes {
-			if n != nil {
+			if !n.IsNil() {
 				idx = append(idx, uint32(i))
 			}
 		}
 		nodes := t.Nodes
 		slices.SortFunc(idx, func(a, b uint32) int {
-			return cmp.Compare(ast.GetNodeId(nodes[a]), ast.GetNodeId(nodes[b]))
+			return cmp.Compare(uint32(nodes[a].Ref()), uint32(nodes[b].Ref()))
 		})
 		t.sortedIdx = idx
 	})
-	target := ast.GetNodeId(node)
+	target := uint32(node.Ref())
 	i, found := core.BinarySearchUniqueFunc(t.sortedIdx, func(_ int, el uint32) int {
-		return cmp.Compare(ast.GetNodeId(t.Nodes[el]), target)
+		return cmp.Compare(uint32(t.Nodes[el].Ref()), target)
 	})
 	if found {
 		return t.sortedIdx[i]
@@ -360,28 +359,28 @@ func (t *NodeIndexTable) GetIndex(node *ast.Node) uint32 {
 // is called. The indices produced are guaranteed to match those from EncodeSourceFile.
 func BuildNodeIndexTable(sourceFile *ast.SourceFile) *NodeIndexTable {
 	var nodeCount uint32
-	nodeTable := make([]*ast.Node, 1, sourceFile.NodeCount+1) // index 0 = nil sentinel
+	nodeTable := make([]ast.Handle, 1, sourceFile.NodeCount+1) // index 0 = nil sentinel
 
-	visitor := &ast.NodeVisitor{
-		Hooks: ast.NodeVisitorHooks{
-			VisitNodes: func(nodeList *ast.NodeList, visitor *ast.NodeVisitor) *ast.NodeList {
-				if nodeList == nil {
+	visitor := &ast.HandleVisitor{
+		Hooks: ast.HandleVisitorHooks{
+			VisitNodes: func(nodeList ast.ListRef, visitor *ast.HandleVisitor) ast.ListRef {
+				if nodeList == 0 {
 					return nodeList
 				}
 				nodeCount++
-				nodeTable = append(nodeTable, nil) // NodeLists are not *ast.Node
-				visitor.VisitSlice(nodeList.Nodes)
+				nodeTable = append(nodeTable, ast.Handle{}) // NodeLists are not ast.Handle
+				visitor.VisitSlice(sourceFile.ParseStore().ListSlice(nodeList))
 				return nodeList
 			},
-			VisitModifiers: func(modifiers *ast.ModifierList, visitor *ast.NodeVisitor) *ast.ModifierList {
-				if modifiers != nil && len(modifiers.Nodes) > 0 {
-					visitor.Hooks.VisitNodes(&modifiers.NodeList, visitor)
+			VisitModifiers: func(modifiers ast.ListRef, visitor *ast.HandleVisitor) ast.ListRef {
+				if modifiers != 0 && sourceFile.ParseStore().ListLen(modifiers) > 0 {
+					visitor.Hooks.VisitNodes(modifiers, visitor)
 				}
 				return modifiers
 			},
 		},
 	}
-	visitor.Visit = func(node *ast.Node) *ast.Node {
+	visitor.Visit = func(node ast.Handle) ast.Handle {
 		nodeCount++
 		nodeTable = append(nodeTable, node)
 		visitor.VisitEachChild(node)
@@ -391,7 +390,7 @@ func BuildNodeIndexTable(sourceFile *ast.SourceFile) *NodeIndexTable {
 		return node
 	}
 
-	rootNode := sourceFile.AsNode()
+	rootNode := sourceFile.ParseRoot()
 	// Index 1 = root node (matches encodeTree)
 	nodeCount++
 	nodeTable = append(nodeTable, rootNode)
@@ -411,7 +410,7 @@ func GetNodeIndexTable(sourceFile *ast.SourceFile) *NodeIndexTable {
 // EncodeSourceFile encodes an entire source file AST into the binary format.
 // Returns the encoded bytes and a NodeIndexTable mapping encoder indices to AST nodes.
 func EncodeSourceFile(sourceFile *ast.SourceFile) ([]byte, *NodeIndexTable, error) {
-	data, nodeTable, err := encodeTree(sourceFile.AsNode(), sourceFile)
+	data, nodeTable, err := encodeTree(sourceFile.ParseRoot(), sourceFile)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -425,17 +424,17 @@ func EncodeSourceFile(sourceFile *ast.SourceFile) ([]byte, *NodeIndexTable, erro
 // The sourceFile is needed to provide the source text for efficient string encoding.
 // When encoding a non-SourceFile node, the header hash and parse options fields will be zero.
 // Returns the encoded bytes and a NodeIndexTable mapping encoder indices to AST nodes.
-func EncodeNode(node *ast.Node, sourceFile *ast.SourceFile) ([]byte, *NodeIndexTable, error) {
+func EncodeNode(node ast.Handle, sourceFile *ast.SourceFile) ([]byte, *NodeIndexTable, error) {
 	return encodeTree(node, sourceFile)
 }
 
-func encodeTree(rootNode *ast.Node, sourceFile *ast.SourceFile) ([]byte, *NodeIndexTable, error) {
+func encodeTree(rootNode ast.Handle, sourceFile *ast.SourceFile) ([]byte, *NodeIndexTable, error) {
 	var parentIndex, nodeCount, prevIndex uint32
 	var extendedData []byte
 	var structuredData []byte
 	var strs *stringTable
 	var positionMap *ast.PositionMap
-	if rootNode.Kind == ast.KindSourceFile {
+	if rootNode.Kind() == ast.KindSourceFile {
 		strs = newStringTable(sourceFile.Text(), sourceFile.TextCount)
 		positionMap = sourceFile.GetPositionMap()
 	} else {
@@ -458,41 +457,40 @@ func encodeTree(rootNode *ast.Node, sourceFile *ast.SourceFile) ([]byte, *NodeIn
 
 	// Build node index table for O(1) handle resolution.
 	// Index 0 is a nil sentinel; real nodes start at index 1.
-	nodeTable := make([]*ast.Node, 1, initialNodeCount+1) // index 0 = nil sentinel
+	nodeTable := make([]ast.Handle, 1, initialNodeCount+1) // index 0 = nil sentinel
 
 	// Build a small map of nodes we need to track indices for (imports + moduleAugmentations).
 	// Values start at 0 and are filled in during the walk.
-	var nodeIndexMap map[*ast.Node]uint32
+	var nodeIndexMap map[ast.Handle]uint32
 	var sfExtendedDataOffset int // byte offset in extendedData where SourceFile fields start
-	if rootNode.Kind == ast.KindSourceFile {
-		sf := rootNode.AsSourceFile()
-		total := len(sf.Imports()) + len(sf.ModuleAugmentations)
-		if sf.ExternalModuleIndicator != nil && sf.ExternalModuleIndicator != rootNode {
+	if rootNode.Kind() == ast.KindSourceFile && sourceFile != nil {
+		total := len(sourceFile.Imports()) + len(sourceFile.ModuleAugmentations)
+		if !sourceFile.ExternalModuleIndicator.IsNil() && sourceFile.ExternalModuleIndicator != rootNode {
 			total++
 		}
 		if total > 0 {
-			nodeIndexMap = make(map[*ast.Node]uint32, total)
-			for _, imp := range sf.Imports() {
-				nodeIndexMap[imp.AsNode()] = 0
+			nodeIndexMap = make(map[ast.Handle]uint32, total)
+			for _, imp := range sourceFile.Imports() {
+				nodeIndexMap[imp] = 0
 			}
-			for _, aug := range sf.ModuleAugmentations {
-				nodeIndexMap[aug.AsNode()] = 0
+			for _, aug := range sourceFile.ModuleAugmentations {
+				nodeIndexMap[aug] = 0
 			}
-			if sf.ExternalModuleIndicator != nil && sf.ExternalModuleIndicator != rootNode {
-				nodeIndexMap[sf.ExternalModuleIndicator] = 0
+			if !sourceFile.ExternalModuleIndicator.IsNil() && sourceFile.ExternalModuleIndicator != rootNode {
+				nodeIndexMap[sourceFile.ExternalModuleIndicator] = 0
 			}
 		}
 	}
 
-	visitor := &ast.NodeVisitor{
-		Hooks: ast.NodeVisitorHooks{
-			VisitNodes: func(nodeList *ast.NodeList, visitor *ast.NodeVisitor) *ast.NodeList {
-				if nodeList == nil {
+	visitor := &ast.HandleVisitor{
+		Hooks: ast.HandleVisitorHooks{
+			VisitNodes: func(nodeList ast.ListRef, visitor *ast.HandleVisitor) ast.ListRef {
+				if nodeList == 0 {
 					return nodeList
 				}
 
 				nodeCount++
-				nodeTable = append(nodeTable, nil) // NodeLists are not *ast.Node
+				nodeTable = append(nodeTable, ast.Handle{}) // NodeLists are not ast.Handle
 				if prevIndex != 0 {
 					// this is the next sibling of `prevNode`
 					b0, b1, b2, b3 := uint8(nodeCount), uint8(nodeCount>>8), uint8(nodeCount>>16), uint8(nodeCount>>24)
@@ -502,28 +500,28 @@ func encodeTree(rootNode *ast.Node, sourceFile *ast.SourceFile) ([]byte, *NodeIn
 					nodes[prevIndex*NodeSize+NodeOffsetNext+3] = b3
 				}
 
-				nodes = appendUint32s(nodes, SyntaxKindNodeList, utf16(nodeList.Pos()), utf16(nodeList.End()), 0, parentIndex, uint32(len(nodeList.Nodes)), 0)
+				nodes = appendUint32s(nodes, SyntaxKindNodeList, utf16(sourceFile.ParseStore().ListLoc(nodeList).Pos()), utf16(sourceFile.ParseStore().ListLoc(nodeList).End()), 0, parentIndex, uint32(sourceFile.ParseStore().ListLen(nodeList)), 0)
 
 				saveParentIndex := parentIndex
 
 				currentIndex := nodeCount
 				prevIndex = 0
 				parentIndex = currentIndex
-				visitor.VisitSlice(nodeList.Nodes)
+				visitor.VisitSlice(sourceFile.ParseStore().ListSlice(nodeList))
 				prevIndex = currentIndex
 				parentIndex = saveParentIndex
 
 				return nodeList
 			},
-			VisitModifiers: func(modifiers *ast.ModifierList, visitor *ast.NodeVisitor) *ast.ModifierList {
-				if modifiers != nil && len(modifiers.Nodes) > 0 {
-					visitor.Hooks.VisitNodes(&modifiers.NodeList, visitor)
+			VisitModifiers: func(modifiers ast.ListRef, visitor *ast.HandleVisitor) ast.ListRef {
+				if modifiers != 0 && sourceFile.ParseStore().ListLen(modifiers) > 0 {
+					visitor.Hooks.VisitNodes(modifiers, visitor)
 				}
 				return modifiers
 			},
 		},
 	}
-	visitor.Visit = func(node *ast.Node) *ast.Node {
+	visitor.Visit = func(node ast.Handle) ast.Handle {
 		nodeCount++
 		nodeTable = append(nodeTable, node)
 		if prevIndex != 0 {
@@ -535,7 +533,7 @@ func encodeTree(rootNode *ast.Node, sourceFile *ast.SourceFile) ([]byte, *NodeIn
 			nodes[prevIndex*NodeSize+NodeOffsetNext+3] = b3
 		}
 
-		nodes = appendUint32s(nodes, uint32(node.Kind), utf16(node.Pos()), utf16(node.End()), 0, parentIndex, getNodeData(node, strs, positionMap, &extendedData, &structuredData), uint32(node.Flags))
+		nodes = appendUint32s(nodes, uint32(node.Kind()), utf16(node.Pos()), utf16(node.End()), 0, parentIndex, getNodeData(node, strs, positionMap, &extendedData, &structuredData), uint32(node.Flags()))
 
 		if nodeIndexMap != nil {
 			if _, ok := nodeIndexMap[node]; ok {
@@ -566,7 +564,7 @@ func encodeTree(rootNode *ast.Node, sourceFile *ast.SourceFile) ([]byte, *NodeIn
 	nodeTable = append(nodeTable, rootNode) // index 1 = root node
 
 	sfExtendedDataOffset = len(extendedData)
-	nodes = appendUint32s(nodes, uint32(rootNode.Kind), utf16(rootNode.Pos()), utf16(rootNode.End()), 0, 0, getNodeData(rootNode, strs, positionMap, &extendedData, &structuredData), uint32(rootNode.Flags))
+	nodes = appendUint32s(nodes, uint32(rootNode.Kind()), utf16(rootNode.Pos()), utf16(rootNode.End()), 0, 0, getNodeData(rootNode, strs, positionMap, &extendedData, &structuredData), uint32(rootNode.Flags()))
 
 	visitor.VisitEachChild(rootNode)
 	if sourceFile != nil {
@@ -577,13 +575,13 @@ func encodeTree(rootNode *ast.Node, sourceFile *ast.SourceFile) ([]byte, *NodeIn
 
 	var hash xxh3.Uint128
 	var parseOpts uint32
-	if rootNode.Kind == ast.KindSourceFile {
+	if rootNode.Kind() == ast.KindSourceFile {
 		hash = sourceFile.Hash
 		parseOpts = encodeParseOptions(sourceFile.ParseOptions().ExternalModuleIndicatorOptions)
 
 		// Encode imports, moduleAugmentations, and ambientModuleNames into structured data,
 		// and patch the placeholder offsets in the SourceFile extended data.
-		sf := rootNode.AsSourceFile()
+		sf := sourceFile
 		importsOffset := encodeNodeIndexArray(sf.Imports(), nodeIndexMap, &structuredData)
 		moduleAugmentationsOffset := encodeModuleAugmentations(sf.ModuleAugmentations, nodeIndexMap, &structuredData)
 		ambientModuleNamesOffset := encodeStringArray(sf.AmbientModuleNames, &structuredData)
@@ -593,9 +591,9 @@ func encodeTree(rootNode *ast.Node, sourceFile *ast.SourceFile) ([]byte, *NodeIn
 		binary.LittleEndian.PutUint32(extendedData[sfExtendedDataOffset+40:], ambientModuleNamesOffset)
 		// Patch externalModuleIndicator node index at offset 44
 		var externalModuleIndicatorIndex uint32
-		if sf.ExternalModuleIndicator != nil {
+		if !sf.ExternalModuleIndicator.IsNil() {
 			if sf.ExternalModuleIndicator == rootNode {
-				externalModuleIndicatorIndex = 1 // root node index
+				externalModuleIndicatorIndex = 1
 			} else {
 				externalModuleIndicatorIndex = nodeIndexMap[sf.ExternalModuleIndicator]
 			}
@@ -642,7 +640,7 @@ func appendUint32s(buf []byte, values ...uint32) []byte {
 	return buf
 }
 
-func getNodeData(node *ast.Node, strs *stringTable, positionMap *ast.PositionMap, extendedData *[]byte, structuredData *[]byte) uint32 {
+func getNodeData(node ast.Handle, strs *stringTable, positionMap *ast.PositionMap, extendedData *[]byte, structuredData *[]byte) uint32 {
 	t := getNodeDataType(node)
 	switch t {
 	case NodeDataTypeChildren:
@@ -658,9 +656,9 @@ func getNodeData(node *ast.Node, strs *stringTable, positionMap *ast.PositionMap
 
 const noStructuredData = 0xFFFFFFFF
 
-func recordExtendedData_SourceFile(node *ast.Node, strs *stringTable, positionMap *ast.PositionMap, extendedData *[]byte, structuredData *[]byte) {
-	sf := node.AsSourceFile()
-	textIndex := strs.add(sf.Text(), sf.Kind, sf.Pos(), sf.End())
+func recordExtendedData_SourceFile(node ast.Handle, strs *stringTable, positionMap *ast.PositionMap, extendedData *[]byte, structuredData *[]byte) {
+	sf := node.Store().SourceFile()
+	textIndex := strs.add(sf.Text(), node.Kind(), node.Pos(), node.End())
 	originalTextIndex := textIndex
 	if sf.OriginalText() != sf.Text() {
 		originalTextIndex = strs.add(sf.OriginalText(), 0, 0, 0)
@@ -694,25 +692,22 @@ func recordExtendedData_SourceFile(node *ast.Node, strs *stringTable, positionMa
 	*extendedData = appendUint32s(*extendedData, textIndex, fileNameIndex, pathIndex, uint32(sf.LanguageVariant), uint32(sf.ScriptKind), referencedFilesOffset, typeRefDirectivesOffset, libRefDirectivesOffset, noStructuredData, noStructuredData, noStructuredData, 0, originalTextIndex, spanMapOffset, supplementalFileNamesOffset, canonicalFileNameIndex, contentMapperIndex, virtualFileNameIndex, diagnosticDirectivesOffset)
 }
 
-func recordExtendedData_TemplateHead(node *ast.Node, strs *stringTable, positionMap *ast.PositionMap, extendedData *[]byte, structuredData *[]byte) {
-	n := node.AsTemplateHead()
-	textIndex := strs.add(n.Text, node.Kind, node.Pos(), node.End())
-	rawTextIndex := strs.add(n.RawText, node.Kind, node.Pos(), node.End())
-	*extendedData = appendUint32s(*extendedData, textIndex, rawTextIndex, uint32(n.TemplateFlags))
+func recordExtendedData_TemplateHead(node ast.Handle, strs *stringTable, positionMap *ast.PositionMap, extendedData *[]byte, structuredData *[]byte) {
+	textIndex := strs.add(node.Text(), node.Kind(), node.Pos(), node.End())
+	rawTextIndex := strs.add(node.TemplateHeadRawText(), node.Kind(), node.Pos(), node.End())
+	*extendedData = appendUint32s(*extendedData, textIndex, rawTextIndex, uint32(node.TokenFlags()))
 }
 
-func recordExtendedData_TemplateMiddle(node *ast.Node, strs *stringTable, positionMap *ast.PositionMap, extendedData *[]byte, structuredData *[]byte) {
-	n := node.AsTemplateMiddle()
-	textIndex := strs.add(n.Text, node.Kind, node.Pos(), node.End())
-	rawTextIndex := strs.add(n.RawText, node.Kind, node.Pos(), node.End())
-	*extendedData = appendUint32s(*extendedData, textIndex, rawTextIndex, uint32(n.TemplateFlags))
+func recordExtendedData_TemplateMiddle(node ast.Handle, strs *stringTable, positionMap *ast.PositionMap, extendedData *[]byte, structuredData *[]byte) {
+	textIndex := strs.add(node.Text(), node.Kind(), node.Pos(), node.End())
+	rawTextIndex := strs.add(node.TemplateMiddleRawText(), node.Kind(), node.Pos(), node.End())
+	*extendedData = appendUint32s(*extendedData, textIndex, rawTextIndex, uint32(node.TokenFlags()))
 }
 
-func recordExtendedData_TemplateTail(node *ast.Node, strs *stringTable, positionMap *ast.PositionMap, extendedData *[]byte, structuredData *[]byte) {
-	n := node.AsTemplateTail()
-	textIndex := strs.add(n.Text, node.Kind, node.Pos(), node.End())
-	rawTextIndex := strs.add(n.RawText, node.Kind, node.Pos(), node.End())
-	*extendedData = appendUint32s(*extendedData, textIndex, rawTextIndex, uint32(n.TemplateFlags))
+func recordExtendedData_TemplateTail(node ast.Handle, strs *stringTable, positionMap *ast.PositionMap, extendedData *[]byte, structuredData *[]byte) {
+	textIndex := strs.add(node.Text(), node.Kind(), node.Pos(), node.End())
+	rawTextIndex := strs.add(node.TemplateTailRawText(), node.Kind(), node.Pos(), node.End())
+	*extendedData = appendUint32s(*extendedData, textIndex, rawTextIndex, uint32(node.TokenFlags()))
 }
 
 func boolToByte(b bool) byte {
@@ -723,8 +718,8 @@ func boolToByte(b bool) byte {
 }
 
 // hasModifiers returns true if the modifier list is non-nil and has at least one modifier.
-func hasModifiers(modifiers *ast.ModifierList) bool {
-	return modifiers != nil && len(modifiers.Nodes) > 0
+func hasModifiers(modifiers ast.ListRef) bool {
+	return modifiers != 0
 }
 
 // encodeFileReferences encodes a slice of FileReferences as a msgpack array of tuples
@@ -751,29 +746,26 @@ func encodeFileReferences(refs []*ast.FileReference, positionMap *ast.PositionMa
 // encodeNodeIndexArray encodes a slice of LiteralLikeNodes as a msgpack array of
 // uint node indices. Returns the byte offset into the buffer, or noStructuredData
 // if the slice is empty.
-func encodeNodeIndexArray(nodes []*ast.LiteralLikeNode, indexMap map[*ast.Node]uint32, buf *[]byte) uint32 {
+func encodeNodeIndexArray(nodes []ast.Handle, indexMap map[ast.Handle]uint32, buf *[]byte) uint32 {
 	if len(nodes) == 0 {
 		return noStructuredData
 	}
 	offset := uint32(len(*buf))
 	*buf = msgpackWriteArrayHeader(*buf, len(nodes))
 	for _, node := range nodes {
-		*buf = msgpackWriteUint(*buf, indexMap[node.AsNode()])
+		*buf = msgpackWriteUint(*buf, indexMap[node])
 	}
 	return offset
 }
 
-// encodeModuleAugmentations encodes a slice of ModuleName nodes as a msgpack array
-// of uint node indices. Returns the byte offset into the buffer, or noStructuredData
-// if the slice is empty.
-func encodeModuleAugmentations(nodes []*ast.ModuleName, indexMap map[*ast.Node]uint32, buf *[]byte) uint32 {
+func encodeModuleAugmentations(nodes []ast.Handle, indexMap map[ast.Handle]uint32, buf *[]byte) uint32 {
 	if len(nodes) == 0 {
 		return noStructuredData
 	}
 	offset := uint32(len(*buf))
 	*buf = msgpackWriteArrayHeader(*buf, len(nodes))
 	for _, node := range nodes {
-		*buf = msgpackWriteUint(*buf, indexMap[node.AsNode()])
+		*buf = msgpackWriteUint(*buf, indexMap[node])
 	}
 	return offset
 }
@@ -894,7 +886,7 @@ func msgpackWriteBool(buf []byte, value bool) []byte {
 // packs relevant fields into the 6-bit commonData area (bits 24-29) of the
 // 32-bit node data word.
 
-func getNodeCommonData_SyntheticExpression(_ *ast.Node) uint32 {
+func getNodeCommonData_SyntheticExpression(_ ast.Handle) uint32 {
 	// SyntheticExpression is an internal compiler node that is never part of a parsed AST.
 	// It should never be encoded.
 	panic("SyntheticExpression should never be encoded")
@@ -903,32 +895,32 @@ func getNodeCommonData_SyntheticExpression(_ *ast.Node) uint32 {
 // Hand-written extended data encoding functions for literal nodes that were
 // previously string-type but whose TokenFlags/TemplateFlags cannot fit in 6 bits.
 
-func recordExtendedData_StringLiteral(node *ast.Node, strs *stringTable, _ *ast.PositionMap, extendedData *[]byte, _ *[]byte) {
-	n := node.AsStringLiteral()
-	textIndex := strs.add(n.Text, node.Kind, node.Pos(), node.End())
-	*extendedData = appendUint32s(*extendedData, textIndex, uint32(n.TokenFlags))
+func recordExtendedData_StringLiteral(node ast.Handle, strs *stringTable, _ *ast.PositionMap, extendedData *[]byte, _ *[]byte) {
+	n := node
+	textIndex := strs.add(n.Text(), node.Kind(), node.Pos(), node.End())
+	*extendedData = appendUint32s(*extendedData, textIndex, uint32(n.TokenFlags()))
 }
 
-func recordExtendedData_NumericLiteral(node *ast.Node, strs *stringTable, _ *ast.PositionMap, extendedData *[]byte, _ *[]byte) {
-	n := node.AsNumericLiteral()
-	textIndex := strs.add(n.Text, node.Kind, node.Pos(), node.End())
-	*extendedData = appendUint32s(*extendedData, textIndex, uint32(n.TokenFlags))
+func recordExtendedData_NumericLiteral(node ast.Handle, strs *stringTable, _ *ast.PositionMap, extendedData *[]byte, _ *[]byte) {
+	n := node
+	textIndex := strs.add(n.Text(), node.Kind(), node.Pos(), node.End())
+	*extendedData = appendUint32s(*extendedData, textIndex, uint32(n.TokenFlags()))
 }
 
-func recordExtendedData_BigIntLiteral(node *ast.Node, strs *stringTable, _ *ast.PositionMap, extendedData *[]byte, _ *[]byte) {
-	n := node.AsBigIntLiteral()
-	textIndex := strs.add(n.Text, node.Kind, node.Pos(), node.End())
-	*extendedData = appendUint32s(*extendedData, textIndex, uint32(n.TokenFlags))
+func recordExtendedData_BigIntLiteral(node ast.Handle, strs *stringTable, _ *ast.PositionMap, extendedData *[]byte, _ *[]byte) {
+	n := node
+	textIndex := strs.add(n.Text(), node.Kind(), node.Pos(), node.End())
+	*extendedData = appendUint32s(*extendedData, textIndex, uint32(n.TokenFlags()))
 }
 
-func recordExtendedData_RegularExpressionLiteral(node *ast.Node, strs *stringTable, _ *ast.PositionMap, extendedData *[]byte, _ *[]byte) {
-	n := node.AsRegularExpressionLiteral()
-	textIndex := strs.add(n.Text, node.Kind, node.Pos(), node.End())
-	*extendedData = appendUint32s(*extendedData, textIndex, uint32(n.TokenFlags))
+func recordExtendedData_RegularExpressionLiteral(node ast.Handle, strs *stringTable, _ *ast.PositionMap, extendedData *[]byte, _ *[]byte) {
+	n := node
+	textIndex := strs.add(n.Text(), node.Kind(), node.Pos(), node.End())
+	*extendedData = appendUint32s(*extendedData, textIndex, uint32(n.TokenFlags()))
 }
 
-func recordExtendedData_NoSubstitutionTemplateLiteral(node *ast.Node, strs *stringTable, _ *ast.PositionMap, extendedData *[]byte, _ *[]byte) {
-	n := node.AsNoSubstitutionTemplateLiteral()
-	textIndex := strs.add(n.Text, node.Kind, node.Pos(), node.End())
-	*extendedData = appendUint32s(*extendedData, textIndex, uint32(n.TemplateFlags))
+func recordExtendedData_NoSubstitutionTemplateLiteral(node ast.Handle, strs *stringTable, _ *ast.PositionMap, extendedData *[]byte, _ *[]byte) {
+	n := node
+	textIndex := strs.add(n.Text(), node.Kind(), node.Pos(), node.End())
+	*extendedData = appendUint32s(*extendedData, textIndex, uint32(n.TokenFlags()))
 }

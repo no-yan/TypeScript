@@ -10,6 +10,7 @@ types of their program.
 - `decl-only` writes only `.d.ts` when `--emitDeclarationOnly` is set.
 - `decl-dir` honors `--declarationDir` as a separate output directory.
 - `decl-contents` includes exported function names and types in the `.d.ts`.
+- `decl-noemit` type-checks with `--declaration --noEmit` so declaration diagnostics run without writing files.
 
 ## How to get to it (user POV)
 
@@ -31,6 +32,7 @@ Preconditions:
 - **Check dts text.** `dist/index.d.ts` contains `greet` and `string`.
 - **Declaration dir.** Run `control-tsc cli -- --ignoreConfig --declaration --declarationDir /tmp/verify-tsc-$VERIFY_TSC_RUN_ID/emit-declarations/types --outDir /tmp/verify-tsc-$VERIFY_TSC_RUN_ID/emit-declarations/js --module commonjs /tmp/verify-tsc-$VERIFY_TSC_RUN_ID/emit-declarations/src/index.ts`. Exit code is `0`. `types/index.d.ts` exists. `js/index.js` exists.
 - **Emit only dts.** Run `control-tsc cli -- --ignoreConfig --declaration --emitDeclarationOnly --outDir /tmp/verify-tsc-$VERIFY_TSC_RUN_ID/emit-declarations/dts-only --module commonjs /tmp/verify-tsc-$VERIFY_TSC_RUN_ID/emit-declarations/src/index.ts`. Exit code is `0`. `dts-only/index.d.ts` exists. No `dts-only/index.js`.
+- **Declaration diagnostics without emit.** Run `control-tsc cli -- -p /tmp/verify-tsc-$VERIFY_TSC_RUN_ID/emit-declarations --noEmit --declaration`. Exit code is `0`. No extra `.d.ts` is required from this drive.
 - **Proof.** Keep the `.d.ts` text in the artifact directory and the `cli`
   transcripts. A `.js` file alone does not prove this feature.
 

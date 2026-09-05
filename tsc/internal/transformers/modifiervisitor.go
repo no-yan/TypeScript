@@ -10,17 +10,16 @@ type modifierVisitor struct {
 	AllowedModifiers ast.ModifierFlags
 }
 
-func (v *modifierVisitor) visit(node *ast.Node) *ast.Node {
-	flags := ast.ModifierToFlag(node.Kind)
+func (v *modifierVisitor) visit(node ast.Handle) ast.Handle {
+	flags := ast.ModifierToFlag(node.Kind())
 	if flags != ast.ModifierFlagsNone && flags&v.AllowedModifiers == 0 {
-		return nil
+		return ast.Handle{}
 	}
 	return node
 }
-
-func ExtractModifiers(emitContext *printer.EmitContext, modifiers *ast.ModifierList, allowed ast.ModifierFlags) *ast.ModifierList {
-	if modifiers == nil {
-		return nil
+func ExtractModifiers(emitContext *printer.EmitContext, modifiers ast.ListRef, allowed ast.ModifierFlags) ast.ListRef {
+	if modifiers == 0 {
+		return 0
 	}
 	tx := modifierVisitor{AllowedModifiers: allowed}
 	tx.NewTransformer(tx.visit, emitContext)

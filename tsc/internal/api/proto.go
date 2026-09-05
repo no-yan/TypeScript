@@ -384,6 +384,7 @@ type SnapshotChanges struct {
 	// ChangedProjects maps project handles to the file changes within that project.
 	// Projects not listed here (and not in RemovedProjects) are unchanged.
 	ChangedProjects map[ProjectID]*ProjectFileChanges `json:"changedProjects,omitempty"`
+
 	// RemovedProjects lists project handles that were present in the previous
 	// snapshot but absent from the new one.
 	RemovedProjects []ProjectID `json:"removedProjects,omitempty"`
@@ -1421,8 +1422,10 @@ type DiagnosticResponse struct {
 	End int `json:"end"`
 	// Code is the diagnostic error code.
 	Code int32 `json:"code"`
+
 	// Category is the diagnostic category (error, warning, suggestion, message).
 	Category diagnostics.Category `json:"category"`
+
 	// Text is the localized diagnostic message text.
 	Text string `json:"text"`
 	// ReportsUnnecessary indicates this diagnostic highlights unnecessary code.
@@ -1436,6 +1439,7 @@ type DiagnosticResponse struct {
 }
 
 // NewDiagnosticResponse converts an ast.Diagnostic to a DiagnosticResponse.
+
 func NewDiagnosticResponse(d *ast.Diagnostic) *DiagnosticResponse {
 	pos := d.Pos()
 	end := d.End()
@@ -1477,6 +1481,7 @@ func NewDiagnosticResponse(d *ast.Diagnostic) *DiagnosticResponse {
 }
 
 // NewDiagnosticResponses converts a slice of ast.Diagnostics to DiagnosticResponses.
+
 func NewDiagnosticResponses(diags []*ast.Diagnostic) []*DiagnosticResponse {
 	if len(diags) == 0 {
 		return nil

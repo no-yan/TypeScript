@@ -23,6 +23,23 @@ var testFiles = []string{
 	filepath.Join(repo.TestDataPath(), "fixtures/services/mapCode.ts"),
 }
 
+func TestGetTokenAtPositionAfterFreeze(t *testing.T) {
+	t.Parallel()
+	fileText := "const x = 1;\n"
+	file := parser.ParseSourceFile(ast.SourceFileParseOptions{
+		FileName: "/test.ts",
+		Path:     "/test.ts",
+	}, fileText, core.ScriptKindTS)
+	file.ParseStore().Freeze()
+	token := astnav.GetTokenAtPosition(file, 0)
+	if token.IsNil() {
+		t.Fatal("expected a token after Freeze")
+	}
+	if token.Store() == file.ParseStore() {
+		t.Fatal("token must not allocate on the frozen parse Store")
+	}
+}
+
 func TestGetTokenAtPosition(t *testing.T) {
 	t.Parallel()
 	jstest.SkipIfNoNodeJS(t)
@@ -65,14 +82,14 @@ func TestGetTokenAtPosition(t *testing.T) {
 		// This should not panic - it previously panicked with:
 		// "did not expect KindParenthesizedExpression to have KindIdentifier in its trivia"
 		token := astnav.GetTouchingPropertyName(file, position)
-		if token == nil {
+		if token.IsNil() {
 			t.Fatal("Expected to get a token, got nil")
 		}
 
 		// The function may return either the identifier itself or the containing
 		// parenthesized expression, depending on how the AST is structured
-		if token.Kind != ast.KindIdentifier && token.Kind != ast.KindParenthesizedExpression {
-			t.Errorf("Expected identifier or parenthesized expression, got %s", token.Kind)
+		if token.Kind() != ast.KindIdentifier && token.Kind() != ast.KindParenthesizedExpression {
+			t.Errorf("Expected identifier or parenthesized expression, got %s", token.Kind())
 		}
 	})
 
@@ -92,7 +109,7 @@ func TestGetTokenAtPosition(t *testing.T) {
 
 		// This should not panic
 		token := astnav.GetTouchingPropertyName(file, xPos)
-		assert.Assert(t, token != nil, "Expected to get a token")
+		assert.Assert(t, !token.IsNil(), "Expected to get a token")
 	})
 
 	t.Run("pointer equality", func(t *testing.T) {
@@ -259,11 +276,11 @@ type tokenInfo struct {
 	End  int    `json:"end"`
 }
 
-func toTokenInfo(node *ast.Node) *tokenInfo {
-	if node == nil {
+func toTokenInfo(node ast.Handle) *tokenInfo {
+	if node.IsNil() {
 		return nil
 	}
-	kind := strings.Replace(node.Kind.String(), "Kind", "", 1)
+	kind := strings.Replace(node.Kind().String(), "Kind", "", 1)
 	switch kind {
 	case "EndOfFile":
 		kind = "EndOfFileToken"
@@ -497,7 +514,7 @@ func TestFindNextToken(t *testing.T) {
 				}
 			}()
 			token := astnav.GetTokenAtPosition(file, pos)
-			next := astnav.FindNextToken(token, file.AsNode(), file)
+			next := astnav.FindNextToken(token, file.ParseRoot(), file)
 			return toTokenInfo(next)
 		})
 	})
@@ -577,7 +594,7 @@ export function isAnyDirectorySeparator(charCode: number): boolean {
 				Path:     "/file.ts",
 			}, testCase.fileContent, core.ScriptKindTS)
 			token := astnav.FindPrecedingToken(file, testCase.position)
-			assert.Equal(t, token.Kind, testCase.expectedKind)
+			assert.Equal(t, token.Kind(), testCase.expectedKind)
 		})
 	}
 }

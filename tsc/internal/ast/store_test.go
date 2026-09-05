@@ -14,6 +14,7 @@ func TestStoreAllocRefIsNonZero(t *testing.T) {
 	s := ast.NewStore(8)
 	h := s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
 	assert.Assert(t, h.Ref() != 0)
+	assert.Assert(t, !h.IsNil())
 	assert.Equal(t, ast.KindIdentifier, h.Kind())
 }
 
@@ -21,6 +22,7 @@ func TestStoreZeroRefIsMissing(t *testing.T) {
 	t.Parallel()
 	var h ast.Handle
 	assert.Equal(t, ast.NodeRef(0), h.Ref())
+	assert.Assert(t, h.IsNil())
 	assert.Equal(t, 0, h.NumChildren())
 	assert.Equal(t, ast.NodeRef(0), h.Parent().Ref())
 }
@@ -113,18 +115,22 @@ func TestStoreWalkBinaryTree(t *testing.T) {
 	assert.Equal(t, 7, n)
 }
 
-func TestStoreCrossStoreChildPanics(t *testing.T) {
+func TestStoreCrossStoreChildKeepsIdentity(t *testing.T) {
 	t.Parallel()
 	a := ast.NewStore(2)
 	b := ast.NewStore(2)
+	ast.RegisterStore(a)
+	ast.RegisterStore(b)
 	parent := a.Alloc(ast.KindBinaryExpression, 0, core.UndefinedTextRange(), 1)
 	child := b.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
-	defer func() {
-		if recover() == nil {
-			t.Fatal("expected panic")
-		}
-	}()
+	child.SetIdent(b.Intern("x"))
 	parent.SetChild(0, child)
+	got := parent.Child(0)
+	assert.Equal(t, ast.KindIdentifier, got.Kind())
+	assert.Equal(t, b, got.Store())
+	assert.Equal(t, child.Ref(), got.Ref())
+	assert.Equal(t, child.Global(), got.Global())
+	assert.Equal(t, "x", got.Ident())
 }
 
 func TestStoreLocalsAndNextContainer(t *testing.T) {
@@ -204,4 +210,142 @@ func walkStore(h ast.Handle, visit func(ast.Handle)) {
 	for i := range h.NumChildren() {
 		walkStore(h.Child(i), visit)
 	}
+}
+
+func TestFreezeKeepsParseScalars(t *testing.T) {
+	t.Parallel()
+	f := ast.NewFactory(ast.FactoryHooks{})
+	clause := f.NewHeritageClause(ast.KindExtendsKeyword, 0)
+	assert.Equal(t, ast.KindExtendsKeyword, clause.HeritageClauseToken())
+	f.Store().Freeze()
+	assert.Equal(t, ast.KindExtendsKeyword, clause.HeritageClauseToken())
+}
+
+func TestFreezeRejectsWrites(t *testing.T) {
+	t.Parallel()
+	f := ast.NewFactory(ast.FactoryHooks{})
+	clause := f.NewHeritageClause(ast.KindExtendsKeyword, 0)
+	f.Store().Freeze()
+	defer func() {
+		if recover() == nil {
+			t.Fatal("expected panic on frozen Store write")
+		}
+	}()
+	clause.SetHeritageClauseToken(ast.KindImplementsKeyword)
+}
+
+func TestFreezeRejectsAlloc(t *testing.T) {
+	t.Parallel()
+	f := ast.NewFactory(ast.FactoryHooks{})
+	f.Store().Freeze()
+	defer func() {
+		if recover() == nil {
+			t.Fatal("expected panic on AllocSlots of frozen Store")
+		}
+	}()
+	f.Store().Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
+}
+
+func TestFreezeAllowsParallelParseRead(t *testing.T) {
+	t.Parallel()
+	f := ast.NewFactory(ast.FactoryHooks{})
+	clause := f.NewHeritageClause(ast.KindExtendsKeyword, 0)
+	f.Store().Freeze()
+	live := ast.NewStore(8)
+	synth := live.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
+
+	var wg sync.WaitGroup
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		for range 8000 {
+			if got := clause.HeritageClauseToken(); got != ast.KindExtendsKeyword {
+				t.Errorf("heritage token = %v", got)
+				return
+			}
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		for range 8000 {
+			_ = clause.SubtreeFacts()
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		for i := range 8000 {
+			synth.SetUintValue(1, uint64(i))
+			_ = synth.UintValue(1)
+		}
+	}()
+	wg.Wait()
+}
+
+func TestFreezeConcurrent(t *testing.T) {
+	t.Parallel()
+	s := ast.NewStore(8)
+	s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
+	var wg sync.WaitGroup
+	wg.Add(16)
+	for range 16 {
+		go func() {
+			defer wg.Done()
+			s.Freeze()
+		}()
+	}
+	wg.Wait()
+	defer func() {
+		if recover() == nil {
+			t.Fatal("expected panic on write after concurrent Freeze")
+		}
+	}()
+	s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
+}
+
+func TestEnterEmitAllowsMutation(t *testing.T) {
+	t.Parallel()
+	f := ast.NewFactory(ast.FactoryHooks{})
+	clause := f.NewHeritageClause(ast.KindExtendsKeyword, 0)
+	f.Store().Freeze()
+	f.Store().EnterEmit()
+	clause.SetHeritageClauseToken(ast.KindImplementsKeyword)
+	assert.Equal(t, ast.KindImplementsKeyword, clause.HeritageClauseToken())
+	id := f.Store().Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
+	assert.Assert(t, !id.IsNil())
+}
+
+func TestEnterEmitBeforeFreezePanics(t *testing.T) {
+	t.Parallel()
+	s := ast.NewStore(2)
+	defer func() {
+		if recover() == nil {
+			t.Fatal("expected panic on EnterEmit before Freeze")
+		}
+	}()
+	s.EnterEmit()
+}
+
+func TestFreezeAfterEnterEmitIsIdempotent(t *testing.T) {
+	t.Parallel()
+	s := ast.NewStore(2)
+	s.Freeze()
+	s.EnterEmit()
+	s.Freeze()
+	id := s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
+	assert.Assert(t, !id.IsNil())
+}
+
+func TestLeaveEmitRestoresCheck(t *testing.T) {
+	t.Parallel()
+	s := ast.NewStore(2)
+	s.Freeze()
+	s.EnterEmit()
+	s.LeaveEmit()
+	s.Freeze()
+	defer func() {
+		if recover() == nil {
+			t.Fatal("expected panic on write after LeaveEmit")
+		}
+	}()
+	s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
 }

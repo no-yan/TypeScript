@@ -7,8 +7,6 @@ import (
 	"sort"
 	"testing"
 	"time"
-
-	"github.com/microsoft/TypeScript/tsc/internal/ast"
 )
 
 // TestE2ELayoutReport prints heap and forced-GC cost for checker.ts under
@@ -18,7 +16,8 @@ import (
 //	GOGC=off go test ./internal/ast -run TestE2ELayoutReport -v
 func TestE2ELayoutReport(t *testing.T) {
 	sf := parseBenchFixture(t, "checker.ts")
-	root := sf.AsNode()
+	root := sf.ParseRoot()
+	s := sf.ParseStore()
 	n := countAstNodes(root)
 	t.Logf("nodes=%d GOGC=%s", n, gogcEnv())
 
@@ -28,15 +27,11 @@ func TestE2ELayoutReport(t *testing.T) {
 	t.Logf("factory live: HeapInuse=%s HeapObjects=%d", humanBytes(ms.HeapInuse), ms.HeapObjects)
 	t.Logf("factory forced GC median=%s", timeForcedGCs(8, sf))
 
-	s := ast.NewStore(n)
-	h := ast.FlattenNode(s, root)
-	s.Seal()
 	sf = nil
-	root = nil
 	runtime.GC()
 	runtime.ReadMemStats(&ms)
 	t.Logf("store live:   HeapInuse=%s HeapObjects=%d Len=%d", humanBytes(ms.HeapInuse), ms.HeapObjects, s.Len())
-	t.Logf("store forced GC median=%s", timeForcedGCs(8, s, h))
+	t.Logf("store forced GC median=%s", timeForcedGCs(8, s, root))
 }
 
 func gogcEnv() string {

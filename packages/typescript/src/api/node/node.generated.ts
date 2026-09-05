@@ -9,17 +9,6 @@ import {
     SyntaxKind,
 } from "../../ast/index.ts";
 import {
-    modifierToFlag,
-    NODE_CHILD_MASK,
-    NODE_DATA_TYPE_MASK,
-    NODE_EXTENDED_DATA_MASK,
-    NODE_STRING_INDEX_MASK,
-    type NodeDataType,
-    popcount8,
-    RemoteNodeBase,
-    type SourceFileInfo,
-} from "./node.infrastructure.ts";
-import {
     childProperties,
     KIND_NODE_LIST,
     NODE_DATA_TYPE_CHILDREN,
@@ -34,6 +23,17 @@ import {
     NODE_OFFSET_PARENT,
     NODE_OFFSET_POS,
 } from "./protocol.ts";
+import {
+    type NodeDataType,
+    NODE_CHILD_MASK,
+    NODE_DATA_TYPE_MASK,
+    NODE_EXTENDED_DATA_MASK,
+    NODE_STRING_INDEX_MASK,
+    modifierToFlag,
+    popcount8,
+    RemoteNodeBase,
+    type SourceFileInfo,
+} from "./node.infrastructure.ts";
 
 export class RemoteNodeList extends Array<RemoteNode> implements NodeArray<RemoteNode> {
     // Inherited Array methods like filter/map/slice use ArraySpeciesCreate, which would
@@ -504,7 +504,8 @@ export class RemoteNode extends RemoteNodeBase implements Node {
 
     get operator(): SyntaxKind | undefined {
         switch (this.kind) {
-            case SyntaxKind.PrefixUnaryExpression: {
+            case SyntaxKind.PrefixUnaryExpression:
+            {
                 const idx = (this.data >> 24) & 0x7;
                 if (idx === 1) return SyntaxKind.MinusToken;
                 if (idx === 2) return SyntaxKind.TildeToken;
@@ -515,7 +516,8 @@ export class RemoteNode extends RemoteNodeBase implements Node {
             }
             case SyntaxKind.PostfixUnaryExpression:
                 return (this.data >> 24) & 0x1 ? SyntaxKind.MinusMinusToken : SyntaxKind.PlusPlusToken;
-            case SyntaxKind.TypeOperator: {
+            case SyntaxKind.TypeOperator:
+            {
                 const idx = (this.data >> 24) & 0x3;
                 if (idx === 1) return SyntaxKind.ReadonlyKeyword;
                 if (idx === 2) return SyntaxKind.UniqueKeyword;
@@ -526,7 +528,8 @@ export class RemoteNode extends RemoteNodeBase implements Node {
 
     get phaseModifier(): SyntaxKind | undefined {
         switch (this.kind) {
-            case SyntaxKind.ImportClause: {
+            case SyntaxKind.ImportClause:
+            {
                 const idx = (this.data >> 24) & 0x3;
                 if (idx === 0) return undefined;
                 return idx === 1 ? SyntaxKind.TypeKeyword : idx === 2 ? SyntaxKind.DeferKeyword : undefined;
@@ -867,7 +870,8 @@ export class RemoteNode extends RemoteNodeBase implements Node {
             case SyntaxKind.JSDocText:
             case SyntaxKind.JSDocLink:
             case SyntaxKind.JSDocLinkPlain:
-            case SyntaxKind.JSDocLinkCode: {
+            case SyntaxKind.JSDocLinkCode:
+            {
                 const stringIndex = this.data & NODE_STRING_INDEX_MASK;
                 return this.getString(stringIndex);
             }
@@ -879,7 +883,8 @@ export class RemoteNode extends RemoteNodeBase implements Node {
             case SyntaxKind.TemplateHead:
             case SyntaxKind.TemplateMiddle:
             case SyntaxKind.TemplateTail:
-            case SyntaxKind.SourceFile: {
+            case SyntaxKind.SourceFile:
+            {
                 const extendedDataOffset = this.sourceFile._offsetExtendedData + (this.data & NODE_EXTENDED_DATA_MASK);
                 const stringIndex = this.view.getUint32(extendedDataOffset, true);
                 return this.getString(stringIndex);
@@ -900,6 +905,7 @@ export class RemoteNode extends RemoteNodeBase implements Node {
 
     // ═══ Generated extended data property getters ═══
 
+
     // ═══ Other property getters ═══
 
     get flags(): number {
@@ -916,3 +922,4 @@ export class RemoteNode extends RemoteNodeBase implements Node {
         return flags;
     }
 }
+

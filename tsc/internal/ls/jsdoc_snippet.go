@@ -3,8 +3,6 @@ package ls
 import (
 	"context"
 	"fmt"
-	"strings"
-
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/astnav"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
@@ -14,16 +12,14 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/lsp/lsproto"
 	"github.com/microsoft/TypeScript/tsc/internal/parser"
 	"github.com/microsoft/TypeScript/tsc/internal/stringutil"
+	"strings"
 )
 
-type docCommentTemplate struct {
-	newText string
-}
-
+type docCommentTemplate struct{ newText string }
 type commentOwnerInfo struct {
-	commentOwner *ast.Node
-	parameters   []*ast.ParameterDeclarationNode
-	hasReturn    bool
+	commentOwner/*includeJSDoc*/ /*includeJSDoc*/ ast.Handle
+	parameters []ast.Handle
+	hasReturn  bool
 }
 
 func (l *LanguageService) getJSDocSnippetCompletion(ctx context.Context, file *ast.SourceFile, position int) *CompletionList {
@@ -41,36 +37,20 @@ func (l *LanguageService) getJSDocSnippetCompletion(ctx context.Context, file *a
 	if template == nil {
 		return nil
 	}
-
 	insertText := template.newText
 	var insertTextFormat *lsproto.InsertTextFormat
 	if clientSupportsItemSnippet(ctx) {
 		insertText = templateToSnippet(insertText, newLine)
 		insertTextFormat = new(lsproto.InsertTextFormatSnippet)
 	}
-
 	editRange := l.getJSDocSnippetCompletionRange(ctx, file, position, insertText)
 	var commitCharacters *[]string
 	if clientSupportsItemCommitCharacters(ctx) {
 		commitCharacters = &[]string{}
 	}
-	item := &CompletionItem{
-		CompletionItem: &lsproto.CompletionItem{
-			Label:            "/** */",
-			Kind:             new(lsproto.CompletionItemKindText),
-			Detail:           new(diagnostics.JSDoc_comment.Localize(locale.FromContext(ctx))),
-			SortText:         new("\x00"),
-			InsertTextFormat: insertTextFormat,
-			TextEdit:         editRange,
-			CommitCharacters: commitCharacters,
-		},
-	}
-	return &CompletionList{
-		IsIncomplete: false,
-		Items:        []*CompletionItem{item},
-	}
+	item := &CompletionItem{CompletionItem: &lsproto.CompletionItem{Label: "/** */", Kind: new(lsproto.CompletionItemKindText), Detail: new(diagnostics.JSDoc_comment.Localize(locale.FromContext(ctx))), SortText: new("\x00"), InsertTextFormat: insertTextFormat, TextEdit: editRange, CommitCharacters: commitCharacters}}
+	return &CompletionList{IsIncomplete: false, Items: []*CompletionItem{item}}
 }
-
 func isPotentiallyValidJSDocSnippetCompletionPosition(file *ast.SourceFile, position int) bool {
 	text := file.Text()
 	lineStart := format.GetLineStartPositionForPosition(position, file)
@@ -78,12 +58,10 @@ func isPotentiallyValidJSDocSnippetCompletionPosition(file *ast.SourceFile, posi
 	if !isJSDocSnippetPrefix(prefix) {
 		return false
 	}
-
 	lineEnd := getLineEndOfPosition(file, position)
 	suffix := text[position:lineEnd]
 	return isJSDocSnippetSuffix(suffix)
 }
-
 func (l *LanguageService) getJSDocSnippetCompletionRange(ctx context.Context, file *ast.SourceFile, position int, newText string) *lsproto.TextEditOrInsertReplaceEdit {
 	text := file.Text()
 	lineStart := format.GetLineStartPositionForPosition(position, file)
@@ -92,44 +70,29 @@ func (l *LanguageService) getJSDocSnippetCompletionRange(ctx context.Context, fi
 	if prefixStart, ok := getJSDocSnippetPrefixStart(prefix); ok {
 		start = lineStart + prefixStart
 	}
-
 	lineEnd := getLineEndOfPosition(file, position)
 	suffix := text[position:lineEnd]
 	end := position
 	if suffixEnd, ok := getJSDocSnippetSuffixEnd(suffix); ok {
 		end += suffixEnd
 	}
-
 	replacementRange, fidelity := l.createLspRangeFromBounds(start, end, file)
 	if !fidelity.IsExact() {
 		return nil
 	}
 	if clientSupportsItemInsertReplace(ctx) {
-		return &lsproto.TextEditOrInsertReplaceEdit{
-			InsertReplaceEdit: &lsproto.InsertReplaceEdit{
-				NewText: newText,
-				Insert:  replacementRange,
-				Replace: replacementRange,
-			},
-		}
+		return &lsproto.TextEditOrInsertReplaceEdit{InsertReplaceEdit: &lsproto.InsertReplaceEdit{NewText: newText, Insert: replacementRange, Replace: replacementRange}}
 	}
-	return &lsproto.TextEditOrInsertReplaceEdit{
-		TextEdit: &lsproto.TextEdit{
-			NewText: newText,
-			Range:   replacementRange,
-		},
-	}
+	return &lsproto.TextEditOrInsertReplaceEdit{TextEdit: &lsproto.TextEdit{NewText: newText, Range: replacementRange}}
 }
-
 func getDocCommentTemplateAtPosition(sourceFile *ast.SourceFile, position int, generateReturnInDocTemplate bool, newLine string) *docCommentTemplate {
 	tokenAtPos := astnav.GetTokenAtPosition(sourceFile, position)
-	if tokenAtPos == nil {
+	if tokenAtPos.IsNil() {
 		return nil
 	}
-
 	existingDocComment := ast.FindAncestor(tokenAtPos, ast.IsJSDoc)
 	docCommentEnd, hasDocCommentAtPosition, hasClosingDocCommentAtPosition := getDocCommentEndAtPosition(sourceFile, position)
-	isInEmptyDocComment := existingDocComment != nil || hasDocCommentAtPosition
+	isInEmptyDocComment := !existingDocComment.IsNil() || hasDocCommentAtPosition
 	if isNonEmptyJSDoc(existingDocComment) && hasDocCommentAtPosition && !hasClosingDocCommentAtPosition {
 		reparseText := sourceFile.Text()[:position] + " */" + sourceFile.Text()[position:]
 		reparse := parser.ParseSourceFile(sourceFile.ParseOptions(), reparseText, sourceFile.ScriptKind)
@@ -138,35 +101,30 @@ func getDocCommentTemplateAtPosition(sourceFile *ast.SourceFile, position int, g
 	if isNonEmptyJSDoc(existingDocComment) {
 		return nil
 	}
-	if existingDocComment == nil && hasDocCommentAtPosition {
+	if existingDocComment.IsNil() && hasDocCommentAtPosition {
 		tokenAtPos = astnav.GetTokenAtPosition(sourceFile, skipWhitespace(sourceFile.Text(), docCommentEnd))
-		if tokenAtPos == nil {
+		if tokenAtPos.IsNil() {
 			return nil
 		}
 	}
-	tokenStart := astnav.GetStartOfNode(tokenAtPos, sourceFile, false /*includeJSDoc*/)
+	tokenStart := astnav.GetStartOfNode(tokenAtPos, sourceFile, false)
 	if !isInEmptyDocComment && tokenStart < position {
 		return nil
 	}
-
 	commentOwnerInfo := getCommentOwnerInfo(tokenAtPos, generateReturnInDocTemplate)
 	if commentOwnerInfo == nil {
 		return nil
 	}
-
 	commentOwner := commentOwnerInfo.commentOwner
 	lastJSDoc := core.LastOrNil(commentOwner.JSDoc(sourceFile))
-	if commentOwnerStart := astnav.GetStartOfNode(commentOwner, sourceFile, false /*includeJSDoc*/); commentOwnerStart < position ||
-		lastJSDoc != nil && existingDocComment != nil && lastJSDoc != existingDocComment {
+	if commentOwnerStart := astnav.GetStartOfNode(commentOwner, sourceFile, false); commentOwnerStart < position || !lastJSDoc.IsNil() && !existingDocComment.IsNil() && lastJSDoc != existingDocComment {
 		return nil
 	}
-
 	indentation := getIndentationStringAtPosition(sourceFile, position)
 	tags := parameterDocComments(commentOwnerInfo.parameters, ast.IsSourceFileJS(sourceFile), indentation, newLine)
 	if commentOwnerInfo.hasReturn {
 		tags += returnsDocComment(indentation, newLine)
 	}
-
 	if tags != "" && !hasJSDocTags(commentOwner, sourceFile) {
 		preamble := "/**" + newLine + indentation + " * "
 		endLine := ""
@@ -177,7 +135,6 @@ func getDocCommentTemplateAtPosition(sourceFile *ast.SourceFile, position int, g
 	}
 	return &docCommentTemplate{newText: "/** */"}
 }
-
 func getDocCommentEndAtPosition(file *ast.SourceFile, position int) (end int, ok bool, hasClosing bool) {
 	text := file.Text()
 	lineStart := format.GetLineStartPositionForPosition(position, file)
@@ -190,7 +147,6 @@ func getDocCommentEndAtPosition(file *ast.SourceFile, position int) (end int, ok
 	suffixEnd, hasClosing := getJSDocSnippetSuffixEnd(suffix)
 	return position + suffixEnd, true, hasClosing
 }
-
 func skipWhitespace(text string, position int) int {
 	for position < len(text) {
 		ch, size := stringutil.DecodeJSStringRune(text[position:])
@@ -204,9 +160,8 @@ func skipWhitespace(text string, position int) int {
 	}
 	return position
 }
-
-func getCommentOwnerInfo(tokenAtPos *ast.Node, generateReturnInDocTemplate bool) *commentOwnerInfo {
-	for node := tokenAtPos; node != nil; node = node.Parent {
+func getCommentOwnerInfo(tokenAtPos ast.Handle, generateReturnInDocTemplate bool) *commentOwnerInfo {
+	for node := tokenAtPos; !node.IsNil(); node = node.Parent() {
 		info, quit := getCommentOwnerInfoWorker(node, generateReturnInDocTemplate)
 		if info != nil || quit {
 			return info
@@ -214,28 +169,27 @@ func getCommentOwnerInfo(tokenAtPos *ast.Node, generateReturnInDocTemplate bool)
 	}
 	return nil
 }
-
-func getCommentOwnerInfoWorker(commentOwner *ast.Node, generateReturnInDocTemplate bool) (*commentOwnerInfo, bool) {
-	if commentOwner == nil {
+func getCommentOwnerInfoWorker(commentOwner ast.Handle, generateReturnInDocTemplate bool) (*commentOwnerInfo, bool) {
+	if commentOwner.IsNil() {
 		return nil, false
 	}
-	switch commentOwner.Kind {
+	switch commentOwner.Kind() {
 	case ast.KindFunctionDeclaration, ast.KindFunctionExpression, ast.KindMethodDeclaration, ast.KindConstructor, ast.KindMethodSignature, ast.KindArrowFunction:
 		return &commentOwnerInfo{commentOwner: commentOwner, parameters: commentOwner.Parameters(), hasReturn: hasReturn(commentOwner, generateReturnInDocTemplate)}, false
 	case ast.KindPropertyAssignment:
-		return getCommentOwnerInfoWorker(commentOwner.AsPropertyAssignment().Initializer, generateReturnInDocTemplate)
+		return getCommentOwnerInfoWorker(commentOwner.PropertyAssignmentInitializer(), generateReturnInDocTemplate)
 	case ast.KindClassDeclaration, ast.KindInterfaceDeclaration, ast.KindEnumDeclaration, ast.KindEnumMember, ast.KindTypeAliasDeclaration:
 		return &commentOwnerInfo{commentOwner: commentOwner}, false
 	case ast.KindPropertySignature:
-		if typeNode := commentOwner.AsPropertySignatureDeclaration().Type; typeNode != nil && ast.IsFunctionTypeNode(typeNode) {
+		if typeNode := commentOwner.PropertySignatureDeclarationType(); !typeNode.IsNil() && ast.IsFunctionTypeNode(typeNode) {
 			return &commentOwnerInfo{commentOwner: commentOwner, parameters: typeNode.Parameters(), hasReturn: hasReturn(typeNode, generateReturnInDocTemplate)}, false
 		}
 		return &commentOwnerInfo{commentOwner: commentOwner}, false
 	case ast.KindVariableStatement:
-		declarations := commentOwner.AsVariableStatement().DeclarationList.AsVariableDeclarationList().Declarations.Nodes
+		declarations := commentOwner.Store().ListSlice(commentOwner.VariableStatementDeclarationList().VariableDeclarationListDeclarations())
 		if len(declarations) == 1 {
-			if initializer := declarations[0].AsVariableDeclaration().Initializer; initializer != nil {
-				if host := getRightHandSideOfAssignment(initializer); host != nil {
+			if initializer := declarations[0].VariableDeclarationInitializer(); !initializer.IsNil() {
+				if host := getRightHandSideOfAssignment(initializer); !host.IsNil() {
 					return &commentOwnerInfo{commentOwner: commentOwner, parameters: host.Parameters(), hasReturn: hasReturn(host, generateReturnInDocTemplate)}, false
 				}
 			}
@@ -244,30 +198,29 @@ func getCommentOwnerInfoWorker(commentOwner *ast.Node, generateReturnInDocTempla
 	case ast.KindSourceFile:
 		return nil, true
 	case ast.KindModuleDeclaration:
-		if commentOwner.Parent.Kind == ast.KindModuleDeclaration {
+		if commentOwner.Parent().Kind() == ast.KindModuleDeclaration {
 			return nil, false
 		}
 		return &commentOwnerInfo{commentOwner: commentOwner}, false
 	case ast.KindExpressionStatement:
-		return getCommentOwnerInfoWorker(commentOwner.AsExpressionStatement().Expression, generateReturnInDocTemplate)
+		return getCommentOwnerInfoWorker(commentOwner.ExpressionStatementExpression(), generateReturnInDocTemplate)
 	case ast.KindBinaryExpression:
-		binaryExpression := commentOwner.AsBinaryExpression()
+		binaryExpression := commentOwner
 		if ast.GetAssignmentDeclarationKind(commentOwner) == ast.JSDeclarationKindNone {
 			return nil, true
 		}
-		if ast.IsFunctionLike(binaryExpression.Right) {
-			return &commentOwnerInfo{commentOwner: commentOwner, parameters: binaryExpression.Right.Parameters(), hasReturn: hasReturn(binaryExpression.Right, generateReturnInDocTemplate)}, false
+		if ast.IsFunctionLike(binaryExpression.Right()) {
+			return &commentOwnerInfo{commentOwner: commentOwner, parameters: binaryExpression.Right().Parameters(), hasReturn: hasReturn(binaryExpression.Right(), generateReturnInDocTemplate)}, false
 		}
 		return &commentOwnerInfo{commentOwner: commentOwner}, false
 	case ast.KindPropertyDeclaration:
-		if initializer := commentOwner.AsPropertyDeclaration().Initializer; initializer != nil && ast.IsFunctionExpressionOrArrowFunction(initializer) {
+		if initializer := commentOwner.PropertyDeclarationInitializer(); !initializer.IsNil() && ast.IsFunctionExpressionOrArrowFunction(initializer) {
 			return &commentOwnerInfo{commentOwner: commentOwner, parameters: initializer.Parameters(), hasReturn: hasReturn(initializer, generateReturnInDocTemplate)}, false
 		}
 	}
 	return nil, false
 }
-
-func hasReturn(node *ast.Node, generateReturnInDocTemplate bool) bool {
+func hasReturn(node ast.Handle, generateReturnInDocTemplate bool) bool {
 	if !generateReturnInDocTemplate {
 		return false
 	}
@@ -275,33 +228,31 @@ func hasReturn(node *ast.Node, generateReturnInDocTemplate bool) bool {
 		return true
 	}
 	if ast.IsArrowFunction(node) {
-		if body := node.Body(); body != nil && ast.IsExpression(body) {
+		if body := node.Body(); !body.IsNil() && ast.IsExpression(body) {
 			return true
 		}
 	}
-	return ast.IsFunctionLikeDeclaration(node) && node.Body() != nil && ast.IsBlock(node.Body()) && ast.ForEachReturnStatement(node.Body(), func(*ast.Node) bool {
+	return ast.IsFunctionLikeDeclaration(node) && !node.Body().IsNil() && ast.IsBlock(node.Body()) && ast.ForEachReturnStatement(node.Body(), func(ast.Handle) bool {
 		return true
 	})
 }
-
-func getRightHandSideOfAssignment(rightHandSide *ast.Node) *ast.Node {
-	if rightHandSide == nil {
-		return nil
+func getRightHandSideOfAssignment(rightHandSide ast.Handle) ast.Handle {
+	if rightHandSide.IsNil() {
+		return ast.Handle{}
 	}
-	for rightHandSide.Kind == ast.KindParenthesizedExpression {
-		rightHandSide = rightHandSide.AsParenthesizedExpression().Expression
+	for rightHandSide.Kind() == ast.KindParenthesizedExpression {
+		rightHandSide = rightHandSide.ParenthesizedExpressionExpression()
 	}
-	switch rightHandSide.Kind {
+	switch rightHandSide.Kind() {
 	case ast.KindFunctionExpression, ast.KindArrowFunction:
 		return rightHandSide
 	case ast.KindClassExpression:
 		return core.Find(rightHandSide.Members(), ast.IsConstructorDeclaration)
 	default:
-		return nil
+		return ast.Handle{}
 	}
 }
-
-func parameterDocComments(parameters []*ast.ParameterDeclarationNode, isJavaScriptFile bool, indentation, newLine string) string {
+func parameterDocComments(parameters []ast.Handle, isJavaScriptFile bool, indentation, newLine string) string {
 	var b strings.Builder
 	for i, parameter := range parameters {
 		paramName := fmt.Sprintf("param%d", i)
@@ -310,7 +261,7 @@ func parameterDocComments(parameters []*ast.ParameterDeclarationNode, isJavaScri
 		}
 		paramType := ""
 		if isJavaScriptFile {
-			if parameter.AsParameterDeclaration().DotDotDotToken != nil {
+			if !parameter.ParameterDeclarationDotDotDotToken().IsNil() {
 				paramType = "{...any} "
 			} else {
 				paramType = "{any} "
@@ -324,11 +275,9 @@ func parameterDocComments(parameters []*ast.ParameterDeclarationNode, isJavaScri
 	}
 	return b.String()
 }
-
 func returnsDocComment(indentation, newLine string) string {
 	return indentation + " * @returns" + newLine
 }
-
 func getIndentationStringAtPosition(sourceFile *ast.SourceFile, position int) string {
 	text := sourceFile.Text()
 	lineStart := format.GetLineStartPositionForPosition(position, sourceFile)
@@ -345,35 +294,30 @@ func getIndentationStringAtPosition(sourceFile *ast.SourceFile, position int) st
 	}
 	return text[lineStart:pos]
 }
-
-func isNonEmptyJSDoc(jsdoc *ast.Node) bool {
-	if jsdoc == nil {
+func isNonEmptyJSDoc(jsdoc ast.Handle) bool {
+	if jsdoc.IsNil() {
 		return false
 	}
-	data := jsdoc.AsJSDoc()
-	return data.Comment != nil && len(data.Comment.Nodes) > 0 || data.Tags != nil && len(data.Tags.Nodes) > 0
+	data := jsdoc
+	return data.JSDocComment() != 0 && data.Store().ListLen(data.JSDocComment()) > 0 || len(data.Tags()) > 0
 }
-
-func hasJSDocTags(node *ast.Node, file *ast.SourceFile) bool {
+func hasJSDocTags(node ast.Handle, file *ast.SourceFile) bool {
 	jsdocs := node.JSDoc(file)
 	if len(jsdocs) == 0 {
 		return false
 	}
-	tags := jsdocs[len(jsdocs)-1].AsJSDoc().Tags
-	return tags != nil && len(tags.Nodes) > 0
+	tags := jsdocs[len(jsdocs)-1].JSDocTags()
+	return tags != 0 && node.Store().ListLen(tags) > 0
 }
-
 func templateToSnippet(template string, newLine string) string {
 	if template == "/** */" {
 		return "/**" + newLine + " * $0" + newLine + " */"
 	}
-
 	snippetIndex := 1
 	template = escapeSnippetText(template)
 	template = stripJSDocTemplateIndentation(template, newLine)
 	return transformJSDocTemplateLines(template, newLine, &snippetIndex)
 }
-
 func stripJSDocTemplateIndentation(template string, newLine string) string {
 	lines := strings.Split(template, newLine)
 	for i, line := range lines {
@@ -386,7 +330,6 @@ func stripJSDocTemplateIndentation(template string, newLine string) string {
 	}
 	return strings.Join(lines, newLine)
 }
-
 func transformJSDocTemplateLines(template string, newLine string, snippetIndex *int) string {
 	lines := strings.Split(template, newLine)
 	for i, line := range lines {
@@ -404,12 +347,10 @@ func transformJSDocTemplateLines(template string, newLine string, snippetIndex *
 	}
 	return strings.Join(lines, newLine)
 }
-
 func lineHasOnlyJSDocAsterisk(line string) bool {
 	line = strings.TrimLeft(line, " \t")
 	return strings.HasPrefix(line, "*") && isOnlySpacesOrTabs(line[1:])
 }
-
 func transformJSDocParamLine(line string, snippetIndex *int) (string, bool) {
 	prefix := ""
 	rest := line
@@ -425,7 +366,6 @@ func transformJSDocParamLine(line string, snippetIndex *int) (string, bool) {
 		return "", false
 	}
 	rest = strings.TrimLeft(rest, " \t")
-
 	var typeText string
 	if strings.HasPrefix(rest, "{") {
 		closeBrace := strings.IndexByte(rest, '}')
@@ -439,12 +379,10 @@ func transformJSDocParamLine(line string, snippetIndex *int) (string, bool) {
 		}
 		rest = strings.TrimLeft(rest, " \t")
 	}
-
 	paramName, rest, ok := scanNonWhitespace(rest)
 	if !ok || !isOnlySpacesOrTabs(rest) {
 		return "", false
 	}
-
 	out := prefix + "* @param "
 	if typeText == " {any}" || typeText == " {*}" {
 		out += fmt.Sprintf("{${%d:*}} ", *snippetIndex)
@@ -456,7 +394,6 @@ func transformJSDocParamLine(line string, snippetIndex *int) (string, bool) {
 	*snippetIndex++
 	return out, true
 }
-
 func transformJSDocReturnsLine(line string, snippetIndex *int) (string, bool) {
 	prefix := ""
 	rest := line
@@ -471,7 +408,6 @@ func transformJSDocReturnsLine(line string, snippetIndex *int) (string, bool) {
 	*snippetIndex++
 	return text, true
 }
-
 func scanNonWhitespace(text string) (word string, rest string, ok bool) {
 	if text == "" {
 		return "", "", false
@@ -488,7 +424,6 @@ func scanNonWhitespace(text string) (word string, rest string, ok bool) {
 	}
 	return text, "", true
 }
-
 func isJSDocSnippetPrefix(prefix string) bool {
 	trimmed := trimRightSingleLineWhitespace(prefix)
 	if strings.HasSuffix(trimmed, "/**") {
@@ -508,7 +443,6 @@ func isJSDocSnippetPrefix(prefix string) bool {
 	}
 	return len(trimmed)-start >= 3
 }
-
 func getJSDocSnippetPrefixStart(prefix string) (int, bool) {
 	trimmed := trimRightSingleLineWhitespace(prefix)
 	for i := len(trimmed) - 1; i >= 0 && trimmed[i] == '*'; i-- {
@@ -521,7 +455,6 @@ func getJSDocSnippetPrefixStart(prefix string) (int, bool) {
 	}
 	return 0, false
 }
-
 func isJSDocSnippetSuffix(suffix string) bool {
 	trimmed := trimRightSingleLineWhitespace(suffix[skipSingleLineWhitespace(suffix, 0):])
 	if trimmed == "" {
@@ -537,7 +470,6 @@ func isJSDocSnippetSuffix(suffix string) bool {
 	}
 	return true
 }
-
 func getJSDocSnippetSuffixEnd(suffix string) (int, bool) {
 	pos := skipSingleLineWhitespace(suffix, 0)
 	for pos < len(suffix) && suffix[pos] == '*' {
@@ -548,7 +480,6 @@ func getJSDocSnippetSuffixEnd(suffix string) (int, bool) {
 	}
 	return 0, false
 }
-
 func trimRightSingleLineWhitespace(text string) string {
 	end := 0
 	for pos := 0; pos < len(text); {
@@ -563,7 +494,6 @@ func trimRightSingleLineWhitespace(text string) string {
 	}
 	return text[:end]
 }
-
 func skipSingleLineWhitespace(text string, pos int) int {
 	for pos < len(text) {
 		ch, size := stringutil.DecodeJSStringRune(text[pos:])
@@ -574,11 +504,9 @@ func skipSingleLineWhitespace(text string, pos int) int {
 	}
 	return pos
 }
-
 func isOnlySingleLineWhitespace(text string) bool {
 	return skipSingleLineWhitespace(text, 0) == len(text)
 }
-
 func startsWithSingleLineWhitespace(text string) bool {
 	if text == "" {
 		return false
@@ -586,7 +514,6 @@ func startsWithSingleLineWhitespace(text string) bool {
 	ch, size := stringutil.DecodeJSStringRune(text)
 	return size != 0 && stringutil.IsWhiteSpaceSingleLine(ch)
 }
-
 func isOnlySpacesOrTabs(text string) bool {
 	for i := range len(text) {
 		if text[i] != ' ' && text[i] != '\t' {

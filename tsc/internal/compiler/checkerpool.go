@@ -21,6 +21,7 @@ import (
 // checker for the same file across calls.
 type CheckerPool interface {
 	GetChecker(ctx context.Context, file *ast.SourceFile) (*checker.Checker, func())
+	Close()
 }
 
 type checkerPool struct {
@@ -320,6 +321,22 @@ func newCheckerPoolWithTracing(program *Program, tr *tracing.Tracing) *checkerPo
 	}
 
 	return pool
+}
+
+func (p *checkerPool) Close() {
+	for i, c := range p.checkers {
+		if c == nil {
+			continue
+		}
+		if p.locks[i] != nil {
+			p.locks[i].Lock()
+			c.Close()
+			p.locks[i].Unlock()
+		} else {
+			c.Close()
+		}
+		p.checkers[i] = nil
+	}
 }
 
 // GetChecker implements CheckerPool. When file is non-nil, returns the checker

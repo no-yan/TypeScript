@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"sync"
 	"sync/atomic"
 	"unsafe"
 
@@ -48,39 +49,51 @@ type listHeader struct {
 	len   uint32
 }
 
-// Store owns the long-lived tree. A Store has one writer at a time and does
-// not synchronize its node, list, intern, or side-map mutations. Compiler
-// phases transfer exclusive ownership of a file's Store; parallel work must
-// write different Stores. Readers may run concurrently only while no writer
-// is active. NewFactoryOn does not relax this rule.
+type storePhase uint8
+
+const (
+	storePhaseBuild storePhase = iota
+	storePhaseCheck
+	storePhaseEmit
+)
+
+// Store owns the long-lived tree. One writer for life. Parse, bind, and JSDoc
+// warmup write during build. Freeze publishes the Store as immutable for
+// parallel check (no append, no map writes except SubtreeFacts atomics).
+// EnterEmit / LeaveEmit are the emit writer lease. SourceFiles outlive a
+// Program, so phase is not monotonic across rebuilds.
 //
 // StoreSet is separately synchronized for cross-file registration and lookup.
-// After Seal, node/list/intern backing arrays are pointer-free (noscan).
-// Sparse side maps (symbols) remain scannable on purpose: only declaration
-// nodes use them.
+// After Freeze, internIdx is dropped so node/list/intern backing arrays stay
+// pointer-free (noscan).
 type Store struct {
-	id            atomic.Uint32 // StoreID assigned by StoreSet.Add; 0 until registered
-	allocHint     int
-	nodes         []nodeHeader
-	lists         []listHeader
-	children      []NodeRef
-	listSlots     []ListRef
-	internBuf     []byte
-	internOff     []uint32 // intern id i occupies internBuf[internOff[i]:internOff[i+1]]
-	internIdx     map[string]uint32
-	symbols       map[NodeRef]*Symbol
-	localSymbols  map[NodeRef]*Symbol
-	flows         map[NodeRef]*FlowNode
-	endFlows      map[NodeRef]*FlowNode
-	returnFlows   map[NodeRef]*FlowNode
-	locals        map[NodeRef]SymbolTable
-	nextContainer map[NodeRef]NodeRef
-	scalarValues  map[uint64]uint64 // packed NodeRef/value-slot key; pointer-free
-	stringValues  map[uint64]uint32 // intern ids keyed by NodeRef/value-slot
-	objectValues  map[uint64]any    // sparse pointer/slice kind-specific values
-	externalChild map[uint64]GlobalRef
-	externalList  map[uint64]GlobalRef
-	sourceFile    *SourceFile // metadata owner; SourceFile fields stay outside Store
+	id             atomic.Uint32 // StoreID assigned by StoreSet.Add; 0 until registered
+	allocHint      int
+	phase          storePhase
+	frozenAt       NodeRef
+	freezeOnce     sync.Once
+	nodes          []nodeHeader
+	lists          []listHeader
+	children       []NodeRef
+	listSlots      []ListRef
+	internBuf      []byte
+	internOff      []uint32 // intern id i occupies internBuf[internOff[i]:internOff[i+1]]
+	internIdx      map[string]uint32
+	symbols        map[NodeRef]*Symbol
+	localSymbols   map[NodeRef]*Symbol
+	flows          map[NodeRef]*FlowNode
+	endFlows       map[NodeRef]*FlowNode
+	returnFlows    map[NodeRef]*FlowNode
+	locals         map[NodeRef]SymbolTable
+	nextContainer  map[NodeRef]NodeRef
+	scalarValues   map[uint64]uint64 // packed NodeRef/value-slot key; pointer-free
+	stringValues   map[uint64]uint32 // intern ids keyed by NodeRef/value-slot
+	objectValues   map[uint64]any    // sparse pointer/slice kind-specific values
+	externalChild  map[uint64]GlobalRef
+	externalList   map[uint64]GlobalRef
+	externalParent map[NodeRef]GlobalRef
+	subtreeFacts   []uint32
+	sourceFile     *SourceFile // metadata owner; SourceFile fields stay outside Store
 }
 
 func NewStore(hint int) *Store {
@@ -107,6 +120,7 @@ func (s *Store) AllocSlots(kind Kind, flags NodeFlags, loc core.TextRange, child
 	if s == nil {
 		panic("ast: Alloc on nil Store")
 	}
+	s.mustMutate()
 	if childLen < 0 {
 		panic("ast: negative childLen")
 	}
@@ -142,6 +156,7 @@ func (s *Store) AllocList(loc core.TextRange, n int) ListRef {
 	if s == nil {
 		panic("ast: AllocList on nil Store")
 	}
+	s.mustMutate()
 	if n < 0 {
 		panic("ast: negative list length")
 	}
@@ -166,6 +181,7 @@ func (s *Store) Intern(text string) uint32 {
 	if text == "" {
 		return 0
 	}
+	s.mustMutate()
 	if id, ok := s.internIdx[text]; ok {
 		return id
 	}
@@ -180,6 +196,106 @@ func (s *Store) Intern(text string) uint32 {
 
 func (s *Store) Seal() {
 	s.internIdx = nil
+}
+
+// Freeze is build → check. Idempotent if already check or emit.
+func (s *Store) Freeze() {
+	if s == nil {
+		return
+	}
+	s.freezeOnce.Do(func() {
+		if s.phase == storePhaseEmit {
+			return
+		}
+		s.phase = storePhaseCheck
+		s.frozenAt = NodeRef(len(s.nodes))
+		s.internIdx = nil
+		s.subtreeFacts = make([]uint32, len(s.nodes))
+	})
+}
+
+// EnterEmit is check → emit for the writer lease. Idempotent if already emit.
+// Panics if still build.
+func (s *Store) EnterEmit() {
+	if s == nil {
+		return
+	}
+	switch s.phase {
+	case storePhaseEmit:
+		return
+	case storePhaseBuild:
+		panic("ast: EnterEmit before Freeze")
+	}
+	s.phase = storePhaseEmit
+}
+
+// LeaveEmit is emit → check. The lease is over. Idempotent if already check.
+func (s *Store) LeaveEmit() {
+	if s == nil {
+		return
+	}
+	if s.phase == storePhaseEmit {
+		s.phase = storePhaseCheck
+	}
+}
+
+func (s *Store) mustMutate() {
+	if s != nil && s.phase == storePhaseCheck {
+		panic("ast: write to frozen Store")
+	}
+}
+
+// StoreCheckpoint is a speculative-parse watermark. Restore truncates node,
+// list, and child columns back to this point. Interned strings stay; they are
+// not counted in Len and are safe to reuse.
+type StoreCheckpoint struct {
+	nodes     int
+	lists     int
+	children  int
+	listSlots int
+}
+
+func (s *Store) Checkpoint() StoreCheckpoint {
+	if s == nil {
+		return StoreCheckpoint{}
+	}
+	return StoreCheckpoint{
+		nodes:     len(s.nodes),
+		lists:     len(s.lists),
+		children:  len(s.children),
+		listSlots: len(s.listSlots),
+	}
+}
+
+func (s *Store) Restore(cp StoreCheckpoint) {
+	if s == nil {
+		return
+	}
+	if cp.nodes < 1 || cp.nodes > len(s.nodes) ||
+		cp.lists < 1 || cp.lists > len(s.lists) ||
+		cp.children < 0 || cp.children > len(s.children) ||
+		cp.listSlots < 0 || cp.listSlots > len(s.listSlots) {
+		panic("ast: invalid Store checkpoint")
+	}
+	s.nodes = s.nodes[:cp.nodes]
+	s.lists = s.lists[:cp.lists]
+	s.children = s.children[:cp.children]
+	s.listSlots = s.listSlots[:cp.listSlots]
+	cutNodeMap(s.symbols, NodeRef(cp.nodes))
+	cutNodeMap(s.localSymbols, NodeRef(cp.nodes))
+	cutNodeMap(s.flows, NodeRef(cp.nodes))
+	cutNodeMap(s.endFlows, NodeRef(cp.nodes))
+	cutNodeMap(s.returnFlows, NodeRef(cp.nodes))
+	cutNodeMap(s.locals, NodeRef(cp.nodes))
+	cutNodeMap(s.nextContainer, NodeRef(cp.nodes))
+}
+
+func cutNodeMap[V any](m map[NodeRef]V, min NodeRef) {
+	for k := range m {
+		if k >= min {
+			delete(m, k)
+		}
+	}
 }
 
 func (s *Store) Len() int {
@@ -230,7 +346,13 @@ func (s *Store) ListAt(list ListRef, i int) Handle {
 	if i < 0 || i >= int(l.len) {
 		panic("ast: list index out of range")
 	}
-	return Handle{s: s, id: s.children[int(l.start)+i]}
+	if id := s.children[int(l.start)+i]; id != 0 {
+		return Handle{s: s, id: id}
+	}
+	if g := s.ExternalListAt(list, i); g != 0 {
+		return NodeOf(g)
+	}
+	return Handle{}
 }
 
 func (s *Store) ListHasTrailingComma(list ListRef) bool {
@@ -246,6 +368,7 @@ func (s *Store) setListLoc(list ListRef, loc core.TextRange) {
 	if list == 0 || s == nil {
 		return
 	}
+	s.mustMutate()
 	s.lists[list].pos = int32(loc.Pos())
 	s.lists[list].end = int32(loc.End())
 }
@@ -254,6 +377,7 @@ func (s *Store) SetListAt(list ListRef, i int, h Handle) {
 	if list == 0 || s == nil {
 		panic("ast: SetListAt on missing list")
 	}
+	s.mustMutate()
 	l := &s.lists[list]
 	if i < 0 || i >= int(l.len) {
 		panic("ast: list index out of range")
@@ -272,6 +396,7 @@ func (s *Store) SetExternalListAt(list ListRef, i int, child GlobalRef) {
 	if list == 0 || s == nil {
 		panic("ast: SetExternalListAt on missing list")
 	}
+	s.mustMutate()
 	l := &s.lists[list]
 	if i < 0 || i >= int(l.len) {
 		panic("ast: list index out of range")
@@ -305,6 +430,7 @@ func (s *Store) SetSymbol(ref NodeRef, sym *Symbol) {
 	if s == nil || ref == 0 {
 		return
 	}
+	s.mustMutate()
 	if sym == nil {
 		delete(s.symbols, ref)
 		return
@@ -326,6 +452,7 @@ func (s *Store) SetLocalSymbol(ref NodeRef, sym *Symbol) {
 	if s == nil || ref == 0 {
 		return
 	}
+	s.mustMutate()
 	if sym == nil {
 		delete(s.localSymbols, ref)
 		return
@@ -347,6 +474,7 @@ func (s *Store) SetFlow(ref NodeRef, flow *FlowNode) {
 	if s == nil || ref == 0 {
 		return
 	}
+	s.mustMutate()
 	if flow == nil {
 		delete(s.flows, ref)
 		return
@@ -368,6 +496,7 @@ func (s *Store) SetEndFlow(ref NodeRef, flow *FlowNode) {
 	if s == nil || ref == 0 {
 		return
 	}
+	s.mustMutate()
 	if flow == nil {
 		delete(s.endFlows, ref)
 		return
@@ -389,6 +518,7 @@ func (s *Store) SetReturnFlow(ref NodeRef, flow *FlowNode) {
 	if s == nil || ref == 0 {
 		return
 	}
+	s.mustMutate()
 	if flow == nil {
 		delete(s.returnFlows, ref)
 		return
@@ -410,6 +540,7 @@ func (s *Store) SetLocals(ref NodeRef, locals SymbolTable) {
 	if s == nil || ref == 0 {
 		return
 	}
+	s.mustMutate()
 	if locals == nil {
 		delete(s.locals, ref)
 		return
@@ -431,6 +562,7 @@ func (s *Store) SetNextContainer(ref NodeRef, next NodeRef) {
 	if s == nil || ref == 0 {
 		return
 	}
+	s.mustMutate()
 	if next == 0 {
 		delete(s.nextContainer, ref)
 		return
@@ -457,6 +589,7 @@ func (h Handle) valueKey(slot int) uint64 {
 }
 
 func (h Handle) SetUintValue(slot int, value uint64) {
+	h.s.mustMutate()
 	key := h.valueKey(slot)
 	if h.s.scalarValues == nil {
 		h.s.scalarValues = make(map[uint64]uint64, max(1, h.s.allocHint/16))
@@ -469,6 +602,7 @@ func (h Handle) UintValue(slot int) uint64 {
 }
 
 func (h Handle) SetStringValue(slot int, value string) {
+	h.s.mustMutate()
 	key := h.valueKey(slot)
 	if value == "" {
 		if primaryStringSlot(h.Kind()) == slot {
@@ -499,6 +633,7 @@ func (h Handle) StringValue(slot int) string {
 }
 
 func (h Handle) SetObjectValue(slot int, value any) {
+	h.s.mustMutate()
 	key := h.valueKey(slot)
 	if value == nil {
 		delete(h.s.objectValues, key)
@@ -535,18 +670,35 @@ func (h Handle) Ref() NodeRef { return h.id }
 
 func (h Handle) Store() *Store { return h.s }
 
+// IsNil reports the absent node. NodeRef 0 is optional-absent, not NodeIsMissing.
+func (h Handle) IsNil() bool { return h.s == nil || h.id == 0 }
+
+func (h Handle) KindString() string {
+	if h.IsNil() {
+		return "<nil>"
+	}
+	return h.Kind().String()
+}
+
 func (h Handle) Kind() Kind {
+	if h.IsNil() {
+		return KindUnknown
+	}
 	h.mustLive()
 	return h.s.nodes[h.id].kind
 }
 
 func (h Handle) Flags() NodeFlags {
+	if h.IsNil() {
+		return 0
+	}
 	h.mustLive()
 	return h.s.nodes[h.id].flags
 }
 
 func (h Handle) SetFlags(flags NodeFlags) {
 	h.mustLive()
+	h.s.mustMutate()
 	h.s.nodes[h.id].flags = flags
 }
 
@@ -557,6 +709,7 @@ func (h Handle) TokenFlags() TokenFlags {
 
 func (h Handle) SetTokenFlags(flags TokenFlags) {
 	h.mustLive()
+	h.s.mustMutate()
 	h.s.nodes[h.id].tokenFlags = flags
 }
 
@@ -568,6 +721,7 @@ func (h Handle) Loc() core.TextRange {
 
 func (h Handle) SetLoc(loc core.TextRange) {
 	h.mustLive()
+	h.s.mustMutate()
 	n := &h.s.nodes[h.id]
 	n.pos = int32(loc.Pos())
 	n.end = int32(loc.End())
@@ -577,12 +731,33 @@ func (h Handle) Parent() Handle {
 	if h.id == 0 || h.s == nil {
 		return Handle{}
 	}
-	return Handle{s: h.s, id: h.s.nodes[h.id].parent}
+	if id := h.s.nodes[h.id].parent; id != 0 {
+		return Handle{s: h.s, id: id}
+	}
+	if g := h.s.externalParent[h.id]; g != 0 {
+		return NodeOf(g)
+	}
+	return Handle{}
 }
 
 func (h Handle) SetParent(p Handle) {
 	h.mustLive()
-	h.s.nodes[h.id].parent = h.refInStore(p)
+	h.s.mustMutate()
+	if p.id == 0 || p.s == nil {
+		h.s.nodes[h.id].parent = 0
+		delete(h.s.externalParent, h.id)
+		return
+	}
+	if p.s == h.s {
+		delete(h.s.externalParent, h.id)
+		h.s.nodes[h.id].parent = p.id
+		return
+	}
+	h.s.nodes[h.id].parent = 0
+	if h.s.externalParent == nil {
+		h.s.externalParent = make(map[NodeRef]GlobalRef)
+	}
+	h.s.externalParent[h.id] = p.Global()
 }
 
 func (h Handle) NumChildren() int {
@@ -598,20 +773,40 @@ func (h Handle) Child(i int) Handle {
 	if i < 0 || i >= int(n.childLen) {
 		panic("ast: child index out of range")
 	}
-	return Handle{s: h.s, id: h.s.children[int(n.childStart)+i]}
+	if id := h.s.children[int(n.childStart)+i]; id != 0 {
+		return Handle{s: h.s, id: id}
+	}
+	if g := h.ExternalChild(i); g != 0 {
+		return NodeOf(g)
+	}
+	return Handle{}
 }
 
 func (h Handle) SetChild(i int, c Handle) {
 	h.mustLive()
+	h.s.mustMutate()
 	n := &h.s.nodes[h.id]
 	if i < 0 || i >= int(n.childLen) {
 		panic("ast: child index out of range")
 	}
-	h.s.children[int(n.childStart)+i] = h.refInStore(c)
+	slot := int(n.childStart) + i
+	if c.id == 0 || c.s == nil {
+		h.s.children[slot] = 0
+		h.SetExternalChild(i, 0)
+		return
+	}
+	if c.s == h.s {
+		h.SetExternalChild(i, 0)
+		h.s.children[slot] = c.id
+		return
+	}
+	h.s.children[slot] = 0
+	h.SetExternalChild(i, c.Global())
 }
 
 func (h Handle) SetExternalChild(i int, child GlobalRef) {
 	h.mustLive()
+	h.s.mustMutate()
 	n := &h.s.nodes[h.id]
 	if i < 0 || i >= int(n.childLen) {
 		panic("ast: child index out of range")
@@ -641,6 +836,7 @@ func (h Handle) ExternalChild(i int) GlobalRef {
 
 func (h Handle) SetIdent(internID uint32) {
 	h.mustLive()
+	h.s.mustMutate()
 	if internID >= uint32(len(h.s.internOff)-1) {
 		panic("ast: intern id out of range")
 	}
@@ -757,6 +953,7 @@ func (h Handle) ListSlot(i int) ListRef {
 
 func (h Handle) SetListSlot(i int, list ListRef) {
 	h.mustLive()
+	h.s.mustMutate()
 	n := &h.s.nodes[h.id]
 	if i < 0 || i >= int(n.listLen) {
 		panic("ast: list slot out of range")
@@ -777,6 +974,7 @@ func (h Handle) List() ListRef {
 
 func (h Handle) SetList(list ListRef) {
 	h.mustLive()
+	h.s.mustMutate()
 	n := &h.s.nodes[h.id]
 	if n.listLen == 0 {
 		panic("ast: SetList on node with no list slots")
@@ -791,11 +989,11 @@ func (h Handle) ForEachChild(v StoreVisitor) bool {
 	}
 	n := &h.s.nodes[h.id]
 	for i := range int(n.childLen) {
-		ref := h.s.children[int(n.childStart)+i]
-		if ref == 0 {
+		c := h.Child(i)
+		if c.IsNil() {
 			continue
 		}
-		if v(Handle{s: h.s, id: ref}) {
+		if v(c) {
 			return true
 		}
 	}
@@ -804,13 +1002,12 @@ func (h Handle) ForEachChild(v StoreVisitor) bool {
 		if list == 0 {
 			continue
 		}
-		l := &h.s.lists[list]
-		for i := range int(l.len) {
-			ref := h.s.children[int(l.start)+i]
-			if ref == 0 {
+		for i := range h.s.ListLen(list) {
+			c := h.s.ListAt(list, i)
+			if c.IsNil() {
 				continue
 			}
-			if v(Handle{s: h.s, id: ref}) {
+			if v(c) {
 				return true
 			}
 		}
@@ -838,6 +1035,9 @@ func (h Handle) SetParentsInChildren() {
 		return
 	}
 	h.ForEachChild(func(c Handle) bool {
+		if c.Store() != h.Store() {
+			return false
+		}
 		c.SetParent(h)
 		c.SetParentsInChildren()
 		return false
@@ -854,8 +1054,11 @@ func (h Handle) refInStore(other Handle) NodeRef {
 	if other.id == 0 {
 		return 0
 	}
-	if other.s != h.s {
+	if other.s == h.s {
+		return other.id
+	}
+	if other.s == nil || h.s == nil {
 		panic("ast: Handle from a different Store")
 	}
-	return other.id
+	return NewFactoryOn(h.s, FactoryHooks{}).CopySubtree(other).id
 }

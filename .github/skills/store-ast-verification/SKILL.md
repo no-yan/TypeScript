@@ -38,6 +38,10 @@ npm ci --prefix /tmp/typescript-6.0
 npx --prefix /tmp/typescript-6.0 hereby generate-diagnostics
 ```
 
+If `src/compiler/diagnosticInformationMap.generated.ts` is missing, rerun
+`npx --prefix /tmp/typescript-6.0 hereby generate-diagnostics`. Do not
+`git clean` generated `.ts` files.
+
 Use `/tmp/typescript-6.0/src/compiler` as the project path. A generated toy
 file may support a microbenchmark but must not replace this live workload.
 
@@ -46,10 +50,17 @@ required by `tsc/go.mod`; do not lower `go.mod` or `go.work`.
 
 ## 3. Unit and race gates
 
-Run the packages touched by the change, then the complete Store pipeline:
+This repo is two Go modules. Compiler tests use `go -C ./tsc`. The Handle
+rewrite lives under `tools/` (`go -C ./tools test ./cmd/rewrite-node-handle`).
+A `golang.org/x/tools/go/packages` pass must set `Config.Dir` to the `tsc/`
+module root with `GOFLAGS=-mod=readonly`, not the repo root.
+
+These compiles share GOCACHE with `control-tsc launch` / `npx hereby build`.
+Do not start them in the same turn as a binary build. Run them through
+`control-tsc go` so they wait if a launch is already compiling:
 
 ```bash
-go -C ./tsc test \
+./.cursor/skills/verify-tsc/scripts/control-tsc go -- -C ./tsc test \
   ./internal/ast \
   ./internal/parser \
   ./internal/binder \
@@ -59,7 +70,7 @@ go -C ./tsc test \
   ./internal/transformers/... \
   -count=1
 
-go -C ./tsc test -race \
+./.cursor/skills/verify-tsc/scripts/control-tsc go -- -C ./tsc test -race \
   ./internal/ast \
   ./internal/parser \
   ./internal/binder \
@@ -72,8 +83,8 @@ go -C ./tsc test -race \
 For config Store consumers, also run:
 
 ```bash
-go -C ./tsc test ./internal/tsoptions -count=1
-go -C ./tsc test -race ./internal/tsoptions -count=1
+./.cursor/skills/verify-tsc/scripts/control-tsc go -- -C ./tsc test ./internal/tsoptions -count=1
+./.cursor/skills/verify-tsc/scripts/control-tsc go -- -C ./tsc test -race ./internal/tsoptions -count=1
 ```
 
 Race coverage must exercise same-file checker or emitter mutation, not merely
@@ -96,43 +107,10 @@ git diff --exit-code
 A diff means the committed generated files are stale. Regenerate, commit, and
 repeat all gates at the new SHA.
 
-## 5. Live compile and emit gates
+## 5. Store invariants
 
-Build the same noembed binary used by CI:
-
-```bash
-npx hereby build
-```
-
-Then run both checking and real output generation:
-
-```bash
-./built/local/tsc \
-  -p /tmp/typescript-6.0/src/compiler \
-  --noEmit
-
-./built/local/tsc \
-  -p /tmp/typescript-6.0/src/compiler \
-  --outDir /tmp/store-smoke-out \
-  --declarationMap false \
-  --sourceMap false
-```
-
-Both commands must exit zero. Confirm the output directory contains nonempty
-JavaScript and declaration files. A module-resolution failure or accepted
-nonzero exit is not a live check.
-
-Run a compiler test to cover diagnostics, emit baselines, and parent pointers:
-
-```bash
-go -C ./tsc test ./internal/testrunner \
-  -count=1 \
-  -run 'TestLocal/alias'
-```
-
-Use `npx hereby test` for the final full-suite gate.
-
-## 6. Store invariants
+Run this section before live compile. A live panic is delayed illegal state,
+not a debugger session, until these greps pass.
 
 Verify the applicable invariants:
 
@@ -160,6 +138,47 @@ Expected:
 - SourceFile metadata remains associated with the canonical Store;
 - parser, checker, and emit writers hold the per-file ownership required by
   the Store concurrency policy.
+
+## 6. Live compile and emit gates
+
+Build the same noembed binary used by CI. Use `control-tsc launch` so this
+`go build` waits if unit tests are still compiling:
+
+```bash
+./.cursor/skills/verify-tsc/scripts/control-tsc launch
+```
+
+Wipe `*.tsbuildinfo` under the smoke tree before the first `--noEmit`. A
+sub-second exit 0 is a cache hit, not a type-check. Do not pass
+`--incremental false` on this composite project (TS6379).
+
+Then run both checking and real output generation:
+
+```bash
+./built/local/tsc \
+  -p /tmp/typescript-6.0/src/compiler \
+  --noEmit
+
+./built/local/tsc \
+  -p /tmp/typescript-6.0/src/compiler \
+  --outDir /tmp/store-smoke-out \
+  --declarationMap false \
+  --sourceMap false
+```
+
+Both commands must exit zero. Confirm the output directory contains nonempty
+JavaScript and declaration files. A module-resolution failure or accepted
+nonzero exit is not a live check.
+
+Run a compiler test to cover diagnostics, emit baselines, and parent pointers:
+
+```bash
+./.cursor/skills/verify-tsc/scripts/control-tsc go -- -C ./tsc test ./internal/testrunner \
+  -count=1 \
+  -run 'TestLocal/alias'
+```
+
+Use `npx hereby test` for the final full-suite gate.
 
 ## 7. Performance gate
 
@@ -198,9 +217,9 @@ Verdict is `PASS` only when:
 1. unit tests pass;
 2. race tests pass;
 3. generated output is reproducible;
-4. real smoke check exits zero;
-5. real smoke emit exits zero with nonempty output;
-6. Store invariants hold;
+4. Store invariants hold;
+5. real smoke check exits zero;
+6. real smoke emit exits zero with nonempty output;
 7. the required performance ratio passes;
 8. the worktree is clean and the verified SHA is pushed.
 

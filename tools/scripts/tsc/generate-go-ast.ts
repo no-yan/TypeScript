@@ -234,7 +234,7 @@ function generateStructDef(w: CodeWriter, node: NodeType) {
         for (const m of node.members) {
             if (m.inherited || m.isKindParam() || m.noGo) continue;
             const fieldName = m.name;
-            const goType = m.goOnly ? m.rawType as string : m.type.formatGoReference();
+            const goType = m.goOnly ? m.rawType as string : pointerGoRef(m.type);
             const comment = buildFieldComment(m);
             if (comment) {
                 w.write(`${fieldName} ${goType} ${comment}`);
@@ -326,7 +326,7 @@ function generateBaseStructDefs(w: CodeWriter) {
         if (base.fields.length > 0) {
             for (const field of base.fields) {
                 if (field.noGo) continue;
-                const goType = field.goOnly ? field.rawType as string : field.type.formatGoReference();
+                const goType = field.goOnly ? field.rawType as string : pointerGoRef(field.type);
                 const comment = field.optional ? " // Optional" : "";
                 w.write(`${field.name} ${goType}${comment}`);
             }
@@ -367,7 +367,7 @@ function emitNewFactory(
     kindMember: MemberInfo | undefined,
     nodeFlagsMembers: MemberInfo[],
 ) {
-    const params = members.map(m => `${m.goParamName()} ${m.type.formatGoReference()}`).join(", ");
+    const params = members.map(m => `${m.goParamName()} ${pointerGoRef(m.type)}`).join(", ");
 
     w.write(`func (f *NodeFactory) ${funcName}(${params}) *Node {`);
     w.push();
@@ -402,7 +402,6 @@ function emitNewFactory(
             w.write(`node.Flags = ${param}`);
         }
     }
-    emitStorePut(w, node);
     w.write("return node");
 
     w.pop();
@@ -472,52 +471,28 @@ function storeLayout(node: NodeType): StoreLayout {
     return { children, lists, strings, values };
 }
 
-function emitStorePut(w: CodeWriter, node: NodeType) {
-    const layout = storeLayout(node);
-    w.write(`if h := f.storeAlloc(node, ${layout.children.length}, ${layout.lists.length}); h.Ref() != 0 {`);
-    w.push();
-    for (const m of layout.children) {
-        w.write(`f.storeSetChild(h, ${slotConst(node.name, memberSuffix(m))}, ${m.goParamName()})`);
-    }
-    for (const m of layout.lists) {
-        const slot = listSlotConst(node.name, memberSuffix(m));
-        if (m.listKind === "ModifierList") {
-            w.write(`h.SetListSlot(${slot}, f.storeModifierList(${m.goParamName()}))`);
-        }
-        else if (m.listKind === "raw") {
-            w.write(`h.SetListSlot(${slot}, f.storeRawList(${m.goParamName()}))`);
-        }
-        else {
-            w.write(`h.SetListSlot(${slot}, f.storeList(${m.goParamName()}))`);
-        }
-    }
-    for (const m of layout.values) {
-        const value = m.bitmask ? `${m.goParamName()} & ${m.bitmask}` : m.goParamName();
-        const slot = valueSlotConst(node.name, memberSuffix(m));
-        const ref = m.type.formatGoReference();
-        if (ref === "TokenFlags") {
-            w.write(`h.SetTokenFlags(${value})`);
-        }
-        else if (ref === "string") {
-            w.write(`h.SetStringValue(${slot}, ${value})`);
-        }
-        else if (ref === "bool") {
-            w.write(`if ${value} { h.SetUintValue(${slot}, 1) }`);
-        }
-        else if (ref === "any" || ref.startsWith("*") || ref.startsWith("[]")) {
-            w.write(`h.SetObjectValue(${slot}, ${value})`);
-        }
-        else {
-            w.write(`h.SetUintValue(${slot}, uint64(${value}))`);
-        }
-    }
-    w.pop();
-    w.write("}");
-}
-
 function storeParamType(m: MemberInfo): string {
     if (!m.isChild()) return m.type.formatGoReference();
     return m.listKind === undefined ? "Handle" : "ListRef";
+}
+
+// Concrete FooNode aliases are Handle. Pointer AST fields stay *Node.
+function pointerGoRef(type: Type): string {
+    const ref = type.formatGoReference();
+    if (ref.startsWith("*") && ref.endsWith("Node")) {
+        const concrete = ref.slice(1, -"Node".length);
+        if (api.hasNode(concrete)) {
+            return "*Node";
+        }
+    }
+    return ref;
+}
+
+function storeMemberGetter(node: NodeType, m: MemberInfo): string {
+    if (isNodeFlagsMember(m)) {
+        return m.bitmask ? `node.Flags() & ${m.bitmask}` : "node.Flags()";
+    }
+    return `node.${node.name}${memberSuffix(m)}()`;
 }
 
 function emitStoreValuePut(w: CodeWriter, m: MemberInfo, handle: string) {
@@ -590,6 +565,117 @@ function generateStoreFactory(w: CodeWriter, node: NodeType) {
     }
 }
 
+function generateStoreUpdateFactory(w: CodeWriter, node: NodeType) {
+    if (node.handWritten) return;
+    const members = schemaMembers(node);
+    const updateMembers = members.filter(m => !m.isKindParam());
+    if (updateMembers.length === 0) return;
+    if (!updateMembers.some(m => m.isChild())) return;
+
+    const params = [
+        "node Handle",
+        ...updateMembers.map(m => `${m.goParamName()} ${storeParamType(m)}`),
+    ].join(", ");
+
+    w.write(`func (f Factory) Update${node.name}(${params}) Handle {`);
+    w.push();
+
+    const comparisons = updateMembers.map(m => {
+        const getter = storeMemberGetter(node, m);
+        if (m.isChild() && m.listKind === undefined) {
+            return `!handlesEqual(${m.goParamName()}, ${getter})`;
+        }
+        if (!m.isChild() && m.type.kind === "list" && m.type.listKind === "raw") {
+            return `!core.Same(${m.goParamName()}, ${getter})`;
+        }
+        return `${m.goParamName()} != ${getter}`;
+    });
+
+    w.write(`if ${comparisons.join(" || ")} {`);
+    w.push();
+
+    const newArgs = members.map(m => {
+        if (m.isKindParam()) {
+            return "node.Kind()";
+        }
+        return m.goParamName();
+    }).join(", ");
+
+    if (node.kindAliases.length > 0) {
+        w.write("switch node.Kind() {");
+        w.push();
+        w.write(`case ${api.kindType(`SyntaxKind.${node.syntaxKindName}`).formatGoConstant()}:`);
+        w.push();
+        w.write(`return f.updateHandle(f.New${node.name}(${newArgs}), node)`);
+        w.pop();
+        for (const alias of node.kindAliases) {
+            w.write(`case Kind${alias}:`);
+            w.push();
+            w.write(`return f.updateHandle(f.New${alias}(${newArgs}), node)`);
+            w.pop();
+        }
+        w.write("default:");
+        w.push();
+        w.write(`panic("unexpected kind in Update${node.name}: " + node.Kind().String())`);
+        w.pop();
+        w.pop();
+        w.write("}");
+    }
+    else {
+        w.write(`return f.updateHandle(f.New${node.name}(${newArgs}), node)`);
+    }
+    w.pop();
+    w.write("}");
+    w.write("return node");
+    w.pop();
+    w.write("}");
+    w.write("");
+}
+
+function storeVisitArg(node: NodeType, m: MemberInfo): string {
+    const getter = storeMemberGetter(node, m);
+    if (!m.isChild()) {
+        return getter;
+    }
+    if (m.listKind !== undefined) {
+        return `v.VisitNodes(${getter})`;
+    }
+    return `v.VisitNode(${getter})`;
+}
+
+function generateStoreVisitEachChild(w: CodeWriter) {
+    w.write("func (node Handle) VisitEachChild(v *HandleVisitor) Handle {");
+    w.push();
+    w.write("if node.IsNil() || v == nil || v.Visit == nil || v.Factory == nil {");
+    w.push();
+    w.write("return node");
+    w.pop();
+    w.write("}");
+    w.write("switch node.Kind() {");
+    for (const n of api.nodes()) {
+        if (n.handWritten) continue;
+        const members = schemaMembers(n);
+        const updateMembers = members.filter(m => !m.isKindParam());
+        if (updateMembers.length === 0) continue;
+        if (!updateMembers.some(m => m.isChild())) continue;
+        const kinds = n.allKinds().map(k => k.formatGoConstant());
+        if (kinds.length === 0) continue;
+        w.write(`case ${kinds.join(", ")}:`);
+        w.push();
+        const args = updateMembers.map(m => storeVisitArg(n, m)).join(", ");
+        w.write(`return v.Factory.Update${n.name}(node, ${args})`);
+        w.pop();
+    }
+    w.write("default:");
+    w.push();
+    w.write("return node");
+    w.pop();
+    w.write("}");
+    w.pop();
+    w.write("}");
+    w.write("");
+}
+
 function emitStoreAccessor(w: CodeWriter, node: NodeType, m: MemberInfo) {
     const method = `${node.name}${memberSuffix(m)}`;
     if (m.isChild()) {
@@ -657,10 +743,12 @@ function generateStoreHandles(): string {
     w.write("");
     for (const node of api.nodes()) {
         generateStoreFactory(w, node);
+        generateStoreUpdateFactory(w, node);
         for (const m of storeLayout(node).children) emitStoreAccessor(w, node, m);
         for (const m of storeLayout(node).lists) emitStoreAccessor(w, node, m);
         for (const m of storeLayout(node).values) emitStoreAccessor(w, node, m);
     }
+    generateStoreVisitEachChild(w);
     return w.toString();
 }
 
@@ -749,7 +837,7 @@ function generateUpdateFactory(w: CodeWriter, node: NodeType) {
     // Build parameter list
     const params = [
         `node *${structName}`,
-        ...updateMembers.map(m => `${m.goParamName()} ${m.type.formatGoReference()}`),
+        ...updateMembers.map(m => `${m.goParamName()} ${pointerGoRef(m.type)}`),
     ].join(", ");
 
     w.write(`func (f *NodeFactory) Update${node.name}(${params}) *Node {`);
@@ -1042,9 +1130,9 @@ function generateClone(w: CodeWriter, node: NodeType) {
 function generateIsFunction(w: CodeWriter, node: NodeType) {
     const kindTypes = node.kindTypes();
     if (node.kindType.kind === "typeParameter") {
-        w.write(`func Is${node.name}(node *Node) bool {`);
+        w.write(`func Is${node.name}(node Handle) bool {`);
         w.push();
-        w.write("switch node.Kind {");
+        w.write("switch node.Kind() {");
         w.write(`case ${kindTypes.map(kind => kind.formatGoConstant()).join(", ")}:`);
         w.push();
         w.write("return true");
@@ -1060,9 +1148,9 @@ function generateIsFunction(w: CodeWriter, node: NodeType) {
     if (node.isMultiKind()) {
         for (const kind of kindTypes) {
             const kindName = kind.name;
-            w.write(`func Is${kindName}(node *Node) bool {`);
+            w.write(`func Is${kindName}(node Handle) bool {`);
             w.push();
-            w.write(`return node.Kind == ${kind.formatGoConstant()}`);
+            w.write(`return node.Kind() == ${kind.formatGoConstant()}`);
             w.pop();
             w.write("}");
             w.write("");
@@ -1070,16 +1158,16 @@ function generateIsFunction(w: CodeWriter, node: NodeType) {
         return;
     }
 
-    w.write(`func Is${node.name}(node *Node) bool {`);
+    w.write(`func Is${node.name}(node Handle) bool {`);
     w.push();
-    w.write(`return node.Kind == ${api.kindType(`SyntaxKind.${node.syntaxKindName}`).formatGoConstant()}`);
+    w.write(`return node.Kind() == ${api.kindType(`SyntaxKind.${node.syntaxKindName}`).formatGoConstant()}`);
     w.pop();
     w.write("}");
     w.write("");
     for (const alias of node.kindAliases) {
-        w.write(`func Is${alias}(node *Node) bool {`);
+        w.write(`func Is${alias}(node Handle) bool {`);
         w.push();
-        w.write(`return node.Kind == Kind${alias}`);
+        w.write(`return node.Kind() == Kind${alias}`);
         w.pop();
         w.write("}");
         w.write("");
@@ -1168,7 +1256,7 @@ function generate(): string {
     // Generate base struct definitions
     generateBaseStructDefs(w);
 
-    // Generate node type aliases (FooNode = Node for every concrete node type)
+    // Generate node type aliases (FooNode = Handle after Cutover)
     w.write("// ──────────────────────────────────────────────────────────────────────");
     w.write("// Node type aliases");
     w.write("// ──────────────────────────────────────────────────────────────────────");
@@ -1176,7 +1264,7 @@ function generate(): string {
     w.write("type (");
     w.push();
     for (const node of api.nodes()) {
-        w.write(`${node.name}Node = Node`);
+        w.write(`${node.name}Node = Handle`);
     }
     // Instantiation aliases (e.g. EndOfFile = Node, AbstractKeyword = Node)
     for (const node of api.nodes()) {
@@ -1396,6 +1484,397 @@ function generateKind(): string {
     return w.toString();
 }
 
+// Closed alias table. Not ast.json. Extra (node, member) rows bind to a public
+// Handle method besides the default member-name match. Forward methods have no
+// own switch; they call the target.
+const POLY_EXTRA_BINDINGS: { method: string; member: string; nodes?: string[]; }[] = [
+    { method: "QuestionToken", member: "PostfixToken" },
+    { method: "Condition", member: "Expression", nodes: ["IfStatement", "WhileStatement", "DoStatement"] },
+    { method: "Type", member: "TypeExpression", nodes: ["JSDocParameterOrPropertyTag"] },
+    { method: "Block", member: "TryBlock", nodes: ["TryStatement"] },
+];
+
+const POLY_FORWARDS: { method: string; target: string; }[] = [
+    { method: "PostfixToken", target: "QuestionToken" },
+    { method: "Operator", target: "OperatorToken" },
+];
+
+const POLY_MANUAL_METHODS = new Set([
+    "Pos",
+    "End",
+    "Contains",
+    "JSDoc",
+    "EagerJSDoc",
+    "ModifierFlags",
+    "Decorators",
+    "HasModifierKind",
+    "IsTypeOnly",
+    "PropertyNameOrName",
+    "LooksLikeAssignmentDeclaration",
+    "RightMostAssigned",
+    "ListSlice",
+    "NodeId",
+    "CanHaveStatements",
+    "RawText",
+    "TemplateFlags",
+    "FallthroughFlowNode",
+    "SetFallthroughFlowNode",
+    "MultiLine",
+    "IsTypeOf",
+    "IsExportEquals",
+    "KeywordToken",
+]);
+
+type PolySlot = "child" | "list";
+
+interface PolyCase {
+    nodeName: string;
+    memberGo: string;
+    accessor: string;
+    kinds: string[];
+    slot: PolySlot;
+}
+
+interface PolyGroup {
+    method: string;
+    slot: PolySlot;
+    cases: PolyCase[];
+}
+
+function memberGoName(name: string): string {
+    return name.charAt(0).toUpperCase() + name.slice(1);
+}
+
+function namesEqual(a: string, b: string): boolean {
+    return memberGoName(a) === memberGoName(b);
+}
+
+function singularizeGoList(goName: string): string {
+    const irregular: Record<string, string> = {
+        Children: "Child",
+        Properties: "Property",
+        Clauses: "Clause",
+        HeritageClauses: "HeritageClause",
+    };
+    if (irregular[goName]) {
+        return irregular[goName];
+    }
+    if (goName.endsWith("ies")) {
+        return goName.slice(0, -3) + "y";
+    }
+    if (goName.endsWith("s")) {
+        return goName.slice(0, -1);
+    }
+    return goName;
+}
+
+function listTwinNames(goName: string): { slice: string; list: string; } {
+    if (goName === "Modifiers") {
+        return { slice: "ModifierNodes", list: "Modifiers" };
+    }
+    if (goName === "HeritageClauses") {
+        return { slice: "HeritageClauseNodes", list: "HeritageClauses" };
+    }
+    if (goName === "Children") {
+        return { slice: "Children", list: "ChildList" };
+    }
+    if (goName.endsWith("s")) {
+        return { slice: goName, list: singularizeGoList(goName) + "List" };
+    }
+    return { slice: goName + "s", list: goName + "List" };
+}
+
+function listSetterNames(slice: string, list: string): { primary: string; alias?: string; } {
+    if (slice === "ModifierNodes") {
+        return { primary: "SetModifiers" };
+    }
+    if (slice === "HeritageClauseNodes") {
+        return { primary: "SetHeritageClauses" };
+    }
+    const primary = `Set${slice}`;
+    const alias = list !== slice ? `Set${list}` : undefined;
+    return alias && alias !== primary ? { primary, alias } : { primary };
+}
+
+function isForwardMethod(name: string): boolean {
+    return POLY_FORWARDS.some(f => f.method === name);
+}
+
+function polyGroupKey(slot: PolySlot, method: string): string {
+    return `${slot}:${method}`;
+}
+
+function addPolyCase(groups: Map<string, PolyGroup>, method: string, c: PolyCase) {
+    const key = polyGroupKey(c.slot, method);
+    let g = groups.get(key);
+    if (!g) {
+        g = { method, slot: c.slot, cases: [] };
+        groups.set(key, g);
+    }
+    const existing = g.cases.find(x => x.accessor === c.accessor);
+    if (existing) {
+        for (const k of c.kinds) {
+            if (!existing.kinds.includes(k)) existing.kinds.push(k);
+        }
+        return;
+    }
+    g.cases.push(c);
+}
+
+function nodeKindConstants(node: NodeType): string[] {
+    const kinds = node.allKinds().map(k => k.formatGoConstant());
+    return [...new Set(kinds)];
+}
+
+function layoutMemberCases(node: NodeType, m: MemberInfo): PolyCase | undefined {
+    const kinds = nodeKindConstants(node);
+    if (kinds.length === 0) return undefined;
+    const layout = storeLayout(node);
+    const isList = layout.lists.includes(m);
+    const isChild = layout.children.includes(m);
+    if (!isList && !isChild) return undefined;
+    return {
+        nodeName: node.name,
+        memberGo: memberGoName(m.name),
+        accessor: `${node.name}${memberGoName(m.name)}`,
+        kinds,
+        slot: isList ? "list" : "child",
+    };
+}
+
+function buildPolymorphicIndex(): Map<string, PolyGroup> {
+    const groups = new Map<string, PolyGroup>();
+    const covered = new Set<string>();
+
+    for (const node of api.nodes()) {
+        const layout = storeLayout(node);
+        for (const m of [...layout.children, ...layout.lists]) {
+            const c = layoutMemberCases(node, m);
+            if (!c) continue;
+            covered.add(`${node.name}\0${c.memberGo}`);
+            if (!isForwardMethod(c.memberGo)) {
+                addPolyCase(groups, c.memberGo, c);
+            }
+            for (const extra of POLY_EXTRA_BINDINGS) {
+                if (!namesEqual(extra.member, m.name)) continue;
+                if (extra.nodes && !extra.nodes.includes(node.name)) continue;
+                addPolyCase(groups, extra.method, c);
+            }
+        }
+    }
+
+    for (const node of api.nodes()) {
+        const layout = storeLayout(node);
+        for (const m of [...layout.children, ...layout.lists]) {
+            const memberGo = memberGoName(m.name);
+            const key = `${node.name}\0${memberGo}`;
+            if (!covered.has(key)) {
+                throw new Error(`polymorphic coverage: ${node.name}.${m.name} produced no case`);
+            }
+            let found = false;
+            for (const g of groups.values()) {
+                if (g.cases.some(c => c.nodeName === node.name && c.memberGo === memberGo)) {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found && !isForwardMethod(memberGo)) {
+                throw new Error(`polymorphic coverage: ${node.name}.${m.name} missing from index`);
+            }
+            if (!found && isForwardMethod(memberGo)) {
+                const fwd = POLY_FORWARDS.find(f => f.method === memberGo);
+                const target = fwd && [...groups.values()].find(g => g.method === fwd.target && g.slot === "child");
+                if (!target || !target.cases.some(c => c.nodeName === node.name && c.memberGo === memberGo)) {
+                    throw new Error(`polymorphic coverage: ${node.name}.${m.name} not absorbed by ${fwd?.target}`);
+                }
+            }
+        }
+    }
+
+    for (const g of groups.values()) {
+        if (POLY_MANUAL_METHODS.has(g.method)) {
+            throw new Error(`polymorphic ${g.method} collides with a manual method`);
+        }
+        for (const c of g.cases) {
+            c.kinds.sort();
+        }
+        g.cases.sort((a, b) => a.accessor.localeCompare(b.accessor));
+    }
+
+    for (const g of groups.values()) {
+        if (g.slot !== "child") continue;
+        const setter = `Set${g.method}`;
+        if (POLY_MANUAL_METHODS.has(setter)) {
+            throw new Error(`polymorphic ${setter} collides with a manual method`);
+        }
+    }
+
+    return groups;
+}
+
+function emitPolySwitch(w: CodeWriter, g: PolyGroup, onCase: (accessor: string) => string, zero: string) {
+    w.write("if h.IsNil() {");
+    w.push();
+    w.write(`return ${zero}`);
+    w.pop();
+    w.write("}");
+    w.write("switch h.Kind() {");
+    for (const c of g.cases) {
+        w.write(`case ${c.kinds.join(", ")}:`);
+        w.push();
+        w.write(onCase(c.accessor));
+        w.pop();
+    }
+    w.write("default:");
+    w.push();
+    w.write(`return ${zero}`);
+    w.pop();
+    w.write("}");
+}
+
+function generateStorePolymorphic(): string {
+    const groups = buildPolymorphicIndex();
+    const listReserved = new Set<string>();
+    for (const g of groups.values()) {
+        if (g.slot !== "list") continue;
+        const twins = listTwinNames(g.method);
+        listReserved.add(twins.list);
+        listReserved.add(`Set${twins.list}`);
+    }
+    const childTaken = new Set(
+        [...groups.values()].filter(g => g.slot === "child" && !listReserved.has(g.method)).map(g => g.method),
+    );
+    const w = new CodeWriter();
+    w.write("// Code generated by tools/scripts/tsc/generate-go-ast.ts. DO NOT EDIT.");
+    w.write("");
+    w.write("package ast");
+    w.write("");
+
+    const methods = [...groups.values()].sort((a, b) => {
+        if (a.method !== b.method) return a.method.localeCompare(b.method);
+        return a.slot.localeCompare(b.slot);
+    });
+    for (const g of methods) {
+        if (g.slot === "child") {
+            if (listReserved.has(g.method) || listReserved.has(`Set${g.method}`)) {
+                continue;
+            }
+            w.write(`func (h Handle) ${g.method}() Handle {`);
+            w.push();
+            emitPolySwitch(w, g, acc => `return h.${acc}()`, "Handle{}");
+            w.pop();
+            w.write("}");
+            w.write("");
+            w.write(`func (h Handle) Set${g.method}(value Handle) {`);
+            w.push();
+            w.write("if h.IsNil() {");
+            w.push();
+            w.write("return");
+            w.pop();
+            w.write("}");
+            w.write("switch h.Kind() {");
+            for (const c of g.cases) {
+                w.write(`case ${c.kinds.join(", ")}:`);
+                w.push();
+                w.write(`h.Set${c.accessor}(value)`);
+                w.pop();
+            }
+            w.write("}");
+            w.pop();
+            w.write("}");
+            w.write("");
+            continue;
+        }
+
+        const twins = listTwinNames(g.method);
+        const skipSlice = childTaken.has(g.method) || childTaken.has(twins.slice);
+        const skipList = childTaken.has(twins.list);
+        if (!skipSlice) {
+            w.write(`func (h Handle) ${twins.slice}() []Handle {`);
+            w.push();
+            emitPolySwitch(w, g, acc => `return h.Store().ListSlice(h.${acc}())`, "nil");
+            w.pop();
+            w.write("}");
+            w.write("");
+        }
+        if (!skipList) {
+            w.write(`func (h Handle) ${twins.list}() ListRef {`);
+            w.push();
+            emitPolySwitch(w, g, acc => `return h.${acc}()`, "0");
+            w.pop();
+            w.write("}");
+            w.write("");
+        }
+
+        let setters = skipSlice
+            ? (skipList ? undefined : { primary: `Set${twins.list}` as string, alias: undefined as string | undefined })
+            : listSetterNames(twins.slice, twins.list);
+        if (setters && childTaken.has(setters.primary.slice(3))) {
+            setters = skipList ? undefined : { primary: `Set${twins.slice}`, alias: undefined };
+            if (setters && childTaken.has(setters.primary.slice(3))) {
+                setters = undefined;
+            }
+        }
+        if (setters?.alias && childTaken.has(setters.alias.slice(3))) {
+            setters = { primary: setters.primary, alias: undefined };
+        }
+        if (!setters) {
+            continue;
+        }
+        w.write(`func (h Handle) ${setters.primary}(value ListRef) {`);
+        w.push();
+        w.write("if h.IsNil() {");
+        w.push();
+        w.write("return");
+        w.pop();
+        w.write("}");
+        w.write("switch h.Kind() {");
+        for (const c of g.cases) {
+            w.write(`case ${c.kinds.join(", ")}:`);
+            w.push();
+            w.write(`h.Set${c.accessor}(value)`);
+            w.pop();
+        }
+        w.write("}");
+        w.pop();
+        w.write("}");
+        w.write("");
+        if (setters.alias) {
+            w.write(`func (h Handle) ${setters.alias}(value ListRef) {`);
+            w.push();
+            w.write(`h.${setters.primary}(value)`);
+            w.pop();
+            w.write("}");
+            w.write("");
+        }
+    }
+
+    for (const fwd of POLY_FORWARDS) {
+        if (![...groups.values()].some(g => g.method === fwd.target && g.slot === "child")) {
+            throw new Error(`polymorphic forward ${fwd.method} -> missing ${fwd.target}`);
+        }
+        w.write(`func (h Handle) ${fwd.method}() Handle {`);
+        w.push();
+        w.write(`return h.${fwd.target}()`);
+        w.pop();
+        w.write("}");
+        w.write("");
+    }
+
+    return w.toString();
+}
+
+function validateNoLegacyDispatchFiles() {
+    const legacy = [
+        path.join(ROOT, "tsc/internal/ast/store_query.go"),
+        path.join(ROOT, "tsc/internal/ast/store_dispatch.go"),
+    ];
+    const leftover = legacy.filter(p => fs.existsSync(p));
+    if (leftover.length > 0) {
+        throw new Error(`remove hand-written polymorphic dispatch: ${leftover.join(", ")}`);
+    }
+}
+
 function writeAndFormat(filePath: string, content: string) {
     fs.writeFileSync(filePath, content);
     try {
@@ -1423,6 +1902,10 @@ export default function main() {
 
     const storeHandles = generateStoreHandles();
     writeAndFormat(path.join(ROOT, "tsc/internal/ast/store_handles_generated.go"), storeHandles + "\n");
+
+    validateNoLegacyDispatchFiles();
+    const storePoly = generateStorePolymorphic();
+    writeAndFormat(path.join(ROOT, "tsc/internal/ast/store_polymorphic_generated.go"), storePoly + "\n");
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

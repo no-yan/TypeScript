@@ -48,6 +48,7 @@ type checkerPool struct {
 	// remains fully functional but stops its idle-cleanup timer so that
 	// query checkers are not disposed until the pool is GC'd.
 	discarded bool
+	closed    bool
 
 	// checkers[0] is the diagnostics checker.
 	// checkers[1:] are ephemeral query checkers.
@@ -459,6 +460,7 @@ func (p *checkerPool) cleanupIdleCheckers() {
 // (file and request) that reference it. Must be called with p.mu held.
 func (p *checkerPool) disposeCheckerLocked(index int, c *checker.Checker) {
 	debug.Assert(p.checkers[index] == c)
+	c.Close()
 	p.checkers[index] = nil
 	p.heldBy[index] = ""
 	p.globalDiagCheckerCount[index] = 0
@@ -507,6 +509,31 @@ func (p *checkerPool) TakeNewGlobalDiagnostics() bool {
 	changed := p.globalDiagChanged
 	p.globalDiagChanged = false
 	return changed
+}
+
+func (p *checkerPool) Close() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.closed {
+		return
+	}
+	p.closed = true
+	p.discarded = true
+	p.log("checkerpool: Closing pool, unregistering checkers")
+	if p.cleanupTimer != nil {
+		p.cleanupTimer.Stop()
+		p.cleanupTimer = nil
+	}
+	for i, c := range p.checkers {
+		if c != nil {
+			c.Close()
+			p.checkers[i] = nil
+		}
+	}
+	if p.persistentChecker != nil {
+		p.persistentChecker.Close()
+		p.persistentChecker = nil
+	}
 }
 
 // Discard signals that this pool's program has been replaced. The pool

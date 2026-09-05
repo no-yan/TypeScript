@@ -9,16 +9,12 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/compiler"
 	"github.com/microsoft/TypeScript/tsc/internal/contentmapper"
-	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
 	"github.com/microsoft/TypeScript/tsc/internal/execute/build"
 	"github.com/microsoft/TypeScript/tsc/internal/execute/incremental"
 	"github.com/microsoft/TypeScript/tsc/internal/execute/tsc"
-	"github.com/microsoft/TypeScript/tsc/internal/format"
 	"github.com/microsoft/TypeScript/tsc/internal/json"
 	"github.com/microsoft/TypeScript/tsc/internal/locale"
-	"github.com/microsoft/TypeScript/tsc/internal/ls/lsutil"
-	"github.com/microsoft/TypeScript/tsc/internal/parser"
 	"github.com/microsoft/TypeScript/tsc/internal/pprof"
 	"github.com/microsoft/TypeScript/tsc/internal/tracing"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
@@ -61,31 +57,6 @@ func CommandLine(ctx context.Context, sys tsc.System, commandLineArgs []string, 
 	}
 
 	return tscCompilation(ctx, sys, tsoptions.ParseCommandLine(commandLineArgs, sys), testing)
-}
-
-func fmtMain(sys tsc.System, input, output string) tsc.ExitStatus {
-	ctx := format.WithFormatCodeSettings(context.Background(), lsutil.GetDefaultFormatCodeSettings(), "\n")
-	input = string(tspath.ToPath(input, sys.GetCurrentDirectory(), sys.FS().UseCaseSensitiveFileNames()))
-	output = string(tspath.ToPath(output, sys.GetCurrentDirectory(), sys.FS().UseCaseSensitiveFileNames()))
-	fileContent, ok := sys.FS().ReadFile(input)
-	if !ok {
-		fmt.Fprintln(sys.Writer(), "File not found:", input)
-		return tsc.ExitStatusNotImplemented
-	}
-	text := fileContent
-	pathified := tspath.ToPath(input, sys.GetCurrentDirectory(), true)
-	sourceFile := parser.ParseSourceFile(ast.SourceFileParseOptions{
-		FileName: string(pathified),
-		Path:     pathified,
-	}, text, core.GetScriptKindFromFileName(string(pathified)))
-	edits := format.FormatDocument(ctx, sourceFile)
-	newText := core.ApplyBulkEdits(text, edits)
-
-	if err := sys.FS().WriteFile(output, newText); err != nil {
-		fmt.Fprintln(sys.Writer(), err.Error())
-		return tsc.ExitStatusNotImplemented
-	}
-	return tsc.ExitStatusSuccess
 }
 
 func tscBuildCompilation(ctx context.Context, sys tsc.System, buildCommand *tsoptions.ParsedBuildCommandLine, testing tsc.CommandLineTesting) tsc.CommandLineResult {

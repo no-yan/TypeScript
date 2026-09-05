@@ -14,6 +14,7 @@ import (
 // sourceFileRangeToLSPLocation maps a range from an arbitrary program SourceFile to an LSP location,
 // composing content-mapper span maps and declaration source maps as needed. LS features should use this
 // for cross-file results instead of calling getMappedLocation or lsconv.ToLSPLocation directly.
+
 // This unfiltered form is appropriate for diagnostics and text edits.
 func (l *LanguageService) sourceFileRangeToLSPLocation(file *ast.SourceFile, fileRange core.TextRange) (lsproto.Location, spanmap.Fidelity) {
 	if file.ContentMapper() != "" {

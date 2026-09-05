@@ -398,8 +398,8 @@ var optionsForCompiler = []*CommandLineOption{
 		AffectsModuleResolution: true,
 		// The checker emits an error when it sees JSX but this option is not set in compilerOptions.
 		// This is effectively a semantic error, so mark this option as affecting semantic diagnostics
-		// so we know to refresh errors when this option is changed.
-		AffectsSemanticDiagnostics: true,
+		// so we know to refresh errors when this option is changed.AffectsSemanticDiagnostics: true,
+
 		ShowInSimplifiedHelpView:   true,
 		Category:                   diagnostics.Language_and_Environment,
 		Description:                diagnostics.Specify_what_JSX_code_is_generated,

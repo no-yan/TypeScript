@@ -10,7 +10,8 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
-// astDecoder reconstructs real *ast.Node objects from binary-encoded data.
+// astDecoder reconstructs real ast.Handle objects from binary-encoded data.
+
 type astDecoder struct {
 	raw       []byte
 	strTable  uint32
@@ -18,15 +19,16 @@ type astDecoder struct {
 	extData   uint32
 	nodeOff   uint32
 	nodeCount int
-	factory   *ast.NodeFactory
+	factory   *ast.Factory
 	childBuf  []int
 	// Single Go string covering all string data; substrings are zero-alloc slices.
 	allStringData string
-	// Arena for batch-allocating []*ast.Node slices used by NodeLists.
-	nodeArena []*ast.Node
+	// Arena for batch-allocating []ast.Handle slices used by NodeLists.
+
+	nodeArena []ast.Handle
 	// Results
-	nodes     []*ast.Node
-	nodeLists []*ast.NodeList
+	nodes     []ast.Handle
+	nodeLists []ast.ListRef
 }
 
 // DecodeSourceFile decodes binary-encoded data into an *ast.SourceFile.
@@ -35,17 +37,18 @@ func DecodeSourceFile(data []byte) (*ast.SourceFile, error) {
 	if err != nil {
 		return nil, err
 	}
-	if node.Kind != ast.KindSourceFile {
-		return nil, fmt.Errorf("expected SourceFile root, got %v", node.Kind)
+	if node.Kind() != ast.KindSourceFile {
+		return nil, fmt.Errorf("expected SourceFile root, got %v", node.Kind())
 	}
-	return node.AsSourceFile(), nil
+	return node.Store().SourceFile(), nil
 }
 
-// DecodeNodes decodes binary-encoded AST data into a tree of *ast.Node objects.
-func DecodeNodes(data []byte) (*ast.Node, error) {
+// DecodeNodes decodes binary-encoded AST data into a tree of ast.Handle objects.
+
+func DecodeNodes(data []byte) (ast.Handle, error) {
 	d, err := newASTDecoder(data)
 	if err != nil {
-		return nil, err
+		return ast.Handle{}, err
 	}
 	return d.decode()
 }
@@ -82,7 +85,7 @@ func newASTDecoder(data []byte) (*astDecoder, error) {
 		strData:  strData,
 		extData:  extData,
 		nodeOff:  nodeOff,
-		factory:  ast.NewNodeFactory(ast.NodeFactoryHooks{}),
+		factory:  ast.NewFactory(ast.FactoryHooks{}),
 	}
 
 	d.nodeCount = (len(data) - int(d.nodeOff)) / NodeSize
@@ -97,7 +100,7 @@ func newASTDecoder(data []byte) (*astDecoder, error) {
 
 // allocNodeSlice returns a zero-length slice with the given capacity, backed by
 // the pre-allocated nodeArena. This avoids a heap allocation per NodeList.
-func (d *astDecoder) allocNodeSlice(capacity int) []*ast.Node {
+func (d *astDecoder) allocNodeSlice(capacity int) []ast.Handle {
 	start := len(d.nodeArena)
 	d.nodeArena = d.nodeArena[:start+capacity]
 	return d.nodeArena[start : start : start+capacity]
@@ -135,16 +138,16 @@ func (d *astDecoder) collectChildren(i int) []int {
 	return d.childBuf
 }
 
-func (d *astDecoder) decode() (*ast.Node, error) {
+func (d *astDecoder) decode() (ast.Handle, error) {
 	if d.nodeCount < 2 {
-		return nil, errors.New("no nodes to decode")
+		return ast.Handle{}, errors.New("no nodes to decode")
 	}
 
-	d.nodes = make([]*ast.Node, d.nodeCount)
-	d.nodeLists = make([]*ast.NodeList, d.nodeCount)
+	d.nodes = make([]ast.Handle, d.nodeCount)
+	d.nodeLists = make([]ast.ListRef, d.nodeCount)
 	// Pre-allocate arena for NodeList child slices. Each node can appear as a
 	// child at most once, so nodeCount is an upper bound on total child pointers.
-	d.nodeArena = make([]*ast.Node, 0, d.nodeCount)
+	d.nodeArena = make([]ast.Handle, 0, d.nodeCount)
 
 	// Process bottom-up so children exist before parents.
 	for i := d.nodeCount - 1; i >= 1; i-- {
@@ -157,22 +160,20 @@ func (d *astDecoder) decode() (*ast.Node, error) {
 		if kind == SyntaxKindNodeList {
 			childNodes := d.allocNodeSlice(len(childIndices))
 			for _, ci := range childIndices {
-				if d.nodes[ci] != nil {
+				if !d.nodes[ci].IsNil() {
 					childNodes = append(childNodes, d.nodes[ci])
 				}
 			}
-			nl := d.factory.NewNodeList(childNodes)
-			nl.Loc = core.NewTextRange(int(pos), int(end))
-			d.nodeLists[i] = nl
+			d.nodeLists[i] = d.factory.List(core.NewTextRange(int(pos), int(end)), childNodes...)
 			continue
 		}
 
 		node, err := d.createNode(ast.Kind(kind), data, childIndices)
 		if err != nil {
-			return nil, fmt.Errorf("at node %d (kind %v): %w", i, ast.Kind(kind), err)
+			return ast.Handle{}, fmt.Errorf("at node %d (kind %v): %w", i, ast.Kind(kind), err)
 		}
-		node.Loc = core.NewTextRange(int(pos), int(end))
-		node.Flags = ast.NodeFlags(d.nodeField(i, NodeOffsetFlags))
+		node.SetLoc(core.NewTextRange(int(pos), int(end)))
+		node.SetFlags(ast.NodeFlags(d.nodeField(i, NodeOffsetFlags)))
 		d.nodes[i] = node
 	}
 
@@ -180,14 +181,9 @@ func (d *astDecoder) decode() (*ast.Node, error) {
 }
 
 // getModifierList creates a *ast.ModifierList from a child index that is a NodeList.
-func (d *astDecoder) getModifierList(ci int) *ast.ModifierList {
-	nl := d.nodeLists[ci]
-	if nl == nil {
-		return nil
-	}
-	ml := d.factory.NewModifierList(nl.Nodes)
-	ml.Loc = nl.Loc
-	return ml
+
+func (d *astDecoder) getModifierList(ci int) ast.ListRef {
+	return d.nodeLists[ci]
 }
 
 // childIterator helps walk through children based on a bitmask.
@@ -218,28 +214,28 @@ func (it *childIterator) nextIf(mask uint8, bit uint8) int {
 	return it.next()
 }
 
-func (d *astDecoder) nodeAt(ci int) *ast.Node {
+func (d *astDecoder) nodeAt(ci int) ast.Handle {
 	if ci == 0 {
-		return nil
+		return ast.Handle{}
 	}
 	return d.nodes[ci]
 }
 
-func (d *astDecoder) nodeListAt(ci int) *ast.NodeList {
+func (d *astDecoder) nodeListAt(ci int) ast.ListRef {
 	if ci == 0 {
-		return nil
+		return 0
 	}
 	return d.nodeLists[ci]
 }
 
-func (d *astDecoder) modifierListAt(ci int) *ast.ModifierList {
+func (d *astDecoder) modifierListAt(ci int) ast.ListRef {
 	if ci == 0 {
-		return nil
+		return 0
 	}
 	return d.getModifierList(ci)
 }
 
-func (d *astDecoder) createNode(kind ast.Kind, data uint32, childIndices []int) (*ast.Node, error) {
+func (d *astDecoder) createNode(kind ast.Kind, data uint32, childIndices []int) (ast.Handle, error) {
 	dataType := data & NodeDataTypeMask
 	commonData := uint8((data >> 24) & 0x3f)
 
@@ -253,7 +249,7 @@ func (d *astDecoder) createNode(kind ast.Kind, data uint32, childIndices []int) 
 	}
 }
 
-func (d *astDecoder) decodeExtendedData_SourceFile(data uint32, childIndices []int, commonData uint8) (*ast.Node, error) {
+func (d *astDecoder) decodeExtendedData_SourceFile(data uint32, childIndices []int, commonData uint8) (ast.Handle, error) {
 	extOff := int(d.extData) + int(data&NodeDataStringIndexMask)
 
 	textIdx := readLE32(d.raw, extOff)
@@ -275,22 +271,25 @@ func (d *astDecoder) decodeExtendedData_SourceFile(data uint32, childIndices []i
 	}
 
 	// Collect children: first is statements NodeList, second is EndOfFile.
-	var stmts *ast.NodeList
-	var endOfFile *ast.Node
+	var stmts ast.ListRef
+	var endOfFile ast.Handle
 	for _, ci := range childIndices {
 		if d.nodeField(ci, NodeOffsetKind) == SyntaxKindNodeList {
 			stmts = d.nodeListAt(ci)
-		} else if d.nodes[ci] != nil && d.nodes[ci].Kind == ast.KindEndOfFile {
+		} else if !d.nodes[ci].IsNil() && d.nodes[ci].Kind() == ast.KindEndOfFile {
 			endOfFile = d.nodes[ci]
 		}
 	}
-	if endOfFile == nil {
+	if endOfFile.IsNil() {
 		endOfFile = d.factory.NewToken(ast.KindEndOfFile)
 	}
-	return d.factory.NewSourceFile(opts, text, stmts, endOfFile), nil
+	root := d.factory.NewSourceFile(stmts, endOfFile)
+	meta := ast.NewSourceFileMetadata(opts, text)
+	meta.SetParseStore(d.factory.Store(), root)
+	return root, nil
 }
 
-func (d *astDecoder) decodeExtendedData_TemplateHead(data uint32, childIndices []int, commonData uint8) (*ast.Node, error) {
+func (d *astDecoder) decodeExtendedData_TemplateHead(data uint32, childIndices []int, commonData uint8) (ast.Handle, error) {
 	extOff := int(d.extData) + int(data&NodeDataStringIndexMask)
 	textIdx := readLE32(d.raw, extOff)
 	rawTextIdx := readLE32(d.raw, extOff+4)
@@ -298,7 +297,7 @@ func (d *astDecoder) decodeExtendedData_TemplateHead(data uint32, childIndices [
 	return d.factory.NewTemplateHead(d.getString(textIdx), d.getString(rawTextIdx), ast.TokenFlags(flags)), nil
 }
 
-func (d *astDecoder) decodeExtendedData_TemplateMiddle(data uint32, childIndices []int, commonData uint8) (*ast.Node, error) {
+func (d *astDecoder) decodeExtendedData_TemplateMiddle(data uint32, childIndices []int, commonData uint8) (ast.Handle, error) {
 	extOff := int(d.extData) + int(data&NodeDataStringIndexMask)
 	textIdx := readLE32(d.raw, extOff)
 	rawTextIdx := readLE32(d.raw, extOff+4)
@@ -306,7 +305,7 @@ func (d *astDecoder) decodeExtendedData_TemplateMiddle(data uint32, childIndices
 	return d.factory.NewTemplateMiddle(d.getString(textIdx), d.getString(rawTextIdx), ast.TokenFlags(flags)), nil
 }
 
-func (d *astDecoder) decodeExtendedData_TemplateTail(data uint32, childIndices []int, commonData uint8) (*ast.Node, error) {
+func (d *astDecoder) decodeExtendedData_TemplateTail(data uint32, childIndices []int, commonData uint8) (ast.Handle, error) {
 	extOff := int(d.extData) + int(data&NodeDataStringIndexMask)
 	textIdx := readLE32(d.raw, extOff)
 	rawTextIdx := readLE32(d.raw, extOff+4)
@@ -314,16 +313,16 @@ func (d *astDecoder) decodeExtendedData_TemplateTail(data uint32, childIndices [
 	return d.factory.NewTemplateTail(d.getString(textIdx), d.getString(rawTextIdx), ast.TokenFlags(flags)), nil
 }
 
-func (d *astDecoder) singleChild(childIndices []int) *ast.Node {
+func (d *astDecoder) singleChild(childIndices []int) ast.Handle {
 	if len(childIndices) == 0 {
-		return nil
+		return ast.Handle{}
 	}
 	return d.nodes[childIndices[0]]
 }
 
-func (d *astDecoder) singleNodeListChild(childIndices []int) *ast.NodeList {
+func (d *astDecoder) singleNodeListChild(childIndices []int) ast.ListRef {
 	if len(childIndices) == 0 {
-		return nil
+		return 0
 	}
 	return d.nodeLists[childIndices[0]]
 }
@@ -345,35 +344,35 @@ func decodeNodeCommonData_SyntheticExpression(_ uint8) (any, bool) {
 
 // Hand-written extended data decoding functions for literal nodes.
 
-func (d *astDecoder) decodeExtendedData_StringLiteral(data uint32, _ []int, _ uint8) (*ast.Node, error) {
+func (d *astDecoder) decodeExtendedData_StringLiteral(data uint32, _ []int, _ uint8) (ast.Handle, error) {
 	extOff := int(d.extData) + int(data&NodeDataStringIndexMask)
 	textIdx := readLE32(d.raw, extOff)
 	flags := readLE32(d.raw, extOff+4)
 	return d.factory.NewStringLiteral(d.getString(textIdx), ast.TokenFlags(flags)), nil
 }
 
-func (d *astDecoder) decodeExtendedData_NumericLiteral(data uint32, _ []int, _ uint8) (*ast.Node, error) {
+func (d *astDecoder) decodeExtendedData_NumericLiteral(data uint32, _ []int, _ uint8) (ast.Handle, error) {
 	extOff := int(d.extData) + int(data&NodeDataStringIndexMask)
 	textIdx := readLE32(d.raw, extOff)
 	flags := readLE32(d.raw, extOff+4)
 	return d.factory.NewNumericLiteral(d.getString(textIdx), ast.TokenFlags(flags)), nil
 }
 
-func (d *astDecoder) decodeExtendedData_BigIntLiteral(data uint32, _ []int, _ uint8) (*ast.Node, error) {
+func (d *astDecoder) decodeExtendedData_BigIntLiteral(data uint32, _ []int, _ uint8) (ast.Handle, error) {
 	extOff := int(d.extData) + int(data&NodeDataStringIndexMask)
 	textIdx := readLE32(d.raw, extOff)
 	flags := readLE32(d.raw, extOff+4)
 	return d.factory.NewBigIntLiteral(d.getString(textIdx), ast.TokenFlags(flags)), nil
 }
 
-func (d *astDecoder) decodeExtendedData_RegularExpressionLiteral(data uint32, _ []int, _ uint8) (*ast.Node, error) {
+func (d *astDecoder) decodeExtendedData_RegularExpressionLiteral(data uint32, _ []int, _ uint8) (ast.Handle, error) {
 	extOff := int(d.extData) + int(data&NodeDataStringIndexMask)
 	textIdx := readLE32(d.raw, extOff)
 	flags := readLE32(d.raw, extOff+4)
 	return d.factory.NewRegularExpressionLiteral(d.getString(textIdx), ast.TokenFlags(flags)), nil
 }
 
-func (d *astDecoder) decodeExtendedData_NoSubstitutionTemplateLiteral(data uint32, _ []int, _ uint8) (*ast.Node, error) {
+func (d *astDecoder) decodeExtendedData_NoSubstitutionTemplateLiteral(data uint32, _ []int, _ uint8) (ast.Handle, error) {
 	extOff := int(d.extData) + int(data&NodeDataStringIndexMask)
 	textIdx := readLE32(d.raw, extOff)
 	flags := readLE32(d.raw, extOff+4)

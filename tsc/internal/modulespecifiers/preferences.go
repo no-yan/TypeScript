@@ -31,7 +31,7 @@ func inferPreference(
 	moduleResolutionIsNodeNext bool,
 ) ModuleSpecifierEnding {
 	usesJsExtensions := false
-	var specifiers []*ast.LiteralLikeNode
+	var specifiers []ast.Handle
 	if sourceFile != nil && len(sourceFile.Imports()) > 0 {
 		specifiers = sourceFile.Imports()
 	} else if sourceFile != nil && sourceFile.IsJS() {

@@ -9,16 +9,20 @@ import (
 )
 
 type NodeComparisonWorkItem struct {
-	original *ast.Node
-	copy     *ast.Node
+	original ast.Handle
+	copy     ast.Handle
 }
 
-func getChildren(node *ast.Node) []*ast.Node {
-	children := []*ast.Node{}
-	node.VisitEachChild(ast.NewNodeVisitor(func(node *ast.Node) *ast.Node {
+func getChildren(node ast.Handle) []ast.Handle {
+	children := []ast.Handle{}
+	var factory *ast.Factory
+	if node.Store() != nil {
+		factory = ast.NewFactoryOn(node.Store(), ast.FactoryHooks{})
+	}
+	node.VisitEachChild(ast.NewHandleVisitor(func(node ast.Handle) ast.Handle {
 		children = append(children, node)
 		return node
-	}, nil, ast.NodeVisitorHooks{}))
+	}, factory, ast.HandleVisitorHooks{}))
 	return children
 }
 
@@ -575,11 +579,12 @@ func TestDeepCloneNodeSanityCheck(t *testing.T) {
 		t.Run("Clone "+rec.title, func(t *testing.T) {
 			t.Parallel()
 
-			factory := &ast.NodeFactory{}
-			file := parsetestutil.ParseTypeScript(rec.input, false).AsNode()
-			clone := factory.DeepCloneNode(file.AsNode()).AsNode()
+			factory := ast.NewFactory(ast.FactoryHooks{})
+			file := parsetestutil.ParseTypeScript(rec.input, rec.jsx)
+			root := file.ParseRoot()
+			clone := factory.DeepCloneNode(root)
 
-			work := []NodeComparisonWorkItem{{file, clone}}
+			work := []NodeComparisonWorkItem{{root, clone}}
 
 			for len(work) > 0 {
 				nextWork := []NodeComparisonWorkItem{}
