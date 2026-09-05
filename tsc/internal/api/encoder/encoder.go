@@ -369,7 +369,8 @@ func BuildNodeIndexTable(sourceFile *ast.SourceFile) *NodeIndexTable {
 				}
 				nodeCount++
 				nodeTable = append(nodeTable, ast.Handle{}) // NodeLists are not ast.Handle
-				visitor.VisitSlice(sourceFile.ParseStore().ListSlice(nodeList))
+				// VisitSlice takes []Handle; materialize at the visitor boundary.
+				visitor.VisitSlice(sourceFile.ParseStore().ListSlice(nodeList).Slice())
 				return nodeList
 			},
 			VisitModifiers: func(modifiers ast.ListRef, visitor *ast.HandleVisitor) ast.ListRef {
@@ -507,7 +508,8 @@ func encodeTree(rootNode ast.Handle, sourceFile *ast.SourceFile) ([]byte, *NodeI
 				currentIndex := nodeCount
 				prevIndex = 0
 				parentIndex = currentIndex
-				visitor.VisitSlice(sourceFile.ParseStore().ListSlice(nodeList))
+				// VisitSlice takes []Handle; materialize at the visitor boundary.
+				visitor.VisitSlice(sourceFile.ParseStore().ListSlice(nodeList).Slice())
 				prevIndex = currentIndex
 				parentIndex = saveParentIndex
 

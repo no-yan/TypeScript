@@ -1778,7 +1778,9 @@ func IsNameOfHeritageClauseTypeReference(node Handle) bool {
 func GetHeritageClause(node Handle, kind Kind) Handle {
 	clauses := node.HeritageClauses()
 	if clauses != 0 {
-		for _, clause := range node.Store().ListSlice(clauses) {
+		store := node.Store()
+		for i, n := 0, store.ListLen(clauses); i < n; i++ {
+			clause := store.ListAt(clauses, i)
 			if clause.HeritageClauseToken() == kind {
 				return clause
 			}
@@ -1942,7 +1944,7 @@ func GetExternalModuleName(node Handle) Handle {
 	case KindImportType:
 		return getImportTypeNodeLiteral(node)
 	case KindCallExpression:
-		return core.FirstOrNil(node.Arguments())
+		return node.ArgumentsSeq().First()
 	case KindModuleDeclaration:
 		if IsStringLiteral(node.ModuleDeclarationName()) {
 			return node.ModuleDeclarationName()
@@ -2477,8 +2479,9 @@ func NodeHasName(statement Handle, id Handle) bool {
 		return IsIdentifier(name) && name.Text() == id.Text()
 	}
 	if IsVariableStatement(statement) {
-		declarations := statement.VariableStatementDeclarationList().Declarations()
-		return core.Some(declarations, func(d Handle) bool { return NodeHasName(d, id) })
+		return statement.VariableStatementDeclarationList().DeclarationsSeq().Some(func(d Handle) bool {
+			return NodeHasName(d, id)
+		})
 	}
 	return false
 }
@@ -2518,7 +2521,7 @@ func GetDeclarationOfKind(symbol *Symbol, kind Kind) Handle {
 }
 
 func FindConstructorDeclaration(node Handle) Handle {
-	for _, member := range node.Members() {
+	for _, member := range node.MembersSeq() {
 		if IsConstructorDeclaration(member) && NodeIsPresent(member.Body()) {
 			return member
 		}
@@ -2778,17 +2781,17 @@ func IsRequireCall(node Handle, requireStringLiteralLikeArgument bool) bool {
 	if !IsIdentifier(node.CallExpressionExpression()) || node.CallExpressionExpression().Text() != "require" {
 		return false
 	}
-	if len(node.Arguments()) != 1 {
+	args := node.ArgumentList()
+	if node.Store().ListLen(args) != 1 {
 		return false
 	}
-	return !requireStringLiteralLikeArgument || IsStringLiteralLike(node.Arguments()[0])
+	return !requireStringLiteralLikeArgument || IsStringLiteralLike(node.Store().ListAt(args, 0))
 }
 
 func IsRequireVariableStatement(node Handle) bool {
 	if IsVariableStatement(node) {
-		if declarations := node.VariableStatementDeclarationList().Declarations(); len(declarations) > 0 {
-			return core.Every(declarations, IsVariableDeclarationInitializedToRequire)
-		}
+		declarations := node.VariableStatementDeclarationList().DeclarationsSeq()
+		return declarations.Len() > 0 && declarations.Every(IsVariableDeclarationInitializedToRequire)
 	}
 	return false
 }
@@ -3345,11 +3348,9 @@ func CreateModifiersFromModifierFlags(flags ModifierFlags, createModifier func(k
 
 func GetThisParameter(signature Handle) Handle {
 	// callback tags do not currently support this parameters
-	if len(signature.Parameters()) != 0 {
-		thisParameter := signature.Parameters()[0]
-		if IsThisParameter(thisParameter) {
-			return thisParameter
-		}
+	params := signature.ParametersSeq()
+	if thisParameter := params.First(); !thisParameter.IsNil() && IsThisParameter(thisParameter) {
+		return thisParameter
 	}
 	return Handle{}
 }
@@ -4105,8 +4106,7 @@ func GetNextJSDocCommentLocation(node Handle) Handle {
 			KindSatisfiesExpression, KindReturnStatement, KindVariableStatement, KindExpressionStatement:
 			return parent
 		case KindVariableDeclarationList:
-			decls := parent.Declarations()
-			if len(decls) > 0 && decls[0] == node {
+			if parent.DeclarationsSeq().First() == node {
 				return parent
 			}
 		}
@@ -4239,15 +4239,15 @@ func IsImplicitlyExportedJSDocDeclaration(node Handle) bool {
 
 func HasContextSensitiveParameters(node Handle) bool {
 	// Functions with type parameters are not context sensitive.
-	if len(node.TypeParameters()) == 0 {
+	if node.TypeParametersSeq().Len() == 0 {
 		// Functions with any parameters that lack type annotations are context sensitive.
-		if core.Some(node.Parameters(), func(p Handle) bool { return p.Type().IsNil() }) {
+		if node.ParametersSeq().Some(func(p Handle) bool { return p.Type().IsNil() }) {
 			return true
 		}
 		if !IsArrowFunction(node) {
 			// If the first parameter is not an explicit 'this' parameter, then the function has
 			// an implicit 'this' parameter which is subject to contextual typing.
-			parameter := core.FirstOrNil(node.Parameters())
+			parameter := node.ParametersSeq().First()
 			if parameter.IsNil() || !IsThisParameter(parameter) {
 				return node.Flags()&NodeFlagsContainsThis != 0
 			}
@@ -4261,7 +4261,7 @@ func IsInfinityOrNaNString(name string) bool {
 }
 
 func GetFirstConstructorWithBody(node Handle) Handle {
-	for _, member := range node.Members() {
+	for _, member := range node.MembersSeq() {
 		if IsConstructorDeclaration(member) && NodeIsPresent(member.Body()) {
 			return member
 		}
@@ -4277,8 +4277,8 @@ func IsPotentiallyExecutableNode(node Handle) bool {
 			if GetCombinedNodeFlags(declarationList)&NodeFlagsBlockScoped != 0 {
 				return true
 			}
-			declarations := declarationList.Declarations()
-			return core.Some(declarations, func(d Handle) bool {
+			declarations := declarationList.DeclarationsSeq()
+			return declarations.Some(func(d Handle) bool {
 				return !d.Initializer().IsNil()
 			})
 		}
@@ -4340,7 +4340,7 @@ func ClassOrConstructorParameterIsDecorated(useLegacyDecorators bool, node Handl
 func ClassElementOrClassElementParameterIsDecorated(useLegacyDecorators bool, node Handle, parent Handle) bool {
 	var parameters ListRef
 	if IsAccessor(node) {
-		decls := GetAllAccessorDeclarations(parent.Members(), node)
+		decls := GetAllAccessorDeclarations(parent.MembersSeq(), node)
 		var firstAccessorWithDecorators Handle
 		if HasDecorators(decls.FirstAccessor) {
 			firstAccessorWithDecorators = decls.FirstAccessor
@@ -4360,7 +4360,9 @@ func ClassElementOrClassElementParameterIsDecorated(useLegacyDecorators bool, no
 		return true
 	}
 	if parameters != 0 && node.Store().ListLen(parameters) > 0 {
-		for _, parameter := range node.Store().ListSlice(parameters) {
+		store := node.Store()
+		for i, n := 0, store.ListLen(parameters); i < n; i++ {
+			parameter := store.ListAt(parameters, i)
 			if IsThisParameter(parameter) {
 				continue
 			}
@@ -4383,13 +4385,13 @@ func NodeOrChildIsDecorated(useLegacyDecorators bool, node Handle, parent Handle
 func ChildIsDecorated(useLegacyDecorators bool, node Handle, parent Handle) bool {
 	switch node.Kind {
 	case KindClassDeclaration, KindClassExpression:
-		return core.Some(node.Members(), func(m Handle) bool {
+		return node.MembersSeq().Some(func(m Handle) bool {
 			return NodeOrChildIsDecorated(useLegacyDecorators, m, node, parent)
 		})
 	case KindMethodDeclaration,
 		KindSetAccessor,
 		KindConstructor:
-		return core.Some(node.Parameters(), func(p Handle) bool {
+		return node.ParametersSeq().Some(func(p Handle) bool {
 			return NodeIsDecorated(useLegacyDecorators, p, node, parent)
 		})
 	default:
@@ -4404,7 +4406,7 @@ type AllAccessorDeclarations struct {
 	GetAccessor    Handle
 }
 
-func GetAllAccessorDeclarationsForDeclaration(accessor Handle, declarationsOfSymbol []Handle) AllAccessorDeclarations {
+func GetAllAccessorDeclarationsForDeclaration(accessor Handle, declarationsOfSymbol NodeSeq) AllAccessorDeclarations {
 	var otherKind Kind
 	switch accessor.Kind {
 	case KindSetAccessor:
@@ -4414,13 +4416,9 @@ func GetAllAccessorDeclarationsForDeclaration(accessor Handle, declarationsOfSym
 	default:
 		panic(fmt.Sprintf("Unexpected node kind %q", accessor.Kind))
 	}
-	var otherAccessor Handle
-	for _, d := range declarationsOfSymbol {
-		if d.Kind == otherKind {
-			otherAccessor = d
-			break
-		}
-	}
+	otherAccessor := declarationsOfSymbol.FirstMatching(func(d Handle) bool {
+		return d.Kind == otherKind
+	})
 
 	var firstAccessor Handle
 	var secondAccessor Handle
@@ -4450,9 +4448,11 @@ func GetAllAccessorDeclarationsForDeclaration(accessor Handle, declarationsOfSym
 	}
 }
 
-func GetAllAccessorDeclarations(parentDeclarations []Handle, accessor Handle) AllAccessorDeclarations {
+func GetAllAccessorDeclarations(parentDeclarations NodeSeq, accessor Handle) AllAccessorDeclarations {
 	if HasDynamicName(accessor) {
-		return GetAllAccessorDeclarationsForDeclaration(accessor, []Handle{accessor})
+		return GetAllAccessorDeclarationsForDeclaration(accessor, func(yield func(int, Handle) bool) {
+			yield(0, accessor)
+		})
 	}
 
 	accessorName := GetPropertyNameForPropertyNameNode(accessor.Name())
@@ -4467,7 +4467,13 @@ func GetAllAccessorDeclarations(parentDeclarations []Handle, accessor Handle) Al
 			matches = append(matches, member)
 		}
 	}
-	return GetAllAccessorDeclarationsForDeclaration(accessor, matches)
+	return GetAllAccessorDeclarationsForDeclaration(accessor, func(yield func(int, Handle) bool) {
+		for i, m := range matches {
+			if !yield(i, m) {
+				return
+			}
+		}
+	})
 }
 
 func IsAsyncFunction(node Handle) bool {
@@ -4494,8 +4500,7 @@ func GetRestParameterElementType(node Handle) Handle {
 		return node.ArrayTypeNodeElementType()
 	}
 	if node.Kind == KindTypeReference {
-		args := node.TypeArguments()
-		return core.FirstOrNil(args)
+		return node.TypeArgumentsSeq().First()
 	}
 	return Handle{}
 }
