@@ -511,53 +511,157 @@ function emitStorePut(w: CodeWriter, node: NodeType) {
             w.write(`h.SetUintValue(${slot}, uint64(${value}))`);
         }
     }
-    if (layout.strings.length > 0) {
-        const p = layout.strings[0].goParamName();
-        w.write(`if ${p} != "" {`);
-        w.push();
-        w.write(`h.SetIdent(f.store.Intern(${p}))`);
-        w.pop();
-        w.write("}");
-    }
     w.pop();
     w.write("}");
 }
 
-function expandArg(node: NodeType, m: MemberInfo): string {
-    if (m.isKindParam()) {
-        return "h.Kind()";
-    }
-    if (isNodeFlagsMember(m)) {
-        return "h.Flags()";
-    }
-    if (m.isChild()) {
-        const lk = m.listKind;
-        if (lk === "ModifierList") {
-            return `expandModifierList(e, h.Store(), h.ListSlot(${listSlotConst(node.name, memberSuffix(m))}))`;
-        }
-        if (lk === "raw") {
-            return `expandRawList(e, h.Store(), h.ListSlot(${listSlotConst(node.name, memberSuffix(m))}))`;
-        }
-        if (lk === "NodeList") {
-            return `expandNodeList(e, h.Store(), h.ListSlot(${listSlotConst(node.name, memberSuffix(m))}))`;
-        }
-        return `expandStoredChild(e, h, ${slotConst(node.name, memberSuffix(m))})`;
-    }
+function storeParamType(m: MemberInfo): string {
+    if (!m.isChild()) return m.type.formatGoReference();
+    return m.listKind === undefined ? "Handle" : "ListRef";
+}
+
+function emitStoreValuePut(w: CodeWriter, m: MemberInfo, handle: string) {
+    const value = m.bitmask ? `${m.goParamName()} & ${m.bitmask}` : m.goParamName();
+    const slot = valueSlotConst(m.node!.name, memberSuffix(m));
     const ref = m.type.formatGoReference();
     if (ref === "TokenFlags") {
-        return "h.TokenFlags()";
+        w.write(`${handle}.SetTokenFlags(${value})`);
     }
+    else if (ref === "string") {
+        w.write(`${handle}.SetStringValue(${slot}, ${value})`);
+    }
+    else if (ref === "bool") {
+        w.write(`if ${value} { ${handle}.SetUintValue(${slot}, 1) }`);
+    }
+    else if (ref === "any" || ref.startsWith("*") || ref.startsWith("[]")) {
+        w.write(`${handle}.SetObjectValue(${slot}, ${value})`);
+    }
+    else {
+        w.write(`${handle}.SetUintValue(${slot}, uint64(${value}))`);
+    }
+}
+
+function emitStoreFactory(
+    w: CodeWriter,
+    funcName: string,
+    kindName: string,
+    node: NodeType,
+    members: MemberInfo[],
+    kindMember: MemberInfo | undefined,
+    nodeFlagsMembers: MemberInfo[],
+) {
+    const layout = storeLayout(node);
+    const params = members.map(m => `${m.goParamName()} ${storeParamType(m)}`).join(", ");
+    const kindArg = kindMember ? kindMember.goParamName() : `Kind${kindName}`;
+    const flags = nodeFlagsMembers.length === 0
+        ? "0"
+        : nodeFlagsMembers.map(m => m.bitmask ? `${m.goParamName()} & ${m.bitmask}` : m.goParamName()).join(" | ");
+
+    w.write(`func (f *Factory) ${funcName}(${params}) Handle {`);
+    w.push();
+    w.write(`h := f.createSlots(${kindArg}, ${flags}, core.UndefinedTextRange(), ${layout.children.length}, ${layout.lists.length})`);
+    for (const m of layout.children) {
+        w.write(`h.SetChild(${slotConst(node.name, memberSuffix(m))}, ${m.goParamName()})`);
+    }
+    for (const m of layout.lists) {
+        w.write(`h.SetListSlot(${listSlotConst(node.name, memberSuffix(m))}, ${m.goParamName()})`);
+    }
+    for (const m of layout.values) {
+        emitStoreValuePut(w, m, "h");
+    }
+    if (layout.strings.length > 0) {
+        const p = layout.strings[0].goParamName();
+        w.write(`if ${p} != "" { h.SetIdent(f.store.Intern(${p})) }`);
+    }
+    w.write("return h");
+    w.pop();
+    w.write("}");
+    w.write("");
+}
+
+function generateStoreFactory(w: CodeWriter, node: NodeType) {
+    if (node.handWritten) return;
+    const members = schemaMembers(node);
+    const kindMember = members.find(m => m.isKindParam());
+    const nodeFlagsMembers = members.filter(m => isNodeFlagsMember(m));
+    emitStoreFactory(w, `New${node.name}`, node.syntaxKindName, node, members, kindMember, nodeFlagsMembers);
+    for (const alias of node.kindAliases) {
+        emitStoreFactory(w, `New${alias}`, alias, node, members, kindMember, nodeFlagsMembers);
+    }
+}
+
+function emitStoreAccessor(w: CodeWriter, node: NodeType, m: MemberInfo) {
+    const method = `${node.name}${memberSuffix(m)}`;
+    if (m.isChild()) {
+        if (m.listKind === undefined) {
+            const slot = slotConst(node.name, memberSuffix(m));
+            w.write(`func (h Handle) ${method}() Handle { return h.Child(${slot}) }`);
+            w.write(`func (h Handle) Set${method}(value Handle) { h.SetChild(${slot}, value) }`);
+        }
+        else {
+            const slot = listSlotConst(node.name, memberSuffix(m));
+            w.write(`func (h Handle) ${method}() ListRef { return h.ListSlot(${slot}) }`);
+            w.write(`func (h Handle) Set${method}(value ListRef) { h.SetListSlot(${slot}, value) }`);
+        }
+        w.write("");
+        return;
+    }
+
     const slot = valueSlotConst(node.name, memberSuffix(m));
-    if (ref === "string") {
-        return `h.StringValue(${slot})`;
+    const ref = m.type.formatGoReference();
+    if (ref === "TokenFlags") {
+        w.write(`func (h Handle) ${method}() TokenFlags { return h.TokenFlags() }`);
+        w.write(`func (h Handle) Set${method}(value TokenFlags) { h.SetTokenFlags(value) }`);
     }
-    if (ref === "bool") {
-        return `h.UintValue(${slot}) != 0`;
+    else if (ref === "string") {
+        w.write(`func (h Handle) ${method}() string { return h.StringValue(${slot}) }`);
+        w.write(`func (h Handle) Set${method}(value string) { h.SetStringValue(${slot}, value) }`);
     }
-    if (ref === "any" || ref.startsWith("*") || ref.startsWith("[]")) {
-        return `storeObjectValue[${ref}](h, ${slot})`;
+    else if (ref === "bool") {
+        w.write(`func (h Handle) ${method}() bool { return h.UintValue(${slot}) != 0 }`);
+        w.write(`func (h Handle) Set${method}(value bool) {`);
+        w.push();
+        w.write("if value {");
+        w.push();
+        w.write(`h.SetUintValue(${slot}, 1)`);
+        w.pop();
+        w.write("} else {");
+        w.push();
+        w.write(`h.SetUintValue(${slot}, 0)`);
+        w.pop();
+        w.write("}");
+        w.pop();
+        w.write("}");
     }
-    return `${ref}(h.UintValue(${slot}))`;
+    else if (ref === "any" || ref.startsWith("*") || ref.startsWith("[]")) {
+        w.write(`func (h Handle) ${method}() ${ref} { return storeObjectValue[${ref}](h, ${slot}) }`);
+        w.write(`func (h Handle) Set${method}(value ${ref}) { h.SetObjectValue(${slot}, value) }`);
+    }
+    else {
+        w.write(`func (h Handle) ${method}() ${ref} { return ${ref}(h.UintValue(${slot})) }`);
+        w.write(`func (h Handle) Set${method}(value ${ref}) { h.SetUintValue(${slot}, uint64(value)) }`);
+    }
+    w.write("");
+}
+
+function generateStoreHandles(): string {
+    const w = new CodeWriter();
+    w.write("// Code generated by tools/scripts/tsc/generate-go-ast.ts. DO NOT EDIT.");
+    w.write("");
+    w.write("package ast");
+    w.write("");
+    w.write('import "github.com/microsoft/TypeScript/tsc/internal/core"');
+    w.write("");
+    w.write("// Factory constructors and Handle accessors mirror the pointer AST schema.");
+    w.write("// They are the public migration surface for Store-native producers and consumers.");
+    w.write("");
+    for (const node of api.nodes()) {
+        generateStoreFactory(w, node);
+        for (const m of storeLayout(node).children) emitStoreAccessor(w, node, m);
+        for (const m of storeLayout(node).lists) emitStoreAccessor(w, node, m);
+        for (const m of storeLayout(node).values) emitStoreAccessor(w, node, m);
+    }
+    return w.toString();
 }
 
 function generateStoreSchema(): string {
@@ -605,62 +709,27 @@ function generateStoreSchema(): string {
             w.write("");
         }
     }
-    return w.toString();
-}
-
-function generateExpandStore(): string {
-    const w = new CodeWriter();
-    w.write("// Code generated by tools/scripts/tsc/generate-go-ast.ts. DO NOT EDIT.");
-    w.write("");
-    w.write("package ast");
-    w.write("");
-    w.write("func expandStored(e *storeExpander, h Handle) *Node {");
+    w.write("func primaryStringSlot(kind Kind) int {");
     w.push();
-    w.write("if h.Ref() == 0 {");
+    w.write("switch kind {");
     w.push();
-    w.write("return nil");
-    w.pop();
-    w.write("}");
-    w.write("if n := e.nodes[h.Ref()]; n != nil {");
-    w.push();
-    w.write("return n");
-    w.pop();
-    w.write("}");
-    w.write("switch h.Kind() {");
     for (const node of api.nodes()) {
-        if (node.handWritten || node.name === "Token") {
-            continue;
+        const primary = storeLayout(node).strings[0];
+        if (primary !== undefined) {
+            w.write(`case Kind${node.name}:`);
+            w.push();
+            w.write(`return ${valueSlotConst(node.name, memberSuffix(primary))}`);
+            w.pop();
         }
-        const kinds = node.allKinds().map(k => k.formatGoConstant());
-        if (kinds.length === 0) {
-            continue;
-        }
-        const members = schemaMembers(node);
-        const args = members.map(m => expandArg(node, m));
-        w.write(`case ${kinds.join(", ")}:`);
-        w.push();
-        w.write(`n := e.f.New${node.name}(${args.join(", ")})`);
-        w.write("e.remember(h.Ref(), n)");
-        w.write("applyStoreHeader(n, h)");
-        w.write("return n");
-        w.pop();
     }
     w.write("default:");
     w.push();
-    w.write("if IsTokenKind(h.Kind()) {");
-    w.push();
-    w.write("n := e.f.NewToken(h.Kind())");
-    w.write("e.remember(h.Ref(), n)");
-    w.write("applyStoreHeader(n, h)");
-    w.write("return n");
+    w.write("return -1");
     w.pop();
-    w.write("}");
-    w.write(`panic("ast: no Store expander for " + h.Kind().String())`);
     w.pop();
     w.write("}");
     w.pop();
     w.write("}");
-    w.write("");
     return w.toString();
 }
 
@@ -689,6 +758,9 @@ function generateUpdateFactory(w: CodeWriter, node: NodeType) {
     // Build comparison (all update members)
     const comparisons = updateMembers.map(m => {
         const type = m.type;
+        if (m.isChild() && m.listKind === undefined) {
+            return `!f.storeNodesEqual(${m.goParamName()}, node.${m.name})`;
+        }
         // Slices can't be compared with != in Go
         if (type.kind === "list" && type.listKind === "raw") {
             return `!core.Same(${m.goParamName()}, node.${m.name})`;
@@ -1349,8 +1421,8 @@ export default function main() {
     const storeSchema = generateStoreSchema();
     writeAndFormat(path.join(ROOT, "tsc/internal/ast/store_schema_generated.go"), storeSchema + "\n");
 
-    const expandCode = generateExpandStore();
-    writeAndFormat(path.join(ROOT, "tsc/internal/ast/store_expand_generated.go"), expandCode + "\n");
+    const storeHandles = generateStoreHandles();
+    writeAndFormat(path.join(ROOT, "tsc/internal/ast/store_handles_generated.go"), storeHandles + "\n");
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

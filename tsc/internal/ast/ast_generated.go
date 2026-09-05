@@ -639,9 +639,6 @@ func (f *NodeFactory) NewIdentifier(text string) *Node {
 	node := f.newNode(KindIdentifier, data)
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
 		h.SetStringValue(valueSlotIdentifierText, text)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -670,9 +667,6 @@ func (f *NodeFactory) NewPrivateIdentifier(text string) *Node {
 	node := f.newNode(KindPrivateIdentifier, data)
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
 		h.SetStringValue(valueSlotPrivateIdentifierText, text)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -710,7 +704,7 @@ func (f *NodeFactory) NewQualifiedName(left *EntityName, right *MemberName) *Nod
 }
 
 func (f *NodeFactory) UpdateQualifiedName(node *QualifiedName, left *EntityName, right *MemberName) *Node {
-	if left != node.Left || right != node.Right {
+	if !f.storeNodesEqual(left, node.Left) || !f.storeNodesEqual(right, node.Right) {
 		return updateNode(f.NewQualifiedName(left, right), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -758,7 +752,7 @@ func (f *NodeFactory) NewComputedPropertyName(expression *Expression) *Node {
 }
 
 func (f *NodeFactory) UpdateComputedPropertyName(node *ComputedPropertyName, expression *Expression) *Node {
-	if expression != node.Expression {
+	if !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewComputedPropertyName(expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -805,7 +799,7 @@ func (f *NodeFactory) NewDecorator(expression *LeftHandSideExpression) *Node {
 }
 
 func (f *NodeFactory) UpdateDecorator(node *Decorator, expression *LeftHandSideExpression) *Node {
-	if expression != node.Expression {
+	if !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewDecorator(expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -878,7 +872,7 @@ func (f *NodeFactory) NewIfStatement(expression *Expression, thenStatement *Stat
 }
 
 func (f *NodeFactory) UpdateIfStatement(node *IfStatement, expression *Expression, thenStatement *Statement, elseStatement *Statement) *Node {
-	if expression != node.Expression || thenStatement != node.ThenStatement || elseStatement != node.ElseStatement {
+	if !f.storeNodesEqual(expression, node.Expression) || !f.storeNodesEqual(thenStatement, node.ThenStatement) || !f.storeNodesEqual(elseStatement, node.ElseStatement) {
 		return updateNode(f.NewIfStatement(expression, thenStatement, elseStatement), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -929,7 +923,7 @@ func (f *NodeFactory) NewDoStatement(statement *Statement, expression *Expressio
 }
 
 func (f *NodeFactory) UpdateDoStatement(node *DoStatement, statement *Statement, expression *Expression) *Node {
-	if statement != node.Statement || expression != node.Expression {
+	if !f.storeNodesEqual(statement, node.Statement) || !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewDoStatement(statement, expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -979,7 +973,7 @@ func (f *NodeFactory) NewWhileStatement(expression *Expression, statement *State
 }
 
 func (f *NodeFactory) UpdateWhileStatement(node *WhileStatement, expression *Expression, statement *Statement) *Node {
-	if expression != node.Expression || statement != node.Statement {
+	if !f.storeNodesEqual(expression, node.Expression) || !f.storeNodesEqual(statement, node.Statement) {
 		return updateNode(f.NewWhileStatement(expression, statement), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -1036,7 +1030,7 @@ func (f *NodeFactory) NewForStatement(initializer *ForInitializer, condition *Ex
 }
 
 func (f *NodeFactory) UpdateForStatement(node *ForStatement, initializer *ForInitializer, condition *Expression, incrementor *Expression, statement *Statement) *Node {
-	if initializer != node.Initializer || condition != node.Condition || incrementor != node.Incrementor || statement != node.Statement {
+	if !f.storeNodesEqual(initializer, node.Initializer) || !f.storeNodesEqual(condition, node.Condition) || !f.storeNodesEqual(incrementor, node.Incrementor) || !f.storeNodesEqual(statement, node.Statement) {
 		return updateNode(f.NewForStatement(initializer, condition, incrementor, statement), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -1099,7 +1093,7 @@ func (f *NodeFactory) NewForInOrOfStatement(kind Kind, awaitModifier *AwaitKeywo
 }
 
 func (f *NodeFactory) UpdateForInOrOfStatement(node *ForInOrOfStatement, awaitModifier *AwaitKeyword, initializer *ForInitializer, expression *Expression, statement *Statement) *Node {
-	if awaitModifier != node.AwaitModifier || initializer != node.Initializer || expression != node.Expression || statement != node.Statement {
+	if !f.storeNodesEqual(awaitModifier, node.AwaitModifier) || !f.storeNodesEqual(initializer, node.Initializer) || !f.storeNodesEqual(expression, node.Expression) || !f.storeNodesEqual(statement, node.Statement) {
 		return updateNode(f.NewForInOrOfStatement(node.Kind, awaitModifier, initializer, expression, statement), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -1148,7 +1142,7 @@ func (f *NodeFactory) NewBreakStatement(label *IdentifierNode) *Node {
 }
 
 func (f *NodeFactory) UpdateBreakStatement(node *BreakStatement, label *IdentifierNode) *Node {
-	if label != node.Label {
+	if !f.storeNodesEqual(label, node.Label) {
 		return updateNode(f.NewBreakStatement(label), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -1190,7 +1184,7 @@ func (f *NodeFactory) NewContinueStatement(label *IdentifierNode) *Node {
 }
 
 func (f *NodeFactory) UpdateContinueStatement(node *ContinueStatement, label *IdentifierNode) *Node {
-	if label != node.Label {
+	if !f.storeNodesEqual(label, node.Label) {
 		return updateNode(f.NewContinueStatement(label), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -1233,7 +1227,7 @@ func (f *NodeFactory) NewReturnStatement(expression *Expression) *Node {
 }
 
 func (f *NodeFactory) UpdateReturnStatement(node *ReturnStatement, expression *Expression) *Node {
-	if expression != node.Expression {
+	if !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewReturnStatement(expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -1279,7 +1273,7 @@ func (f *NodeFactory) NewWithStatement(expression *Expression, statement *Statem
 }
 
 func (f *NodeFactory) UpdateWithStatement(node *WithStatement, expression *Expression, statement *Statement) *Node {
-	if expression != node.Expression || statement != node.Statement {
+	if !f.storeNodesEqual(expression, node.Expression) || !f.storeNodesEqual(statement, node.Statement) {
 		return updateNode(f.NewWithStatement(expression, statement), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -1330,7 +1324,7 @@ func (f *NodeFactory) NewSwitchStatement(expression *Expression, caseBlock *Case
 }
 
 func (f *NodeFactory) UpdateSwitchStatement(node *SwitchStatement, expression *Expression, caseBlock *CaseBlockNode) *Node {
-	if expression != node.Expression || caseBlock != node.CaseBlock {
+	if !f.storeNodesEqual(expression, node.Expression) || !f.storeNodesEqual(caseBlock, node.CaseBlock) {
 		return updateNode(f.NewSwitchStatement(expression, caseBlock), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -1430,7 +1424,7 @@ func (f *NodeFactory) NewCaseOrDefaultClause(kind Kind, expression *Expression, 
 }
 
 func (f *NodeFactory) UpdateCaseOrDefaultClause(node *CaseOrDefaultClause, expression *Expression, statements *StatementList) *Node {
-	if expression != node.Expression || statements != node.Statements {
+	if !f.storeNodesEqual(expression, node.Expression) || statements != node.Statements {
 		return updateNode(f.NewCaseOrDefaultClause(node.Kind, expression, statements), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -1482,7 +1476,7 @@ func (f *NodeFactory) NewThrowStatement(expression *Expression) *Node {
 }
 
 func (f *NodeFactory) UpdateThrowStatement(node *ThrowStatement, expression *Expression) *Node {
-	if expression != node.Expression {
+	if !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewThrowStatement(expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -1535,7 +1529,7 @@ func (f *NodeFactory) NewTryStatement(tryBlock *BlockNode, catchClause *CatchCla
 }
 
 func (f *NodeFactory) UpdateTryStatement(node *TryStatement, tryBlock *BlockNode, catchClause *CatchClauseNode, finallyBlock *BlockNode) *Node {
-	if tryBlock != node.TryBlock || catchClause != node.CatchClause || finallyBlock != node.FinallyBlock {
+	if !f.storeNodesEqual(tryBlock, node.TryBlock) || !f.storeNodesEqual(catchClause, node.CatchClause) || !f.storeNodesEqual(finallyBlock, node.FinallyBlock) {
 		return updateNode(f.NewTryStatement(tryBlock, catchClause, finallyBlock), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -1588,7 +1582,7 @@ func (f *NodeFactory) NewCatchClause(variableDeclaration *VariableDeclarationNod
 }
 
 func (f *NodeFactory) UpdateCatchClause(node *CatchClause, variableDeclaration *VariableDeclarationNode, block *BlockNode) *Node {
-	if variableDeclaration != node.VariableDeclaration || block != node.Block {
+	if !f.storeNodesEqual(variableDeclaration, node.VariableDeclaration) || !f.storeNodesEqual(block, node.Block) {
 		return updateNode(f.NewCatchClause(variableDeclaration, block), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -1657,7 +1651,7 @@ func (f *NodeFactory) NewLabeledStatement(label *IdentifierNode, statement *Stat
 }
 
 func (f *NodeFactory) UpdateLabeledStatement(node *LabeledStatement, label *IdentifierNode, statement *Statement) *Node {
-	if label != node.Label || statement != node.Statement {
+	if !f.storeNodesEqual(label, node.Label) || !f.storeNodesEqual(statement, node.Statement) {
 		return updateNode(f.NewLabeledStatement(label, statement), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -1704,7 +1698,7 @@ func (f *NodeFactory) NewExpressionStatement(expression *Expression) *Node {
 }
 
 func (f *NodeFactory) UpdateExpressionStatement(node *ExpressionStatement, expression *Expression) *Node {
-	if expression != node.Expression {
+	if !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewExpressionStatement(expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -1807,7 +1801,7 @@ func (f *NodeFactory) NewVariableStatement(modifiers *ModifierList, declarationL
 }
 
 func (f *NodeFactory) UpdateVariableStatement(node *VariableStatement, modifiers *ModifierList, declarationList *VariableDeclarationListNode) *Node {
-	if modifiers != node.modifiers || declarationList != node.DeclarationList {
+	if modifiers != node.modifiers || !f.storeNodesEqual(declarationList, node.DeclarationList) {
 		return updateNode(f.NewVariableStatement(modifiers, declarationList), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -1861,7 +1855,7 @@ func (f *NodeFactory) NewVariableDeclaration(name *BindingName, exclamationToken
 }
 
 func (f *NodeFactory) UpdateVariableDeclaration(node *VariableDeclaration, name *BindingName, exclamationToken *ExclamationToken, typeNode *TypeNode, initializer *Expression) *Node {
-	if name != node.name || exclamationToken != node.ExclamationToken || typeNode != node.Type || initializer != node.Initializer {
+	if !f.storeNodesEqual(name, node.name) || !f.storeNodesEqual(exclamationToken, node.ExclamationToken) || !f.storeNodesEqual(typeNode, node.Type) || !f.storeNodesEqual(initializer, node.Initializer) {
 		return updateNode(f.NewVariableDeclaration(name, exclamationToken, typeNode, initializer), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -2018,7 +2012,7 @@ func (f *NodeFactory) NewParameterDeclaration(modifiers *ModifierList, dotDotDot
 }
 
 func (f *NodeFactory) UpdateParameterDeclaration(node *ParameterDeclaration, modifiers *ModifierList, dotDotDotToken *DotDotDotToken, name *BindingName, questionToken *QuestionToken, typeNode *TypeNode, initializer *Expression) *Node {
-	if modifiers != node.modifiers || dotDotDotToken != node.DotDotDotToken || name != node.name || questionToken != node.QuestionToken || typeNode != node.Type || initializer != node.Initializer {
+	if modifiers != node.modifiers || !f.storeNodesEqual(dotDotDotToken, node.DotDotDotToken) || !f.storeNodesEqual(name, node.name) || !f.storeNodesEqual(questionToken, node.QuestionToken) || !f.storeNodesEqual(typeNode, node.Type) || !f.storeNodesEqual(initializer, node.Initializer) {
 		return updateNode(f.NewParameterDeclaration(modifiers, dotDotDotToken, name, questionToken, typeNode, initializer), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -2082,7 +2076,7 @@ func (f *NodeFactory) NewBindingElement(dotDotDotToken *DotDotDotToken, property
 }
 
 func (f *NodeFactory) UpdateBindingElement(node *BindingElement, dotDotDotToken *DotDotDotToken, propertyName *PropertyName, name *BindingName, initializer *Expression) *Node {
-	if dotDotDotToken != node.DotDotDotToken || propertyName != node.PropertyName || name != node.name || initializer != node.Initializer {
+	if !f.storeNodesEqual(dotDotDotToken, node.DotDotDotToken) || !f.storeNodesEqual(propertyName, node.PropertyName) || !f.storeNodesEqual(name, node.name) || !f.storeNodesEqual(initializer, node.Initializer) {
 		return updateNode(f.NewBindingElement(dotDotDotToken, propertyName, name, initializer), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -2194,7 +2188,7 @@ func (f *NodeFactory) NewFunctionDeclaration(modifiers *ModifierList, asteriskTo
 }
 
 func (f *NodeFactory) UpdateFunctionDeclaration(node *FunctionDeclaration, modifiers *ModifierList, asteriskToken *AsteriskToken, name *IdentifierNode, typeParameters *TypeParameterList, parameters *ParameterList, typeNode *TypeNode, fullSignature *TypeNode, body *FunctionBody) *Node {
-	if modifiers != node.modifiers || asteriskToken != node.AsteriskToken || name != node.name || typeParameters != node.TypeParameters || parameters != node.Parameters || typeNode != node.Type || fullSignature != node.FullSignature || body != node.Body {
+	if modifiers != node.modifiers || !f.storeNodesEqual(asteriskToken, node.AsteriskToken) || !f.storeNodesEqual(name, node.name) || typeParameters != node.TypeParameters || parameters != node.Parameters || !f.storeNodesEqual(typeNode, node.Type) || !f.storeNodesEqual(fullSignature, node.FullSignature) || !f.storeNodesEqual(body, node.Body) {
 		return updateNode(f.NewFunctionDeclaration(modifiers, asteriskToken, name, typeParameters, parameters, typeNode, fullSignature, body), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -2256,7 +2250,7 @@ func (f *NodeFactory) NewClassDeclaration(modifiers *ModifierList, name *Identif
 }
 
 func (f *NodeFactory) UpdateClassDeclaration(node *ClassDeclaration, modifiers *ModifierList, name *IdentifierNode, typeParameters *TypeParameterList, heritageClauses *HeritageClauseList, members *ClassElementList) *Node {
-	if modifiers != node.modifiers || name != node.name || typeParameters != node.TypeParameters || heritageClauses != node.HeritageClauses || members != node.Members {
+	if modifiers != node.modifiers || !f.storeNodesEqual(name, node.name) || typeParameters != node.TypeParameters || heritageClauses != node.HeritageClauses || members != node.Members {
 		return updateNode(f.NewClassDeclaration(modifiers, name, typeParameters, heritageClauses, members), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -2315,7 +2309,7 @@ func (f *NodeFactory) NewClassExpression(modifiers *ModifierList, name *Identifi
 }
 
 func (f *NodeFactory) UpdateClassExpression(node *ClassExpression, modifiers *ModifierList, name *IdentifierNode, typeParameters *TypeParameterList, heritageClauses *HeritageClauseList, members *ClassElementList) *Node {
-	if modifiers != node.modifiers || name != node.name || typeParameters != node.TypeParameters || heritageClauses != node.HeritageClauses || members != node.Members {
+	if modifiers != node.modifiers || !f.storeNodesEqual(name, node.name) || typeParameters != node.TypeParameters || heritageClauses != node.HeritageClauses || members != node.Members {
 		return updateNode(f.NewClassExpression(modifiers, name, typeParameters, heritageClauses, members), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -2426,7 +2420,7 @@ func (f *NodeFactory) NewInterfaceDeclaration(modifiers *ModifierList, name *Ide
 }
 
 func (f *NodeFactory) UpdateInterfaceDeclaration(node *InterfaceDeclaration, modifiers *ModifierList, name *IdentifierNode, typeParameters *TypeParameterList, heritageClauses *HeritageClauseList, members *TypeElementList) *Node {
-	if modifiers != node.modifiers || name != node.name || typeParameters != node.TypeParameters || heritageClauses != node.HeritageClauses || members != node.Members {
+	if modifiers != node.modifiers || !f.storeNodesEqual(name, node.name) || typeParameters != node.TypeParameters || heritageClauses != node.HeritageClauses || members != node.Members {
 		return updateNode(f.NewInterfaceDeclaration(modifiers, name, typeParameters, heritageClauses, members), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -2505,7 +2499,7 @@ func (f *NodeFactory) NewJSTypeAliasDeclaration(modifiers *ModifierList, name *I
 }
 
 func (f *NodeFactory) UpdateTypeAliasDeclaration(node *TypeAliasDeclaration, modifiers *ModifierList, name *IdentifierNode, typeParameters *TypeParameterList, typeNode *TypeNode) *Node {
-	if modifiers != node.modifiers || name != node.name || typeParameters != node.TypeParameters || typeNode != node.Type {
+	if modifiers != node.modifiers || !f.storeNodesEqual(name, node.name) || typeParameters != node.TypeParameters || !f.storeNodesEqual(typeNode, node.Type) {
 		switch node.Kind {
 		case KindTypeAliasDeclaration:
 			return updateNode(f.NewTypeAliasDeclaration(modifiers, name, typeParameters, typeNode), node.AsNode(), f.hooks)
@@ -2577,7 +2571,7 @@ func (f *NodeFactory) NewEnumMember(name *PropertyName, initializer *Expression)
 }
 
 func (f *NodeFactory) UpdateEnumMember(node *EnumMember, name *PropertyName, initializer *Expression) *Node {
-	if name != node.name || initializer != node.Initializer {
+	if !f.storeNodesEqual(name, node.name) || !f.storeNodesEqual(initializer, node.Initializer) {
 		return updateNode(f.NewEnumMember(name, initializer), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -2632,7 +2626,7 @@ func (f *NodeFactory) NewEnumDeclaration(modifiers *ModifierList, name *Identifi
 }
 
 func (f *NodeFactory) UpdateEnumDeclaration(node *EnumDeclaration, modifiers *ModifierList, name *IdentifierNode, members *EnumMemberList) *Node {
-	if modifiers != node.modifiers || name != node.name || members != node.Members {
+	if modifiers != node.modifiers || !f.storeNodesEqual(name, node.name) || members != node.Members {
 		return updateNode(f.NewEnumDeclaration(modifiers, name, members), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -2801,7 +2795,7 @@ func (f *NodeFactory) NewJSImportDeclaration(modifiers *ModifierList, importClau
 }
 
 func (f *NodeFactory) UpdateImportDeclaration(node *ImportDeclaration, modifiers *ModifierList, importClause *ImportClauseNode, moduleSpecifier *Expression, attributes *ImportAttributesNode) *Node {
-	if modifiers != node.modifiers || importClause != node.ImportClause || moduleSpecifier != node.ModuleSpecifier || attributes != node.Attributes {
+	if modifiers != node.modifiers || !f.storeNodesEqual(importClause, node.ImportClause) || !f.storeNodesEqual(moduleSpecifier, node.ModuleSpecifier) || !f.storeNodesEqual(attributes, node.Attributes) {
 		switch node.Kind {
 		case KindImportDeclaration:
 			return updateNode(f.NewImportDeclaration(modifiers, importClause, moduleSpecifier, attributes), node.AsNode(), f.hooks)
@@ -2871,7 +2865,7 @@ func (f *NodeFactory) NewExternalModuleReference(expression *Expression) *Node {
 }
 
 func (f *NodeFactory) UpdateExternalModuleReference(node *ExternalModuleReference, expression *Expression) *Node {
-	if expression != node.Expression {
+	if !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewExternalModuleReference(expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -2919,7 +2913,7 @@ func (f *NodeFactory) NewNamespaceImport(name *IdentifierNode) *Node {
 }
 
 func (f *NodeFactory) UpdateNamespaceImport(node *NamespaceImport, name *IdentifierNode) *Node {
-	if name != node.name {
+	if !f.storeNodesEqual(name, node.name) {
 		return updateNode(f.NewNamespaceImport(name), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -3029,7 +3023,7 @@ func (f *NodeFactory) NewExportAssignment(modifiers *ModifierList, isExportEqual
 }
 
 func (f *NodeFactory) UpdateExportAssignment(node *ExportAssignment, modifiers *ModifierList, isExportEquals bool, typeNode *TypeNode, expression *Expression) *Node {
-	if modifiers != node.modifiers || isExportEquals != node.IsExportEquals || typeNode != node.Type || expression != node.Expression {
+	if modifiers != node.modifiers || isExportEquals != node.IsExportEquals || !f.storeNodesEqual(typeNode, node.Type) || !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewExportAssignment(modifiers, isExportEquals, typeNode, expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -3076,7 +3070,7 @@ func (f *NodeFactory) NewNamespaceExportDeclaration(modifiers *ModifierList, nam
 }
 
 func (f *NodeFactory) UpdateNamespaceExportDeclaration(node *NamespaceExportDeclaration, modifiers *ModifierList, name *IdentifierNode) *Node {
-	if modifiers != node.modifiers || name != node.name {
+	if modifiers != node.modifiers || !f.storeNodesEqual(name, node.name) {
 		return updateNode(f.NewNamespaceExportDeclaration(modifiers, name), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -3123,7 +3117,7 @@ func (f *NodeFactory) NewNamespaceExport(name *ModuleExportName) *Node {
 }
 
 func (f *NodeFactory) UpdateNamespaceExport(node *NamespaceExport, name *ModuleExportName) *Node {
-	if name != node.name {
+	if !f.storeNodesEqual(name, node.name) {
 		return updateNode(f.NewNamespaceExport(name), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -3231,7 +3225,7 @@ func (f *NodeFactory) NewExportSpecifier(isTypeOnly bool, propertyName *ModuleEx
 }
 
 func (f *NodeFactory) UpdateExportSpecifier(node *ExportSpecifier, isTypeOnly bool, propertyName *ModuleExportName, name *ModuleExportName) *Node {
-	if isTypeOnly != node.IsTypeOnly || propertyName != node.PropertyName || name != node.name {
+	if isTypeOnly != node.IsTypeOnly || !f.storeNodesEqual(propertyName, node.PropertyName) || !f.storeNodesEqual(name, node.name) {
 		return updateNode(f.NewExportSpecifier(isTypeOnly, propertyName, name), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -3284,7 +3278,7 @@ func (f *NodeFactory) NewCallSignatureDeclaration(typeParameters *TypeParameterL
 }
 
 func (f *NodeFactory) UpdateCallSignatureDeclaration(node *CallSignatureDeclaration, typeParameters *TypeParameterList, parameters *ParameterList, typeNode *TypeNode) *Node {
-	if typeParameters != node.TypeParameters || parameters != node.Parameters || typeNode != node.Type {
+	if typeParameters != node.TypeParameters || parameters != node.Parameters || !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewCallSignatureDeclaration(typeParameters, parameters, typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -3333,7 +3327,7 @@ func (f *NodeFactory) NewConstructSignatureDeclaration(typeParameters *TypeParam
 }
 
 func (f *NodeFactory) UpdateConstructSignatureDeclaration(node *ConstructSignatureDeclaration, typeParameters *TypeParameterList, parameters *ParameterList, typeNode *TypeNode) *Node {
-	if typeParameters != node.TypeParameters || parameters != node.Parameters || typeNode != node.Type {
+	if typeParameters != node.TypeParameters || parameters != node.Parameters || !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewConstructSignatureDeclaration(typeParameters, parameters, typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -3390,7 +3384,7 @@ func (f *NodeFactory) NewConstructorDeclaration(modifiers *ModifierList, typePar
 }
 
 func (f *NodeFactory) UpdateConstructorDeclaration(node *ConstructorDeclaration, modifiers *ModifierList, typeParameters *TypeParameterList, parameters *ParameterList, typeNode *TypeNode, fullSignature *TypeNode, body *FunctionBody) *Node {
-	if modifiers != node.modifiers || typeParameters != node.TypeParameters || parameters != node.Parameters || typeNode != node.Type || fullSignature != node.FullSignature || body != node.Body {
+	if modifiers != node.modifiers || typeParameters != node.TypeParameters || parameters != node.Parameters || !f.storeNodesEqual(typeNode, node.Type) || !f.storeNodesEqual(fullSignature, node.FullSignature) || !f.storeNodesEqual(body, node.Body) {
 		return updateNode(f.NewConstructorDeclaration(modifiers, typeParameters, parameters, typeNode, fullSignature, body), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -3448,7 +3442,7 @@ func (f *NodeFactory) NewGetAccessorDeclaration(modifiers *ModifierList, name *P
 }
 
 func (f *NodeFactory) UpdateGetAccessorDeclaration(node *GetAccessorDeclaration, modifiers *ModifierList, name *PropertyName, typeParameters *TypeParameterList, parameters *ParameterList, typeNode *TypeNode, fullSignature *TypeNode, body *FunctionBody) *Node {
-	if modifiers != node.modifiers || name != node.name || typeParameters != node.TypeParameters || parameters != node.Parameters || typeNode != node.Type || fullSignature != node.FullSignature || body != node.Body {
+	if modifiers != node.modifiers || !f.storeNodesEqual(name, node.name) || typeParameters != node.TypeParameters || parameters != node.Parameters || !f.storeNodesEqual(typeNode, node.Type) || !f.storeNodesEqual(fullSignature, node.FullSignature) || !f.storeNodesEqual(body, node.Body) {
 		return updateNode(f.NewGetAccessorDeclaration(modifiers, name, typeParameters, parameters, typeNode, fullSignature, body), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -3511,7 +3505,7 @@ func (f *NodeFactory) NewSetAccessorDeclaration(modifiers *ModifierList, name *P
 }
 
 func (f *NodeFactory) UpdateSetAccessorDeclaration(node *SetAccessorDeclaration, modifiers *ModifierList, name *PropertyName, typeParameters *TypeParameterList, parameters *ParameterList, typeNode *TypeNode, fullSignature *TypeNode, body *FunctionBody) *Node {
-	if modifiers != node.modifiers || name != node.name || typeParameters != node.TypeParameters || parameters != node.Parameters || typeNode != node.Type || fullSignature != node.FullSignature || body != node.Body {
+	if modifiers != node.modifiers || !f.storeNodesEqual(name, node.name) || typeParameters != node.TypeParameters || parameters != node.Parameters || !f.storeNodesEqual(typeNode, node.Type) || !f.storeNodesEqual(fullSignature, node.FullSignature) || !f.storeNodesEqual(body, node.Body) {
 		return updateNode(f.NewSetAccessorDeclaration(modifiers, name, typeParameters, parameters, typeNode, fullSignature, body), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -3572,7 +3566,7 @@ func (f *NodeFactory) NewIndexSignatureDeclaration(modifiers *ModifierList, para
 }
 
 func (f *NodeFactory) UpdateIndexSignatureDeclaration(node *IndexSignatureDeclaration, modifiers *ModifierList, parameters *ParameterList, typeNode *TypeNode) *Node {
-	if modifiers != node.modifiers || parameters != node.Parameters || typeNode != node.Type {
+	if modifiers != node.modifiers || parameters != node.Parameters || !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewIndexSignatureDeclaration(modifiers, parameters, typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -3628,7 +3622,7 @@ func (f *NodeFactory) NewMethodSignatureDeclaration(modifiers *ModifierList, nam
 }
 
 func (f *NodeFactory) UpdateMethodSignatureDeclaration(node *MethodSignatureDeclaration, modifiers *ModifierList, name *PropertyName, postfixToken *TokenNode, typeParameters *TypeParameterList, parameters *ParameterList, typeNode *TypeNode) *Node {
-	if modifiers != node.modifiers || name != node.name || postfixToken != node.PostfixToken || typeParameters != node.TypeParameters || parameters != node.Parameters || typeNode != node.Type {
+	if modifiers != node.modifiers || !f.storeNodesEqual(name, node.name) || !f.storeNodesEqual(postfixToken, node.PostfixToken) || typeParameters != node.TypeParameters || parameters != node.Parameters || !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewMethodSignatureDeclaration(modifiers, name, postfixToken, typeParameters, parameters, typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -3701,7 +3695,7 @@ func (f *NodeFactory) NewMethodDeclaration(modifiers *ModifierList, asteriskToke
 }
 
 func (f *NodeFactory) UpdateMethodDeclaration(node *MethodDeclaration, modifiers *ModifierList, asteriskToken *AsteriskToken, name *PropertyName, postfixToken *TokenNode, typeParameters *TypeParameterList, parameters *ParameterList, typeNode *TypeNode, fullSignature *TypeNode, body *FunctionBody) *Node {
-	if modifiers != node.modifiers || asteriskToken != node.AsteriskToken || name != node.name || postfixToken != node.PostfixToken || typeParameters != node.TypeParameters || parameters != node.Parameters || typeNode != node.Type || fullSignature != node.FullSignature || body != node.Body {
+	if modifiers != node.modifiers || !f.storeNodesEqual(asteriskToken, node.AsteriskToken) || !f.storeNodesEqual(name, node.name) || !f.storeNodesEqual(postfixToken, node.PostfixToken) || typeParameters != node.TypeParameters || parameters != node.Parameters || !f.storeNodesEqual(typeNode, node.Type) || !f.storeNodesEqual(fullSignature, node.FullSignature) || !f.storeNodesEqual(body, node.Body) {
 		return updateNode(f.NewMethodDeclaration(modifiers, asteriskToken, name, postfixToken, typeParameters, parameters, typeNode, fullSignature, body), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -3768,7 +3762,7 @@ func (f *NodeFactory) NewPropertySignatureDeclaration(modifiers *ModifierList, n
 }
 
 func (f *NodeFactory) UpdatePropertySignatureDeclaration(node *PropertySignatureDeclaration, modifiers *ModifierList, name *PropertyName, postfixToken *TokenNode, typeNode *TypeNode, initializer *Expression) *Node {
-	if modifiers != node.modifiers || name != node.name || postfixToken != node.PostfixToken || typeNode != node.Type || initializer != node.Initializer {
+	if modifiers != node.modifiers || !f.storeNodesEqual(name, node.name) || !f.storeNodesEqual(postfixToken, node.PostfixToken) || !f.storeNodesEqual(typeNode, node.Type) || !f.storeNodesEqual(initializer, node.Initializer) {
 		return updateNode(f.NewPropertySignatureDeclaration(modifiers, name, postfixToken, typeNode, initializer), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -3831,7 +3825,7 @@ func (f *NodeFactory) NewPropertyDeclaration(modifiers *ModifierList, name *Prop
 }
 
 func (f *NodeFactory) UpdatePropertyDeclaration(node *PropertyDeclaration, modifiers *ModifierList, name *PropertyName, postfixToken *TokenNode, typeNode *TypeNode, initializer *Expression) *Node {
-	if modifiers != node.modifiers || name != node.name || postfixToken != node.PostfixToken || typeNode != node.Type || initializer != node.Initializer {
+	if modifiers != node.modifiers || !f.storeNodesEqual(name, node.name) || !f.storeNodesEqual(postfixToken, node.PostfixToken) || !f.storeNodesEqual(typeNode, node.Type) || !f.storeNodesEqual(initializer, node.Initializer) {
 		return updateNode(f.NewPropertyDeclaration(modifiers, name, postfixToken, typeNode, initializer), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -3915,7 +3909,7 @@ func (f *NodeFactory) NewClassStaticBlockDeclaration(modifiers *ModifierList, bo
 }
 
 func (f *NodeFactory) UpdateClassStaticBlockDeclaration(node *ClassStaticBlockDeclaration, modifiers *ModifierList, body *BlockNode) *Node {
-	if modifiers != node.modifiers || body != node.Body {
+	if modifiers != node.modifiers || !f.storeNodesEqual(body, node.Body) {
 		return updateNode(f.NewClassStaticBlockDeclaration(modifiers, body), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -4007,9 +4001,6 @@ func (f *NodeFactory) NewStringLiteral(text string, tokenFlags TokenFlags) *Node
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
 		h.SetStringValue(valueSlotStringLiteralText, text)
 		h.SetTokenFlags(tokenFlags & TokenFlagsStringLiteralFlags)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -4039,9 +4030,6 @@ func (f *NodeFactory) NewNumericLiteral(text string, tokenFlags TokenFlags) *Nod
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
 		h.SetStringValue(valueSlotNumericLiteralText, text)
 		h.SetTokenFlags(tokenFlags & TokenFlagsNumericLiteralFlags)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -4071,9 +4059,6 @@ func (f *NodeFactory) NewBigIntLiteral(text string, tokenFlags TokenFlags) *Node
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
 		h.SetStringValue(valueSlotBigIntLiteralText, text)
 		h.SetTokenFlags(tokenFlags & TokenFlagsNumericLiteralFlags)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -4103,9 +4088,6 @@ func (f *NodeFactory) NewRegularExpressionLiteral(text string, tokenFlags TokenF
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
 		h.SetStringValue(valueSlotRegularExpressionLiteralText, text)
 		h.SetTokenFlags(tokenFlags & TokenFlagsRegularExpressionLiteralFlags)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -4137,9 +4119,6 @@ func (f *NodeFactory) NewNoSubstitutionTemplateLiteral(text string, templateFlag
 	if h := f.storeAlloc(node, 0, 0); h.Ref() != 0 {
 		h.SetStringValue(valueSlotNoSubstitutionTemplateLiteralText, text)
 		h.SetTokenFlags(templateFlags & TokenFlagsTemplateLiteralLikeFlags)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -4186,7 +4165,7 @@ func (f *NodeFactory) NewBinaryExpression(modifiers *ModifierList, left *Express
 }
 
 func (f *NodeFactory) UpdateBinaryExpression(node *BinaryExpression, modifiers *ModifierList, left *Expression, typeNode *TypeNode, operatorToken *BinaryOperatorToken, right *Expression) *Node {
-	if modifiers != node.modifiers || left != node.Left || typeNode != node.Type || operatorToken != node.OperatorToken || right != node.Right {
+	if modifiers != node.modifiers || !f.storeNodesEqual(left, node.Left) || !f.storeNodesEqual(typeNode, node.Type) || !f.storeNodesEqual(operatorToken, node.OperatorToken) || !f.storeNodesEqual(right, node.Right) {
 		return updateNode(f.NewBinaryExpression(modifiers, left, typeNode, operatorToken, right), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -4235,7 +4214,7 @@ func (f *NodeFactory) NewPrefixUnaryExpression(operator Kind, operand *Expressio
 }
 
 func (f *NodeFactory) UpdatePrefixUnaryExpression(node *PrefixUnaryExpression, operator Kind, operand *Expression) *Node {
-	if operator != node.Operator || operand != node.Operand {
+	if operator != node.Operator || !f.storeNodesEqual(operand, node.Operand) {
 		return updateNode(f.NewPrefixUnaryExpression(operator, operand), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -4284,7 +4263,7 @@ func (f *NodeFactory) NewPostfixUnaryExpression(operand *Expression, operator Ki
 }
 
 func (f *NodeFactory) UpdatePostfixUnaryExpression(node *PostfixUnaryExpression, operand *Expression, operator Kind) *Node {
-	if operand != node.Operand || operator != node.Operator {
+	if !f.storeNodesEqual(operand, node.Operand) || operator != node.Operator {
 		return updateNode(f.NewPostfixUnaryExpression(operand, operator), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -4333,7 +4312,7 @@ func (f *NodeFactory) NewYieldExpression(asteriskToken *AsteriskToken, expressio
 }
 
 func (f *NodeFactory) UpdateYieldExpression(node *YieldExpression, asteriskToken *AsteriskToken, expression *Expression) *Node {
-	if asteriskToken != node.AsteriskToken || expression != node.Expression {
+	if !f.storeNodesEqual(asteriskToken, node.AsteriskToken) || !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewYieldExpression(asteriskToken, expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -4392,7 +4371,7 @@ func (f *NodeFactory) NewArrowFunction(modifiers *ModifierList, typeParameters *
 }
 
 func (f *NodeFactory) UpdateArrowFunction(node *ArrowFunction, modifiers *ModifierList, typeParameters *TypeParameterList, parameters *ParameterList, typeNode *TypeNode, fullSignature *TypeNode, equalsGreaterThanToken *EqualsGreaterThanToken, body *ConciseBody) *Node {
-	if modifiers != node.modifiers || typeParameters != node.TypeParameters || parameters != node.Parameters || typeNode != node.Type || fullSignature != node.FullSignature || equalsGreaterThanToken != node.EqualsGreaterThanToken || body != node.Body {
+	if modifiers != node.modifiers || typeParameters != node.TypeParameters || parameters != node.Parameters || !f.storeNodesEqual(typeNode, node.Type) || !f.storeNodesEqual(fullSignature, node.FullSignature) || !f.storeNodesEqual(equalsGreaterThanToken, node.EqualsGreaterThanToken) || !f.storeNodesEqual(body, node.Body) {
 		return updateNode(f.NewArrowFunction(modifiers, typeParameters, parameters, typeNode, fullSignature, equalsGreaterThanToken, body), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -4460,7 +4439,7 @@ func (f *NodeFactory) NewFunctionExpression(modifiers *ModifierList, asteriskTok
 }
 
 func (f *NodeFactory) UpdateFunctionExpression(node *FunctionExpression, modifiers *ModifierList, asteriskToken *AsteriskToken, name *IdentifierNode, typeParameters *TypeParameterList, parameters *ParameterList, typeNode *TypeNode, fullSignature *TypeNode, body *FunctionBody) *Node {
-	if modifiers != node.modifiers || asteriskToken != node.AsteriskToken || name != node.name || typeParameters != node.TypeParameters || parameters != node.Parameters || typeNode != node.Type || fullSignature != node.FullSignature || body != node.Body {
+	if modifiers != node.modifiers || !f.storeNodesEqual(asteriskToken, node.AsteriskToken) || !f.storeNodesEqual(name, node.name) || typeParameters != node.TypeParameters || parameters != node.Parameters || !f.storeNodesEqual(typeNode, node.Type) || !f.storeNodesEqual(fullSignature, node.FullSignature) || !f.storeNodesEqual(body, node.Body) {
 		return updateNode(f.NewFunctionExpression(modifiers, asteriskToken, name, typeParameters, parameters, typeNode, fullSignature, body), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -4516,7 +4495,7 @@ func (f *NodeFactory) NewAsExpression(expression *Expression, typeNode *TypeNode
 }
 
 func (f *NodeFactory) UpdateAsExpression(node *AsExpression, expression *Expression, typeNode *TypeNode) *Node {
-	if expression != node.Expression || typeNode != node.Type {
+	if !f.storeNodesEqual(expression, node.Expression) || !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewAsExpression(expression, typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -4561,7 +4540,7 @@ func (f *NodeFactory) NewSatisfiesExpression(expression *Expression, typeNode *T
 }
 
 func (f *NodeFactory) UpdateSatisfiesExpression(node *SatisfiesExpression, expression *Expression, typeNode *TypeNode) *Node {
-	if expression != node.Expression || typeNode != node.Type {
+	if !f.storeNodesEqual(expression, node.Expression) || !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewSatisfiesExpression(expression, typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -4616,7 +4595,7 @@ func (f *NodeFactory) NewConditionalExpression(condition *Expression, questionTo
 }
 
 func (f *NodeFactory) UpdateConditionalExpression(node *ConditionalExpression, condition *Expression, questionToken *QuestionToken, whenTrue *Expression, colonToken *ColonToken, whenFalse *Expression) *Node {
-	if condition != node.Condition || questionToken != node.QuestionToken || whenTrue != node.WhenTrue || colonToken != node.ColonToken || whenFalse != node.WhenFalse {
+	if !f.storeNodesEqual(condition, node.Condition) || !f.storeNodesEqual(questionToken, node.QuestionToken) || !f.storeNodesEqual(whenTrue, node.WhenTrue) || !f.storeNodesEqual(colonToken, node.ColonToken) || !f.storeNodesEqual(whenFalse, node.WhenFalse) {
 		return updateNode(f.NewConditionalExpression(condition, questionToken, whenTrue, colonToken, whenFalse), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -4679,7 +4658,7 @@ func (f *NodeFactory) NewPropertyAccessExpression(expression *Expression, questi
 }
 
 func (f *NodeFactory) UpdatePropertyAccessExpression(node *PropertyAccessExpression, expression *Expression, questionDotToken *QuestionDotToken, name *MemberName, flags NodeFlags) *Node {
-	if expression != node.Expression || questionDotToken != node.QuestionDotToken || name != node.name || flags != node.Flags {
+	if !f.storeNodesEqual(expression, node.Expression) || !f.storeNodesEqual(questionDotToken, node.QuestionDotToken) || !f.storeNodesEqual(name, node.name) || flags != node.Flags {
 		return updateNode(f.NewPropertyAccessExpression(expression, questionDotToken, name, flags), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -4734,7 +4713,7 @@ func (f *NodeFactory) NewElementAccessExpression(expression *Expression, questio
 }
 
 func (f *NodeFactory) UpdateElementAccessExpression(node *ElementAccessExpression, expression *Expression, questionDotToken *QuestionDotToken, argumentExpression *Expression, flags NodeFlags) *Node {
-	if expression != node.Expression || questionDotToken != node.QuestionDotToken || argumentExpression != node.ArgumentExpression || flags != node.Flags {
+	if !f.storeNodesEqual(expression, node.Expression) || !f.storeNodesEqual(questionDotToken, node.QuestionDotToken) || !f.storeNodesEqual(argumentExpression, node.ArgumentExpression) || flags != node.Flags {
 		return updateNode(f.NewElementAccessExpression(expression, questionDotToken, argumentExpression, flags), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -4794,7 +4773,7 @@ func (f *NodeFactory) NewCallExpression(expression *Expression, questionDotToken
 }
 
 func (f *NodeFactory) UpdateCallExpression(node *CallExpression, expression *Expression, questionDotToken *QuestionDotToken, typeArguments *TypeList, arguments *ElementList, flags NodeFlags) *Node {
-	if expression != node.Expression || questionDotToken != node.QuestionDotToken || typeArguments != node.TypeArguments || arguments != node.Arguments || flags != node.Flags {
+	if !f.storeNodesEqual(expression, node.Expression) || !f.storeNodesEqual(questionDotToken, node.QuestionDotToken) || typeArguments != node.TypeArguments || arguments != node.Arguments || flags != node.Flags {
 		return updateNode(f.NewCallExpression(expression, questionDotToken, typeArguments, arguments, flags), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -4846,7 +4825,7 @@ func (f *NodeFactory) NewNewExpression(expression *Expression, typeArguments *Ty
 }
 
 func (f *NodeFactory) UpdateNewExpression(node *NewExpression, expression *Expression, typeArguments *TypeList, arguments *ElementList) *Node {
-	if expression != node.Expression || typeArguments != node.TypeArguments || arguments != node.Arguments {
+	if !f.storeNodesEqual(expression, node.Expression) || typeArguments != node.TypeArguments || arguments != node.Arguments {
 		return updateNode(f.NewNewExpression(expression, typeArguments, arguments), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -4893,7 +4872,7 @@ func (f *NodeFactory) NewMetaProperty(keywordToken Kind, name *IdentifierNode) *
 }
 
 func (f *NodeFactory) UpdateMetaProperty(node *MetaProperty, keywordToken Kind, name *IdentifierNode) *Node {
-	if keywordToken != node.KeywordToken || name != node.name {
+	if keywordToken != node.KeywordToken || !f.storeNodesEqual(name, node.name) {
 		return updateNode(f.NewMetaProperty(keywordToken, name), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -4940,7 +4919,7 @@ func (f *NodeFactory) NewNonNullExpression(expression *Expression, flags NodeFla
 }
 
 func (f *NodeFactory) UpdateNonNullExpression(node *NonNullExpression, expression *Expression, flags NodeFlags) *Node {
-	if expression != node.Expression || flags != node.Flags {
+	if !f.storeNodesEqual(expression, node.Expression) || flags != node.Flags {
 		return updateNode(f.NewNonNullExpression(expression, flags), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -4982,7 +4961,7 @@ func (f *NodeFactory) NewSpreadElement(expression *Expression) *Node {
 }
 
 func (f *NodeFactory) UpdateSpreadElement(node *SpreadElement, expression *Expression) *Node {
-	if expression != node.Expression {
+	if !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewSpreadElement(expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -5028,7 +5007,7 @@ func (f *NodeFactory) NewTemplateExpression(head *TemplateHeadNode, templateSpan
 }
 
 func (f *NodeFactory) UpdateTemplateExpression(node *TemplateExpression, head *TemplateHeadNode, templateSpans *TemplateSpanList) *Node {
-	if head != node.Head || templateSpans != node.TemplateSpans {
+	if !f.storeNodesEqual(head, node.Head) || templateSpans != node.TemplateSpans {
 		return updateNode(f.NewTemplateExpression(head, templateSpans), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -5078,7 +5057,7 @@ func (f *NodeFactory) NewTemplateSpan(expression *Expression, literal *TemplateM
 }
 
 func (f *NodeFactory) UpdateTemplateSpan(node *TemplateSpan, expression *Expression, literal *TemplateMiddleOrTail) *Node {
-	if expression != node.Expression || literal != node.Literal {
+	if !f.storeNodesEqual(expression, node.Expression) || !f.storeNodesEqual(literal, node.Literal) {
 		return updateNode(f.NewTemplateSpan(expression, literal), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -5136,7 +5115,7 @@ func (f *NodeFactory) NewTaggedTemplateExpression(tag *Expression, questionDotTo
 }
 
 func (f *NodeFactory) UpdateTaggedTemplateExpression(node *TaggedTemplateExpression, tag *Expression, questionDotToken *QuestionDotToken, typeArguments *TypeList, template *TemplateLiteral, flags NodeFlags) *Node {
-	if tag != node.Tag || questionDotToken != node.QuestionDotToken || typeArguments != node.TypeArguments || template != node.Template || flags != node.Flags {
+	if !f.storeNodesEqual(tag, node.Tag) || !f.storeNodesEqual(questionDotToken, node.QuestionDotToken) || typeArguments != node.TypeArguments || !f.storeNodesEqual(template, node.Template) || flags != node.Flags {
 		return updateNode(f.NewTaggedTemplateExpression(tag, questionDotToken, typeArguments, template, flags), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -5181,7 +5160,7 @@ func (f *NodeFactory) NewParenthesizedExpression(expression *Expression) *Node {
 }
 
 func (f *NodeFactory) UpdateParenthesizedExpression(node *ParenthesizedExpression, expression *Expression) *Node {
-	if expression != node.Expression {
+	if !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewParenthesizedExpression(expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -5334,7 +5313,7 @@ func (f *NodeFactory) NewSpreadAssignment(expression *Expression) *Node {
 }
 
 func (f *NodeFactory) UpdateSpreadAssignment(node *SpreadAssignment, expression *Expression) *Node {
-	if expression != node.Expression {
+	if !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewSpreadAssignment(expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -5389,7 +5368,7 @@ func (f *NodeFactory) NewPropertyAssignment(modifiers *ModifierList, name *Prope
 }
 
 func (f *NodeFactory) UpdatePropertyAssignment(node *PropertyAssignment, modifiers *ModifierList, name *PropertyName, postfixToken *TokenNode, typeNode *TypeNode, initializer *Expression) *Node {
-	if modifiers != node.modifiers || name != node.name || postfixToken != node.PostfixToken || typeNode != node.Type || initializer != node.Initializer {
+	if modifiers != node.modifiers || !f.storeNodesEqual(name, node.name) || !f.storeNodesEqual(postfixToken, node.PostfixToken) || !f.storeNodesEqual(typeNode, node.Type) || !f.storeNodesEqual(initializer, node.Initializer) {
 		return updateNode(f.NewPropertyAssignment(modifiers, name, postfixToken, typeNode, initializer), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -5455,7 +5434,7 @@ func (f *NodeFactory) NewShorthandPropertyAssignment(modifiers *ModifierList, na
 }
 
 func (f *NodeFactory) UpdateShorthandPropertyAssignment(node *ShorthandPropertyAssignment, modifiers *ModifierList, name *PropertyName, postfixToken *TokenNode, typeNode *TypeNode, equalsToken *EqualsToken, objectAssignmentInitializer *Expression) *Node {
-	if modifiers != node.modifiers || name != node.name || postfixToken != node.PostfixToken || typeNode != node.Type || equalsToken != node.EqualsToken || objectAssignmentInitializer != node.ObjectAssignmentInitializer {
+	if modifiers != node.modifiers || !f.storeNodesEqual(name, node.name) || !f.storeNodesEqual(postfixToken, node.PostfixToken) || !f.storeNodesEqual(typeNode, node.Type) || !f.storeNodesEqual(equalsToken, node.EqualsToken) || !f.storeNodesEqual(objectAssignmentInitializer, node.ObjectAssignmentInitializer) {
 		return updateNode(f.NewShorthandPropertyAssignment(modifiers, name, postfixToken, typeNode, equalsToken, objectAssignmentInitializer), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -5506,7 +5485,7 @@ func (f *NodeFactory) NewDeleteExpression(expression *Expression) *Node {
 }
 
 func (f *NodeFactory) UpdateDeleteExpression(node *DeleteExpression, expression *Expression) *Node {
-	if expression != node.Expression {
+	if !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewDeleteExpression(expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -5552,7 +5531,7 @@ func (f *NodeFactory) NewTypeOfExpression(expression *Expression) *Node {
 }
 
 func (f *NodeFactory) UpdateTypeOfExpression(node *TypeOfExpression, expression *Expression) *Node {
-	if expression != node.Expression {
+	if !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewTypeOfExpression(expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -5598,7 +5577,7 @@ func (f *NodeFactory) NewVoidExpression(expression *Expression) *Node {
 }
 
 func (f *NodeFactory) UpdateVoidExpression(node *VoidExpression, expression *Expression) *Node {
-	if expression != node.Expression {
+	if !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewVoidExpression(expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -5644,7 +5623,7 @@ func (f *NodeFactory) NewAwaitExpression(expression *Expression) *Node {
 }
 
 func (f *NodeFactory) UpdateAwaitExpression(node *AwaitExpression, expression *Expression) *Node {
-	if expression != node.Expression {
+	if !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewAwaitExpression(expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -5689,7 +5668,7 @@ func (f *NodeFactory) NewTypeAssertion(typeNode *TypeNode, expression *Expressio
 }
 
 func (f *NodeFactory) UpdateTypeAssertion(node *TypeAssertion, typeNode *TypeNode, expression *Expression) *Node {
-	if typeNode != node.Type || expression != node.Expression {
+	if !f.storeNodesEqual(typeNode, node.Type) || !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewTypeAssertion(typeNode, expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -5851,7 +5830,7 @@ func (f *NodeFactory) NewConditionalTypeNode(checkType *TypeNode, extendsType *T
 }
 
 func (f *NodeFactory) UpdateConditionalTypeNode(node *ConditionalTypeNode, checkType *TypeNode, extendsType *TypeNode, trueType *TypeNode, falseType *TypeNode) *Node {
-	if checkType != node.CheckType || extendsType != node.ExtendsType || trueType != node.TrueType || falseType != node.FalseType {
+	if !f.storeNodesEqual(checkType, node.CheckType) || !f.storeNodesEqual(extendsType, node.ExtendsType) || !f.storeNodesEqual(trueType, node.TrueType) || !f.storeNodesEqual(falseType, node.FalseType) {
 		return updateNode(f.NewConditionalTypeNode(checkType, extendsType, trueType, falseType), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -5899,7 +5878,7 @@ func (f *NodeFactory) NewTypeOperatorNode(operator Kind, typeNode *TypeNode) *No
 }
 
 func (f *NodeFactory) UpdateTypeOperatorNode(node *TypeOperatorNode, operator Kind, typeNode *TypeNode) *Node {
-	if operator != node.Operator || typeNode != node.Type {
+	if operator != node.Operator || !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewTypeOperatorNode(operator, typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -5941,7 +5920,7 @@ func (f *NodeFactory) NewInferTypeNode(typeParameter *TypeParameterDeclarationNo
 }
 
 func (f *NodeFactory) UpdateInferTypeNode(node *InferTypeNode, typeParameter *TypeParameterDeclarationNode) *Node {
-	if typeParameter != node.TypeParameter {
+	if !f.storeNodesEqual(typeParameter, node.TypeParameter) {
 		return updateNode(f.NewInferTypeNode(typeParameter), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -5983,7 +5962,7 @@ func (f *NodeFactory) NewArrayTypeNode(elementType *TypeNode) *Node {
 }
 
 func (f *NodeFactory) UpdateArrayTypeNode(node *ArrayTypeNode, elementType *TypeNode) *Node {
-	if elementType != node.ElementType {
+	if !f.storeNodesEqual(elementType, node.ElementType) {
 		return updateNode(f.NewArrayTypeNode(elementType), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -6028,7 +6007,7 @@ func (f *NodeFactory) NewIndexedAccessTypeNode(objectType *TypeNode, indexType *
 }
 
 func (f *NodeFactory) UpdateIndexedAccessTypeNode(node *IndexedAccessTypeNode, objectType *TypeNode, indexType *TypeNode) *Node {
-	if objectType != node.ObjectType || indexType != node.IndexType {
+	if !f.storeNodesEqual(objectType, node.ObjectType) || !f.storeNodesEqual(indexType, node.IndexType) {
 		return updateNode(f.NewIndexedAccessTypeNode(objectType, indexType), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -6072,7 +6051,7 @@ func (f *NodeFactory) NewTypeReferenceNode(typeName *EntityName, typeArguments *
 }
 
 func (f *NodeFactory) UpdateTypeReferenceNode(node *TypeReferenceNode, typeName *EntityName, typeArguments *TypeList) *Node {
-	if typeName != node.TypeName || typeArguments != node.TypeArguments {
+	if !f.storeNodesEqual(typeName, node.TypeName) || typeArguments != node.TypeArguments {
 		return updateNode(f.NewTypeReferenceNode(typeName, typeArguments), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -6118,7 +6097,7 @@ func (f *NodeFactory) NewExpressionWithTypeArguments(expression *Expression, typ
 }
 
 func (f *NodeFactory) UpdateExpressionWithTypeArguments(node *ExpressionWithTypeArguments, expression *Expression, typeArguments *TypeList) *Node {
-	if expression != node.Expression || typeArguments != node.TypeArguments {
+	if !f.storeNodesEqual(expression, node.Expression) || typeArguments != node.TypeArguments {
 		return updateNode(f.NewExpressionWithTypeArguments(expression, typeArguments), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -6160,7 +6139,7 @@ func (f *NodeFactory) NewLiteralTypeNode(literal *Node) *Node {
 }
 
 func (f *NodeFactory) UpdateLiteralTypeNode(node *LiteralTypeNode, literal *Node) *Node {
-	if literal != node.Literal {
+	if !f.storeNodesEqual(literal, node.Literal) {
 		return updateNode(f.NewLiteralTypeNode(literal), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -6232,7 +6211,7 @@ func (f *NodeFactory) NewTypePredicateNode(assertsModifier *AssertsKeyword, para
 }
 
 func (f *NodeFactory) UpdateTypePredicateNode(node *TypePredicateNode, assertsModifier *AssertsKeyword, parameterName *TypePredicateParameterName, typeNode *TypeNode) *Node {
-	if assertsModifier != node.AssertsModifier || parameterName != node.ParameterName || typeNode != node.Type {
+	if !f.storeNodesEqual(assertsModifier, node.AssertsModifier) || !f.storeNodesEqual(parameterName, node.ParameterName) || !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewTypePredicateNode(assertsModifier, parameterName, typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -6278,7 +6257,7 @@ func (f *NodeFactory) NewImportAttribute(name *ImportAttributeName, value *Expre
 }
 
 func (f *NodeFactory) UpdateImportAttribute(node *ImportAttribute, name *ImportAttributeName, value *Expression) *Node {
-	if name != node.name || value != node.Value {
+	if !f.storeNodesEqual(name, node.name) || !f.storeNodesEqual(value, node.Value) {
 		return updateNode(f.NewImportAttribute(name, value), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -6386,7 +6365,7 @@ func (f *NodeFactory) NewTypeQueryNode(exprName *EntityName, typeArguments *Type
 }
 
 func (f *NodeFactory) UpdateTypeQueryNode(node *TypeQueryNode, exprName *EntityName, typeArguments *TypeList) *Node {
-	if exprName != node.ExprName || typeArguments != node.TypeArguments {
+	if !f.storeNodesEqual(exprName, node.ExprName) || typeArguments != node.TypeArguments {
 		return updateNode(f.NewTypeQueryNode(exprName, typeArguments), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -6445,7 +6424,7 @@ func (f *NodeFactory) NewMappedTypeNode(readonlyToken *TokenNode, typeParameter 
 }
 
 func (f *NodeFactory) UpdateMappedTypeNode(node *MappedTypeNode, readonlyToken *TokenNode, typeParameter *TypeParameterDeclarationNode, nameType *TypeNode, questionToken *TokenNode, typeNode *TypeNode, members *TypeElementList) *Node {
-	if readonlyToken != node.ReadonlyToken || typeParameter != node.TypeParameter || nameType != node.NameType || questionToken != node.QuestionToken || typeNode != node.Type || members != node.Members {
+	if !f.storeNodesEqual(readonlyToken, node.ReadonlyToken) || !f.storeNodesEqual(typeParameter, node.TypeParameter) || !f.storeNodesEqual(nameType, node.NameType) || !f.storeNodesEqual(questionToken, node.QuestionToken) || !f.storeNodesEqual(typeNode, node.Type) || members != node.Members {
 		return updateNode(f.NewMappedTypeNode(readonlyToken, typeParameter, nameType, questionToken, typeNode, members), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -6587,7 +6566,7 @@ func (f *NodeFactory) NewNamedTupleMember(dotDotDotToken *DotDotDotToken, name *
 }
 
 func (f *NodeFactory) UpdateNamedTupleMember(node *NamedTupleMember, dotDotDotToken *DotDotDotToken, name *IdentifierNode, questionToken *QuestionToken, typeNode *TypeNode) *Node {
-	if dotDotDotToken != node.DotDotDotToken || name != node.name || questionToken != node.QuestionToken || typeNode != node.Type {
+	if !f.storeNodesEqual(dotDotDotToken, node.DotDotDotToken) || !f.storeNodesEqual(name, node.name) || !f.storeNodesEqual(questionToken, node.QuestionToken) || !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewNamedTupleMember(dotDotDotToken, name, questionToken, typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -6636,7 +6615,7 @@ func (f *NodeFactory) NewOptionalTypeNode(typeNode *TypeNode) *Node {
 }
 
 func (f *NodeFactory) UpdateOptionalTypeNode(node *OptionalTypeNode, typeNode *TypeNode) *Node {
-	if typeNode != node.Type {
+	if !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewOptionalTypeNode(typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -6678,7 +6657,7 @@ func (f *NodeFactory) NewRestTypeNode(typeNode *TypeNode) *Node {
 }
 
 func (f *NodeFactory) UpdateRestTypeNode(node *RestTypeNode, typeNode *TypeNode) *Node {
-	if typeNode != node.Type {
+	if !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewRestTypeNode(typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -6720,7 +6699,7 @@ func (f *NodeFactory) NewParenthesizedTypeNode(typeNode *TypeNode) *Node {
 }
 
 func (f *NodeFactory) UpdateParenthesizedTypeNode(node *ParenthesizedTypeNode, typeNode *TypeNode) *Node {
-	if typeNode != node.Type {
+	if !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewParenthesizedTypeNode(typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -6765,7 +6744,7 @@ func (f *NodeFactory) NewFunctionTypeNode(typeParameters *TypeParameterList, par
 }
 
 func (f *NodeFactory) UpdateFunctionTypeNode(node *FunctionTypeNode, typeParameters *TypeParameterList, parameters *ParameterList, typeNode *TypeNode) *Node {
-	if typeParameters != node.TypeParameters || parameters != node.Parameters || typeNode != node.Type {
+	if typeParameters != node.TypeParameters || parameters != node.Parameters || !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewFunctionTypeNode(typeParameters, parameters, typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -6812,7 +6791,7 @@ func (f *NodeFactory) NewConstructorTypeNode(modifiers *ModifierList, typeParame
 }
 
 func (f *NodeFactory) UpdateConstructorTypeNode(node *ConstructorTypeNode, modifiers *ModifierList, typeParameters *TypeParameterList, parameters *ParameterList, typeNode *TypeNode) *Node {
-	if modifiers != node.modifiers || typeParameters != node.TypeParameters || parameters != node.Parameters || typeNode != node.Type {
+	if modifiers != node.modifiers || typeParameters != node.TypeParameters || parameters != node.Parameters || !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewConstructorTypeNode(modifiers, typeParameters, parameters, typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -6857,9 +6836,6 @@ func (f *NodeFactory) NewTemplateHead(text string, rawText string, templateFlags
 		h.SetStringValue(valueSlotTemplateHeadText, text)
 		h.SetStringValue(valueSlotTemplateHeadRawText, rawText)
 		h.SetTokenFlags(templateFlags & TokenFlagsTemplateLiteralLikeFlags)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -6892,9 +6868,6 @@ func (f *NodeFactory) NewTemplateMiddle(text string, rawText string, templateFla
 		h.SetStringValue(valueSlotTemplateMiddleText, text)
 		h.SetStringValue(valueSlotTemplateMiddleRawText, rawText)
 		h.SetTokenFlags(templateFlags & TokenFlagsTemplateLiteralLikeFlags)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -6927,9 +6900,6 @@ func (f *NodeFactory) NewTemplateTail(text string, rawText string, templateFlags
 		h.SetStringValue(valueSlotTemplateTailText, text)
 		h.SetStringValue(valueSlotTemplateTailRawText, rawText)
 		h.SetTokenFlags(templateFlags & TokenFlagsTemplateLiteralLikeFlags)
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
-		}
 	}
 	return node
 }
@@ -6965,7 +6935,7 @@ func (f *NodeFactory) NewTemplateLiteralTypeNode(head *TemplateHeadNode, templat
 }
 
 func (f *NodeFactory) UpdateTemplateLiteralTypeNode(node *TemplateLiteralTypeNode, head *TemplateHeadNode, templateSpans *TemplateLiteralTypeSpanList) *Node {
-	if head != node.Head || templateSpans != node.TemplateSpans {
+	if !f.storeNodesEqual(head, node.Head) || templateSpans != node.TemplateSpans {
 		return updateNode(f.NewTemplateLiteralTypeNode(head, templateSpans), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -7010,7 +6980,7 @@ func (f *NodeFactory) NewTemplateLiteralTypeSpan(typeNode *TypeNode, literal *Te
 }
 
 func (f *NodeFactory) UpdateTemplateLiteralTypeSpan(node *TemplateLiteralTypeSpan, typeNode *TypeNode, literal *TemplateMiddleOrTail) *Node {
-	if typeNode != node.Type || literal != node.Literal {
+	if !f.storeNodesEqual(typeNode, node.Type) || !f.storeNodesEqual(literal, node.Literal) {
 		return updateNode(f.NewTemplateLiteralTypeSpan(typeNode, literal), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -7060,7 +7030,7 @@ func (f *NodeFactory) NewSyntheticExpression(typeNode any, isSpread bool, tupleN
 }
 
 func (f *NodeFactory) UpdateSyntheticExpression(node *SyntheticExpression, typeNode any, isSpread bool, tupleNameSource *Node) *Node {
-	if typeNode != node.Type || isSpread != node.IsSpread || tupleNameSource != node.TupleNameSource {
+	if typeNode != node.Type || isSpread != node.IsSpread || !f.storeNodesEqual(tupleNameSource, node.TupleNameSource) {
 		return updateNode(f.NewSyntheticExpression(typeNode, isSpread, tupleNameSource), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -7102,7 +7072,7 @@ func (f *NodeFactory) NewPartiallyEmittedExpression(expression *Expression) *Nod
 }
 
 func (f *NodeFactory) UpdatePartiallyEmittedExpression(node *PartiallyEmittedExpression, expression *Expression) *Node {
-	if expression != node.Expression {
+	if !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewPartiallyEmittedExpression(expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -7155,7 +7125,7 @@ func (f *NodeFactory) NewJsxElement(openingElement *JsxOpeningElementNode, child
 }
 
 func (f *NodeFactory) UpdateJsxElement(node *JsxElement, openingElement *JsxOpeningElementNode, children *JsxChildList, closingElement *JsxClosingElementNode) *Node {
-	if openingElement != node.OpeningElement || children != node.Children || closingElement != node.ClosingElement {
+	if !f.storeNodesEqual(openingElement, node.OpeningElement) || children != node.Children || !f.storeNodesEqual(closingElement, node.ClosingElement) {
 		return updateNode(f.NewJsxElement(openingElement, children, closingElement), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -7245,7 +7215,7 @@ func (f *NodeFactory) NewJsxNamespacedName(namespace *IdentifierNode, name *Iden
 }
 
 func (f *NodeFactory) UpdateJsxNamespacedName(node *JsxNamespacedName, namespace *IdentifierNode, name *IdentifierNode) *Node {
-	if namespace != node.Namespace || name != node.name {
+	if !f.storeNodesEqual(namespace, node.Namespace) || !f.storeNodesEqual(name, node.name) {
 		return updateNode(f.NewJsxNamespacedName(namespace, name), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -7298,7 +7268,7 @@ func (f *NodeFactory) NewJsxOpeningElement(tagName *JsxTagNameExpression, typeAr
 }
 
 func (f *NodeFactory) UpdateJsxOpeningElement(node *JsxOpeningElement, tagName *JsxTagNameExpression, typeArguments *TypeList, attributes *JsxAttributesNode) *Node {
-	if tagName != node.TagName || typeArguments != node.TypeArguments || attributes != node.Attributes {
+	if !f.storeNodesEqual(tagName, node.TagName) || typeArguments != node.TypeArguments || !f.storeNodesEqual(attributes, node.Attributes) {
 		return updateNode(f.NewJsxOpeningElement(tagName, typeArguments, attributes), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -7347,7 +7317,7 @@ func (f *NodeFactory) NewJsxSelfClosingElement(tagName *JsxTagNameExpression, ty
 }
 
 func (f *NodeFactory) UpdateJsxSelfClosingElement(node *JsxSelfClosingElement, tagName *JsxTagNameExpression, typeArguments *TypeList, attributes *JsxAttributesNode) *Node {
-	if tagName != node.TagName || typeArguments != node.TypeArguments || attributes != node.Attributes {
+	if !f.storeNodesEqual(tagName, node.TagName) || typeArguments != node.TypeArguments || !f.storeNodesEqual(attributes, node.Attributes) {
 		return updateNode(f.NewJsxSelfClosingElement(tagName, typeArguments, attributes), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -7396,7 +7366,7 @@ func (f *NodeFactory) NewJsxFragment(openingFragment *JsxOpeningFragmentNode, ch
 }
 
 func (f *NodeFactory) UpdateJsxFragment(node *JsxFragment, openingFragment *JsxOpeningFragmentNode, children *JsxChildList, closingFragment *JsxClosingFragmentNode) *Node {
-	if openingFragment != node.OpeningFragment || children != node.Children || closingFragment != node.ClosingFragment {
+	if !f.storeNodesEqual(openingFragment, node.OpeningFragment) || children != node.Children || !f.storeNodesEqual(closingFragment, node.ClosingFragment) {
 		return updateNode(f.NewJsxFragment(openingFragment, children, closingFragment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -7491,7 +7461,7 @@ func (f *NodeFactory) NewJsxAttribute(name *JsxAttributeName, initializer *JsxAt
 }
 
 func (f *NodeFactory) UpdateJsxAttribute(node *JsxAttribute, name *JsxAttributeName, initializer *JsxAttributeValue) *Node {
-	if name != node.name || initializer != node.Initializer {
+	if !f.storeNodesEqual(name, node.name) || !f.storeNodesEqual(initializer, node.Initializer) {
 		return updateNode(f.NewJsxAttribute(name, initializer), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -7538,7 +7508,7 @@ func (f *NodeFactory) NewJsxSpreadAttribute(expression *Expression) *Node {
 }
 
 func (f *NodeFactory) UpdateJsxSpreadAttribute(node *JsxSpreadAttribute, expression *Expression) *Node {
-	if expression != node.Expression {
+	if !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewJsxSpreadAttribute(expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -7580,7 +7550,7 @@ func (f *NodeFactory) NewJsxClosingElement(tagName *JsxTagNameExpression) *Node 
 }
 
 func (f *NodeFactory) UpdateJsxClosingElement(node *JsxClosingElement, tagName *JsxTagNameExpression) *Node {
-	if tagName != node.TagName {
+	if !f.storeNodesEqual(tagName, node.TagName) {
 		return updateNode(f.NewJsxClosingElement(tagName), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -7625,7 +7595,7 @@ func (f *NodeFactory) NewJsxExpression(dotDotDotToken *DotDotDotToken, expressio
 }
 
 func (f *NodeFactory) UpdateJsxExpression(node *JsxExpression, dotDotDotToken *DotDotDotToken, expression *Expression) *Node {
-	if dotDotDotToken != node.DotDotDotToken || expression != node.Expression {
+	if !f.storeNodesEqual(dotDotDotToken, node.DotDotDotToken) || !f.storeNodesEqual(expression, node.Expression) {
 		return updateNode(f.NewJsxExpression(dotDotDotToken, expression), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -7667,9 +7637,6 @@ func (f *NodeFactory) NewJsxText(text string, containsOnlyTriviaWhiteSpaces bool
 		h.SetStringValue(valueSlotJsxTextText, text)
 		if containsOnlyTriviaWhiteSpaces {
 			h.SetUintValue(valueSlotJsxTextContainsOnlyTriviaWhiteSpaces, 1)
-		}
-		if text != "" {
-			h.SetIdent(f.store.Intern(text))
 		}
 	}
 	return node
@@ -7791,7 +7758,7 @@ func (f *NodeFactory) NewJSDocTypeExpression(typeNode *TypeNode) *Node {
 }
 
 func (f *NodeFactory) UpdateJSDocTypeExpression(node *JSDocTypeExpression, typeNode *TypeNode) *Node {
-	if typeNode != node.Type {
+	if !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewJSDocTypeExpression(typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -7833,7 +7800,7 @@ func (f *NodeFactory) NewJSDocNonNullableType(typeNode *TypeNode) *Node {
 }
 
 func (f *NodeFactory) UpdateJSDocNonNullableType(node *JSDocNonNullableType, typeNode *TypeNode) *Node {
-	if typeNode != node.Type {
+	if !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewJSDocNonNullableType(typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -7875,7 +7842,7 @@ func (f *NodeFactory) NewJSDocNullableType(typeNode *TypeNode) *Node {
 }
 
 func (f *NodeFactory) UpdateJSDocNullableType(node *JSDocNullableType, typeNode *TypeNode) *Node {
-	if typeNode != node.Type {
+	if !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewJSDocNullableType(typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -7941,7 +7908,7 @@ func (f *NodeFactory) NewJSDocVariadicType(typeNode *TypeNode) *Node {
 }
 
 func (f *NodeFactory) UpdateJSDocVariadicType(node *JSDocVariadicType, typeNode *TypeNode) *Node {
-	if typeNode != node.Type {
+	if !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewJSDocVariadicType(typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -7983,7 +7950,7 @@ func (f *NodeFactory) NewJSDocOptionalType(typeNode *TypeNode) *Node {
 }
 
 func (f *NodeFactory) UpdateJSDocOptionalType(node *JSDocOptionalType, typeNode *TypeNode) *Node {
-	if typeNode != node.Type {
+	if !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewJSDocOptionalType(typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8029,7 +7996,7 @@ func (f *NodeFactory) NewJSDocTypeTag(tagName *IdentifierNode, typeExpression *N
 }
 
 func (f *NodeFactory) UpdateJSDocTypeTag(node *JSDocTypeTag, tagName *IdentifierNode, typeExpression *Node, comment *NodeList) *Node {
-	if tagName != node.TagName || typeExpression != node.TypeExpression || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || !f.storeNodesEqual(typeExpression, node.TypeExpression) || comment != node.Comment {
 		return updateNode(f.NewJSDocTypeTag(tagName, typeExpression, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8072,7 +8039,7 @@ func (f *NodeFactory) NewJSDocUnknownTag(tagName *IdentifierNode, comment *NodeL
 }
 
 func (f *NodeFactory) UpdateJSDocUnknownTag(node *JSDocUnknownTag, tagName *IdentifierNode, comment *NodeList) *Node {
-	if tagName != node.TagName || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || comment != node.Comment {
 		return updateNode(f.NewJSDocUnknownTag(tagName, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8121,7 +8088,7 @@ func (f *NodeFactory) NewJSDocTemplateTag(tagName *IdentifierNode, constraint *N
 }
 
 func (f *NodeFactory) UpdateJSDocTemplateTag(node *JSDocTemplateTag, tagName *IdentifierNode, constraint *Node, typeParameters *TypeParameterList, comment *NodeList) *Node {
-	if tagName != node.TagName || constraint != node.Constraint || typeParameters != node.TypeParameters || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || !f.storeNodesEqual(constraint, node.Constraint) || typeParameters != node.TypeParameters || comment != node.Comment {
 		return updateNode(f.NewJSDocTemplateTag(tagName, constraint, typeParameters, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8170,7 +8137,7 @@ func (f *NodeFactory) NewJSDocReturnTag(tagName *IdentifierNode, typeExpression 
 }
 
 func (f *NodeFactory) UpdateJSDocReturnTag(node *JSDocReturnTag, tagName *IdentifierNode, typeExpression *TypeNode, comment *NodeList) *Node {
-	if tagName != node.TagName || typeExpression != node.TypeExpression || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || !f.storeNodesEqual(typeExpression, node.TypeExpression) || comment != node.Comment {
 		return updateNode(f.NewJSDocReturnTag(tagName, typeExpression, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8213,7 +8180,7 @@ func (f *NodeFactory) NewJSDocPublicTag(tagName *IdentifierNode, comment *NodeLi
 }
 
 func (f *NodeFactory) UpdateJSDocPublicTag(node *JSDocPublicTag, tagName *IdentifierNode, comment *NodeList) *Node {
-	if tagName != node.TagName || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || comment != node.Comment {
 		return updateNode(f.NewJSDocPublicTag(tagName, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8256,7 +8223,7 @@ func (f *NodeFactory) NewJSDocPrivateTag(tagName *IdentifierNode, comment *NodeL
 }
 
 func (f *NodeFactory) UpdateJSDocPrivateTag(node *JSDocPrivateTag, tagName *IdentifierNode, comment *NodeList) *Node {
-	if tagName != node.TagName || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || comment != node.Comment {
 		return updateNode(f.NewJSDocPrivateTag(tagName, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8299,7 +8266,7 @@ func (f *NodeFactory) NewJSDocProtectedTag(tagName *IdentifierNode, comment *Nod
 }
 
 func (f *NodeFactory) UpdateJSDocProtectedTag(node *JSDocProtectedTag, tagName *IdentifierNode, comment *NodeList) *Node {
-	if tagName != node.TagName || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || comment != node.Comment {
 		return updateNode(f.NewJSDocProtectedTag(tagName, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8342,7 +8309,7 @@ func (f *NodeFactory) NewJSDocReadonlyTag(tagName *IdentifierNode, comment *Node
 }
 
 func (f *NodeFactory) UpdateJSDocReadonlyTag(node *JSDocReadonlyTag, tagName *IdentifierNode, comment *NodeList) *Node {
-	if tagName != node.TagName || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || comment != node.Comment {
 		return updateNode(f.NewJSDocReadonlyTag(tagName, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8385,7 +8352,7 @@ func (f *NodeFactory) NewJSDocOverrideTag(tagName *IdentifierNode, comment *Node
 }
 
 func (f *NodeFactory) UpdateJSDocOverrideTag(node *JSDocOverrideTag, tagName *IdentifierNode, comment *NodeList) *Node {
-	if tagName != node.TagName || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || comment != node.Comment {
 		return updateNode(f.NewJSDocOverrideTag(tagName, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8428,7 +8395,7 @@ func (f *NodeFactory) NewJSDocDeprecatedTag(tagName *IdentifierNode, comment *No
 }
 
 func (f *NodeFactory) UpdateJSDocDeprecatedTag(node *JSDocDeprecatedTag, tagName *IdentifierNode, comment *NodeList) *Node {
-	if tagName != node.TagName || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || comment != node.Comment {
 		return updateNode(f.NewJSDocDeprecatedTag(tagName, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8474,7 +8441,7 @@ func (f *NodeFactory) NewJSDocSeeTag(tagName *IdentifierNode, nameExpression *Ty
 }
 
 func (f *NodeFactory) UpdateJSDocSeeTag(node *JSDocSeeTag, tagName *IdentifierNode, nameExpression *TypeNode, comment *NodeList) *Node {
-	if tagName != node.TagName || nameExpression != node.NameExpression || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || !f.storeNodesEqual(nameExpression, node.NameExpression) || comment != node.Comment {
 		return updateNode(f.NewJSDocSeeTag(tagName, nameExpression, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8520,7 +8487,7 @@ func (f *NodeFactory) NewJSDocImplementsTag(tagName *IdentifierNode, className *
 }
 
 func (f *NodeFactory) UpdateJSDocImplementsTag(node *JSDocImplementsTag, tagName *IdentifierNode, className *ExpressionWithTypeArgumentsNode, comment *NodeList) *Node {
-	if tagName != node.TagName || className != node.ClassName || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || !f.storeNodesEqual(className, node.ClassName) || comment != node.Comment {
 		return updateNode(f.NewJSDocImplementsTag(tagName, className, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8566,7 +8533,7 @@ func (f *NodeFactory) NewJSDocAugmentsTag(tagName *IdentifierNode, className *Ex
 }
 
 func (f *NodeFactory) UpdateJSDocAugmentsTag(node *JSDocAugmentsTag, tagName *IdentifierNode, className *ExpressionWithTypeArgumentsNode, comment *NodeList) *Node {
-	if tagName != node.TagName || className != node.ClassName || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || !f.storeNodesEqual(className, node.ClassName) || comment != node.Comment {
 		return updateNode(f.NewJSDocAugmentsTag(tagName, className, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8612,7 +8579,7 @@ func (f *NodeFactory) NewJSDocSatisfiesTag(tagName *IdentifierNode, typeExpressi
 }
 
 func (f *NodeFactory) UpdateJSDocSatisfiesTag(node *JSDocSatisfiesTag, tagName *IdentifierNode, typeExpression *TypeNode, comment *NodeList) *Node {
-	if tagName != node.TagName || typeExpression != node.TypeExpression || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || !f.storeNodesEqual(typeExpression, node.TypeExpression) || comment != node.Comment {
 		return updateNode(f.NewJSDocSatisfiesTag(tagName, typeExpression, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8658,7 +8625,7 @@ func (f *NodeFactory) NewJSDocThrowsTag(tagName *IdentifierNode, typeExpression 
 }
 
 func (f *NodeFactory) UpdateJSDocThrowsTag(node *JSDocThrowsTag, tagName *IdentifierNode, typeExpression *TypeNode, comment *NodeList) *Node {
-	if tagName != node.TagName || typeExpression != node.TypeExpression || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || !f.storeNodesEqual(typeExpression, node.TypeExpression) || comment != node.Comment {
 		return updateNode(f.NewJSDocThrowsTag(tagName, typeExpression, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8704,7 +8671,7 @@ func (f *NodeFactory) NewJSDocThisTag(tagName *IdentifierNode, typeExpression *T
 }
 
 func (f *NodeFactory) UpdateJSDocThisTag(node *JSDocThisTag, tagName *IdentifierNode, typeExpression *TypeNode, comment *NodeList) *Node {
-	if tagName != node.TagName || typeExpression != node.TypeExpression || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || !f.storeNodesEqual(typeExpression, node.TypeExpression) || comment != node.Comment {
 		return updateNode(f.NewJSDocThisTag(tagName, typeExpression, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8756,7 +8723,7 @@ func (f *NodeFactory) NewJSDocImportTag(tagName *IdentifierNode, importClause *I
 }
 
 func (f *NodeFactory) UpdateJSDocImportTag(node *JSDocImportTag, tagName *IdentifierNode, importClause *ImportClauseNode, moduleSpecifier *Expression, attributes *ImportAttributesNode, comment *NodeList) *Node {
-	if tagName != node.TagName || importClause != node.ImportClause || moduleSpecifier != node.ModuleSpecifier || attributes != node.Attributes || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || !f.storeNodesEqual(importClause, node.ImportClause) || !f.storeNodesEqual(moduleSpecifier, node.ModuleSpecifier) || !f.storeNodesEqual(attributes, node.Attributes) || comment != node.Comment {
 		return updateNode(f.NewJSDocImportTag(tagName, importClause, moduleSpecifier, attributes, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8809,7 +8776,7 @@ func (f *NodeFactory) NewJSDocCallbackTag(tagName *IdentifierNode, typeExpressio
 }
 
 func (f *NodeFactory) UpdateJSDocCallbackTag(node *JSDocCallbackTag, tagName *IdentifierNode, typeExpression *TypeNode, name *JSDocFullName, comment *NodeList) *Node {
-	if tagName != node.TagName || typeExpression != node.TypeExpression || name != node.name || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || !f.storeNodesEqual(typeExpression, node.TypeExpression) || !f.storeNodesEqual(name, node.name) || comment != node.Comment {
 		return updateNode(f.NewJSDocCallbackTag(tagName, typeExpression, name, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8862,7 +8829,7 @@ func (f *NodeFactory) NewJSDocOverloadTag(tagName *IdentifierNode, typeExpressio
 }
 
 func (f *NodeFactory) UpdateJSDocOverloadTag(node *JSDocOverloadTag, tagName *IdentifierNode, typeExpression *TypeNode, comment *NodeList) *Node {
-	if tagName != node.TagName || typeExpression != node.TypeExpression || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || !f.storeNodesEqual(typeExpression, node.TypeExpression) || comment != node.Comment {
 		return updateNode(f.NewJSDocOverloadTag(tagName, typeExpression, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8911,7 +8878,7 @@ func (f *NodeFactory) NewJSDocTypedefTag(tagName *IdentifierNode, typeExpression
 }
 
 func (f *NodeFactory) UpdateJSDocTypedefTag(node *JSDocTypedefTag, tagName *IdentifierNode, typeExpression *Node, name *JSDocFullName, comment *NodeList) *Node {
-	if tagName != node.TagName || typeExpression != node.TypeExpression || name != node.name || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || !f.storeNodesEqual(typeExpression, node.TypeExpression) || !f.storeNodesEqual(name, node.name) || comment != node.Comment {
 		return updateNode(f.NewJSDocTypedefTag(tagName, typeExpression, name, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -8965,7 +8932,7 @@ func (f *NodeFactory) NewJSDocSignature(typeParameters *TypeParameterList, param
 }
 
 func (f *NodeFactory) UpdateJSDocSignature(node *JSDocSignature, typeParameters *TypeParameterList, parameters *ParameterList, typeNode *TypeNode) *Node {
-	if typeParameters != node.TypeParameters || parameters != node.Parameters || typeNode != node.Type {
+	if typeParameters != node.TypeParameters || parameters != node.Parameters || !f.storeNodesEqual(typeNode, node.Type) {
 		return updateNode(f.NewJSDocSignature(typeParameters, parameters, typeNode), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -9007,7 +8974,7 @@ func (f *NodeFactory) NewJSDocNameReference(name *EntityName) *Node {
 }
 
 func (f *NodeFactory) UpdateJSDocNameReference(node *JSDocNameReference, name *EntityName) *Node {
-	if name != node.name {
+	if !f.storeNodesEqual(name, node.name) {
 		return updateNode(f.NewJSDocNameReference(name), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -9075,7 +9042,7 @@ func (f *NodeFactory) NewModuleDeclaration(modifiers *ModifierList, keyword Kind
 }
 
 func (f *NodeFactory) UpdateModuleDeclaration(node *ModuleDeclaration, modifiers *ModifierList, keyword Kind, name *ModuleName, body *ModuleBody) *Node {
-	if modifiers != node.modifiers || keyword != node.Keyword || name != node.name || body != node.Body {
+	if modifiers != node.modifiers || keyword != node.Keyword || !f.storeNodesEqual(name, node.name) || !f.storeNodesEqual(body, node.Body) {
 		return updateNode(f.NewModuleDeclaration(modifiers, keyword, name, body), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -9135,7 +9102,7 @@ func (f *NodeFactory) NewImportEqualsDeclaration(modifiers *ModifierList, isType
 }
 
 func (f *NodeFactory) UpdateImportEqualsDeclaration(node *ImportEqualsDeclaration, modifiers *ModifierList, isTypeOnly bool, name *IdentifierNode, moduleReference *ModuleReference) *Node {
-	if modifiers != node.modifiers || isTypeOnly != node.IsTypeOnly || name != node.name || moduleReference != node.ModuleReference {
+	if modifiers != node.modifiers || isTypeOnly != node.IsTypeOnly || !f.storeNodesEqual(name, node.name) || !f.storeNodesEqual(moduleReference, node.ModuleReference) {
 		return updateNode(f.NewImportEqualsDeclaration(modifiers, isTypeOnly, name, moduleReference), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -9197,7 +9164,7 @@ func (f *NodeFactory) NewExportDeclaration(modifiers *ModifierList, isTypeOnly b
 }
 
 func (f *NodeFactory) UpdateExportDeclaration(node *ExportDeclaration, modifiers *ModifierList, isTypeOnly bool, exportClause *NamedExportBindings, moduleSpecifier *Expression, attributes *ImportAttributesNode) *Node {
-	if modifiers != node.modifiers || isTypeOnly != node.IsTypeOnly || exportClause != node.ExportClause || moduleSpecifier != node.ModuleSpecifier || attributes != node.Attributes {
+	if modifiers != node.modifiers || isTypeOnly != node.IsTypeOnly || !f.storeNodesEqual(exportClause, node.ExportClause) || !f.storeNodesEqual(moduleSpecifier, node.ModuleSpecifier) || !f.storeNodesEqual(attributes, node.Attributes) {
 		return updateNode(f.NewExportDeclaration(modifiers, isTypeOnly, exportClause, moduleSpecifier, attributes), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -9255,7 +9222,7 @@ func (f *NodeFactory) NewImportTypeNode(isTypeOf bool, argument *TypeNode, attri
 }
 
 func (f *NodeFactory) UpdateImportTypeNode(node *ImportTypeNode, isTypeOf bool, argument *TypeNode, attributes *ImportAttributesNode, qualifier *EntityName, typeArguments *TypeList) *Node {
-	if isTypeOf != node.IsTypeOf || argument != node.Argument || attributes != node.Attributes || qualifier != node.Qualifier || typeArguments != node.TypeArguments {
+	if isTypeOf != node.IsTypeOf || !f.storeNodesEqual(argument, node.Argument) || !f.storeNodesEqual(attributes, node.Attributes) || !f.storeNodesEqual(qualifier, node.Qualifier) || typeArguments != node.TypeArguments {
 		return updateNode(f.NewImportTypeNode(isTypeOf, argument, attributes, qualifier, typeArguments), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -9309,7 +9276,7 @@ func (f *NodeFactory) NewImportClause(phaseModifier ImportPhaseModifierSyntaxKin
 }
 
 func (f *NodeFactory) UpdateImportClause(node *ImportClause, phaseModifier ImportPhaseModifierSyntaxKind, name *IdentifierNode, namedBindings *NamedImportBindings) *Node {
-	if phaseModifier != node.PhaseModifier || name != node.name || namedBindings != node.NamedBindings {
+	if phaseModifier != node.PhaseModifier || !f.storeNodesEqual(name, node.name) || !f.storeNodesEqual(namedBindings, node.NamedBindings) {
 		return updateNode(f.NewImportClause(phaseModifier, name, namedBindings), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -9366,7 +9333,7 @@ func (f *NodeFactory) NewImportSpecifier(isTypeOnly bool, propertyName *ModuleEx
 }
 
 func (f *NodeFactory) UpdateImportSpecifier(node *ImportSpecifier, isTypeOnly bool, propertyName *ModuleExportName, name *IdentifierNode) *Node {
-	if isTypeOnly != node.IsTypeOnly || propertyName != node.PropertyName || name != node.name {
+	if isTypeOnly != node.IsTypeOnly || !f.storeNodesEqual(propertyName, node.PropertyName) || !f.storeNodesEqual(name, node.name) {
 		return updateNode(f.NewImportSpecifier(isTypeOnly, propertyName, name), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -9442,7 +9409,7 @@ func (f *NodeFactory) NewJSDocLink(name *EntityName, text []string) *Node {
 }
 
 func (f *NodeFactory) UpdateJSDocLink(node *JSDocLink, name *EntityName, text []string) *Node {
-	if name != node.name || !core.Same(text, node.text) {
+	if !f.storeNodesEqual(name, node.name) || !core.Same(text, node.text) {
 		return updateNode(f.NewJSDocLink(name, text), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -9491,7 +9458,7 @@ func (f *NodeFactory) NewJSDocLinkPlain(name *EntityName, text []string) *Node {
 }
 
 func (f *NodeFactory) UpdateJSDocLinkPlain(node *JSDocLinkPlain, name *EntityName, text []string) *Node {
-	if name != node.name || !core.Same(text, node.text) {
+	if !f.storeNodesEqual(name, node.name) || !core.Same(text, node.text) {
 		return updateNode(f.NewJSDocLinkPlain(name, text), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -9540,7 +9507,7 @@ func (f *NodeFactory) NewJSDocLinkCode(name *EntityName, text []string) *Node {
 }
 
 func (f *NodeFactory) UpdateJSDocLinkCode(node *JSDocLinkCode, name *EntityName, text []string) *Node {
-	if name != node.name || !core.Same(text, node.text) {
+	if !f.storeNodesEqual(name, node.name) || !core.Same(text, node.text) {
 		return updateNode(f.NewJSDocLinkCode(name, text), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -9600,7 +9567,7 @@ func (f *NodeFactory) NewTypeParameterDeclaration(modifiers *ModifierList, name 
 }
 
 func (f *NodeFactory) UpdateTypeParameterDeclaration(node *TypeParameterDeclaration, modifiers *ModifierList, name *IdentifierNode, constraint *TypeNode, expression *Expression, defaultType *TypeNode) *Node {
-	if modifiers != node.modifiers || name != node.name || constraint != node.Constraint || expression != node.Expression || defaultType != node.DefaultType {
+	if modifiers != node.modifiers || !f.storeNodesEqual(name, node.name) || !f.storeNodesEqual(constraint, node.Constraint) || !f.storeNodesEqual(expression, node.Expression) || !f.storeNodesEqual(defaultType, node.DefaultType) {
 		return updateNode(f.NewTypeParameterDeclaration(modifiers, name, constraint, expression, defaultType), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -9653,7 +9620,7 @@ func (f *NodeFactory) NewSyntheticReferenceExpression(expression *Expression, th
 }
 
 func (f *NodeFactory) UpdateSyntheticReferenceExpression(node *SyntheticReferenceExpression, expression *Expression, thisArg *Expression) *Node {
-	if expression != node.Expression || thisArg != node.ThisArg {
+	if !f.storeNodesEqual(expression, node.Expression) || !f.storeNodesEqual(thisArg, node.ThisArg) {
 		return updateNode(f.NewSyntheticReferenceExpression(expression, thisArg), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()
@@ -9766,7 +9733,7 @@ func (f *NodeFactory) NewJSDocParameterOrPropertyTag(kind Kind, tagName *Identif
 }
 
 func (f *NodeFactory) UpdateJSDocParameterOrPropertyTag(node *JSDocParameterOrPropertyTag, tagName *IdentifierNode, name *EntityName, isBracketed bool, typeExpression *TypeNode, isNameFirst bool, comment *NodeList) *Node {
-	if tagName != node.TagName || name != node.name || isBracketed != node.IsBracketed || typeExpression != node.TypeExpression || isNameFirst != node.IsNameFirst || comment != node.Comment {
+	if !f.storeNodesEqual(tagName, node.TagName) || !f.storeNodesEqual(name, node.name) || isBracketed != node.IsBracketed || !f.storeNodesEqual(typeExpression, node.TypeExpression) || isNameFirst != node.IsNameFirst || comment != node.Comment {
 		return updateNode(f.NewJSDocParameterOrPropertyTag(node.Kind, tagName, name, isBracketed, typeExpression, isNameFirst, comment), node.AsNode(), f.hooks)
 	}
 	return node.AsNode()

@@ -196,6 +196,8 @@ func (e *emitter) emitJSFile(sourceFile *ast.SourceFile, jsFilePath string, sour
 
 	emitContext, putEmitContext := printer.GetEmitContext()
 	defer putEmitContext()
+	releaseStore := emitContext.AttachStore(sourceFile)
+	defer releaseStore()
 
 	sourceFile = e.runScriptTransformers(emitContext, sourceFile)
 
@@ -233,6 +235,8 @@ func (e *emitter) emitDeclarationFile(sourceFile *ast.SourceFile, declarationFil
 
 	emitContext, putEmitContext := printer.GetEmitContext()
 	defer putEmitContext()
+	releaseStore := emitContext.AttachStore(sourceFile)
+	defer releaseStore()
 	sourceFile, diags := e.runDeclarationTransformers(emitContext, sourceFile, declarationFilePath, declarationMapPath)
 
 	for _, elem := range diags {
@@ -570,7 +574,10 @@ func getDeclarationDiagnostics(host EmitHost, file *ast.SourceFile) []*ast.Diagn
 		return []*ast.Diagnostic{}
 	}
 	options := host.Options()
-	transform := declarations.NewDeclarationTransformer(host, nil, options, "", "")
+	emitContext := printer.NewEmitContext()
+	releaseStore := emitContext.AttachStore(file)
+	defer releaseStore()
+	transform := declarations.NewDeclarationTransformer(host, emitContext, options, "", "")
 	transform.TransformSourceFile(file)
 	return transform.GetDiagnostics()
 }

@@ -135,21 +135,63 @@ func putParser(p *Parser) {
 func ParseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptKind core.ScriptKind) *ast.SourceFile {
 	p := getParser()
 	defer putParser(p)
-	storeFactory := ast.NewFactory(ast.FactoryHooks{})
-	p.factory.AttachStore(storeFactory.Store())
+	// Parsed TypeScript averages just under one Store node per ten source
+	// bytes on the large compiler fixture. A source-sized hint avoids growing
+	// all packed columns in lockstep while leaving headroom for dense syntax.
+	storeHint := max(256, len(sourceText)/10)
 	p.initializeState(opts, sourceText, scriptKind)
 	p.nextToken()
 	var result *ast.SourceFile
+	var root ast.Handle
+	var nodeRefs map[*ast.Node]ast.NodeRef
+	var storeFactory *ast.Factory
 	if p.scriptKind == core.ScriptKindJSON {
-		result = p.parseJSONText()
+		nativeFactory := ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
+		if nativeRoot, ok := p.tryParseJSONTextHandle(nativeFactory); ok {
+			storeFactory = nativeFactory
+			var materialized ast.MaterializeStats
+			result, nodeRefs, materialized = ast.MaterializeSourceFile(nativeRoot, p.opts, p.sourceText)
+			root = nativeRoot
+			if len(result.Statements.Nodes) > 0 {
+				p.validateJsonValue(result, result.Statements.Nodes[0].Expression())
+			}
+			p.finishSourceFile(result, false)
+			result.NodeCount = materialized.NodeCount
+			result.TextCount = materialized.TextCount
+		} else {
+			storeFactory = ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
+			p.factory.AttachStore(storeFactory.Store())
+			result = p.parseJSONText()
+		}
+	} else if p.scriptKind == core.ScriptKindTS && !tspath.IsDeclarationFileName(p.opts.FileName) {
+		nativeFactory := ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
+		if nativeRoot, ok := p.tryParseExpressionSourceHandle(nativeFactory); ok {
+			storeFactory = nativeFactory
+			var materialized ast.MaterializeStats
+			result, nodeRefs, materialized = ast.MaterializeSourceFile(nativeRoot, p.opts, p.sourceText)
+			root = nativeRoot
+			p.finishSourceFile(result, false)
+			result.NodeCount = materialized.NodeCount
+			result.TextCount = materialized.TextCount
+			collectExternalModuleReferences(result)
+		} else {
+			storeFactory = ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
+			p.factory.AttachStore(storeFactory.Store())
+			result = p.parseSourceFileWorker()
+		}
 	} else {
+		storeFactory = ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
+		p.factory.AttachStore(storeFactory.Store())
 		result = p.parseSourceFileWorker()
 	}
 	if result != nil {
-		root := p.factory.HandleOf(result.AsNode())
-		p.factory.StoreSync(result.AsNode())
+		if root.Ref() == 0 {
+			root = p.factory.HandleOf(result.AsNode())
+			p.factory.StoreSync(result.AsNode())
+			nodeRefs = p.factory.TakeNodeRef()
+		}
 		result.SetParseStore(storeFactory.Store(), root)
-		result.SetParseNodeRef(p.factory.TakeNodeRef())
+		result.SetParseNodeRef(nodeRefs)
 	}
 	storeFactory.Seal()
 	return result

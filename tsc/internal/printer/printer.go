@@ -195,7 +195,7 @@ func NewPrinter(options PrinterOptions, handlers PrintHandlers, emitContext *Emi
 
 func (p *Printer) getLiteralTextOfNode(node *ast.LiteralLikeNode, sourceFile *ast.SourceFile, flags getLiteralTextFlags) string {
 	if ast.IsStringLiteral(node) {
-		if textSourceNode, ok := p.emitContext.textSource[node]; ok && textSourceNode != nil {
+		if textSourceNode := p.emitContext.TextSource(node); textSourceNode != nil {
 			var text string
 			switch textSourceNode.Kind {
 			default:
@@ -228,12 +228,12 @@ func (p *Printer) getLiteralTextOfNode(node *ast.LiteralLikeNode, sourceFile *as
 
 // `node` must be one of Identifier | PrivateIdentifier | LiteralExpression | JsxNamespacedName
 func (p *Printer) getTextOfNode(node *ast.Node, includeTrivia bool) string {
-	if ast.IsMemberName(node) && p.emitContext.autoGenerate[node] != nil {
+	if ast.IsMemberName(node) && p.emitContext.GetAutoGenerateInfo(node) != nil {
 		return p.nameGenerator.GenerateName(node)
 	}
 
 	if ast.IsStringLiteral(node) {
-		if textSourceNode := p.emitContext.textSource[node]; textSourceNode != nil {
+		if textSourceNode := p.emitContext.TextSource(node); textSourceNode != nil {
 			return p.getTextOfNode(textSourceNode, includeTrivia)
 		}
 	}

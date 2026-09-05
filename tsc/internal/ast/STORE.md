@@ -6,7 +6,12 @@ Motivation and early sketch: [TypeScript#63807](https://github.com/microsoft/Typ
 
 ## Status
 
-Safe to keep on a branch as a **package-local experiment**. PR-3 (unlanded) has `ParseSourceFile` allocate through `NewFactory` and `ExpandStore` at the parse boundary. The production tree returned to binder is still `*Node`. Do not land `ExpandStore` on microsoft/main; PR-6 deletes it.
+Safe to keep on a branch as a **package-local experiment**. Structurally valid
+JSON/JSONC now parses into Store first and materializes a temporary `*Node`
+view for legacy consumers; malformed JSON recovery and TypeScript parsing
+still dual-write. Binding, checking, transformation, and printing mirror their
+nodes and side data into one Store per file. Production visitors still consume
+`*Node` while their Handle callers are migrated.
 
 Do **not** treat this document as a merged, settled design for the whole compiler until the [Open questions](#open-questions) below have written answers. The layout bet (packed header, noscan columns) has package-level evidence. Identity across files, mutation rules, incremental parse, emit sharing, and an end-to-end stop criterion do not.
 
@@ -62,7 +67,7 @@ Identifier interning inside Store is allowed. Owning the file’s full source st
 
 ## Transforms and printers (intent)
 
-Parse would build a Store. `Seal` drops the intern map only. Binder writes flags and side maps on that Store. Checker synthetics and emit updates that share parse children also **append into the same Store** (see constraints 7 and 9). A second emit Store plus `CopySubtree` of the whole file is incompatible with `Update*` reuse. `CopySubtree` remains the primitive for the rare deep clone across files (`deepclone.go` comment). Slot reuse and in-place delete remain out of scope.
+Parse builds a Store. `Seal` drops the intern map only. Binder writes flags and side maps on that Store. Checker synthetics and emit updates that share parse children also **append into the same Store** (see constraints 7 and 9). `EmitContext.AttachStore` holds the per-file writer lease across transform and print, then publishes generated NodeRefs before returning the context to its pool. Emit original, emit-node, generated-name, text-source, assigned-name, and class-this tables key on `GlobalRef`. Generated `Update*` methods compare Store identity for child reuse, and `UpdateSourceFile` carries Store ownership to the transformed root. A second emit Store plus `CopySubtree` of the whole file is incompatible with `Update*` reuse. `CopySubtree` remains the primitive for the rare deep clone across files (`deepclone.go` comment). Slot reuse and in-place delete remain out of scope.
 
 `CopySubtree` today walks child `NodeRef`s only. It does not remap `ListRef` payloads hung off kinds, because β has no kind that stores a `ListRef` in the header. Migration A/B must close that gap before list-bearing kinds ship.
 
@@ -106,11 +111,12 @@ Temporary bridges such as `FlattenNode` are **measurement-only**. They keep Kind
 | --- | --- |
 | `store.go` | `Store`, `NodeRef`, `ListRef`, `Handle`, walk, parents, Symbol/LocalSymbol/FlowNode/EndFlowNode/ReturnFlowNode/Locals/NextContainer side maps, packed `listSlots` |
 | `store_identity.go` | `StoreID`, `GlobalRef`, `StoreSet` (cross-store identity, SourceFile metadata) |
-| `store_schema.go` | BinaryExpression, Parameter, ArrayLiteral slot layout (β slice) |
+| `store_schema.go` | Compatibility argument structs for the first Store-native factory experiments |
 | `store_schema_generated.go` | Generated child, list, and kind-specific value slots for every factory kind |
+| `store_handles_generated.go` | Generated Store-native `Factory.New*` constructors and named Handle getters/setters for every schema factory kind |
 | `store_factory.go` | Store-only `Factory`, `NewFactoryOn` |
 | `store_bridge.go` | `NodeFactory.AttachStore` dual-write into Store during parse |
-| `store_expand.go`, `store_expand_generated.go` | Exhaustive temporary Store → `*Node` copy; unknown non-token kinds panic (delete in PR-6) |
+| `store_materialize_json.go` | Temporary full-fidelity Store-to-pointer bridge for the Handle-native JSON parser |
 | `store_copy.go` | `Factory.CopySubtree` (cross-store remap) |
 | `store_flatten.go` | Lossy `*Node` → Store copy for benches |
 | `store_*_test.go`, `store_*_bench_test.go` | Unit, copy, adversarial, and e2e benches |
@@ -123,6 +129,7 @@ From `tsc/`:
 go test ./internal/ast -run 'TestStore|TestFactory|TestFlatten' 
 go test ./internal/ast -run TestE2ELayoutReport -v
 go test ./internal/ast -run '^$' -bench E2E -count 3
+go test ./internal/ast -run '^$' -bench ParserShapedConstruction -benchmem -count 5
 ```
 
 Use e2e numbers only for pointer-tree vs Store layout on a flattened file. They do not prove parser wiring, offset interning, or compile wall-time wins.
@@ -243,3 +250,46 @@ Checked against the live `*Node` pipeline (parser, binder, checker, printer). No
 | `GOGC` / `GOMEMLIMIT`-only baseline on a large `tsgo` run | PASS-PERF on the TypeScript v6.0.3 CI smoke project (see [cmd/tsc GOGC baseline](#cmdtsc-gogc-baseline)) |
 
 `BenchmarkNewProgram` (`compiler/program_test.go:308`) is too small for the perf baseline.
+
+## 6A freeze (emit on Store, delete expand)
+
+GitHub `#6` (`cursor/store-pr-6-a9c9`) is frozen as 6A at SHA `049214aa25`. Do not add statement, type, binding, or generator grammar to that branch. 6B owns production Handle-native parse. 6C owns materialize deletion.
+
+Standalone `tsc/testdata/fixtures/compiler/checker.ts --noEmit` still exits 2 (`TS2307` missing `./_namespaces/ts.js`). That is not a completed check. The live compile is the TypeScript v6.0.3 CI smoke project. `--outFile` was removed (`TS5102`); JavaScript emit proof is the `emit-javascript` fixture.
+
+### Unit / race / generate
+
+| Gate | Result |
+| --- | --- |
+| `go -C ./tsc test ./internal/printer ./internal/transformers/... -count=1` | ok (`printer`, `tstransforms`; other transformer packages have no tests) |
+| `./internal/parser ./internal/ast ./internal/binder ./internal/checker ./internal/compiler ./internal/tsoptions` | ok |
+| `./internal/testrunner -run TestLocal/alias` | ok |
+| `-race` parser, ast, printer, binder, checker, compiler, tsoptions | ok |
+| `node --experimental-strip-types tools/scripts/tsc/generate-go-ast.ts` + `gofmt` + `git diff --exit-code` | GENERATE_OK |
+| `git grep ExpandStore -- 'tsc/**/*.go'` | empty |
+| production `FlattenNode` grep | empty |
+
+### Live (`VERIFY_TSC_RUN_ID=pr6a-6a-20260831T083220`, SHA `049214aa25`)
+
+| Drive | Result |
+| --- | --- |
+| `control-tsc doctor` | PASS, `Version 7.1.0-dev` |
+| `tsc --help` | exit 0 |
+| type-check fixture `-p … --noEmit` | exit 0 |
+| emit-javascript fixture `-p …` | exit 0, nonempty `dist/index.js` contains `greet` / `Hello` |
+| emit from file list `--outDir …/from-files` | exit 0, `index.js` contains `greet`, no `.d.ts` |
+| emit-declarations fixture | exit 0, nonempty `index.js` and `index.d.ts` |
+| CI smoke `-p /tmp/typescript-6.0/src/compiler --noEmit` | exit 0 |
+| CI smoke `--outDir /tmp/store-smoke-out` | exit 0, 78 nonempty `.d.ts` (`emitDeclarationOnly` in that tsconfig) |
+| `checker.ts --noEmit` | exit 2, `error TS2307` |
+
+### Perf vs PR-5 (`21fced2ca1`) and trunk binary
+
+Five interleaved timed runs after one warmup per head. Wall time of `built/local/tsc`. Gate is 6A median ≤ 1.10× PR-5. The PR-7 1.05× trunk rule is recorded, not applied.
+
+| Workload | PR-5 median | 6A median | trunk median | 6A/PR-5 | 6A/trunk |
+| --- | --- | --- | --- | --- | --- |
+| `--noEmit checker.ts` (exit 2 all heads) | 0.7903s | 0.6125s | 0.2919s | 0.775 PASS | 2.098 record |
+| `-p typescript-6.0/src/compiler --noEmit` (exit 0) | 0.3949s | 0.2676s | 0.1470s | 0.678 PASS | 1.820 record |
+
+Deleting `ExpandStore` did not slow the check versus PR-5. Dual-write plus materialize still miss the trunk 1.05× gate, as expected until 6C.

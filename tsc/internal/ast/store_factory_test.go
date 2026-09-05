@@ -110,10 +110,11 @@ func TestFactoryReplaceListAfterCreate(t *testing.T) {
 	fn := f.FunctionExpression(core.NewTextRange(0, 10), f.List(core.NewTextRange(1, 2), x))
 	thisName := f.Identifier("this")
 	thisParam := f.Parameter(ast.ParameterParts{Name: thisName, Loc: core.NewTextRange(1, 5)})
-	fn.SetList(f.List(core.NewTextRange(1, 8), thisParam, x))
-	assert.Equal(t, 2, f.Store().ListLen(fn.List()))
-	assert.Equal(t, thisParam.Ref(), f.Store().ListAt(fn.List(), 0).Ref())
-	assert.Equal(t, x.Ref(), f.Store().ListAt(fn.List(), 1).Ref())
+	fn.SetFunctionExpressionParameters(f.List(core.NewTextRange(1, 8), thisParam, x))
+	parameters := fn.FunctionExpressionParameters()
+	assert.Equal(t, 2, f.Store().ListLen(parameters))
+	assert.Equal(t, thisParam.Ref(), f.Store().ListAt(parameters, 0).Ref())
+	assert.Equal(t, x.Ref(), f.Store().ListAt(parameters, 1).Ref())
 }
 
 func TestFactoryParamTypeWrittenAfterCreate(t *testing.T) {
@@ -152,4 +153,49 @@ func TestFactoryOnExistingStore(t *testing.T) {
 	assert.Equal(t, parse.Store(), extra.Store())
 	assert.Assert(t, extra.Ref() != id.Ref())
 	assert.Equal(t, 2, parse.Store().Len())
+}
+
+func TestGeneratedHandleFactoryAccessorsAndFinish(t *testing.T) {
+	t.Parallel()
+	f := ast.NewFactory(ast.FactoryHooks{})
+
+	name := f.Finish(f.NewIdentifier("answer"), core.NewTextRange(6, 12))
+	value := f.Finish(
+		f.NewNumericLiteral("0x2a", ast.TokenFlagsHexSpecifier),
+		core.NewTextRange(15, 19),
+	)
+	declaration := f.Finish(
+		f.NewVariableDeclaration(name, ast.Handle{}, ast.Handle{}, value),
+		core.NewTextRange(6, 19),
+	)
+	declarations := f.List(core.NewTextRange(6, 19), declaration)
+	declarationList := f.Finish(
+		f.NewVariableDeclarationList(declarations, ast.NodeFlagsConst),
+		core.NewTextRange(0, 19),
+	)
+	statement := f.Finish(
+		f.NewVariableStatement(0, declarationList),
+		core.NewTextRange(0, 20),
+	)
+	statements := f.List(core.NewTextRange(0, 20), statement)
+	block := f.Finish(f.NewBlock(statements, true), core.NewTextRange(0, 22))
+
+	assert.Equal(t, "answer", name.IdentifierText())
+	assert.Equal(t, "0x2a", value.NumericLiteralText())
+	assert.Equal(t, ast.TokenFlagsHexSpecifier, value.NumericLiteralTokenFlags())
+	assert.Equal(t, name.Ref(), declaration.VariableDeclarationName().Ref())
+	assert.Equal(t, value.Ref(), declaration.VariableDeclarationInitializer().Ref())
+	assert.Equal(t, declarations, declarationList.VariableDeclarationListDeclarations())
+	assert.Equal(t, ast.NodeFlagsConst, declarationList.Flags())
+	assert.Equal(t, declarationList.Ref(), statement.VariableStatementDeclarationList().Ref())
+	assert.Equal(t, statements, block.BlockStatements())
+	assert.Assert(t, block.BlockMultiLine())
+	assert.Equal(t, block.Ref(), statement.Parent().Ref())
+	assert.Equal(t, statement.Ref(), declarationList.Parent().Ref())
+	assert.Equal(t, declaration.Ref(), name.Parent().Ref())
+	assert.Equal(t, core.NewTextRange(0, 22), block.Loc())
+
+	typ := f.Finish(f.NewKeywordTypeNode(ast.KindNumberKeyword), core.NewTextRange(13, 13))
+	declaration.SetVariableDeclarationType(typ)
+	assert.Equal(t, typ.Ref(), declaration.VariableDeclarationType().Ref())
 }

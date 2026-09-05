@@ -701,15 +701,100 @@ func directoryOfCombinedPath(fileName string, basePath string) string {
 // fileName is the path to the config file
 // jsonText is the text of the config file
 func ParseConfigFileTextToJson(fileName string, path tspath.Path, jsonText string) (any, []*ast.Diagnostic) {
-	jsonSourceFile := parser.ParseSourceFile(ast.SourceFileParseOptions{
+	opts := ast.SourceFileParseOptions{
 		FileName: fileName,
 		Path:     path,
-	}, jsonText, core.ScriptKindJSON)
+	}
+	if root, ok := parser.ParseJSONStore(opts, jsonText); ok {
+		if config, ok := convertJSONStoreConfig(root); ok {
+			return config, nil
+		}
+	}
+	jsonSourceFile := parser.ParseSourceFile(opts, jsonText, core.ScriptKindJSON)
 	config, errors := convertConfigFileToObject(jsonSourceFile /*jsonConversionNotifier*/, nil)
 	if len(jsonSourceFile.Diagnostics()) > 0 {
 		errors = []*ast.Diagnostic{jsonSourceFile.Diagnostics()[0]}
 	}
 	return config, errors
+}
+
+func convertJSONStoreConfig(root ast.Handle) (any, bool) {
+	if root.Kind() != ast.KindSourceFile {
+		return nil, false
+	}
+	store := root.Store()
+	statements := root.SourceFileStatements()
+	switch store.ListLen(statements) {
+	case 0:
+		return struct{}{}, true
+	case 1:
+		statement := store.ListAt(statements, 0)
+		if statement.Kind() != ast.KindExpressionStatement {
+			return nil, false
+		}
+		expression := statement.ExpressionStatementExpression()
+		if expression.Kind() != ast.KindObjectLiteralExpression {
+			return nil, false
+		}
+		return convertJSONStoreValue(expression)
+	default:
+		return nil, false
+	}
+}
+
+func convertJSONStoreValue(value ast.Handle) (any, bool) {
+	switch value.Kind() {
+	case ast.KindTrueKeyword:
+		return true, true
+	case ast.KindFalseKeyword:
+		return false, true
+	case ast.KindNullKeyword:
+		return nil, true
+	case ast.KindStringLiteral:
+		return value.StringLiteralText(), true
+	case ast.KindNumericLiteral:
+		return float64(jsnum.FromString(value.NumericLiteralText())), true
+	case ast.KindPrefixUnaryExpression:
+		operand := value.PrefixUnaryExpressionOperand()
+		if value.PrefixUnaryExpressionOperator() != ast.KindMinusToken || operand.Kind() != ast.KindNumericLiteral {
+			return nil, false
+		}
+		return float64(-jsnum.FromString(operand.NumericLiteralText())), true
+	case ast.KindArrayLiteralExpression:
+		store := value.Store()
+		elements := value.ArrayLiteralExpressionElements()
+		result := make([]any, store.ListLen(elements))
+		for i := range result {
+			element, ok := convertJSONStoreValue(store.ListAt(elements, i))
+			if !ok {
+				return nil, false
+			}
+			result[i] = element
+		}
+		return result, true
+	case ast.KindObjectLiteralExpression:
+		store := value.Store()
+		properties := value.ObjectLiteralExpressionProperties()
+		result := collections.NewOrderedMapWithSizeHint[string, any](store.ListLen(properties))
+		for i := range store.ListLen(properties) {
+			property := store.ListAt(properties, i)
+			if property.Kind() != ast.KindPropertyAssignment {
+				return nil, false
+			}
+			name := property.PropertyAssignmentName()
+			if name.Kind() != ast.KindStringLiteral {
+				return nil, false
+			}
+			initializer, ok := convertJSONStoreValue(property.PropertyAssignmentInitializer())
+			if !ok {
+				return nil, false
+			}
+			result.Set(name.StringLiteralText(), initializer)
+		}
+		return result, true
+	default:
+		return nil, false
+	}
 }
 
 type ParseConfigHost interface {

@@ -2,28 +2,9 @@ package ast
 
 import "github.com/microsoft/TypeScript/tsc/internal/core"
 
-// Kind-schema slot layouts for Store-backed nodes. Child order matches
-// the pointer AST's ForEachChild where the subset overlaps.
-
-const (
-	binSlotLeft = iota
-	binSlotType
-	binSlotOperator
-	binSlotRight
-	binSlotCount
-)
-
-const (
-	paramSlotDotDotDot = iota
-	paramSlotName
-	paramSlotQuestion
-	paramSlotType
-	paramSlotInitializer
-	paramSlotCount
-)
-
-// BinaryParts is the Store-native BinaryExpression shape (no modifiers /
-// type annotation in this slice; add slots when those kinds land).
+// Compatibility argument structs for the first Store-native factory
+// experiments. Their implementations now delegate to the generated,
+// full-fidelity Handle factory.
 type BinaryParts struct {
 	Left     Handle
 	Operator Handle

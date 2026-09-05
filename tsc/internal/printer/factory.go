@@ -36,7 +36,7 @@ func (f *NodeFactory) newGeneratedIdentifier(kind GeneratedIdentifierFlags, text
 		case ast.IsMemberName(node):
 			text = node.Text()
 		default:
-			text = fmt.Sprintf("(generated@%v)", ast.GetNodeId(f.emitContext.getNodeForGeneratedNameWorker(node, id)))
+			text = fmt.Sprintf("(generated@%v)", f.emitContext.NodeIdentity(f.emitContext.getNodeForGeneratedNameWorker(node, id)))
 		}
 		text = FormatGeneratedName(false /*privateName*/, options.Prefix, text, options.Suffix)
 	}
@@ -50,9 +50,9 @@ func (f *NodeFactory) newGeneratedIdentifier(kind GeneratedIdentifierFlags, text
 		Node:   node,
 	}
 	if f.emitContext.autoGenerate == nil {
-		f.emitContext.autoGenerate = make(map[*ast.MemberName]*AutoGenerateInfo)
+		f.emitContext.autoGenerate = make(map[ast.GlobalRef]*AutoGenerateInfo)
 	}
-	f.emitContext.autoGenerate[name] = autoGenerate
+	f.emitContext.autoGenerate[f.emitContext.NodeIdentity(name)] = autoGenerate
 	return name
 }
 
@@ -114,7 +114,7 @@ func (f *NodeFactory) newGeneratedPrivateIdentifier(kind GeneratedIdentifierFlag
 		case ast.IsMemberName(node):
 			text = node.Text()
 		default:
-			text = fmt.Sprintf("(generated@%v)", ast.GetNodeId(f.emitContext.getNodeForGeneratedNameWorker(node, id)))
+			text = fmt.Sprintf("(generated@%v)", f.emitContext.NodeIdentity(f.emitContext.getNodeForGeneratedNameWorker(node, id)))
 		}
 		text = FormatGeneratedName(true /*privateName*/, options.Prefix, text, options.Suffix)
 	} else if !strings.HasPrefix(text, "#") {
@@ -130,9 +130,9 @@ func (f *NodeFactory) newGeneratedPrivateIdentifier(kind GeneratedIdentifierFlag
 		Node:   node,
 	}
 	if f.emitContext.autoGenerate == nil {
-		f.emitContext.autoGenerate = make(map[*ast.MemberName]*AutoGenerateInfo)
+		f.emitContext.autoGenerate = make(map[ast.GlobalRef]*AutoGenerateInfo)
 	}
-	f.emitContext.autoGenerate[name] = autoGenerate
+	f.emitContext.autoGenerate[f.emitContext.NodeIdentity(name)] = autoGenerate
 	return name
 }
 
@@ -179,10 +179,7 @@ func (f *NodeFactory) NewStringLiteralFromNode(textSourceNode *ast.Node) *ast.No
 		text = textSourceNode.Text()
 	}
 	node := f.NewStringLiteral(text, ast.TokenFlagsNone)
-	if f.emitContext.textSource == nil {
-		f.emitContext.textSource = make(map[*ast.StringLiteralNode]*ast.Node)
-	}
-	f.emitContext.textSource[node] = textSourceNode
+	f.emitContext.SetTextSource(node, textSourceNode)
 	return node
 }
 

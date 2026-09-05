@@ -146,3 +146,93 @@ func BenchmarkAllocStore(b *testing.B) {
 		runtime.KeepAlive(s)
 	}
 }
+
+const parserShapedDeclarationCount = 256
+
+func buildDualWriteParserShape() (*ast.NodeFactory, *ast.Node) {
+	f := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	f.AttachStore(ast.NewStore(parserShapedDeclarationCount * 5))
+	statements := make([]*ast.Node, 0, parserShapedDeclarationCount)
+	for i := range parserShapedDeclarationCount {
+		start := i * 16
+		name := f.NewIdentifier("value" + strconv.Itoa(i))
+		name.Loc = core.NewTextRange(start+6, start+11)
+		f.StoreSync(name)
+		value := f.NewNumericLiteral(strconv.Itoa(i), ast.TokenFlagsNone)
+		value.Loc = core.NewTextRange(start+14, start+15)
+		f.StoreSync(value)
+		declaration := f.NewVariableDeclaration(name, nil, nil, value)
+		declaration.Loc = core.NewTextRange(start+6, start+15)
+		f.StoreSync(declaration)
+		declarations := f.NewNodeList([]*ast.Node{declaration})
+		declarations.Loc = declaration.Loc
+		declarationList := f.NewVariableDeclarationList(declarations, ast.NodeFlagsConst)
+		declarationList.Loc = core.NewTextRange(start, start+15)
+		f.StoreSync(declarationList)
+		statement := f.NewVariableStatement(nil, declarationList)
+		statement.Loc = core.NewTextRange(start, start+16)
+		f.StoreSync(statement)
+		statements = append(statements, statement)
+	}
+	list := f.NewNodeList(statements)
+	list.Loc = core.NewTextRange(0, parserShapedDeclarationCount*16)
+	root := f.NewBlock(list, true)
+	root.Loc = core.NewTextRange(0, parserShapedDeclarationCount*16+2)
+	f.StoreSync(root)
+	return f, root
+}
+
+func buildHandleNativeParserShape() (*ast.Factory, ast.Handle) {
+	f := ast.NewFactoryHint(ast.FactoryHooks{}, parserShapedDeclarationCount*5)
+	statements := make([]ast.Handle, 0, parserShapedDeclarationCount)
+	for i := range parserShapedDeclarationCount {
+		start := i * 16
+		name := f.Finish(
+			f.NewIdentifier("value"+strconv.Itoa(i)),
+			core.NewTextRange(start+6, start+11),
+		)
+		value := f.Finish(
+			f.NewNumericLiteral(strconv.Itoa(i), ast.TokenFlagsNone),
+			core.NewTextRange(start+14, start+15),
+		)
+		declaration := f.Finish(
+			f.NewVariableDeclaration(name, ast.Handle{}, ast.Handle{}, value),
+			core.NewTextRange(start+6, start+15),
+		)
+		declarations := f.List(declaration.Loc(), declaration)
+		declarationList := f.Finish(
+			f.NewVariableDeclarationList(declarations, ast.NodeFlagsConst),
+			core.NewTextRange(start, start+15),
+		)
+		statement := f.Finish(
+			f.NewVariableStatement(0, declarationList),
+			core.NewTextRange(start, start+16),
+		)
+		statements = append(statements, statement)
+	}
+	list := f.List(core.NewTextRange(0, parserShapedDeclarationCount*16), statements...)
+	root := f.Finish(
+		f.NewBlock(list, true),
+		core.NewTextRange(0, parserShapedDeclarationCount*16+2),
+	)
+	return f, root
+}
+
+func BenchmarkParserShapedConstruction(b *testing.B) {
+	b.Run("DualWriteNodeFactory", func(b *testing.B) {
+		b.ReportAllocs()
+		for b.Loop() {
+			f, root := buildDualWriteParserShape()
+			runtime.KeepAlive(f)
+			runtime.KeepAlive(root)
+		}
+	})
+	b.Run("HandleNativeFactory", func(b *testing.B) {
+		b.ReportAllocs()
+		for b.Loop() {
+			f, root := buildHandleNativeParserShape()
+			runtime.KeepAlive(f)
+			runtime.KeepAlive(root)
+		}
+	})
+}

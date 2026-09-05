@@ -2256,9 +2256,6 @@ func (c *Checker) checkSourceFile(ctx context.Context, sourceFile *ast.SourceFil
 	}
 	if sourceFile.ParseStore() != nil {
 		sourceFile.AbsorbNodeRef(c.factory.TakeNodeRef())
-		if root := sourceFile.ParseRoot(); root.Ref() != 0 {
-			_ = ast.ExpandStore(root, sourceFile.ParseOptions(), sourceFile.Text())
-		}
 	}
 	c.ctx = nil
 }

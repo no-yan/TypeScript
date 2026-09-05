@@ -60,6 +60,7 @@ type listHeader struct {
 // nodes use them.
 type Store struct {
 	id            atomic.Uint32 // StoreID assigned by StoreSet.Add; 0 until registered
+	allocHint     int
 	nodes         []nodeHeader
 	lists         []listHeader
 	children      []NodeRef
@@ -87,10 +88,14 @@ func NewStore(hint int) *Store {
 		hint = 1
 	}
 	return &Store{
+		allocHint: hint,
 		nodes:     make([]nodeHeader, 1, hint+1),
-		lists:     make([]listHeader, 1, 8),
-		internOff: []uint32{0, 0},
-		internIdx: make(map[string]uint32),
+		lists:     make([]listHeader, 1, max(8, hint/7)),
+		children:  make([]NodeRef, 0, hint+hint/2),
+		listSlots: make([]ListRef, 0, hint*3/8),
+		internBuf: make([]byte, 0, hint),
+		internOff: make([]uint32, 2, max(2, hint/32)),
+		internIdx: make(map[string]uint32, hint/32),
 	}
 }
 
@@ -454,7 +459,7 @@ func (h Handle) valueKey(slot int) uint64 {
 func (h Handle) SetUintValue(slot int, value uint64) {
 	key := h.valueKey(slot)
 	if h.s.scalarValues == nil {
-		h.s.scalarValues = make(map[uint64]uint64)
+		h.s.scalarValues = make(map[uint64]uint64, max(1, h.s.allocHint/16))
 	}
 	h.s.scalarValues[key] = value
 }
@@ -466,16 +471,26 @@ func (h Handle) UintValue(slot int) uint64 {
 func (h Handle) SetStringValue(slot int, value string) {
 	key := h.valueKey(slot)
 	if value == "" {
+		if primaryStringSlot(h.Kind()) == slot {
+			h.s.nodes[h.id].identText = 0
+		}
 		delete(h.s.stringValues, key)
 		return
 	}
+	if primaryStringSlot(h.Kind()) == slot {
+		h.s.nodes[h.id].identText = h.s.Intern(value)
+		return
+	}
 	if h.s.stringValues == nil {
-		h.s.stringValues = make(map[uint64]uint32)
+		h.s.stringValues = make(map[uint64]uint32, max(1, h.s.allocHint/256))
 	}
 	h.s.stringValues[key] = h.s.Intern(value)
 }
 
 func (h Handle) StringValue(slot int) string {
+	if primaryStringSlot(h.Kind()) == slot {
+		return h.Ident()
+	}
 	id := h.s.stringValues[h.valueKey(slot)]
 	if id == 0 {
 		return ""
