@@ -2,13 +2,12 @@ package checker
 
 import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
-	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/nodebuilder"
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
 )
 
 type NodeBuilder struct {
-	ctxStack []*// nil for non-hover callers
+	ctxStack []* // nil for non-hover callers
 	// VerbosityContext controls hover-expansion behavior in the node builder.
 	// A nil VerbosityContext means no expansion (non-hover callers).
 	// Level 0 = default hover (maxExpansionDepth = 0; detects expandability without expanding).
@@ -173,11 +172,8 @@ func (b *NodeBuilder) ExpandSymbolForHover(symbol *ast.Symbol, meaning ast.Symbo
 	return b.exitContextSlice(result)
 }
 func simplifyClassDeclaration(f ast.HandleFactory, classDecl ast.Handle, symbol *ast.Symbol) ast.Handle {
-	classDeclarations := core.Filter(ast.DeclarationNodes(symbol), ast.IsClassLike)
-	var originalClassDecl ast.Handle
-	if len(classDeclarations) > 0 {
-		originalClassDecl = classDeclarations[0]
-	} else {
+	originalClassDecl := ast.DeclarationNodes(symbol).FirstMatching(ast.IsClassLike)
+	if originalClassDecl.IsNil() {
 		originalClassDecl = classDecl
 	}
 	modifiers := originalClassDecl.ModifierFlags() & ^(ast.ModifierFlagsExport | ast.ModifierFlagsAmbient)
@@ -189,11 +185,8 @@ func simplifyClassDeclaration(f ast.HandleFactory, classDecl ast.Handle, symbol 
 	return ast.ReplaceHandleModifiers(f, classDecl, f.NewModifierList(ast.CreateModifiersFromModifierFlags(modifiers, f.NewModifier)))
 }
 func simplifyModifiers(f ast.HandleFactory, newDecl ast.Handle, isDeclKind func(ast.Handle) bool, symbol *ast.Symbol) ast.Handle {
-	decls := core.Filter(ast.DeclarationNodes(symbol), isDeclKind)
-	var declWithModifiers ast.Handle
-	if len(decls) > 0 {
-		declWithModifiers = decls[0]
-	} else {
+	declWithModifiers := ast.DeclarationNodes(symbol).FirstMatching(isDeclKind)
+	if declWithModifiers.IsNil() {
 		declWithModifiers = newDecl
 	}
 	modifiers := declWithModifiers.ModifierFlags() & ^(ast.ModifierFlagsExport | ast.ModifierFlagsAmbient)

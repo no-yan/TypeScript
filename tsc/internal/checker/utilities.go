@@ -68,7 +68,7 @@ func isStaticPrivateIdentifierProperty(s *ast.Symbol) bool {
 	return s.ValueDeclaration != 0 && ast.IsPrivateIdentifierClassElementDeclaration(ast.NodeOf(s.ValueDeclaration)) && ast.IsStatic(ast.NodeOf(s.ValueDeclaration))
 }
 func isEmptyObjectLiteral(expression ast.Handle) bool {
-	return ast.IsObjectLiteralExpression(expression) && len(expression.Properties()) == 0
+	return ast.IsObjectLiteralExpression(expression) && expression.PropertiesSeq().Len() == 0
 }
 
 type AssignmentKind int32
@@ -116,7 +116,7 @@ func isCompoundLikeAssignment(assignment ast.Handle) bool {
 	return right.Kind == ast.KindBinaryExpression && isShiftOperatorOrHigher(right.BinaryExpressionOperatorToken().Kind)
 }
 func isConstTypeReference(node ast.Handle) bool {
-	return ast.IsTypeReferenceNode(node) && len(node.TypeArguments()) == 0 && ast.IsIdentifier(node.TypeReferenceNodeTypeName()) && node.TypeReferenceNodeTypeName().Text() == "const"
+	return ast.IsTypeReferenceNode(node) && node.TypeArgumentsSeq().Len() == 0 && ast.IsIdentifier(node.TypeReferenceNodeTypeName()) && node.TypeReferenceNodeTypeName().Text() == "const"
 }
 
 func isConstTypeReferenceName(node ast.Handle) bool {
@@ -137,7 +137,7 @@ func GetSingleVariableOfVariableStatement(node ast.Handle) ast.Handle {
 	if !ast.IsVariableStatement(node) {
 		return ast.Handle{}
 	}
-	return core.FirstOrNil(node.Store().ListSlice(node.VariableStatementDeclarationList().VariableDeclarationListDeclarations()))
+	return node.VariableStatementDeclarationList().DeclarationsSeq().First()
 }
 func isTypeReferenceIdentifier(node ast.Handle) bool {
 	for node.Parent().Kind == ast.KindQualifiedName {
@@ -193,7 +193,7 @@ func isSideEffectImport(node ast.Handle) bool {
 }
 func getExternalModuleRequireArgument(node ast.Handle) ast.Handle {
 	if ast.IsVariableDeclarationInitializedToRequire(node) {
-		return node.Initializer().Arguments()[0]
+		return node.Initializer().ArgumentsSeq().At(0)
 	}
 	return ast.Handle{}
 }
@@ -253,23 +253,19 @@ func (c *Checker) isOptionalParameter(node ast.Handle) bool {
 	}
 	if !node.Initializer().IsNil() {
 		signature := c.getSignatureFromDeclaration(node.Parent())
-		parameterIndex := core.FindIndex(node.Parent().Parameters(), func(p ast.Handle) bool {
-			return p == node
-		})
+		parameterIndex := node.Parent().Store().ListIndexOf(node.Parent().ParameterList(), node)
 		debug.Assert(parameterIndex >= 0)
 		return parameterIndex >= c.getMinArgumentCountEx(signature, MinArgumentCountFlagsStrongArityForUntypedJS|MinArgumentCountFlagsVoidIsNonOptional)
 	}
 	iife := ast.GetImmediatelyInvokedFunctionExpression(node.Parent())
 	if !iife.IsNil() {
-		parameterIndex := core.FindIndex(node.Parent().Parameters(), func(p ast.Handle) bool {
-			return p == node
-		})
+		parameterIndex := node.Parent().Store().ListIndexOf(node.Parent().ParameterList(), node)
 		return node.Type().IsNil() && node.ParameterDeclarationDotDotDotToken().IsNil() && parameterIndex >= len(c.getEffectiveCallArguments(iife))
 	}
 	return false
 }
 func isEmptyArrayLiteral(expression ast.Handle) bool {
-	return ast.IsArrayLiteralExpression(expression) && len(expression.Elements()) == 0
+	return ast.IsArrayLiteralExpression(expression) && expression.ElementsSeq().Len() == 0
 }
 func declarationBelongsToPrivateAmbientMember(declaration ast.Handle) bool {
 	root := ast.GetRootDeclaration(declaration)
@@ -899,9 +895,9 @@ func isSuperCall(n ast.Handle) bool {
 }
 func getMembersOfDeclaration(node ast.Handle) []ast.Handle {
 	if list := node.MemberList(); list != 0 {
-		return node.Store().ListSlice(list)
+		return node.Store().ListSlice(list).Slice()
 	}
-	return node.Properties()
+	return node.PropertiesSeq().Slice()
 }
 func isInRightSideOfImportOrExportAssignment(node ast.Handle) bool {
 	for node.Parent().Kind == ast.KindQualifiedName {
@@ -1022,9 +1018,13 @@ func getEnclosingContainer(node ast.Handle) ast.Handle {
 	})
 }
 func getDeclarationsOfKind(symbol *ast.Symbol, kind ast.Kind) []ast.Handle {
-	return core.Filter(ast.DeclarationNodes(symbol), func(d ast.Handle) bool {
-		return d.Kind == kind
-	})
+	var out []ast.Handle
+	for _, d := range ast.DeclarationNodes(symbol) {
+		if d.Kind == kind {
+			out = append(out, d)
+		}
+	}
+	return out
 }
 func hasType(node ast.Handle) bool {
 	return !node.Type().IsNil()
@@ -1206,7 +1206,7 @@ func (c *Checker) isUncheckedJSSuggestion(node ast.Handle, suggestion *ast.Symbo
 		if c.compilerOptions.CheckJs.IsUnknown() && file.CheckJsDirective == nil && (file.ScriptKind == core.ScriptKindJS || file.ScriptKind == core.ScriptKindJSX) {
 			var declarationFile *ast.SourceFile
 			if suggestion != nil {
-				if firstDeclaration := core.FirstOrNil(ast.DeclarationNodes(suggestion)); !firstDeclaration.IsNil() {
+				if firstDeclaration := ast.DeclarationNodes(suggestion).First(); !firstDeclaration.IsNil() {
 					declarationFile = ast.GetSourceFileOfNode(firstDeclaration)
 				}
 			}
@@ -1285,10 +1285,11 @@ func walkUpOuterExpressions(node ast.Handle) ast.Handle {
 	return parent
 }
 func GetSetAccessorValueParameter(accessor ast.Handle) ast.Handle {
-	parameters := accessor.Parameters()
-	if len(parameters) > 0 {
-		hasThis := len(parameters) == 2 && ast.IsThisParameter(parameters[0])
-		return parameters[core.IfElse(hasThis, 1, 0)]
+	parameters := accessor.ParametersSeq()
+	n := parameters.Len()
+	if n > 0 {
+		hasThis := n == 2 && ast.IsThisParameter(parameters.At(0))
+		return parameters.At(core.IfElse(hasThis, 1, 0))
 	}
 	return ast.Handle{}
 }

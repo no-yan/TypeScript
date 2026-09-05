@@ -98,8 +98,16 @@ func (b *NodeBuilderImpl) enumMemberInitializer(p *ast.Symbol) ast.Handle {
 func (b *NodeBuilderImpl) expandClassDecl(symbol *ast.Symbol) ast.Handle {
 	name := ast.SymbolName(symbol)
 	b.ctx.approximateLength += 9 + len(name)
-	classLikeDeclarations := core.Filter(ast.DeclarationNodes(symbol), ast.IsClassLike)
-	originalDecl := core.FirstOrNil(classLikeDeclarations)
+	var classLikeDeclarations []ast.Handle
+	for _, d := range ast.DeclarationNodes(symbol) {
+		if ast.IsClassLike(d) {
+			classLikeDeclarations = append(classLikeDeclarations, d)
+		}
+	}
+	originalDecl := ast.Handle{}
+	if len(classLikeDeclarations) > 0 {
+		originalDecl = classLikeDeclarations[0]
+	}
 	oldEnclosing := b.ctx.enclosingDeclaration
 	if !originalDecl.IsNil() {
 		b.ctx.enclosingDeclaration = originalDecl
@@ -200,7 +208,12 @@ func (b *NodeBuilderImpl) expandInterfaceDecl(symbol *ast.Symbol) ast.Handle {
 	name := ast.SymbolName(symbol)
 	b.ctx.approximateLength += 14 + len(name)
 	interfaceType := b.ch.getDeclaredTypeOfClassOrInterface(symbol)
-	interfaceDeclarations := core.Filter(ast.DeclarationNodes(symbol), ast.IsInterfaceDeclaration)
+	var interfaceDeclarations []ast.Handle
+	for _, d := range ast.DeclarationNodes(symbol) {
+		if ast.IsInterfaceDeclaration(d) {
+			interfaceDeclarations = append(interfaceDeclarations, d)
+		}
+	}
 	localParams := b.ch.getLocalTypeParametersOfClassOrInterfaceOrTypeAlias(symbol)
 	typeParamDecls := core.Map(localParams, func(p *Type) ast.Handle {
 		return b.typeParameterToDeclaration(p)

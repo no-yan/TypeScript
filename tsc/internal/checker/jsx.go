@@ -202,7 +202,7 @@ func (c *Checker) getContextualTypeForChildJsxExpression(node ast.Handle, child 
 	if !(attributesType != nil && !IsTypeAny(attributesType) && jsxChildrenPropertyName != ast.InternalSymbolNameMissing && jsxChildrenPropertyName != "") {
 		return nil
 	}
-	realChildren := ast.GetSemanticJsxChildren(node.Children())
+	realChildren := ast.GetSemanticJsxChildren(node.ChildrenSeq().Slice())
 	childIndex := slices.Index(realChildren, child)
 	childFieldType := c.getTypeOfPropertyOfContextualType(attributesType, jsxChildrenPropertyName)
 	if childFieldType == nil {
@@ -224,7 +224,7 @@ func (c *Checker) discriminateContextualTypeByJSXAttributes(node ast.Handle, con
 		return discriminated
 	}
 	jsxChildrenPropertyName := c.getJsxElementChildrenPropertyName(c.getJsxNamespaceAt(node))
-	discriminantProperties := core.Filter(node.Properties(), func(p ast.Handle) bool {
+	discriminantProperties := core.Filter(node.PropertiesSeq().Slice(), func(p ast.Handle) bool {
 		symbol := p.Symbol()
 		if symbol == nil || !ast.IsJsxAttribute(p) {
 			return false
@@ -237,7 +237,7 @@ func (c *Checker) discriminateContextualTypeByJSXAttributes(node ast.Handle, con
 			return false
 		}
 		element := node.Parent().Parent()
-		if s.Name == jsxChildrenPropertyName && ast.IsJsxElement(element) && len(ast.GetSemanticJsxChildren(element.Children())) != 0 {
+		if s.Name == jsxChildrenPropertyName && ast.IsJsxElement(element) && len(ast.GetSemanticJsxChildren(element.ChildrenSeq().Slice())) != 0 {
 			return false
 		}
 		return node.Symbol().Members[s.Name] == nil && c.isDiscriminantProperty(contextualType, s.Name)
@@ -249,7 +249,7 @@ func (c *Checker) discriminateContextualTypeByJSXAttributes(node ast.Handle, con
 }
 func (c *Checker) elaborateJsxComponents(node ast.Handle, source *Type, target *Type, relation *Relation, diagnosticOutput *[]*ast.Diagnostic) bool {
 	reportedError := false
-	for _, prop := range node.Properties() {
+	for _, prop := range node.PropertiesSeq() {
 		if !ast.IsJsxSpreadAttribute(prop) && !isHyphenatedJsxName(prop.Name().Text()) {
 			nameType := c.getStringLiteralType(prop.Name().Text())
 			if nameType != nil && nameType.flags&TypeFlagsNever == 0 {
@@ -265,7 +265,7 @@ func (c *Checker) elaborateJsxComponents(node ast.Handle, source *Type, target *
 		}
 		childrenNameType := c.getStringLiteralType(childrenPropName)
 		childrenTargetType := c.getIndexedAccessType(target, childrenNameType)
-		validChildren := ast.GetSemanticJsxChildren(containingElement.Children())
+		validChildren := ast.GetSemanticJsxChildren(containingElement.ChildrenSeq().Slice())
 		if len(validChildren) == 0 {
 			return reportedError
 		}
@@ -334,7 +334,7 @@ type JsxElaborationElement struct {
 func (c *Checker) generateJsxChildren(node ast.Handle, getInvalidTextDiagnostic func() (*diagnostics.Message, []any)) iter.Seq[JsxElaborationElement] {
 	return func(yield func(JsxElaborationElement) bool) {
 		memberOffset := 0
-		for i, child := range node.Children() {
+		for i, child := range node.ChildrenSeq() {
 			nameType := c.getNumberLiteralType(jsnum.Number(i - memberOffset))
 			e := c.getElaborationElementForJsxChild(child, nameType, getInvalidTextDiagnostic)
 			if !e.errorNode.IsNil() {
@@ -493,14 +493,14 @@ func (c *Checker) resolveJsxOpeningLikeElement(node ast.Handle, candidatesOutArr
 			result := c.getIntrinsicAttributesTypeFromJsxOpeningLikeElement(node)
 			fakeSignature := c.createSignatureForJSXIntrinsic(node, result)
 			c.checkTypeAssignableToAndOptionallyElaborate(c.checkExpressionWithContextualType(node.Attributes(), c.getEffectiveFirstArgumentForJsxSignature(fakeSignature, node), nil, CheckModeNormal), result, node.TagName(), node.Attributes(), nil, nil)
-			typeArguments := node.TypeArguments()
-			if len(typeArguments) != 0 {
-				c.checkSourceElements(typeArguments)
+			typeArguments := node.TypeArgumentsSeq()
+			if typeArguments.Len() != 0 {
+				c.checkSourceElements(typeArguments.Slice())
 				sourceFile := sourceFileOf(node)
 				typeArgumentList := node.TypeArgumentList()
 				listLoc := node.Store().ListLoc(typeArgumentList)
 				loc := core.NewTextRange(scanner.SkipTrivia(sourceFile.Text(), listLoc.Pos()), listLoc.End())
-				c.addDiagnostic(ast.NewDiagnostic(sourceFile, loc, diagnostics.Expected_0_type_arguments_but_got_1, 0, len(typeArguments)))
+				c.addDiagnostic(ast.NewDiagnostic(sourceFile, loc, diagnostics.Expected_0_type_arguments_but_got_1, 0, typeArguments.Len()))
 			}
 			return fakeSignature
 		}
@@ -656,7 +656,7 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 		attributesSymbol = attributes.Symbol()
 		attributeParent = attributes
 		contextualType := c.getContextualType(attributes, ContextFlagsNone)
-		for _, attributeDecl := range attributes.Properties() {
+		for _, attributeDecl := range attributes.PropertiesSeq() {
 			member := attributeDecl.Symbol()
 			if ast.IsJsxAttribute(attributeDecl) {
 				exprType := c.checkJsxAttribute(attributeDecl, checkMode)
@@ -723,11 +723,11 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 		switch {
 		case ast.IsJsxElement(parent):
 			if parent.JsxElementOpeningElement() == openingLikeElement {
-				children = parent.Children()
+				children = parent.ChildrenSeq().Slice()
 			}
 		case ast.IsJsxFragment(parent):
 			if parent.JsxFragmentOpeningFragment() == openingLikeElement {
-				children = parent.Children()
+				children = parent.ChildrenSeq().Slice()
 			}
 		}
 		return len(ast.GetSemanticJsxChildren(children)) != 0
@@ -787,7 +787,7 @@ func (c *Checker) checkJsxAttribute(node ast.Handle, checkMode CheckMode) *Type 
 }
 func (c *Checker) checkJsxChildren(node ast.Handle, checkMode CheckMode) []*Type {
 	var childTypes []*Type
-	for _, child := range node.Children() {
+	for _, child := range node.ChildrenSeq() {
 		if ast.IsJsxText(child) {
 			if !child.JsxTextContainsOnlyTriviaWhiteSpaces() {
 				childTypes = append(childTypes, c.stringType)
@@ -851,7 +851,7 @@ func (c *Checker) getJsxPropsTypeFromClassType(sig *Signature, context ast.Handl
 		attributesType = c.getReturnTypeOfSignature(sig)
 	default:
 		attributesType = c.getJsxPropsTypeForSignatureFromMember(sig, forcedLookupLocation)
-		if attributesType == nil && len(context.Attributes().Properties()) != 0 {
+		if attributesType == nil && context.Attributes().PropertiesSeq().Len() != 0 {
 			c.error(context, diagnostics.JSX_element_class_does_not_support_attributes_because_it_does_not_have_a_0_property, forcedLookupLocation)
 		}
 	}
