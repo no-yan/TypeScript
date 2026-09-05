@@ -21,13 +21,12 @@ import (
 
 type ReferencedFilePair struct {
 	file *ast.SourceFile
-	ref *ast.FileReference
+	ref  *ast.FileReference
 }
 type OutputPaths interface {
 	DeclarationFilePath() string
 	JsFilePath() string
 }
-
 
 type DeclarationEmitHost interface {
 	modulespecifiers.ModuleSpecifierGenerationHost
@@ -82,15 +81,15 @@ type DeclarationTransformer struct {
 	rawReferencedFiles               []ReferencedFilePair
 	rawTypeReferenceDirectives       []*ast.FileReference
 	rawLibReferenceDirectives        []*ast.FileReference
-	bindingNameVisitor *ast.HandleVisitor
-	expressionVisitor *ast.HandleVisitor
-	cjsExportAssignmentVisitor *ast.HandleVisitor
-	exportStrippingVisitor *ast.HandleVisitor
-	thisPropertyVisitor *ast.HandleVisitor
+	bindingNameVisitor               *ast.HandleVisitor
+	expressionVisitor                *ast.HandleVisitor
+	cjsExportAssignmentVisitor       *ast.HandleVisitor
+	exportStrippingVisitor           *ast.HandleVisitor
+	thisPropertyVisitor              *ast.HandleVisitor
 	cjsExportAssignment              ast.Handle
 	cjsExportMembers                 []ast.Handle
 	cjsExportAssignmentName          ast.Handle
-	declareStrippingVisitor *ast.HandleVisitor
+	declareStrippingVisitor          *ast.HandleVisitor
 	inClassExpressionDeclaration     bool
 }
 
@@ -244,7 +243,7 @@ func (tx *DeclarationTransformer) collectFileReferences(sourceFile *ast.SourceFi
 }
 func nodeOrSyntaxListChildren(node ast.Handle) []ast.Handle {
 	if ast.IsSyntaxList(node) {
-		return node.Store().ListSlice(node.SyntaxListChildren())
+		return node.Store().ListSlice(node.SyntaxListChildren()).Slice()
 	}
 	return []ast.Handle{node}
 }
@@ -258,7 +257,7 @@ func (tx *DeclarationTransformer) appendCjsExports(combinedStatements ast.ListRe
 	}
 	result = append(result, tx.cjsExportMembers...)
 	store := tx.EmitContext().StoreFile().ParseStore()
-	result = append(result, store.ListSlice(combinedStatements)...)
+	result = append(result, store.ListSlice(combinedStatements).Slice()...)
 	statementNodes := flattenSyntaxLists(result)
 	if len(statementNodes) != store.ListLen(combinedStatements) {
 		combinedStatements = tx.Factory().List(store.ListLoc(combinedStatements), statementNodes...)
@@ -291,7 +290,7 @@ func (tx *DeclarationTransformer) transformSourceFile(node *ast.SourceFile) ast.
 		}
 		if !tx.resultHasExternalModuleIndicator || (tx.needsScopeFixMarker && !tx.resultHasScopeMarker) {
 			marker := createEmptyExports(tx.Factory().Factory)
-			newList := append(store.ListSlice(combinedStatements), marker)
+			newList := append(store.ListSlice(combinedStatements).Slice(), marker)
 			combinedStatements = tx.EmitContext().StoreFactory().List(store.ListLoc(combinedStatements), newList...)
 		}
 	}
@@ -348,7 +347,7 @@ func (tx *DeclarationTransformer) transformAndReplaceLatePaintedStatements(state
 					}
 				}
 			}
-			results = append(results, replacement.Store().ListSlice(replacement.SyntaxListChildren())...)
+			results = append(results, replacement.Store().ListSlice(replacement.SyntaxListChildren()).Slice()...)
 		} else {
 			if needsScopeMarker(replacement) {
 				tx.needsScopeFixMarker = true
@@ -459,8 +458,12 @@ func (tx *DeclarationTransformer) visitDeclarationSubtree(input ast.Handle) ast.
 	if input.Kind == ast.KindSemicolonClassElement {
 		return ast.Handle{}
 	}
-	if ast.IsHeritageClause(input) && (len(input.Store().ListSlice(input.HeritageClauseTypes())) == 0 || (len(input.Store().ListSlice(input.HeritageClauseTypes())) == 1 && ast.NodeIsMissing(input.Store().ListSlice(input.HeritageClauseTypes())[0]))) {
-		return ast.Handle{}
+	if ast.IsHeritageClause(input) {
+		types := input.HeritageClauseTypes()
+		nTypes := input.Store().ListLen(types)
+		if nTypes == 0 || (nTypes == 1 && ast.NodeIsMissing(input.Store().ListAt(types, 0))) {
+			return ast.Handle{}
+		}
 	}
 	previousEnclosingDeclaration := tx.enclosingDeclaration
 	if isEnclosingDeclaration(input) {
@@ -650,7 +653,8 @@ func hasAnyBindingInitializers(bindingPattern ast.Handle) bool {
 	return false
 }
 func (tx *DeclarationTransformer) transformCjsRequireVariableDeclaration(input ast.Handle) ast.Handle {
-	specifier := tx.rewriteModuleSpecifier(input, input.Initializer().Store().ListSlice(input.Initializer().CallExpressionArguments())[0])
+	args := input.Initializer().CallExpressionArguments()
+	specifier := tx.rewriteModuleSpecifier(input, input.Initializer().Store().ListAt(args, 0))
 	if ast.IsIdentifier(input.Name()) {
 		return tx.Factory().NewImportEqualsDeclaration(0, false, input.Name(), tx.Factory().NewExternalModuleReference(specifier))
 	} else if ast.IsArrayBindingPattern(input.Name()) {
@@ -675,7 +679,7 @@ func (tx *DeclarationTransformer) recreateBindingPattern(input ast.Handle) ast.H
 			continue
 		}
 		if result.Kind == ast.KindSyntaxList {
-			results = append(results, result.Store().ListSlice(result.SyntaxListChildren())...)
+			results = append(results, result.Store().ListSlice(result.SyntaxListChildren()).Slice()...)
 		} else {
 			results = append(results, result)
 		}
@@ -751,10 +755,12 @@ func (tx *DeclarationTransformer) updateAccessorParamList(input ast.Handle, isPr
 	if ast.IsSetAccessorDeclaration(input) {
 		var valueParam ast.Handle
 		if !isPrivate {
-			if len(newParams) == 1 && len(input.Store().ListSlice(input.SetAccessorDeclarationParameters())) >= 2 {
-				valueParam = tx.ensureParameter(input.Store().ListSlice(input.SetAccessorDeclarationParameters())[1])
-			} else if len(newParams) == 0 && len(input.Store().ListSlice(input.SetAccessorDeclarationParameters())) >= 1 {
-				valueParam = tx.ensureParameter(input.Store().ListSlice(input.SetAccessorDeclarationParameters())[0])
+			params := input.SetAccessorDeclarationParameters()
+			nParams := input.Store().ListLen(params)
+			if len(newParams) == 1 && nParams >= 2 {
+				valueParam = tx.ensureParameter(input.Store().ListAt(params, 1))
+			} else if len(newParams) == 0 && nParams >= 1 {
+				valueParam = tx.ensureParameter(input.Store().ListAt(params, 0))
 			}
 		}
 		if valueParam.IsNil() {
@@ -1076,7 +1082,7 @@ func (tx *DeclarationTransformer) wrapInCJSExportNamespace(content ast.Handle) a
 	nsName := tx.cjsExportAssignmentName
 	var members []ast.Handle
 	if content.Kind == ast.KindSyntaxList {
-		members = content.Store().ListSlice(content.SyntaxListChildren())
+		members = content.Store().ListSlice(content.SyntaxListChildren()).Slice()
 	} else {
 		members = []ast.Handle{content}
 	}
@@ -1314,7 +1320,7 @@ func (tx *DeclarationTransformer) transformModuleDeclaration(input ast.Handle) a
 		}
 		if !ast.IsGlobalScopeAugmentation(input) && !tx.resultHasScopeMarker && !hasScopeMarker(tx.EmitContext().StoreFile().ParseStore(), lateStatements) {
 			if tx.needsScopeFixMarker {
-				lateStatements = tx.Factory().NewList(append(tx.EmitContext().StoreFile().ParseStore().ListSlice(lateStatements), createEmptyExports(tx.Factory().Factory)))
+				lateStatements = tx.Factory().NewList(append(tx.EmitContext().StoreFile().ParseStore().ListSlice(lateStatements).Slice(), createEmptyExports(tx.Factory().Factory)))
 			} else {
 				lateStatements = tx.exportStrippingVisitor.VisitNodes(lateStatements)
 			}
@@ -1388,7 +1394,7 @@ func (tx *DeclarationTransformer) buildClassMembers(classNode ast.Handle, extraM
 	memberNodes = append(memberNodes, extraMembers...)
 	visitResult := tx.Visitor().VisitNodes(classNode.MemberList())
 	if visitResult != 0 && classNode.Store().ListLen(visitResult) > 0 {
-		memberNodes = append(memberNodes, classNode.Store().ListSlice(visitResult)...)
+		memberNodes = append(memberNodes, classNode.Store().ListSlice(visitResult).Slice()...)
 	}
 	return tx.Factory().NewList(memberNodes)
 }
@@ -1429,7 +1435,7 @@ func (tx *DeclarationTransformer) transformClassDeclaration(input ast.Handle) as
 		retainedHeritageClauses := tx.Visitor().VisitNodes(input.HeritageClauses())
 		heritageList := []ast.Handle{newHeritageClause}
 		if retainedHeritageClauses != 0 {
-			heritageList = append(heritageList, tx.EmitContext().StoreFile().ParseStore().ListSlice(retainedHeritageClauses)...)
+			heritageList = append(heritageList, tx.EmitContext().StoreFile().ParseStore().ListSlice(retainedHeritageClauses).Slice()...)
 		}
 		heritageClauses := tx.Factory().NewList(heritageList)
 		return tx.Factory().NewSyntaxList(tx.Factory().NewList([]ast.Handle{statement, tx.Factory().UpdateClassDeclaration(input, modifiers, input.Name(), typeParameters, heritageClauses, members)}))
@@ -1460,7 +1466,7 @@ caseBlock:
 			break
 		}
 		tx.seenProperties.Add(key)
-		if thisTarget.HeritageClauses() != 0 && len(thisTarget.Store().ListSlice(thisTarget.HeritageClauses())) > 0 && !isClassExtendingNull(thisTarget) {
+		if thisTarget.HeritageClauses() != 0 && thisTarget.Store().ListLen(thisTarget.HeritageClauses()) > 0 && !isClassExtendingNull(thisTarget) {
 			tx.tracker.ReportInferenceFallback(thisTarget)
 			if tx.resolver.IsThisPropertyAssignmentDeclarationRedundant(node) {
 				break caseBlock
@@ -1542,17 +1548,14 @@ func (tx *DeclarationTransformer) walkBindingPattern(pattern ast.Handle, param a
 	return elems
 }
 func (tx *DeclarationTransformer) transformVariableStatement(input ast.Handle) ast.Handle {
-	visible := false
-	for _, decl := range input.VariableStatementDeclarationList().Store().ListSlice(input.VariableStatementDeclarationList().VariableDeclarationListDeclarations()) {
-		visible = getBindingNameVisible(tx.resolver, decl)
-		if visible {
-			break
-		}
-	}
+	decls := input.VariableStatementDeclarationList().Store().ListSlice(input.VariableStatementDeclarationList().VariableDeclarationListDeclarations())
+	visible := decls.Some(func(decl ast.Handle) bool {
+		return getBindingNameVisible(tx.resolver, decl)
+	})
 	if !visible {
 		return ast.Handle{}
 	}
-	inputNodes := input.VariableStatementDeclarationList().Store().ListSlice(input.VariableStatementDeclarationList().VariableDeclarationListDeclarations())
+	inputNodes := decls.Slice()
 	var extraImports []ast.Handle
 	if !tx.state.currentSourceFile.CommonJSModuleIndicator.IsNil() {
 		var normalDeclarations []ast.Handle
@@ -1634,8 +1637,15 @@ func (tx *DeclarationTransformer) ensureModifiers(node ast.Handle) ast.ListRef {
 		if mods == 0 {
 			return mods
 		}
-		if canReuseModifierNodes(node.Store().ListSlice(mods)) {
-			return tx.Factory().NewModifierList(core.Filter(node.Store().ListSlice(mods), ast.IsModifier))
+		modsSeq := node.Store().ListSlice(mods)
+		if canReuseModifierNodes(modsSeq) {
+			filtered := make([]ast.Handle, 0, modsSeq.Len())
+			for _, m := range modsSeq {
+				if ast.IsModifier(m) {
+					filtered = append(filtered, m)
+				}
+			}
+			return tx.Factory().NewModifierList(filtered)
 		}
 	}
 	result := ast.CreateModifiersFromModifierFlags(newFlags, tx.Factory().NewModifier)
@@ -1805,7 +1815,7 @@ func (tx *DeclarationTransformer) transformJSDocTypeExpression(input ast.Handle)
 	return tx.Visitor().Visit(input.Type())
 }
 func (tx *DeclarationTransformer) transformJSDocTypeLiteral(input ast.Handle) ast.Handle {
-	members := tx.Visitor().VisitSlice(input.Store().ListSlice(input.JSDocTypeLiteralJSDocPropertyTags()))
+	members := tx.Visitor().VisitSlice(input.Store().ListSlice(input.JSDocTypeLiteralJSDocPropertyTags()).Slice())
 	replacement := tx.Factory().NewTypeLiteralNode(tx.Factory().NewList(members))
 	tx.EmitContext().SetOriginal(replacement, input)
 	return replacement
@@ -1864,7 +1874,12 @@ func (tx *DeclarationTransformer) stripDeclareModifiers(node ast.Handle) ast.Han
 	if mods != 0 {
 		flags := node.ModifierFlags()
 		if flags&ast.ModifierFlagsAmbient != 0 {
-			filtered := core.Filter(node.Store().ListSlice(mods), isNotDeclareModifier)
+			var filtered []ast.Handle
+			for _, m := range node.Store().ListSlice(mods) {
+				if isNotDeclareModifier(m) {
+					filtered = append(filtered, m)
+				}
+			}
 			node.SetModifiers(tx.Factory().NewModifierList(filtered))
 		}
 	}
@@ -2069,16 +2084,16 @@ func (tx *DeclarationTransformer) createFullExpandoBlock(id ast.GlobalRef) ast.H
 				if !c.Name().IsNil() {
 					name = tx.Factory().DeepCloneNode(c.Name())
 					if c.Modifiers() != 0 {
-						modifiers = tx.Factory().NewModifierList(c.Store().ListSlice(c.Modifiers()))
+						modifiers = tx.Factory().NewModifierList(c.Store().ListSlice(c.Modifiers()).Slice())
 					}
 					break
 				}
 			}
-			host = n.Store().ListSlice(n.SyntaxListChildren())
+			host = n.Store().ListSlice(n.SyntaxListChildren()).Slice()
 		} else if !n.IsNil() {
 			name = tx.Factory().DeepCloneNode(n.Name())
 			if n.Modifiers() != 0 {
-				modifiers = tx.Factory().NewModifierList(n.Store().ListSlice(n.Modifiers()))
+				modifiers = tx.Factory().NewModifierList(n.Store().ListSlice(n.Modifiers()).Slice())
 			}
 			host = []ast.Handle{n}
 		}
