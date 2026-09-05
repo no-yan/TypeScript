@@ -227,7 +227,7 @@ func (b *NodeBuilderImpl) appendReferenceToType(root ast.Handle, ref ast.Handle)
 		return b.f.UpdateImportTypeNode(imprt, imprt.IsTypeOf(), imprt.Argument(), imprt.Attributes(), qualifier, ref.TypeArgumentList())
 	} else if ast.IsTypeReferenceNode(root) {
 		typeRef := root
-		if b.ctx.flags&nodebuilder.FlagsUseInstantiationExpressions != 0 && typeRef.TypeArgumentList() != 0 && typeRef.TypeArgumentsSeq().Len() != 0 {
+		if b.ctx.flags&nodebuilder.FlagsUseInstantiationExpressions != 0 && typeRef.TypeArgumentList() != 0 && typeArgumentCount(typeRef) != 0 {
 			expr := b.createExpressionWithTypeArguments(b.createAccessExpression(typeRef.TypeName()), typeRef.TypeArgumentList())
 			for _, id := range getAccessStack(ref) {
 				expr = b.f.NewPropertyAccessExpression(expr, ast.Handle{}, id, ast.NodeFlagsNone)
@@ -424,7 +424,7 @@ func (b *NodeBuilderImpl) existingTypeNodeIsNotReferenceOrIsReferenceWithCompati
 	if existingTarget == nil || existingTarget != t.AsTypeReference().target {
 		return true
 	}
-	return existing.TypeArgumentsSeq().Len() >= b.ch.getMinTypeArgumentCount(t.AsTypeReference().target.AsInterfaceType().TypeParameters())
+	return typeArgumentCount(existing) >= b.ch.getMinTypeArgumentCount(t.AsTypeReference().target.AsInterfaceType().TypeParameters())
 }
 func (b *NodeBuilderImpl) tryReuseExistingNonParameterTypeNode(existing ast.Handle, t *Type, host ast.Handle, annotationType *Type) ast.Handle {
 	if host.IsNil() {
@@ -2515,7 +2515,7 @@ func (b *NodeBuilderImpl) typeReferenceToTypeNode(t *Type) ast.Handle {
 			if typeParams != nil {
 				typeParameterCount = min(len(typeParams), len(typeArguments))
 				if b.ch.isReferenceToType(t, b.ch.getGlobalIterableType()) || b.ch.isReferenceToType(t, b.ch.getGlobalIterableIteratorType()) || b.ch.isReferenceToType(t, b.ch.getGlobalAsyncIterableType()) || b.ch.isReferenceToType(t, b.ch.getGlobalAsyncIterableIteratorType()) {
-					if t.AsTypeReference().node.IsNil() || !ast.IsTypeReferenceNode(t.AsTypeReference().node) || t.AsTypeReference().node.TypeArgumentsSeq().Len() < typeParameterCount {
+					if t.AsTypeReference().node.IsNil() || !ast.IsTypeReferenceNode(t.AsTypeReference().node) || typeArgumentCount(t.AsTypeReference().node) < typeParameterCount {
 						for typeParameterCount > 0 {
 							typeArgument := typeArguments[typeParameterCount-1]
 							typeParameter := t.Target().AsInterfaceType().TypeParameters()[typeParameterCount-1]

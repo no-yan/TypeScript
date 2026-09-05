@@ -2643,7 +2643,7 @@ func (c *Checker) checkTypeReferenceNode(node ast.Handle) {
 func (c *Checker) checkTypeReferenceOrImport(node ast.Handle) {
 	t := c.getTypeFromTypeNode(node)
 	if !c.isErrorType(t) {
-		if node.TypeArgumentsSeq().Len() != 0 {
+		if typeArgumentCount(node) != 0 {
 			typeParameters := c.getTypeParametersForTypeReferenceOrImport(node)
 			if len(typeParameters) != 0 {
 				c.checkTypeArgumentConstraints(node, typeParameters)
@@ -3792,7 +3792,7 @@ func (c *Checker) checkClassLikeDeclaration(node ast.Handle) {
 			staticBaseType := c.getApparentType(baseConstructorType)
 			c.checkBaseTypeAccessibility(staticBaseType, baseTypeNode)
 			c.checkSourceElement(baseTypeNode.Expression())
-			if baseTypeNode.TypeArgumentsSeq().Len() != 0 {
+			if typeArgumentCount(baseTypeNode) != 0 {
 				c.checkSourceElementsSeq(baseTypeNode.TypeArgumentsSeq())
 				for _, constructor := range c.getConstructorsForTypeArguments(staticBaseType, baseTypeNode.TypeArguments(), baseTypeNode) {
 					if !c.checkTypeArgumentConstraints(baseTypeNode, constructor.typeParameters) {
@@ -7346,7 +7346,7 @@ func (c *Checker) resolveCallExpression(node ast.Handle, candidatesOutArray *[]*
 	callSignatures := c.getSignaturesOfType(apparentType, SignatureKindCall)
 	numConstructSignatures := len(c.getSignaturesOfType(apparentType, SignatureKindConstruct))
 	if c.isUntypedFunctionCall(funcType, apparentType, len(callSignatures), numConstructSignatures) {
-		if !c.isErrorType(funcType) && node.TypeArgumentsSeq().Len() != 0 {
+		if !c.isErrorType(funcType) && typeArgumentCount(node) != 0 {
 			c.error(node, diagnostics.Untyped_function_calls_may_not_accept_type_arguments)
 		}
 		return c.resolveUntypedCall(node)
@@ -7367,7 +7367,7 @@ func (c *Checker) resolveCallExpression(node ast.Handle, candidatesOutArray *[]*
 		}
 		return c.resolveErrorCall(node)
 	}
-	if checkMode&CheckModeSkipGenericFunctions != 0 && node.TypeArgumentsSeq().Len() == 0 && core.Some(callSignatures, c.isGenericFunctionReturningFunction) {
+	if checkMode&CheckModeSkipGenericFunctions != 0 && typeArgumentCount(node) == 0 && core.Some(callSignatures, c.isGenericFunctionReturningFunction) {
 		c.skippedGenericFunction(node, checkMode)
 		return c.resolvingSignature
 	}
@@ -7383,7 +7383,7 @@ func (c *Checker) resolveNewExpression(node ast.Handle, candidatesOutArray *[]*S
 		return c.resolveErrorCall(node)
 	}
 	if IsTypeAny(expressionType) {
-		if node.TypeArgumentsSeq().Len() != 0 {
+		if typeArgumentCount(node) != 0 {
 			c.error(node, diagnostics.Untyped_function_calls_may_not_accept_type_arguments)
 		}
 		return c.resolveUntypedCall(node)
@@ -18839,9 +18839,12 @@ func (c *Checker) getNamedMembers(members ast.SymbolTable, container *ast.Symbol
 	return result
 }
 func (c *Checker) isDeclarationContainedBy(symbol *ast.Symbol, container *ast.Symbol) bool {
-	if declaration := ast.NodeOf(symbol.ValueDeclaration); !declaration.IsNil() {
-		for _, d := range ast.DeclarationNodes(container) {
-			if declaration.Loc().ContainedBy(d.Loc()) {
+	// Hot path: do not use DeclarationNodes — each call allocates a NodeSeq closure.
+	if declaration := ast.NodeOf(symbol.ValueDeclaration); !declaration.IsNil() && container != nil {
+		loc := declaration.Loc()
+		for _, g := range container.Declarations {
+			d := ast.NodeOf(g)
+			if !d.IsNil() && loc.ContainedBy(d.Loc()) {
 				return true
 			}
 		}
@@ -19125,7 +19128,7 @@ func (c *Checker) isTypeParameterPossiblyReferenced(tp *Type, node ast.Handle) b
 		case ast.KindThisType:
 			return tp.AsTypeParameter().isThisType
 		case ast.KindTypeReference:
-			if !tp.AsTypeParameter().isThisType && node.TypeArgumentsSeq().Len() == 0 && c.getSymbolFromTypeReference(node) == tp.symbol {
+			if !tp.AsTypeParameter().isThisType && typeArgumentCount(node) == 0 && c.getSymbolFromTypeReference(node) == tp.symbol {
 				return true
 			}
 		case ast.KindTypeQuery:
@@ -19799,7 +19802,7 @@ func (c *Checker) getTypeFromClassOrInterfaceReference(node ast.Handle, symbol *
 	d := t.AsInterfaceType()
 	typeParameters := d.LocalTypeParameters()
 	if len(typeParameters) != 0 {
-		numTypeArguments := node.TypeArgumentsSeq().Len()
+		numTypeArguments := typeArgumentCount(node)
 		minTypeArgumentCount := c.getMinTypeArgumentCount(typeParameters)
 		isJs := ast.IsInJSFile(node)
 		isJsImplicitAny := !c.noImplicitAny && isJs
@@ -19836,14 +19839,14 @@ func (c *Checker) getTypeFromClassOrInterfaceReference(node ast.Handle, symbol *
 	return c.errorType
 }
 func (c *Checker) getTypeArgumentsFromNode(node ast.Handle) []*Type {
-	out := make([]*Type, 0, node.TypeArgumentsSeq().Len())
+	out := make([]*Type, 0, typeArgumentCount(node))
 	for _, n := range node.TypeArgumentsSeq() {
 		out = append(out, c.getTypeFromTypeNode(n))
 	}
 	return out
 }
 func (c *Checker) checkNoTypeArguments(node ast.Handle, symbol *ast.Symbol) bool {
-	if node.TypeArgumentsSeq().Len() != 0 {
+	if typeArgumentCount(node) != 0 {
 		var typeName string
 		if symbol != nil {
 			typeName = c.symbolToString(symbol)
@@ -25091,12 +25094,13 @@ func (c *Checker) getContextualType(node ast.Handle, contextFlags ContextFlags) 
 		return c.getContextualType(parent.Parent(), contextFlags)
 	case ast.KindArrayLiteralExpression:
 		t := c.getApparentTypeOfContextualType(parent, contextFlags)
-		elementIndex := ast.IndexOfNode(parent.Elements(), node)
+		elems := parent.ElementList()
+		elementIndex := parent.Store().ListIndexOf(elems, node)
 		if elementIndex < 0 {
 			return nil
 		}
 		firstSpreadIndex, lastSpreadIndex := c.getSpreadIndices(parent)
-		return c.getContextualTypeForElementExpression(t, elementIndex, parent.ElementsSeq().Len(), firstSpreadIndex, lastSpreadIndex)
+		return c.getContextualTypeForElementExpression(t, elementIndex, parent.Store().ListLen(elems), firstSpreadIndex, lastSpreadIndex)
 	case ast.KindConditionalExpression:
 		return c.getContextualTypeForConditionalOperand(node, contextFlags)
 	case ast.KindTemplateSpan:

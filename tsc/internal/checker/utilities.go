@@ -115,8 +115,15 @@ func isCompoundLikeAssignment(assignment ast.Handle) bool {
 	right := ast.SkipParentheses(assignment.BinaryExpressionRight())
 	return right.Kind == ast.KindBinaryExpression && isShiftOperatorOrHigher(right.BinaryExpressionOperatorToken().Kind)
 }
+func typeArgumentCount(node ast.Handle) int {
+	if node.IsNil() {
+		return 0
+	}
+	return node.Store().ListLen(node.TypeArgumentList())
+}
+
 func isConstTypeReference(node ast.Handle) bool {
-	return ast.IsTypeReferenceNode(node) && node.TypeArgumentsSeq().Len() == 0 && ast.IsIdentifier(node.TypeReferenceNodeTypeName()) && node.TypeReferenceNodeTypeName().Text() == "const"
+	return ast.IsTypeReferenceNode(node) && typeArgumentCount(node) == 0 && ast.IsIdentifier(node.TypeReferenceNodeTypeName()) && node.TypeReferenceNodeTypeName().Text() == "const"
 }
 
 func isConstTypeReferenceName(node ast.Handle) bool {
@@ -893,11 +900,11 @@ func (c *Checker) callLikeExpressionMayHaveTypeArguments(node ast.Handle) bool {
 func isSuperCall(n ast.Handle) bool {
 	return ast.IsCallExpression(n) && n.Expression().Kind == ast.KindSuperKeyword
 }
-func getMembersOfDeclaration(node ast.Handle) []ast.Handle {
+func getMembersOfDeclaration(node ast.Handle) ast.NodeSeq {
 	if list := node.MemberList(); list != 0 {
-		return node.Store().ListSlice(list).Slice()
+		return node.Store().ListSlice(list)
 	}
-	return node.PropertiesSeq().Slice()
+	return node.PropertiesSeq()
 }
 func isInRightSideOfImportOrExportAssignment(node ast.Handle) bool {
 	for node.Parent().Kind == ast.KindQualifiedName {
