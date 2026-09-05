@@ -10,10 +10,10 @@ import (
 )
 
 type SymbolTrackerImpl struct {
-	resolver      printer.EmitResolver
-	state         *SymbolTrackerSharedState
-	host          DeclarationEmitHost
-	fallbackStack []ast.Handle
+	resolver                    printer.EmitResolver
+	state                       *SymbolTrackerSharedState
+	host                        DeclarationEmitHost
+	fallbackStack               []ast.Handle
 	watchedClassSymbol          *ast.Symbol
 	classSymbolTracked          bool
 	getIsolatedDeclarationError func(node ast.Handle) *ast.Diagnostic
@@ -103,16 +103,17 @@ func (s *SymbolTrackerImpl) ReportNonlocalAugmentation(containingFile *ast.Sourc
 	primaryDeclaration := ast.FindSymbolDeclaration(parentSymbol, func(d ast.Handle) bool {
 		return ast.GetSourceFileOfNode(d) == containingFile
 	})
-	augmentingDeclarations := core.Filter(ast.DeclarationNodes(augmentingSymbol), func(d ast.Handle) bool {
-		return ast.GetSourceFileOfNode(d) != containingFile
-	})
-	if !primaryDeclaration.IsNil() && len(augmentingDeclarations) > 0 {
-		for _, augmentations := range augmentingDeclarations {
-			diag := createDiagnosticForNode(augmentations, diagnostics.Declaration_augments_declaration_in_another_file_This_cannot_be_serialized)
-			related := createDiagnosticForNode(primaryDeclaration, diagnostics.This_is_the_declaration_being_augmented_Consider_moving_the_augmenting_declaration_into_the_same_file)
-			diag.AddRelatedInfo(related)
-			s.state.addDiagnostic(diag)
+	if primaryDeclaration.IsNil() {
+		return
+	}
+	for _, augmentations := range ast.DeclarationNodes(augmentingSymbol) {
+		if ast.GetSourceFileOfNode(augmentations) == containingFile {
+			continue
 		}
+		diag := createDiagnosticForNode(augmentations, diagnostics.Declaration_augments_declaration_in_another_file_This_cannot_be_serialized)
+		related := createDiagnosticForNode(primaryDeclaration, diagnostics.This_is_the_declaration_being_augmented_Consider_moving_the_augmenting_declaration_into_the_same_file)
+		diag.AddRelatedInfo(related)
+		s.state.addDiagnostic(diag)
 	}
 }
 
