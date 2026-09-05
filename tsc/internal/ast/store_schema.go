@@ -7,6 +7,7 @@ import "github.com/microsoft/TypeScript/tsc/internal/core"
 
 const (
 	binSlotLeft = iota
+	binSlotType
 	binSlotOperator
 	binSlotRight
 	binSlotCount

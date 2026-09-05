@@ -342,6 +342,10 @@
                 "handWritten": {
                     "type": "boolean",
                     "description": "Whether this node's factory, visitor, and other generated code is hand-written rather than generated."
+                },
+                "storeSlots": {
+                    "type": "string",
+                    "description": "When set, generate-go-ast.ts emits Store slot layouts from this node's members. Value is documentation only."
                 }
             }
         },

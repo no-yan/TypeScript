@@ -2505,6 +2505,9 @@ type SourceFile struct {
 	// to be an external module (previously "true").
 	ExternalModuleIndicator *Node
 
+	parseStore *Store
+	parseRoot  NodeRef
+
 	// Fields set by binder
 
 	isBound               atomic.Bool
@@ -2546,11 +2549,35 @@ func (f *NodeFactory) NewSourceFile(opts SourceFileParseOptions, text string, st
 	data.text = text
 	data.Statements = statements
 	data.EndOfFileToken = endOfFileToken
-	return f.newNode(KindSourceFile, data)
+	node := f.newNode(KindSourceFile, data)
+	if h := f.storeAlloc(node, slotSourceFileCount, listSlotSourceFileCount); h.Ref() != 0 {
+		h.SetChild(slotSourceFileEndOfFileToken, f.storeHandle(endOfFileToken))
+		h.SetListSlot(listSlotSourceFileStatements, f.storeList(statements))
+	}
+	return node
 }
 
 func (node *SourceFile) ParseOptions() SourceFileParseOptions {
 	return node.parseOptions
+}
+
+func (node *SourceFile) ParseStore() *Store { return node.parseStore }
+
+func (node *SourceFile) ParseRoot() Handle {
+	if node.parseStore == nil || node.parseRoot == 0 {
+		return Handle{}
+	}
+	return node.parseStore.At(node.parseRoot)
+}
+
+func (node *SourceFile) SetParseStore(s *Store, root Handle) {
+	node.parseStore = s
+	if s != nil {
+		s.SetSourceFile(node)
+	}
+	if root.s == s {
+		node.parseRoot = root.id
+	}
 }
 
 func (node *SourceFile) Text() string {

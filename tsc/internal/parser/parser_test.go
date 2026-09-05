@@ -329,3 +329,19 @@ namespace N {
 	assert.Equal(t, positionMap.UTF8ToUTF16(afterBoxDrawingCharacter), afterBoxDrawingCharacter-2)
 	assert.Equal(t, positionMap.UTF8ToUTF16(len(sourceText)), len(sourceText)-2)
 }
+
+func TestParseStoreNonempty(t *testing.T) {
+	t.Parallel()
+	opts := ast.SourceFileParseOptions{
+		FileName: "/index.ts",
+		Path:     "/index.ts",
+	}
+	sourceText := "const x = 1;\n"
+	file := parser.ParseSourceFile(opts, sourceText, core.ScriptKindTS)
+	store := file.ParseStore()
+	assert.Assert(t, store != nil, "ParseSourceFile must allocate a Store")
+	assert.Assert(t, store.Len() > 0, "Store must be nonempty before expand")
+	expanded := ast.ExpandStore(file.ParseRoot(), opts, sourceText)
+	assert.Assert(t, expanded != nil)
+	assert.Equal(t, ast.KindSourceFile, expanded.Kind)
+}

@@ -6,7 +6,7 @@ Motivation and early sketch: [TypeScript#63807](https://github.com/microsoft/Typ
 
 ## Status
 
-Safe to keep on a branch as a **package-local experiment**: nothing on the production compile path calls `NewFactory`, `NewStore`, `FlattenNode`, or `CopySubtree` today. The production tree remains `*Node` (`ast.go`, `ast_generated.go`, `NodeFactory`, `printer.EmitContext`).
+Safe to keep on a branch as a **package-local experiment**. PR-3 (unlanded) has `ParseSourceFile` allocate through `NewFactory` and `ExpandStore` at the parse boundary. The production tree returned to binder is still `*Node`. Do not land `ExpandStore` on microsoft/main; PR-6 deletes it.
 
 Do **not** treat this document as a merged, settled design for the whole compiler until the [Open questions](#open-questions) below have written answers. The layout bet (packed header, noscan columns) has package-level evidence. Identity across files, mutation rules, incremental parse, emit sharing, and an end-to-end stop criterion do not.
 
@@ -99,10 +99,13 @@ Temporary bridges such as `FlattenNode` are **measurement-only**. They keep Kind
 
 | Path | Role |
 | --- | --- |
-| `store.go` | `Store`, `NodeRef`, `ListRef`, `Handle`, walk, parents, symbol/flow/locals/nextContainer side maps, `list0` |
+| `store.go` | `Store`, `NodeRef`, `ListRef`, `Handle`, walk, parents, symbol/flow/locals/nextContainer side maps, packed `listSlots` |
 | `store_identity.go` | `StoreID`, `GlobalRef`, `StoreSet` (cross-store identity, SourceFile metadata) |
-| `store_schema.go` | BinaryExpression, Parameter, ArrayLiteral slot layout |
+| `store_schema.go` | BinaryExpression, Parameter, ArrayLiteral slot layout (β slice) |
+| `store_schema_generated.go` | Generated child, list, and kind-specific value slots for every factory kind |
 | `store_factory.go` | Store-only `Factory`, `NewFactoryOn` |
+| `store_bridge.go` | `NodeFactory.AttachStore` dual-write into Store during parse |
+| `store_expand.go`, `store_expand_generated.go` | Exhaustive temporary Store → `*Node` copy; unknown non-token kinds panic (delete in PR-6) |
 | `store_copy.go` | `Factory.CopySubtree` (cross-store remap) |
 | `store_flatten.go` | Lossy `*Node` → Store copy for benches |
 | `store_*_test.go`, `store_*_bench_test.go` | Unit, copy, adversarial, and e2e benches |
@@ -192,7 +195,7 @@ Checked against the live `*Node` pipeline (parser, binder, checker, printer). No
 
 1. **`NodeRef(0)` is optional-absent, not a missing token.** `NodeIsMissing` (`utilities.go:66`) treats a real node with zero-width loc as present-but-missing (error recovery). Optional fields are `nil`. Those are different states. Allocating a zero-width node for the latter, using `0` only for the former.
 
-2. **Kind-specific payload is not all children.** `nodeHeader` has kind, flags, loc, parent, child range, intern id. Live nodes also carry `TokenFlags` (`tokenflags.go`), `ModifierList.ModifierFlags`, `LiteralLike` text beyond the five kinds `FlattenNode` copies, `DeclarationBase.Symbol`, `ExportableBase.LocalSymbol`, `LocalsContainerBase.Locals` + `NextContainer`, `FlowNodeBase.FlowNode`, and `CompositeBase` subtree facts. Pointer payloads go in side maps (already true for `symbols`). Scalar extras (`TokenFlags`, `ModifierFlags`, subtree facts) need columns or packed extra words. Dropping them is a functional break, not a later optimization.
+2. **Kind-specific payload is not all children.** `nodeHeader` has kind, flags, loc, parent, child range, intern id. Live nodes also carry `TokenFlags` (`tokenflags.go`), `ModifierList.ModifierFlags`, `LiteralLike` text beyond the five kinds `FlattenNode` copies, `DeclarationBase.Symbol`, `ExportableBase.LocalSymbol`, `LocalsContainerBase.Locals` + `NextContainer`, `FlowNodeBase.FlowNode`, and `CompositeBase` subtree facts. Generated value slots preserve every factory argument: integer-like scalars use a pointer-free `map[uint64]uint64`, strings use Store intern ids, and the few pointer/slice values use a sparse side map. Token flags remain in the packed header. Dropping any generated value is a functional break.
 
 3. **Lists have their own loc.** `NodeList.HasTrailingComma` is `last.End() < list.End()` (`ast.go:138`). `listHeader` already stores loc. Copy and schema must preserve it.
 
@@ -227,10 +230,10 @@ Checked against the live `*Node` pipeline (parser, binder, checker, printer). No
 | Layout bet has package-level evidence | done |
 | Cross-store identity exists in code | done (`store_identity.go`) |
 | Functional constraints written from live parser/binder/checker | done (this section) |
-| Header/side-map split implemented for TokenFlags, Locals, FlowNode, NextContainer, extra intern kinds | TokenFlags on header, FlowNode / Locals / NextContainer side maps, Intern after Seal |
+| Header/side-map split implemented for TokenFlags, Locals, FlowNode, NextContainer, extra intern kinds | TokenFlags on header; generated scalar/string/object value slots; FlowNode / Locals / NextContainer side maps; Intern after Seal |
 | Child slots and lists remain writable after the host exists (JSDoc reparse + lazy TS JSDoc) | done (`SetChild`, `SetList`, Intern after Seal) |
 | Synthetics and emit updates append into the parse Store (no cross-store child edges) | `NewFactoryOn` |
-| Store-to-SourceFile metadata map | `StoreSet.SetFile` / `File` |
+| Store-to-SourceFile metadata map | `Store.SetSourceFile` keeps the per-file metadata owner; `StoreSet.SetFile` / `File` resolves it across stores |
 | `ListRef` in schema + `CopySubtree` remaps lists | done (`list0`, ArrayLiteral, FunctionExpression params, `copyList`) |
 | `GOGC` / `GOMEMLIMIT`-only baseline on a large `tsgo` run | PASS-PERF on the TypeScript v6.0.3 CI smoke project (see [cmd/tsc GOGC baseline](#cmdtsc-gogc-baseline)) |
 

@@ -4778,7 +4778,8 @@
                         "type": "EndOfFile"
                     }
                 ],
-                "handWritten": true
+                "handWritten": true,
+                "storeSlots": "generated-from-members"
             },
             "ModuleDeclaration": {
                 "extends": [

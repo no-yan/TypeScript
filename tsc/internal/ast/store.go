@@ -36,7 +36,8 @@ type nodeHeader struct {
 	childStart uint32
 	childLen   uint32
 	identText  uint32
-	list0      ListRef // 0 = no list. One list per node in this slice.
+	listStart  uint32
+	listLen    uint32
 }
 
 type listHeader struct {
@@ -61,6 +62,7 @@ type Store struct {
 	nodes         []nodeHeader
 	lists         []listHeader
 	children      []NodeRef
+	listSlots     []ListRef
 	internBuf     []byte
 	internOff     []uint32 // intern id i occupies internBuf[internOff[i]:internOff[i+1]]
 	internIdx     map[string]uint32
@@ -68,6 +70,10 @@ type Store struct {
 	flows         map[NodeRef]*FlowNode
 	locals        map[NodeRef]SymbolTable
 	nextContainer map[NodeRef]NodeRef
+	scalarValues  map[uint64]uint64 // packed NodeRef/value-slot key; pointer-free
+	stringValues  map[uint64]uint32 // intern ids keyed by NodeRef/value-slot
+	objectValues  map[uint64]any    // sparse pointer/slice kind-specific values
+	sourceFile    *SourceFile       // metadata owner; SourceFile fields stay outside Store
 }
 
 func NewStore(hint int) *Store {
@@ -83,11 +89,18 @@ func NewStore(hint int) *Store {
 }
 
 func (s *Store) Alloc(kind Kind, flags NodeFlags, loc core.TextRange, childLen int) Handle {
+	return s.AllocSlots(kind, flags, loc, childLen, 0)
+}
+
+func (s *Store) AllocSlots(kind Kind, flags NodeFlags, loc core.TextRange, childLen, listLen int) Handle {
 	if s == nil {
 		panic("ast: Alloc on nil Store")
 	}
 	if childLen < 0 {
 		panic("ast: negative childLen")
+	}
+	if listLen < 0 {
+		panic("ast: negative listLen")
 	}
 	if len(s.nodes) >= int(^NodeRef(0)) {
 		panic("ast: Store exhausted")
@@ -97,6 +110,10 @@ func (s *Store) Alloc(kind Kind, flags NodeFlags, loc core.TextRange, childLen i
 	if childLen > 0 {
 		s.children = append(s.children, make([]NodeRef, childLen)...)
 	}
+	listStart := uint32(len(s.listSlots))
+	if listLen > 0 {
+		s.listSlots = append(s.listSlots, make([]ListRef, listLen)...)
+	}
 	s.nodes = append(s.nodes, nodeHeader{
 		kind:       kind,
 		flags:      flags,
@@ -104,6 +121,8 @@ func (s *Store) Alloc(kind Kind, flags NodeFlags, loc core.TextRange, childLen i
 		end:        int32(loc.End()),
 		childStart: start,
 		childLen:   uint32(childLen),
+		listStart:  listStart,
+		listLen:    uint32(listLen),
 	})
 	return Handle{s: s, id: id}
 }
@@ -163,6 +182,20 @@ func (s *Store) At(ref NodeRef) Handle {
 	return Handle{s: s, id: ref}
 }
 
+func (s *Store) SetSourceFile(file *SourceFile) {
+	if s == nil {
+		panic("ast: SetSourceFile on nil Store")
+	}
+	s.sourceFile = file
+}
+
+func (s *Store) SourceFile() *SourceFile {
+	if s == nil {
+		return nil
+	}
+	return s.sourceFile
+}
+
 func (s *Store) ListLen(list ListRef) int {
 	if list == 0 || s == nil {
 		return 0
@@ -196,6 +229,14 @@ func (s *Store) ListHasTrailingComma(list ListRef) bool {
 	}
 	last := s.ListAt(list, n-1)
 	return last.Loc().End() < s.ListLoc(list).End()
+}
+
+func (s *Store) setListLoc(list ListRef, loc core.TextRange) {
+	if list == 0 || s == nil {
+		return
+	}
+	s.lists[list].pos = int32(loc.Pos())
+	s.lists[list].end = int32(loc.End())
 }
 
 func (s *Store) SetListAt(list ListRef, i int, h Handle) {
@@ -298,6 +339,71 @@ func (s *Store) NextContainer(ref NodeRef) NodeRef {
 		return 0
 	}
 	return s.nextContainer[ref]
+}
+
+func (h Handle) valueKey(slot int) uint64 {
+	h.mustLive()
+	if slot < 0 {
+		panic("ast: negative value slot")
+	}
+	return uint64(h.id)<<32 | uint64(uint32(slot))
+}
+
+func (h Handle) SetUintValue(slot int, value uint64) {
+	key := h.valueKey(slot)
+	if h.s.scalarValues == nil {
+		h.s.scalarValues = make(map[uint64]uint64)
+	}
+	h.s.scalarValues[key] = value
+}
+
+func (h Handle) UintValue(slot int) uint64 {
+	return h.s.scalarValues[h.valueKey(slot)]
+}
+
+func (h Handle) SetStringValue(slot int, value string) {
+	key := h.valueKey(slot)
+	if value == "" {
+		delete(h.s.stringValues, key)
+		return
+	}
+	if h.s.stringValues == nil {
+		h.s.stringValues = make(map[uint64]uint32)
+	}
+	h.s.stringValues[key] = h.s.Intern(value)
+}
+
+func (h Handle) StringValue(slot int) string {
+	id := h.s.stringValues[h.valueKey(slot)]
+	if id == 0 {
+		return ""
+	}
+	return h.s.internText(id)
+}
+
+func (h Handle) SetObjectValue(slot int, value any) {
+	key := h.valueKey(slot)
+	if value == nil {
+		delete(h.s.objectValues, key)
+		return
+	}
+	if h.s.objectValues == nil {
+		h.s.objectValues = make(map[uint64]any)
+	}
+	h.s.objectValues[key] = value
+}
+
+func storeObjectValue[T any](h Handle, slot int) T {
+	var zero T
+	value := h.s.objectValues[h.valueKey(slot)]
+	if value == nil {
+		return zero
+	}
+	result, ok := value.(T)
+	if !ok {
+		panic("ast: Store value slot type mismatch")
+	}
+	return result
 }
 
 func (s *Store) internText(id uint32) string {
@@ -451,19 +557,52 @@ func (h Handle) SetNextContainer(next Handle) {
 	h.s.SetNextContainer(h.id, h.refInStore(next))
 }
 
+func (h Handle) NumListSlots() int {
+	if h.id == 0 || h.s == nil {
+		return 0
+	}
+	return int(h.s.nodes[h.id].listLen)
+}
+
+func (h Handle) ListSlot(i int) ListRef {
+	h.mustLive()
+	n := &h.s.nodes[h.id]
+	if i < 0 || i >= int(n.listLen) {
+		panic("ast: list slot out of range")
+	}
+	return h.s.listSlots[int(n.listStart)+i]
+}
+
+func (h Handle) SetListSlot(i int, list ListRef) {
+	h.mustLive()
+	n := &h.s.nodes[h.id]
+	if i < 0 || i >= int(n.listLen) {
+		panic("ast: list slot out of range")
+	}
+	h.s.listSlots[int(n.listStart)+i] = list
+}
+
 func (h Handle) List() ListRef {
 	if h.id == 0 || h.s == nil {
 		return 0
 	}
-	return h.s.nodes[h.id].list0
+	n := &h.s.nodes[h.id]
+	if n.listLen == 0 {
+		return 0
+	}
+	return h.s.listSlots[n.listStart]
 }
 
 func (h Handle) SetList(list ListRef) {
 	h.mustLive()
-	h.s.nodes[h.id].list0 = list
+	n := &h.s.nodes[h.id]
+	if n.listLen == 0 {
+		panic("ast: SetList on node with no list slots")
+	}
+	h.s.listSlots[n.listStart] = list
 }
 
-// ForEachChild visits non-zero named children, then list0 elements. true stops.
+// ForEachChild visits non-zero named children, then each list slot. true stops.
 func (h Handle) ForEachChild(v StoreVisitor) bool {
 	if h.id == 0 || h.s == nil {
 		return false
@@ -478,8 +617,12 @@ func (h Handle) ForEachChild(v StoreVisitor) bool {
 			return true
 		}
 	}
-	if n.list0 != 0 {
-		l := &h.s.lists[n.list0]
+	for slot := range int(n.listLen) {
+		list := h.s.listSlots[int(n.listStart)+slot]
+		if list == 0 {
+			continue
+		}
+		l := &h.s.lists[list]
 		for i := range int(l.len) {
 			ref := h.s.children[int(l.start)+i]
 			if ref == 0 {
