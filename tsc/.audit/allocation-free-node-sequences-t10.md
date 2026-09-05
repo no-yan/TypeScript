@@ -9,7 +9,7 @@ Status: **ISSUES** (integration compiles; benches keep 32 B/op / 2 allocs/op; VS
 |---|---|
 | `repo_root` | `/workspace` (github.com/no-yan/TypeScript) |
 | `tsgolint_git_rev` | N/A |
-| `typescript_go_git_rev` | `d616e5b4692681a13e0594ce23a354197f6e0c30` (`cursor/nodeseq-integration-t10-3e72`) |
+| `typescript_go_git_rev` | `d616e5b4692681a13e0594ce23a354197f6e0c30` (compile/test tip on `cursor/nodeseq-integration-t10-3e72`; audit files may sit on a later docs commit) |
 | `t0_git_rev` | `468c528422795cf5987b0ce854f7e0c20354080f` (`cursor/nodeseq-api-t0-0d32`) |
 | Spec file `tsc/.audit/allocation-free-node-sequences-tasks.md` | **missing** on T0 and this checkout |
 | This note | current |
