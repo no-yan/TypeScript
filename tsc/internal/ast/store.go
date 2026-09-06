@@ -543,6 +543,20 @@ func (s *Store) ListAt(list ListRef, i int) Handle {
 	return Handle{}
 }
 
+// ListRefAt returns the same-store NodeRef stored in list slot i, or 0 when
+// the slot is empty or holds an external (cross-store) child. Callers that may
+// see external children must use ListAt.
+func (s *Store) ListRefAt(list ListRef, i int) NodeRef {
+	if list == 0 || s == nil {
+		return 0
+	}
+	l := &s.lists[list]
+	if i < 0 || i >= int(l.len) {
+		panic("ast: list index out of range")
+	}
+	return s.children[int(l.start)+i]
+}
+
 func (s *Store) ListHasTrailingComma(list ListRef) bool {
 	n := s.ListLen(list)
 	if n == 0 {

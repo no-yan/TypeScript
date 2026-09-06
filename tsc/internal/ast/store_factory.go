@@ -386,6 +386,18 @@ func (f *Factory) List(loc core.TextRange, elems ...Handle) ListRef {
 	return list
 }
 
+// ListRefs allocates a list from same-store NodeRefs. Unlike List it never
+// copies subtrees: every ref must belong to this Factory's Store (or be 0).
+// It is the parser's allocation path; the []NodeRef scratch slice is noscan.
+func (f *Factory) ListRefs(loc core.TextRange, refs []NodeRef) ListRef {
+	list := f.store.AllocList(loc, len(refs))
+	if len(refs) != 0 {
+		start := int(f.store.lists[list].start)
+		copy(f.store.children[start:start+len(refs)], refs)
+	}
+	return list
+}
+
 func (f *Factory) NewList(nodes []Handle) ListRef {
 	return f.List(core.UndefinedTextRange(), nodes...)
 }

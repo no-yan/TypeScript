@@ -60,7 +60,6 @@ func collectModuleReferences(file *ast.SourceFile, node ast.Handle, inAmbientMod
 	}
 }
 
-
 func handleExternalModuleName(node ast.Handle) ast.Handle {
 	switch node.Kind {
 	case ast.KindImportDeclaration, ast.KindJSImportDeclaration:

@@ -98,6 +98,12 @@ type Parser struct {
 
 	currentParent  ast.Handle
 	reparsedClones []ast.Handle
+
+	// listScratch is a LIFO scratch shared by every list loop. A loop records
+	// start := len(listScratch), pushes element refs, and finishScratchList
+	// copies [start:] into the Store and pops. Nested lists stack above the
+	// outer one. It survives putParser so the pooled parser stops allocating.
+	listScratch []ast.NodeRef
 }
 
 func newParser() *Parser {
@@ -127,6 +133,19 @@ func (p *Parser) newList(loc core.TextRange, nodes []ast.Handle) ast.ListRef {
 		return p.factory.List(loc)
 	}
 	return p.factory.List(loc, nodes...)
+}
+
+// newListRefs is the same-store list path used by the statement, member and
+// argument list loops: the scratch slice is []NodeRef (4 B, noscan).
+func (p *Parser) newListRefs(loc core.TextRange, nodes []ast.NodeRef) ast.ListRef {
+	return p.factory.ListRefs(loc, nodes)
+}
+
+// finishScratchList moves listScratch[start:] into a Store list and pops it.
+func (p *Parser) finishScratchList(loc core.TextRange, start int) ast.ListRef {
+	list := p.factory.ListRefs(loc, p.listScratch[start:])
+	p.listScratch = p.listScratch[:start]
+	return list
 }
 
 func (p *Parser) eachList(list ast.ListRef, fn func(ast.Handle)) {
@@ -275,7 +294,7 @@ func isValidHeritageTypeReferenceExpression(node ast.Handle) bool {
 }
 
 func putParser(p *Parser) {
-	*p = Parser{scanner: p.scanner}
+	*p = Parser{scanner: p.scanner, listScratch: p.listScratch[:0]}
 	parserPool.Put(p)
 }
 
@@ -329,10 +348,10 @@ func (p *Parser) parseJSONText() ast.Handle {
 	var eof ast.Handle
 
 	if p.token == ast.KindEndOfFile {
-		statements = p.newList(core.NewTextRange(pos, p.nodePos()), nil)
+		statements = p.newListRefs(core.NewTextRange(pos, p.nodePos()), nil)
 		eof = p.parseTokenNode()
 	} else {
-		var expressions []ast.Handle
+		var expressions []ast.NodeRef
 
 		for p.token != ast.KindEndOfFile {
 			var expression ast.Handle
@@ -360,9 +379,9 @@ func (p *Parser) parseJSONText() ast.Handle {
 			}
 
 			if len(expressions) > 0 {
-				expressions = append(expressions, expression)
+				expressions = append(expressions, expression.Ref())
 			} else {
-				expressions = []ast.Handle{expression}
+				expressions = []ast.NodeRef{expression.Ref()}
 				if p.token != ast.KindEndOfFile {
 					p.parseErrorAtCurrentToken(diagnostics.Unexpected_token)
 				}
@@ -371,12 +390,12 @@ func (p *Parser) parseJSONText() ast.Handle {
 
 		var expression ast.Handle
 		if len(expressions) > 1 {
-			expression = p.finishHandle(p.factory.NewArrayLiteralExpression(p.newList(core.NewTextRange(pos, p.nodePos()), expressions), false), pos)
+			expression = p.finishHandle(p.factory.NewArrayLiteralExpression(p.newListRefs(core.NewTextRange(pos, p.nodePos()), expressions), false), pos)
 		} else if len(expressions) == 1 {
-			expression = expressions[0]
+			expression = p.factory.Store().At(expressions[0])
 		}
 		statement := p.finishHandle(p.factory.NewExpressionStatement(expression), pos)
-		statements = p.newList(core.NewTextRange(pos, p.nodePos()), []ast.Handle{statement})
+		statements = p.newListRefs(core.NewTextRange(pos, p.nodePos()), []ast.NodeRef{statement.Ref()})
 		eof = p.parseExpectedToken(ast.KindEndOfFile)
 	}
 	return p.finishHandle(p.factory.NewSourceFile(statements, eof), pos)
@@ -531,6 +550,7 @@ type ParserState struct {
 	jsdocInfosLen               int
 	lazyJSDocLen                int
 	reparsedClonesLen           int
+	listScratchLen              int
 	statementHasAwaitIdentifier bool
 	hasParseError               bool
 }
@@ -544,6 +564,7 @@ func (p *Parser) mark() ParserState {
 		jsdocInfosLen:               len(p.jsdocInfos),
 		lazyJSDocLen:                len(p.lazyJSDoc),
 		reparsedClonesLen:           len(p.reparsedClones),
+		listScratchLen:              len(p.listScratch),
 		statementHasAwaitIdentifier: p.statementHasAwaitIdentifier,
 		hasParseError:               p.hasParseError,
 	}
@@ -558,6 +579,7 @@ func (p *Parser) rewind(state ParserState) {
 	p.jsdocInfos = p.jsdocInfos[0:state.jsdocInfosLen]
 	p.lazyJSDoc = p.lazyJSDoc[0:state.lazyJSDocLen]
 	p.reparsedClones = p.reparsedClones[0:state.reparsedClonesLen]
+	p.listScratch = p.listScratch[0:state.listScratchLen]
 	p.statementHasAwaitIdentifier = state.statementHasAwaitIdentifier
 	p.hasParseError = state.hasParseError
 }
@@ -622,7 +644,7 @@ func (p *Parser) parseSourceFileWorker() ast.Handle {
 		p.contextFlags |= ast.NodeFlagsAmbient
 	}
 	pos := p.nodePos()
-	statements := p.parseListIndex(PCSourceElements, (*Parser).parseToplevelStatement)
+	start := p.parseListIndex(PCSourceElements, (*Parser).parseToplevelStatement)
 	end := p.nodePos()
 	endJSDoc := p.jsdocScannerInfo()
 	eof := p.parseTokenNode()
@@ -631,10 +653,12 @@ func (p *Parser) parseSourceFileWorker() ast.Handle {
 		panic("Expected end of file token from scanner.")
 	}
 	if len(p.reparseList) != 0 {
-		statements = append(statements, p.reparseList...)
+		for _, h := range p.reparseList {
+			p.listScratch = append(p.listScratch, h.Ref())
+		}
 		p.reparseList = nil
 	}
-	root := p.finishHandle(p.factory.NewSourceFile(p.newList(core.NewTextRange(pos, end), statements), eof), pos)
+	root := p.finishHandle(p.factory.NewSourceFile(p.finishScratchList(core.NewTextRange(pos, end), start), eof), pos)
 	if !isDeclarationFile && p.handleLooksLikeExternalModule(root) && len(p.possibleAwaitSpans) > 0 {
 		root = p.reparseTopLevelAwait(root, pos)
 	}
@@ -696,7 +720,7 @@ func (p *Parser) reparseTopLevelAwait(root ast.Handle, pos int) ast.Handle {
 	s := p.factory.Store()
 	oldList := root.SourceFileStatements()
 	oldLen := s.ListLen(oldList)
-	statements := make([]ast.Handle, 0, oldLen)
+	statements := make([]ast.NodeRef, 0, oldLen)
 	savedParseDiagnostics := p.diagnostics
 	p.diagnostics = []*ast.Diagnostic{}
 	afterAwaitStatement := 0
@@ -705,7 +729,7 @@ func (p *Parser) reparseTopLevelAwait(root ast.Handle, pos int) ast.Handle {
 		prevStatement := s.ListAt(oldList, afterAwaitStatement)
 		nextStatement := s.ListAt(oldList, nextAwaitStatement)
 		for j := afterAwaitStatement; j < nextAwaitStatement; j++ {
-			statements = append(statements, s.ListAt(oldList, j))
+			statements = append(statements, s.ListRefAt(oldList, j))
 		}
 		diagnosticStart := core.FindIndex(savedParseDiagnostics, func(diagnostic *ast.Diagnostic) bool {
 			return diagnostic.Pos() >= prevStatement.Loc().Pos()
@@ -735,7 +759,7 @@ func (p *Parser) reparseTopLevelAwait(root ast.Handle, pos int) ast.Handle {
 		for p.token != ast.KindEndOfFile {
 			startPos := p.scanner.TokenFullStart()
 			statement := p.parseStatement()
-			statements = append(statements, statement)
+			statements = append(statements, statement.Ref())
 			if startPos == p.scanner.TokenFullStart() {
 				p.nextToken()
 			}
@@ -760,7 +784,7 @@ func (p *Parser) reparseTopLevelAwait(root ast.Handle, pos int) ast.Handle {
 	if afterAwaitStatement < oldLen {
 		prevStatement := s.ListAt(oldList, afterAwaitStatement)
 		for j := afterAwaitStatement; j < oldLen; j++ {
-			statements = append(statements, s.ListAt(oldList, j))
+			statements = append(statements, s.ListRefAt(oldList, j))
 		}
 		diagnosticStart := core.FindIndex(savedParseDiagnostics, func(diagnostic *ast.Diagnostic) bool {
 			return diagnostic.Pos() >= prevStatement.Loc().Pos()
@@ -769,32 +793,35 @@ func (p *Parser) reparseTopLevelAwait(root ast.Handle, pos int) ast.Handle {
 			p.diagnostics = append(p.diagnostics, savedParseDiagnostics[diagnosticStart:]...)
 		}
 	}
-	list := p.newList(s.ListLoc(oldList), statements)
+	list := p.newListRefs(s.ListLoc(oldList), statements)
 	eof := root.SourceFileEndOfFileToken()
 	return p.finishHandle(p.factory.NewSourceFile(list, eof), pos)
 }
 
-func (p *Parser) parseListIndex(kind ParsingContext, parseElement func(p *Parser, index int) ast.Handle) []ast.Handle {
+// parseListIndex pushes the parsed elements onto listScratch and returns the
+// start index; the caller must consume them with finishScratchList before any
+// further parsing appends to the scratch.
+func (p *Parser) parseListIndex(kind ParsingContext, parseElement func(p *Parser, index int) ast.Handle) int {
 	saveParsingContexts := p.parsingContexts
 	p.parsingContexts |= 1 << kind
 	outerReparseList := p.reparseList
 	p.reparseList = nil
-	list := make([]ast.Handle, 0, 16)
+	start := len(p.listScratch)
 	for i := 0; !p.isListTerminator(kind); i++ {
 		if p.isListElement(kind, false /*inErrorRecovery*/) {
-			elt := parseElement(p, len(list))
+			elt := parseElement(p, len(p.listScratch)-start)
 			if len(p.reparseList) != 0 {
 				for _, e := range p.reparseList {
 					// Propagate @typedef type alias declarations outwards to a context that permits them.
 					if (e.Kind == ast.KindJSTypeAliasDeclaration || e.Kind == ast.KindJSImportDeclaration) && kind != PCSourceElements && kind != PCBlockStatements {
 						outerReparseList = append(outerReparseList, e)
 					} else {
-						list = append(list, e)
+						p.listScratch = append(p.listScratch, e.Ref())
 					}
 				}
 				p.reparseList = nil
 			}
-			list = append(list, elt)
+			p.listScratch = append(p.listScratch, elt.Ref())
 			continue
 		}
 		if p.abortParsingListOrMoveToNextToken(kind) {
@@ -803,13 +830,13 @@ func (p *Parser) parseListIndex(kind ParsingContext, parseElement func(p *Parser
 	}
 	p.reparseList = outerReparseList
 	p.parsingContexts = saveParsingContexts
-	return list
+	return start
 }
 
 func (p *Parser) parseList(kind ParsingContext, parseElement func(p *Parser) ast.Handle) ast.ListRef {
 	pos := p.nodePos()
-	nodes := p.parseListIndex(kind, func(p *Parser, _ int) ast.Handle { return parseElement(p) })
-	return p.newList(core.NewTextRange(pos, p.nodePos()), nodes)
+	start := p.parseListIndex(kind, func(p *Parser, _ int) ast.Handle { return parseElement(p) })
+	return p.finishScratchList(core.NewTextRange(pos, p.nodePos()), start)
 }
 
 // Return a non-nil (but possibly empty) slice if parsing was successful, or nil if parseElement returned nil
@@ -817,17 +844,18 @@ func (p *Parser) parseDelimitedList(kind ParsingContext, parseElement func(p *Pa
 	pos := p.nodePos()
 	saveParsingContexts := p.parsingContexts
 	p.parsingContexts |= 1 << kind
-	list := make([]ast.Handle, 0, 16)
+	start := len(p.listScratch)
 	for {
 		if p.isListElement(kind, false /*inErrorRecovery*/) {
 			startPos := p.nodePos()
 			element := parseElement(p)
 			if element.IsNil() {
 				p.parsingContexts = saveParsingContexts
+				p.listScratch = p.listScratch[:start]
 				// Return nil to indicate parseElement failed
 				return 0
 			}
-			list = append(list, element)
+			p.listScratch = append(p.listScratch, element.Ref())
 			if p.parseOptional(ast.KindCommaToken) {
 				// No need to check for a zero length node since we know we parsed a comma
 				continue
@@ -867,7 +895,7 @@ func (p *Parser) parseDelimitedList(kind ParsingContext, parseElement func(p *Pa
 		}
 	}
 	p.parsingContexts = saveParsingContexts
-	return p.newList(core.NewTextRange(pos, p.nodePos()), list)
+	return p.finishScratchList(core.NewTextRange(pos, p.nodePos()), start)
 }
 
 // Return a non-nil (but possibly empty) NodeList if parsing was successful, a missing NodeList if the opening
@@ -882,7 +910,7 @@ func (p *Parser) parseBracketedList(kind ParsingContext, parseElement func(p *Pa
 }
 
 func (p *Parser) parseEmptyList() ast.ListRef {
-	return p.newList(core.NewTextRange(p.nodePos(), p.nodePos()), nil)
+	return p.newListRefs(core.NewTextRange(p.nodePos(), p.nodePos()), nil)
 }
 
 func (p *Parser) createMissingList() ast.ListRef {
@@ -2415,7 +2443,7 @@ func (p *Parser) parseModuleOrNamespaceDeclaration(pos int, jsdoc jsdocScannerIn
 		implicitExport := p.factory.NewToken(ast.KindExportKeyword)
 		implicitExport.SetLoc(core.NewTextRange(p.nodePos(), p.nodePos()))
 		implicitExport.SetFlags(ast.NodeFlagsReparsed)
-		implicitModifiers := p.newList(implicitExport.Loc(), []ast.Handle{implicitExport})
+		implicitModifiers := p.newListRefs(implicitExport.Loc(), []ast.NodeRef{implicitExport.Ref()})
 		body = p.parseModuleOrNamespaceDeclaration(p.nodePos(), 0 /*jsdoc*/, implicitModifiers, true /*nested*/, keyword)
 	} else {
 		body = p.parseModuleBlock()
@@ -2847,12 +2875,12 @@ func (p *Parser) parseUnionOrIntersectionType(operator ast.Kind, parseConstituen
 		typeNode = parseConstituentType(p)
 	}
 	if p.token == operator || hasLeadingOperator {
-		types := make([]ast.Handle, 1, 8)
-		types[0] = typeNode
+		types := make([]ast.NodeRef, 1, 8)
+		types[0] = typeNode.Ref()
 		for p.parseOptional(operator) {
-			types = append(types, p.parseFunctionOrConstructorTypeToError(isUnionType, parseConstituentType))
+			types = append(types, p.parseFunctionOrConstructorTypeToError(isUnionType, parseConstituentType).Ref())
 		}
-		typeNode = p.createUnionOrIntersectionTypeNode(operator, p.newList(core.NewTextRange(pos, p.nodePos()), types))
+		typeNode = p.createUnionOrIntersectionTypeNode(operator, p.newListRefs(core.NewTextRange(pos, p.nodePos()), types))
 		p.finishHandle(typeNode, pos)
 	}
 	return typeNode
@@ -3902,15 +3930,15 @@ func (p *Parser) getTemplateLiteralRawText(endLength int) string {
 
 func (p *Parser) parseTemplateTypeSpans() ast.ListRef {
 	pos := p.nodePos()
-	var list []ast.Handle
+	var list []ast.NodeRef
 	for {
 		span := p.parseTemplateTypeSpan()
-		list = append(list, span)
+		list = append(list, span.Ref())
 		if span.TemplateLiteralTypeSpanLiteral().Kind != ast.KindTemplateMiddle {
 			break
 		}
 	}
-	return p.newList(core.NewTextRange(pos, p.nodePos()), list)
+	return p.newListRefs(core.NewTextRange(pos, p.nodePos()), list)
 }
 
 func (p *Parser) parseTemplateTypeSpan() ast.Handle {
@@ -3994,7 +4022,7 @@ func (p *Parser) parseModifiersForConstructorType() ast.ListRef {
 		modifier := p.factory.NewToken(p.token)
 		p.nextToken()
 		p.finishHandle(modifier, pos)
-		return p.newList(modifier.Loc(), []ast.Handle{modifier})
+		return p.newListRefs(modifier.Loc(), []ast.NodeRef{modifier.Ref()})
 	}
 	return 0
 }
@@ -4061,11 +4089,11 @@ func (p *Parser) parseModifiersEx(allowDecorators bool, permitConstAsModifier bo
 	// It is illegal to have both leadingDecorators and trailingDecorators, but we will report that as a grammar check in the checker.
 	// parse leading decorators
 	pos := p.nodePos()
-	list := make([]ast.Handle, 0, 16)
+	start := len(p.listScratch)
 	for {
 		if allowDecorators && p.token == ast.KindAtToken && !hasTrailingModifier {
 			decorator := p.parseDecorator()
-			list = append(list, decorator)
+			p.listScratch = append(p.listScratch, decorator.Ref())
 			if hasLeadingModifier {
 				hasTrailingDecorator = true
 			}
@@ -4077,7 +4105,7 @@ func (p *Parser) parseModifiersEx(allowDecorators bool, permitConstAsModifier bo
 			if modifier.Kind == ast.KindStaticKeyword {
 				hasStaticModifier = true
 			}
-			list = append(list, modifier)
+			p.listScratch = append(p.listScratch, modifier.Ref())
 			if hasTrailingDecorator {
 				hasTrailingModifier = true
 			} else {
@@ -4085,8 +4113,8 @@ func (p *Parser) parseModifiersEx(allowDecorators bool, permitConstAsModifier bo
 			}
 		}
 	}
-	if len(list) != 0 {
-		return p.newList(core.NewTextRange(pos, p.nodePos()), list)
+	if len(p.listScratch) != start {
+		return p.finishScratchList(core.NewTextRange(pos, p.nodePos()), start)
 	}
 	return 0
 }
@@ -4636,7 +4664,7 @@ func (p *Parser) parseModifiersForArrowFunction() ast.ListRef {
 		pos := p.nodePos()
 		p.nextToken()
 		modifier := p.finishHandle(p.factory.NewToken(ast.KindAsyncKeyword), pos)
-		return p.newList(modifier.Loc(), []ast.Handle{modifier})
+		return p.newListRefs(modifier.Loc(), []ast.NodeRef{modifier.Ref()})
 	}
 	return 0
 }
@@ -4736,7 +4764,7 @@ func (p *Parser) nextIsUnParenthesizedAsyncArrowFunction() bool {
 func (p *Parser) parseSimpleArrowFunctionExpression(pos int, identifier ast.Handle, allowReturnTypeInArrowFunction bool, jsdoc jsdocScannerInfo, asyncModifier ast.ListRef) ast.Handle {
 	debug.Assert(p.token == ast.KindEqualsGreaterThanToken, "parseSimpleArrowFunctionExpression should only have been called if we had a =>")
 	parameter := p.finishHandle(p.factory.NewParameterDeclaration(0, ast.Handle{}, identifier, ast.Handle{}, ast.Handle{}, ast.Handle{}), identifier.Pos())
-	parameters := p.newList(parameter.Loc(), []ast.Handle{parameter})
+	parameters := p.newListRefs(parameter.Loc(), []ast.NodeRef{parameter.Ref()})
 	equalsGreaterThanToken := p.parseExpectedToken(ast.KindEqualsGreaterThanToken)
 	body := p.parseArrowFunctionExpressionBody(asyncModifier != 0 /*isAsync*/, allowReturnTypeInArrowFunction)
 	result := p.finishHandle(p.factory.NewArrowFunction(asyncModifier, 0, parameters, ast.Handle{}, ast.Handle{}, equalsGreaterThanToken, body), pos)
@@ -4967,12 +4995,12 @@ func (p *Parser) parseJsxElementOrSelfClosingElementOrFragment(inExpressionConte
 			newClosingElement.SetParent(newLast)
 			s := p.factory.Store()
 			n := s.ListLen(children)
-			kept := make([]ast.Handle, 0, n)
+			kept := make([]ast.NodeRef, 0, n)
 			for i := 0; i < n-1; i++ {
-				kept = append(kept, s.ListAt(children, i))
+				kept = append(kept, s.ListRefAt(children, i))
 			}
-			kept = append(kept, newLast)
-			children = p.newList(core.NewTextRange(s.ListLoc(children).Pos(), newLast.End()), kept)
+			kept = append(kept, newLast.Ref())
+			children = p.newListRefs(core.NewTextRange(s.ListLoc(children).Pos(), newLast.End()), kept)
 			closingElement = lastChild.JsxElementClosingElement()
 		} else {
 			closingElement = p.parseJsxClosingElement(opening, inExpressionContext)
@@ -5023,14 +5051,14 @@ func (p *Parser) parseJsxChildren(openingTag ast.Handle) ast.ListRef {
 	pos := p.nodePos()
 	saveParsingContexts := p.parsingContexts
 	p.parsingContexts |= 1 << PCJsxChildren
-	var list []ast.Handle
+	var list []ast.NodeRef
 	for {
 		currentToken := p.scanner.ReScanJsxToken(true /*allowMultilineJsxText*/)
 		child := p.parseJsxChild(openingTag, currentToken)
 		if child.IsNil() {
 			break
 		}
-		list = append(list, child)
+		list = append(list, child.Ref())
 		if openingTag.Kind == ast.KindJsxOpeningElement && child.Kind == ast.KindJsxElement &&
 			!tagNamesAreEquivalent(child.JsxElementOpeningElement().TagName(), child.JsxElementClosingElement().TagName()) &&
 			tagNamesAreEquivalent(openingTag.TagName(), child.JsxElementClosingElement().TagName()) {
@@ -5039,7 +5067,7 @@ func (p *Parser) parseJsxChildren(openingTag ast.Handle) ast.ListRef {
 		}
 	}
 	p.parsingContexts = saveParsingContexts
-	return p.newList(core.NewTextRange(pos, p.nodePos()), list)
+	return p.newListRefs(core.NewTextRange(pos, p.nodePos()), list)
 }
 
 func (p *Parser) parseJsxChild(openingTag ast.Handle, token ast.Kind) ast.Handle {
@@ -5734,15 +5762,15 @@ func (p *Parser) parseTemplateExpression(isTaggedTemplate bool) ast.Handle {
 
 func (p *Parser) parseTemplateSpans(isTaggedTemplate bool) ast.ListRef {
 	pos := p.nodePos()
-	var list []ast.Handle
+	var list []ast.NodeRef
 	for {
 		span := p.parseTemplateSpan(isTaggedTemplate)
-		list = append(list, span)
+		list = append(list, span.Ref())
 		if span.TemplateSpanLiteral().Kind != ast.KindTemplateMiddle {
 			break
 		}
 	}
-	return p.newList(core.NewTextRange(pos, p.nodePos()), list)
+	return p.newListRefs(core.NewTextRange(pos, p.nodePos()), list)
 }
 
 func (p *Parser) parseTemplateSpan(isTaggedTemplate bool) ast.Handle {
