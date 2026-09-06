@@ -282,7 +282,7 @@ func putParser(p *Parser) {
 func ParseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptKind core.ScriptKind) *ast.SourceFile {
 	p := getParser()
 	defer putParser(p)
-	storeHint := max(256, len(sourceText)/10)
+	storeHint := max(256, len(sourceText)/5)
 	p.initializeState(opts, sourceText, scriptKind)
 	p.factory = ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
 	p.nextToken()
