@@ -142,11 +142,17 @@ type Store struct {
 	sourceFile     *SourceFile // metadata owner; SourceFile fields stay outside Store
 }
 
+// BindColumnHintPct is an experiment knob read by NewStore: when > 0, the
+// symbolIdx and flows bind columns are pre-sized to (hint+1)*pct/100 entries
+// at parse time instead of being allocated by PrepareBindTables. Benchmarks
+// set it; production leaves it 0.
+var BindColumnHintPct = 0
+
 func NewStore(hint int) *Store {
 	if hint < 1 {
 		hint = 1
 	}
-	return &Store{
+	s := &Store{
 		allocHint: hint,
 		nodes:     make([]nodeHeader, 1, hint+1),
 		lists:     make([]listHeader, 1, max(8, hint/7)),
@@ -155,6 +161,12 @@ func NewStore(hint int) *Store {
 		internOff: make([]uint32, 2, max(2, hint/32)),
 		internIdx: make(map[string]uint32, hint/32),
 	}
+	if pct := BindColumnHintPct; pct > 0 {
+		n := (hint+1)*pct/100 + 1
+		s.symbolIdx = make([]uint32, 0, n)
+		s.flows = make([]*FlowNode, 0, n)
+	}
+	return s
 }
 
 func (s *Store) Alloc(kind Kind, flags NodeFlags, loc core.TextRange, childLen int) Handle {
@@ -335,6 +347,7 @@ func (s *Store) Restore(cp StoreCheckpoint) {
 
 func truncateCol[T any](col []T, n int) []T {
 	if len(col) > n {
+		clear(col[n:])
 		return col[:n]
 	}
 	return col
@@ -604,9 +617,14 @@ func (s *Store) PrepareBindTables() {
 	s.flows = ensureCol(s.flows, n)
 }
 
+// ensureCol grows col to len n. Capacity past len is always zero (make zeroes
+// it and truncateCol clears what it cuts), so reslicing is enough.
 func ensureCol[T any](col []T, n int) []T {
 	if len(col) >= n {
 		return col
+	}
+	if cap(col) >= n {
+		return col[:n]
 	}
 	grown := make([]T, n)
 	copy(grown, col)
@@ -618,9 +636,7 @@ func ensureCol[T any](col []T, n int) []T {
 func putCol[T any](col *[]T, ref NodeRef, v T) {
 	i := int(ref)
 	if i >= len(*col) {
-		grown := make([]T, max(i+1, 2*len(*col)))
-		copy(grown, *col)
-		*col = grown
+		*col = ensureCol(*col, max(i+1, 2*len(*col)))
 	}
 	(*col)[i] = v
 }
