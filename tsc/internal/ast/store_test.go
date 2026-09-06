@@ -177,10 +177,8 @@ func TestStoreParallelFileWriters(t *testing.T) {
 				last = factory.Identifier(string(rune('a' + (file+node)%26)))
 				last.SetFlags(ast.NodeFlagsSynthesized)
 			}
-			id := stores.Add(factory.Store())
-			stores.SetFile(id, &ast.SourceFile{})
+			stores.Add(factory.Store())
 			assert.Equal(t, last.Ref(), stores.At(last.Global()).Ref())
-			assert.Assert(t, stores.File(id) != nil)
 		}()
 	}
 	wg.Wait()

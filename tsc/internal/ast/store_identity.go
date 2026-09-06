@@ -26,8 +26,7 @@ func (g GlobalRef) Ref() NodeRef     { return NodeRef(g) }
 // deterministic ids across runs.
 type StoreSet struct {
 	mu     sync.RWMutex
-	stores []*Store      // index i holds the Store with StoreID i+1
-	files  []*SourceFile // parallel to stores; nil until SetFile
+	stores []*Store // index i holds the Store with StoreID i+1
 }
 
 func NewStoreSet() *StoreSet { return &StoreSet{} }
@@ -66,11 +65,6 @@ func UnregisterStore(s *Store) {
 	identitySet().Remove(s)
 }
 
-// RegisteredStoreCount is the number of non-nil identity slots.
-func RegisteredStoreCount() int {
-	return identitySet().liveCount()
-}
-
 func NodeOf(g GlobalRef) Handle {
 	return identitySet().At(g)
 }
@@ -88,7 +82,6 @@ func (ss *StoreSet) Add(s *Store) StoreID {
 		panic("ast: Store already registered")
 	}
 	ss.stores = append(ss.stores, s)
-	ss.files = append(ss.files, nil)
 	return id
 }
 
@@ -105,7 +98,6 @@ func (ss *StoreSet) BindFile(file *SourceFile) {
 	} else {
 		ss.adopt(s)
 	}
-	ss.SetFile(s.ID(), file)
 }
 
 func (ss *StoreSet) Remove(s *Store) {
@@ -123,22 +115,6 @@ func (ss *StoreSet) Remove(s *Store) {
 		return
 	}
 	ss.stores[idx] = nil
-	ss.files[idx] = nil
-}
-
-func (ss *StoreSet) liveCount() int {
-	if ss == nil {
-		return 0
-	}
-	ss.mu.RLock()
-	defer ss.mu.RUnlock()
-	n := 0
-	for _, s := range ss.stores {
-		if s != nil {
-			n++
-		}
-	}
-	return n
 }
 
 func (ss *StoreSet) adopt(s *Store) {
@@ -150,33 +126,8 @@ func (ss *StoreSet) adopt(s *Store) {
 	idx := int(s.id.Load() - 1)
 	for len(ss.stores) <= idx {
 		ss.stores = append(ss.stores, nil)
-		ss.files = append(ss.files, nil)
 	}
 	ss.stores[idx] = s
-}
-
-func (ss *StoreSet) SetFile(id StoreID, file *SourceFile) {
-	if id == 0 {
-		panic("ast: SetFile missing StoreID")
-	}
-	ss.mu.Lock()
-	defer ss.mu.Unlock()
-	if int(id) > len(ss.stores) {
-		panic("ast: SetFile unknown StoreID")
-	}
-	ss.files[id-1] = file
-}
-
-func (ss *StoreSet) File(id StoreID) *SourceFile {
-	if id == 0 {
-		return nil
-	}
-	ss.mu.RLock()
-	defer ss.mu.RUnlock()
-	if int(id) > len(ss.files) {
-		return nil
-	}
-	return ss.files[id-1]
 }
 
 func (ss *StoreSet) Store(id StoreID) *Store {
