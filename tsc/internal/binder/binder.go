@@ -65,7 +65,6 @@ type Binder struct {
 	symbolCount             int
 	notConstEnumOnlyModules collections.Set[*ast.Symbol]
 	symbolArena             core.Arena[ast.Symbol]
-	flowNodeArena           core.Arena[ast.FlowNode]
 	flowListArena           core.Arena[ast.FlowList]
 	singleDeclarationsArena core.Arena[ast.GlobalRef]
 	expandoAssignments      []ExpandoAssignmentInfo
@@ -708,9 +707,10 @@ func (b *Binder) declareSymbolAndAddToSymbolTableRef(ref ast.NodeRef, kind ast.K
 	panic("Unhandled case in declareSymbolAndAddToSymbolTable")
 }
 func (b *Binder) newFlowNode(flags ast.FlowFlags) *ast.FlowNode {
-	result := b.flowNodeArena.New()
-	result.Flags = flags
-	return result
+	if b.store == nil {
+		return &ast.FlowNode{Flags: flags}
+	}
+	return b.store.NewFlow(flags)
 }
 func (b *Binder) newFlowNodeEx(flags ast.FlowFlags, node ast.Handle, antecedent *ast.FlowNode) *ast.FlowNode {
 	result := b.newFlowNode(flags)

@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"math/bits"
 	"sync"
 	"sync/atomic"
 	"unsafe"
@@ -123,10 +124,22 @@ type Store struct {
 	// symbolRefs (0 = no symbol). About one node in eight carries a Symbol, so
 	// the pointer-bearing slice the GC must scan is eight times smaller than a
 	// dense []*Symbol column, and the dense column itself halves in size.
-	symbolIdx      []uint32
-	symbolRefs     []*Symbol // symbolRefs[0] is the nil sentinel
-	localSymbols   map[NodeRef]*Symbol
-	flows          []*FlowNode
+	symbolIdx    []uint32
+	symbolRefs   []*Symbol // symbolRefs[0] is the nil sentinel
+	localSymbols map[NodeRef]*Symbol
+	// flows is a noscan NodeRef-indexed column of flow ids (0 = no flow): a
+	// 1-based index into the Store's flow arena, or flowForeignBit | index into
+	// foreignFlows for FlowNodes the Store did not allocate (copied from another
+	// Store, or built by the checker). The arena is chunked so *FlowNode stays
+	// stable while it grows; chunks double from 8 up to 256 entries (see
+	// flowSlot) so small files do not pay for a mostly empty chunk.
+	flows          []uint32
+	flowChunks     [][]FlowNode
+	flowCur        []FlowNode // tail of the last chunk: len = used, cap = chunk size
+	flowLen        int
+	foreignFlows   []*FlowNode
+	lastFlow       *FlowNode // flowID cache: the binder stamps runs of nodes with the same flow
+	lastFlowID     uint32
 	endFlows       map[NodeRef]*FlowNode
 	returnFlows    map[NodeRef]*FlowNode
 	locals         map[NodeRef]SymbolTable
@@ -164,7 +177,7 @@ func NewStore(hint int) *Store {
 	if pct := BindColumnHintPct; pct > 0 {
 		n := (hint+1)*pct/100 + 1
 		s.symbolIdx = make([]uint32, 0, n)
-		s.flows = make([]*FlowNode, 0, n)
+		s.flows = make([]uint32, 0, n)
 	}
 	return s
 }
@@ -336,7 +349,7 @@ func (s *Store) Restore(cp StoreCheckpoint) {
 	s.lists = s.lists[:cp.lists]
 	s.children = s.children[:cp.children]
 	s.symbolIdx = truncateCol(s.symbolIdx, cp.nodes)
-	s.flows = truncateCol(s.flows, cp.nodes)
+	s.flows = truncateCol(s.flows, cp.nodes) // arena entries past the checkpoint are left unreferenced
 	cutNodeMap(s.tokenFlags, NodeRef(cp.nodes))
 	cutNodeMap(s.localSymbols, NodeRef(cp.nodes))
 	cutNodeMap(s.endFlows, NodeRef(cp.nodes))
@@ -705,14 +718,96 @@ func (s *Store) SetFlow(ref NodeRef, flow *FlowNode) {
 		return
 	}
 	s.mustMutate()
-	putCol(&s.flows, ref, flow)
+	putCol(&s.flows, ref, s.flowID(flow))
 }
 
 func (s *Store) Flow(ref NodeRef) *FlowNode {
 	if s == nil || ref == 0 {
 		return nil
 	}
-	return getCol(s.flows, ref)
+	return s.flowAt(getCol(s.flows, ref))
+}
+
+const flowForeignBit = 1 << 31
+
+// flowSlot maps a 0-based arena index to its chunk and offset. Chunk sizes are
+// 8, 8, 16, 32, 64, 128, then 256 for every chunk after, so chunk c (1..5)
+// starts at 1<<(c+2) and chunk 6 starts at 256.
+func flowSlot(i uint32) (chunk, off uint32) {
+	if i >= 256 {
+		return 6 + (i-256)>>8, i & 255
+	}
+	if i < 8 {
+		return 0, i
+	}
+	c := uint32(bits.Len32(i)) - 3
+	return c, i - 1<<(c+2)
+}
+
+func flowChunkCap(chunk uint32) int {
+	switch {
+	case chunk == 0:
+		return 8
+	case chunk >= 6:
+		return 256
+	}
+	return 4 << chunk
+}
+
+// NewFlow allocates a FlowNode in the Store's flow arena and stamps it with
+// the id the flows column stores for it.
+func (s *Store) NewFlow(flags FlowFlags) *FlowNode {
+	n := len(s.flowCur)
+	if n == cap(s.flowCur) {
+		s.growFlowChunk()
+		n = 0
+	}
+	s.flowCur = s.flowCur[:n+1]
+	f := &s.flowCur[n]
+	s.flowLen++
+	f.Flags = flags
+	f.id = uint32(s.flowLen)
+	s.lastFlow, s.lastFlowID = f, f.id // the binder usually stores the flow it just made
+	return f
+}
+
+func (s *Store) growFlowChunk() {
+	c, _ := flowSlot(uint32(s.flowLen))
+	chunk := make([]FlowNode, flowChunkCap(c))
+	s.flowChunks = append(s.flowChunks, chunk)
+	s.flowCur = chunk[:0]
+}
+
+// FlowCount reports how many FlowNodes the Store's arena holds.
+func (s *Store) FlowCount() int { return s.flowLen }
+
+func (s *Store) flowAt(id uint32) *FlowNode {
+	if id == 0 {
+		return nil
+	}
+	if id&flowForeignBit != 0 {
+		return s.foreignFlows[id&^flowForeignBit]
+	}
+	c, off := flowSlot(id - 1)
+	return &s.flowChunks[c][off]
+}
+
+// flowID returns the column id for f. A FlowNode from this Store's arena is
+// recognized by address; anything else gets a pointer slot in foreignFlows.
+func (s *Store) flowID(f *FlowNode) uint32 {
+	if f == nil {
+		return 0
+	}
+	if f == s.lastFlow {
+		return s.lastFlowID
+	}
+	id := f.id
+	if c, off := flowSlot(id - 1); id == 0 || id&flowForeignBit != 0 || int(id) > s.flowLen || &s.flowChunks[c][off] != f {
+		s.foreignFlows = append(s.foreignFlows, f)
+		id = flowForeignBit | uint32(len(s.foreignFlows)-1)
+	}
+	s.lastFlow, s.lastFlowID = f, id
+	return id
 }
 
 func (s *Store) SetEndFlow(ref NodeRef, flow *FlowNode) {

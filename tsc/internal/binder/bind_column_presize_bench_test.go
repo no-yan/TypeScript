@@ -86,11 +86,13 @@ func BenchmarkParseBindColumnPresize(b *testing.B) {
 				runtime.GC()
 				runtime.GC()
 				runtime.ReadMemStats(&after)
-				nodes := 0
+				nodes, flows := 0, 0
 				for _, sf := range files {
 					nodes += sf.ParseStore().Len()
+					flows += sf.ParseStore().FlowCount()
 				}
 				b.ReportMetric(float64(nodes), "nodes")
+				b.ReportMetric(float64(flows), "flows")
 				b.ReportMetric(float64(after.HeapAlloc-before.HeapAlloc)/(1<<20), "live-MB")
 				clear(files)
 			})

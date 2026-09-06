@@ -26,6 +26,7 @@ const (
 
 type FlowNode struct {
 	Flags       FlowFlags
+	id          uint32    // 1-based index in the owning Store's flow arena (0: not arena-allocated); fills the padding after Flags
 	Node        Handle    // Associated AST node
 	Data        *Node     // Synthetic switch/reduce payload
 	Antecedent  *FlowNode // Antecedent for all but FlowLabel
