@@ -44,7 +44,9 @@ func BenchmarkParse(b *testing.B) {
 	}
 }
 
-func BenchmarkWarmJSDoc(b *testing.B) {
+// BenchmarkLazyJSDoc measures parsing every deferred TS JSDoc of a file into a
+// private JSDocCache, the way a checker that touches every host node would.
+func BenchmarkLazyJSDoc(b *testing.B) {
 	for _, f := range fixtures.BenchFixtures {
 		if f.Name() != "empty.ts" && f.Name() != "checker.ts" && f.Name() != "dom.generated.d.ts" {
 			continue
@@ -56,15 +58,17 @@ func BenchmarkWarmJSDoc(b *testing.B) {
 			sourceText := f.ReadFile(b)
 			scriptKind := core.GetScriptKindFromFileName(fileName)
 			opts := ast.SourceFileParseOptions{FileName: fileName, Path: path}
-			files := make([]*ast.SourceFile, b.N)
-			for i := range b.N {
-				files[i] = parser.ParseSourceFile(opts, sourceText, scriptKind)
-			}
+			file := parser.ParseSourceFile(opts, sourceText, scriptKind)
+			ast.RegisterFile(file)
+			refs := file.LazyJSDocRefs()
 			runtime.GC()
 			runtime.GC()
 			b.ResetTimer()
-			for i := range b.N {
-				files[i].WarmJSDoc()
+			for b.Loop() {
+				cache := ast.NewJSDocCache(ast.NewStore(len(refs) * 8))
+				for _, ref := range refs {
+					file.ParseStore().At(ref).JSDocIn(file, cache)
+				}
 			}
 		})
 	}
@@ -474,10 +478,32 @@ func TestJSDocDeprecatedTagParses(t *testing.T) {
 	t.Parallel()
 	sourceText := "/** @deprecated */ export const x = 1;\nexport const y = 2;\n"
 	file := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: "/index.ts", Path: "/index.ts"}, sourceText, core.ScriptKindTS)
-	file.WarmJSDoc()
+	ast.RegisterFile(file)
+	file.ParseStore().Freeze()
 	stmts := file.ParseRoot().Statements()
-	assert.Assert(t, !ast.GetJSDocDeprecatedTag(stmts[0]).IsNil(), "expected @deprecated tag on the export")
-	assert.Assert(t, ast.GetJSDocDeprecatedTag(stmts[1]).IsNil(), "unmarked statement should stay cold")
+
+	// Checker path: JSDoc is parsed into the cache's Store, parented to the host, and the parse Store stays untouched.
+	nodesBefore := file.ParseStore().Len()
+	cache := ast.NewJSDocCache(ast.NewStore(16))
+	tag := ast.GetJSDocDeprecatedTag(stmts[0], cache)
+	assert.Assert(t, !tag.IsNil(), "expected @deprecated tag on the export")
+	assert.Equal(t, tag.Store(), cache.Store())
+	assert.Equal(t, tag.Parent().Parent(), stmts[0])
+	assert.Equal(t, ast.GetSourceFileOfNode(tag), file)
+	assert.Assert(t, ast.GetJSDocDeprecatedTag(stmts[1], cache).IsNil(), "unmarked statement should stay cold")
+	assert.Equal(t, file.ParseStore().Len(), nodesBefore)
+	assert.Equal(t, cache.Len(), 1)
+	assert.Assert(t, file.SharedJSDocStore() == nil, "checker path must not create the shared side Store")
+	assert.Equal(t, len(stmts[0].EagerJSDoc(file)), 0, "deferred JSDoc is not eager")
+
+	// Shared path (LS): the side Store is created once, frozen, and separate from the cache Store.
+	docs := stmts[0].JSDoc(file)
+	assert.Equal(t, len(docs), 1)
+	assert.Assert(t, file.SharedJSDocStore() != nil)
+	assert.Equal(t, docs[0].Store(), file.SharedJSDocStore())
+	assert.Equal(t, docs[0].Parent(), stmts[0])
+	assert.Equal(t, file.ParseStore().Len(), nodesBefore)
+	assert.Assert(t, len(stmts[1].JSDoc(file)) == 0)
 }
 
 func TestSourceFilePositionMapWithNonASCIIStringLiteral(t *testing.T) {
@@ -558,19 +584,27 @@ func TestIsolatedEntityName(t *testing.T) {
 	assert.Assert(t, parser.ParseIsolatedEntityName(f, "1foo").IsNil())
 }
 
-func TestLazyTSJSDocAllocatesIntoParseStore(t *testing.T) {
+func TestLazyTSJSDocStaysOutOfParseStore(t *testing.T) {
 	t.Parallel()
 	sourceText := `/** docs */
 export function f() {}
 `
 	opts := ast.SourceFileParseOptions{FileName: "/index.ts", Path: "/index.ts"}
 	file := parser.ParseSourceFile(opts, sourceText, core.ScriptKindTS)
+	file.ParseStore().Freeze()
+	nodes := file.ParseStore().Len()
 	fn := file.ParseRoot().Statements()[0]
 	assert.Equal(t, ast.KindFunctionDeclaration, fn.Kind)
+	assert.Assert(t, file.HasLazyJSDoc())
 	docs := fn.JSDoc(file)
 	assert.Equal(t, 1, len(docs))
 	assert.Equal(t, ast.KindJSDoc, docs[0].Kind)
-	assert.Equal(t, file.ParseStore(), docs[0].Store())
+	assert.Assert(t, docs[0].Store() != file.ParseStore(), "deferred JSDoc must not be appended to the frozen parse Store")
+	assert.Equal(t, file.SharedJSDocStore(), docs[0].Store())
+	assert.Equal(t, nodes, file.ParseStore().Len())
+	assert.Equal(t, fn, docs[0].Parent())
+	// Idempotent: the same Handles come back on a second read.
+	assert.Equal(t, docs[0], fn.JSDoc(file)[0])
 }
 
 func TestNoParserHandleIsClones(t *testing.T) {
