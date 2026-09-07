@@ -3612,7 +3612,7 @@ func IsExternalModuleAugmentation(node Handle) bool {
 }
 
 func GetSourceFileOfModule(module *Symbol) *SourceFile {
-	declaration := NodeOf(module.ValueDeclaration)
+	declaration := module.ValueDeclaration
 	if declaration.IsNil() {
 		declaration = GetNonAugmentationDeclaration(module)
 	}

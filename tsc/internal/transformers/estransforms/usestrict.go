@@ -24,7 +24,7 @@ func (tx *useStrictTransformer) visit(node ast.Handle) ast.Handle {
 	return tx.visitSourceFile(node)
 }
 func (tx *useStrictTransformer) visitSourceFile(node ast.Handle) ast.Handle {
-	file := ast.GetSourceFileOfNode(node)
+	file := tx.EmitContext().SourceFileOf(node)
 	if file != nil && file.ScriptKind == core.ScriptKindJSON {
 		return node
 	}

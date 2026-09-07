@@ -200,11 +200,11 @@ func getSymbolKindOfConstructorPropertyMethodAccessorFunctionOrVar(typeChecker *
 	if flags&ast.SymbolFlagsVariable != 0 {
 		if isFirstDeclarationOfSymbolParameter(symbol) {
 			return ScriptElementKindParameterElement
-		} else if symbol.ValueDeclaration != 0 && ast.IsVarConst(ast.NodeOf(symbol.ValueDeclaration)) {
+		} else if !symbol.ValueDeclaration.IsNil() && ast.IsVarConst(symbol.ValueDeclaration) {
 			return ScriptElementKindConstElement
-		} else if symbol.ValueDeclaration != 0 && ast.IsVarUsing(ast.NodeOf(symbol.ValueDeclaration)) {
+		} else if !symbol.ValueDeclaration.IsNil() && ast.IsVarUsing(symbol.ValueDeclaration) {
 			return ScriptElementKindVariableUsingElement
-		} else if symbol.ValueDeclaration != 0 && ast.IsVarAwaitUsing(ast.NodeOf(symbol.ValueDeclaration)) {
+		} else if !symbol.ValueDeclaration.IsNil() && ast.IsVarAwaitUsing(symbol.ValueDeclaration) {
 			return ScriptElementKindVariableAwaitUsingElement
 		} else if ast.SomeDeclaration(symbol, ast.IsLet) {
 			return ScriptElementKindLetElement
@@ -260,7 +260,7 @@ func getSymbolKindOfConstructorPropertyMethodAccessorFunctionOrVar(typeChecker *
 func isFirstDeclarationOfSymbolParameter(symbol *ast.Symbol) bool {
 	var declaration ast.Handle
 	if len(symbol.Declarations) > 0 {
-		declaration = ast.NodeOf(symbol.Declarations[0])
+		declaration = symbol.Declarations[0]
 	}
 	result := ast.FindAncestorOrQuit(declaration, func(n ast.Handle) ast.FindAncestorResult {
 		if ast.IsParameterDeclaration(n) {

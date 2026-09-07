@@ -12,8 +12,70 @@ import (
 // NodeRef is a Store index. 0 is missing. It is not ast.NodeId.
 type NodeRef uint32
 
-// ListRef indexes a packed node list in Store. 0 is missing.
-type ListRef uint32
+// ListRef identifies both the owner and index of a packed list. Node headers
+// still store 32-bit local indexes; foreign list slots live in a sparse map.
+// Qualifying lists allows transforms to reuse unchanged lists across Stores.
+type ListRef uint64
+
+func (s *Store) listRef(index uint32) ListRef {
+	if index == 0 {
+		return 0
+	}
+	return ListRef(s.ID())<<32 | ListRef(index)
+}
+
+func (s *Store) listOwner(list ListRef) *Store {
+	id := StoreID(list >> 32)
+	if id == 0 || id == s.ID() {
+		return s
+	}
+	if owner := s.listOwners[id]; owner != nil {
+		return owner
+	}
+	owner := identitySet().Store(id)
+	if owner == nil {
+		panic("ast: missing list owner")
+	}
+	return owner
+}
+
+// retainList is owner-only. Retain a foreign list's Store so structural sharing
+// remains valid even after its identity slot is unregistered.
+func (s *Store) retainList(list ListRef) {
+	if list == 0 {
+		return
+	}
+	owner := s.listOwner(list)
+	if owner == s {
+		return
+	}
+	if s.listOwners == nil {
+		s.listOwners = make(map[StoreID]*Store)
+	}
+	s.listOwners[owner.ID()] = owner
+}
+
+func (s *Store) listSlot(index uint32) ListRef {
+	if local := s.children[index]; local != 0 {
+		return s.listRef(uint32(local))
+	}
+	return s.foreignLists[index]
+}
+
+func (s *Store) setListSlot(index uint32, list ListRef) {
+	s.mustMutate()
+	if list == 0 || s.listOwner(list) == s {
+		s.children[index] = NodeRef(list)
+		delete(s.foreignLists, index)
+		return
+	}
+	s.retainList(list)
+	s.children[index] = 0
+	if s.foreignLists == nil {
+		s.foreignLists = make(map[uint32]ListRef)
+	}
+	s.foreignLists[index] = list
+}
 
 // Handle is a stack value. Heap-resident structures should hold NodeRef and
 // rebuild the Handle via Store.At; a stored Handle carries *Store, which puts
@@ -92,30 +154,31 @@ type storePhase uint8
 const (
 	storePhaseBuild storePhase = iota
 	storePhaseCheck
-	storePhaseEmit
 )
 
 // Store owns the long-lived tree. One writer for life. Parse, bind, and JSDoc
 // warmup write during build. Freeze publishes the Store as immutable for
 // parallel check (no append, no map writes except SubtreeFacts atomics).
-// EnterEmit / LeaveEmit are the emit writer lease. SourceFiles outlive a
-// Program, so phase is not monotonic across rebuilds.
+// Emit uses a private Store and shares frozen parse nodes/lists. Freeze is
+// irreversible, including across Program rebuilds.
 //
 // StoreSet is separately synchronized for cross-file registration and lookup.
 // After Freeze, internIdx is dropped so node/list/intern backing arrays stay
 // pointer-free (noscan).
 type Store struct {
-	id         atomic.Uint32 // StoreID assigned by StoreSet.Add; 0 until registered
-	allocHint  int
-	phase      storePhase
-	frozenAt   NodeRef
-	freezeOnce sync.Once
-	nodes      []nodeHeader
-	lists      []listHeader
-	children   []NodeRef // named child slots, list slots (as ListRef), and list elements
-	internBuf  []byte
-	internOff  []uint32 // intern id i occupies internBuf[internOff[i]:internOff[i+1]]
-	internIdx  map[string]uint32
+	registrationMu sync.Mutex
+	identityDomain *storeIdentityDomain
+	id             atomic.Uint32 // StoreID assigned by StoreSet.Add; 0 until registered
+	allocHint      int
+	phase          storePhase
+	frozenAt       NodeRef
+	freezeOnce     sync.Once
+	nodes          []nodeHeader
+	lists          []listHeader
+	children       []NodeRef // named child slots, list slots (as ListRef), and list elements
+	internBuf      []byte
+	internOff      []uint32 // intern id i occupies internBuf[internOff[i]:internOff[i+1]]
+	internIdx      map[string]uint32
 	// Symbol and Flow mirror high-fill pointer-AST node fields as dense
 	// columns. End/return flow, localSymbol, Locals, and NextContainer stay
 	// maps: few nodes set them, and pre-sizing those columns raises B/op.
@@ -148,9 +211,11 @@ type Store struct {
 	scalarValues   map[uint64]uint64      // packed NodeRef/value-slot key; pointer-free
 	stringValues   map[uint64]uint32      // intern ids keyed by NodeRef/value-slot
 	objectValues   map[uint64]any         // sparse pointer/slice kind-specific values
-	externalChild  map[uint64]GlobalRef
-	externalList   map[uint64]GlobalRef
-	externalParent map[NodeRef]GlobalRef
+	externalChild  map[uint64]Handle
+	externalList   map[uint64]Handle
+	externalParent map[NodeRef]Handle
+	foreignLists   map[uint32]ListRef
+	listOwners     map[StoreID]*Store
 	subtreeFacts   []uint32
 	sourceFile     *SourceFile // metadata owner; SourceFile fields stay outside Store
 }
@@ -231,10 +296,11 @@ func (s *Store) AllocList(loc core.TextRange, n int) ListRef {
 	if n < 0 {
 		panic("ast: negative list length")
 	}
-	if len(s.lists) >= int(^ListRef(0)) {
+	if len(s.lists) >= int(^uint32(0)) {
 		panic("ast: Store lists exhausted")
 	}
-	id := ListRef(len(s.lists))
+	RegisterStore(s)
+	id := s.listRef(uint32(len(s.lists)))
 	start := uint32(len(s.children))
 	if n > 0 {
 		s.children = append(s.children, make([]NodeRef, n)...)
@@ -266,48 +332,21 @@ func (s *Store) Intern(text string) uint32 {
 }
 
 func (s *Store) Seal() {
+	s.mustMutate()
 	s.internIdx = nil
 }
 
-// Freeze is build → check. Idempotent if already check or emit.
+// Freeze is the irreversible build → check publication barrier.
 func (s *Store) Freeze() {
 	if s == nil {
 		return
 	}
 	s.freezeOnce.Do(func() {
-		if s.phase == storePhaseEmit {
-			return
-		}
 		s.phase = storePhaseCheck
 		s.frozenAt = NodeRef(len(s.nodes))
 		s.internIdx = nil
 		s.subtreeFacts = make([]uint32, len(s.nodes))
 	})
-}
-
-// EnterEmit is check → emit for the writer lease. Idempotent if already emit.
-// Panics if still build.
-func (s *Store) EnterEmit() {
-	if s == nil {
-		return
-	}
-	switch s.phase {
-	case storePhaseEmit:
-		return
-	case storePhaseBuild:
-		panic("ast: EnterEmit before Freeze")
-	}
-	s.phase = storePhaseEmit
-}
-
-// LeaveEmit is emit → check. The lease is over. Idempotent if already check.
-func (s *Store) LeaveEmit() {
-	if s == nil {
-		return
-	}
-	if s.phase == storePhaseEmit {
-		s.phase = storePhaseCheck
-	}
 }
 
 func (s *Store) mustMutate() {
@@ -337,6 +376,7 @@ func (s *Store) Checkpoint() StoreCheckpoint {
 }
 
 func (s *Store) Restore(cp StoreCheckpoint) {
+	s.mustMutate()
 	if s == nil {
 		return
 	}
@@ -356,6 +396,22 @@ func (s *Store) Restore(cp StoreCheckpoint) {
 	cutNodeMap(s.returnFlows, NodeRef(cp.nodes))
 	cutNodeMap(s.locals, NodeRef(cp.nodes))
 	cutNodeMap(s.nextContainer, NodeRef(cp.nodes))
+	cutNodeMap(s.externalParent, NodeRef(cp.nodes))
+	for key := range s.externalChild {
+		if NodeRef(key>>32) >= NodeRef(cp.nodes) {
+			delete(s.externalChild, key)
+		}
+	}
+	for key := range s.externalList {
+		if uint32(key>>32) >= uint32(cp.lists) {
+			delete(s.externalList, key)
+		}
+	}
+	for slot := range s.foreignLists {
+		if slot >= uint32(cp.children) {
+			delete(s.foreignLists, slot)
+		}
+	}
 }
 
 func truncateCol[T any](col []T, n int) []T {
@@ -473,16 +529,19 @@ func (s *Store) ListSlotAt(parent NodeRef, slot uint32) ListRef {
 	if slot >= uint32(n.listLen) {
 		panic("ast: list slot out of range")
 	}
-	return ListRef(s.children[n.listBase()+slot])
+	return s.listSlot(n.listBase() + slot)
 }
 
 // ListElem returns the same-Store element NodeRef at list index i.
 // 0 means missing or external (use ListAt for the slow path).
 func (s *Store) ListElem(list ListRef, i int) NodeRef {
+	if list != 0 && s != nil {
+		s = s.listOwner(list)
+	}
 	if list == 0 || s == nil {
 		return 0
 	}
-	l := &s.lists[list]
+	l := &s.lists[uint32(list)]
 	if i < 0 || i >= int(l.len) {
 		panic("ast: list index out of range")
 	}
@@ -501,6 +560,7 @@ func (s *Store) SetSourceFile(file *SourceFile) {
 	if s == nil {
 		panic("ast: SetSourceFile on nil Store")
 	}
+	s.mustMutate()
 	s.sourceFile = file
 }
 
@@ -512,33 +572,42 @@ func (s *Store) SourceFile() *SourceFile {
 }
 
 func (s *Store) ListLen(list ListRef) int {
+	if list != 0 && s != nil {
+		s = s.listOwner(list)
+	}
 	if list == 0 || s == nil {
 		return 0
 	}
-	return int(s.lists[list].len)
+	return int(s.lists[uint32(list)].len)
 }
 
 func (s *Store) ListLoc(list ListRef) core.TextRange {
+	if list != 0 && s != nil {
+		s = s.listOwner(list)
+	}
 	if list == 0 || s == nil {
 		return core.UndefinedTextRange()
 	}
-	l := &s.lists[list]
+	l := &s.lists[uint32(list)]
 	return core.NewTextRange(int(l.pos), int(l.end))
 }
 
 func (s *Store) ListAt(list ListRef, i int) Handle {
+	if list != 0 && s != nil {
+		s = s.listOwner(list)
+	}
 	if list == 0 || s == nil {
 		return Handle{}
 	}
-	l := &s.lists[list]
+	l := &s.lists[uint32(list)]
 	if i < 0 || i >= int(l.len) {
 		panic("ast: list index out of range")
 	}
 	if id := s.children[int(l.start)+i]; id != 0 {
 		return s.handleOf(id)
 	}
-	if g := s.ExternalListAt(list, i); g != 0 {
-		return NodeOf(g)
+	if child := s.externalList[uint64(uint32(list))<<32|uint64(uint32(i))]; !child.IsNil() {
+		return child
 	}
 	return Handle{}
 }
@@ -547,10 +616,13 @@ func (s *Store) ListAt(list ListRef, i int) Handle {
 // the slot is empty or holds an external (cross-store) child. Callers that may
 // see external children must use ListAt.
 func (s *Store) ListRefAt(list ListRef, i int) NodeRef {
+	if list != 0 && s != nil {
+		s = s.listOwner(list)
+	}
 	if list == 0 || s == nil {
 		return 0
 	}
-	l := &s.lists[list]
+	l := &s.lists[uint32(list)]
 	if i < 0 || i >= int(l.len) {
 		panic("ast: list index out of range")
 	}
@@ -567,43 +639,58 @@ func (s *Store) ListHasTrailingComma(list ListRef) bool {
 }
 
 func (s *Store) setListLoc(list ListRef, loc core.TextRange) {
+	if list != 0 && s != nil && s.listOwner(list) != s {
+		panic("ast: write to foreign list")
+	}
 	if list == 0 || s == nil {
 		return
 	}
 	s.mustMutate()
-	s.lists[list].pos = int32(loc.Pos())
-	s.lists[list].end = int32(loc.End())
+	s.lists[uint32(list)].pos = int32(loc.Pos())
+	s.lists[uint32(list)].end = int32(loc.End())
 }
 
 func (s *Store) SetListAt(list ListRef, i int, h Handle) {
+	if list != 0 && s != nil && s.listOwner(list) != s {
+		panic("ast: write to foreign list")
+	}
 	if list == 0 || s == nil {
 		panic("ast: SetListAt on missing list")
 	}
 	s.mustMutate()
-	l := &s.lists[list]
+	l := &s.lists[uint32(list)]
 	if i < 0 || i >= int(l.len) {
 		panic("ast: list index out of range")
 	}
 	ref := NodeRef(0)
 	if h.id != 0 {
 		if h.s != s {
-			panic("ast: Handle from a different Store")
+			if s.externalList == nil {
+				s.externalList = make(map[uint64]Handle)
+			}
+			s.children[int(l.start)+i] = 0
+			s.externalList[uint64(uint32(list))<<32|uint64(uint32(i))] = h
+			return
 		}
 		ref = h.id
 	}
+	delete(s.externalList, uint64(uint32(list))<<32|uint64(uint32(i)))
 	s.children[int(l.start)+i] = ref
 }
 
 func (s *Store) SetExternalListAt(list ListRef, i int, child GlobalRef) {
+	if list != 0 && s != nil && s.listOwner(list) != s {
+		panic("ast: write to foreign list")
+	}
 	if list == 0 || s == nil {
 		panic("ast: SetExternalListAt on missing list")
 	}
 	s.mustMutate()
-	l := &s.lists[list]
+	l := &s.lists[uint32(list)]
 	if i < 0 || i >= int(l.len) {
 		panic("ast: list index out of range")
 	}
-	key := uint64(list)<<32 | uint64(uint32(i))
+	key := uint64(uint32(list))<<32 | uint64(uint32(i))
 	if child == 0 {
 		delete(s.externalList, key)
 		return
@@ -612,20 +699,23 @@ func (s *Store) SetExternalListAt(list ListRef, i int, child GlobalRef) {
 		panic("ast: external list child conflicts with local child")
 	}
 	if s.externalList == nil {
-		s.externalList = make(map[uint64]GlobalRef)
+		s.externalList = make(map[uint64]Handle)
 	}
-	s.externalList[key] = child
+	s.externalList[key] = NodeOf(child)
 }
 
 func (s *Store) ExternalListAt(list ListRef, i int) GlobalRef {
+	if list != 0 && s != nil {
+		s = s.listOwner(list)
+	}
 	if list == 0 || s == nil {
 		return 0
 	}
-	l := &s.lists[list]
+	l := &s.lists[uint32(list)]
 	if i < 0 || i >= int(l.len) {
 		panic("ast: list index out of range")
 	}
-	return s.externalList[uint64(list)<<32|uint64(uint32(i))]
+	return s.externalList[uint64(uint32(list))<<32|uint64(uint32(i))].Global()
 }
 
 func (s *Store) PrepareBindTables() {
@@ -1078,8 +1168,8 @@ func (h Handle) Parent() Handle {
 	if id := h.s.nodes[h.id].parent; id != 0 {
 		return h.s.handleOf(id)
 	}
-	if g := h.s.externalParent[h.id]; g != 0 {
-		return NodeOf(g)
+	if parent := h.s.externalParent[h.id]; !parent.IsNil() {
+		return parent
 	}
 	return Handle{}
 }
@@ -1099,9 +1189,9 @@ func (h Handle) SetParent(p Handle) {
 	}
 	h.s.nodes[h.id].parent = 0
 	if h.s.externalParent == nil {
-		h.s.externalParent = make(map[NodeRef]GlobalRef)
+		h.s.externalParent = make(map[NodeRef]Handle)
 	}
-	h.s.externalParent[h.id] = p.Global()
+	h.s.externalParent[h.id] = p
 }
 
 func (h Handle) NumChildren() int {
@@ -1133,9 +1223,7 @@ func (h Handle) childAt(rel uint32) Handle {
 
 func (h Handle) childAtSlow(rel uint32) Handle {
 	if h.s.externalChild != nil {
-		if g := h.ExternalChild(int(rel)); g != 0 {
-			return NodeOf(g)
-		}
+		return h.s.externalChild[h.valueKey(int(rel))]
 	}
 	return Handle{}
 }
@@ -1160,7 +1248,10 @@ func (h Handle) SetChild(i int, c Handle) {
 		return
 	}
 	h.s.children[slot] = 0
-	h.SetExternalChild(i, c.Global())
+	if h.s.externalChild == nil {
+		h.s.externalChild = make(map[uint64]Handle)
+	}
+	h.s.externalChild[h.valueKey(i)] = c
 }
 
 func (h Handle) SetExternalChild(i int, child GlobalRef) {
@@ -1179,9 +1270,9 @@ func (h Handle) SetExternalChild(i int, child GlobalRef) {
 		panic("ast: external child conflicts with local child")
 	}
 	if h.s.externalChild == nil {
-		h.s.externalChild = make(map[uint64]GlobalRef)
+		h.s.externalChild = make(map[uint64]Handle)
 	}
-	h.s.externalChild[key] = child
+	h.s.externalChild[key] = NodeOf(child)
 }
 
 func (h Handle) ExternalChild(i int) GlobalRef {
@@ -1190,7 +1281,7 @@ func (h Handle) ExternalChild(i int) GlobalRef {
 	if i < 0 || i >= int(n.childLen) {
 		panic("ast: child index out of range")
 	}
-	return h.s.externalChild[h.valueKey(i)]
+	return h.s.externalChild[h.valueKey(i)].Global()
 }
 
 func (h Handle) SetIdent(internID uint32) {
@@ -1311,7 +1402,7 @@ func (h Handle) ListSlot(i int) ListRef {
 	if i < 0 || i >= int(n.listLen) {
 		panic("ast: list slot out of range")
 	}
-	return ListRef(h.s.children[int(n.listBase())+i])
+	return h.s.listSlot(n.listBase() + uint32(i))
 }
 
 func (h Handle) SetListSlot(i int, list ListRef) {
@@ -1321,7 +1412,7 @@ func (h Handle) SetListSlot(i int, list ListRef) {
 	if i < 0 || i >= int(n.listLen) {
 		panic("ast: list slot out of range")
 	}
-	h.s.children[int(n.listBase())+i] = NodeRef(list)
+	h.s.setListSlot(n.listBase()+uint32(i), list)
 	h.attachList(list)
 }
 
@@ -1333,7 +1424,7 @@ func (h Handle) List() ListRef {
 	if n.listLen == 0 {
 		return 0
 	}
-	return ListRef(h.s.children[n.listBase()])
+	return h.s.listSlot(n.listBase())
 }
 
 func (h Handle) SetList(list ListRef) {
@@ -1343,7 +1434,7 @@ func (h Handle) SetList(list ListRef) {
 	if n.listLen == 0 {
 		panic("ast: SetList on node with no list slots")
 	}
-	h.s.children[n.listBase()] = NodeRef(list)
+	h.s.setListSlot(n.listBase(), list)
 	h.attachList(list)
 }
 
@@ -1380,7 +1471,7 @@ func (h Handle) ForEachChild(v StoreVisitor) bool {
 		}
 	}
 	for slot := range int(n.listLen) {
-		list := ListRef(h.s.children[int(n.listBase())+slot])
+		list := h.s.listSlot(n.listBase() + uint32(slot))
 		if list == 0 {
 			continue
 		}

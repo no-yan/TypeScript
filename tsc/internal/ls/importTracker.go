@@ -155,7 +155,7 @@ func getImportersForExport(sourceFiles []*ast.SourceFile, sourceFilesSet *collec
 	var indirectUserDeclarations []ast.Handle
 	markSeenDirectImport := nodeSeenTracker()
 	markSeenIndirectUser := nodeSeenTracker()
-	isAvailableThroughGlobal := isSourceFileWithGlobalExports(ast.NodeOf(exportInfo.exportingModuleSymbol.ValueDeclaration))
+	isAvailableThroughGlobal := isSourceFileWithGlobalExports(exportInfo.exportingModuleSymbol.ValueDeclaration)
 	getDirectImports := func(moduleSymbol *ast.Symbol) []ast.Handle {
 		return allDirectImports[moduleSymbol]
 	}
@@ -562,7 +562,7 @@ func getExportEqualsLocalSymbol(importedSymbol *ast.Symbol, checker *checker.Che
 	if importedSymbol.Flags&ast.SymbolFlagsAlias != 0 {
 		return checker.GetImmediateAliasedSymbol(importedSymbol)
 	}
-	decl := ast.NodeOf(importedSymbol.ValueDeclaration)
+	decl := importedSymbol.ValueDeclaration
 	debug.Assert(!decl.IsNil())
 	switch {
 	case ast.IsExportAssignment(decl):
@@ -590,7 +590,7 @@ func symbolNameNoDefault(symbol *ast.Symbol) string {
 func findModuleReferences(program *compiler.Program, sourceFiles []*ast.SourceFile, searchModuleSymbol *ast.Symbol, checker *checker.Checker) []ModuleReference {
 	refs := []ModuleReference{}
 	for _, referencingFile := range sourceFiles {
-		searchSourceFile := ast.NodeOf(searchModuleSymbol.ValueDeclaration)
+		searchSourceFile := searchModuleSymbol.ValueDeclaration
 		if !searchSourceFile.IsNil() && searchSourceFile.Kind == ast.KindSourceFile {
 			for _, ref := range referencingFile.ReferencedFiles {
 				if program.GetSourceFileFromReference(referencingFile, ref) == ast.GetSourceFileOfNode(searchSourceFile) {

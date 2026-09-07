@@ -141,7 +141,7 @@ func (r *referenceResolver) GetReferencedExportContainer(node ast.Handle, prefix
 		parentSymbol := r.getParentOfSymbol(symbol)
 		if parentSymbol != nil {
 			if parentSymbol.Flags&ast.SymbolFlagsValueModule != 0 {
-				valueDecl := ast.NodeOf(parentSymbol.ValueDeclaration)
+				valueDecl := parentSymbol.ValueDeclaration
 				if !valueDecl.IsNil() && valueDecl.Kind == ast.KindSourceFile {
 					symbolFile := ast.GetSourceFileOfNode(valueDecl)
 					referenceFile := ast.GetSourceFileOfNode(node)
@@ -170,7 +170,7 @@ func (r *referenceResolver) GetReferencedImportDeclaration(node ast.Handle) ast.
 }
 func (r *referenceResolver) GetReferencedValueDeclaration(node ast.Handle) ast.Handle {
 	if symbol := r.getReferencedValueSymbol(node, false); symbol != nil {
-		return ast.NodeOf(r.getExportSymbolOfValueSymbolIfExported(symbol).ValueDeclaration)
+		return r.getExportSymbolOfValueSymbolIfExported(symbol).ValueDeclaration
 	}
 	return ast.Handle{}
 }
@@ -179,7 +179,7 @@ func (r *referenceResolver) GetReferencedValueDeclarations(node ast.Handle) []as
 	if symbol := r.getReferencedValueSymbol(node, false); symbol != nil {
 		symbol = r.getExportSymbolOfValueSymbolIfExported(symbol)
 		for _, declarationRef := range symbol.Declarations {
-			declaration := ast.NodeOf(declarationRef)
+			declaration := declarationRef
 			if declaration.IsNil() {
 				continue
 			}
@@ -209,5 +209,5 @@ func (r *referenceResolver) GetReferencedMemberValueDeclaration(node ast.Handle)
 	if s == nil {
 		return ast.Handle{}
 	}
-	return ast.NodeOf(r.getExportSymbolOfValueSymbolIfExported(s).ValueDeclaration)
+	return r.getExportSymbolOfValueSymbolIfExported(s).ValueDeclaration
 }

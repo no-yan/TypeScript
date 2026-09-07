@@ -37,7 +37,7 @@ func newAsyncTransformer(opts *transformers.TransformOptions) *transformers.Tran
 	return result
 }
 func (tx *asyncTransformer) visitSourceFile(node ast.Handle) ast.Handle {
-	if ast.GetSourceFileOfNode(node) != nil && ast.GetSourceFileOfNode(node).IsDeclarationFile {
+	if tx.EmitContext().SourceFileOf(node) != nil && tx.EmitContext().SourceFileOf(node).IsDeclarationFile {
 		return node
 	}
 	tx.setContextFlag(asyncContextNonTopLevel, false)

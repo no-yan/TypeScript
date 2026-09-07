@@ -16,7 +16,7 @@ func (ch *chainedTransformer) visit(node ast.Handle) ast.Handle {
 	if node.Kind != ast.KindSourceFile {
 		panic("Chained transform passed non-sourcefile initial node")
 	}
-	file := ast.GetSourceFileOfNode(node)
+	file := ch.EmitContext().SourceFileOf(node)
 	for _, t := range ch.components {
 		file = t.TransformSourceFile(file)
 	}

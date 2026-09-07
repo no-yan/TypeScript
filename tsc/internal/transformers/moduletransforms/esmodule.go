@@ -58,14 +58,14 @@ func (tx *ESModuleTransformer) visit(node ast.Handle) ast.Handle {
 	return node
 }
 func (tx *ESModuleTransformer) visitSourceFile(node ast.Handle) ast.Handle {
-	if ast.GetSourceFileOfNode(node) != nil && ast.GetSourceFileOfNode(node).IsDeclarationFile || !(ast.IsExternalModule(ast.GetSourceFileOfNode(node)) || tx.compilerOptions.GetIsolatedModules()) {
+	if tx.EmitContext().SourceFileOf(node) != nil && tx.EmitContext().SourceFileOf(node).IsDeclarationFile || !(ast.IsExternalModule(tx.EmitContext().SourceFileOf(node)) || tx.compilerOptions.GetIsolatedModules()) {
 		return node
 	}
-	tx.currentSourceFile = ast.GetSourceFileOfNode(node)
+	tx.currentSourceFile = tx.EmitContext().SourceFileOf(node)
 	tx.importRequireStatements = nil
 	result := tx.Visitor().VisitEachChild(node)
 	tx.EmitContext().AddEmitHelper(result, tx.EmitContext().ReadEmitHelpers()...)
-	externalHelpersImportDeclaration := createExternalHelpersImportDeclarationIfNeeded(tx.EmitContext(), ast.GetSourceFileOfNode(result), tx.compilerOptions, tx.getEmitModuleFormatOfFile(ast.GetSourceFileOfNode(node)), false, false, false)
+	externalHelpersImportDeclaration := createExternalHelpersImportDeclarationIfNeeded(tx.EmitContext(), tx.EmitContext().SourceFileOf(result), tx.compilerOptions, tx.getEmitModuleFormatOfFile(tx.EmitContext().SourceFileOf(node)), false, false, false)
 	if !externalHelpersImportDeclaration.IsNil() || tx.importRequireStatements != nil {
 		prologue, rest := tx.Factory().SplitStandardPrologue(result.Statements())
 		custom, rest := tx.Factory().SplitCustomPrologue(rest)
@@ -81,7 +81,7 @@ func (tx *ESModuleTransformer) visitSourceFile(node ast.Handle) ast.Handle {
 		statementList := tx.Factory().List(result.Store().ListLoc(result.StatementList()), statements...)
 		result = tx.Factory().UpdateSourceFile(result, statementList, node.EndOfFileToken())
 	}
-	if ast.IsExternalModule(ast.GetSourceFileOfNode(result)) && tx.compilerOptions.GetEmitModuleKind() != core.ModuleKindPreserve && !core.Some(result.Statements(), ast.IsExternalModuleIndicator) {
+	if ast.IsExternalModule(tx.EmitContext().SourceFileOf(result)) && tx.compilerOptions.GetEmitModuleKind() != core.ModuleKindPreserve && !core.Some(result.Statements(), ast.IsExternalModuleIndicator) {
 		statements := slices.Clone(result.Statements())
 		statements = append(statements, createEmptyImports(tx.Factory()))
 		statementList := tx.Factory().List(result.Store().ListLoc(result.StatementList()), statements...)

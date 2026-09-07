@@ -347,7 +347,7 @@ func (l *LanguageService) getStringLiteralCompletionEntries(ctx context.Context,
 			t := typeChecker.GetTypeAtLocation(parent.BinaryExpressionRight())
 			properties := getPropertiesForCompletion(t, typeChecker)
 			return &stringLiteralCompletions{fromProperties: &completionsFromProperties{symbols: core.Filter(properties, func(s *ast.Symbol) bool {
-				return s.ValueDeclaration == 0 || !ast.IsPrivateIdentifierClassElementDeclaration(ast.NodeOf(s.ValueDeclaration))
+				return s.ValueDeclaration.IsNil() || !ast.IsPrivateIdentifierClassElementDeclaration(s.ValueDeclaration)
 			}), hasIndexSignature: false}}
 		}
 		return &stringLiteralCompletions{fromTypes: fromContextualType(checker.ContextFlagsNone, node, typeChecker)}
@@ -431,7 +431,7 @@ func stringLiteralCompletionsForObjectLiteral(typeChecker *checker.Checker, obje
 }
 func stringLiteralCompletionsFromProperties(t *checker.Type, typeChecker *checker.Checker) *completionsFromProperties {
 	return &completionsFromProperties{symbols: core.Filter(typeChecker.GetApparentProperties(t), func(s *ast.Symbol) bool {
-		return !(s.ValueDeclaration != 0 && ast.IsPrivateIdentifierClassElementDeclaration(ast.NodeOf(s.ValueDeclaration)))
+		return !(!s.ValueDeclaration.IsNil() && ast.IsPrivateIdentifierClassElementDeclaration(s.ValueDeclaration))
 	}), hasIndexSignature: hasIndexSignature(t, typeChecker)}
 }
 func (l *LanguageService) getStringLiteralCompletionsFromModuleNames(file *ast.SourceFile, node ast.Handle, program *compiler.Program, checker *checker.Checker) *stringLiteralCompletions {

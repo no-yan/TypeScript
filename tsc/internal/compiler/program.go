@@ -1640,7 +1640,7 @@ func (p *Program) Emit(ctx context.Context, options EmitOptions) *EmitResult {
 	writerPool := &sync.Pool{New: func() any {
 		return printer.NewTextWriter(newLine, 0)
 	}}
-	wg := core.NewWorkGroup(true)
+	wg := core.NewWorkGroup(p.SingleThreaded())
 	var emitters []*emitter
 	forceDtsEmit := options.EmitOnly == EmitOnlyBuilderSignature || options.ForceEmit && options.EmitOnly == EmitOnlyDts
 	forceJsEmit := options.ForceEmit && options.EmitOnly == EmitOnlyJs

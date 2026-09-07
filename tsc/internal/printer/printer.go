@@ -4049,7 +4049,7 @@ func (p *Printer) Write(node ast.Handle, sourceFile *ast.SourceFile, writer Emit
 	case ast.KindEnumMember:
 		p.emitEnumMember(node)
 	case ast.KindSourceFile:
-		p.emitSourceFile(ast.GetSourceFileOfNode(node))
+		p.emitSourceFile(sourceFile)
 	case ast.KindNotEmittedTypeElement:
 		p.emitNotEmittedTypeElement(node)
 	default:

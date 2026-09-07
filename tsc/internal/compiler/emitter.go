@@ -178,16 +178,10 @@ func getScriptTransformers(emitContext *printer.EmitContext, host printer.EmitHo
 	return tx
 }
 
-// attachEmitView points Store.SourceFile at a metadata clone for this emit, then restores it.
+// attachEmitView gives transforms private metadata without rebinding the shared
+// parse Store. Generated nodes obtain this wrapper through their private Store.
 func attachEmitView(file *ast.SourceFile) (*ast.SourceFile, func()) {
-	view := file.CloneWrapper()
-	store := file.ParseStore()
-	if store == nil {
-		return view, func() {}
-	}
-	prev := store.SourceFile()
-	store.SetSourceFile(view)
-	return view, func() { store.SetSourceFile(prev) }
+	return file.CloneWrapper(), func() {}
 }
 
 func citeProgramFile(diags []*ast.Diagnostic, view, file *ast.SourceFile) {
@@ -232,7 +226,7 @@ func (e *emitter) emitJSFile(sourceFile *ast.SourceFile, jsFilePath string, sour
 
 	emitContext, putEmitContext := printer.GetEmitContext()
 	defer putEmitContext()
-	releaseStore := emitContext.LockParseStoreWriter(sourceFile)
+	releaseStore := emitContext.BeginFile(sourceFile)
 	defer releaseStore()
 	// Script transformers replace ParseRoot with the type-erased tree on the
 	// wrapper they receive. Clone metadata only so the program file keeps the
@@ -275,7 +269,7 @@ func (e *emitter) emitDeclarationFile(sourceFile *ast.SourceFile, declarationFil
 
 	emitContext, putEmitContext := printer.GetEmitContext()
 	defer putEmitContext()
-	releaseStore := emitContext.LockParseStoreWriter(sourceFile)
+	releaseStore := emitContext.BeginFile(sourceFile)
 	defer releaseStore()
 	// Declaration transformers set IsDeclarationFile and remap triple-slash
 	// refs on the wrapper they receive. Clone metadata only so the program
@@ -623,7 +617,7 @@ func getDeclarationDiagnostics(host EmitHost, file *ast.SourceFile) []*ast.Diagn
 	}
 	options := host.Options()
 	emitContext := printer.NewEmitContext()
-	releaseStore := emitContext.LockParseStoreWriter(file)
+	releaseStore := emitContext.BeginFile(file)
 	defer releaseStore()
 	// Declaration transformers set IsDeclarationFile and remap triple-slash
 	// refs on the wrapper they receive. Clone metadata only so a --noEmit

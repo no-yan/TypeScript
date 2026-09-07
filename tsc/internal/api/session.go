@@ -161,8 +161,8 @@ func (sd *snapshotData) newSymbolResponse(symbol *ast.Symbol, canonicalProject P
 		}
 	}
 
-	if symbol.ValueDeclaration != 0 {
-		resp.ValueDeclaration = sd.nodeHandleFrom(ast.NodeOf(symbol.ValueDeclaration))
+	if !symbol.ValueDeclaration.IsNil() {
+		resp.ValueDeclaration = sd.nodeHandleFrom(symbol.ValueDeclaration)
 	}
 
 	if symbol.Parent != nil {

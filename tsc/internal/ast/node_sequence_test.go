@@ -56,20 +56,12 @@ func TestNodeSeqEarlyBreak(t *testing.T) {
 	assert.Equal(t, 2, seen)
 }
 
-func TestNodeSeqDenseIndexAndNilDeclarationSkip(t *testing.T) {
+func TestNodeSeqDeclarationHandles(t *testing.T) {
 	t.Parallel()
 	s := ast.NewStore(8)
-	ast.RegisterStore(s)
 	a := s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
 	b := s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
-	sym := &ast.Symbol{
-		Name: "x",
-		Declarations: []ast.GlobalRef{
-			a.Global(),
-			0, // nil declaration — skipped
-			b.Global(),
-		},
-	}
+	sym := &ast.Symbol{Name: "x", Declarations: []ast.Handle{a, b}}
 	var idxs []int
 	var refs []ast.NodeRef
 	for i, h := range ast.DeclarationNodes(sym).All() {
@@ -153,7 +145,7 @@ func TestNodeSeqAllocsPerRun(t *testing.T) {
 	s := f.Store()
 	seq := s.ListSlice(list)
 	ast.RegisterStore(s)
-	sym := &ast.Symbol{Name: "x", Declarations: []ast.GlobalRef{a.Global(), b.Global()}}
+	sym := &ast.Symbol{Name: "x", Declarations: []ast.Handle{a, b}}
 
 	var sink int
 	listAllocs := testing.AllocsPerRun(1000, func() {

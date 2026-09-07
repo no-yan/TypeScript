@@ -308,9 +308,9 @@ func findImplementation(c *checker.Checker, node ast.Handle) ast.Handle {
 	}
 	if ast.IsFunctionDeclaration(node) || ast.IsMethodDeclaration(node) {
 		symbol := getSymbolOfCallHierarchyDeclaration(c, node)
-		if symbol != nil && symbol.ValueDeclaration != 0 {
-			if ast.IsFunctionLikeDeclaration(ast.NodeOf(symbol.ValueDeclaration)) && !ast.NodeOf(symbol.ValueDeclaration).Body().IsNil() {
-				return ast.NodeOf(symbol.ValueDeclaration)
+		if symbol != nil && !symbol.ValueDeclaration.IsNil() {
+			if ast.IsFunctionLikeDeclaration(symbol.ValueDeclaration) && !symbol.ValueDeclaration.Body().IsNil() {
+				return symbol.ValueDeclaration
 			}
 		}
 		return ast.Handle{}
@@ -431,9 +431,9 @@ func resolveCallHierarchyDeclaration(program *compiler.Program, location ast.Han
 				if (symbol.Flags & ast.SymbolFlagsAlias) != 0 {
 					symbol = c.GetAliasedSymbol(symbol)
 				}
-				if symbol.ValueDeclaration != 0 {
+				if !symbol.ValueDeclaration.IsNil() {
 					followingSymbol = true
-					location = ast.NodeOf(symbol.ValueDeclaration)
+					location = symbol.ValueDeclaration
 					continue
 				}
 			}

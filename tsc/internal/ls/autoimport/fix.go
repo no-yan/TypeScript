@@ -185,7 +185,8 @@ func addToExistingImport(ct *change.Tracker, file *ast.SourceFile, importClauseO
 			newSpecifiers := core.Map(namedImports, func(namedImport *newImportBinding) ast.Handle {
 				var identifier ast.Handle
 				if namedImport.propertyName != "" {
-					identifier = ct.HandleFactory.NewIdentifier(namedImport.propertyName)				}
+					identifier = ct.HandleFactory.NewIdentifier(namedImport.propertyName)
+				}
 				return ct.HandleFactory.NewImportSpecifier((!importClause.IsTypeOnly() || promoteFromTypeOnly) && shouldUseTypeOnly(namedImport.addAsTypeOnly, preferences), identifier, ct.HandleFactory.NewIdentifier(namedImport.name))
 			})
 			slices.SortFunc(newSpecifiers, specifierComparer)
@@ -769,7 +770,8 @@ func promoteFromTypeOnly(changes *change.Tracker, aliasDeclaration ast.Handle, c
 				if len(elements) > 1 {
 					var propertyName ast.Handle
 					if !spec.PropertyName().IsNil() {
-						propertyName = changes.HandleFactory.NewIdentifier(spec.PropertyName().Text())					}
+						propertyName = changes.HandleFactory.NewIdentifier(spec.PropertyName().Text())
+					}
 					newSpecifier := changes.HandleFactory.NewImportSpecifier(false, propertyName, changes.HandleFactory.NewIdentifier(spec.Name().Text()))
 					specifierComparer, _ := lsutil.GetNamedImportSpecifierComparerWithDetection(spec.Parent().Parent().Parent(), sourceFile, preferences)
 					insertionIndex := lsutil.GetImportSpecifierInsertionIndex(elements, newSpecifier, specifierComparer)

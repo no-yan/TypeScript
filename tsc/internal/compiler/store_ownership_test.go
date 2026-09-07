@@ -125,3 +125,57 @@ func TestProgramCloseUnregistersSynthStores(t *testing.T) {
 	p.Close()
 	assert.Equal(t, ast.Handle{}, ast.NodeOf(ast.MakeGlobalRef(id, 1)))
 }
+
+func TestParallelEmitPreservesParseStores(t *testing.T) {
+	files := map[string]string{
+		"/a.ts": `export class A { value: number = 1; constructor() {} }`,
+		"/b.ts": `import { A } from "./a"; export class B extends A { get twice(): number { return this.value * 2; } }`,
+		"/c.ts": `import { B } from "./b"; export const read = (b?: B): number => b?.twice ?? 0;`,
+	}
+	p := newOwnershipProgram(t, files, 4)
+	defer p.Close()
+	p.Options().NoEmit = core.TSFalse
+	p.Options().Declaration = core.TSTrue
+	p.Options().SourceMap = core.TSTrue
+	p.Options().Target = core.ScriptTargetES2015
+	p.Options().OutDir = "/out"
+	_ = p.GetSemanticDiagnostics(t.Context(), nil)
+	roots := make(map[*ast.SourceFile]ast.Handle)
+	sizes := make(map[*ast.Store]int)
+	for name := range files {
+		file := p.GetSourceFile(name)
+		roots[file] = file.ParseRoot()
+		sizes[file.ParseStore()] = file.ParseStore().Len()
+	}
+	// Keep reading all parse trees while transforms allocate in parallel.
+	stop := make(chan struct{})
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		for {
+			select {
+			case <-stop:
+				return
+			default:
+			}
+			for _, root := range roots {
+				ast.Walk(root, func(n ast.Handle) bool { _ = n.Flags(); _ = n.Parent(); return false })
+			}
+		}
+	}()
+	var parallel emitFiles
+	result := p.Emit(t.Context(), compiler.EmitOptions{WriteFile: parallel.write})
+	close(stop)
+	<-done
+	assert.Assert(t, !result.EmitSkipped)
+	assert.Assert(t, len(parallel.m) >= len(files)*2)
+	for file, root := range roots {
+		assert.Equal(t, root, file.ParseRoot())
+		assert.Equal(t, sizes[root.Store()], root.Store().Len())
+		assert.Equal(t, file, root.Store().SourceFile())
+	}
+	p.Options().SingleThreaded = core.TSTrue
+	var serial emitFiles
+	p.Emit(t.Context(), compiler.EmitOptions{WriteFile: serial.write})
+	assert.DeepEqual(t, parallel.m, serial.m)
+}

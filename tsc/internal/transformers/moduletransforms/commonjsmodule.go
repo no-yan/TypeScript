@@ -204,7 +204,7 @@ func (tx *CommonJSModuleTransformer) visitAssignmentPatternNoStack(node ast.Hand
 	return node
 }
 func (tx *CommonJSModuleTransformer) visitSourceFile(node ast.Handle) ast.Handle {
-	file := ast.GetSourceFileOfNode(node)
+	file := tx.EmitContext().SourceFileOf(node)
 	if file != nil && file.IsDeclarationFile || !(ast.IsEffectiveExternalModule(file, tx.compilerOptions) || node.SubtreeFacts()&ast.SubtreeContainsDynamicImport != 0) {
 		return node
 	}
@@ -273,7 +273,7 @@ func (tx *CommonJSModuleTransformer) transformCommonJSModule(node ast.Handle) as
 	statementList := tx.Factory().List(node.Store().ListLoc(node.StatementList()), statements...)
 	result := tx.Factory().UpdateSourceFile(node, statementList, node.EndOfFileToken())
 	tx.EmitContext().AddEmitHelper(result, tx.EmitContext().ReadEmitHelpers()...)
-	externalHelpersImportDeclaration := createExternalHelpersImportDeclarationIfNeeded(tx.EmitContext(), ast.GetSourceFileOfNode(result), tx.compilerOptions, tx.getEmitModuleFormatOfFile(tx.currentSourceFile), false, false, false)
+	externalHelpersImportDeclaration := createExternalHelpersImportDeclarationIfNeeded(tx.EmitContext(), tx.EmitContext().SourceFileOf(result), tx.compilerOptions, tx.getEmitModuleFormatOfFile(tx.currentSourceFile), false, false, false)
 	if !externalHelpersImportDeclaration.IsNil() {
 		prologue, rest := tx.Factory().SplitStandardPrologue(result.Statements())
 		custom, rest := tx.Factory().SplitCustomPrologue(rest)

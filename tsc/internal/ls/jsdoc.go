@@ -218,15 +218,15 @@ func getJSDocOrTag(c *checker.Checker, node ast.Handle, seenSymbols *collections
 			classType := c.GetDeclaredTypeOfSymbol(node.Parent().Symbol())
 			if isStatic {
 				staticBaseType := c.GetApparentType(c.GetBaseConstructorTypeOfClass(classType))
-				if prop := c.GetPropertyOfType(staticBaseType, symbol.Name); prop != nil && prop.ValueDeclaration != 0 && seenSymbols.AddIfAbsent(prop) {
-					if jsDoc := getJSDocOrTag(c, ast.NodeOf(prop.ValueDeclaration), seenSymbols); !jsDoc.IsNil() {
+				if prop := c.GetPropertyOfType(staticBaseType, symbol.Name); prop != nil && !prop.ValueDeclaration.IsNil() && seenSymbols.AddIfAbsent(prop) {
+					if jsDoc := getJSDocOrTag(c, prop.ValueDeclaration, seenSymbols); !jsDoc.IsNil() {
 						return jsDoc
 					}
 				}
 			} else {
 				for _, baseType := range c.GetBaseTypes(classType) {
-					if prop := c.GetPropertyOfType(baseType, symbol.Name); prop != nil && prop.ValueDeclaration != 0 && seenSymbols.AddIfAbsent(prop) {
-						if jsDoc := getJSDocOrTag(c, ast.NodeOf(prop.ValueDeclaration), seenSymbols); !jsDoc.IsNil() {
+					if prop := c.GetPropertyOfType(baseType, symbol.Name); prop != nil && !prop.ValueDeclaration.IsNil() && seenSymbols.AddIfAbsent(prop) {
+						if jsDoc := getJSDocOrTag(c, prop.ValueDeclaration, seenSymbols); !jsDoc.IsNil() {
 							return jsDoc
 						}
 					}

@@ -79,7 +79,7 @@ func (s *Store) ListSlice(list ListRef) NodeSeq {
 	if s == nil || list == 0 {
 		return EmptyNodeSeq
 	}
-	return NodeSeq{s: s, list: list}
+	return NodeSeq{s: s.listOwner(list), list: list}
 }
 
 func (h Handle) ListSlice(list ListRef) NodeSeq {

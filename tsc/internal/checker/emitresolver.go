@@ -473,7 +473,7 @@ func (r *EmitResolver) IsExpandoFunctionDeclarationUnsafe(node ast.Handle) bool 
 	}
 	props := r.GetPropertiesOfContainerFunction(node)
 	for _, p := range props {
-		if ast.IsExpandoPropertyDeclaration(ast.NodeOf(p.ValueDeclaration)) {
+		if ast.IsExpandoPropertyDeclaration(p.ValueDeclaration) {
 			return true
 		}
 	}
@@ -551,8 +551,8 @@ func (r *EmitResolver) isAliasResolvedToValue(symbol *ast.Symbol, excludeTypeOnl
 	if symbol == nil {
 		return false
 	}
-	if symbol.ValueDeclaration != 0 {
-		if container := ast.GetSourceFileOfNode(ast.NodeOf(symbol.ValueDeclaration)); container != nil {
+	if !symbol.ValueDeclaration.IsNil() {
+		if container := ast.GetSourceFileOfNode(symbol.ValueDeclaration); container != nil {
 			fileSymbol := c.getSymbolOfDeclaration(container.ParseRoot())
 			c.resolveExternalModuleSymbol(fileSymbol, false)
 		}

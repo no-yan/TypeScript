@@ -32,8 +32,8 @@ type forawaitTransformer struct {
 	enclosingFunctionFlags    ast.FunctionFlags
 	forAwaitHierarchyFacts    forAwaitHierarchyFacts
 	exportedVariableStatement bool
-	fallbackNodeVisitor *ast.HandleVisitor
-	noAsyncModifierVisitor *ast.HandleVisitor
+	fallbackNodeVisitor       *ast.HandleVisitor
+	noAsyncModifierVisitor    *ast.HandleVisitor
 }
 
 func newforawaitTransformer(opts *transformers.TransformOptions) *transformers.Transformer {

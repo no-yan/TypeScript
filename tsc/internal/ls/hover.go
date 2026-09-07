@@ -32,7 +32,7 @@ func (l *LanguageService) ProvideHover(ctx context.Context, params *lsproto.Hove
 	}
 	program, file := l.getProgramAndFile(params.TextDocument.Uri)
 	positions := lsconv.FromLSPPositionForSourceFile(l.converters, file, params.Position, spanmap.FeatureHover)
-	var hovers []*// Avoid giving quickInfo for the sourceFile as a whole or inside the comment of a/**/.b
+	var hovers []* // Avoid giving quickInfo for the sourceFile as a whole or inside the comment of a/**/.b
 	// Always create VerbosityContext for hover so that canExpandSymbol can signal
 	// canIncreaseVerbosity even at Level 0. The nodebuilder also detects expandable
 	// types at Level 0 via shouldExpandType (maxExpansionDepth = 0).
@@ -253,7 +253,7 @@ func documentationFromAlias(getMappedLocation documentationLocationMapper, c *ch
 		candidates = append(candidates, aliasedSymbol.ExportSymbol)
 	}
 	for _, candidate := range candidates {
-		aliasedDeclaration := core.OrElse(ast.NodeOf(candidate.ValueDeclaration), ast.DeclarationNodes(candidate).First())
+		aliasedDeclaration := core.OrElse(candidate.ValueDeclaration, ast.DeclarationNodes(candidate).First())
 		if aliasedDeclaration.IsNil() {
 			continue
 		}
@@ -277,8 +277,8 @@ func documentationFromRootSymbols(getMappedLocation documentationLocationMapper,
 			continue
 		}
 		decls := ast.DeclarationNodes(rootSymbol)
-		if decls.Len() == 0 && rootSymbol.ValueDeclaration != 0 {
-			if documentation := getDocumentationFromDeclaration(getMappedLocation, c, rootSymbol, ast.NodeOf(rootSymbol.ValueDeclaration), node, contentFormat, commentOnly); documentation != "" {
+		if decls.Len() == 0 && !rootSymbol.ValueDeclaration.IsNil() {
+			if documentation := getDocumentationFromDeclaration(getMappedLocation, c, rootSymbol, rootSymbol.ValueDeclaration, node, contentFormat, commentOnly); documentation != "" {
 				docs = core.AppendIfUnique(docs, documentation)
 			}
 			continue
@@ -621,7 +621,7 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol *ast.Symbol
 				return
 			}
 		}
-		if flags&ast.SymbolFlagsProperty != 0 && symbol.ValueDeclaration != 0 && ast.IsMethodDeclaration(ast.NodeOf(symbol.ValueDeclaration)) {
+		if flags&ast.SymbolFlagsProperty != 0 && !symbol.ValueDeclaration.IsNil() && ast.IsMethodDeclaration(symbol.ValueDeclaration) {
 			flags = ast.SymbolFlagsMethod
 		}
 		if flags&(ast.SymbolFlagsVariable|ast.SymbolFlagsProperty|ast.SymbolFlagsAccessor) != 0 {
@@ -637,7 +637,7 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol *ast.Symbol
 					dpw.Write("accessor")
 					dpw.WritePunctuation(") ")
 				default:
-					decl := ast.NodeOf(symbol.ValueDeclaration)
+					decl := symbol.ValueDeclaration
 					if !decl.IsNil() {
 						decl = ast.GetRootDeclaration(decl)
 						switch {
@@ -691,7 +691,7 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol *ast.Symbol
 					writeTypeClassified(t, container, typeFormatFlags)
 				}
 			}
-			setDeclaration(core.OrElse(ast.NodeOf(symbol.ValueDeclaration), ast.DeclarationNodes(symbol).First()))
+			setDeclaration(core.OrElse(symbol.ValueDeclaration, ast.DeclarationNodes(symbol).First()))
 		}
 		if flags&ast.SymbolFlagsEnumMember != 0 {
 			writeNewLine()
@@ -704,7 +704,7 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol *ast.Symbol
 				dpw.WriteOperator(" = ")
 				dpw.WriteLiteral(t.AsLiteralType().String())
 			}
-			setDeclaration(ast.NodeOf(symbol.ValueDeclaration))
+			setDeclaration(symbol.ValueDeclaration)
 		}
 		if flags&(ast.SymbolFlagsFunction|ast.SymbolFlagsMethod) != 0 {
 			isMethod := flags&ast.SymbolFlagsMethod != 0
@@ -722,7 +722,7 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol *ast.Symbol
 				}
 				writeSignatures(signatures, prefix, isMethod, symbol)
 			}
-			setDeclaration(ast.NodeOf(symbol.ValueDeclaration))
+			setDeclaration(symbol.ValueDeclaration)
 		}
 		if flags&(ast.SymbolFlagsClass|ast.SymbolFlagsInterface) != 0 {
 			if node.Kind == ast.KindThisKeyword || ast.IsThisInTypeQuery(node) {
@@ -775,7 +775,7 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol *ast.Symbol
 				}
 			}
 			if flags&ast.SymbolFlagsClass != 0 {
-				setDeclaration(ast.NodeOf(symbol.ValueDeclaration))
+				setDeclaration(symbol.ValueDeclaration)
 			} else {
 				setDeclaration(ast.FindSymbolDeclaration(symbol, ast.IsInterfaceDeclaration))
 			}
@@ -796,7 +796,7 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol *ast.Symbol
 		if flags&ast.SymbolFlagsModule != 0 {
 			writeNewLine()
 			if !tryExpandSymbol(symbol, flags) {
-				isModule := symbol.ValueDeclaration != 0 && (ast.IsSourceFile(ast.NodeOf(symbol.ValueDeclaration)) || ast.IsAmbientModule(ast.NodeOf(symbol.ValueDeclaration)))
+				isModule := !symbol.ValueDeclaration.IsNil() && (ast.IsSourceFile(symbol.ValueDeclaration) || ast.IsAmbientModule(symbol.ValueDeclaration))
 				dpw.WriteKeyword(core.IfElse(isModule, "module ", "namespace "))
 				writeSymbolClassified(symbol, container, ast.SymbolFlagsNone, symbolFormatFlags)
 			}

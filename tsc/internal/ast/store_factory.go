@@ -10,9 +10,9 @@ type FactoryHooks struct {
 }
 
 // Factory allocates exclusively into one Store. NewFactory owns a new Store.
-// NewFactoryOn appends into an existing Store so checker synthetics and emit
-// updates can share parse children. Factories on the same Store must not be
-// used concurrently; ownership transfers between compiler phases.
+// NewFactoryOn appends into an existing mutable Store. Checker and emit
+// factories own private Stores and share foreign children/lists without copies.
+// Factories on the same Store must not be used concurrently.
 type Factory struct {
 	hooks FactoryHooks
 	store *Store
@@ -142,7 +142,12 @@ func (v *HandleVisitor) VisitSourceFile(file *SourceFile) *SourceFile {
 	if root.IsNil() {
 		return file
 	}
-	v.bindFactory(root.Store())
+	if v.Factory == nil {
+		v.bindFactory(root.Store())
+	}
+	if v.Factory.Store() != root.Store() {
+		v.Factory.Store().SetSourceFile(file)
+	}
 	updated := v.VisitNode(root)
 	if !updated.IsNil() && updated != root {
 		file.SetParseRoot(updated)
@@ -378,9 +383,6 @@ func (f *Factory) BinaryExpression(p BinaryParts) Handle {
 func (f *Factory) List(loc core.TextRange, elems ...Handle) ListRef {
 	list := f.store.AllocList(loc, len(elems))
 	for i, e := range elems {
-		if !e.IsNil() && e.s != f.store {
-			e = f.CopySubtree(e)
-		}
 		f.store.SetListAt(list, i, e)
 	}
 	return list
@@ -392,7 +394,7 @@ func (f *Factory) List(loc core.TextRange, elems ...Handle) ListRef {
 func (f *Factory) ListRefs(loc core.TextRange, refs []NodeRef) ListRef {
 	list := f.store.AllocList(loc, len(refs))
 	if len(refs) != 0 {
-		start := int(f.store.lists[list].start)
+		start := int(f.store.lists[uint32(list)].start)
 		copy(f.store.children[start:start+len(refs)], refs)
 	}
 	return list

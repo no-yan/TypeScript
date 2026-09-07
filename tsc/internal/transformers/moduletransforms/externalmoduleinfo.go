@@ -12,12 +12,12 @@ import (
 )
 
 type externalModuleInfo struct {
-	externalImports []ast.Handle
+	externalImports              []ast.Handle
 	exportSpecifiers             collections.MultiMap[string, ast.Handle]
 	exportedBindings             collections.MultiMap[ast.Handle, ast.Handle]
 	exportedNames                []ast.Handle
 	exportedFunctions            collections.OrderedSet[ast.Handle]
-	exportEquals ast.Handle
+	exportEquals                 ast.Handle
 	hasExportStarsToExportValues bool
 }
 type externalModuleInfoCollector struct {

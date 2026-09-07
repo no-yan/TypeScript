@@ -242,7 +242,7 @@ func (tx *usingDeclarationTransformer) visit(node ast.Handle) ast.Handle {
 	return node
 }
 func (tx *usingDeclarationTransformer) visitSourceFile(node ast.Handle) ast.Handle {
-	if ast.GetSourceFileOfNode(node) != nil && ast.GetSourceFileOfNode(node).IsDeclarationFile {
+	if tx.EmitContext().SourceFileOf(node) != nil && tx.EmitContext().SourceFileOf(node).IsDeclarationFile {
 		return node
 	}
 	var visited ast.Handle

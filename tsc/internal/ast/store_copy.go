@@ -72,10 +72,11 @@ func (c *subtreeCopier) copy(ref NodeRef) Handle {
 		dst.SetIdent(c.dst.store.Intern(text))
 	}
 	for i := range n {
-		if external := src.ExternalChild(i); external != 0 {
-			dst.SetExternalChild(i, external)
+		child := src.Child(i)
+		if !child.IsNil() && child.Store() != c.src {
+			dst.SetChild(i, child)
 		} else {
-			dst.SetChild(i, c.copy(src.Child(i).Ref()))
+			dst.SetChild(i, c.copy(child.Ref()))
 		}
 	}
 	for i := range listN {
@@ -97,10 +98,11 @@ func (c *subtreeCopier) copyList(src ListRef) ListRef {
 	dst := c.dst.store.AllocList(c.src.ListLoc(src), n)
 	c.lists[src] = dst
 	for i := range n {
-		if external := c.src.ExternalListAt(src, i); external != 0 {
-			c.dst.store.SetExternalListAt(dst, i, external)
+		child := c.src.ListAt(src, i)
+		if !child.IsNil() && child.Store() != c.src {
+			c.dst.store.SetListAt(dst, i, child)
 		} else {
-			c.dst.store.SetListAt(dst, i, c.copy(c.src.ListAt(src, i).Ref()))
+			c.dst.store.SetListAt(dst, i, c.copy(child.Ref()))
 		}
 	}
 	return dst

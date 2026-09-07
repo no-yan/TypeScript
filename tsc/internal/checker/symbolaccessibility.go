@@ -468,7 +468,7 @@ func (c *Checker) compareSymbolChainsWorker(a []*ast.Symbol, b []*ast.Symbol) in
 	return 0
 }
 func isUMDExportSymbol(symbol *ast.Symbol) bool {
-	return symbol != nil && len(symbol.Declarations) > 0 && !ast.NodeOf(symbol.Declarations[0]).IsNil() && ast.IsNamespaceExportDeclaration(ast.NodeOf(symbol.Declarations[0]))
+	return symbol != nil && len(symbol.Declarations) > 0 && !symbol.Declarations[0].IsNil() && ast.IsNamespaceExportDeclaration(symbol.Declarations[0])
 }
 func isNamespaceReexportDeclaration(node ast.Handle) bool {
 	return ast.IsNamespaceExport(node) && !node.Parent().ModuleSpecifier().IsNil()

@@ -654,8 +654,8 @@ func (l *LanguageService) createSignatureHelpParameterFromLabel(parameter *ast.S
 	isOptional := parameter.CheckFlags&ast.CheckFlagsOptionalParameter != 0
 	isRest := parameter.CheckFlags&ast.CheckFlagsRestParameter != 0
 	var documentation *lsproto.StringOrMarkupContent
-	if parameter.ValueDeclaration != 0 {
-		doc := getDocumentationFromDeclaration(l.documentationLocationMapper(spanmap.FeatureSignatureHelp), c, nil, ast.NodeOf(parameter.ValueDeclaration), ast.Handle{}, docFormat, true)
+	if !parameter.ValueDeclaration.IsNil() {
+		doc := getDocumentationFromDeclaration(l.documentationLocationMapper(spanmap.FeatureSignatureHelp), c, nil, parameter.ValueDeclaration, ast.Handle{}, docFormat, true)
 		if doc != "" {
 			documentation = &lsproto.StringOrMarkupContent{MarkupContent: &lsproto.MarkupContent{Kind: docFormat, Value: doc}}
 		}

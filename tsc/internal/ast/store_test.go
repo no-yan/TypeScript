@@ -300,50 +300,28 @@ func TestFreezeConcurrent(t *testing.T) {
 	s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
 }
 
-func TestEnterEmitAllowsMutation(t *testing.T) {
-	t.Parallel()
-	f := ast.NewFactory(ast.FactoryHooks{})
-	clause := f.NewHeritageClause(ast.KindExtendsKeyword, 0)
-	f.Store().Freeze()
-	f.Store().EnterEmit()
-	clause.SetHeritageClauseToken(ast.KindImplementsKeyword)
-	assert.Equal(t, ast.KindImplementsKeyword, clause.HeritageClauseToken())
-	id := f.Store().Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
-	assert.Assert(t, !id.IsNil())
-}
-
-func TestEnterEmitBeforeFreezePanics(t *testing.T) {
-	t.Parallel()
-	s := ast.NewStore(2)
-	defer func() {
-		if recover() == nil {
-			t.Fatal("expected panic on EnterEmit before Freeze")
-		}
-	}()
-	s.EnterEmit()
-}
-
-func TestFreezeAfterEnterEmitIsIdempotent(t *testing.T) {
-	t.Parallel()
-	s := ast.NewStore(2)
-	s.Freeze()
-	s.EnterEmit()
-	s.Freeze()
-	id := s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
-	assert.Assert(t, !id.IsNil())
-}
-
-func TestLeaveEmitRestoresCheck(t *testing.T) {
-	t.Parallel()
-	s := ast.NewStore(2)
-	s.Freeze()
-	s.EnterEmit()
-	s.LeaveEmit()
-	s.Freeze()
-	defer func() {
-		if recover() == nil {
-			t.Fatal("expected panic on write after LeaveEmit")
-		}
-	}()
-	s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
+func TestFreezeRejectsEveryStructuralMutation(t *testing.T) {
+	for _, mutation := range []struct {
+		name string
+		run  func(*ast.Store, ast.Handle)
+	}{
+		{"allocate", func(s *ast.Store, _ ast.Handle) { s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0) }},
+		{"scalar", func(_ *ast.Store, h ast.Handle) { h.SetHeritageClauseToken(ast.KindImplementsKeyword) }},
+		{"restore", func(s *ast.Store, _ ast.Handle) { s.Restore(s.Checkpoint()) }},
+		{"seal", func(s *ast.Store, _ ast.Handle) { s.Seal() }},
+		{"metadata", func(s *ast.Store, _ ast.Handle) { s.SetSourceFile(&ast.SourceFile{}) }},
+	} {
+		t.Run(mutation.name, func(t *testing.T) {
+			f := ast.NewFactory(ast.FactoryHooks{})
+			node := f.NewHeritageClause(ast.KindExtendsKeyword, 0)
+			f.Store().Freeze()
+			f.Store().Freeze()
+			defer func() {
+				if recover() == nil {
+					t.Fatal("write to frozen Store accepted")
+				}
+			}()
+			mutation.run(f.Store(), node)
+		})
+	}
 }

@@ -276,10 +276,10 @@ func isRightSideOfPropertyAccess(node ast.Handle) bool {
 	return !node.Parent().IsNil() && node.Parent().Kind == ast.KindPropertyAccessExpression && node.Parent().Name() == node
 }
 func isStaticSymbol(symbol *ast.Symbol) bool {
-	if symbol.ValueDeclaration == 0 {
+	if symbol.ValueDeclaration.IsNil() {
 		return false
 	}
-	modifierFlags := ast.NodeOf(symbol.ValueDeclaration).ModifierFlags()
+	modifierFlags := symbol.ValueDeclaration.ModifierFlags()
 	return modifierFlags&ast.ModifierFlagsStatic != 0
 }
 func isImplementation(node ast.Handle) bool {
@@ -792,8 +792,8 @@ func newCaseClauseTracker(typeChecker *checker.Checker, clauses []ast.Handle) ca
 				}
 			} else {
 				symbol := typeChecker.GetSymbolAtLocation(clause.Expression())
-				if symbol != nil && symbol.ValueDeclaration != 0 && ast.IsEnumMember(ast.NodeOf(symbol.ValueDeclaration)) {
-					enumValue := typeChecker.GetConstantValue(ast.NodeOf(symbol.ValueDeclaration))
+				if symbol != nil && !symbol.ValueDeclaration.IsNil() && ast.IsEnumMember(symbol.ValueDeclaration) {
+					enumValue := typeChecker.GetConstantValue(symbol.ValueDeclaration)
 					if enumValue != nil {
 						c.addValue(enumValue)
 					}

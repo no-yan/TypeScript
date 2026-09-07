@@ -62,3 +62,41 @@ func (s *symbolArenaLinkStore[V]) TryGet(symbol *ast.Symbol) *V {
 	}
 	return nil
 }
+
+// globalLinkStore is a node-keyed links store whose map key is the node's
+// GlobalRef (StoreID<<32 | NodeRef). A uint64 key takes the runtime's
+// mapaccess1_fast64 path; keying by the 16-byte ast.Handle struct goes through
+// the generic memhash + type-eq path, which profiled 3x slower on the checker.
+// Nodes of an unregistered Store (StoreID 0) fall back to a Handle-keyed map.
+type globalLinkStore[V any] struct {
+	store   core.LinkStore[ast.GlobalRef, V]
+	orphans core.LinkStore[ast.Handle, V]
+}
+
+func globalKey(node ast.Handle) ast.GlobalRef {
+	if id := node.Store().ID(); id != 0 {
+		return ast.MakeGlobalRef(id, node.Ref())
+	}
+	return 0
+}
+
+func (s *globalLinkStore[V]) Get(node ast.Handle) *V {
+	if key := globalKey(node); key != 0 {
+		return s.store.Get(key)
+	}
+	return s.orphans.Get(node)
+}
+
+func (s *globalLinkStore[V]) Has(node ast.Handle) bool {
+	if key := globalKey(node); key != 0 {
+		return s.store.Has(key)
+	}
+	return s.orphans.Has(node)
+}
+
+func (s *globalLinkStore[V]) TryGet(node ast.Handle) *V {
+	if key := globalKey(node); key != 0 {
+		return s.store.TryGet(key)
+	}
+	return s.orphans.TryGet(node)
+}

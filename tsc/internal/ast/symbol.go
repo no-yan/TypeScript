@@ -11,8 +11,8 @@ type Symbol struct {
 	Flags            SymbolFlags
 	CheckFlags       CheckFlags // Non-zero only in transient symbols created by Checker
 	Name             string
-	Declarations     []GlobalRef
-	ValueDeclaration GlobalRef
+	Declarations     []Handle
+	ValueDeclaration Handle
 	Members          SymbolTable
 	Exports          SymbolTable
 	id               atomic.Uint64
@@ -25,7 +25,7 @@ func (s *Symbol) IsExternalModule() bool {
 }
 
 func (s *Symbol) IsStatic() bool {
-	decl := NodeOf(s.ValueDeclaration)
+	decl := s.ValueDeclaration
 	if decl.IsNil() {
 		return false
 	}
@@ -71,7 +71,7 @@ const (
 )
 
 func SymbolName(symbol *Symbol) string {
-	decl := NodeOf(symbol.ValueDeclaration)
+	decl := symbol.ValueDeclaration
 	if !decl.IsNil() && IsPrivateIdentifierClassElementDeclaration(decl) {
 		return decl.Name().Text()
 	}
@@ -108,9 +108,8 @@ func FindSymbolDeclaration(symbol *Symbol, pred func(Handle) bool) Handle {
 	if symbol == nil {
 		return Handle{}
 	}
-	for _, g := range symbol.Declarations {
-		d := NodeOf(g)
-		if !d.IsNil() && pred(d) {
+	for _, d := range symbol.Declarations {
+		if pred(d) {
 			return d
 		}
 	}
@@ -122,21 +121,20 @@ func FindLastSymbolDeclaration(symbol *Symbol, pred func(Handle) bool) Handle {
 		return Handle{}
 	}
 	for i := len(symbol.Declarations) - 1; i >= 0; i-- {
-		d := NodeOf(symbol.Declarations[i])
-		if !d.IsNil() && pred(d) {
+		if d := symbol.Declarations[i]; pred(d) {
 			return d
 		}
 	}
 	return Handle{}
 }
 
-// DeclarationNodes yields non-nil declaration Handles with dense indices
-// (nil GlobalRefs are skipped, matching the old slice filter).
+// DeclarationNodes yields the declaration Handles of symbol without
+// materializing a copy. Declarations never hold a nil Handle.
 func DeclarationNodes(symbol *Symbol) NodeSeq {
 	if symbol == nil {
 		return EmptyNodeSeq
 	}
-	return NodeSeq{decls: symbol.Declarations}
+	return NodeSequence(symbol.Declarations)
 }
 
 func SomeDeclaration(symbol *Symbol, pred func(Handle) bool) bool {
@@ -147,9 +145,8 @@ func EveryDeclaration(symbol *Symbol, pred func(Handle) bool) bool {
 	if symbol == nil {
 		return true
 	}
-	for _, g := range symbol.Declarations {
-		d := NodeOf(g)
-		if d.IsNil() || !pred(d) {
+	for _, d := range symbol.Declarations {
+		if !pred(d) {
 			return false
 		}
 	}

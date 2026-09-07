@@ -261,7 +261,7 @@ func (f *isolatedDeclarationsFixer) createNamespaceForExpandoProperties(expandoF
 		if !scanner.IsIdentifierText(symbol.Name, core.LanguageVariantStandard) {
 			continue
 		}
-		if symbol.ValueDeclaration != 0 && ast.IsVariableDeclaration(ast.NodeOf(symbol.ValueDeclaration)) {
+		if !symbol.ValueDeclaration.IsNil() && ast.IsVariableDeclaration(symbol.ValueDeclaration) {
 			continue
 		}
 		symType := f.checker.GetTypeOfSymbol(symbol)
@@ -452,7 +452,7 @@ func findExpandoFunction(ch *checker.Checker, node ast.Handle) ast.Handle {
 	properties := ch.GetPropertiesOfType(targetType)
 	found := false
 	for _, p := range properties {
-		if ast.NodeOf(p.ValueDeclaration) == expandoDeclaration || ast.NodeOf(p.ValueDeclaration) == expandoDeclaration.Parent() {
+		if p.ValueDeclaration == expandoDeclaration || p.ValueDeclaration == expandoDeclaration.Parent() {
 			found = true
 			break
 		}
@@ -461,10 +461,10 @@ func findExpandoFunction(ch *checker.Checker, node ast.Handle) ast.Handle {
 		return ast.Handle{}
 	}
 	symbol := targetType.Symbol()
-	if symbol == nil || symbol.ValueDeclaration == 0 {
+	if symbol == nil || symbol.ValueDeclaration.IsNil() {
 		return ast.Handle{}
 	}
-	fn := ast.NodeOf(symbol.ValueDeclaration)
+	fn := symbol.ValueDeclaration
 	if (ast.IsFunctionExpression(fn) || ast.IsArrowFunction(fn)) && ast.IsVariableDeclaration(fn.Parent()) {
 		return fn.Parent()
 	}
