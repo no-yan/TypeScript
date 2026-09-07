@@ -619,7 +619,6 @@ func (p *Program) BindSourceFiles() {
 	wg = core.NewWorkGroup(p.SingleThreaded())
 	for _, file := range p.files {
 		wg.Queue(func() {
-			file.WarmJSDoc()
 			if s := file.ParseStore(); s != nil {
 				s.Freeze()
 			}

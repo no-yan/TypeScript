@@ -1,72 +1,95 @@
-# Store の並列読み取りと生成用 Store の分離
+# Concurrent Store reads and private generation Stores
 
-## 問題と診断
+## Problem and selected checkout
 
-対象は `/Volumes/SanDisk1TB/worktree/lock-profile`、元の revision は
-`8067b4b419b2420236e396b4892f66c97141904b`。TSGolint は対象外。
-作業開始時には StoreSet.Store が RWMutex を取得していた。チェック時の
-共有 reader counter と、emit が parse Store の可変 slice に追記することは
-別の問題であり、登録表のロックだけを外しても後者の race は解消しない。
+Selected repository: `/Volumes/SanDisk1TB/worktree/lock-profile`.
+Current base: `3e0eb48bd4a536a0cafbfade9106df44120381b6`, including merge
+`243311ee7b` and its qualified-ListRef indexing fix. TSGolint is not involved.
+The entry changes in `checker.go` and `links.go` are preserved and included in
+verification. They change checker link-map keys and are distinct from registry lookup.
 
-添付資料の性能値は別 revision の測定であり `stale`。資料にある
-`/private/tmp/lock-monaco-20260905` の生データはこの環境では `missing`。
-候補 checkout は `git worktree list` に記録されている同リポジトリの
-`cursor-ast-store-tests`、`lock-design-inv`、`store-redesign`、
-`store-nolock-exp`、および本体 `no-yan/TypeScript` など。
-選択は変更せず、この checkout の変更前実行ファイルを対照として保存した。
+At the original task entry (`8067b4b419`), StoreSet.Store took an RWMutex on
+every lookup. Parallel readers updated one shared counter. Independently, emit
+appended into parse Store slices that other files could still read. Removing
+only the registry's read lock cannot make those slice accesses safe.
 
-## 実装
+Prior measurements and test logs in `.audit/store-concurrency/` are `stale`
+for the selected HEAD. The old `/private/tmp/lock-monaco-20260905` artifact
+set was `missing`. Candidate clones include `cursor-ast-store-tests`,
+`lock-design-inv`, `store-redesign`, `store-nolock-exp`, and the main
+`no-yan/TypeScript` checkout; the complete worktree inventory is saved in
+`.audit/store-concurrency-3e0e/candidate-clones.txt`.
 
-- StoreSet は不変 directory、固定長 page、atomic pointer slot を使う。
-  読み取りは共有カウンタを書き換えない。writer mutex は登録・削除に限定。
-  directory は幾何的に成長し、登録のたびの全表コピーを行わない。
-- Store の ID は domain と slot の公開後に設定する。同時 RegisterStore は
-  冪等。別 domain の adoption は拒否し、foreign Remove は対象を消さない。
-  Remove は配列や既存 Handle を破壊せず、ID は再利用しない。
-- SourceFile は Store/root/Kind の不変ペアを atomic pointer で公開する。
-  ParseRoot は Store の node slice にも触れない。
-- Symbol.Declarations と ValueDeclaration は Handle を保持する。
-  高頻度の宣言参照に登録表は不要。既存コミット `3bf9e00dfd` の変更を移植。
-  GlobalRef は identity key として残す。
-- 同一 Store のノード参照は引き続き 32 bit の NodeRef。外部の親・子・
-  リスト要素だけ sparse map に Handle を保持する。これにより外部ノードの
-  同一性、祖先、所有元の寿命を保ち、参照先をコピーも変更もしない。
-- ListRef は 64 bit の owner-qualified identity にする。ノード内の同一
-  Store のリスト slot は 32 bit のまま。外部リストの slot と所有者だけ
-  sparse map に保持する。読み取りは所有元に、変更は自分の Store に限定。
-  変更のないリストを Factory.Update* がそのまま再利用できる。
-- emit は context 専用の Store に割り当てる。parse Store を解凍する
-  EnterEmit/LeaveEmit を廃止し、Freeze を不可逆にする。
-  Program.Emit は SingleThreaded の設定に従って並列実行する。
-- SourceFile の emit 用 wrapper を Store のグローバルな所有元として
-  上書きしない。EmitContext.SourceFileOf が現在の出力ビューを解決し、
-  通常の semantic reader は元ファイルを読む。wrapper の元ファイル identity
-  は OriginalSourceFile で比較する。
-- pooled EmitContext.Reset は旧 Store の登録を解除し、新しい Store を使う。
-  以前生成したノードのメタデータが次のファイルに置き換わることを防ぐ。
+## Architecture
 
-## 所有権とコスト
+- **Registry:** immutable directory, stable fixed-size pages, atomic Store
+  slots. Readers never update a shared counter. A writer mutex serializes
+  registration and removal. Geometric directory growth avoids copying the
+  whole registry on every registration.
+- **Publication:** publish the slot and identity domain before the Store ID.
+  Concurrent RegisterStore is idempotent. Foreign adoption is rejected;
+  foreign Remove cannot clear another Store's slot. IDs are never reused.
+- **File tree:** atomically publish an immutable Store/root/Kind tuple.
+  ParseStore, ParseTreeRef and ParseRoot require no read lock. ParseRoot does
+  not reload the owner's node slice header.
+- **Hot declarations:** Symbol.Declarations and ValueDeclaration retain
+  Handles, using the change from `3bf9e00dfd`. GlobalRef remains useful for
+  identity keys; navigating a declaration no longer needs the registry.
+- **Foreign edges:** retain a Handle for an external parent, child, or list
+  element. The Store containing the edge is the only writer. Attachment does
+  not copy or reparent the target, and existing Handles retain its lifetime
+  even if its registration is removed.
+- **Lists:** ListRef qualifies a 32-bit list index with its owner StoreID.
+  Same-store node slots still contain only 32-bit indexes. Sparse foreign
+  list slots and owner references preserve unchanged list identity across
+  transforms. NodeSeq resolves and retains the actual owner once. Raw
+  indexing must decode the low 32 bits; ListRefs and ListRefAt include the
+  post-merge correction and a regression test for a foreign receiver.
+- **Emit:** allocate in the context's private Store. Freeze is irreversible;
+  EnterEmit and LeaveEmit are removed. Program.Emit follows SingleThreaded
+  rather than forcing serial execution.
+- **Metadata:** clone SourceFile wrappers without rebinding the shared parse
+  Store. EmitContext.SourceFileOf resolves the current output view, while
+  semantic readers retain the program file. OriginalSourceFile provides the
+  canonical identity for view comparisons.
+- **Original nodes:** cross-store DeepCloneNode invokes OnClone for every
+  copied node, including descendants. This lets MostOriginal recover the
+  bound parse declaration. Without it, the CommonJS export getter for an
+  imported name used `createDog` instead of `dog_1.createDog`.
+- **Reset:** a pooled EmitContext unregisters its old Store and installs a
+  fresh one. Previously returned Handles do not have their metadata owner
+  changed to the next emitted file.
 
-Store の登録は、登録後の AST 書き込みを同期しない。build 中は単一 writer、
-Freeze 完了後の公開には既存の parse/bind/check の barrier を使う。
-外部参照を公開する場合、参照先は凍結済みか、同一 writer の管理下でなければ
-ならない。生成用 Store 自体を複数 writer が同時に変更する設計ではない。
+Explicit CopySubtree retains its structural-copy contract. It does not acquire
+emit original-node metadata unless invoked through DeepCloneNode. Speculative
+Restore removes foreign edges belonging to discarded nodes and list slots,
+so reused indexes cannot expose old references.
 
-Handle と外部所有者 map は GC が走査する。このコスト増と、宣言参照の
-解決を省く効果の両方を評価する必要がある。nodeHeader は 24 bytes、
-children は 32 bit の noscan 配列を維持する。ID の高水位は下がらず、
-parse Store の LS eviction は引き続きライフサイクル管理側の課題。
+## Ownership and allocation costs
 
-## 再現と受入条件
+Registration does not synchronize subsequent AST writes. Build has one writer;
+existing parse/bind/check barriers publish frozen trees. A foreign target must
+be frozen or managed by the same writer. A private generation Store is not a
+concurrent mutable container.
 
-生データ・metadata・変更開始時の diff は `.audit/store-concurrency/`。
-`repo_root`、`tsgolint_git_rev`、`typescript_go_git_rev` が対象と一致するとき
-のみ artifact を `current` とする。bench.txt に対象 Benchmark 行がない
-stage は `unsupported`、未取得は `missing` と記録する。
+Handles and owner maps add GC-visible pointers. The expected benefit is fewer
+registry lookups and avoided subtree copies; memory and GC effects must be
+measured. The 24-byte nodeHeader and 32-bit packed children remain pointer-free.
+Registry high-water marks do not shrink. Evicting obsolete parse Stores during
+LS edits remains a separate lifetime-management problem.
+
+## Reproduction and acceptance
+
+Current-run metadata, entry diff, raw output and results belong to
+`.audit/store-concurrency-3e0e/`. An artifact is `current` only when repo_root,
+tsgolint_git_rev and typescript_go_git_rev match the selected checkout; record
+working-tree diffs separately. Use `stale` for other revisions, `missing` for
+uncollected output, and `unsupported` when bench.txt exists but has no matching
+Benchmark line. Historical comparison baselines retain their actual revisions.
 
 ```sh
-go test ./tsc/internal/ast ./tsc/internal/printer ./tsc/internal/compiler
-go test -race ./tsc/internal/ast ./tsc/internal/printer ./tsc/internal/compiler
+GOMAXPROCS=2 go test -p 1 ./tsc/internal/ast ./tsc/internal/printer ./tsc/internal/compiler
+GOMAXPROCS=2 go test -p 1 -race ./tsc/internal/ast ./tsc/internal/printer ./tsc/internal/compiler
 
 go test ./tsc/internal/ast -run '^$' \
   -bench '^(BenchmarkStoreSetReadParallel|BenchmarkParseRootParallel)$' \
@@ -78,16 +101,48 @@ STORE_BENCH_PROJECT=/path/to/vscode/src/tsconfig.monaco.json \
 benchstat old.txt new.txt
 ```
 
-機能条件は、登録公開順序・domain・削除の回帰テスト、外部参照とリスト共有、
-凍結後の変更拒否、並列 emit 中の parse 木の不変性、JS/d.ts/source map の
-直列・並列一致。race 検出を性能比較に混ぜない。microbenchmark の速度を
-実ワークロードの速度と同一視しない。
+Build test binaries sequentially to avoid the memory exhaustion encountered
+when multiple large AST builds ran together. Run timing measurements without
+race instrumentation or concurrent builds. Preserve raw data and use benchstat.
 
-実ワークロード benchmark は config/parse/bind/check/close を含む1 Program
-生成を1 opとする。CLI の process startup は含まない。時間 ns/op、
-TotalAlloc に基づく B/op、Mallocs に基づく allocs/op を Go benchmark が
-報告する。CLI の wall time と Check time は別に記録する。
+Functional acceptance covers registry publication/domain/removal, cross-store
+identity and list sharing, irreversible Freeze, unchanged parse trees during
+parallel emit, and identical serial/parallel JS, d.ts and source maps. Clone
+original-node recovery has both a descendant test and an end-to-end CommonJS
+regression test.
 
-性能の仮説は reader counter の競合と繰り返す registry lookup の削減。
-変更前後の実測、hot paths、allocation drivers、結果に基づく次の行動は
-artifact の結果レポートに記録する。測定前に速度改善を達成したとは扱わない。
+The real-workload benchmark includes config loading, parse, bind, check and
+close for one fresh Program; it excludes CLI process startup. Go reports ns/op,
+TotalAlloc-based B/op and Mallocs-based allocs/op. CLI wall and Check time are
+separate measurements. Microbenchmarks isolate read-path cost and do not prove
+a real-workload bottleneck. Report hot paths, allocation drivers, diagnosis and
+next action with the measured results; do not claim speedups before measurement.
+
+## Remaining conformance issue, isolated from the clone fix
+
+`TestLocal/alias` still has type/symbol baseline failures. Repeating the suite
+with the production clone changes replaced by their exact `3e0eb48bd4` versions
+using a Go overlay produces the same failing test set. Both runs have no
+frozen-Store write panic. Logs and the comparison are stored as
+`alias-conformance.txt`, `alias-at-head.txt` and `alias-comparison.json`.
+
+- **Problem:** type/symbol results can move backwards in source-line order;
+  `iterateBaseline` then attempts an invalid slice range. Other cases merely
+  reorder output, for example `B` before parameter `name` in
+  `aliasOnMergedModuleInterface.types`.
+- **Evidence:** both variants fail at `type_symbol_baseline.go:225`; the
+  baseline walker uses Handle.ForEachChild, whose packed-field iteration
+  visits named children before list children.
+- **Reproduction:** `GOMAXPROCS=2 go test -p 1 ./tsc/internal/testrunner -run
+  '^TestLocal$/alias' -count=1`. The saved overlay reproduces the pre-fix variant.
+- **Hypothesis:** grouping children by storage column loses the syntactic order
+  between parameter lists and return types, for example.
+- **Proposed follow-up:** generate ordered child traversal from the AST schema,
+  maintaining early termination and allocation-free iteration. Do not hide the
+  ordering defect by accepting changed reference baselines.
+- **Acceptance:** the alias type/symbol baselines match without slice panics,
+  and traversal-order tests cover mixed named-child/list-child nodes.
+
+This issue is not counted as a passing conformance gate. Core AST, printer and
+compiler tests pass with and without race instrumentation for the current
+implementation; see the current artifact logs for the full verification scope.

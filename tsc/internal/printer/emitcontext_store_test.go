@@ -47,3 +47,24 @@ func TestEmitContextKeepsParseStoreImmutable(t *testing.T) {
 	}()
 	store.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
 }
+
+func TestCrossStoreClonePreservesOriginalDescendants(t *testing.T) {
+	t.Parallel()
+	file := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: "/index.ts", Path: "/index.ts"}, "const x = a.b;", core.ScriptKindTS)
+	file.ParseStore().Freeze()
+	context := printer.NewEmitContext()
+	defer context.Reset()
+	original := file.ParseRoot().Statements()[0]
+	clone := context.Factory.DeepCloneNode(original)
+	assert.Assert(t, clone.Store() != original.Store())
+	var compare func(ast.Handle, ast.Handle)
+	compare = func(copied, source ast.Handle) {
+		assert.Equal(t, source, context.MostOriginal(copied))
+		var sourceChildren []ast.Handle
+		source.ForEachChild(func(n ast.Handle) bool { sourceChildren = append(sourceChildren, n); return false })
+		i := 0
+		copied.ForEachChild(func(n ast.Handle) bool { compare(n, sourceChildren[i]); i++; return false })
+		assert.Equal(t, len(sourceChildren), i)
+	}
+	compare(clone, original)
+}

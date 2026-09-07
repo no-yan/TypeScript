@@ -15,11 +15,12 @@ func init() {
 	ast.SetParseJSDocForNode(parseJSDocForNode)
 }
 
-// parseJSDocForNode lazily parses JSDoc for a node in a TS file.
-// Called on first access to Node.JSDoc() for non-JS source files.
-func parseJSDocForNode(sourceFile *ast.SourceFile, node ast.Handle) []ast.Handle {
-	store := sourceFile.ParseStore()
-	if store == nil {
+// parseJSDocForNode lazily parses JSDoc for a node in a TS file. The JSDoc
+// nodes are allocated into store (a checker's synth Store or the file's shared
+// side Store), never into the parse Store, which is frozen by the time this
+// runs. The host node's parent edge is written on store as an externalParent.
+func parseJSDocForNode(sourceFile *ast.SourceFile, node ast.Handle, store *ast.Store) []ast.Handle {
+	if store == nil || sourceFile.ParseStore() == nil {
 		return nil
 	}
 	p := getParser()

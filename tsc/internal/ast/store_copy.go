@@ -4,6 +4,10 @@ package ast
 // A zero src returns a zero Handle. Parents are left unset; callers use
 // SetParentsInChildren. Named children and every list slot are remapped.
 func (f *Factory) CopySubtree(src Handle) Handle {
+	return f.copySubtree(src, nil)
+}
+
+func (f *Factory) copySubtree(src Handle, onClone func(Handle, Handle)) Handle {
 	if src.Ref() == 0 {
 		return Handle{}
 	}
@@ -11,10 +15,11 @@ func (f *Factory) CopySubtree(src Handle) Handle {
 		panic("ast: invalid Handle")
 	}
 	c := &subtreeCopier{
-		dst:   f,
-		src:   src.Store(),
-		remap: make(map[NodeRef]NodeRef),
-		lists: make(map[ListRef]ListRef),
+		dst:     f,
+		src:     src.Store(),
+		remap:   make(map[NodeRef]NodeRef),
+		lists:   make(map[ListRef]ListRef),
+		onClone: onClone,
 	}
 	result := c.copy(src.Ref())
 	for srcRef, dstRef := range c.remap {
@@ -28,10 +33,11 @@ func (f *Factory) CopySubtree(src Handle) Handle {
 }
 
 type subtreeCopier struct {
-	dst   *Factory
-	src   *Store
-	remap map[NodeRef]NodeRef
-	lists map[ListRef]ListRef
+	onClone func(Handle, Handle)
+	dst     *Factory
+	src     *Store
+	remap   map[NodeRef]NodeRef
+	lists   map[ListRef]ListRef
 }
 
 func (c *subtreeCopier) copy(ref NodeRef) Handle {
@@ -83,6 +89,9 @@ func (c *subtreeCopier) copy(ref NodeRef) Handle {
 		if list := src.ListSlot(i); list != 0 {
 			dst.SetListSlot(i, c.copyList(list))
 		}
+	}
+	if c.onClone != nil {
+		c.onClone(dst, src)
 	}
 	return dst
 }

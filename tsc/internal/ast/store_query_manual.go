@@ -30,29 +30,107 @@ func (h Handle) Contains(descendant Handle) bool {
 	return false
 }
 
-func (h Handle) JSDoc(file *SourceFile) []Handle {
+// JSDocCache owns JSDoc that one consumer parsed lazily for TS files. The
+// nodes are allocated into store (a checker's synth Store, or any private
+// Store), never into the file's frozen parse Store; their parent edge to the
+// host node is a cross-store externalParent on store. A JSDocCache is not safe
+// for concurrent use: it must belong to a single writer, like store itself.
+type JSDocCache struct {
+	store *Store
+	docs  map[GlobalRef][]Handle
+}
+
+// NewJSDocCache creates a cache that allocates lazily parsed JSDoc into store.
+func NewJSDocCache(store *Store) *JSDocCache {
+	if store == nil {
+		panic("ast: NewJSDocCache nil Store")
+	}
+	return &JSDocCache{store: store}
+}
+
+// Store returns the Store lazily parsed JSDoc is allocated into.
+func (c *JSDocCache) Store() *Store { return c.store }
+
+// Len returns the number of host nodes whose JSDoc this cache has parsed.
+func (c *JSDocCache) Len() int {
+	if c == nil {
+		return 0
+	}
+	return len(c.docs)
+}
+
+func (c *JSDocCache) lookup(file *SourceFile, h Handle) []Handle {
+	key := h.Global()
+	if docs, ok := c.docs[key]; ok {
+		return docs
+	}
+	var docs []Handle
+	if parseJSDocForNode != nil {
+		docs = parseJSDocForNode(file, h, c.store)
+	}
+	if c.docs == nil {
+		c.docs = make(map[GlobalRef][]Handle)
+	}
+	c.docs[key] = docs
+	return docs
+}
+
+func jsdocFileOf(h Handle, file *SourceFile) *SourceFile {
+	if file != nil {
+		return file
+	}
+	return h.Store().SourceFile()
+}
+
+// JSDocIn returns h's JSDoc. JSDoc the parser attached eagerly (JS files, and
+// TS comments with @see/@link) comes from the SourceFile; deferred TS JSDoc is
+// parsed on first access into cache. A nil cache falls back to JSDoc(file).
+func (h Handle) JSDocIn(file *SourceFile, cache *JSDocCache) []Handle {
+	if cache == nil {
+		return h.JSDoc(file)
+	}
 	if h.IsNil() || h.Flags()&NodeFlagsHasJSDoc == 0 {
 		return nil
 	}
-	if file == nil {
-		file = h.Store().SourceFile()
-	}
+	file = jsdocFileOf(h, file)
 	if file == nil {
 		return nil
 	}
 	if cached := file.JSDocHandles(h); len(cached) > 0 || !file.hasLazyJSDoc {
 		return cached
 	}
-	if parseJSDocForNode == nil {
-		return nil
-	}
-	docs := parseJSDocForNode(file, h)
-	file.CacheJSDocHandles(h, docs)
-	return docs
+	return cache.lookup(file, h)
 }
 
+// JSDoc returns h's JSDoc for consumers that do not own a Store (LS, API,
+// astnav). Deferred TS JSDoc is parsed into the file's shared side Store on
+// first access (see SourceFile.warmSharedJSDoc). The checker must use JSDocIn
+// with its own cache instead.
+func (h Handle) JSDoc(file *SourceFile) []Handle {
+	if h.IsNil() || h.Flags()&NodeFlagsHasJSDoc == 0 {
+		return nil
+	}
+	file = jsdocFileOf(h, file)
+	if file == nil {
+		return nil
+	}
+	if cached := file.JSDocHandles(h); len(cached) > 0 || !file.hasLazyJSDoc {
+		return cached
+	}
+	return file.sharedJSDocFor(h)
+}
+
+// EagerJSDoc returns only the JSDoc the parser attached at parse time. It
+// never triggers lazy parsing, so deferred TS JSDoc is not visible here.
 func (h Handle) EagerJSDoc(file *SourceFile) []Handle {
-	return h.JSDoc(file)
+	if h.IsNil() || h.Flags()&NodeFlagsHasJSDoc == 0 {
+		return nil
+	}
+	file = jsdocFileOf(h, file)
+	if file == nil {
+		return nil
+	}
+	return file.JSDocHandles(h)
 }
 
 func (h Handle) HasModifierKind(kind Kind) bool {

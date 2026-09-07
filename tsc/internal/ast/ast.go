@@ -15,11 +15,12 @@ import (
 )
 
 // parseJSDocForNode is the package-level function for lazily parsing JSDoc.
-// It is set by the parser package via init().
-var parseJSDocForNode func(*SourceFile, Handle) []Handle
+// It is set by the parser package via init(). The parsed JSDoc nodes are
+// allocated into the given Store, never into the file's parse Store.
+var parseJSDocForNode func(*SourceFile, Handle, *Store) []Handle
 
 // SetParseJSDocForNode registers the lazy JSDoc parse function. Called from parser's init().
-func SetParseJSDocForNode(fn func(*SourceFile, Handle) []Handle) {
+func SetParseJSDocForNode(fn func(*SourceFile, Handle, *Store) []Handle) {
 	parseJSDocForNode = fn
 }
 
@@ -1680,12 +1681,6 @@ func (node *Node) EagerJSDoc(file *SourceFile) []*Node {
 			return nil
 		}
 	}
-	if file.hasLazyJSDoc {
-		file.jsdocMu.RLock()
-		jsdocs := file.jsdocCache[node]
-		file.jsdocMu.RUnlock()
-		return jsdocs
-	}
 	return file.jsdocCache[node]
 }
 
@@ -2593,11 +2588,12 @@ type SourceFile struct {
 	AmbientModuleNames          []string
 	CommentDirectives           []CommentDirective
 	jsdocCache                  map[*Node][]*Node
-	jsdocHandleCache            map[Handle][]Handle
-	jsdocMu                     sync.RWMutex
-	jsdocWarmOnce               sync.Once
+	jsdocHandleCache            map[Handle][]Handle // JSDoc parsed eagerly by the parser; immutable after parse
 	hasLazyJSDoc                bool
 	lazyJSDocRefs               []NodeRef
+	sharedJSDocOnce             sync.Once
+	sharedJSDocStore            *Store // side Store for consumers without a JSDocCache (LS, API); see warmSharedJSDoc
+	sharedJSDoc                 map[NodeRef][]Handle
 	identifiersOnce             sync.Once
 	identifiers                 collections.Set[string]
 	ReparsedClones              []*Node
@@ -2979,30 +2975,22 @@ func (node *SourceFile) SetJSDocHandleCache(cache map[Handle][]Handle) {
 	node.jsdocHandleCache = cache
 }
 
+// JSDocHandles returns the JSDoc the parser attached to h eagerly: every JSDoc
+// in a JS file, and TS JSDoc that carries @see or @link. It never parses.
 func (node *SourceFile) JSDocHandles(h Handle) []Handle {
 	if node == nil {
 		return nil
 	}
-	node.jsdocMu.RLock()
-	docs := node.jsdocHandleCache[h]
-	node.jsdocMu.RUnlock()
-	return docs
-}
-
-func (node *SourceFile) CacheJSDocHandles(h Handle, docs []Handle) {
-	if node == nil {
-		return
-	}
-	node.jsdocMu.Lock()
-	if node.jsdocHandleCache == nil {
-		node.jsdocHandleCache = make(map[Handle][]Handle)
-	}
-	node.jsdocHandleCache[h] = docs
-	node.jsdocMu.Unlock()
+	return node.jsdocHandleCache[h]
 }
 
 func (node *SourceFile) SetHasLazyJSDoc(lazy bool) {
 	node.hasLazyJSDoc = lazy
+}
+
+// HasLazyJSDoc reports whether the parser deferred some JSDoc of this file.
+func (node *SourceFile) HasLazyJSDoc() bool {
+	return node != nil && node.hasLazyJSDoc
 }
 
 func (node *SourceFile) SetLazyJSDocRefs(refs []NodeRef) {
@@ -3013,38 +3001,66 @@ func (node *SourceFile) SetLazyJSDocRefs(refs []NodeRef) {
 	node.lazyJSDocRefs = append([]NodeRef(nil), refs...)
 }
 
-func (node *SourceFile) WarmJSDoc() {
+// LazyJSDocRefs lists the parse-Store nodes whose JSDoc the parser deferred.
+func (node *SourceFile) LazyJSDocRefs() []NodeRef {
 	if node == nil {
-		return
+		return nil
 	}
-	node.jsdocWarmOnce.Do(func() {
-		if !node.hasLazyJSDoc {
+	return node.lazyJSDocRefs
+}
+
+// SharedJSDocStore returns the side Store holding JSDoc parsed for consumers
+// that read through Handle.JSDoc without a JSDocCache, or nil when no such
+// consumer has asked yet. The compile path (checker) never creates it.
+func (node *SourceFile) SharedJSDocStore() *Store {
+	if node == nil {
+		return nil
+	}
+	return node.sharedJSDocStore
+}
+
+// warmSharedJSDoc parses every deferred JSDoc of the file into one private side
+// Store and freezes it before publishing, so parallel readers never observe an
+// appending Store. It runs at most once per SourceFile. The checker does not use
+// this path; it parses on demand into its own Store through JSDocIn.
+func (node *SourceFile) warmSharedJSDoc() {
+	node.sharedJSDocOnce.Do(func() {
+		if !node.hasLazyJSDoc || parseJSDocForNode == nil {
 			return
 		}
-		unlock := node.LockParseStoreWriter()
-		defer unlock()
-		if parseJSDocForNode == nil {
-			node.hasLazyJSDoc = false
+		parse := node.ParseStore()
+		if parse == nil || len(node.lazyJSDocRefs) == 0 {
 			return
 		}
-		store := node.ParseStore()
-		if store == nil {
-			node.hasLazyJSDoc = false
-			return
-		}
+		store := NewStore(len(node.lazyJSDocRefs) * 8)
+		docs := make(map[NodeRef][]Handle, len(node.lazyJSDocRefs))
 		for _, ref := range node.lazyJSDocRefs {
-			h := store.At(ref)
-			if h.IsNil() || h.Flags()&NodeFlagsHasJSDoc == 0 {
+			h := parse.At(ref)
+			if h.IsNil() || h.Flags()&NodeFlagsHasJSDoc == 0 || len(node.jsdocHandleCache[h]) > 0 {
 				continue
 			}
-			if len(node.JSDocHandles(h)) > 0 {
-				continue
+			if parsed := parseJSDocForNode(node, h, store); len(parsed) > 0 {
+				docs[ref] = parsed
 			}
-			node.CacheJSDocHandles(h, parseJSDocForNode(node, h))
 		}
-		node.lazyJSDocRefs = nil
-		node.hasLazyJSDoc = false
+		RegisterStore(store)
+		store.Freeze()
+		node.sharedJSDoc = docs
+		node.sharedJSDocStore = store
 	})
+}
+
+// sharedJSDocFor returns h's deferred JSDoc from the shared side Store,
+// parsing the whole file's deferred JSDoc on first use.
+func (node *SourceFile) sharedJSDocFor(h Handle) []Handle {
+	if h.Store() != node.ParseStore() {
+		return nil
+	}
+	node.warmSharedJSDoc()
+	if node.sharedJSDoc == nil {
+		return nil
+	}
+	return node.sharedJSDoc[h.Ref()]
 }
 
 func (node *SourceFile) resolveJSDoc(n *Node) []*Node {
