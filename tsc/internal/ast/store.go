@@ -1535,3 +1535,69 @@ func (h Handle) refInStore(other Handle) NodeRef {
 	}
 	return NewFactoryOn(h.s, FactoryHooks{}).CopySubtree(other).id
 }
+
+// StoreScratch is the parser-owned set of parse-column backing arrays. A Store
+// borrows them from NewStoreOnScratch, appends into them while parsing, and
+// Compact hands them back after cloning the used prefix into exact-size
+// arrays. The scratch keeps its high-water capacity across files, so the
+// source-length hint only sizes it the first time; a finished Store never
+// carries the hint's over-reserve.
+type StoreScratch struct {
+	nodes     []nodeHeader
+	lists     []listHeader
+	children  []NodeRef
+	internBuf []byte
+	internOff []uint32
+}
+
+// NewStoreOnScratch is NewStore with the parse columns backed by sc. The
+// scratch is emptied (owned by the Store) until Compact returns it, so a
+// parse that panics leaves nothing aliased.
+func NewStoreOnScratch(hint int, sc *StoreScratch) *Store {
+	if hint < 1 {
+		hint = 1
+	}
+	if cap(sc.nodes) < hint+1 {
+		sc.nodes = make([]nodeHeader, 0, hint+1)
+	}
+	if cap(sc.lists) < max(8, hint/7) {
+		sc.lists = make([]listHeader, 0, max(8, hint/7))
+	}
+	if n := hint + hint/2 + hint*3/8; cap(sc.children) < n {
+		sc.children = make([]NodeRef, 0, n)
+	}
+	if cap(sc.internBuf) < hint {
+		sc.internBuf = make([]byte, 0, hint)
+	}
+	if n := max(2, hint/32); cap(sc.internOff) < n {
+		sc.internOff = make([]uint32, 0, n)
+	}
+	s := &Store{
+		allocHint: hint,
+		nodes:     append(sc.nodes[:0], nodeHeader{}),
+		lists:     append(sc.lists[:0], listHeader{}),
+		children:  sc.children[:0],
+		internBuf: sc.internBuf[:0],
+		internOff: append(sc.internOff[:0], 0, 0),
+		internIdx: make(map[string]uint32, hint/32),
+	}
+	*sc = StoreScratch{}
+	return s
+}
+
+// Compact clones the parse columns into exact-size arrays and returns the
+// borrowed backing arrays to sc. Call once, when parsing is finished.
+func (s *Store) Compact(sc *StoreScratch) {
+	s.mustMutate()
+	sc.nodes, s.nodes = s.nodes, cloneExact(s.nodes)
+	sc.lists, s.lists = s.lists, cloneExact(s.lists)
+	sc.children, s.children = s.children, cloneExact(s.children)
+	sc.internBuf, s.internBuf = s.internBuf, cloneExact(s.internBuf)
+	sc.internOff, s.internOff = s.internOff, cloneExact(s.internOff)
+}
+
+func cloneExact[T any](x []T) []T {
+	y := make([]T, len(x))
+	copy(y, x)
+	return y
+}

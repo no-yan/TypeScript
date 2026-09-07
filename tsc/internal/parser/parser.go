@@ -104,6 +104,9 @@ type Parser struct {
 	// copies [start:] into the Store and pops. Nested lists stack above the
 	// outer one. It survives putParser so the pooled parser stops allocating.
 	listScratch []ast.NodeRef
+	// storeScratch backs the Store parse columns while a file is parsed; see
+	// ast.StoreScratch.
+	storeScratch ast.StoreScratch
 }
 
 func newParser() *Parser {
@@ -294,7 +297,7 @@ func isValidHeritageTypeReferenceExpression(node ast.Handle) bool {
 }
 
 func putParser(p *Parser) {
-	*p = Parser{scanner: p.scanner, listScratch: p.listScratch[:0]}
+	*p = Parser{scanner: p.scanner, listScratch: p.listScratch[:0], storeScratch: p.storeScratch}
 	parserPool.Put(p)
 }
 
@@ -303,7 +306,7 @@ func ParseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptK
 	defer putParser(p)
 	storeHint := max(256, len(sourceText)/5)
 	p.initializeState(opts, sourceText, scriptKind)
-	p.factory = ast.NewFactoryHint(ast.FactoryHooks{}, storeHint)
+	p.factory = ast.NewFactoryOn(ast.NewStoreOnScratch(storeHint, &p.storeScratch), ast.FactoryHooks{})
 	p.nextToken()
 	isDeclarationFile := tspath.IsDeclarationFileName(p.opts.FileName)
 	if isDeclarationFile {
@@ -331,6 +334,7 @@ func ParseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptK
 			result.SetJSDiagnostics(attachFileToDiagnostics(p.jsDiagnostics, result))
 		}
 	}
+	p.factory.Store().Compact(&p.storeScratch)
 	p.factory.Seal()
 	return result
 }
