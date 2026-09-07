@@ -27,6 +27,13 @@ Record:
 Fetch the parent only when its latest remote state is required. Never compare
 different workloads, generated files, compiler options, or machines.
 
+For the parent head, `git worktree add --detach <scratch>/base <parent-sha>`
+and build there; never `git stash` (the stash stack is shared). Apply any
+temporary harness-only patch (env-gated skips in
+`harnessutil.compileFilesWithHost` and `compiler_runner.go`) to both trees
+with the same script, `git checkout` those files before committing, and
+`git worktree remove --force` the scratch tree when done.
+
 ## 2. Prepare the real smoke project
 
 The CI workload is the TypeScript v6.0.3 compiler project:
@@ -177,6 +184,20 @@ Run a compiler test to cover diagnostics, emit baselines, and parent pointers:
   -count=1 \
   -run 'TestLocal/alias'
 ```
+
+**Temporary rule. Delete this paragraph once the harness race is fixed**
+(`cachedCompilerHost` shares SourceFiles across parallel tests, so one test's
+build phase can overlap another's check; tracked as the `TestLocal`
+`concurrent map read and map write` failure). If `testrunner` dies with
+`fatal error: concurrent map read and map write` on a Store map, rerun it on
+the unmodified parent first; if the parent dies too, do not bisect the
+harness. Build `go build -race ./cmd/tsc` and run the live workload with
+`--noEmit` and with emit to a scratch `--outDir`. Zero DATA RACE there means
+the harness is the writer, not the compile path. `GOTRACEBACK=all` only shows
+the reader (goroutines stop at safe points); use `-race` with
+`GORACE=halt_on_error=1` for both stacks. For the baseline diff run
+`-run TestLocal -parallel 1` on both heads and compare the sorted
+`--- FAIL` sets; they must be identical.
 
 Use `npx hereby test` for the final full-suite gate.
 
