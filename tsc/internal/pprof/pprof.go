@@ -13,10 +13,12 @@ import (
 )
 
 type ProfileSession struct {
-	cpuFilePath string
-	memFilePath string
-	cpuFile     *os.File
-	logWriter   io.Writer
+	cpuFilePath   string
+	memFilePath   string
+	mutexFilePath string
+	blockFilePath string
+	cpuFile       *os.File
+	logWriter     io.Writer
 }
 
 // BeginProfiling starts CPU and memory profiling, writing the profiles to the specified directory.
@@ -29,6 +31,8 @@ func BeginProfiling(profileDir string, logWriter io.Writer) *ProfileSession {
 
 	cpuProfilePath := filepath.Join(profileDir, fmt.Sprintf("%d-cpuprofile.pb.gz", pid))
 	memProfilePath := filepath.Join(profileDir, fmt.Sprintf("%d-memprofile.pb.gz", pid))
+	mutexProfilePath := filepath.Join(profileDir, fmt.Sprintf("%d-mutexprofile.pb.gz", pid))
+	blockProfilePath := filepath.Join(profileDir, fmt.Sprintf("%d-blockprofile.pb.gz", pid))
 	cpuFile, err := os.Create(cpuProfilePath)
 	if err != nil {
 		panic(err)
@@ -37,18 +41,43 @@ func BeginProfiling(profileDir string, logWriter io.Writer) *ProfileSession {
 	if err := pprof.StartCPUProfile(cpuFile); err != nil {
 		panic(err)
 	}
+	runtime.SetMutexProfileFraction(1)
+	runtime.SetBlockProfileRate(1)
 
 	return &ProfileSession{
-		cpuFilePath: cpuProfilePath,
-		memFilePath: memProfilePath,
-		cpuFile:     cpuFile,
-		logWriter:   logWriter,
+		cpuFilePath:   cpuProfilePath,
+		memFilePath:   memProfilePath,
+		mutexFilePath: mutexProfilePath,
+		blockFilePath: blockProfilePath,
+		cpuFile:       cpuFile,
+		logWriter:     logWriter,
 	}
 }
 
 func (p *ProfileSession) Stop() {
 	pprof.StopCPUProfile()
 	p.cpuFile.Close()
+	for _, profile := range []struct {
+		name string
+		path string
+	}{
+		{name: "mutex", path: p.mutexFilePath},
+		{name: "block", path: p.blockFilePath},
+	} {
+		if profile.path == "" {
+			continue
+		}
+		file, err := os.Create(profile.path)
+		if err != nil {
+			panic(err)
+		}
+		if err := pprof.Lookup(profile.name).WriteTo(file, 0); err != nil {
+			file.Close()
+			panic(err)
+		}
+		file.Close()
+		fmt.Fprintf(p.logWriter, "%s profile: %v\n", profile.name, profile.path)
+	}
 
 	if p.memFilePath != "" {
 		memFile, err := os.Create(p.memFilePath)
