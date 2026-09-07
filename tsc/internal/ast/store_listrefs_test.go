@@ -33,3 +33,17 @@ func TestFactoryListRefsMatchesList(t *testing.T) {
 	assert.Assert(t, empty != 0, "an empty list is still a list, not a missing list")
 	assert.Equal(t, s.ListRefAt(0, 0), NodeRef(0), "missing list reads as absent")
 }
+
+func TestListRefAtResolvesQualifiedOwner(t *testing.T) {
+	owner := NewFactory(FactoryHooks{})
+	defer UnregisterStore(owner.Store())
+	owner.NewIdentifier("padding")
+	child := owner.NewIdentifier("child")
+	list := owner.ListRefs(core.UndefinedTextRange(), []NodeRef{child.Ref(), 0})
+	other := NewFactory(FactoryHooks{})
+	other.NewIdentifier("unrelated")
+	assert.Assert(t, uint64(list)>>32 != 0)
+	assert.Equal(t, child.Ref(), other.Store().ListRefAt(list, 0))
+	assert.Equal(t, child, other.Store().ListAt(list, 0))
+	assert.Equal(t, NodeRef(0), other.Store().ListRefAt(list, 1))
+}
