@@ -34,7 +34,7 @@ func (tx *taggedTemplateTransformer) visit(node ast.Handle) ast.Handle {
 	}
 }
 func (tx *taggedTemplateTransformer) visitSourceFile(node ast.Handle) ast.Handle {
-	tx.currentSourceFile = ast.GetSourceFileOfNode(node)
+	tx.currentSourceFile = tx.EmitContext().SourceFileOf(node)
 	tx.taggedTemplateStringDeclarations = nil
 	visited := tx.Visitor().VisitEachChild(node)
 	if len(tx.taggedTemplateStringDeclarations) > 0 {

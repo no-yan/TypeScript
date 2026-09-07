@@ -66,7 +66,7 @@ type Binder struct {
 	notConstEnumOnlyModules collections.Set[*ast.Symbol]
 	symbolArena             core.Arena[ast.Symbol]
 	flowListArena           core.Arena[ast.FlowList]
-	singleDeclarationsArena core.Arena[ast.GlobalRef]
+	singleDeclarationsArena core.Arena[ast.Handle]
 	expandoAssignments      []ExpandoAssignmentInfo
 }
 type ActiveLabel struct {
@@ -401,7 +401,7 @@ func (b *Binder) declareSymbolRef(symbolTable ast.SymbolTable, parent *ast.Symbo
 					diag.AddRelatedInfo(b.createDiagnosticForNode(node, diagnostics.Did_you_mean_0, "export type { "+node.TypeAliasDeclarationName().Text()+" }"))
 				}
 				for index, declarationRef := range symbol.Declarations {
-					declaration := ast.NodeOf(declarationRef)
+					declaration := declarationRef
 					var decl ast.Handle = ast.GetNameOfDeclaration(declaration)
 					if decl.IsNil() {
 						decl = declaration
@@ -783,8 +783,8 @@ func (b *Binder) combineFlowLists(head *ast.FlowList, tail *ast.FlowList) *ast.F
 	}
 	return b.newFlowList(head.Flow, b.combineFlowLists(head.Next, tail))
 }
-func (b *Binder) newSingleDeclaration(declaration ast.Handle) []ast.GlobalRef {
-	return b.singleDeclarationsArena.NewSlice1(declaration.Global())
+func (b *Binder) newSingleDeclaration(declaration ast.Handle) []ast.Handle {
+	return b.singleDeclarationsArena.NewSlice1(declaration)
 }
 func setFlowNodeReferenced(flow *ast.FlowNode) {
 	if flow.Flags&ast.FlowFlagsReferenced == 0 {
@@ -952,7 +952,7 @@ func (b *Binder) bindExportAssignmentRef(ref ast.NodeRef, kind ast.Kind) {
 		flags := core.IfElse(b.expressionIsAliasRef(expression, b.store.KindAt(expression)), ast.SymbolFlagsAlias, ast.SymbolFlagsProperty)
 		symbol := b.declareSymbolRef(ast.GetExports(containerSymbol), containerSymbol, ref, kind, flags, ast.SymbolFlagsAll, false, false)
 		if b.isExportEqualsRefGenerated(ref, kind) {
-			b.setValueDeclarationRef(symbol, ref, kind, b.store.GlobalRef(ref))
+			b.setValueDeclarationRef(symbol, ref, kind, ast.HandleOf(b.store, ref, kind))
 		}
 	}
 }
@@ -1074,7 +1074,7 @@ func (b *Binder) bindClassLikeDeclarationRef(ref ast.NodeRef, kind ast.Kind) {
 	prototypeSymbol := b.newSymbol(ast.SymbolFlagsProperty|ast.SymbolFlagsPrototype, "prototype")
 	symbolExport := ast.GetExports(symbol)[prototypeSymbol.Name]
 	if symbolExport != nil {
-		b.errorOnNode(ast.NodeOf(symbolExport.Declarations[0]), diagnostics.Duplicate_identifier_0, ast.SymbolName(prototypeSymbol))
+		b.errorOnNode(symbolExport.Declarations[0], diagnostics.Duplicate_identifier_0, ast.SymbolName(prototypeSymbol))
 	}
 	ast.GetExports(symbol)[prototypeSymbol.Name] = prototypeSymbol
 	prototypeSymbol.Parent = symbol
@@ -1140,7 +1140,7 @@ func (b *Binder) addLateBoundAssignmentDeclarationToSymbol(node ast.Handle, symb
 		assignmentSymbol = b.newSymbol(ast.SymbolFlagsNone, ast.InternalSymbolNameAssignmentDeclaration)
 		exports[ast.InternalSymbolNameAssignmentDeclaration] = assignmentSymbol
 	}
-	assignmentSymbol.Declarations = append(assignmentSymbol.Declarations, node.Global())
+	assignmentSymbol.Declarations = append(assignmentSymbol.Declarations, node)
 }
 func (b *Binder) bindModuleExportsAssignment(node ast.Handle) {
 	if b.setCommonJSModuleIndicator(node) {
@@ -1216,10 +1216,10 @@ func (b *Binder) bindExportsOrObjectDefineProperty(node ast.Handle) {
 	}
 }
 func getInitializerSymbol(symbol *ast.Symbol) *ast.Symbol {
-	if symbol == nil || symbol.ValueDeclaration == 0 {
+	if symbol == nil || symbol.ValueDeclaration.IsNil() {
 		return nil
 	}
-	declaration := ast.NodeOf(symbol.ValueDeclaration)
+	declaration := symbol.ValueDeclaration
 	if declaration.IsNil() {
 		return nil
 	}
@@ -2787,7 +2787,7 @@ func (b *Binder) addDeclarationToSymbolRef(symbol *ast.Symbol, ref ast.NodeRef, 
 			file.Symbol = symbol
 		}
 	}
-	declaration := b.store.GlobalRef(ref)
+	declaration := ast.HandleOf(b.store, ref, kind)
 	if symbol.Declarations == nil {
 		symbol.Declarations = b.singleDeclarationsArena.NewSlice1(declaration)
 	} else {
@@ -2802,8 +2802,8 @@ func (b *Binder) addDeclarationToSymbolRef(symbol *ast.Symbol, ref ast.NodeRef, 
 	}
 }
 
-func (b *Binder) setValueDeclarationRef(symbol *ast.Symbol, ref ast.NodeRef, kind ast.Kind, declaration ast.GlobalRef) {
-	valueDeclaration := ast.NodeOf(symbol.ValueDeclaration)
+func (b *Binder) setValueDeclarationRef(symbol *ast.Symbol, ref ast.NodeRef, kind ast.Kind, declaration ast.Handle) {
+	valueDeclaration := symbol.ValueDeclaration
 	if valueDeclaration.IsNil() || isAssignmentDeclaration(valueDeclaration) && !isAssignmentDeclarationKind(kind) || valueDeclaration.Kind != kind && isEffectiveModuleDeclaration(valueDeclaration) {
 		if b.store.SourceFile() == nil {
 			return
@@ -2813,13 +2813,13 @@ func (b *Binder) setValueDeclarationRef(symbol *ast.Symbol, ref ast.NodeRef, kin
 }
 
 func SetValueDeclaration(symbol *ast.Symbol, node ast.Handle) {
-	valueDeclaration := ast.NodeOf(symbol.ValueDeclaration)
+	valueDeclaration := symbol.ValueDeclaration
 	if valueDeclaration.IsNil() || isAssignmentDeclaration(valueDeclaration) && !isAssignmentDeclaration(node) || valueDeclaration.Kind != node.Kind && isEffectiveModuleDeclaration(valueDeclaration) {
 		file := ast.GetSourceFileOfNode(node)
 		if file == nil {
 			return
 		}
-		symbol.ValueDeclaration = node.Global()
+		symbol.ValueDeclaration = node
 	}
 }
 func GetContainerFlags(node ast.Handle) ContainerFlags {
@@ -2998,7 +2998,7 @@ func getOptionalSymbolFlagForNode(node ast.Handle) ast.SymbolFlags {
 	return core.IfElse(!postfixToken.IsNil() && postfixToken.Kind == ast.KindQuestionToken, ast.SymbolFlagsOptional, ast.SymbolFlagsNone)
 }
 func isFunctionSymbol(symbol *ast.Symbol) bool {
-	d := ast.NodeOf(symbol.ValueDeclaration)
+	d := symbol.ValueDeclaration
 	if !d.IsNil() {
 		if ast.IsFunctionDeclaration(d) {
 			return true

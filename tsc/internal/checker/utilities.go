@@ -65,7 +65,7 @@ func hasReadonlyModifier(node ast.Handle) bool {
 	return ast.HasModifier(node, ast.ModifierFlagsReadonly)
 }
 func isStaticPrivateIdentifierProperty(s *ast.Symbol) bool {
-	return s.ValueDeclaration != 0 && ast.IsPrivateIdentifierClassElementDeclaration(ast.NodeOf(s.ValueDeclaration)) && ast.IsStatic(ast.NodeOf(s.ValueDeclaration))
+	return !s.ValueDeclaration.IsNil() && ast.IsPrivateIdentifierClassElementDeclaration(s.ValueDeclaration) && ast.IsStatic(s.ValueDeclaration)
 }
 func isEmptyObjectLiteral(expression ast.Handle) bool {
 	return ast.IsObjectLiteralExpression(expression) && expression.PropertiesSeq().Len() == 0
@@ -171,7 +171,7 @@ func canHaveLocals(node ast.Handle) bool {
 	return false
 }
 func isShorthandAmbientModuleSymbol(moduleSymbol *ast.Symbol) bool {
-	return isShorthandAmbientModule(ast.NodeOf(moduleSymbol.ValueDeclaration))
+	return isShorthandAmbientModule(moduleSymbol.ValueDeclaration)
 }
 func isShorthandAmbientModule(node ast.Handle) bool {
 	return !node.IsNil() && node.Kind == ast.KindModuleDeclaration && node.Body().IsNil()
@@ -312,7 +312,7 @@ func (c *Checker) compareSymbolsWorker(s1, s2 *ast.Symbol) int {
 		return -1
 	}
 	if len(s1.Declarations) != 0 && len(s2.Declarations) != 0 {
-		if r := c.compareNodes(ast.NodeOf(s1.Declarations[0]), ast.NodeOf(s2.Declarations[0])); r != 0 {
+		if r := c.compareNodes(s1.Declarations[0], s2.Declarations[0]); r != 0 {
 			return r
 		}
 	} else if len(s1.Declarations) != 0 {
@@ -630,7 +630,7 @@ func getDeclarationModifierFlagsFromSymbolEx(s *ast.Symbol, isWrite bool) ast.Mo
 		}
 		return accessModifier
 	}
-	if s.ValueDeclaration != 0 {
+	if !s.ValueDeclaration.IsNil() {
 		var declaration ast.Handle
 		if isWrite {
 			declaration = ast.FindSymbolDeclaration(s, ast.IsSetAccessorDeclaration)
@@ -639,7 +639,7 @@ func getDeclarationModifierFlagsFromSymbolEx(s *ast.Symbol, isWrite bool) ast.Mo
 			declaration = ast.FindSymbolDeclaration(s, ast.IsGetAccessorDeclaration)
 		}
 		if declaration.IsNil() {
-			declaration = ast.NodeOf(s.ValueDeclaration)
+			declaration = s.ValueDeclaration
 		}
 		flags := ast.GetCombinedModifierFlags(declaration)
 		if s.Parent != nil && s.Parent.Flags&ast.SymbolFlagsClass != 0 {
@@ -861,8 +861,8 @@ func (c *Checker) isConstantVariable(symbol *ast.Symbol) bool {
 	return symbol.Flags&ast.SymbolFlagsVariable != 0 && (c.getDeclarationNodeFlagsFromSymbol(symbol)&ast.NodeFlagsConstant) != 0
 }
 func (c *Checker) isParameterOrMutableLocalVariable(symbol *ast.Symbol) bool {
-	if symbol.ValueDeclaration != 0 {
-		declaration := ast.GetRootDeclaration(ast.NodeOf(symbol.ValueDeclaration))
+	if !symbol.ValueDeclaration.IsNil() {
+		declaration := ast.GetRootDeclaration(symbol.ValueDeclaration)
 		return !declaration.IsNil() && (ast.IsParameterDeclaration(declaration) || ast.IsVariableDeclaration(declaration) && (ast.IsCatchClause(declaration.Parent()) || c.isMutableLocalVariableDeclaration(declaration)))
 	}
 	return false
@@ -1217,7 +1217,7 @@ func (c *Checker) isUncheckedJSSuggestion(node ast.Handle, suggestion *ast.Symbo
 					declarationFile = ast.GetSourceFileOfNode(firstDeclaration)
 				}
 			}
-			suggestionHasNoExtendsOrDecorators := suggestion == nil || suggestion.ValueDeclaration == 0 || !ast.IsClassLike(ast.NodeOf(suggestion.ValueDeclaration)) || ast.GetExtendsHeritageClauseElements(ast.NodeOf(suggestion.ValueDeclaration)).Len() != 0 || ast.ClassOrConstructorParameterIsDecorated(false, ast.NodeOf(suggestion.ValueDeclaration))
+			suggestionHasNoExtendsOrDecorators := suggestion == nil || suggestion.ValueDeclaration.IsNil() || !ast.IsClassLike(suggestion.ValueDeclaration) || ast.GetExtendsHeritageClauseElements(suggestion.ValueDeclaration).Len() != 0 || ast.ClassOrConstructorParameterIsDecorated(false, suggestion.ValueDeclaration)
 			return !(file != declarationFile && declarationFile != nil && ast.IsGlobalSourceFile(declarationFile.ParseRoot())) && !(excludeClasses && suggestion != nil && suggestion.Flags&ast.SymbolFlagsClass != 0 && suggestionHasNoExtendsOrDecorators) && !(!node.IsNil() && excludeClasses && ast.IsPropertyAccessExpression(node) && node.Expression().Kind == ast.KindThisKeyword && suggestionHasNoExtendsOrDecorators)
 		}
 	}

@@ -348,7 +348,7 @@ func (b *NodeBuilderImpl) pseudoTypeEquivalentToType(t *pseudochecker.PseudoType
 			}
 			if targetProp == nil {
 				for _, prop := range targetProps {
-					if prop.ValueDeclaration != 0 && ast.NodeOf(prop.ValueDeclaration).Name() == e.Name {
+					if !prop.ValueDeclaration.IsNil() && prop.ValueDeclaration.Name() == e.Name {
 						targetProp = prop
 						break
 					}
@@ -514,7 +514,7 @@ func (b *NodeBuilderImpl) pseudoParametersEquivalentToParameters(params []*pseud
 	}
 	for i, p := range params {
 		targetParam := targetSig.parameters[i]
-		if p.Optional != b.ch.isOptionalParameter(ast.NodeOf(targetParam.ValueDeclaration)) {
+		if p.Optional != b.ch.isOptionalParameter(targetParam.ValueDeclaration) {
 			if reportErrors {
 				b.ctx.tracker.ReportInferenceFallback(p.Name.Parent())
 			}

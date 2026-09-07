@@ -135,7 +135,7 @@ func tryGetModuleNameFromAmbientModule(moduleSymbol *ast.Symbol, checker Checker
 		if !ok || sym == nil {
 			continue
 		}
-		exportAssignmentDecl := ast.NodeOf(sym.ValueDeclaration)
+		exportAssignmentDecl := sym.ValueDeclaration
 		if exportAssignmentDecl.IsNil() || exportAssignmentDecl.Kind != ast.KindExportAssignment {
 			continue
 		}

@@ -290,7 +290,7 @@ func (c *Checker) inferFromTypes(n *InferenceState, source *Type, target *Type) 
 		if len(source.alias.typeArguments) != 0 || len(target.alias.typeArguments) != 0 {
 			params := c.typeAliasLinks.Get(source.alias.symbol).typeParameters
 			minParams := c.getMinTypeArgumentCount(params)
-			nodeIsInJsFile := ast.IsInJSFile(ast.NodeOf(source.alias.symbol.ValueDeclaration))
+			nodeIsInJsFile := ast.IsInJSFile(source.alias.symbol.ValueDeclaration)
 			sourceTypes := c.fillMissingTypeArguments(source.alias.typeArguments, params, minParams, nodeIsInJsFile)
 			targetTypes := c.fillMissingTypeArguments(target.alias.typeArguments, params, minParams, nodeIsInJsFile)
 			c.inferFromTypeArguments(n, sourceTypes, targetTypes, c.getAliasVariances(source.alias.symbol))

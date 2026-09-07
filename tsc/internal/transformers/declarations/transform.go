@@ -104,8 +104,8 @@ func NewDeclarationTransformer(host DeclarationEmitHost, context *printer.EmitCo
 		}
 		props := resolver.GetPropertiesOfContainerFunction(node)
 		for _, p := range props {
-			if ast.IsExpandoPropertyDeclaration(ast.NodeOf(p.ValueDeclaration)) {
-				errorTarget := ast.NodeOf(p.ValueDeclaration)
+			if ast.IsExpandoPropertyDeclaration(p.ValueDeclaration) {
+				errorTarget := p.ValueDeclaration
 				if ast.IsBinaryExpression(errorTarget) {
 					errorTarget = errorTarget.BinaryExpressionLeft()
 				}
@@ -207,7 +207,7 @@ func throwDiagnostic(result printer.SymbolAccessibilityResult) *SymbolAccessibil
 }
 func (tx *DeclarationTransformer) visitSourceFile(node ast.Handle) ast.Handle {
 	tx.cjsExportAssignmentName = ast.Handle{}
-	sf := ast.GetSourceFileOfNode(node)
+	sf := tx.EmitContext().SourceFileOf(node)
 	if sf != nil && sf.IsDeclarationFile {
 		return node
 	}
@@ -781,7 +781,7 @@ func (tx *DeclarationTransformer) transformConstructSignatureDeclaration(input a
 	return tx.Factory().UpdateConstructSignatureDeclaration(input, tx.ensureTypeParams(input, input.TypeParameterList()), tx.updateParamList(input, input.ParameterList()), tx.ensureType(input, false))
 }
 func (tx *DeclarationTransformer) omitPrivateMethodType(input ast.Handle) ast.Handle {
-	if input.Symbol() != nil && len(input.Symbol().Declarations) > 0 && ast.NodeOf(input.Symbol().Declarations[0]) != input {
+	if input.Symbol() != nil && len(input.Symbol().Declarations) > 0 && input.Symbol().Declarations[0] != input {
 		return ast.Handle{}
 	}
 	result := tx.Factory().NewPropertyDeclaration(tx.ensureModifiers(input), input.Name(), ast.Handle{}, ast.Handle{}, ast.Handle{})

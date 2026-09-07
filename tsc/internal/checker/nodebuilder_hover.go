@@ -123,7 +123,7 @@ func (b *NodeBuilderImpl) expandClassDecl(symbol *ast.Symbol) ast.Handle {
 	classType := b.ch.getTypeWithThisArgument(declaredType, nil, false)
 	baseTypes := b.ch.getBaseTypes(b.ch.getTargetType(classType))
 	staticType := b.ch.getTypeOfSymbol(symbol)
-	isClass := staticType.symbol != nil && staticType.symbol.ValueDeclaration != 0 && ast.IsClassLike(ast.NodeOf(staticType.symbol.ValueDeclaration))
+	isClass := staticType.symbol != nil && !staticType.symbol.ValueDeclaration.IsNil() && ast.IsClassLike(staticType.symbol.ValueDeclaration)
 	var staticBaseType *Type
 	if isClass {
 		staticBaseType = b.ch.getBaseConstructorTypeOfClass(declaredType)
@@ -279,7 +279,7 @@ func (b *NodeBuilderImpl) serializePropertiesWithTruncation(properties []*ast.Sy
 }
 
 func (b *NodeBuilderImpl) serializeConstructors(staticType *Type, staticBaseType *Type, isClass bool, symbol *ast.Symbol) []ast.Handle {
-	isNonConstructable := !isClass && symbol.ValueDeclaration != 0 && ast.IsInJSFile(ast.NodeOf(symbol.ValueDeclaration)) && len(b.ch.getSignaturesOfType(staticType, SignatureKindConstruct)) == 0
+	isNonConstructable := !isClass && !symbol.ValueDeclaration.IsNil() && ast.IsInJSFile(symbol.ValueDeclaration) && len(b.ch.getSignaturesOfType(staticType, SignatureKindConstruct)) == 0
 	if isNonConstructable {
 		b.ctx.approximateLength += 21
 		modifiers := ast.CreateModifiersFromModifierFlags(ast.ModifierFlagsPrivate, b.f.NewModifier)
@@ -509,8 +509,8 @@ func (b *NodeBuilderImpl) filterInheritedProperties(t *Type, baseTypes []*Type, 
 	})
 }
 func (b *NodeBuilderImpl) isNamespaceMember(p *ast.Symbol) bool {
-	return p.Flags&(ast.SymbolFlagsType|ast.SymbolFlagsNamespace|ast.SymbolFlagsAlias) != 0 || !(p.Flags&ast.SymbolFlagsPrototype != 0 || p.Name == "prototype" || (p.ValueDeclaration != 0 && ast.HasStaticModifier(ast.NodeOf(p.ValueDeclaration)) && ast.IsClassLike(ast.NodeOf(p.ValueDeclaration).Parent())))
+	return p.Flags&(ast.SymbolFlagsType|ast.SymbolFlagsNamespace|ast.SymbolFlagsAlias) != 0 || !(p.Flags&ast.SymbolFlagsPrototype != 0 || p.Name == "prototype" || (!p.ValueDeclaration.IsNil() && ast.HasStaticModifier(p.ValueDeclaration) && ast.IsClassLike(p.ValueDeclaration.Parent())))
 }
 func isHashPrivate(s *ast.Symbol) bool {
-	return s.ValueDeclaration != 0 && !ast.NodeOf(s.ValueDeclaration).Name().IsNil() && ast.IsPrivateIdentifier(ast.NodeOf(s.ValueDeclaration).Name())
+	return !s.ValueDeclaration.IsNil() && !s.ValueDeclaration.Name().IsNil() && ast.IsPrivateIdentifier(s.ValueDeclaration.Name())
 }

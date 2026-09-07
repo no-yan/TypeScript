@@ -199,7 +199,7 @@ func (l *LanguageService) collectSemanticTokensInRange(ctx context.Context, c *c
 						tokenType = tokenTypeProperty
 					}
 					tokenType = reclassifyByType(c, node, tokenType)
-					if decl := ast.NodeOf(symbol.ValueDeclaration); !decl.IsNil() {
+					if decl := symbol.ValueDeclaration; !decl.IsNil() {
 						modifiers := ast.GetCombinedModifierFlags(decl)
 						nodeFlags := ast.GetCombinedNodeFlags(decl)
 						if modifiers&ast.ModifierFlagsStatic != 0 {
@@ -262,9 +262,9 @@ func classifySymbol(symbol *ast.Symbol, meaning ast.SemanticMeaning) (tokenType,
 	if flags&ast.SymbolFlagsTypeParameter != 0 {
 		return tokenTypeTypeParameter, true
 	}
-	decl := ast.NodeOf(symbol.ValueDeclaration)
+	decl := symbol.ValueDeclaration
 	if decl.IsNil() && len(symbol.Declarations) > 0 {
-		decl = ast.NodeOf(symbol.Declarations[0])
+		decl = symbol.Declarations[0]
 	}
 	if !decl.IsNil() {
 		if ast.IsBindingElement(decl) {

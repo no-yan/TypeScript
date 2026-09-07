@@ -28,10 +28,10 @@ func (tx *ImpliedModuleTransformer) visit(node ast.Handle) ast.Handle {
 	return node
 }
 func (tx *ImpliedModuleTransformer) visitSourceFile(node ast.Handle) ast.Handle {
-	if ast.GetSourceFileOfNode(node) != nil && ast.GetSourceFileOfNode(node).IsDeclarationFile {
+	if tx.EmitContext().SourceFileOf(node) != nil && tx.EmitContext().SourceFileOf(node).IsDeclarationFile {
 		return node
 	}
-	format := tx.getEmitModuleFormatOfFile(ast.GetSourceFileOfNode(node))
+	format := tx.getEmitModuleFormatOfFile(tx.EmitContext().SourceFileOf(node))
 	var transformer *transformers.Transformer
 	if format >= core.ModuleKindES2015 {
 		if tx.esmTransformer == nil {
@@ -44,5 +44,5 @@ func (tx *ImpliedModuleTransformer) visitSourceFile(node ast.Handle) ast.Handle 
 		}
 		transformer = tx.cjsTransformer
 	}
-	return transformer.TransformSourceFile(ast.GetSourceFileOfNode(node)).ParseRoot()
+	return transformer.TransformSourceFile(tx.EmitContext().SourceFileOf(node)).ParseRoot()
 }

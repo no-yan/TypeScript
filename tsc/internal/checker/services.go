@@ -686,7 +686,7 @@ func (c *Checker) GetConstantValue(node ast.Handle) any {
 		symbol = c.resolveEntityName(node, ast.SymbolFlagsValue, true, false, ast.Handle{})
 	}
 	if symbol != nil && symbol.Flags&ast.SymbolFlagsEnumMember != 0 {
-		member := ast.NodeOf(symbol.ValueDeclaration)
+		member := symbol.ValueDeclaration
 		if ast.IsEnumConst(member.Parent()) {
 			return c.getEnumMemberValue(member).Value
 		}

@@ -220,7 +220,7 @@ func (e *symbolExtractor) extractFromSymbol(name string, symbol *ast.Symbol, mod
 			}
 		}
 	} else if syntax == ExportSyntaxCommonJSModuleExports {
-		expression := ast.NodeOf(symbol.Declarations[0]).BinaryExpressionRight()
+		expression := symbol.Declarations[0].BinaryExpressionRight()
 		if expression.Kind == ast.KindObjectLiteralExpression {
 			*exports = slices.Grow(*exports, expression.Store().ListLen(expression.ObjectLiteralExpressionProperties()))
 			for _, prop := range expression.Store().ListSlice(expression.ObjectLiteralExpressionProperties()).All() {
@@ -251,14 +251,14 @@ func (e *symbolExtractor) createExport(symbol *ast.Symbol, moduleID ModuleID, mo
 		if targetSymbol != nil {
 			var decl ast.Handle
 			if len(targetSymbol.Declarations) > 0 {
-				decl = ast.NodeOf(targetSymbol.Declarations[0])
+				decl = targetSymbol.Declarations[0]
 			} else if targetSymbol.CheckFlags&ast.CheckFlagsMapped != 0 {
 				if mappedDecl := checkerLease.GetChecker().GetMappedTypeSymbolOfProperty(targetSymbol); mappedDecl != nil && len(mappedDecl.Declarations) > 0 {
-					decl = ast.NodeOf(mappedDecl.Declarations[0])
+					decl = mappedDecl.Declarations[0]
 				}
 			}
 			if decl.IsNil() {
-				decl = ast.NodeOf(symbol.Declarations[0])
+				decl = symbol.Declarations[0]
 			}
 			if decl.IsNil() {
 				panic("no declaration for aliased symbol")
@@ -283,7 +283,7 @@ func (e *symbolExtractor) createExport(symbol *ast.Symbol, moduleID ModuleID, mo
 			export.Target = ExportID{ExportName: targetSymbol.Name, ModuleID: targetModuleID}
 		}
 	} else {
-		export.ScriptElementKind = lsutil.GetSymbolKind(checkerLease.TryChecker(), symbol, ast.NodeOf(symbol.Declarations[0]))
+		export.ScriptElementKind = lsutil.GetSymbolKind(checkerLease.TryChecker(), symbol, symbol.Declarations[0])
 		export.ScriptElementKindModifiers = lsutil.GetSymbolModifiers(checkerLease.TryChecker(), symbol)
 	}
 	if symbol.Name == ast.InternalSymbolNameDefault || symbol.Name == ast.InternalSymbolNameExportEquals {
@@ -394,7 +394,7 @@ func isUnusableName(name string) bool {
 
 func fileNameForDefaultExportName(targetSymbol *ast.Symbol, moduleFileName string, moduleID ModuleID) string {
 	if targetSymbol != nil && len(targetSymbol.Declarations) > 0 {
-		if fn := ast.GetSourceFileOfNode(ast.NodeOf(targetSymbol.Declarations[0])).FileName(); fn != "" {
+		if fn := ast.GetSourceFileOfNode(targetSymbol.Declarations[0]).FileName(); fn != "" {
 			return fn
 		}
 	}

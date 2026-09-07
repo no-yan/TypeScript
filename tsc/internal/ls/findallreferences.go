@@ -391,7 +391,7 @@ func (s *SymbolAndEntries) DefinitionNode() ast.Handle {
 		return s.definition.node
 	}
 	if s.definition.symbol != nil && len(s.definition.symbol.Declarations) > 0 {
-		return ast.NodeOf(s.definition.symbol.Declarations[0])
+		return s.definition.symbol.Declarations[0]
 	}
 	return ast.Handle{}
 }
@@ -599,7 +599,7 @@ func skipPastExportOrImportSpecifierOrUnion(symbol *ast.Symbol, node ast.Handle,
 	return nil
 }
 func getSymbolScope(symbol *ast.Symbol) ast.Handle {
-	valueDeclaration := ast.NodeOf(symbol.ValueDeclaration)
+	valueDeclaration := symbol.ValueDeclaration
 	if !valueDeclaration.IsNil() && (valueDeclaration.Kind == ast.KindFunctionExpression || valueDeclaration.Kind == ast.KindClassExpression) {
 		return valueDeclaration
 	}
@@ -620,7 +620,7 @@ func getSymbolScope(symbol *ast.Symbol) ast.Handle {
 		return ast.Handle{}
 	}
 	exposedByParent := symbol.Parent != nil && symbol.Flags&ast.SymbolFlagsTypeParameter == 0
-	if exposedByParent && !(checker.IsExternalModuleSymbol(symbol.Parent) && !isSourceFileWithGlobalExports(ast.NodeOf(symbol.Parent.ValueDeclaration))) {
+	if exposedByParent && !(checker.IsExternalModuleSymbol(symbol.Parent) && !isSourceFileWithGlobalExports(symbol.Parent.ValueDeclaration)) {
 		return ast.Handle{}
 	}
 	var scope ast.Handle
@@ -1517,7 +1517,7 @@ func getMergedAliasedSymbolOfNamespaceExportDeclaration(node ast.Handle, symbol 
 	return nil
 }
 func (l *LanguageService) getReferencedSymbolsForModule(ctx context.Context, program *compiler.Program, symbol *ast.Symbol, excludeImportTypeOfExportEquals bool, sourceFiles []*ast.SourceFile, sourceFilesSet *collections.Set[string]) []*SymbolAndEntries {
-	debug.Assert(symbol.ValueDeclaration != 0)
+	debug.Assert(!symbol.ValueDeclaration.IsNil())
 	checker, done := program.GetTypeChecker(ctx)
 	defer done()
 	moduleRefs := findModuleReferences(program, sourceFiles, symbol, checker)
@@ -1726,10 +1726,10 @@ func (state *refState) addReference(referenceLocation ast.Handle, symbol *ast.Sy
 }
 func getReferenceEntriesForShorthandPropertyAssignment(node ast.Handle, checker *checker.Checker, addReference func(ast.Handle)) {
 	refSymbol := checker.GetSymbolAtLocation(node)
-	if refSymbol == nil || refSymbol.ValueDeclaration == 0 {
+	if refSymbol == nil || refSymbol.ValueDeclaration.IsNil() {
 		return
 	}
-	shorthandSymbol := checker.GetShorthandAssignmentValueSymbol(ast.NodeOf(refSymbol.ValueDeclaration))
+	shorthandSymbol := checker.GetShorthandAssignmentValueSymbol(refSymbol.ValueDeclaration)
 	if shorthandSymbol != nil && len(shorthandSymbol.Declarations) > 0 {
 		for _, declaration := range ast.DeclarationNodes(shorthandSymbol).All() {
 			if ast.GetMeaningFromDeclaration(declaration)&ast.SemanticMeaningValue != 0 {
@@ -1766,7 +1766,7 @@ func findOwnConstructorReferences(classSymbol *ast.Symbol, sourceFile *ast.Sourc
 	}
 	if classSymbol.Exports != nil {
 		for _, member := range classSymbol.Exports {
-			decl := ast.NodeOf(member.ValueDeclaration)
+			decl := member.ValueDeclaration
 			if !decl.IsNil() && decl.Kind == ast.KindMethodDeclaration {
 				body := decl.Body()
 				if !body.IsNil() {
@@ -2117,11 +2117,11 @@ func (state *refState) hasMatchingMeaning(referenceLocation ast.Handle) bool {
 	return getMeaningFromLocation(referenceLocation)&state.searchMeaning != 0
 }
 func (state *refState) getReferenceForShorthandProperty(referenceSymbol *ast.Symbol, search *refSearch) {
-	if referenceSymbol.Flags&ast.SymbolFlagsTransient != 0 || referenceSymbol.ValueDeclaration == 0 {
+	if referenceSymbol.Flags&ast.SymbolFlagsTransient != 0 || referenceSymbol.ValueDeclaration.IsNil() {
 		return
 	}
-	shorthandValueSymbol := state.checker.GetShorthandAssignmentValueSymbol(ast.NodeOf(referenceSymbol.ValueDeclaration))
-	name := ast.GetNameOfDeclaration(ast.NodeOf(referenceSymbol.ValueDeclaration))
+	shorthandValueSymbol := state.checker.GetShorthandAssignmentValueSymbol(referenceSymbol.ValueDeclaration)
+	name := ast.GetNameOfDeclaration(referenceSymbol.ValueDeclaration)
 	if !name.IsNil() && search.includes(shorthandValueSymbol) {
 		state.addReference(name, shorthandValueSymbol, entryKindNode)
 	}
@@ -2215,8 +2215,8 @@ func (state *refState) forEachRelatedSymbol(symbol *ast.Symbol, location ast.Han
 	if res := fromRoot(symbol); res != nil {
 		return res, entryKindNode
 	}
-	if symbol.ValueDeclaration != 0 && ast.IsParameterPropertyDeclaration(ast.NodeOf(symbol.ValueDeclaration), ast.NodeOf(symbol.ValueDeclaration).Parent()) {
-		paramProp1, paramProp2 := state.checker.GetSymbolsOfParameterPropertyDeclaration(ast.NodeOf(symbol.ValueDeclaration), symbol.Name)
+	if !symbol.ValueDeclaration.IsNil() && ast.IsParameterPropertyDeclaration(symbol.ValueDeclaration, symbol.ValueDeclaration.Parent()) {
+		paramProp1, paramProp2 := state.checker.GetSymbolsOfParameterPropertyDeclaration(symbol.ValueDeclaration, symbol.Name)
 		debug.Assert(paramProp1.Flags&ast.SymbolFlagsFunctionScopedVariable != 0 && paramProp2.Flags&ast.SymbolFlagsClassMember != 0, "GetSymbolsOfParameterPropertyDeclaration must return (parameter, member) pair")
 		return fromRoot(core.IfElse(symbol.Flags&ast.SymbolFlagsFunctionScopedVariable != 0, paramProp2, paramProp1)), entryKindNode
 	}

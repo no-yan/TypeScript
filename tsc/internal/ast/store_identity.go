@@ -1,6 +1,9 @@
 package ast
 
-import "sync"
+import (
+	"sync"
+	"sync/atomic"
+)
 
 // StoreID identifies a Store within one StoreSet. 0 is missing.
 type StoreID uint32
@@ -21,67 +24,115 @@ func MakeGlobalRef(store StoreID, ref NodeRef) GlobalRef {
 func (g GlobalRef) StoreID() StoreID { return StoreID(g >> 32) }
 func (g GlobalRef) Ref() NodeRef     { return NodeRef(g) }
 
-// StoreSet is the identity domain: it assigns StoreIDs and resolves
-// GlobalRefs back to Handles. Register stores in file order to get
-// deterministic ids across runs.
+// StoreSet is an identity domain. Readers only load atomic pointers; registering
+// a Store never changes a slice or counter used by readers. IDs are not reused.
+// The immutable directory grows geometrically; stable pages are never copied.
+const storePageBits = 8
+const storePageSize = 1 << storePageBits
+
+type storeIdentityDomain struct{ marker byte }
+type storeSlot struct {
+	store atomic.Pointer[Store]
+	file  atomic.Pointer[SourceFile]
+}
+type storePage struct{ slots [storePageSize]storeSlot }
+type storeDirectory struct{ pages []*storePage }
+
 type StoreSet struct {
-	mu     sync.RWMutex
-	stores []*Store // index i holds the Store with StoreID i+1
+	mu        sync.Mutex // writers only
+	directory atomic.Pointer[storeDirectory]
+	domain    *storeIdentityDomain // initialized under mu, independent of registry lifetime
+	highWater uint64
+	live      int
 }
 
-func NewStoreSet() *StoreSet { return &StoreSet{} }
+func NewStoreSet() *StoreSet { return &StoreSet{domain: &storeIdentityDomain{}} }
 
-var (
-	identityOnce   sync.Once
-	identityStores *StoreSet
-)
+var identityStores = NewStoreSet()
 
-func identitySet() *StoreSet {
-	identityOnce.Do(func() { identityStores = NewStoreSet() })
-	return identityStores
-}
+func identitySet() *StoreSet { return identityStores }
 
-func RegisterFile(file *SourceFile) {
-	identitySet().BindFile(file)
-}
+func RegisterFile(file *SourceFile) { identitySet().BindFile(file) }
 
 func RegisterStore(s *Store) StoreID {
 	if s == nil {
 		panic("ast: RegisterStore nil")
 	}
 	if id := s.ID(); id != 0 {
+		// id is published last, so the immutable domain is initialized here.
+		if s.identityDomain != identitySet().domain {
+			panic("ast: foreign Store identity domain")
+		}
 		return id
 	}
-	return identitySet().Add(s)
+	return identitySet().register(s, false, false)
 }
 
-// UnregisterStore nils the identity slot. It does not compact, reset s.id, or
-// empty side maps, so StoreIDs are never reused. NodeOf on that id returns
-// Handle{}. Idempotent on nil or already-removed Stores.
-func UnregisterStore(s *Store) {
-	if s == nil {
-		return
-	}
-	identitySet().Remove(s)
-}
+// UnregisterStore removes the lookup slot, not the Store's contents. Existing
+// Handles remain valid and retain their owner. IDs and domains never change.
+func UnregisterStore(s *Store)  { identitySet().Remove(s) }
+func RegisteredStoreCount() int { return identitySet().liveCount() }
+func NodeOf(g GlobalRef) Handle { return identitySet().At(g) }
 
-func NodeOf(g GlobalRef) Handle {
-	return identitySet().At(g)
-}
+// Add assigns a fresh identity. A Store belongs to at most one StoreSet.
+func (ss *StoreSet) Add(s *Store) StoreID { return ss.register(s, true, false) }
 
-// Add registers a Store and assigns its StoreID. A Store belongs to at
-// most one StoreSet; registering it twice panics.
-func (ss *StoreSet) Add(s *Store) StoreID {
+// Lock order is StoreSet.mu -> Store.registrationMu, including competing sets.
+func (ss *StoreSet) register(s *Store, exclusive, restore bool) StoreID {
 	if s == nil {
 		panic("ast: Add nil Store")
 	}
 	ss.mu.Lock()
 	defer ss.mu.Unlock()
-	id := StoreID(len(ss.stores) + 1)
-	if !s.id.CompareAndSwap(0, uint32(id)) {
-		panic("ast: Store already registered")
+	s.registrationMu.Lock()
+	defer s.registrationMu.Unlock()
+	if id := s.ID(); id != 0 {
+		if exclusive {
+			panic("ast: Store already registered")
+		}
+		if s.identityDomain != ss.domain {
+			panic("ast: foreign Store identity domain")
+		}
+		if restore {
+			slot := ss.slot(id)
+			if slot.store.Load() == nil {
+				slot.store.Store(s)
+				ss.live++
+			}
+		}
+		return id
 	}
-	ss.stores = append(ss.stores, s)
+	if ss.highWater == uint64(^StoreID(0)) {
+		panic("ast: StoreSet exhausted")
+	}
+	if ss.domain == nil {
+		ss.domain = &storeIdentityDomain{}
+	}
+	id := StoreID(ss.highWater + 1)
+	pageIndex := int(uint32(id-1) >> storePageBits)
+	directory := ss.directory.Load()
+	if directory == nil || pageIndex >= len(directory.pages) {
+		size := 1
+		if directory != nil {
+			size = 2 * len(directory.pages)
+		}
+		next := &storeDirectory{pages: make([]*storePage, max(size, pageIndex+1))}
+		start := 0
+		if directory != nil {
+			start = copy(next.pages, directory.pages)
+		}
+		for i := start; i < len(next.pages); i++ {
+			next.pages[i] = &storePage{}
+		}
+		ss.directory.Store(next)
+		directory = next
+	}
+	s.identityDomain = ss.domain
+	directory.pages[pageIndex].slots[uint32(id-1)&(storePageSize-1)].store.Store(s)
+	ss.highWater++
+	ss.live++
+	// Observing a nonzero ID guarantees directory, slot and domain publication.
+	s.id.Store(uint32(id))
 	return id
 }
 
@@ -89,65 +140,76 @@ func (ss *StoreSet) BindFile(file *SourceFile) {
 	if ss == nil || file == nil {
 		return
 	}
-	s := file.ParseStore()
-	if s == nil {
-		return
-	}
-	if s.ID() == 0 {
-		ss.Add(s)
-	} else {
-		ss.adopt(s)
+	if s := file.ParseStore(); s != nil {
+		id := ss.register(s, false, true)
+		ss.SetFile(id, file)
 	}
 }
 
 func (ss *StoreSet) Remove(s *Store) {
-	if ss == nil || s == nil {
-		return
-	}
-	id := s.ID()
-	if id == 0 {
+	if ss == nil || s == nil || s.ID() == 0 {
 		return
 	}
 	ss.mu.Lock()
 	defer ss.mu.Unlock()
-	idx := int(id - 1)
-	if idx < 0 || idx >= len(ss.stores) {
+	if s.identityDomain != ss.domain {
 		return
 	}
-	ss.stores[idx] = nil
+	slot := ss.slot(s.ID())
+	if slot != nil && slot.store.Load() == s {
+		slot.file.Store(nil)
+		slot.store.Store(nil)
+		ss.live--
+	}
 }
 
-func (ss *StoreSet) adopt(s *Store) {
-	if s == nil || s.id.Load() == 0 {
-		return
+func (ss *StoreSet) liveCount() int {
+	if ss == nil {
+		return 0
 	}
 	ss.mu.Lock()
 	defer ss.mu.Unlock()
-	idx := int(s.id.Load() - 1)
-	for len(ss.stores) <= idx {
-		ss.stores = append(ss.stores, nil)
-	}
-	ss.stores[idx] = s
+	return ss.live
 }
 
+func (ss *StoreSet) SetFile(id StoreID, file *SourceFile) {
+	ss.mu.Lock()
+	defer ss.mu.Unlock()
+	if id == 0 || uint64(id) > ss.highWater {
+		panic("ast: SetFile unknown StoreID")
+	}
+	ss.slot(id).file.Store(file)
+}
+
+func (ss *StoreSet) slot(id StoreID) *storeSlot {
+	if ss == nil || id == 0 {
+		return nil
+	}
+	directory := ss.directory.Load()
+	index := uint32(id - 1)
+	if directory == nil || int(index>>storePageBits) >= len(directory.pages) {
+		return nil
+	}
+	return &directory.pages[index>>storePageBits].slots[index&(storePageSize-1)]
+}
+
+func (ss *StoreSet) File(id StoreID) *SourceFile {
+	if slot := ss.slot(id); slot != nil {
+		return slot.file.Load()
+	}
+	return nil
+}
 func (ss *StoreSet) Store(id StoreID) *Store {
-	if id == 0 {
-		return nil
+	if slot := ss.slot(id); slot != nil {
+		return slot.store.Load()
 	}
-	ss.mu.RLock()
-	defer ss.mu.RUnlock()
-	if int(id) > len(ss.stores) {
-		return nil
-	}
-	return ss.stores[id-1]
+	return nil
 }
-
 func (ss *StoreSet) At(g GlobalRef) Handle {
-	s := ss.Store(g.StoreID())
-	if s == nil {
-		return Handle{}
+	if s := ss.Store(g.StoreID()); s != nil {
+		return s.At(g.Ref())
 	}
-	return s.At(g.Ref())
+	return Handle{}
 }
 
 // ID reports the StoreID assigned by StoreSet.Add, or 0 before registration.

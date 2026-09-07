@@ -103,7 +103,7 @@ func (tx *ImportElisionTransformer) visit(node ast.Handle) ast.Handle {
 		return node
 	case ast.KindSourceFile:
 		savedCurrentSourceFile := tx.currentSourceFile
-		tx.currentSourceFile = ast.GetSourceFileOfNode(node)
+		tx.currentSourceFile = tx.EmitContext().SourceFileOf(node)
 		node = tx.Visitor().VisitEachChild(node)
 		tx.currentSourceFile = savedCurrentSourceFile
 		return node

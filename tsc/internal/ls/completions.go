@@ -1705,7 +1705,7 @@ func (l *LanguageService) getCompletionData(ctx context.Context, typeChecker *ch
 			}
 			symbols = append(symbols, filterClassMembersList(baseSymbols, decl.Members(), classElementModifierFlags, file, position)...)
 			for index, symbol := range symbols {
-				declaration := ast.NodeOf(symbol.ValueDeclaration)
+				declaration := symbol.ValueDeclaration
 				if !declaration.IsNil() && ast.IsClassElement(declaration) && !declaration.Name().IsNil() && ast.IsComputedPropertyName(declaration.Name()) {
 					origin := &symbolOriginInfo{kind: symbolOriginInfoKindComputedPropertyName, data: &symbolOriginInfoComputedPropertyName{symbolName: typeChecker.SymbolToString(symbol)}}
 					symbolToOriginInfoMap[index] = origin
@@ -1912,8 +1912,8 @@ func (l *LanguageService) completionInfoFromData(ctx context.Context, typeChecke
 			return !tracker.hasValue(literal)
 		})
 		data.symbols = core.Filter(data.symbols, func(symbol *ast.Symbol) bool {
-			if symbol.ValueDeclaration != 0 && ast.IsEnumMember(ast.NodeOf(symbol.ValueDeclaration)) {
-				value := typeChecker.GetConstantValue(ast.NodeOf(symbol.ValueDeclaration))
+			if !symbol.ValueDeclaration.IsNil() && ast.IsEnumMember(symbol.ValueDeclaration) {
+				value := typeChecker.GetConstantValue(symbol.ValueDeclaration)
 				if value != nil && tracker.hasValue(value) {
 					return false
 				}
@@ -2676,7 +2676,7 @@ func isClassLikeMemberCompletion(symbol *ast.Symbol, location ast.Handle, file *
 }
 func symbolAppearsToBeTypeOnly(symbol *ast.Symbol, typeChecker *checker.Checker) bool {
 	flags := checker.SkipAlias(symbol, typeChecker).CombinedLocalAndExportSymbolFlags()
-	return flags&ast.SymbolFlagsValue == 0 && (len(symbol.Declarations) == 0 || !ast.IsInJSFile(ast.NodeOf(symbol.Declarations[0])) || flags&ast.SymbolFlagsType != 0)
+	return flags&ast.SymbolFlagsValue == 0 && (len(symbol.Declarations) == 0 || !ast.IsInJSFile(symbol.Declarations[0]) || flags&ast.SymbolFlagsType != 0)
 }
 func shouldIncludeSymbol(symbol *ast.Symbol, data *completionDataData, closestSymbolDeclaration ast.Handle, file *ast.SourceFile, typeChecker *checker.Checker, compilerOptions *core.CompilerOptions) bool {
 	allFlags := symbol.Flags
@@ -2684,14 +2684,14 @@ func shouldIncludeSymbol(symbol *ast.Symbol, data *completionDataData, closestSy
 	if !location.Parent().IsNil() && ast.IsExportAssignment(location.Parent()) {
 		return true
 	}
-	if !closestSymbolDeclaration.IsNil() && ast.IsVariableDeclaration(closestSymbolDeclaration) && ast.NodeOf(symbol.ValueDeclaration) == closestSymbolDeclaration {
+	if !closestSymbolDeclaration.IsNil() && ast.IsVariableDeclaration(closestSymbolDeclaration) && symbol.ValueDeclaration == closestSymbolDeclaration {
 		return false
 	}
 	var symbolDeclaration ast.Handle
-	if symbol.ValueDeclaration != 0 {
-		symbolDeclaration = ast.NodeOf(symbol.ValueDeclaration)
+	if !symbol.ValueDeclaration.IsNil() {
+		symbolDeclaration = symbol.ValueDeclaration
 	} else if len(symbol.Declarations) > 0 {
-		symbolDeclaration = ast.NodeOf(symbol.Declarations[0])
+		symbolDeclaration = symbol.Declarations[0]
 	}
 	if !closestSymbolDeclaration.IsNil() && !symbolDeclaration.IsNil() {
 		if ast.IsParameterDeclaration(closestSymbolDeclaration) && ast.IsParameterDeclaration(symbolDeclaration) {
@@ -2741,7 +2741,7 @@ func getCompletionEntryDisplayNameForSymbol(symbol *ast.Symbol, origin *symbolOr
 		return "", false
 	}
 	variant := core.IfElse(isJsxIdentifierExpected, core.LanguageVariantJSX, core.LanguageVariantStandard)
-	if scanner.IsIdentifierText(name, variant) || symbol.ValueDeclaration != 0 && ast.IsPrivateIdentifierClassElementDeclaration(ast.NodeOf(symbol.ValueDeclaration)) {
+	if scanner.IsIdentifierText(name, variant) || !symbol.ValueDeclaration.IsNil() && ast.IsPrivateIdentifierClassElementDeclaration(symbol.ValueDeclaration) {
 		return name, false
 	}
 	if symbol.Flags&ast.SymbolFlagsAlias != 0 {
@@ -2935,7 +2935,7 @@ func getNullableSymbolOriginInfoKind(kind symbolOriginInfoKind, insertQuestionDo
 	return kind
 }
 func isStaticProperty(symbol *ast.Symbol) bool {
-	return symbol.ValueDeclaration != 0 && ast.NodeOf(symbol.ValueDeclaration).ModifierFlags()&ast.ModifierFlagsStatic != 0 && ast.IsClassLike(ast.NodeOf(symbol.ValueDeclaration).Parent())
+	return !symbol.ValueDeclaration.IsNil() && symbol.ValueDeclaration.ModifierFlags()&ast.ModifierFlagsStatic != 0 && ast.IsClassLike(symbol.ValueDeclaration.Parent())
 }
 
 func getContextualTypeForConditionalExpression(conditionalExpr ast.Handle, position int, file *ast.SourceFile, typeChecker *checker.Checker) *checker.Type {
@@ -3839,7 +3839,7 @@ func filterClassMembersList(baseSymbols []*ast.Symbol, existingMembers []ast.Han
 		}
 	}
 	return core.Filter(baseSymbols, func(propertySymbol *ast.Symbol) bool {
-		return !existingMemberNames.Has(ast.SymbolName(propertySymbol)) && len(propertySymbol.Declarations) > 0 && checker.GetDeclarationModifierFlagsFromSymbol(propertySymbol)&ast.ModifierFlagsPrivate == 0 && !(propertySymbol.ValueDeclaration != 0 && ast.IsPrivateIdentifierClassElementDeclaration(ast.NodeOf(propertySymbol.ValueDeclaration)))
+		return !existingMemberNames.Has(ast.SymbolName(propertySymbol)) && len(propertySymbol.Declarations) > 0 && checker.GetDeclarationModifierFlagsFromSymbol(propertySymbol)&ast.ModifierFlagsPrivate == 0 && !(!propertySymbol.ValueDeclaration.IsNil() && ast.IsPrivateIdentifierClassElementDeclaration(propertySymbol.ValueDeclaration))
 	})
 }
 func tryGetContainingJsxElement(contextToken ast.Handle, file *ast.SourceFile) ast.Handle {
@@ -4785,8 +4785,8 @@ func (l *LanguageService) getExhaustiveCaseSnippets(ctx context.Context, caseBlo
 				debug.Assert(t.Symbol() != nil, "An enum member type should have a symbol")
 				debug.Assert(t.Symbol().Parent != nil, "An enum member type should have a parent symbol (the enum symbol)")
 				var enumValue any
-				if t.Symbol().ValueDeclaration != 0 {
-					enumValue = c.GetConstantValue(ast.NodeOf(t.Symbol().ValueDeclaration))
+				if !t.Symbol().ValueDeclaration.IsNil() {
+					enumValue = c.GetConstantValue(t.Symbol().ValueDeclaration)
 				}
 				if enumValue != nil {
 					if tracker.hasValue(enumValue) {

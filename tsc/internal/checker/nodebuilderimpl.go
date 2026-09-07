@@ -462,8 +462,8 @@ func (b *NodeBuilderImpl) getResolvedTypeWithoutAbstractConstructSignatures(t *S
 }
 func (b *NodeBuilderImpl) symbolToNode(symbol *ast.Symbol, meaning ast.SymbolFlags) ast.Handle {
 	if b.ctx.internalFlags&nodebuilder.InternalFlagsWriteComputedProps != 0 {
-		if symbol.ValueDeclaration != 0 {
-			name := ast.GetNameOfDeclaration(ast.NodeOf(symbol.ValueDeclaration))
+		if !symbol.ValueDeclaration.IsNil() {
+			name := ast.GetNameOfDeclaration(symbol.ValueDeclaration)
 			if !name.IsNil() && ast.IsComputedPropertyName(name) {
 				return name
 			}
@@ -472,7 +472,7 @@ func (b *NodeBuilderImpl) symbolToNode(symbol *ast.Symbol, meaning ast.SymbolFla
 			nameType := b.ch.valueSymbolLinks.Get(symbol).nameType
 			if nameType != nil && nameType.flags&(TypeFlagsEnumLiteral|TypeFlagsUniqueESSymbol) != 0 {
 				oldEnclosing := b.ctx.enclosingDeclaration
-				b.ctx.enclosingDeclaration = ast.NodeOf(nameType.symbol.ValueDeclaration)
+				b.ctx.enclosingDeclaration = nameType.symbol.ValueDeclaration
 				result := b.f.NewComputedPropertyName(b.symbolToExpression(nameType.symbol, meaning))
 				b.ctx.enclosingDeclaration = oldEnclosing
 				return result
@@ -774,7 +774,7 @@ func (b *NodeBuilderImpl) getNameOfSymbolAsWritten(symbol *ast.Symbol) string {
 	if ok {
 		symbol = result
 	}
-	if symbol.Name == ast.InternalSymbolNameDefault && (b.ctx.flags&nodebuilder.FlagsUseAliasDefinedOutsideCurrentScope == 0) && ((b.ctx.flags&nodebuilder.FlagsInInitialEntityName == 0) || len(symbol.Declarations) == 0 || (!b.ctx.enclosingDeclaration.IsNil() && ast.FindAncestor(ast.NodeOf(symbol.Declarations[0]), isDefaultBindingContext) != ast.FindAncestor(b.ctx.enclosingDeclaration, isDefaultBindingContext))) {
+	if symbol.Name == ast.InternalSymbolNameDefault && (b.ctx.flags&nodebuilder.FlagsUseAliasDefinedOutsideCurrentScope == 0) && ((b.ctx.flags&nodebuilder.FlagsInInitialEntityName == 0) || len(symbol.Declarations) == 0 || (!b.ctx.enclosingDeclaration.IsNil() && ast.FindAncestor(symbol.Declarations[0], isDefaultBindingContext) != ast.FindAncestor(b.ctx.enclosingDeclaration, isDefaultBindingContext))) {
 		return "default"
 	}
 	if len(symbol.Declarations) > 0 {
@@ -1284,7 +1284,7 @@ func (b *NodeBuilderImpl) typeParametersToTypeParameterDeclarations(symbol *ast.
 		return results
 	} else if targetSymbol.Flags&ast.SymbolFlagsFunction != 0 {
 		var results []ast.Handle
-		for _, param := range b.ch.getTypeParametersFromDeclaration(ast.NodeOf(symbol.ValueDeclaration)) {
+		for _, param := range b.ch.getTypeParametersFromDeclaration(symbol.ValueDeclaration) {
 			results = append(results, b.typeParameterToDeclaration(param))
 		}
 		return results
@@ -1730,7 +1730,7 @@ func hasTypeAnnotation(declaration ast.Handle) bool {
 func (b *NodeBuilderImpl) serializeTypeForDeclaration(declaration ast.Handle, t *Type, symbol *ast.Symbol, tryReuse bool) ast.Handle {
 	if declaration.IsNil() {
 		if symbol != nil {
-			declaration = ast.NodeOf(symbol.ValueDeclaration)
+			declaration = symbol.ValueDeclaration
 			if declaration.IsNil() {
 				declaration = ast.DeclarationNodes(symbol).First()
 			}
@@ -1939,8 +1939,8 @@ func (b *NodeBuilderImpl) isSingleQuotedStringNamed(d ast.Handle) bool {
 	return !name.IsNil() && ast.IsStringLiteral(name) && name.StringLiteralTokenFlags()&ast.TokenFlagsSingleQuote != 0
 }
 func (b *NodeBuilderImpl) getPropertyNameNodeForSymbol(symbol *ast.Symbol, enclosingDeclaration ast.Handle) ast.Handle {
-	if symbol.ValueDeclaration != 0 {
-		declName := ast.NodeOf(symbol.ValueDeclaration).Name()
+	if !symbol.ValueDeclaration.IsNil() {
+		declName := symbol.ValueDeclaration.Name()
 		if !declName.IsNil() && ast.IsPrivateIdentifier(declName) {
 			return b.f.DeepCloneNode(declName)
 		}
@@ -2036,10 +2036,10 @@ func (b *NodeBuilderImpl) addPropertyToElementList(propertySymbol *ast.Symbol, t
 			b.ctx.tracker.ReportNonSerializableProperty(b.ch.symbolToString(propertySymbol))
 		}
 	}
-	if propertySymbol.ValueDeclaration != 0 {
-		b.ctx.enclosingDeclaration = ast.NodeOf(propertySymbol.ValueDeclaration)
-	} else if len(propertySymbol.Declarations) > 0 && !ast.NodeOf(propertySymbol.Declarations[0]).IsNil() {
-		b.ctx.enclosingDeclaration = ast.NodeOf(propertySymbol.Declarations[0])
+	if !propertySymbol.ValueDeclaration.IsNil() {
+		b.ctx.enclosingDeclaration = propertySymbol.ValueDeclaration
+	} else if len(propertySymbol.Declarations) > 0 && !propertySymbol.Declarations[0].IsNil() {
+		b.ctx.enclosingDeclaration = propertySymbol.Declarations[0]
 	} else {
 		b.ctx.enclosingDeclaration = saveEnclosingDeclaration
 	}
@@ -2101,7 +2101,7 @@ func (b *NodeBuilderImpl) addPropertyToElementList(propertySymbol *ast.Symbol, t
 			methodDeclaration := b.signatureToSignatureDeclarationHelper(signature, ast.KindMethodSignature, &SignatureToSignatureDeclarationOptions{name: propertyName, questionToken: optionalToken})
 			decl := signature.declaration
 			if decl.IsNil() {
-				decl = ast.NodeOf(propertySymbol.ValueDeclaration)
+				decl = propertySymbol.ValueDeclaration
 			}
 			b.setCommentRange(methodDeclaration, decl)
 			typeElements = append(typeElements, methodDeclaration)
@@ -2132,7 +2132,7 @@ func (b *NodeBuilderImpl) addPropertyToElementList(propertySymbol *ast.Symbol, t
 		b.ctx.approximateLength += 9
 	}
 	propertySignature := b.f.NewPropertySignatureDeclaration(modifiers, propertyName, optionalToken, propertyTypeNode, ast.Handle{})
-	b.setCommentRange(propertySignature, ast.NodeOf(propertySymbol.ValueDeclaration))
+	b.setCommentRange(propertySignature, propertySymbol.ValueDeclaration)
 	typeElements = append(typeElements, propertySignature)
 	return typeElements
 }
@@ -2247,7 +2247,7 @@ func (b *NodeBuilderImpl) createTypeNodeFromObjectType(t *Type) ast.Handle {
 }
 func getTypeAliasForTypeLiteral(c *Checker, t *Type) *ast.Symbol {
 	if t.symbol != nil && t.symbol.Flags&ast.SymbolFlagsTypeLiteral != 0 && t.symbol.Declarations != nil {
-		node := ast.WalkUpParenthesizedTypes(ast.NodeOf(t.symbol.Declarations[0]).Parent())
+		node := ast.WalkUpParenthesizedTypes(t.symbol.Declarations[0].Parent())
 		if ast.IsTypeAliasDeclaration(node) {
 			return c.getSymbolOfDeclaration(node)
 		}
@@ -2278,8 +2278,8 @@ func (b *NodeBuilderImpl) shouldWriteTypeOfFunctionSymbol(symbol *ast.Symbol, ty
 		}
 	}
 	if isStaticMethodSymbol || isNonLocalFunctionSymbol {
-		if isFunctionExpressionSymbol && symbol.ValueDeclaration != 0 && !ast.NodeOf(symbol.ValueDeclaration).Parent().IsNil() && ast.NodeOf(symbol.ValueDeclaration).Parent() != b.ctx.enclosingDeclaration {
-			symbol = b.ch.getMergedSymbol(ast.NodeOf(symbol.ValueDeclaration).Parent().Symbol())
+		if isFunctionExpressionSymbol && !symbol.ValueDeclaration.IsNil() && !symbol.ValueDeclaration.Parent().IsNil() && symbol.ValueDeclaration.Parent() != b.ctx.enclosingDeclaration {
+			symbol = b.ch.getMergedSymbol(symbol.ValueDeclaration.Parent().Symbol())
 		}
 		return (b.ctx.flags&nodebuilder.FlagsUseTypeOfFunction != 0 || b.ctx.visitedTypes.Has(typeId)) && (b.ctx.flags&nodebuilder.FlagsUseStructuralFallback == 0 || b.ch.IsValueSymbolAccessible(symbol, b.ctx.enclosingDeclaration)), symbol
 	}
@@ -2292,7 +2292,7 @@ func (b *NodeBuilderImpl) shouldEmitTypeOfSymbol(forceExpansion bool, forceClass
 	if forceExpansion {
 		return false, symbol
 	}
-	nonFunctionResult := symbol.Flags&ast.SymbolFlagsClass != 0 && !forceClassExpansion && b.ch.getBaseTypeVariableOfClass(symbol) == nil && !(symbol.ValueDeclaration != 0 && ast.IsClassLike(ast.NodeOf(symbol.ValueDeclaration)) && b.ctx.flags&nodebuilder.FlagsWriteClassExpressionAsTypeLiteral != 0 && (!ast.IsClassDeclaration(ast.NodeOf(symbol.ValueDeclaration)) || b.ch.IsSymbolAccessible(symbol, b.ctx.enclosingDeclaration, isInstanceType, false).Accessibility != printer.SymbolAccessibilityAccessible)) || symbol.Flags&(ast.SymbolFlagsEnum|ast.SymbolFlagsValueModule) != 0
+	nonFunctionResult := symbol.Flags&ast.SymbolFlagsClass != 0 && !forceClassExpansion && b.ch.getBaseTypeVariableOfClass(symbol) == nil && !(!symbol.ValueDeclaration.IsNil() && ast.IsClassLike(symbol.ValueDeclaration) && b.ctx.flags&nodebuilder.FlagsWriteClassExpressionAsTypeLiteral != 0 && (!ast.IsClassDeclaration(symbol.ValueDeclaration) || b.ch.IsSymbolAccessible(symbol, b.ctx.enclosingDeclaration, isInstanceType, false).Accessibility != printer.SymbolAccessibilityAccessible)) || symbol.Flags&(ast.SymbolFlagsEnum|ast.SymbolFlagsValueModule) != 0
 	if nonFunctionResult {
 		return true, symbol
 	}
@@ -2480,7 +2480,7 @@ func (b *NodeBuilderImpl) typeReferenceToTypeNode(t *Type) ast.Handle {
 		}
 		b.ctx.encounteredError = true
 		return ast.Handle{}
-	} else if b.ctx.flags&nodebuilder.FlagsWriteClassExpressionAsTypeLiteral != 0 && t.symbol.ValueDeclaration != 0 && ast.IsClassLike(ast.NodeOf(t.symbol.ValueDeclaration)) && !b.ch.IsValueSymbolAccessible(t.symbol, b.ctx.enclosingDeclaration) {
+	} else if b.ctx.flags&nodebuilder.FlagsWriteClassExpressionAsTypeLiteral != 0 && !t.symbol.ValueDeclaration.IsNil() && ast.IsClassLike(t.symbol.ValueDeclaration) && !b.ch.IsValueSymbolAccessible(t.symbol, b.ctx.enclosingDeclaration) {
 		return b.createAnonymousTypeNode(t)
 	} else {
 		outerTypeParameters := t.Target().AsInterfaceType().OuterTypeParameters()

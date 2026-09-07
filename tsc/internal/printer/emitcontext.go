@@ -59,37 +59,28 @@ func GetEmitContext() (*EmitContext, func()) {
 	}
 }
 func (c *EmitContext) Reset() {
-	*c = EmitContext{Factory: c.Factory}
+	old := c.Factory.Store()
+	*c = EmitContext{}
+	c.Factory = NewNodeFactory(c)
+	ast.RegisterStore(c.Factory.Store())
+	ast.UnregisterStore(old)
 }
 
+// BindFileStore associates metadata with this context's private allocation
+// Store. Parse nodes and lists are shared through owner-qualified references.
 func (c *EmitContext) BindFileStore(file *ast.SourceFile) {
-	if file == nil || file.ParseStore() == nil || c.Factory == nil {
-		return
-	}
-	if c.storeFile == file && c.Factory.Store() == file.ParseStore() {
+	if file == nil || c.Factory == nil {
 		return
 	}
 	c.storeFile = file
-	if c.Factory.Store() != file.ParseStore() {
-		c.Factory.Factory = ast.NewFactoryOn(file.ParseStore(), c.factoryHooks())
-	}
+	c.Factory.Store().SetSourceFile(file)
 }
 
-func (c *EmitContext) LockParseStoreWriter(file *ast.SourceFile) func() {
-	if file == nil || file.ParseStore() == nil {
-		return func() {}
-	}
-	store := file.ParseStore()
-	unlock := file.LockParseStoreWriter()
-	store.EnterEmit()
-	c.storeFile = file
-	ast.RegisterFile(file)
-	c.Factory.Factory = ast.NewFactoryOn(store, c.factoryHooks())
-	return func() {
-		c.storeFile = nil
-		store.LeaveEmit()
-		unlock()
-	}
+// BeginFile brackets an emit operation.
+// The allocation Store belongs to the context; the parse Store stays frozen.
+func (c *EmitContext) BeginFile(file *ast.SourceFile) func() {
+	c.BindFileStore(file)
+	return func() { c.storeFile = nil }
 }
 func (c *EmitContext) NodeIdentity(node ast.Handle) ast.GlobalRef {
 	if node.IsNil() {
@@ -128,6 +119,16 @@ func (c *EmitContext) onClone(updated ast.Handle, original ast.Handle) {
 	}
 }
 
+// SourceFileOf resolves metadata in this emit view without changing the shared
+// parse Store's owner. Semantic readers continue to see the program file.
+func (c *EmitContext) SourceFileOf(node ast.Handle) *ast.SourceFile {
+	file := ast.GetSourceFileOfNode(node)
+	if file != nil && c.storeFile != nil && file.OriginalSourceFile() == c.storeFile.OriginalSourceFile() {
+		return c.storeFile
+	}
+	return file
+}
+
 func (c *EmitContext) StoreFile() *ast.SourceFile {
 	return c.storeFile
 }
@@ -137,9 +138,6 @@ func (c *EmitContext) factoryHooks() ast.FactoryHooks {
 }
 
 func (c *EmitContext) StoreFactory() *ast.Factory {
-	if c.storeFile != nil && c.storeFile.ParseStore() != nil {
-		return ast.NewFactoryOn(c.storeFile.ParseStore(), c.factoryHooks())
-	}
 	return c.Factory.Factory
 }
 

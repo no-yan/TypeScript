@@ -95,9 +95,9 @@ func TestEmitSetChildDoesNotRepointParseParent(t *testing.T) {
 	assert.Equal(t, parent.Ref(), child.Parent().Ref())
 
 	f.Store().Freeze()
-	f.Store().EnterEmit()
+	emit := ast.NewFactory(ast.FactoryHooks{})
 
-	synth := f.Store().Alloc(ast.KindBinaryExpression, 0, loc, 2)
+	synth := emit.Store().Alloc(ast.KindBinaryExpression, 0, loc, 2)
 	synth.SetChild(0, child)
 	assert.Equal(t, parent.Ref(), child.Parent().Ref())
 	assert.Equal(t, child.Ref(), synth.Child(0).Ref())

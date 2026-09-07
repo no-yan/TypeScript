@@ -626,8 +626,8 @@ func (c *Checker) checkApplicableSignatureForJsxCallLikeElement(node ast.Handle,
 			tagName := node.TagName()
 			diag := NewDiagnosticForNode(tagName, diagnostics.Tag_0_expects_at_least_1_arguments_but_the_JSX_factory_2_provides_at_most_3, entityNameToString(tagName), absoluteMinArgCount, entityNameHandleToString(factory), maxParamCount)
 			tagNameSymbol := c.getSymbolAtLocation(tagName, false)
-			if tagNameSymbol != nil && tagNameSymbol.ValueDeclaration != 0 {
-				diag.AddRelatedInfo(NewDiagnosticForNode(ast.NodeOf(tagNameSymbol.ValueDeclaration), diagnostics.X_0_is_declared_here, entityNameToString(tagName)))
+			if tagNameSymbol != nil && !tagNameSymbol.ValueDeclaration.IsNil() {
+				diag.AddRelatedInfo(NewDiagnosticForNode(tagNameSymbol.ValueDeclaration, diagnostics.X_0_is_declared_here, entityNameToString(tagName)))
 			}
 			c.reportDiagnostic(diag, diagnosticOutput)
 		}
@@ -690,7 +690,7 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 				attributeSymbol := c.newSymbol(ast.SymbolFlagsProperty|member.Flags, member.Name)
 				attributeSymbol.Declarations = member.Declarations
 				attributeSymbol.Parent = member.Parent
-				if member.ValueDeclaration != 0 {
+				if !member.ValueDeclaration.IsNil() {
 					attributeSymbol.ValueDeclaration = member.ValueDeclaration
 				}
 				links := c.valueSymbolLinks.Get(attributeSymbol)
@@ -783,7 +783,7 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 			decl.SetParent(attributeParent)
 			decl.SetSymbol(childrenPropSymbol)
 			if file := sourceFileOf(attributeParent); file != nil {
-				childrenPropSymbol.ValueDeclaration = decl.Global()
+				childrenPropSymbol.ValueDeclaration = decl
 			}
 			childPropMap := make(ast.SymbolTable)
 			childPropMap[jsxChildrenPropertyName] = childrenPropSymbol
@@ -994,7 +994,7 @@ func (c *Checker) getNameFromJsxElementAttributesContainer(nameOfAttribPropConta
 				return propertiesOfJsxElementAttribPropInterface[0].Name
 			}
 			if len(propertiesOfJsxElementAttribPropInterface) > 1 && len(jsxElementAttribPropInterfaceSym.Declarations) != 0 {
-				c.error(ast.NodeOf(jsxElementAttribPropInterfaceSym.Declarations[0]), diagnostics.The_global_type_JSX_0_may_not_have_more_than_one_property, nameOfAttribPropContainer)
+				c.error(jsxElementAttribPropInterfaceSym.Declarations[0], diagnostics.The_global_type_JSX_0_may_not_have_more_than_one_property, nameOfAttribPropContainer)
 			}
 		}
 	}

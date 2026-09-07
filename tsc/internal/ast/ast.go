@@ -2613,10 +2613,9 @@ type SourceFile struct {
 	// to be an external module (previously "true").
 	ExternalModuleIndicator Handle
 
-	parseStoreWriteMu sync.Mutex
-	parseStoreMu      sync.RWMutex
-	parseStore        *Store
-	parseRoot         NodeRef
+	parseStoreWriteMu  sync.Mutex
+	parseTree          atomic.Pointer[parseTreeState]
+	originalSourceFile *SourceFile
 
 	// Fields set by binder
 
@@ -2677,23 +2676,30 @@ func (node *SourceFile) ParseOptions() SourceFileParseOptions {
 	return node.parseOptions
 }
 
-func (node *SourceFile) ParseStore() *Store {
-	if node == nil {
-		return nil
-	}
-	node.parseStoreMu.RLock()
-	defer node.parseStoreMu.RUnlock()
-	return node.parseStore
+// parseTreeState is immutable after publication. The cached Handle makes even
+// ParseRoot independent of the owner's growing node header slice.
+type parseTreeState struct {
+	store *Store
+	root  Handle
 }
 
-// ParseTreeRef returns the parse Store and root captured under the same lock.
-func (node *SourceFile) ParseTreeRef() (*Store, NodeRef) {
-	if node == nil {
-		return nil, 0
+func (node *SourceFile) ParseStore() *Store {
+	if node != nil {
+		if tree := node.parseTree.Load(); tree != nil {
+			return tree.store
+		}
 	}
-	node.parseStoreMu.RLock()
-	defer node.parseStoreMu.RUnlock()
-	return node.parseStore, node.parseRoot
+	return nil
+}
+
+// ParseTreeRef returns one coherently published Store/root pair.
+func (node *SourceFile) ParseTreeRef() (*Store, NodeRef) {
+	if node != nil {
+		if tree := node.parseTree.Load(); tree != nil {
+			return tree.store, tree.root.id
+		}
+	}
+	return nil, 0
 }
 
 // LockParseStoreWriter acquires the per-file Store writer lease. Parser,
@@ -2705,12 +2711,12 @@ func (node *SourceFile) LockParseStoreWriter() func() {
 }
 
 func (node *SourceFile) ParseRoot() Handle {
-	node.parseStoreMu.RLock()
-	defer node.parseStoreMu.RUnlock()
-	if node.parseStore == nil || node.parseRoot == 0 {
-		return Handle{}
+	if node != nil {
+		if tree := node.parseTree.Load(); tree != nil {
+			return tree.root
+		}
 	}
-	return node.parseStore.At(node.parseRoot)
+	return Handle{}
 }
 
 func (node *SourceFile) Pos() int {
@@ -2741,32 +2747,23 @@ func (node *SourceFile) BoundLocals() SymbolTable {
 }
 
 func (node *SourceFile) SetParseStore(s *Store, root Handle) {
-	node.parseStoreMu.Lock()
-	node.parseStore = s
+	if root.s != s {
+		root = Handle{}
+	}
 	if s != nil {
 		s.SetSourceFile(node)
 	}
-	if root.s == s {
-		node.parseRoot = root.id
-	}
-	node.parseStoreMu.Unlock()
-	// RegisterFile -> BindFile -> ParseStore takes RLock. Go RWMutex is not reentrant.
+	node.parseTree.Store(&parseTreeState{store: s, root: root})
 	if s != nil {
 		RegisterFile(node)
 	}
 }
 
-// SetParseRoot swaps the syntax root without rebinding the Store or re-running bind.
-// Emit transformers use this so JS type-erasure does not replace the parse tree
-// used by declaration emit.
+// SetParseRoot changes an output wrapper's tree without rebinding metadata on
+// the original parse Store. The root may belong to a private transform Store.
 func (node *SourceFile) SetParseRoot(root Handle) {
-	if node == nil {
-		return
-	}
-	node.parseStoreMu.Lock()
-	defer node.parseStoreMu.Unlock()
-	if root.s == node.parseStore {
-		node.parseRoot = root.id
+	if node != nil {
+		node.parseTree.Store(&parseTreeState{store: root.s, root: root})
 	}
 }
 
@@ -3102,6 +3099,17 @@ func (node *SourceFile) copyFrom(other *SourceFile) {
 // parse Store and root. It does not rebind Store.SourceFile. Emit uses the
 // clone as the output view so declaration flags and remapped references stay
 // off the program file.
+// OriginalSourceFile identifies the program file behind an emit metadata view.
+func (node *SourceFile) OriginalSourceFile() *SourceFile {
+	if node == nil {
+		return nil
+	}
+	if node.originalSourceFile != nil {
+		return node.originalSourceFile
+	}
+	return node
+}
+
 func (node *SourceFile) CloneWrapper() *SourceFile {
 	if node == nil {
 		return nil
@@ -3110,10 +3118,8 @@ func (node *SourceFile) CloneWrapper() *SourceFile {
 	cloned.copyFrom(node)
 	cloned.Symbol = node.Symbol
 	cloned.Locals = node.Locals
-	node.parseStoreMu.RLock()
-	cloned.parseStore = node.parseStore
-	cloned.parseRoot = node.parseRoot
-	node.parseStoreMu.RUnlock()
+	cloned.parseTree.Store(node.parseTree.Load())
+	cloned.originalSourceFile = node.OriginalSourceFile()
 	return cloned
 }
 

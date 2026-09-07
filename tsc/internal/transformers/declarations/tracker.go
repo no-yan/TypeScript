@@ -70,7 +70,7 @@ func (s *SymbolTrackerImpl) ReportInferenceFallback(node ast.Handle) {
 	if !s.state.isolatedDeclarations {
 		return
 	}
-	if ast.GetSourceFileOfNode(node) != s.state.currentSourceFile {
+	if ast.GetSourceFileOfNode(node).OriginalSourceFile() != s.state.currentSourceFile.OriginalSourceFile() {
 		return
 	}
 	if s.state.resolver.IsExpandoFunctionDeclarationUnsafe(node) {

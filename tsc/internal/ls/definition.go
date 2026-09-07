@@ -300,7 +300,7 @@ func getDeclarationsFromObjectLiteralElement(c *checker.Checker, node ast.Handle
 	}
 	properties := c.GetPropertySymbolsFromContextualType(element, contextualType, false)
 	if core.Some(properties, func(p *ast.Symbol) bool {
-		return p.ValueDeclaration != 0 && ast.IsObjectLiteralExpression(ast.NodeOf(p.ValueDeclaration).Parent()) && ast.IsObjectLiteralElement(ast.NodeOf(p.ValueDeclaration)) && ast.NodeOf(p.ValueDeclaration).Name() == node
+		return !p.ValueDeclaration.IsNil() && ast.IsObjectLiteralExpression(p.ValueDeclaration.Parent()) && ast.IsObjectLiteralElement(p.ValueDeclaration) && p.ValueDeclaration.Name() == node
 	}) {
 		if withoutNodeInferencesType := c.GetContextualType(element.Parent(), checker.ContextFlagsIgnoreNodeInferences); withoutNodeInferencesType != nil {
 			if withoutNodeInferencesProperties := c.GetPropertySymbolsFromContextualType(element, withoutNodeInferencesType, false); len(withoutNodeInferencesProperties) > 0 {
@@ -390,7 +390,7 @@ func getSymbolForOverriddenMember(typeChecker *checker.Checker, node ast.Handle)
 }
 func getTypeOfSymbolAtLocation(c *checker.Checker, symbol *ast.Symbol, node ast.Handle) *checker.Type {
 	t := c.GetTypeOfSymbolAtLocation(symbol, node)
-	if t.Symbol() == symbol || t.Symbol() != nil && symbol.ValueDeclaration != 0 && ast.IsVariableDeclaration(ast.NodeOf(symbol.ValueDeclaration)) && ast.NodeOf(symbol.ValueDeclaration).Initializer() == ast.NodeOf(t.Symbol().ValueDeclaration) {
+	if t.Symbol() == symbol || t.Symbol() != nil && !symbol.ValueDeclaration.IsNil() && ast.IsVariableDeclaration(symbol.ValueDeclaration) && symbol.ValueDeclaration.Initializer() == t.Symbol().ValueDeclaration {
 		sigs := c.GetCallSignatures(t)
 		if len(sigs) == 1 {
 			return c.GetReturnTypeOfSignature(sigs[0])

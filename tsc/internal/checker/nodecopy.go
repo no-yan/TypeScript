@@ -314,8 +314,8 @@ func getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recoveryBoundary) *as
 			}
 		}
 		if sym != nil {
-			if sym.Flags&ast.SymbolFlagsFunctionScopedVariable != 0 && sym.ValueDeclaration != 0 {
-				if ast.IsPartOfParameterDeclaration(ast.NodeOf(sym.ValueDeclaration)) || ast.IsJSDocParameterTag(ast.NodeOf(sym.ValueDeclaration)) {
+			if sym.Flags&ast.SymbolFlagsFunctionScopedVariable != 0 && !sym.ValueDeclaration.IsNil() {
+				if ast.IsPartOfParameterDeclaration(sym.ValueDeclaration) || ast.IsJSDocParameterTag(sym.ValueDeclaration) {
 					return introducesError, attachSymbolToLeftmostIdentifier(leftmost, node, sym), nil
 				}
 			}

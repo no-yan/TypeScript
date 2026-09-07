@@ -221,7 +221,7 @@ func isUMDExportSymbol(symbol *ast.Symbol) bool {
 	if symbol == nil || len(symbol.Declarations) == 0 {
 		return false
 	}
-	d := ast.NodeOf(symbol.Declarations[0])
+	d := symbol.Declarations[0]
 	return !d.IsNil() && ast.IsNamespaceExportDeclaration(d)
 }
 func getFixesInfoForNonUMDImport(ctx context.Context, fixContext *CodeFixContext, symbolToken ast.Handle, view *autoimport.View) []*fixInfo {

@@ -137,7 +137,7 @@ func (tx *classFieldsTransformer) classExpressionNeedsBlockScopedTemp() bool {
 	return false
 }
 func (tx *classFieldsTransformer) visitSourceFile(node ast.Handle) ast.Handle {
-	if ast.GetSourceFileOfNode(node) != nil && ast.GetSourceFileOfNode(node).IsDeclarationFile {
+	if tx.EmitContext().SourceFileOf(node) != nil && tx.EmitContext().SourceFileOf(node).IsDeclarationFile {
 		return node
 	}
 	tx.lexicalEnvironment = nil

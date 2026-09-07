@@ -54,7 +54,7 @@ loop:
 						if r.useOuterVariableScopeInParameter(result, location, lastLocation) {
 							useResult = false
 						} else if result.Flags&ast.SymbolFlagsFunctionScopedVariable != 0 {
-							useResult = lastLocation.Kind == ast.KindParameter || lastLocation.Flags()&ast.NodeFlagsSynthesized != 0 || lastLocation == location.Type() && !ast.FindAncestor(ast.NodeOf(result.ValueDeclaration), ast.IsParameterDeclaration).IsNil()
+							useResult = lastLocation.Kind == ast.KindParameter || lastLocation.Flags()&ast.NodeFlagsSynthesized != 0 || lastLocation == location.Type() && !ast.FindAncestor(result.ValueDeclaration, ast.IsParameterDeclaration).IsNil()
 						}
 					}
 				} else if location.Kind == ast.KindConditionalType {
@@ -109,7 +109,7 @@ loop:
 			}
 			result = r.lookup(enumSymbol.Exports, name, meaning&ast.SymbolFlagsEnumMember)
 			if result != nil {
-				if nameNotFoundMessage != nil && r.CompilerOptions.GetIsolatedModules() && location.Flags()&ast.NodeFlagsAmbient == 0 && ast.GetSourceFileOfNode(location) != ast.GetSourceFileOfNode(ast.NodeOf(result.ValueDeclaration)) {
+				if nameNotFoundMessage != nil && r.CompilerOptions.GetIsolatedModules() && location.Flags()&ast.NodeFlagsAmbient == 0 && ast.GetSourceFileOfNode(location) != ast.GetSourceFileOfNode(result.ValueDeclaration) {
 					isolatedModulesLikeFlagName := core.IfElse(r.CompilerOptions.VerbatimModuleSyntax == core.TSTrue, "verbatimModuleSyntax", "isolatedModules")
 					r.error(originalLocation, diagnostics.Cannot_access_0_from_another_file_without_qualification_when_1_is_enabled_Use_2_instead, name, isolatedModulesLikeFlagName, enumSymbol.Name+"."+name)
 				}
@@ -263,7 +263,7 @@ func (r *NameResolver) useOuterVariableScopeInParameter(result *ast.Symbol, loca
 	if ast.IsParameterDeclaration(lastLocation) {
 		body := location.Body()
 		if !body.IsNil() {
-			declaration := ast.NodeOf(result.ValueDeclaration)
+			declaration := result.ValueDeclaration
 			if !declaration.IsNil() && declaration.Pos() >= body.Pos() && declaration.End() <= body.End() {
 				functionLocation := location
 				declarationRequiresScopeChange := core.TSUnknown
@@ -346,7 +346,7 @@ func GetLocalSymbolForExportDefault(symbol *ast.Symbol) *ast.Symbol {
 		return nil
 	}
 	for _, declRef := range symbol.Declarations {
-		decl := ast.NodeOf(declRef)
+		decl := declRef
 		if decl.IsNil() {
 			continue
 		}
@@ -358,7 +358,7 @@ func GetLocalSymbolForExportDefault(symbol *ast.Symbol) *ast.Symbol {
 	return nil
 }
 func isExportDefaultSymbol(symbol *ast.Symbol) bool {
-	return symbol != nil && len(symbol.Declarations) > 0 && ast.HasSyntacticModifier(ast.NodeOf(symbol.Declarations[0]), ast.ModifierFlagsDefault)
+	return symbol != nil && len(symbol.Declarations) > 0 && ast.HasSyntacticModifier(symbol.Declarations[0], ast.ModifierFlagsDefault)
 }
 func getIsDeferredContext(location ast.Handle, lastLocation ast.Handle) bool {
 	if location.Kind != ast.KindArrowFunction && location.Kind != ast.KindFunctionExpression {
@@ -374,7 +374,7 @@ func getIsDeferredContext(location ast.Handle, lastLocation ast.Handle) bool {
 }
 func isTypeParameterSymbolDeclaredInContainer(symbol *ast.Symbol, container ast.Handle) bool {
 	for _, declRef := range symbol.Declarations {
-		decl := ast.NodeOf(declRef)
+		decl := declRef
 		if !decl.IsNil() && decl.Kind == ast.KindTypeParameter {
 			parent := decl.Parent()
 			if parent == container {

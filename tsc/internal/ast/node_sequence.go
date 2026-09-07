@@ -13,7 +13,6 @@ type NodeSeq struct {
 	s       *Store
 	list    ListRef
 	handles []Handle
-	decls   []GlobalRef
 }
 
 // EmptyNodeSeq is the empty sequence (zero value).
@@ -47,18 +46,6 @@ func (n NodeSeq) All() iter.Seq2[int, Handle] {
 					return
 				}
 			}
-		default:
-			dense := 0
-			for _, g := range n.decls {
-				h := NodeOf(g)
-				if h.IsNil() {
-					continue
-				}
-				if !yield(dense, h) {
-					return
-				}
-				dense++
-			}
 		}
 	}
 }
@@ -71,13 +58,7 @@ func (n NodeSeq) Len() int {
 	case n.handles != nil:
 		return len(n.handles)
 	default:
-		c := 0
-		for _, g := range n.decls {
-			if !NodeOf(g).IsNil() {
-				c++
-			}
-		}
-		return c
+		return 0
 	}
 }
 
@@ -98,17 +79,6 @@ func (n NodeSeq) At(i int) Handle {
 		}
 		return n.handles[i]
 	default:
-		dense := 0
-		for _, g := range n.decls {
-			h := NodeOf(g)
-			if h.IsNil() {
-				continue
-			}
-			if dense == i {
-				return h
-			}
-			dense++
-		}
 		return Handle{}
 	}
 }
@@ -127,12 +97,6 @@ func (n NodeSeq) First() Handle {
 		}
 		return n.handles[0]
 	default:
-		for _, g := range n.decls {
-			h := NodeOf(g)
-			if !h.IsNil() {
-				return h
-			}
-		}
 		return Handle{}
 	}
 }
@@ -153,14 +117,7 @@ func (n NodeSeq) Last() Handle {
 		}
 		return n.handles[ln-1]
 	default:
-		var out Handle
-		for _, g := range n.decls {
-			h := NodeOf(g)
-			if !h.IsNil() {
-				out = h
-			}
-		}
-		return out
+		return Handle{}
 	}
 }
 

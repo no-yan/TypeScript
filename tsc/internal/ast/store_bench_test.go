@@ -235,11 +235,11 @@ func BenchmarkListSlice(b *testing.B) {
 func BenchmarkDeclarationNodes(b *testing.B) {
 	s := ast.NewStore(nodeSeqBenchCount + 8)
 	ast.RegisterStore(s)
-	decls := make([]ast.GlobalRef, 0, nodeSeqBenchCount)
+	decls := make([]ast.Handle, 0, nodeSeqBenchCount)
 	for i := range nodeSeqBenchCount {
 		h := s.Alloc(ast.KindIdentifier, 0, core.UndefinedTextRange(), 0)
 		h.SetIdent(s.Intern("d" + strconv.Itoa(i)))
-		decls = append(decls, h.Global())
+		decls = append(decls, h)
 	}
 	sym := &ast.Symbol{Name: "bench", Declarations: decls}
 	b.ReportAllocs()
