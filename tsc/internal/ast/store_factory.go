@@ -436,7 +436,9 @@ func (f *Factory) DeepCloneNode(node Handle) Handle {
 		return node
 	}
 	if node.Store() != f.store {
-		return f.CopySubtree(node)
+		// Emit resolvers must recover the original parse node, including for
+		// descendants cloned into the private allocation Store.
+		return f.copySubtree(node, f.hooks.OnClone)
 	}
 	var visitor *HandleVisitor
 	visitor = NewHandleVisitor(func(n Handle) Handle {
