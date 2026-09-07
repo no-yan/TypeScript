@@ -8,7 +8,7 @@ import (
 
 func (c *Checker) checkUnmatchedJSDocParameters(node ast.Handle) {
 	var jsdocParameters []ast.Handle
-	for _, tag := range getAllJSDocTags(node) {
+	for _, tag := range c.getAllJSDocTags(node) {
 		if tag.Kind == ast.KindJSDocParameterTag {
 			name := tag.JSDocParameterOrPropertyTagName()
 			if ast.IsIdentifier(name) && len(name.Text()) == 0 {
@@ -69,10 +69,13 @@ func (c *Checker) checkUnmatchedJSDocParameters(node ast.Handle) {
 		}
 	}
 }
-func getAllJSDocTags(node ast.Handle) []ast.Handle {
+
+// getAllJSDocTags returns the tags of the nearest JSDoc comment that documents
+// node. Deferred TS JSDoc is parsed on first use into the checker's synth Store.
+func (c *Checker) getAllJSDocTags(node ast.Handle) []ast.Handle {
 	if node.Flags()&ast.NodeFlagsJSDoc == 0 {
 		for current := node; !current.IsNil(); current = ast.GetNextJSDocCommentLocation(current) {
-			jsdocs := current.JSDoc(nil)
+			jsdocs := current.JSDocIn(nil, c.jsdoc)
 			if len(jsdocs) == 0 {
 				continue
 			}

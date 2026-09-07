@@ -1249,8 +1249,9 @@ func IsVarUsing(node Handle) bool {
 }
 
 // GetJSDocDeprecatedTag returns the first @deprecated JSDoc tag for the given node, or nil if none exists.
-func GetJSDocDeprecatedTag(node Handle) Handle {
-	for _, jsdoc := range node.JSDoc(nil) {
+// Deferred TS JSDoc is parsed into cache; a nil cache uses the file's shared side Store.
+func GetJSDocDeprecatedTag(node Handle, cache *JSDocCache) Handle {
+	for _, jsdoc := range node.JSDocIn(nil, cache) {
 		for _, tag := range jsdoc.Tags() {
 			if IsJSDocDeprecatedTag(tag) {
 				return tag
@@ -1264,12 +1265,13 @@ func GetJSDocDeprecatedTag(node Handle) Handle {
 // It checks NodeFlagsPossiblyContainsDeprecatedTag on combined node flags, then confirms
 // by walking up to find the node with the flag and performing a JSDoc lookup.
 func IsDeprecatedDeclaration(declaration Handle) bool {
-	return IsDeprecatedDeclarationWithCachedFlags(declaration, GetCombinedNodeFlags(declaration))
+	return IsDeprecatedDeclarationWithCachedFlags(declaration, GetCombinedNodeFlags(declaration), nil)
 }
 
 // IsDeprecatedDeclarationWithCachedFlags is the core logic for IsDeprecatedDeclaration,
-// parameterized on pre-computed combined flags so the checker can supply cached flags.
-func IsDeprecatedDeclarationWithCachedFlags(declaration Handle, combinedFlags NodeFlags) bool {
+// parameterized on pre-computed combined flags so the checker can supply cached flags,
+// and on the JSDocCache that receives lazily parsed TS JSDoc.
+func IsDeprecatedDeclarationWithCachedFlags(declaration Handle, combinedFlags NodeFlags, cache *JSDocCache) bool {
 	if combinedFlags&NodeFlagsPossiblyContainsDeprecatedTag == 0 {
 		return false
 	}
@@ -1277,7 +1279,7 @@ func IsDeprecatedDeclarationWithCachedFlags(declaration Handle, combinedFlags No
 	// attached to that node (e.g. VariableStatement, not VariableDeclaration).
 	for n := declaration; !n.IsNil(); n = n.Parent() {
 		if n.Flags()&NodeFlagsPossiblyContainsDeprecatedTag != 0 {
-			return !GetJSDocDeprecatedTag(n).IsNil()
+			return !GetJSDocDeprecatedTag(n, cache).IsNil()
 		}
 	}
 	return false

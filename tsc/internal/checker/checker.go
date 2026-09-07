@@ -580,6 +580,7 @@ type Checker struct {
 	mergedSymbols                               map[*ast.Symbol]*ast.Symbol
 	factory                                     *ast.Factory
 	synth                                       *ast.Store
+	jsdoc                                       *ast.JSDocCache // deferred TS JSDoc parsed on demand into synth
 	nodeLinks                                   globalLinkStore[NodeLinks]
 	signatureLinks                              globalLinkStore[SignatureLinks]
 	symbolNodeLinks                             nodeLinkStore[SymbolNodeLinks]
@@ -823,6 +824,7 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.synth = ast.NewStore(256)
 	ast.RegisterStore(c.synth)
 	c.factory = ast.NewFactoryOn(c.synth, ast.FactoryHooks{})
+	c.jsdoc = ast.NewJSDocCache(c.synth)
 	c.fileIndexMap = createFileIndexMap(c.files)
 	c.compareSymbols = c.compareSymbolsWorker
 	c.compareSymbolChains = c.compareSymbolChainsWorker
@@ -1037,6 +1039,7 @@ func (c *Checker) Close() {
 	}
 	ast.UnregisterStore(c.synth)
 	c.synth = nil
+	c.jsdoc = nil
 	c.factory = nil
 }
 
@@ -11958,7 +11961,7 @@ func (c *Checker) addErrorOrSuggestion(isError bool, diagnostic *ast.Diagnostic)
 	}
 }
 func (c *Checker) IsDeprecatedDeclaration(declaration ast.Handle) bool {
-	return ast.IsDeprecatedDeclarationWithCachedFlags(declaration, c.getCombinedNodeFlagsCached(declaration))
+	return ast.IsDeprecatedDeclarationWithCachedFlags(declaration, c.getCombinedNodeFlagsCached(declaration), c.jsdoc)
 }
 func (c *Checker) addDeprecatedSuggestion(location ast.Handle, declarations ast.NodeSeq, deprecatedEntity string) *ast.Diagnostic {
 	diagnostic := NewDiagnosticForNode(location, diagnostics.X_0_is_deprecated, deprecatedEntity)
@@ -11966,7 +11969,7 @@ func (c *Checker) addDeprecatedSuggestion(location ast.Handle, declarations ast.
 }
 func (c *Checker) addDeprecatedSuggestionWorker(declarations ast.NodeSeq, diagnostic *ast.Diagnostic) *ast.Diagnostic {
 	for _, declaration := range declarations.All() {
-		deprecatedTag := ast.GetJSDocDeprecatedTag(declaration)
+		deprecatedTag := ast.GetJSDocDeprecatedTag(declaration, c.jsdoc)
 		if !deprecatedTag.IsNil() {
 			diagnostic.AddRelatedInfo(NewDiagnosticForNode(deprecatedTag, diagnostics.The_declaration_was_marked_as_deprecated_here))
 			break

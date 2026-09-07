@@ -73,8 +73,8 @@ Columns and side tables on `Store`:
 
 A Store has two phases: **build** and **check**. Freeze is irreversible.
 
-1. **Build.** Parser allocates and links (`AllocSlots`, `SetChild`, `SetList`, `Finish`). Same-store parents are written at attach time. `Factory.Seal` at the end of `ParseSourceFile` drops only `internIdx`; it does not freeze. Binder then mutates flags in place and fills the Symbol/Flow columns and side maps. Lazy TS JSDoc (`WarmJSDoc`) appends under the file's writer lease.
-2. **Freeze** (`Program.BindSourceFiles`, after bind and `WarmJSDoc`, one goroutine per file). `Freeze` sets phase check, records `frozenAt`, drops `internIdx`, allocates `subtreeFacts`. It is `sync.Once`. From here `mustMutate` panics on `Alloc`, `SetChild`, `SetFlags`, side-map writes, and `Intern`. Parallel checkers read without locks.
+1. **Build.** Parser allocates and links (`AllocSlots`, `SetChild`, `SetList`, `Finish`). Same-store parents are written at attach time. `Factory.Seal` at the end of `ParseSourceFile` drops only `internIdx`; it does not freeze. Binder then mutates flags in place and fills the Symbol/Flow columns and side maps. Deferred TS JSDoc is never appended here; the parse Store's node count is final at the end of `ParseSourceFile`.
+2. **Freeze** (`Program.BindSourceFiles`, after bind, one goroutine per file). `Freeze` sets phase check, records `frozenAt`, drops `internIdx`, allocates `subtreeFacts`. It is `sync.Once`. From here `mustMutate` panics on `Alloc`, `SetChild`, `SetFlags`, side-map writes, and `Intern`. Parallel checkers read without locks.
 3. **Private emit Store.** `EmitContext.BeginFile` associates an output view with the context's own Store. Factories allocate only there, while unchanged parse nodes and lists remain shared. `Store.EnterEmit` and `LeaveEmit` have been removed. `Program.Emit` follows `SingleThreaded`; otherwise files can emit concurrently. Metadata views are resolved through `EmitContext.SourceFileOf`, without rebinding the parse Store's owner.
 
 `Checkpoint` / `Restore` truncate node, list, child, and side columns to a watermark for speculative parsing. They exist and are tested; the production parser does not currently call them (a failed speculative parse rewinds the scanner and leaves dead nodes).
@@ -101,7 +101,9 @@ Measured on this machine (`handle_key_bench_test.go`, 64K entries, one run): a `
 
 | Store | Owner | Writes | Lifetime |
 | --- | --- | --- | --- |
-| Parse Store, one per file | `SourceFile` | parser, binder, and JSDoc warmup before Freeze | as long as consumers retain the SourceFile or Store |
+| Parse Store, one per file | `SourceFile` | parser and binder before Freeze | as long as consumers retain the SourceFile or Store |
+| `Checker.jsdoc` (`JSDocCache` on `Checker.synth`) | one `Checker` | deferred TS JSDoc parsed on first `JSDocIn` | with the checker |
+| Shared JSDoc side Store | `SourceFile` | deferred TS JSDoc for consumers without a `JSDocCache` (LS, API, astnav); whole file parsed once, then frozen | with the SourceFile |
 | `Checker.synth` | one `Checker` | checker synthetics via its private factory | registered until `Checker.Close` |
 | Emit factory Store | one `EmitContext` | transforms and NodeBuilder, including diagnostics and type baselines | until the context resets; direct Handles can retain the old Store |
 
@@ -129,7 +131,7 @@ for _, d := range ast.DeclarationNodes(symbol).All() { … }
 - Each `Checker` has its own synth Store, so parallel checkers never share a writer.
 - Emit allocates in a context-private Store and can run across files in parallel. SourceFile publishes a coherent immutable Store/root/Kind state through an atomic pointer; reads do not acquire a mutex or reload the node header.
 - StoreSet lookup loads atomic pointers; only writers acquire its mutex. Store registration does not synchronize subsequent AST writes. A shared target must be frozen or governed by the same single writer.
-- `WarmJSDoc` runs under `jsdocWarmOnce` and the writer lease, before `Freeze`, so lazy TS JSDoc never appends into a frozen Store.
+- Deferred TS JSDoc (every TS comment without `@see`/`@link`) is parsed lazily, like upstream, but into a Store other than the frozen parse Store. The checker parses on demand into its own synth Store through `Handle.JSDocIn(file, c.jsdoc)`; each checker keeps its own `JSDocCache`, so nothing is shared between parallel checkers. `Handle.JSDoc(file)` serves consumers without a cache (LS, API, astnav) from a per-file side Store that `warmSharedJSDoc` fills once and freezes before publishing through `sync.Once`. `Handle.EagerJSDoc` returns only parser-time JSDoc and never parses. The JSDoc root's parent edge is an `externalParent` on the owning Store; the parse Store is not written.
 
 Race tests cover these (`TestFreezeConcurrent`, `TestFreezeAllowsParallelParseRead`, `TestStoreParallelFileWriters`, `TestSourceFileSerializesParseStoreWriters`, `TestSourceFileRefsAreSafeAcrossParallelCheckers`, `TestSetParentDoesNotRaceSourceStoreMaps`).
 
@@ -141,7 +143,7 @@ These were derived from the live pointer pipeline before the cutover and are now
 2. **Kind-specific payload is not all children.** The header carries kind, counts, flags, loc, parent, slot base. Everything else a factory argument carried (`TokenFlags`, `ModifierFlags`, literal text, `IsTypeOnly`, `MultiLine`, template flags, …) lives in generated value slots or side maps. Dropping a generated value is a functional break.
 3. **Lists have their own loc** (trailing comma, list-level diagnostics). `listHeader`, `Factory.List`, `RelocateList`, and `CopySubtree.copyList` preserve it.
 4. `GetSourceFileOfNode` **walks** `Parent()` **to** `KindSourceFile`, then resolves metadata through `Store.SourceFile()` / `StoreSet.File`. The `SourceFile` node is the tree root inside Store; metadata is the `*SourceFile` Go struct outside. A root whose Store has no `sourceFile` owner makes LS and checker file lookup return nil.
-5. **JSDoc reparse mutates already-created hosts.** `@param` writes `Parameter.Type` and `QuestionToken` after the parameter exists; `@this` replaces the parameter list; `@template` assigns class type parameters. Named slots stay writable during build (`SetChild`, `SetList`); `Intern` after `Seal` appends. `jsdocHandleCache` keys on `Handle` for the life of the `SourceFile`.
+5. **JSDoc reparse mutates already-created hosts.** `@param` writes `Parameter.Type` and `QuestionToken` after the parameter exists; `@this` replaces the parameter list; `@template` assigns class type parameters. Named slots stay writable during build (`SetChild`, `SetList`); `Intern` after `Seal` appends. `jsdocHandleCache` (parser-time JSDoc) keys on `Handle` for the life of the `SourceFile` and is immutable after parse.
 6. **Binder mutates flags and side data, not tree shape.** Flags are cleared and reset; Symbol, LocalSymbol, Locals, NextContainer, Flow, EndFlow, ReturnFlow are written on existing nodes. Parents and child lists are not rewritten. Flow also allocates `KindUnknown` payload nodes (`FlowSwitchClauseData`, `FlowReduceLabelData`) that hang off `FlowNode.Data` and never enter statement lists; that is the one remaining pointer `*Node` allocation on the compile path.
 7. **Checker synthetics share children with the parse tree.** A synthetic access whose name child is a parse node lives on `Checker.synth`; the shared child is an `externalChild` `GlobalRef` on the synth Store, and the synthetic's parent (a parse node) is an `externalParent` on the synth Store. The frozen parse Store is never written. Synthetics never `CopySubtree` a parse node and never write a parse Store.
 8. **Flow is a second pointer graph.** `FlowNode{Flags, Node Handle, Data *Node, Antecedent *FlowNode, Antecedents *FlowList}` is 48 bytes with four pointer words. Putting `*FlowNode` in `nodeHeader` would make `[]nodeHeader` scannable. The `flows` column holds arena ids, not pointers; FlowNodes themselves live in per-Store chunks (8, 8, 16, 32, 64, 128, then 256 entries) whose addresses never move. Pointers remain in `endFlows`/`returnFlows` side maps and inside `FlowNode`; the header stays noscan.
@@ -160,12 +162,12 @@ Checked and not a functional kill: the lexer (tokens are `Kind` + `TokenFlags` +
 | `store_schema_generated.go` | Generated child, list, and kind-specific value slot tables for every factory kind |
 | `store_handles_generated.go` | Generated `Factory.New*` / `Update*` and named `Handle` getters/setters (read through `childAt`) |
 | `store_polymorphic_generated.go` | Generated polymorphic accessors (`Expression()`, `Name()`, …) as `switch h.Kind` |
-| `store_query_manual.go` | Hand-written `Handle` queries: `Pos`/`End`, `Contains`, `JSDoc`, `ListSlice`, `ListIndexOf`, `ModifierFlags`, `NodeId`, `GetReparsedHandle`, … |
+| `store_query_manual.go` | Hand-written `Handle` queries: `Pos`/`End`, `Contains`, `JSDoc`/`JSDocIn`/`EagerJSDoc` and `JSDocCache`, `ListSlice`, `ListIndexOf`, `ModifierFlags`, `NodeId`, `GetReparsedHandle`, … |
 | `store_subtree.go` | `Handle.SubtreeFacts` over the atomic `subtreeFacts` column |
 | `store_copy.go` | `Factory.CopySubtree` (cross-store remap, list remap, external edges) |
 | `node_sequence.go`, `symbol.go` | `NodeSeq` with allocation-free `All()`; `DeclarationNodes(symbol)` adapts `[]GlobalRef` declarations |
 | `store_flatten.go` | `FlattenNode`: lossy `*Node` → Store copy kept for layout benches. No production or test caller at HEAD; delete with the pointer `Node` |
-| `ast.go` | `SourceFile` metadata and its Store fields (`parseStore`, `parseRoot`, writer lease, `WarmJSDoc`); legacy pointer `Node` and `NewNodeFactory` |
+| `ast.go` | `SourceFile` metadata and its Store fields (`parseStore`, `parseRoot`, writer lease, shared JSDoc side Store); legacy pointer `Node` and `NewNodeFactory` |
 | `ast_generated.go` | Legacy pointer `NodeFactory` and `nodeData` types (no compile-path caller) |
 | `store_*_test.go`, `*_bench_test.go` | Unit, race, copy, layout, identity, adversarial GC, e2e, GOGC baseline, flow-layout and key-type benches |
 
@@ -230,6 +232,10 @@ The two runs were on different hosts and are not comparable with each other. The
 
 Design notes for the accessor work are in `tsc/.audit/store-accessor-design.md`.
 
+### Lazy TS JSDoc (`docs/lazy-jsdoc-checker-store-bench.md`, 2026-09-07)
+
+Moving deferred TS JSDoc out of `BindSourceFiles` (`WarmJSDoc` into the parse Store) and into per-checker `JSDocCache`s on `Checker.synth`: Monaco Bind −20% (`--singleThreaded`) / −29% (`--noCheck`), Check unchanged within noise, allocs −1.6…−2.6%. Checkers parse 3.1k of the 19.4k deferred hosts.
+
 ### Memory (`docs/store-memory-investigation.md`, 2026-09-05)
 
 On the Monaco tsconfig, parse + bind final live heap is **−39.4 MiB (−9.0%)** versus the pointer AST. The checker adds **+12.2 MiB** on the Store path, so full-check live heap nets **−27.3 MiB (−3.4%)**. Causes, in order: the pointer AST was already arena-allocated per kind; Store moves fields into side columns rather than deleting them; `FlowNode` grew from about 32 to 48 bytes and `flows` is node-width; checker caches keyed on 16-byte pointer-bearing `Handle`; macOS compression makes RSS unreliable, so compare `Memory used` (`runtime.MemStats.Alloc` after GC), not RSS.
@@ -283,6 +289,7 @@ The shippable-unit rule that governed the migration still applies to future wave
 | `docs/store-maintainer-proof-plan.md` | follow-on PR-1…PR-5: checkers scaling, lock-free identity, synthetic ownership, emit leases, head-vs-trunk proof |
 | `docs/store-beta-plan.md` | historical β close-out program |
 | `docs/store-memory-investigation.md` | why the live-heap win is smaller than the AST size win |
+| `docs/lazy-jsdoc-checker-store-bench.md` | deferred TS JSDoc parsed into the checker's synth Store instead of `WarmJSDoc` |
 | `tsc/.audit/store-accessor-design.md`, `tsc/.audit/attempts/015…018`, `tsc/.audit/allocation-free-node-sequences-t10.md` | measured accessor, header, and NodeSeq experiments |
 | `.github/skills/store-ast-verification/SKILL.md` | verification gates |
 | `.cursor/skills/verify-tsc/SKILL.md` | CLI live drive (`control-tsc launch` / `doctor`) |
