@@ -6,9 +6,9 @@ Motivation and early sketch: [TypeScript#63807](https://github.com/microsoft/Typ
 
 Repo docs stay English. Operator-facing chat is Japanese.
 
-## Status (2026-09-06)
+## Status (2026-09-07)
 
-Branch `cursor/ast-store-tests`, HEAD `8067b4b419`. Store is the **production tree** on this branch:
+Branch `lock-profile`, based on `3e0eb48bd4` after merging `cursor/ast-store-tests`. Store is the **production tree** on this branch. The concurrency redesign is described in [store-concurrency-implementation.md](docs/store-concurrency-implementation.md).
 
 - `parser.ParseSourceFile` allocates every node into one `Store` per file through `ast.Factory` and returns `*SourceFile` metadata whose tree is `ParseRoot()` / `ParseStore()`. There is no pointer parser, no `MaterializeSourceFile`, no `ExpandStore`, no dual-write.
 - Binder walks `NodeRef` (`bindRef`) and writes Symbol, Flow, Locals and flags into Store columns and side maps.
@@ -17,7 +17,7 @@ Branch `cursor/ast-store-tests`, HEAD `8067b4b419`. Store is the **production tr
 
 The upstream program (`docs/store-upstream-plan.md`) landed PR-1 through PR-8 on this fork as GitHub `#1`–`#8`. PR-9 (delete leftover pointer AST in LS/format) was a skip record because the grep was already empty. PR-10 (the microsoft/TypeScript request) has not been opened. `docs/store-maintainer-proof-plan.md` is the follow-on program that closes the two blockers below before that request.
 
-Known red at HEAD:
+Historical failures at `8067b4b419` (not a statement of current verification):
 
 | Test | Failure | Owner |
 | --- | --- | --- |
@@ -34,7 +34,7 @@ Profiles pointed at object scan time, with the parser AST a large share of in-us
 
 ## Layout
 
-A `Store` owns one file's syntax tree. Nodes are dense `NodeRef` indices (`uint32`); `0` means absent. Lists are `ListRef` (`uint32`) into the same `children` column; `0` means no list.
+A `Store` owns one file's syntax tree. Nodes are dense `NodeRef` indices (`uint32`); `0` means absent. Lists use owner-qualified `ListRef` (`uint64`: StoreID and a 32-bit list index); `0` means no list. Same-store list slots remain 32-bit indexes in `children`; sparse `foreignLists` slots preserve cross-store list identity.
 
 `nodeHeader` is one pointer-free **24-byte** row (`TestNodeHeaderIs24Bytes`):
 
@@ -58,61 +58,62 @@ Columns and side tables on `Store`:
 | Data | Shape | Why |
 | --- | --- | --- |
 | `nodes`, `lists`, `children`, `internBuf`, `internOff` | dense, noscan | the layout bet |
-| `internIdx` | `map[string]uint32` | construction-time dedup; dropped by `Seal` / `Freeze`. `Intern` after that appends without dedup so lazy JSDoc can still add text |
+| `internIdx` | `map[string]uint32` | construction-time dedup; dropped by `Seal` / `Freeze`. `Intern` after `Seal` appends without dedup during build; `Freeze` prohibits further interning |
 | `symbolIdx []uint32` + `symbolRefs []*Symbol` | dense index column + 1-based fill-only pointer slice | about one node in eight has a Symbol; the GC scans 1/8 the pointers of a dense `[]*Symbol` |
 | `flows []uint32` | dense noscan column of ids into the Store's chunked `FlowNode` arena (`NewFlow`), sized at `PrepareBindTables` | fill is about 50%; 4 B/node and no GC scan. FlowNodes not from this arena (copied from another Store, checker literals) get a slot in `foreignFlows`; see `docs/flow-index-column-bench.md` |
 | `localSymbols`, `endFlows`, `returnFlows`, `locals`, `nextContainer` | `map[NodeRef]` | sparse |
 | `tokenFlags` | `map[NodeRef]TokenFlags` | set on under 4% of nodes |
 | `scalarValues`, `stringValues`, `objectValues` | `map[uint64]…` keyed by packed NodeRef/slot | generated kind-specific value slots: integer-like scalars, intern ids, and the few pointer/slice values |
-| `externalChild`, `externalList`, `externalParent` | `map[…]GlobalRef` | the exceptional cross-store edges (checker synthetics, `CopySubtree`) |
+| `externalChild`, `externalList`, `externalParent` | `map[…]Handle` | direct retained cross-store edges; no registry lookup or foreign mutation |
+| `foreignLists`, `listOwners` | sparse list-slot identities and owner pointers | unchanged foreign lists are shared; owning Stores stay reachable |
 | `subtreeFacts []uint32` | allocated at `Freeze`, atomics | checker/emit `SubtreeFacts` cache without writes to the header |
 | `sourceFile *SourceFile` | one pointer | metadata owner; `SourceFile` fields stay outside Store |
 
 ## Lifecycle and mutation rules
 
-A Store has three phases: **build**, **check**, **emit**.
+A Store has two phases: **build** and **check**. Freeze is irreversible.
 
 1. **Build.** Parser allocates and links (`AllocSlots`, `SetChild`, `SetList`, `Finish`). Same-store parents are written at attach time. `Factory.Seal` at the end of `ParseSourceFile` drops only `internIdx`; it does not freeze. Binder then mutates flags in place and fills the Symbol/Flow columns and side maps. Lazy TS JSDoc (`WarmJSDoc`) appends under the file's writer lease.
 2. **Freeze** (`Program.BindSourceFiles`, after bind and `WarmJSDoc`, one goroutine per file). `Freeze` sets phase check, records `frozenAt`, drops `internIdx`, allocates `subtreeFacts`. It is `sync.Once`. From here `mustMutate` panics on `Alloc`, `SetChild`, `SetFlags`, side-map writes, and `Intern`. Parallel checkers read without locks.
-3. **Emit lease.** `EmitContext.LockParseStoreWriter(file)` takes `SourceFile.LockParseStoreWriter` (a per-file mutex), calls `Store.EnterEmit`, and rebinds the emit `Factory` onto that parse Store. Emit factory nodes and `Update*` results append into the **parse Store** so unchanged parse nodes stay the shared spine. `LeaveEmit` returns to check. `EnterEmit` before `Freeze` panics. The compiler emits one file at a time under this lease.
+3. **Private emit Store.** `EmitContext.BeginFile` associates an output view with the context's own Store. Factories allocate only there, while unchanged parse nodes and lists remain shared. `Store.EnterEmit` and `LeaveEmit` have been removed. `Program.Emit` follows `SingleThreaded`; otherwise files can emit concurrently. Metadata views are resolved through `EmitContext.SourceFileOf`, without rebinding the parse Store's owner.
 
 `Checkpoint` / `Restore` truncate node, list, child, and side columns to a watermark for speculative parsing. They exist and are tested; the production parser does not currently call them (a failed speculative parse rewinds the scanner and leaves dead nodes).
 
-`SourceFile` outlives a `Program`, so the phase is not monotonic across rebuilds; `Freeze` is idempotent and `EnterEmit` / `LeaveEmit` toggle.
+`SourceFile` can outlive a `Program`. Its frozen Store stays frozen across rebuilds; each output context owns its generated nodes.
 
 ## Identity across stores
 
-`NodeRef` is store-local. Anything that crosses files (`Symbol.Declarations`, `Symbol.ValueDeclaration`, checker links, `EmitContext` originals) uses `GlobalRef`: a `uint64` packing `StoreID` (high 32 bits) and `NodeRef` (low 32 bits). `0` is absent.
+`NodeRef` is store-local. Identity keys use `GlobalRef`, a `uint64` packing `StoreID` (high 32 bits) and `NodeRef` (low 32 bits); `0` is absent. Hot references (`Symbol.Declarations`, `Symbol.ValueDeclaration`, and foreign AST edges) hold `Handle` directly. Identity keys and navigation references have different cost and lifetime requirements.
 
 `StoreSet` is the identity domain. There is one process-wide set (`identitySet()` in `store_identity.go`) behind `ast.RegisterFile`, `ast.RegisterStore`, `ast.UnregisterStore`, and `ast.NodeOf`. Registration points:
 
 - `binder.bindSourceFile` calls `RegisterFile(file)` before binding, so every parse Store has a `StoreID` once bound and `StoreSet.File(id)` resolves back to metadata.
 - `checker.NewChecker` registers its private `synth` Store; `Checker.Close` unregisters it (`Program.Close` closes the pool). `StoreID`s are never reused; `NodeOf` on an unregistered id returns `Handle{}`.
-- `printer.NewEmitContext` registers the pooled emit factory's own Store; `LockParseStoreWriter` re-registers the file (idempotent).
+- `printer.NewEmitContext` registers the pooled emit factory's own Store; `BeginFile` keeps that private allocation Store; pooled `Reset` unregisters the old Store and installs a fresh one.
 
 Properties that drove the choice, unchanged from β: pointer-free map keys (a `map[GlobalRef]V` with pointer-free `V` is noscan), deterministic ids for a fixed registration order (today's `NodeId` is an atomic counter that depends on binder scheduling), no per-node cost. `Handle.Global()` panics on an unregistered Store because a silent `0` would corrupt any map keyed by it.
 
 Measured on this machine (`handle_key_bench_test.go`, 64K entries, one run): a `map[GlobalRef]` lookup sweep is about 1.8× faster than the same sweep on `map[Handle]`, and only the `Handle` map is scannable.
 
-Still open inside the identity design: `StoreSet.At` takes `mu.RLock` on every `NodeOf`; making it lock-free for readers is proof-plan PR-2. `StoreSet` eviction for LS edits is unwritten.
+`StoreSet.Store` reads atomic slots through an immutable, geometrically grown directory. Only registration and removal take the writer mutex. The Store ID is published after the slot and domain; IDs are never reused. Parse Store eviction for LS edits remains a separate lifecycle concern.
 
 ## Ownership: parse, synth, emit
 
 | Store | Owner | Writes | Lifetime |
 | --- | --- | --- | --- |
-| Parse Store, one per file | `SourceFile` (`ParseStore`, `ParseRoot`) | parser, binder, `WarmJSDoc` during build; emit under the writer lease | as long as the `SourceFile` |
-| `Checker.synth` | one `Checker` | checker synthetics (`isPropertyInitializedInConstructor` access and similar) via `c.factory = NewFactoryOn(c.synth, …)` | until `Checker.Close` |
-| Emit factory Store | pooled `EmitContext` | `StoreFactory()` when no file is bound. `NodeBuilder` (declaration emit, type baselines) allocates through `EmitContext.StoreFactory()`, which returns the **parse-Store** factory once a file is bound; that is the frozen-Store panic in `TestLocal/alias` | pool lifetime |
+| Parse Store, one per file | `SourceFile` | parser, binder, and JSDoc warmup before Freeze | as long as consumers retain the SourceFile or Store |
+| `Checker.synth` | one `Checker` | checker synthetics via its private factory | registered until `Checker.Close` |
+| Emit factory Store | one `EmitContext` | transforms and NodeBuilder, including diagnostics and type baselines | until the context resets; direct Handles can retain the old Store |
 
-Edges that cross Stores are recorded on the **child-side** Store as `GlobalRef`s: `SetChild` with a foreign child writes `externalChild` and leaves the dense slot `0`; `SetParent` with a foreign parent writes `externalParent`. `Child(i)` and `Parent()` fall through to `ast.NodeOf` when the dense slot is `0`. Neither call copies or reparents the foreign node (`TestSetChildDoesNotParentForeignChild`, `TestSetParentPreservesForeignIdentity`). `CopySubtree` deep-copies into another unsealed Store, remaps `NodeRef`s and lists, and keeps external edges external.
+Cross-store parent, child, and list-element edges retain the target Handle. The Store containing the edge is the only writer; attaching a foreign child never changes the child's parent. Foreign list slots retain the list identity and owner. `NodeSeq` resolves and retains the actual list owner when constructed. Same-store node and list indexes remain packed and pointer-free.
 
-Checker synthetics are **not** appended into the parse Store. The earlier plan line "synthetics append into the checked file's parse Store under a per-file writer lease" was rejected: it reintroduces shared writers across parallel checkers and fights `Freeze`. Emit is the only post-freeze writer of a parse Store.
+`CopySubtree` is an explicit structural copy, not an implicit attachment operation. Foreign references remain shared. `DeepCloneNode` also calls the clone hook for nodes copied into another Store, including descendants, so emit can resolve original parse declarations and preserve import substitutions.
 
 ## Lists and NodeSeq
 
 Lists are `listHeader{pos, end, start, len}` rows; elements live in `children[start : start+len]`. A list keeps its own loc so `HasTrailingComma` (`last.End() < list.End()`) survives. Named list slots (`Statements`, `Parameters`, `Members`, `Modifiers`, …) hold a `ListRef`, so JSDoc reparse can replace a list by writing a new `ListRef` into the slot (`SetList`), abandoning the old rows.
 
-`NodeSeq` (`node_sequence.go`) is the allocation-free way to iterate a list, a `[]Handle`, or a `[]GlobalRef` declaration set:
+`NodeSeq` (`node_sequence.go`) is the allocation-free way to iterate a list, a `[]Handle`, including a Symbol declaration set:
 
 ```go
 for i, h := range file.ParseStore().ListSlice(list).All() { … }
@@ -126,8 +127,8 @@ for _, d := range ast.DeclarationNodes(symbol).All() { … }
 - One writer per file during build. Parse and bind of one file never run concurrently with each other; `BindSourceFiles` queues one bind per unbound file, gated by `SourceFile.BindOnce`.
 - `Freeze` publishes the Store as immutable for parallel check. There is no cross-store write lock because check does not write parse Stores. `SubtreeFacts` uses atomics on the `subtreeFacts` column.
 - Each `Checker` has its own synth Store, so parallel checkers never share a writer.
-- Emit takes the per-file writer lease and runs one file at a time. `SourceFile.parseStoreMu` (RWMutex) guards the `parseStore` / `parseRoot` pointers themselves for `SetParseStore` / `SetParseRoot`.
-- `StoreSet` is separately synchronized (RWMutex). `Store.id` is atomic.
+- Emit allocates in a context-private Store and can run across files in parallel. SourceFile publishes a coherent immutable Store/root/Kind state through an atomic pointer; reads do not acquire a mutex or reload the node header.
+- StoreSet lookup loads atomic pointers; only writers acquire its mutex. Store registration does not synchronize subsequent AST writes. A shared target must be frozen or governed by the same single writer.
 - `WarmJSDoc` runs under `jsdocWarmOnce` and the writer lease, before `Freeze`, so lazy TS JSDoc never appends into a frozen Store.
 
 Race tests cover these (`TestFreezeConcurrent`, `TestFreezeAllowsParallelParseRead`, `TestStoreParallelFileWriters`, `TestSourceFileSerializesParseStoreWriters`, `TestSourceFileRefsAreSafeAcrossParallelCheckers`, `TestSetParentDoesNotRaceSourceStoreMaps`).
