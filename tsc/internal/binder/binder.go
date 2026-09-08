@@ -77,6 +77,16 @@ type ActiveLabel struct {
 	referenced     bool
 }
 
+// bindNode is the binder walk currency. Kind is already known; do not store this on the heap.
+type bindNode struct {
+	ref  ast.NodeRef
+	kind ast.Kind
+}
+
+func (b *Binder) payload(n bindNode) ast.Handle {
+	return ast.HandleOf(b.store, n.ref, n.kind)
+}
+
 func (label *ActiveLabel) BreakTarget() *ast.FlowNode {
 	return label.breakTarget
 }
@@ -141,15 +151,18 @@ func (b *Binder) getLocals(ref ast.NodeRef) ast.SymbolTable {
 	return locals
 }
 
-func (b *Binder) bind(node ast.Handle) bool {
+func (b *Binder) bindN(n bindNode, parentKind ast.Kind) bool {
+	if n.ref == 0 {
+		return false
+	}
+	return b.bindKind(n.ref, n.kind, parentKind)
+}
+
+func (b *Binder) bind(node ast.Handle, parentKind ast.Kind) bool {
 	if node.IsNil() {
 		return false
 	}
-	parentKind := ast.KindUnknown
-	if parent := b.store.ParentRef(node.Ref()); parent != 0 {
-		parentKind = b.store.KindAt(parent)
-	}
-	return b.bindKind(node.Ref(), node.Kind, parentKind)
+	return b.bindN(bindNode{ref: node.Ref(), kind: node.Kind}, parentKind)
 }
 
 func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bool {
@@ -272,8 +285,7 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 	case ast.KindEnumDeclaration:
 		b.bindEnumDeclarationRef(id, kind)
 	case ast.KindModuleDeclaration:
-		node = ast.HandleOf(b.store, id, kind)
-		b.bindModuleDeclaration(node)
+		b.bindModuleDeclaration(ast.HandleOf(b.store, id, kind))
 	case ast.KindImportEqualsDeclaration, ast.KindNamespaceImport, ast.KindImportSpecifier, ast.KindExportSpecifier:
 		b.declareSymbolAndAddToSymbolTableRef(id, kind, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes)
 	case ast.KindNamespaceExportDeclaration:
@@ -1452,6 +1464,7 @@ func (b *Binder) bindTypeParameter(node ast.Handle) {
 		b.declareSymbolAndAddToSymbolTable(node, ast.SymbolFlagsTypeParameter, ast.SymbolFlagsTypeParameterExcludes)
 	}
 }
+
 func (b *Binder) lookupEntity(node ast.Handle, container ast.NodeRef) *ast.Symbol {
 	if ast.IsIdentifier(node) {
 		return b.lookupName(node.Text(), container)
@@ -1502,6 +1515,7 @@ func (b *Binder) checkContextualIdentifier(node ast.Handle) {
 		}
 	}
 }
+
 func (b *Binder) checkPrivateIdentifier(node ast.Handle) {
 	if node.Text() == "#constructor" {
 		if len(b.file.Diagnostics()) == 0 {
@@ -1509,6 +1523,7 @@ func (b *Binder) checkPrivateIdentifier(node ast.Handle) {
 		}
 	}
 }
+
 func (b *Binder) getStrictModeIdentifierMessage(node ast.Handle) *diagnostics.Message {
 	if !ast.GetContainingClass(node).IsNil() {
 		return diagnostics.Identifier_expected_0_is_a_reserved_word_in_strict_mode_Class_definitions_are_automatically_in_strict_mode
@@ -1808,6 +1823,13 @@ func (b *Binder) declareCommonJSVariable(name string) {
 		locals[name] = symbol
 	}
 }
+func (b *Binder) at(ref ast.NodeRef) bindNode {
+	if ref == 0 || b.store == nil {
+		return bindNode{}
+	}
+	return bindNode{ref: ref, kind: b.store.KindAt(ref)}
+}
+
 func (b *Binder) bindChildren(node ast.Handle) {
 	b.bindChildrenRef(node.Ref(), node.Kind)
 }
@@ -1821,7 +1843,7 @@ func (b *Binder) bindChildrenRef(id ast.NodeRef, kind ast.Kind) {
 		if ast.IsPotentiallyExecutableNode(node) {
 			b.store.SetFlagsAt(id, b.store.FlagsAt(id)|ast.NodeFlagsUnreachable)
 		}
-		b.bindChildrenOf(id, kind)
+		b.forEachBindChildGenerated(id, kind)
 		b.inAssignmentPattern = saveInAssignmentPattern
 		return
 	}
@@ -1830,33 +1852,25 @@ func (b *Binder) bindChildrenRef(id ast.NodeRef, kind ast.Kind) {
 	}
 	switch kind {
 	case ast.KindWhileStatement:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindWhileStatement(node)
+		b.bindWhileStatementRef(id, kind)
 	case ast.KindDoStatement:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindDoStatement(node)
+		b.bindDoStatementRef(id, kind)
 	case ast.KindForStatement:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindForStatement(node)
+		b.bindForStatementRef(id, kind)
 	case ast.KindForInStatement, ast.KindForOfStatement:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindForInOrForOfStatement(node)
+		b.bindForInOrForOfStatementRef(id, kind)
 	case ast.KindIfStatement:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindIfStatement(node)
+		b.bindIfStatementRef(id, kind)
 	case ast.KindReturnStatement:
 		b.bindReturnStatementRef(id, kind)
 	case ast.KindThrowStatement:
 		b.bindThrowStatementRef(id, kind)
 	case ast.KindBreakStatement:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindBreakStatement(node)
+		b.bindBreakOrContinueStatementRef(b.store.ChildRef(id, 0), kind, b.currentBreakTarget, (*ActiveLabel).BreakTarget)
 	case ast.KindContinueStatement:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindContinueStatement(node)
+		b.bindBreakOrContinueStatementRef(b.store.ChildRef(id, 0), kind, b.currentContinueTarget, (*ActiveLabel).ContinueTarget)
 	case ast.KindTryStatement:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindTryStatement(node)
+		b.bindTryStatementRef(id, kind)
 	case ast.KindSwitchStatement:
 		b.bindSwitchStatementRef(id, kind)
 	case ast.KindCaseBlock:
@@ -1864,74 +1878,55 @@ func (b *Binder) bindChildrenRef(id ast.NodeRef, kind ast.Kind) {
 	case ast.KindCaseClause, ast.KindDefaultClause:
 		b.bindCaseOrDefaultClauseRef(id, kind)
 	case ast.KindExpressionStatement:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindExpressionStatement(node)
+		b.bindExpressionStatementRef(id, kind)
 	case ast.KindLabeledStatement:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindLabeledStatement(node)
+		b.bindLabeledStatementRef(id, kind)
 	case ast.KindPrefixUnaryExpression:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindPrefixUnaryExpressionFlow(node)
+		b.bindPrefixUnaryExpressionFlowRef(id, kind)
 	case ast.KindPostfixUnaryExpression:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindPostfixUnaryExpressionFlow(node)
+		b.bindPostfixUnaryExpressionFlowRef(id, kind)
 	case ast.KindBinaryExpression:
-		node := ast.HandleOf(b.store, id, kind)
-		if ast.IsDestructuringAssignment(node) {
+		if b.isDestructuringAssignmentRef(id) {
 			b.inAssignmentPattern = saveInAssignmentPattern
-			b.bindDestructuringAssignmentFlow(node)
+			b.bindDestructuringAssignmentFlowRef(id, kind)
 			return
 		}
-		b.bindBinaryExpressionFlow(node)
+		b.bindBinaryExpressionFlowRef(id, kind)
 	case ast.KindDeleteExpression:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindDeleteExpressionFlow(node)
+		b.bindDeleteExpressionFlowRef(id, kind)
 	case ast.KindConditionalExpression:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindConditionalExpressionFlow(node)
+		b.bindConditionalExpressionFlowRef(id, kind)
 	case ast.KindVariableDeclaration:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindVariableDeclarationFlow(node)
+		b.bindVariableDeclarationFlowRef(id, kind)
 	case ast.KindPropertyAccessExpression, ast.KindElementAccessExpression:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindAccessExpressionFlow(node)
+		b.bindAccessExpressionFlowRef(id, kind)
 	case ast.KindCallExpression:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindCallExpressionFlow(node)
+		b.bindCallExpressionFlowRef(id, kind)
 	case ast.KindNonNullExpression:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindNonNullExpressionFlow(node)
+		b.bindNonNullExpressionFlowRef(id, kind)
 	case ast.KindSourceFile:
 		b.bindFunctionsFirstChildrenGenerated(id, kind)
 	case ast.KindBlock, ast.KindModuleBlock:
 		b.bindFunctionsFirstChildrenGenerated(id, kind)
 	case ast.KindBindingElement:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindBindingElementFlow(node)
+		b.bindBindingElementFlowRef(id, kind)
 	case ast.KindParameter:
-		node := ast.HandleOf(b.store, id, kind)
-		b.bindParameterFlow(node)
+		b.bindParameterFlowRef(id, kind)
 	case ast.KindObjectLiteralExpression, ast.KindArrayLiteralExpression, ast.KindPropertyAssignment, ast.KindSpreadElement:
 		b.inAssignmentPattern = saveInAssignmentPattern
-		b.bindChildrenOf(id, kind)
-	case ast.KindFunctionDeclaration, ast.KindFunctionExpression, ast.KindArrowFunction,
-		ast.KindMethodDeclaration, ast.KindMethodSignature, ast.KindConstructor,
-		ast.KindGetAccessor, ast.KindSetAccessor, ast.KindFunctionType, ast.KindConstructorType,
-		ast.KindCallSignature, ast.KindConstructSignature, ast.KindIndexSignature,
-		ast.KindClassStaticBlockDeclaration:
-		b.bindFunctionLikeChildrenGenerated(id, kind)
+		b.forEachBindChildGenerated(id, kind)
 	default:
-		b.bindChildrenOf(id, kind)
+		b.forEachBindChildGenerated(id, kind)
 	}
 	b.inAssignmentPattern = saveInAssignmentPattern
 }
 func (b *Binder) bindEachChild(node ast.Handle) {
-	b.bindChildrenOf(node.Ref(), node.Kind)
+	b.forEachBindChildGenerated(node.Ref(), node.Kind)
 }
 
 func (b *Binder) bindChildRef(ref ast.NodeRef, parentKind ast.Kind) {
 	if ref != 0 {
-		b.bindKind(ref, b.store.KindAt(ref), parentKind)
+		b.bindN(bindNode{ref: ref, kind: b.store.KindAt(ref)}, parentKind)
 	}
 }
 
@@ -2037,36 +2032,42 @@ func (b *Binder) bindEachStatementFunctionsFirstRef(list ast.ListRef, parentKind
 	}
 }
 func (b *Binder) setContinueTarget(node ast.Handle, target *ast.FlowLabel) *ast.FlowLabel {
+	return b.setContinueTargetRef(node.Ref(), target)
+}
+
+func (b *Binder) setContinueTargetRef(ref ast.NodeRef, target *ast.FlowLabel) *ast.FlowLabel {
 	label := b.activeLabelList
-	for label != nil && node.Parent().Kind == ast.KindLabeledStatement {
+	parent := b.store.ParentRef(ref)
+	for label != nil && parent != 0 && b.store.KindAt(parent) == ast.KindLabeledStatement {
 		label.continueTarget = target
 		label = label.next
-		node = node.Parent()
+		ref = parent
+		parent = b.store.ParentRef(ref)
 	}
 	return target
 }
-func (b *Binder) doWithConditionalBranches(action func(b *Binder, value ast.Handle) bool, value ast.Handle, trueTarget *ast.FlowLabel, falseTarget *ast.FlowLabel) {
+func (b *Binder) doWithConditionalBranches(action func(b *Binder, value ast.Handle, parentKind ast.Kind) bool, value ast.Handle, parentKind ast.Kind, trueTarget *ast.FlowLabel, falseTarget *ast.FlowLabel) {
 	savedTrueTarget := b.currentTrueTarget
 	savedFalseTarget := b.currentFalseTarget
 	b.currentTrueTarget = trueTarget
 	b.currentFalseTarget = falseTarget
-	action(b, value)
+	action(b, value, parentKind)
 	b.currentTrueTarget = savedTrueTarget
 	b.currentFalseTarget = savedFalseTarget
 }
-func (b *Binder) bindCondition(node ast.Handle, trueTarget *ast.FlowLabel, falseTarget *ast.FlowLabel) {
-	b.doWithConditionalBranches((*Binder).bind, node, trueTarget, falseTarget)
+func (b *Binder) bindCondition(node ast.Handle, trueTarget *ast.FlowLabel, falseTarget *ast.FlowLabel, parentKind ast.Kind) {
+	b.doWithConditionalBranches((*Binder).bind, node, parentKind, trueTarget, falseTarget)
 	if node.IsNil() || !isLogicalAssignmentExpression(node) && !ast.IsLogicalExpression(node) && !(ast.IsOptionalChain(node) && ast.IsOutermostOptionalChain(node)) {
 		b.addAntecedent(trueTarget, b.createFlowCondition(ast.FlowFlagsTrueCondition, b.currentFlow, node))
 		b.addAntecedent(falseTarget, b.createFlowCondition(ast.FlowFlagsFalseCondition, b.currentFlow, node))
 	}
 }
-func (b *Binder) bindIterativeStatement(node ast.Handle, breakTarget *ast.FlowLabel, continueTarget *ast.FlowLabel) {
+func (b *Binder) bindIterativeStatement(node ast.Handle, breakTarget *ast.FlowLabel, continueTarget *ast.FlowLabel, parentKind ast.Kind) {
 	saveBreakTarget := b.currentBreakTarget
 	saveContinueTarget := b.currentContinueTarget
 	b.currentBreakTarget = breakTarget
 	b.currentContinueTarget = continueTarget
-	b.bind(node)
+	b.bind(node, parentKind)
 	b.currentBreakTarget = saveBreakTarget
 	b.currentContinueTarget = saveContinueTarget
 }
@@ -2107,96 +2108,167 @@ func (b *Binder) bindDestructuringTargetFlow(node ast.Handle) {
 		b.bindAssignmentTargetFlow(node)
 	}
 }
-func (b *Binder) bindWhileStatement(node ast.Handle) {
-	stmt := node
-	preWhileLabel := b.setContinueTarget(node, b.createLoopLabel())
+func (b *Binder) bindConditionN(n bindNode, trueTarget *ast.FlowLabel, falseTarget *ast.FlowLabel, parentKind ast.Kind) {
+	b.bindCondition(b.payload(n), trueTarget, falseTarget, parentKind)
+}
+
+func (b *Binder) bindIterativeN(n bindNode, breakTarget *ast.FlowLabel, continueTarget *ast.FlowLabel, parentKind ast.Kind) {
+	saveBreakTarget := b.currentBreakTarget
+	saveContinueTarget := b.currentContinueTarget
+	b.currentBreakTarget = breakTarget
+	b.currentContinueTarget = continueTarget
+	b.bindN(n, parentKind)
+	b.currentBreakTarget = saveBreakTarget
+	b.currentContinueTarget = saveContinueTarget
+}
+
+func (b *Binder) bindWhileStatementRef(ref ast.NodeRef, kind ast.Kind) {
+	preWhileLabel := b.setContinueTargetRef(ref, b.createLoopLabel())
 	preBodyLabel := b.createBranchLabel()
 	postWhileLabel := b.createBranchLabel()
 	b.addAntecedent(preWhileLabel, b.currentFlow)
 	b.currentFlow = preWhileLabel
-	b.bindCondition(stmt.Expression(), preBodyLabel, postWhileLabel)
+	b.bindConditionN(b.at(b.expressionRefGenerated(ref, kind)), preBodyLabel, postWhileLabel, kind)
 	b.currentFlow = b.finishFlowLabel(preBodyLabel)
-	b.bindIterativeStatement(stmt.Statement(), postWhileLabel, preWhileLabel)
+	b.bindIterativeN(b.at(b.store.ChildRef(ref, 1)), postWhileLabel, preWhileLabel, kind)
 	b.addAntecedent(preWhileLabel, b.currentFlow)
 	b.currentFlow = b.finishFlowLabel(postWhileLabel)
 }
-func (b *Binder) bindDoStatement(node ast.Handle) {
-	stmt := node
+
+func (b *Binder) bindDoStatementRef(ref ast.NodeRef, kind ast.Kind) {
 	preDoLabel := b.createLoopLabel()
-	preConditionLabel := b.setContinueTarget(node, b.createBranchLabel())
+	preConditionLabel := b.setContinueTargetRef(ref, b.createBranchLabel())
 	postDoLabel := b.createBranchLabel()
 	b.addAntecedent(preDoLabel, b.currentFlow)
 	b.currentFlow = preDoLabel
-	b.bindIterativeStatement(stmt.Statement(), postDoLabel, preConditionLabel)
+	b.bindIterativeN(b.at(b.store.ChildRef(ref, 0)), postDoLabel, preConditionLabel, kind)
 	b.addAntecedent(preConditionLabel, b.currentFlow)
 	b.currentFlow = b.finishFlowLabel(preConditionLabel)
-	b.bindCondition(stmt.Expression(), preDoLabel, postDoLabel)
+	b.bindConditionN(b.at(b.expressionRefGenerated(ref, kind)), preDoLabel, postDoLabel, kind)
 	b.currentFlow = b.finishFlowLabel(postDoLabel)
 }
-func (b *Binder) bindForStatement(node ast.Handle) {
-	stmt := node
-	b.bind(stmt.Initializer())
+
+func (b *Binder) bindForStatementRef(ref ast.NodeRef, kind ast.Kind) {
+	s := b.store
+	b.bindN(b.at(b.initializerRefGenerated(ref, kind)), kind)
 	if b.currentFlow == b.unreachableFlow {
-		b.bind(stmt.ForStatementCondition())
-		b.bind(stmt.Statement())
-		b.bind(stmt.ForStatementIncrementor())
+		b.bindN(b.at(s.ChildRef(ref, 1)), kind)
+		b.bindN(b.at(s.ChildRef(ref, 3)), kind)
+		b.bindN(b.at(s.ChildRef(ref, 2)), kind)
 		return
 	}
-	preLoopLabel := b.setContinueTarget(node, b.createLoopLabel())
+	preLoopLabel := b.setContinueTargetRef(ref, b.createLoopLabel())
 	preBodyLabel := b.createBranchLabel()
 	preIncrementorLabel := b.createBranchLabel()
 	postLoopLabel := b.createBranchLabel()
 	b.addAntecedent(preLoopLabel, b.currentFlow)
 	b.currentFlow = preLoopLabel
-	b.bindCondition(stmt.ForStatementCondition(), preBodyLabel, postLoopLabel)
+	b.bindConditionN(b.at(s.ChildRef(ref, 1)), preBodyLabel, postLoopLabel, kind)
 	b.currentFlow = b.finishFlowLabel(preBodyLabel)
-	b.bindIterativeStatement(stmt.Statement(), postLoopLabel, preIncrementorLabel)
+	b.bindIterativeN(b.at(s.ChildRef(ref, 3)), postLoopLabel, preIncrementorLabel, kind)
 	b.addAntecedent(preIncrementorLabel, b.currentFlow)
 	b.currentFlow = b.finishFlowLabel(preIncrementorLabel)
-	b.bind(stmt.ForStatementIncrementor())
+	b.bindN(b.at(s.ChildRef(ref, 2)), kind)
 	b.addAntecedent(preLoopLabel, b.currentFlow)
 	b.currentFlow = b.finishFlowLabel(postLoopLabel)
 }
-func (b *Binder) bindForInOrForOfStatement(node ast.Handle) {
-	stmt := node
-	b.bind(stmt.Expression())
+
+func (b *Binder) bindForInOrForOfStatementRef(ref ast.NodeRef, kind ast.Kind) {
+	s := b.store
+	b.bindN(b.at(b.expressionRefGenerated(ref, kind)), kind)
 	if b.currentFlow == b.unreachableFlow {
-		b.bind(stmt.Initializer())
-		b.bind(stmt.Statement())
+		b.bindN(b.at(b.initializerRefGenerated(ref, kind)), kind)
+		b.bindN(b.at(s.ChildRef(ref, 3)), kind)
 		return
 	}
-	preLoopLabel := b.setContinueTarget(node, b.createLoopLabel())
+	preLoopLabel := b.setContinueTargetRef(ref, b.createLoopLabel())
 	postLoopLabel := b.createBranchLabel()
 	b.addAntecedent(preLoopLabel, b.currentFlow)
 	b.currentFlow = preLoopLabel
-	if node.Kind == ast.KindForOfStatement {
-		b.bind(stmt.ForInOrOfStatementAwaitModifier())
+	if kind == ast.KindForOfStatement {
+		b.bindN(b.at(s.ChildRef(ref, 0)), kind)
 	}
 	b.addAntecedent(postLoopLabel, b.currentFlow)
-	b.bind(stmt.Initializer())
-	if stmt.Initializer().Kind != ast.KindVariableDeclarationList {
-		b.bindAssignmentTargetFlow(stmt.Initializer())
+	init := b.at(b.initializerRefGenerated(ref, kind))
+	b.bindN(init, kind)
+	if init.kind != ast.KindVariableDeclarationList {
+		b.bindAssignmentTargetFlow(b.payload(init))
 	}
-	b.bindIterativeStatement(stmt.Statement(), postLoopLabel, preLoopLabel)
+	b.bindIterativeN(b.at(s.ChildRef(ref, 3)), postLoopLabel, preLoopLabel, kind)
 	b.addAntecedent(preLoopLabel, b.currentFlow)
 	b.currentFlow = b.finishFlowLabel(postLoopLabel)
 }
-func (b *Binder) bindIfStatement(node ast.Handle) {
-	stmt := node
+
+func (b *Binder) bindIfStatementRef(ref ast.NodeRef, kind ast.Kind) {
+	s := b.store
 	thenLabel := b.createBranchLabel()
 	elseLabel := b.createBranchLabel()
 	postIfLabel := b.createBranchLabel()
-	b.bindCondition(stmt.Expression(), thenLabel, elseLabel)
+	b.bindConditionN(b.at(b.expressionRefGenerated(ref, kind)), thenLabel, elseLabel, kind)
 	b.currentFlow = b.finishFlowLabel(thenLabel)
-	b.bind(stmt.IfStatementThenStatement())
+	b.bindN(b.at(s.ChildRef(ref, 1)), kind)
 	b.addAntecedent(postIfLabel, b.currentFlow)
 	b.currentFlow = b.finishFlowLabel(elseLabel)
-	b.bind(stmt.IfStatementElseStatement())
+	b.bindN(b.at(s.ChildRef(ref, 2)), kind)
 	b.addAntecedent(postIfLabel, b.currentFlow)
 	b.currentFlow = b.finishFlowLabel(postIfLabel)
 }
+
+func (b *Binder) bindExpressionStatementRef(ref ast.NodeRef, kind ast.Kind) {
+	expr := b.at(b.expressionRefGenerated(ref, kind))
+	b.bindN(expr, kind)
+	b.maybeBindExpressionFlowIfCall(b.payload(expr))
+}
+
+func (b *Binder) bindLabeledStatementRef(ref ast.NodeRef, kind ast.Kind) {
+	s := b.store
+	label := s.ChildRef(ref, 0)
+	postStatementLabel := b.createBranchLabel()
+	name := ""
+	if label != 0 {
+		name = s.TextAt(label)
+	}
+	b.activeLabelList = &ActiveLabel{next: b.activeLabelList, name: name, breakTarget: postStatementLabel, continueTarget: nil, referenced: false}
+	b.bindChildRef(label, kind)
+	b.bindChildRef(s.ChildRef(ref, 1), kind)
+	if !b.activeLabelList.referenced && label != 0 {
+		s.SetFlagsAt(label, s.FlagsAt(label)|ast.NodeFlagsUnreachable)
+	}
+	b.activeLabelList = b.activeLabelList.next
+	b.addAntecedent(postStatementLabel, b.currentFlow)
+	b.currentFlow = b.finishFlowLabel(postStatementLabel)
+}
+
+func (b *Binder) bindBreakOrContinueStatementRef(label ast.NodeRef, parentKind ast.Kind, currentTarget *ast.FlowNode, getTarget func(*ActiveLabel) *ast.FlowNode) {
+	b.bindChildRef(label, parentKind)
+	if label != 0 {
+		activeLabel := b.findActiveLabel(b.store.TextAt(label))
+		if activeLabel != nil {
+			activeLabel.referenced = true
+			b.bindBreakOrContinueFlow(getTarget(activeLabel))
+		}
+	} else {
+		b.bindBreakOrContinueFlow(currentTarget)
+	}
+}
+
+func (b *Binder) bindWhileStatement(node ast.Handle) {
+	b.bindWhileStatementRef(node.Ref(), node.Kind)
+}
+func (b *Binder) bindDoStatement(node ast.Handle) {
+	b.bindDoStatementRef(node.Ref(), node.Kind)
+}
+func (b *Binder) bindForStatement(node ast.Handle) {
+	b.bindForStatementRef(node.Ref(), node.Kind)
+}
+func (b *Binder) bindForInOrForOfStatement(node ast.Handle) {
+	b.bindForInOrForOfStatementRef(node.Ref(), node.Kind)
+}
+func (b *Binder) bindIfStatement(node ast.Handle) {
+	b.bindIfStatementRef(node.Ref(), node.Kind)
+}
 func (b *Binder) bindReturnStatement(node ast.Handle) {
-	b.bind(node.Expression())
+	b.bind(node.Expression(), node.Kind)
 	if b.currentReturnTarget != nil {
 		b.addAntecedent(b.currentReturnTarget, b.currentFlow)
 	}
@@ -2216,7 +2288,7 @@ func (b *Binder) bindReturnStatementRef(ref ast.NodeRef, kind ast.Kind) {
 }
 
 func (b *Binder) bindThrowStatement(node ast.Handle) {
-	b.bind(node.Expression())
+	b.bind(node.Expression(), node.Kind)
 	b.currentFlow = b.unreachableFlow
 	b.hasFlowEffects = true
 }
@@ -2227,13 +2299,13 @@ func (b *Binder) bindThrowStatementRef(ref ast.NodeRef, kind ast.Kind) {
 	b.hasFlowEffects = true
 }
 func (b *Binder) bindBreakStatement(node ast.Handle) {
-	b.bindBreakOrContinueStatement(node.Label(), b.currentBreakTarget, (*ActiveLabel).BreakTarget)
+	b.bindBreakOrContinueStatement(node.Label(), node.Kind, b.currentBreakTarget, (*ActiveLabel).BreakTarget)
 }
 func (b *Binder) bindContinueStatement(node ast.Handle) {
-	b.bindBreakOrContinueStatement(node.Label(), b.currentContinueTarget, (*ActiveLabel).ContinueTarget)
+	b.bindBreakOrContinueStatement(node.Label(), node.Kind, b.currentContinueTarget, (*ActiveLabel).ContinueTarget)
 }
-func (b *Binder) bindBreakOrContinueStatement(label ast.Handle, currentTarget *ast.FlowNode, getTarget func(*ActiveLabel) *ast.FlowNode) {
-	b.bind(label)
+func (b *Binder) bindBreakOrContinueStatement(label ast.Handle, parentKind ast.Kind, currentTarget *ast.FlowNode, getTarget func(*ActiveLabel) *ast.FlowNode) {
+	b.bind(label, parentKind)
 	if !label.IsNil() {
 		activeLabel := b.findActiveLabel(label.Text())
 		if activeLabel != nil {
@@ -2260,34 +2332,41 @@ func (b *Binder) bindBreakOrContinueFlow(flowLabel *ast.FlowLabel) {
 	}
 }
 func (b *Binder) bindTryStatement(node ast.Handle) {
-	stmt := node
+	b.bindTryStatementRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindTryStatementRef(ref ast.NodeRef, kind ast.Kind) {
+	s := b.store
+	tryBlock := s.ChildRef(ref, 0)
+	catchClause := s.ChildRef(ref, 1)
+	finallyBlock := s.ChildRef(ref, 2)
 	saveReturnTarget := b.currentReturnTarget
 	saveExceptionTarget := b.currentExceptionTarget
 	normalExitLabel := b.createBranchLabel()
 	returnLabel := b.createBranchLabel()
 	exceptionLabel := b.createBranchLabel()
-	if !stmt.TryStatementFinallyBlock().IsNil() {
+	if finallyBlock != 0 {
 		b.currentReturnTarget = returnLabel
 	}
 	b.addAntecedent(exceptionLabel, b.currentFlow)
 	b.currentExceptionTarget = exceptionLabel
-	b.bind(stmt.TryStatementTryBlock())
+	b.bindN(b.at(tryBlock), kind)
 	b.addAntecedent(normalExitLabel, b.currentFlow)
-	if !stmt.TryStatementCatchClause().IsNil() {
+	if catchClause != 0 {
 		b.currentFlow = b.finishFlowLabel(exceptionLabel)
 		exceptionLabel = b.createBranchLabel()
 		b.addAntecedent(exceptionLabel, b.currentFlow)
 		b.currentExceptionTarget = exceptionLabel
-		b.bind(stmt.TryStatementCatchClause())
+		b.bindN(b.at(catchClause), kind)
 		b.addAntecedent(normalExitLabel, b.currentFlow)
 	}
 	b.currentReturnTarget = saveReturnTarget
 	b.currentExceptionTarget = saveExceptionTarget
-	if !stmt.TryStatementFinallyBlock().IsNil() {
+	if finallyBlock != 0 {
 		finallyLabel := b.createBranchLabel()
 		finallyLabel.Antecedents = b.combineFlowLists(normalExitLabel.Antecedents, b.combineFlowLists(exceptionLabel.Antecedents, returnLabel.Antecedents))
 		b.currentFlow = finallyLabel
-		b.bind(stmt.TryStatementFinallyBlock())
+		b.bindN(b.at(finallyBlock), kind)
 		if b.currentFlow.Flags&ast.FlowFlagsUnreachable != 0 {
 			b.currentFlow = b.unreachableFlow
 		} else {
@@ -2310,12 +2389,12 @@ func (b *Binder) bindTryStatement(node ast.Handle) {
 func (b *Binder) bindSwitchStatement(node ast.Handle) {
 	stmt := node
 	postSwitchLabel := b.createBranchLabel()
-	b.bind(stmt.Expression())
+	b.bind(stmt.Expression(), node.Kind)
 	saveBreakTarget := b.currentBreakTarget
 	savePreSwitchCaseFlow := b.preSwitchCaseFlow
 	b.currentBreakTarget = postSwitchLabel
 	b.preSwitchCaseFlow = b.currentFlow
-	b.bind(stmt.SwitchStatementCaseBlock())
+	b.bind(stmt.SwitchStatementCaseBlock(), node.Kind)
 	b.addAntecedent(postSwitchLabel, b.currentFlow)
 	hasDefault := false
 	eachList(stmt.SwitchStatementCaseBlock(), stmt.SwitchStatementCaseBlock().CaseBlockClauses(), func(c ast.Handle) {
@@ -2371,7 +2450,7 @@ func (b *Binder) bindCaseBlock(node ast.Handle) {
 			if fallthroughFlow == b.unreachableFlow {
 				b.currentFlow = b.preSwitchCaseFlow
 			}
-			b.bind(s.ListAt(clauses, i))
+			b.bind(s.ListAt(clauses, i), node.Kind)
 			i++
 		}
 		preCaseLabel := b.createBranchLabel()
@@ -2383,7 +2462,7 @@ func (b *Binder) bindCaseBlock(node ast.Handle) {
 		b.addAntecedent(preCaseLabel, fallthroughFlow)
 		b.currentFlow = b.finishFlowLabel(preCaseLabel)
 		clause := s.ListAt(clauses, i)
-		b.bind(clause)
+		b.bind(clause, node.Kind)
 		fallthroughFlow = b.currentFlow
 		if b.currentFlow.Flags&ast.FlowFlagsUnreachable == 0 && i != n-1 {
 			clause.SetEndFlowNode(b.currentFlow)
@@ -2431,7 +2510,7 @@ func (b *Binder) bindCaseOrDefaultClause(node ast.Handle) {
 	if !clause.Expression().IsNil() {
 		saveCurrentFlow := b.currentFlow
 		b.currentFlow = b.preSwitchCaseFlow
-		b.bind(clause.Expression())
+		b.bind(clause.Expression(), node.Kind)
 		b.currentFlow = saveCurrentFlow
 	}
 	b.bindList(clause, clause.StatementList())
@@ -2448,84 +2527,157 @@ func (b *Binder) bindCaseOrDefaultClauseRef(ref ast.NodeRef, kind ast.Kind) {
 }
 
 func (b *Binder) bindExpressionStatement(node ast.Handle) {
-	stmt := node
-	b.bind(stmt.Expression())
-	b.maybeBindExpressionFlowIfCall(stmt.Expression())
+	b.bindExpressionStatementRef(node.Ref(), node.Kind)
 }
 
 func (b *Binder) maybeBindExpressionFlowIfCall(node ast.Handle) {
-	if ast.IsCallExpression(node) {
-		if node.Expression().Kind != ast.KindSuperKeyword && ast.IsDottedName(node.Expression()) {
-			b.currentFlow = b.createFlowCall(b.currentFlow, node)
+	b.maybeBindExpressionFlowIfCallN(bindNode{ref: node.Ref(), kind: node.Kind})
+}
+
+func (b *Binder) maybeBindExpressionFlowIfCallN(n bindNode) {
+	if n.kind != ast.KindCallExpression {
+		return
+	}
+	expr := b.skipParenthesesRef(b.expressionRefGenerated(n.ref, n.kind))
+	if expr == 0 {
+		return
+	}
+	exprKind := b.store.KindAt(expr)
+	if exprKind != ast.KindSuperKeyword && ast.IsDottedName(b.payload(bindNode{ref: expr, kind: exprKind})) {
+		b.currentFlow = b.createFlowCall(b.currentFlow, b.payload(n))
+	}
+}
+
+func (b *Binder) skipParenthesesRef(ref ast.NodeRef) ast.NodeRef {
+	for ref != 0 && b.store.KindAt(ref) == ast.KindParenthesizedExpression {
+		ref = b.store.ChildRef(ref, 0)
+	}
+	return ref
+}
+
+func (b *Binder) bindLabeledStatement(node ast.Handle) {
+	b.bindLabeledStatementRef(node.Ref(), node.Kind)
+}
+func (b *Binder) unaryOperatorAt(ref ast.NodeRef) ast.Kind {
+	return ast.Kind(b.store.UintValueAt(ref, 0))
+}
+
+func (b *Binder) binaryOperatorKindAt(ref ast.NodeRef) ast.Kind {
+	op := b.store.ChildRef(ref, 2)
+	if op == 0 {
+		return ast.KindUnknown
+	}
+	return b.store.KindAt(op)
+}
+
+func (b *Binder) isDestructuringAssignmentRef(ref ast.NodeRef) bool {
+	if b.binaryOperatorKindAt(ref) != ast.KindEqualsToken {
+		return false
+	}
+	leftKind := b.store.KindAt(b.store.ChildRef(ref, 0))
+	return leftKind == ast.KindObjectLiteralExpression || leftKind == ast.KindArrayLiteralExpression
+}
+
+func (b *Binder) isOptionalChainRef(ref ast.NodeRef, kind ast.Kind) bool {
+	if b.store.FlagsAt(ref)&ast.NodeFlagsOptionalChain == 0 {
+		return false
+	}
+	switch kind {
+	case ast.KindPropertyAccessExpression, ast.KindElementAccessExpression, ast.KindCallExpression, ast.KindNonNullExpression:
+		return true
+	}
+	return false
+}
+
+func (b *Binder) isOptionalChainRootRef(ref ast.NodeRef, kind ast.Kind) bool {
+	return b.isOptionalChainRef(ref, kind) && kind != ast.KindNonNullExpression && b.store.ChildRef(ref, 1) != 0
+}
+
+func (b *Binder) isOutermostOptionalChainRef(ref ast.NodeRef, kind ast.Kind) bool {
+	parent := b.store.ParentRef(ref)
+	if parent == 0 {
+		return true
+	}
+	parentKind := b.store.KindAt(parent)
+	return !b.isOptionalChainRef(parent, parentKind) || b.isOptionalChainRootRef(parent, parentKind) || ref != b.expressionRefGenerated(parent, parentKind)
+}
+
+func (b *Binder) bindPrefixUnaryExpressionFlow(node ast.Handle) {
+	b.bindPrefixUnaryExpressionFlowRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindPrefixUnaryExpressionFlowRef(ref ast.NodeRef, kind ast.Kind) {
+	operator := b.unaryOperatorAt(ref)
+	if operator == ast.KindExclamationToken {
+		saveTrueTarget := b.currentTrueTarget
+		b.currentTrueTarget = b.currentFalseTarget
+		b.currentFalseTarget = saveTrueTarget
+		b.forEachBindChildGenerated(ref, kind)
+		b.currentFalseTarget = b.currentTrueTarget
+		b.currentTrueTarget = saveTrueTarget
+	} else {
+		b.forEachBindChildGenerated(ref, kind)
+		if operator == ast.KindPlusPlusToken || operator == ast.KindMinusMinusToken {
+			b.bindAssignmentTargetFlow(b.payload(b.at(b.store.ChildRef(ref, 0))))
 		}
 	}
 }
 
-func (b *Binder) bindLabeledStatement(node ast.Handle) {
-	stmt := node
-	postStatementLabel := b.createBranchLabel()
-	b.activeLabelList = &ActiveLabel{next: b.activeLabelList, name: stmt.Label().Text(), breakTarget: postStatementLabel, continueTarget: nil, referenced: false}
-	b.bind(stmt.Label())
-	b.bind(stmt.Statement())
-	if !b.activeLabelList.referenced {
-		stmt.Label().SetFlags(stmt.Label().Flags() | ast.NodeFlagsUnreachable)
-	}
-	b.activeLabelList = b.activeLabelList.next
-	b.addAntecedent(postStatementLabel, b.currentFlow)
-	b.currentFlow = b.finishFlowLabel(postStatementLabel)
-}
-func (b *Binder) bindPrefixUnaryExpressionFlow(node ast.Handle) {
-	expr := node
-	if expr.PrefixUnaryExpressionOperator() == ast.KindExclamationToken {
-		saveTrueTarget := b.currentTrueTarget
-		b.currentTrueTarget = b.currentFalseTarget
-		b.currentFalseTarget = saveTrueTarget
-		b.bindEachChild(node)
-		b.currentFalseTarget = b.currentTrueTarget
-		b.currentTrueTarget = saveTrueTarget
-	} else {
-		b.bindEachChild(node)
-		if expr.PrefixUnaryExpressionOperator() == ast.KindPlusPlusToken || expr.PrefixUnaryExpressionOperator() == ast.KindMinusMinusToken {
-			b.bindAssignmentTargetFlow(expr.PrefixUnaryExpressionOperand())
-		}
-	}
-}
 func (b *Binder) bindPostfixUnaryExpressionFlow(node ast.Handle) {
-	expr := node
-	b.bindEachChild(node)
-	if expr.PrefixUnaryExpressionOperator() == ast.KindPlusPlusToken || expr.PrefixUnaryExpressionOperator() == ast.KindMinusMinusToken {
-		b.bindAssignmentTargetFlow(expr.PrefixUnaryExpressionOperand())
+	b.bindPostfixUnaryExpressionFlowRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindPostfixUnaryExpressionFlowRef(ref ast.NodeRef, kind ast.Kind) {
+	b.forEachBindChildGenerated(ref, kind)
+	operator := b.unaryOperatorAt(ref)
+	if operator == ast.KindPlusPlusToken || operator == ast.KindMinusMinusToken {
+		b.bindAssignmentTargetFlow(b.payload(b.at(b.store.ChildRef(ref, 0))))
 	}
 }
+
 func (b *Binder) bindDestructuringAssignmentFlow(node ast.Handle) {
-	expr := node
+	b.bindDestructuringAssignmentFlowRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindDestructuringAssignmentFlowRef(ref ast.NodeRef, kind ast.Kind) {
+	s := b.store
+	left := b.at(s.ChildRef(ref, 0))
+	typeNode := b.at(s.ChildRef(ref, 1))
+	operator := b.at(s.ChildRef(ref, 2))
+	right := b.at(s.ChildRef(ref, 3))
 	if b.inAssignmentPattern {
 		b.inAssignmentPattern = false
-		b.bind(expr.Operator())
-		b.bind(expr.Right())
+		b.bindN(operator, kind)
+		b.bindN(right, kind)
 		b.inAssignmentPattern = true
-		b.bind(expr.Left())
-		b.bind(expr.Type())
+		b.bindN(left, kind)
+		b.bindN(typeNode, kind)
 	} else {
 		b.inAssignmentPattern = true
-		b.bind(expr.Left())
-		b.bind(expr.Type())
+		b.bindN(left, kind)
+		b.bindN(typeNode, kind)
 		b.inAssignmentPattern = false
-		b.bind(expr.Operator())
-		b.bind(expr.Right())
+		b.bindN(operator, kind)
+		b.bindN(right, kind)
 	}
-	b.bindAssignmentTargetFlow(expr.Left())
+	b.bindAssignmentTargetFlow(b.payload(left))
 }
+
 func (b *Binder) bindBinaryExpressionFlow(node ast.Handle) {
-	expr := node
-	operator := expr.Operator().Kind
+	b.bindBinaryExpressionFlowRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindBinaryExpressionFlowRef(ref ast.NodeRef, kind ast.Kind) {
+	s := b.store
+	operator := b.binaryOperatorKindAt(ref)
 	if ast.IsLogicalOrCoalescingBinaryOperator(operator) || ast.IsLogicalOrCoalescingAssignmentOperator(operator) {
+		node := b.payload(bindNode{ref: ref, kind: kind})
 		if isTopLevelLogicalExpression(node) {
 			postExpressionLabel := b.createBranchLabel()
 			saveCurrentFlow := b.currentFlow
 			saveHasFlowEffects := b.hasFlowEffects
 			b.hasFlowEffects = false
-			b.bindLogicalLikeExpression(node, postExpressionLabel, postExpressionLabel)
+			b.bindLogicalLikeExpressionRef(ref, kind, postExpressionLabel, postExpressionLabel)
 			if b.hasFlowEffects {
 				b.currentFlow = b.finishFlowLabel(postExpressionLabel)
 			} else {
@@ -2533,72 +2685,94 @@ func (b *Binder) bindBinaryExpressionFlow(node ast.Handle) {
 			}
 			b.hasFlowEffects = b.hasFlowEffects || saveHasFlowEffects
 		} else {
-			b.bindLogicalLikeExpression(node, b.currentTrueTarget, b.currentFalseTarget)
+			b.bindLogicalLikeExpressionRef(ref, kind, b.currentTrueTarget, b.currentFalseTarget)
 		}
 	} else {
-		b.bind(expr.Left())
-		b.bind(expr.Type())
+		left := b.at(s.ChildRef(ref, 0))
+		b.bindN(left, kind)
+		b.bindN(b.at(s.ChildRef(ref, 1)), kind)
 		if operator == ast.KindCommaToken {
-			b.maybeBindExpressionFlowIfCall(expr.Left())
+			b.maybeBindExpressionFlowIfCallN(left)
 		}
-		b.bind(expr.Operator())
-		b.bind(expr.Right())
+		b.bindN(b.at(s.ChildRef(ref, 2)), kind)
+		right := b.at(s.ChildRef(ref, 3))
+		b.bindN(right, kind)
 		if operator == ast.KindCommaToken {
-			b.maybeBindExpressionFlowIfCall(expr.Right())
+			b.maybeBindExpressionFlowIfCallN(right)
 		}
-		if ast.IsAssignmentOperator(operator) && !ast.IsAssignmentTarget(node) {
-			b.bindAssignmentTargetFlow(expr.Left())
-			if operator == ast.KindEqualsToken && expr.Left().Kind == ast.KindElementAccessExpression {
-				elementAccess := expr.Left()
-				if isNarrowableOperand(elementAccess.Expression()) {
-					b.currentFlow = b.createFlowMutation(ast.FlowFlagsArrayMutation, b.currentFlow, node)
+		if ast.IsAssignmentOperator(operator) && !ast.IsAssignmentTarget(b.payload(bindNode{ref: ref, kind: kind})) {
+			b.bindAssignmentTargetFlow(b.payload(left))
+			if operator == ast.KindEqualsToken && left.kind == ast.KindElementAccessExpression {
+				if isNarrowableOperand(b.payload(b.at(b.expressionRefGenerated(left.ref, left.kind)))) {
+					b.currentFlow = b.createFlowMutation(ast.FlowFlagsArrayMutation, b.currentFlow, b.payload(bindNode{ref: ref, kind: kind}))
 				}
 			}
 		}
 	}
 }
-func (b *Binder) bindLogicalLikeExpression(node ast.Handle, trueTarget *ast.FlowLabel, falseTarget *ast.FlowLabel) {
-	expr := node
+
+func (b *Binder) bindLogicalLikeExpressionRef(ref ast.NodeRef, kind ast.Kind, trueTarget *ast.FlowLabel, falseTarget *ast.FlowLabel) {
+	s := b.store
+	left := b.at(s.ChildRef(ref, 0))
+	operator := b.at(s.ChildRef(ref, 2))
+	right := b.at(s.ChildRef(ref, 3))
 	preRightLabel := b.createBranchLabel()
-	if expr.Operator().Kind == ast.KindAmpersandAmpersandToken || expr.Operator().Kind == ast.KindAmpersandAmpersandEqualsToken {
-		b.bindCondition(expr.Left(), preRightLabel, falseTarget)
+	if operator.kind == ast.KindAmpersandAmpersandToken || operator.kind == ast.KindAmpersandAmpersandEqualsToken {
+		b.bindConditionN(left, preRightLabel, falseTarget, kind)
 	} else {
-		b.bindCondition(expr.Left(), trueTarget, preRightLabel)
+		b.bindConditionN(left, trueTarget, preRightLabel, kind)
 	}
 	b.currentFlow = b.finishFlowLabel(preRightLabel)
-	b.bind(expr.Operator())
-	if ast.IsLogicalOrCoalescingAssignmentOperator(expr.Operator().Kind) {
-		b.doWithConditionalBranches((*Binder).bind, expr.Right(), trueTarget, falseTarget)
-		b.bindAssignmentTargetFlow(expr.Left())
+	b.bindN(operator, kind)
+	if ast.IsLogicalOrCoalescingAssignmentOperator(operator.kind) {
+		savedTrueTarget := b.currentTrueTarget
+		savedFalseTarget := b.currentFalseTarget
+		b.currentTrueTarget = trueTarget
+		b.currentFalseTarget = falseTarget
+		b.bindN(right, kind)
+		b.currentTrueTarget = savedTrueTarget
+		b.currentFalseTarget = savedFalseTarget
+		b.bindAssignmentTargetFlow(b.payload(left))
+		node := b.payload(bindNode{ref: ref, kind: kind})
 		b.addAntecedent(trueTarget, b.createFlowCondition(ast.FlowFlagsTrueCondition, b.currentFlow, node))
 		b.addAntecedent(falseTarget, b.createFlowCondition(ast.FlowFlagsFalseCondition, b.currentFlow, node))
 	} else {
-		b.bindCondition(expr.Right(), trueTarget, falseTarget)
+		b.bindConditionN(right, trueTarget, falseTarget, kind)
 	}
 }
+
 func (b *Binder) bindDeleteExpressionFlow(node ast.Handle) {
-	expr := node
-	b.bindEachChild(node)
-	if expr.Expression().Kind == ast.KindPropertyAccessExpression {
-		b.bindAssignmentTargetFlow(expr.Expression())
+	b.bindDeleteExpressionFlowRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindDeleteExpressionFlowRef(ref ast.NodeRef, kind ast.Kind) {
+	b.forEachBindChildGenerated(ref, kind)
+	expr := b.at(b.expressionRefGenerated(ref, kind))
+	if expr.kind == ast.KindPropertyAccessExpression {
+		b.bindAssignmentTargetFlow(b.payload(expr))
 	}
 }
+
 func (b *Binder) bindConditionalExpressionFlow(node ast.Handle) {
-	expr := node
+	b.bindConditionalExpressionFlowRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindConditionalExpressionFlowRef(ref ast.NodeRef, kind ast.Kind) {
+	s := b.store
 	trueLabel := b.createBranchLabel()
 	falseLabel := b.createBranchLabel()
 	postExpressionLabel := b.createBranchLabel()
 	saveCurrentFlow := b.currentFlow
 	saveHasFlowEffects := b.hasFlowEffects
 	b.hasFlowEffects = false
-	b.bindCondition(expr.ConditionalExpressionCondition(), trueLabel, falseLabel)
+	b.bindConditionN(b.at(s.ChildRef(ref, 0)), trueLabel, falseLabel, kind)
 	b.currentFlow = b.finishFlowLabel(trueLabel)
-	b.bind(expr.ConditionalExpressionQuestionToken())
-	b.bind(expr.ConditionalExpressionWhenTrue())
+	b.bindN(b.at(s.ChildRef(ref, 1)), kind)
+	b.bindN(b.at(s.ChildRef(ref, 2)), kind)
 	b.addAntecedent(postExpressionLabel, b.currentFlow)
 	b.currentFlow = b.finishFlowLabel(falseLabel)
-	b.bind(expr.ConditionalExpressionColonToken())
-	b.bind(expr.ConditionalExpressionWhenFalse())
+	b.bindN(b.at(s.ChildRef(ref, 3)), kind)
+	b.bindN(b.at(s.ChildRef(ref, 4)), kind)
 	b.addAntecedent(postExpressionLabel, b.currentFlow)
 	if b.hasFlowEffects {
 		b.currentFlow = b.finishFlowLabel(postExpressionLabel)
@@ -2607,41 +2781,70 @@ func (b *Binder) bindConditionalExpressionFlow(node ast.Handle) {
 	}
 	b.hasFlowEffects = b.hasFlowEffects || saveHasFlowEffects
 }
+
 func (b *Binder) bindVariableDeclarationFlow(node ast.Handle) {
-	b.bindEachChild(node)
-	if !node.Initializer().IsNil() || ast.IsForInOrOfStatement(node.Parent().Parent()) {
-		b.bindInitializedVariableFlow(node)
+	b.bindVariableDeclarationFlowRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindVariableDeclarationFlowRef(ref ast.NodeRef, kind ast.Kind) {
+	b.forEachBindChildGenerated(ref, kind)
+	initializer := b.initializerRefGenerated(ref, kind)
+	grandparent := b.store.ParentRef(b.store.ParentRef(ref))
+	grandparentKind := ast.KindUnknown
+	if grandparent != 0 {
+		grandparentKind = b.store.KindAt(grandparent)
+	}
+	if initializer != 0 || grandparentKind == ast.KindForInStatement || grandparentKind == ast.KindForOfStatement {
+		b.bindInitializedVariableFlowRef(ref, kind)
 	}
 }
+
 func (b *Binder) bindInitializedVariableFlow(node ast.Handle) {
-	var name ast.Handle
-	switch node.Kind {
-	case ast.KindVariableDeclaration:
-		name = node.VariableDeclarationName()
-	case ast.KindBindingElement:
-		name = node.BindingElementName()
+	b.bindInitializedVariableFlowRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindInitializedVariableFlowRef(ref ast.NodeRef, kind ast.Kind) {
+	name := b.nameRefGenerated(ref, kind)
+	nameKind := ast.KindUnknown
+	if name != 0 {
+		nameKind = b.store.KindAt(name)
 	}
-	if !name.IsNil() && ast.IsBindingPattern(name) {
-		eachList(name, name.ElementList(), func(child ast.Handle) {
-			b.bindInitializedVariableFlow(child)
-		})
+	if name != 0 && isBindingPatternKind(nameKind) {
+		elems := b.store.ListSlotAt(name, 0)
+		n := b.store.ListLen(elems)
+		for i := 0; i < n; i++ {
+			child := b.store.ListElem(elems, i)
+			if child != 0 {
+				b.bindInitializedVariableFlowRef(child, b.store.KindAt(child))
+			}
+		}
 	} else {
-		b.currentFlow = b.createFlowMutation(ast.FlowFlagsAssignment, b.currentFlow, node)
+		b.currentFlow = b.createFlowMutation(ast.FlowFlagsAssignment, b.currentFlow, b.payload(bindNode{ref: ref, kind: kind}))
 	}
 }
+
 func (b *Binder) bindAccessExpressionFlow(node ast.Handle) {
-	if ast.IsOptionalChain(node) {
-		b.bindOptionalChainFlow(node)
+	b.bindAccessExpressionFlowRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindAccessExpressionFlowRef(ref ast.NodeRef, kind ast.Kind) {
+	if b.isOptionalChainRef(ref, kind) {
+		b.bindOptionalChainFlowRef(ref, kind)
 	} else {
-		b.bindEachChild(node)
+		b.forEachBindChildGenerated(ref, kind)
 	}
 }
+
 func (b *Binder) bindOptionalChainFlow(node ast.Handle) {
-	if isTopLevelLogicalExpression(node) {
+	b.bindOptionalChainFlowRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindOptionalChainFlowRef(ref ast.NodeRef, kind ast.Kind) {
+	if isTopLevelLogicalExpression(b.payload(bindNode{ref: ref, kind: kind})) {
 		postExpressionLabel := b.createBranchLabel()
 		saveCurrentFlow := b.currentFlow
 		saveHasFlowEffects := b.hasFlowEffects
-		b.bindOptionalChain(node, postExpressionLabel, postExpressionLabel)
+		b.bindOptionalChainRef(ref, kind, postExpressionLabel, postExpressionLabel)
 		if b.hasFlowEffects {
 			b.currentFlow = b.finishFlowLabel(postExpressionLabel)
 		} else {
@@ -2649,100 +2852,156 @@ func (b *Binder) bindOptionalChainFlow(node ast.Handle) {
 		}
 		b.hasFlowEffects = b.hasFlowEffects || saveHasFlowEffects
 	} else {
-		b.bindOptionalChain(node, b.currentTrueTarget, b.currentFalseTarget)
+		b.bindOptionalChainRef(ref, kind, b.currentTrueTarget, b.currentFalseTarget)
 	}
 }
-func (b *Binder) bindOptionalChain(node ast.Handle, trueTarget *ast.FlowLabel, falseTarget *ast.FlowLabel) {
+
+func (b *Binder) bindOptionalChainRef(ref ast.NodeRef, kind ast.Kind, trueTarget *ast.FlowLabel, falseTarget *ast.FlowLabel) {
 	var preChainLabel *ast.FlowLabel
-	if ast.IsOptionalChainRoot(node) {
+	if b.isOptionalChainRootRef(ref, kind) {
 		preChainLabel = b.createBranchLabel()
 	}
-	b.bindOptionalExpression(node.Expression(), core.IfElse(preChainLabel != nil, preChainLabel, trueTarget), falseTarget)
+	exprTrue := trueTarget
+	if preChainLabel != nil {
+		exprTrue = preChainLabel
+	}
+	b.bindOptionalExpressionN(b.at(b.expressionRefGenerated(ref, kind)), exprTrue, falseTarget, kind)
 	if preChainLabel != nil {
 		b.currentFlow = b.finishFlowLabel(preChainLabel)
 	}
-	b.doWithConditionalBranches((*Binder).bindOptionalChainRest, node, trueTarget, falseTarget)
-	if ast.IsOutermostOptionalChain(node) {
+	savedTrueTarget := b.currentTrueTarget
+	savedFalseTarget := b.currentFalseTarget
+	b.currentTrueTarget = trueTarget
+	b.currentFalseTarget = falseTarget
+	b.bindOptionalChainRestRef(ref, kind)
+	b.currentTrueTarget = savedTrueTarget
+	b.currentFalseTarget = savedFalseTarget
+	if b.isOutermostOptionalChainRef(ref, kind) {
+		node := b.payload(bindNode{ref: ref, kind: kind})
 		b.addAntecedent(trueTarget, b.createFlowCondition(ast.FlowFlagsTrueCondition, b.currentFlow, node))
 		b.addAntecedent(falseTarget, b.createFlowCondition(ast.FlowFlagsFalseCondition, b.currentFlow, node))
 	}
 }
-func (b *Binder) bindOptionalExpression(node ast.Handle, trueTarget *ast.FlowLabel, falseTarget *ast.FlowLabel) {
-	b.doWithConditionalBranches((*Binder).bind, node, trueTarget, falseTarget)
-	if !ast.IsOptionalChain(node) || ast.IsOutermostOptionalChain(node) {
+
+func (b *Binder) bindOptionalExpressionN(n bindNode, trueTarget *ast.FlowLabel, falseTarget *ast.FlowLabel, parentKind ast.Kind) {
+	if n.ref == 0 {
+		return
+	}
+	savedTrueTarget := b.currentTrueTarget
+	savedFalseTarget := b.currentFalseTarget
+	b.currentTrueTarget = trueTarget
+	b.currentFalseTarget = falseTarget
+	b.bindN(n, parentKind)
+	b.currentTrueTarget = savedTrueTarget
+	b.currentFalseTarget = savedFalseTarget
+	if !b.isOptionalChainRef(n.ref, n.kind) || b.isOutermostOptionalChainRef(n.ref, n.kind) {
+		node := b.payload(n)
 		b.addAntecedent(trueTarget, b.createFlowCondition(ast.FlowFlagsTrueCondition, b.currentFlow, node))
 		b.addAntecedent(falseTarget, b.createFlowCondition(ast.FlowFlagsFalseCondition, b.currentFlow, node))
 	}
 }
-func (b *Binder) bindOptionalChainRest(node ast.Handle) bool {
-	switch node.Kind {
+
+func (b *Binder) bindOptionalChainRestRef(ref ast.NodeRef, kind ast.Kind) {
+	s := b.store
+	switch kind {
 	case ast.KindPropertyAccessExpression:
-		b.bind(node.QuestionDotToken())
-		b.bind(node.Name())
+		b.bindN(b.at(s.ChildRef(ref, 1)), kind)
+		b.bindN(b.at(b.nameRefGenerated(ref, kind)), kind)
 	case ast.KindElementAccessExpression:
-		b.bind(node.QuestionDotToken())
-		b.bind(node.ElementAccessExpressionArgumentExpression())
+		b.bindN(b.at(s.ChildRef(ref, 1)), kind)
+		b.bindN(b.at(s.ChildRef(ref, 2)), kind)
 	case ast.KindCallExpression:
-		b.bind(node.QuestionDotToken())
-		b.bindList(node, node.TypeArgumentList())
-		b.bindList(node, node.ArgumentList())
+		b.bindN(b.at(s.ChildRef(ref, 1)), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindListRef(b.argumentsRefGenerated(ref, kind), kind)
 	}
-	return false
 }
+
 func (b *Binder) bindCallExpressionFlow(node ast.Handle) {
-	call := node
-	if ast.IsOptionalChain(node) {
-		b.bindOptionalChainFlow(node)
+	b.bindCallExpressionFlowRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindCallExpressionFlowRef(ref ast.NodeRef, kind ast.Kind) {
+	s := b.store
+	if b.isOptionalChainRef(ref, kind) {
+		b.bindOptionalChainFlowRef(ref, kind)
 	} else {
-		expr := ast.SkipParentheses(call.Expression())
-		if expr.Kind == ast.KindFunctionExpression || expr.Kind == ast.KindArrowFunction {
-			b.bindList(call, call.TypeArgumentList())
-			b.bindList(call, call.ArgumentList())
-			b.bind(call.Expression())
+		exprRef := b.expressionRefGenerated(ref, kind)
+		skippedKind := ast.KindUnknown
+		if skipped := b.skipParenthesesRef(exprRef); skipped != 0 {
+			skippedKind = s.KindAt(skipped)
+		}
+		if skippedKind == ast.KindFunctionExpression || skippedKind == ast.KindArrowFunction {
+			b.bindListRef(s.ListSlotAt(ref, 0), kind)
+			b.bindListRef(b.argumentsRefGenerated(ref, kind), kind)
+			b.bindN(b.at(exprRef), kind)
 		} else {
-			b.bindEachChild(node)
-			if call.Expression().Kind == ast.KindSuperKeyword {
-				b.currentFlow = b.createFlowCall(b.currentFlow, node)
+			b.forEachBindChildGenerated(ref, kind)
+			if exprRef != 0 && s.KindAt(exprRef) == ast.KindSuperKeyword {
+				b.currentFlow = b.createFlowCall(b.currentFlow, b.payload(bindNode{ref: ref, kind: kind}))
 			}
 		}
 	}
-	if ast.IsPropertyAccessExpression(call.Expression()) {
-		access := call.Expression()
-		if ast.IsIdentifier(access.Name()) && isNarrowableOperand(access.Expression()) && ast.IsPushOrUnshiftIdentifier(access.Name()) {
-			b.currentFlow = b.createFlowMutation(ast.FlowFlagsArrayMutation, b.currentFlow, node)
+	access := b.at(b.expressionRefGenerated(ref, kind))
+	if access.kind == ast.KindPropertyAccessExpression {
+		name := b.at(b.nameRefGenerated(access.ref, access.kind))
+		if name.kind == ast.KindIdentifier && isNarrowableOperand(b.payload(b.at(b.expressionRefGenerated(access.ref, access.kind)))) && ast.IsPushOrUnshiftIdentifier(b.payload(name)) {
+			b.currentFlow = b.createFlowMutation(ast.FlowFlagsArrayMutation, b.currentFlow, b.payload(bindNode{ref: ref, kind: kind}))
 		}
 	}
 }
+
 func (b *Binder) bindNonNullExpressionFlow(node ast.Handle) {
-	if ast.IsOptionalChain(node) {
-		b.bindOptionalChainFlow(node)
-	} else {
-		b.bindEachChild(node)
-	}
-}
-func (b *Binder) bindBindingElementFlow(node ast.Handle) {
-	elem := node
-	b.bind(elem.DotDotDotToken())
-	b.bind(elem.PropertyName())
-	b.bindInitializer(elem.Initializer())
-	b.bind(elem.Name())
-}
-func (b *Binder) bindParameterFlow(node ast.Handle) {
-	param := node
-	b.bindModifiers(param)
-	b.bind(param.DotDotDotToken())
-	b.bind(param.QuestionToken())
-	b.bind(param.Type())
-	b.bindInitializer(param.Initializer())
-	b.bind(param.Name())
+	b.bindNonNullExpressionFlowRef(node.Ref(), node.Kind)
 }
 
-func (b *Binder) bindInitializer(node ast.Handle) {
+func (b *Binder) bindNonNullExpressionFlowRef(ref ast.NodeRef, kind ast.Kind) {
+	if b.isOptionalChainRef(ref, kind) {
+		b.bindOptionalChainFlowRef(ref, kind)
+	} else {
+		b.forEachBindChildGenerated(ref, kind)
+	}
+}
+
+func (b *Binder) bindBindingElementFlow(node ast.Handle) {
+	b.bindBindingElementFlowRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindBindingElementFlowRef(ref ast.NodeRef, kind ast.Kind) {
+	s := b.store
+	b.bindN(b.at(s.ChildRef(ref, 0)), kind)
+	b.bindN(b.at(s.ChildRef(ref, 1)), kind)
+	b.bindInitializerN(b.at(b.initializerRefGenerated(ref, kind)), kind)
+	b.bindN(b.at(b.nameRefGenerated(ref, kind)), kind)
+}
+
+func (b *Binder) bindParameterFlow(node ast.Handle) {
+	b.bindParameterFlowRef(node.Ref(), node.Kind)
+}
+
+func (b *Binder) bindParameterFlowRef(ref ast.NodeRef, kind ast.Kind) {
+	s := b.store
+	b.bindListRef(b.modifiersRefGenerated(ref, kind), kind)
+	b.bindN(b.at(s.ChildRef(ref, 0)), kind)
+	b.bindN(b.at(b.questionTokenRefGenerated(ref, kind)), kind)
+	b.bindN(b.at(b.typeRefGenerated(ref, kind)), kind)
+	b.bindInitializerN(b.at(b.initializerRefGenerated(ref, kind)), kind)
+	b.bindN(b.at(b.nameRefGenerated(ref, kind)), kind)
+}
+
+func (b *Binder) bindInitializer(node ast.Handle, parentKind ast.Kind) {
 	if node.IsNil() {
 		return
 	}
+	b.bindInitializerN(bindNode{ref: node.Ref(), kind: node.Kind}, parentKind)
+}
+
+func (b *Binder) bindInitializerN(n bindNode, parentKind ast.Kind) {
+	if n.ref == 0 {
+		return
+	}
 	entryFlow := b.currentFlow
-	b.bind(node)
+	b.bindN(n, parentKind)
 	if entryFlow == b.unreachableFlow || entryFlow == b.currentFlow {
 		return
 	}

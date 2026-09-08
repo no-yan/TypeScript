@@ -4,9 +4,95 @@ package binder
 
 import "github.com/microsoft/TypeScript/tsc/internal/ast"
 
-func (b *Binder) bindFunctionLikeChildrenGenerated(ref ast.NodeRef, kind ast.Kind) {
+func (b *Binder) forEachBindChildGenerated(ref ast.NodeRef, kind ast.Kind) {
 	s := b.store
 	switch kind {
+	case ast.KindQualifiedName:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindComputedPropertyName:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindDecorator:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindIfStatement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+	case ast.KindDoStatement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindWhileStatement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindForStatement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindChildRef(s.ChildRef(ref, 3), kind)
+	case ast.KindForInStatement, ast.KindForOfStatement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindChildRef(s.ChildRef(ref, 3), kind)
+	case ast.KindBreakStatement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindContinueStatement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindReturnStatement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindWithStatement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindSwitchStatement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindCaseBlock:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindCaseClause, ast.KindDefaultClause:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindThrowStatement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindTryStatement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+	case ast.KindCatchClause:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindLabeledStatement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindExpressionStatement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindBlock:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindVariableStatement:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindVariableDeclaration:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindChildRef(s.ChildRef(ref, 3), kind)
+	case ast.KindVariableDeclarationList:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindObjectBindingPattern, ast.KindArrayBindingPattern:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindParameter:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindChildRef(s.ChildRef(ref, 3), kind)
+		b.bindChildRef(s.ChildRef(ref, 4), kind)
+	case ast.KindBindingElement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindChildRef(s.ChildRef(ref, 3), kind)
+	case ast.KindMissingDeclaration:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
 	case ast.KindFunctionDeclaration:
 		b.bindListRef(s.ListSlotAt(ref, 0), kind)
 		b.bindChildRef(s.ChildRef(ref, 0), kind)
@@ -16,6 +102,65 @@ func (b *Binder) bindFunctionLikeChildrenGenerated(ref ast.NodeRef, kind ast.Kin
 		b.bindChildRef(s.ChildRef(ref, 2), kind)
 		b.bindChildRef(s.ChildRef(ref, 3), kind)
 		b.bindChildRef(s.ChildRef(ref, 4), kind)
+	case ast.KindClassDeclaration:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 1), kind)
+		b.bindListRef(s.ListSlotAt(ref, 2), kind)
+		b.bindListRef(s.ListSlotAt(ref, 3), kind)
+	case ast.KindClassExpression:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 1), kind)
+		b.bindListRef(s.ListSlotAt(ref, 2), kind)
+		b.bindListRef(s.ListSlotAt(ref, 3), kind)
+	case ast.KindHeritageClause:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindInterfaceDeclaration:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 1), kind)
+		b.bindListRef(s.ListSlotAt(ref, 2), kind)
+		b.bindListRef(s.ListSlotAt(ref, 3), kind)
+	case ast.KindTypeAliasDeclaration, ast.KindJSTypeAliasDeclaration:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindEnumMember:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindEnumDeclaration:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 1), kind)
+	case ast.KindModuleBlock:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindImportDeclaration, ast.KindJSImportDeclaration:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+	case ast.KindExternalModuleReference:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindNamespaceImport:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindNamedImports:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindExportAssignment:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindNamespaceExportDeclaration:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindNamespaceExport:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindNamedExports:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindExportSpecifier:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
 	case ast.KindCallSignature:
 		b.bindListRef(s.ListSlotAt(ref, 0), kind)
 		b.bindListRef(s.ListSlotAt(ref, 1), kind)
@@ -68,9 +213,34 @@ func (b *Binder) bindFunctionLikeChildrenGenerated(ref ast.NodeRef, kind ast.Kin
 		b.bindChildRef(s.ChildRef(ref, 3), kind)
 		b.bindChildRef(s.ChildRef(ref, 4), kind)
 		b.bindChildRef(s.ChildRef(ref, 5), kind)
+	case ast.KindPropertySignature:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindChildRef(s.ChildRef(ref, 3), kind)
+	case ast.KindPropertyDeclaration:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindChildRef(s.ChildRef(ref, 3), kind)
 	case ast.KindClassStaticBlockDeclaration:
 		b.bindListRef(s.ListSlotAt(ref, 0), kind)
 		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindBinaryExpression:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindChildRef(s.ChildRef(ref, 3), kind)
+	case ast.KindPrefixUnaryExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindPostfixUnaryExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindYieldExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
 	case ast.KindArrowFunction:
 		b.bindListRef(s.ListSlotAt(ref, 0), kind)
 		b.bindListRef(s.ListSlotAt(ref, 1), kind)
@@ -88,6 +258,144 @@ func (b *Binder) bindFunctionLikeChildrenGenerated(ref ast.NodeRef, kind ast.Kin
 		b.bindChildRef(s.ChildRef(ref, 2), kind)
 		b.bindChildRef(s.ChildRef(ref, 3), kind)
 		b.bindChildRef(s.ChildRef(ref, 4), kind)
+	case ast.KindAsExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindSatisfiesExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindConditionalExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindChildRef(s.ChildRef(ref, 3), kind)
+		b.bindChildRef(s.ChildRef(ref, 4), kind)
+	case ast.KindPropertyAccessExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+	case ast.KindElementAccessExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+	case ast.KindCallExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 1), kind)
+	case ast.KindNewExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 1), kind)
+	case ast.KindMetaProperty:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindNonNullExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindSpreadElement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindTemplateExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindTemplateSpan:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindTaggedTemplateExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+	case ast.KindParenthesizedExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindArrayLiteralExpression:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindObjectLiteralExpression:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindSpreadAssignment:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindPropertyAssignment:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindChildRef(s.ChildRef(ref, 3), kind)
+	case ast.KindShorthandPropertyAssignment:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindChildRef(s.ChildRef(ref, 3), kind)
+		b.bindChildRef(s.ChildRef(ref, 4), kind)
+	case ast.KindDeleteExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindTypeOfExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindVoidExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindAwaitExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindTypeAssertionExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindUnionType:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindIntersectionType:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindConditionalType:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindChildRef(s.ChildRef(ref, 3), kind)
+	case ast.KindTypeOperator:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindInferType:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindArrayType:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindIndexedAccessType:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindTypeReference:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindExpressionWithTypeArguments:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindLiteralType:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindTypePredicate:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+	case ast.KindImportAttribute:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindImportAttributes:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindTypeQuery:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindMappedType:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindChildRef(s.ChildRef(ref, 3), kind)
+		b.bindChildRef(s.ChildRef(ref, 4), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindTypeLiteral:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindTupleType:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindNamedTupleMember:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindChildRef(s.ChildRef(ref, 3), kind)
+	case ast.KindOptionalType:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindRestType:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindParenthesizedType:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
 	case ast.KindFunctionType:
 		b.bindListRef(s.ListSlotAt(ref, 0), kind)
 		b.bindListRef(s.ListSlotAt(ref, 1), kind)
@@ -97,6 +405,197 @@ func (b *Binder) bindFunctionLikeChildrenGenerated(ref ast.NodeRef, kind ast.Kin
 		b.bindListRef(s.ListSlotAt(ref, 1), kind)
 		b.bindListRef(s.ListSlotAt(ref, 2), kind)
 		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindTemplateLiteralType:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindTemplateLiteralTypeSpan:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindSyntheticExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindPartiallyEmittedExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindJsxElement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindJsxAttributes:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJsxNamespacedName:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindJsxOpeningElement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindJsxSelfClosingElement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindJsxFragment:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindJsxAttribute:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindJsxSpreadAttribute:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindJsxClosingElement:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindJsxExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindSyntaxList:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDoc:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 1), kind)
+	case ast.KindJSDocTypeExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindJSDocNonNullableType:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindJSDocNullableType:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindJSDocVariadicType:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindJSDocOptionalType:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindJSDocTypeTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocUnknownTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocTemplateTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 1), kind)
+	case ast.KindJSDocReturnTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocPublicTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocPrivateTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocProtectedTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocReadonlyTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocOverrideTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocDeprecatedTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocSeeTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocImplementsTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocAugmentsTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocSatisfiesTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocThrowsTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocThisTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocImportTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindChildRef(s.ChildRef(ref, 3), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocCallbackTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocOverloadTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocTypedefTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocSignature:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindListRef(s.ListSlotAt(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindJSDocNameReference:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindSourceFile:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindModuleDeclaration:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindImportEqualsDeclaration:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindExportDeclaration:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+	case ast.KindImportType:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindImportClause:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindImportSpecifier:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindJSDocLink:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindJSDocLinkPlain:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindJSDocLinkCode:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+	case ast.KindTypeParameter:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindChildRef(s.ChildRef(ref, 3), kind)
+	case ast.KindSyntheticReferenceExpression:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+	case ast.KindJSDocTypeLiteral:
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	case ast.KindJSDocParameterTag, ast.KindJSDocPropertyTag:
+		b.bindChildRef(s.ChildRef(ref, 0), kind)
+		b.bindChildRef(s.ChildRef(ref, 1), kind)
+		b.bindChildRef(s.ChildRef(ref, 2), kind)
+		b.bindListRef(s.ListSlotAt(ref, 0), kind)
+	default:
+		b.bindChildrenOf(ref, kind)
 	}
 }
 

@@ -798,21 +798,35 @@ function generateBinderWalk(): string {
     w.write('import "github.com/microsoft/TypeScript/tsc/internal/ast"');
     w.write("");
 
-    w.write("func (b *Binder) bindFunctionLikeChildrenGenerated(ref ast.NodeRef, kind ast.Kind) {");
+    w.write("func (b *Binder) forEachBindChildGenerated(ref ast.NodeRef, kind ast.Kind) {");
     w.push();
     w.write("s := b.store");
     w.write("switch kind {");
     w.push();
+    const emitted = new Set<string>();
     for (const node of api.nodes()) {
-        const kinds = node.allKinds().map(k => k.formatGoConstant());
-        if (!kinds.some(k => BINDER_FUNCTION_LIKE_KINDS.has(k))) continue;
+        const childMembers = schemaMembers(node).filter(m => m.isChild());
+        if (childMembers.length === 0) {
+            continue;
+        }
+        const kinds = node.allKinds().map(k => k.formatGoConstant()).filter(k => !emitted.has(k));
+        if (kinds.length === 0) {
+            continue;
+        }
+        for (const k of kinds) {
+            emitted.add(k);
+        }
         w.write(`case ${kinds.map(k => `ast.${k}`).join(", ")}:`);
         w.push();
-        for (const m of schemaMembers(node).filter(m => m.isChild())) {
+        for (const m of childMembers) {
             emitBinderChild(w, node, m);
         }
         w.pop();
     }
+    w.write("default:");
+    w.push();
+    w.write("b.bindChildrenOf(ref, kind)");
+    w.pop();
     w.pop();
     w.write("}");
     w.pop();
