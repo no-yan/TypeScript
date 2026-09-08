@@ -170,41 +170,27 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 	switch kind {
 	case ast.KindIdentifier:
 		b.store.SetFlow(id, b.currentFlow)
-		node = ast.HandleOf(b.store, id, kind)
-		b.checkContextualIdentifier(node)
+		b.checkContextualIdentifierRef(id)
 	case ast.KindThisKeyword, ast.KindSuperKeyword:
 		if kind == ast.KindThisKeyword {
 			b.seenThisKeyword = true
 		}
 		b.store.SetFlow(id, b.currentFlow)
 	case ast.KindQualifiedName:
-		node = ast.HandleOf(b.store, id, kind)
-		if b.currentFlow != nil && ast.IsPartOfTypeQuery(node) {
+		if b.currentFlow != nil && b.isPartOfTypeQueryRef(id, kind) {
 			b.store.SetFlow(id, b.currentFlow)
 		}
 	case ast.KindMetaProperty:
 		b.store.SetFlow(id, b.currentFlow)
 	case ast.KindPrivateIdentifier:
-		node = ast.HandleOf(b.store, id, kind)
-		b.checkPrivateIdentifier(node)
+		b.checkPrivateIdentifierRef(id)
 	case ast.KindPropertyAccessExpression, ast.KindElementAccessExpression:
 		node = ast.HandleOf(b.store, id, kind)
 		if b.currentFlow != nil && isNarrowableReference(node) {
 			b.store.SetFlow(id, b.currentFlow)
 		}
 	case ast.KindBinaryExpression:
-		node = ast.HandleOf(b.store, id, kind)
-		switch ast.GetAssignmentDeclarationKind(node) {
-		case ast.JSDeclarationKindModuleExports:
-			b.bindModuleExportsAssignment(node)
-		case ast.JSDeclarationKindExportsProperty:
-			b.bindExportsOrObjectDefineProperty(node)
-		case ast.JSDeclarationKindProperty:
-			b.bindExpandoPropertyAssignment(node)
-		case ast.JSDeclarationKindThisProperty:
-			b.bindThisPropertyAssignment(node)
-		}
-		b.checkStrictModeBinaryExpression(node)
+		b.bindBinaryExpressionKind(id, kind)
 	case ast.KindCatchClause:
 		node = ast.HandleOf(b.store, id, kind)
 		b.checkStrictModeCatchClause(node)
@@ -266,14 +252,14 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 	case ast.KindInterfaceDeclaration:
 		b.bindBlockScopedDeclarationRef(id, kind, ast.SymbolFlagsInterface, ast.SymbolFlagsInterfaceExcludes)
 	case ast.KindCallExpression:
-		node = ast.HandleOf(b.store, id, kind)
-		switch ast.GetAssignmentDeclarationKind(node) {
-		case ast.JSDeclarationKindObjectDefinePropertyValue:
-			b.bindExpandoPropertyAssignment(node)
-		case ast.JSDeclarationKindObjectDefinePropertyExports:
-			b.bindExportsOrObjectDefineProperty(node)
-		}
-		if ast.IsInJSFile(node) {
+		if b.store.FlagsAt(id)&ast.NodeFlagsJavaScriptFile != 0 {
+			node = ast.HandleOf(b.store, id, kind)
+			switch ast.GetAssignmentDeclarationKind(node) {
+			case ast.JSDeclarationKindObjectDefinePropertyValue:
+				b.bindExpandoPropertyAssignment(node)
+			case ast.JSDeclarationKindObjectDefinePropertyExports:
+				b.bindExportsOrObjectDefineProperty(node)
+			}
 			b.bindCallExpression(node)
 		}
 	case ast.KindTypeAliasDeclaration:
@@ -1497,31 +1483,113 @@ func (b *Binder) lookupName(name string, container ast.NodeRef) *ast.Symbol {
 }
 
 func (b *Binder) checkContextualIdentifier(node ast.Handle) {
-	if len(b.file.Diagnostics()) == 0 && node.Flags()&ast.NodeFlagsAmbient == 0 && node.Flags()&ast.NodeFlagsJSDoc == 0 && !ast.IsIdentifierName(node) {
-		originalKeywordKind := scanner.GetIdentifierToken(node.Text())
-		if originalKeywordKind == ast.KindIdentifier {
-			return
-		}
-		if originalKeywordKind >= ast.KindFirstFutureReservedWord && originalKeywordKind <= ast.KindLastFutureReservedWord {
-			b.errorOnNode(node, b.getStrictModeIdentifierMessage(node), scanner.DeclarationNameToString(node))
-		} else if originalKeywordKind == ast.KindAwaitKeyword {
-			if ast.IsExternalModule(b.file) && ast.IsInTopLevelContext(node) {
-				b.errorOnNode(node, diagnostics.Identifier_expected_0_is_a_reserved_word_at_the_top_level_of_a_module, scanner.DeclarationNameToString(node))
-			} else if node.Flags()&ast.NodeFlagsAwaitContext != 0 {
-				b.errorOnNode(node, diagnostics.Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here, scanner.DeclarationNameToString(node))
-			}
-		} else if originalKeywordKind == ast.KindYieldKeyword && node.Flags()&ast.NodeFlagsYieldContext != 0 {
+	b.checkContextualIdentifierRef(node.Ref())
+}
+
+func (b *Binder) checkContextualIdentifierRef(ref ast.NodeRef) {
+	if len(b.file.Diagnostics()) != 0 {
+		return
+	}
+	flags := b.store.FlagsAt(ref)
+	if flags&ast.NodeFlagsAmbient != 0 || flags&ast.NodeFlagsJSDoc != 0 || b.isIdentifierNameRef(ref) {
+		return
+	}
+	text := b.store.TextAt(ref)
+	originalKeywordKind := scanner.GetIdentifierToken(text)
+	if originalKeywordKind == ast.KindIdentifier {
+		return
+	}
+	node := ast.HandleOf(b.store, ref, ast.KindIdentifier)
+	if originalKeywordKind >= ast.KindFirstFutureReservedWord && originalKeywordKind <= ast.KindLastFutureReservedWord {
+		b.errorOnNode(node, b.getStrictModeIdentifierMessage(node), scanner.DeclarationNameToString(node))
+	} else if originalKeywordKind == ast.KindAwaitKeyword {
+		if ast.IsExternalModule(b.file) && ast.IsInTopLevelContext(node) {
+			b.errorOnNode(node, diagnostics.Identifier_expected_0_is_a_reserved_word_at_the_top_level_of_a_module, scanner.DeclarationNameToString(node))
+		} else if flags&ast.NodeFlagsAwaitContext != 0 {
 			b.errorOnNode(node, diagnostics.Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here, scanner.DeclarationNameToString(node))
 		}
+	} else if originalKeywordKind == ast.KindYieldKeyword && flags&ast.NodeFlagsYieldContext != 0 {
+		b.errorOnNode(node, diagnostics.Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here, scanner.DeclarationNameToString(node))
 	}
 }
 
+func (b *Binder) isIdentifierNameRef(ref ast.NodeRef) bool {
+	parent := b.store.ParentRef(ref)
+	if parent == 0 {
+		return false
+	}
+	parentKind := b.store.KindAt(parent)
+	switch parentKind {
+	case ast.KindPropertyDeclaration, ast.KindPropertySignature, ast.KindMethodDeclaration, ast.KindMethodSignature, ast.KindGetAccessor,
+		ast.KindSetAccessor, ast.KindEnumMember, ast.KindPropertyAssignment, ast.KindPropertyAccessExpression:
+		return b.nameRefGenerated(parent, parentKind) == ref
+	case ast.KindQualifiedName:
+		return b.store.ChildRef(parent, 1) == ref
+	case ast.KindBindingElement:
+		return b.store.ChildRef(parent, 1) == ref
+	case ast.KindImportSpecifier:
+		return b.store.ChildRef(parent, 0) == ref
+	case ast.KindExportSpecifier, ast.KindJsxAttribute, ast.KindJsxSelfClosingElement, ast.KindJsxOpeningElement, ast.KindJsxClosingElement:
+		return true
+	}
+	return false
+}
+
 func (b *Binder) checkPrivateIdentifier(node ast.Handle) {
-	if node.Text() == "#constructor" {
-		if len(b.file.Diagnostics()) == 0 {
-			b.errorOnNode(node, diagnostics.X_constructor_is_a_reserved_word, scanner.DeclarationNameToString(node))
+	b.checkPrivateIdentifierRef(node.Ref())
+}
+
+func (b *Binder) checkPrivateIdentifierRef(ref ast.NodeRef) {
+	if b.store.TextAt(ref) == "#constructor" && len(b.file.Diagnostics()) == 0 {
+		node := ast.HandleOf(b.store, ref, ast.KindPrivateIdentifier)
+		b.errorOnNode(node, diagnostics.X_constructor_is_a_reserved_word, scanner.DeclarationNameToString(node))
+	}
+}
+
+func (b *Binder) isPartOfTypeQueryRef(ref ast.NodeRef, kind ast.Kind) bool {
+	for kind == ast.KindQualifiedName || kind == ast.KindIdentifier {
+		ref = b.store.ParentRef(ref)
+		if ref == 0 {
+			return false
+		}
+		kind = b.store.KindAt(ref)
+	}
+	return kind == ast.KindTypeQuery
+}
+
+func (b *Binder) bindBinaryExpressionKind(id ast.NodeRef, kind ast.Kind) {
+	operator := b.binaryOperatorKindAt(id)
+	left := b.store.ChildRef(id, 0)
+	leftKind := ast.KindUnknown
+	if left != 0 {
+		leftKind = b.store.KindAt(left)
+	}
+	if operator == ast.KindEqualsToken && (leftKind == ast.KindPropertyAccessExpression || leftKind == ast.KindElementAccessExpression) {
+		node := ast.HandleOf(b.store, id, kind)
+		switch ast.GetAssignmentDeclarationKind(node) {
+		case ast.JSDeclarationKindModuleExports:
+			b.bindModuleExportsAssignment(node)
+		case ast.JSDeclarationKindExportsProperty:
+			b.bindExportsOrObjectDefineProperty(node)
+		case ast.JSDeclarationKindProperty:
+			b.bindExpandoPropertyAssignment(node)
+		case ast.JSDeclarationKindThisProperty:
+			b.bindThisPropertyAssignment(node)
 		}
 	}
+	if ast.IsAssignmentOperator(operator) {
+		b.checkStrictModeEvalOrArgumentsRef(id, kind, left, leftKind)
+	}
+}
+
+func (b *Binder) isPotentiallyExecutableRef(id ast.NodeRef, kind ast.Kind) bool {
+	if ast.KindFirstStatement <= kind && kind <= ast.KindLastStatement {
+		if kind != ast.KindVariableStatement {
+			return true
+		}
+		return ast.IsPotentiallyExecutableNode(ast.HandleOf(b.store, id, kind))
+	}
+	return kind == ast.KindClassDeclaration || kind == ast.KindEnumDeclaration || kind == ast.KindModuleDeclaration
 }
 
 func (b *Binder) getStrictModeIdentifierMessage(node ast.Handle) *diagnostics.Message {
@@ -1839,8 +1907,7 @@ func (b *Binder) bindChildrenRef(id ast.NodeRef, kind ast.Kind) {
 	b.inAssignmentPattern = false
 	if b.currentFlow == b.unreachableFlow {
 		b.store.SetFlow(id, nil)
-		node := ast.HandleOf(b.store, id, kind)
-		if ast.IsPotentiallyExecutableNode(node) {
+		if b.isPotentiallyExecutableRef(id, kind) {
 			b.store.SetFlagsAt(id, b.store.FlagsAt(id)|ast.NodeFlagsUnreachable)
 		}
 		b.forEachBindChildGenerated(id, kind)

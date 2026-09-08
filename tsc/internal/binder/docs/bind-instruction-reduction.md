@@ -56,4 +56,4 @@ Base is C1. Cross-judge scored C1 highest on a landable first step and on keepin
 
 ## Next implementation step
 
-Porting leftover `bindKind` `HandleOf` (identifiers, binary, unreachable) added a parallel Ref helper surface and did not move monaco Bind time; A/B on `BenchmarkBind` was checker.ts −4% only. That step was reverted. Remaining Handle edges are flow payloads and unported predicates, not a new bindKind visitor.
+Remaining Handle edges are flow payloads, `isNarrowableReference`, and unported predicates. Do not grow a parallel Ref copy of the AST helpers.
