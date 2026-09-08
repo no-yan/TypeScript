@@ -1,14 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Compare the always-map lookup against the atomic-guard lookup with benchstat.
-# Also capture BenchmarkGetMergedSymbol for old-vs-new production commits.
-#
-# Usage from repo root:
-#   ./tsc/internal/checker/compare_merged_symbol_lookup.sh
-# After changing getMergedSymbol:
-#   ./tsc/internal/checker/compare_merged_symbol_lookup.sh --production-after /tmp/merged-symbol-old.txt
-
 tsc_mod=$(cd "$(dirname "$0")/../.." && pwd)
 out=${TMPDIR:-/tmp}/merged-symbol-bench
 mkdir -p "$out"

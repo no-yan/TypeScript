@@ -1,6 +1,7 @@
 package checker
 
 import (
+	"sync"
 	"sync/atomic"
 	"testing"
 
@@ -88,7 +89,45 @@ func TestGetMergedSymbol(t *testing.T) {
 	assert.Equal(t, c.getMergedSymbol(source), source)
 	c.recordMergedSymbol(target, source)
 	assert.Equal(t, c.getMergedSymbol(source), target)
+	assert.Assert(t, source.IsMergeSource())
 	assert.Equal(t, c.getMergedSymbol(other), other)
+	assert.Assert(t, !other.IsMergeSource())
+}
+
+func TestGetMergedSymbolTwoCheckersShareSource(t *testing.T) {
+	t.Parallel()
+	source := &ast.Symbol{Name: "shared"}
+	targetA := &ast.Symbol{Name: "a"}
+	targetB := &ast.Symbol{Name: "b"}
+	other := &ast.Symbol{Name: "other"}
+	checkerA := &Checker{mergedSymbols: make(map[*ast.Symbol]*ast.Symbol)}
+	checkerB := &Checker{mergedSymbols: make(map[*ast.Symbol]*ast.Symbol)}
+
+	checkerA.recordMergedSymbol(targetA, source)
+	checkerB.recordMergedSymbol(targetB, source)
+
+	assert.Equal(t, checkerA.getMergedSymbol(source), targetA)
+	assert.Equal(t, checkerB.getMergedSymbol(source), targetB)
+	assert.Equal(t, checkerA.getMergedSymbol(other), other)
+	assert.Equal(t, checkerB.getMergedSymbol(other), other)
+}
+
+func TestMarkAsMergeSourceConcurrent(t *testing.T) {
+	t.Parallel()
+	source := &ast.Symbol{Name: "shared"}
+	var failed atomic.Bool
+	var wg sync.WaitGroup
+	for range 32 {
+		wg.Go(func() {
+			source.MarkAsMergeSource()
+			if !source.IsMergeSource() {
+				failed.Store(true)
+			}
+		})
+	}
+	wg.Wait()
+	assert.Assert(t, !failed.Load())
+	assert.Assert(t, source.IsMergeSource())
 }
 
 func BenchmarkMergedSymbolLookup(b *testing.B) {
