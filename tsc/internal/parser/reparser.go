@@ -98,7 +98,7 @@ func (p *Parser) reparseUnhosted(tag ast.NodeRef, parent ast.NodeRef, jsDoc ast.
 		if isNamespace {
 			modifiers = p.createExportModifier(tag)
 		}
-		typeAlias := p.factory.ParseJSTypeAliasDeclaration(modifiers, p.addDeepCloneReparse(p.checkNonIdentifierName(p.getInnermostNameOfJSDocNamespace(fullName))), 0, 0)
+		typeAlias := p.factory.ParseJSTypeAliasDeclaration(modifiers, p.addDeepCloneReparse(p.checkNonIdentifierName(p.getInnermostNameOfJSDocNamespace(fullName))), ast.NoListRef, ast.NoNodeRef)
 		p.at(typeAlias).SetTypeAliasDeclarationTypeParameters(p.gatherTypeParameters(jsDoc, true /*typedefOrCallback*/))
 		var t ast.NodeRef
 		switch p.factory.Store().KindAt(typeExpression) {
@@ -127,7 +127,7 @@ func (p *Parser) reparseUnhosted(tag ast.NodeRef, parent ast.NodeRef, jsDoc ast.
 			modifiers = p.createExportModifier(tag)
 		}
 		functionType := p.reparseJSDocSignature(typeExpression, tag, jsDoc, tag, 0)
-		typeAlias := p.factory.ParseJSTypeAliasDeclaration(modifiers, p.addDeepCloneReparse(p.getInnermostNameOfJSDocNamespace(fullName)), 0, functionType)
+		typeAlias := p.factory.ParseJSTypeAliasDeclaration(modifiers, p.addDeepCloneReparse(p.getInnermostNameOfJSDocNamespace(fullName)), ast.NoListRef, functionType)
 		p.at(typeAlias).SetTypeAliasDeclarationTypeParameters(p.gatherTypeParameters(jsDoc, true /*typedefOrCallback*/))
 		p.finishReparsedNode(typeAlias, tag)
 		p.jsdocInfos = append(p.jsdocInfos, JSDocInfo{parent: typeAlias, jsDocs: []ast.NodeRef{jsDoc}})
@@ -161,13 +161,13 @@ func (p *Parser) reparseJSDocSignature(jsSignature ast.NodeRef, fun ast.NodeRef,
 	clonedModifiers := p.addDeepCloneReparseModifiers(modifiers)
 	switch p.factory.Store().KindAt(fun) {
 	case ast.KindFunctionDeclaration:
-		signature = p.factory.ParseFunctionDeclaration(clonedModifiers, 0, p.factory.CopySubtree(p.at(p.checkNonIdentifierName(p.at(fun).Name().Ref()))).Ref(), 0, 0, 0, 0, 0)
+		signature = p.factory.ParseFunctionDeclaration(clonedModifiers, ast.NoNodeRef, p.factory.CopySubtree(p.at(p.checkNonIdentifierName(p.at(fun).Name().Ref()))).Ref(), ast.NoListRef, ast.NoListRef, ast.NoNodeRef, ast.NoNodeRef, ast.NoNodeRef)
 	case ast.KindMethodDeclaration:
-		signature = p.factory.ParseMethodDeclaration(clonedModifiers, 0, p.factory.CopySubtree(p.at(p.checkNonIdentifierName(p.at(fun).Name().Ref()))).Ref(), 0, 0, 0, 0, 0, 0)
+		signature = p.factory.ParseMethodDeclaration(clonedModifiers, ast.NoNodeRef, p.factory.CopySubtree(p.at(p.checkNonIdentifierName(p.at(fun).Name().Ref()))).Ref(), ast.NoNodeRef, ast.NoListRef, ast.NoListRef, ast.NoNodeRef, ast.NoNodeRef, ast.NoNodeRef)
 	case ast.KindConstructor:
-		signature = p.factory.ParseConstructorDeclaration(clonedModifiers, 0, 0, 0, 0, 0)
+		signature = p.factory.ParseConstructorDeclaration(clonedModifiers, ast.NoListRef, ast.NoListRef, ast.NoNodeRef, ast.NoNodeRef, ast.NoNodeRef)
 	case ast.KindJSDocCallbackTag:
-		signature = p.factory.ParseFunctionTypeNode(0, 0, p.factory.ParseKeywordTypeNode(ast.KindAnyKeyword))
+		signature = p.factory.ParseFunctionTypeNode(ast.NoListRef, ast.NoListRef, p.factory.ParseKeywordTypeNode(ast.KindAnyKeyword))
 	default:
 		panic("Unexpected kind " + p.factory.Store().KindAt(fun).String())
 	}
@@ -182,7 +182,7 @@ func (p *Parser) reparseJSDocSignature(jsSignature ast.NodeRef, fun ast.NodeRef,
 			thisIdent := p.factory.ParseIdentifier("this")
 			p.at(thisIdent).SetLoc(param.Loc())
 			p.at(thisIdent).SetFlags(p.contextFlags | ast.NodeFlagsReparsed)
-			parameter = p.factory.ParseParameterDeclaration(0, 0, thisIdent, 0, 0, 0)
+			parameter = p.factory.ParseParameterDeclaration(ast.NoListRef, ast.NoNodeRef, thisIdent, ast.NoNodeRef, ast.NoNodeRef, ast.NoNodeRef)
 			if !param.JSDocThisTagTypeExpression().IsNil() {
 				p.at(parameter).SetParameterDeclarationType(p.at(p.addDeepCloneReparse(param.JSDocThisTagTypeExpression().Type().Ref())))
 			}
@@ -230,7 +230,7 @@ func (p *Parser) reparseJSDocSignature(jsSignature ast.NodeRef, fun ast.NodeRef,
 			} else {
 				name = p.addDeepCloneReparse(name)
 			}
-			parameter = p.factory.ParseParameterDeclaration(0, dotDotDotToken, name, p.makeQuestionIfOptional(param.Ref()), paramType, 0)
+			parameter = p.factory.ParseParameterDeclaration(ast.NoListRef, dotDotDotToken, name, p.makeQuestionIfOptional(param.Ref()), paramType, ast.NoNodeRef)
 		}
 		p.finishReparsedNode(parameter, param.Ref())
 		parameters = append(parameters, parameter)
@@ -271,7 +271,7 @@ func (p *Parser) reparseJSDocTypeLiteral(t ast.NodeRef) ast.NodeRef {
 			} else {
 				name = p.addDeepCloneReparse(name)
 			}
-			property := p.factory.ParsePropertySignatureDeclaration(0, name, p.makeQuestionIfOptional(prop), 0, 0)
+			property := p.factory.ParsePropertySignatureDeclaration(ast.NoListRef, name, p.makeQuestionIfOptional(prop), ast.NoNodeRef, ast.NoNodeRef)
 			if !propH.JSDocParameterOrPropertyTagTypeExpression().IsNil() {
 				p.at(property).SetPropertySignatureDeclarationType(p.at(p.reparseJSDocTypeLiteral(propH.JSDocParameterOrPropertyTagTypeExpression().Type().Ref())))
 			}
@@ -298,7 +298,7 @@ func (p *Parser) reparseJSDocComment(node ast.NodeRef, tag ast.NodeRef) {
 		}
 		newComment := p.newListRefs(p.factory.Store().ListLoc(comment), cloned)
 
-		propJSDoc := p.factory.ParseJSDoc(newComment, 0)
+		propJSDoc := p.factory.ParseJSDoc(newComment, ast.NoListRef)
 		p.finishReparsedNode(propJSDoc, tag)
 		p.at(propJSDoc).SetParent(p.at(node))
 		p.jsdocInfos = append(p.jsdocInfos, JSDocInfo{parent: node, jsDocs: []ast.NodeRef{propJSDoc}})

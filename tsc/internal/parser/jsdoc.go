@@ -983,7 +983,7 @@ func (p *Parser) parsePropertyAccessEntityNameExpression() ast.NodeRef {
 	node := p.parseJSDocIdentifierName(diagnostics.Identifier_expected)
 	for p.parseOptional(ast.KindDotToken) {
 		name := p.parseJSDocIdentifierName(diagnostics.Identifier_expected)
-		node = p.finishParse(p.factory.ParsePropertyAccessExpression(node, 0, name, ast.NodeFlagsNone), pos)
+		node = p.finishParse(p.factory.ParsePropertyAccessExpression(node, ast.NoNodeRef, name, ast.NodeFlagsNone), pos)
 	}
 	return node
 }
@@ -1141,7 +1141,7 @@ func (p *Parser) parseJSDocSignature(start int, indent int) ast.NodeRef {
 	if returnTag == 0 {
 		p.rewind(state)
 	}
-	return p.finishParse(p.factory.ParseJSDocSignature(0, parameters, returnTag), start)
+	return p.finishParse(p.factory.ParseJSDocSignature(ast.NoListRef, parameters, returnTag), start)
 }
 
 func (p *Parser) parseCallbackTag(start int, tagName ast.NodeRef, indent int, indentText string) ast.NodeRef {
@@ -1283,7 +1283,7 @@ func (p *Parser) parseTemplateTagTypeParameter() ast.NodeRef {
 	if ast.NodeIsMissing(p.at(name)) {
 		return 0
 	}
-	return p.finishParse(p.factory.ParseTypeParameterDeclaration(modifiers, name, 0, 0, defaultType), typeParameterPos)
+	return p.finishParse(p.factory.ParseTypeParameterDeclaration(modifiers, name, ast.NoNodeRef, ast.NoNodeRef, defaultType), typeParameterPos)
 }
 
 func (p *Parser) parseTemplateTagTypeParameters() ast.ListRef {
