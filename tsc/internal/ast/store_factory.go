@@ -63,7 +63,8 @@ func (f *Factory) create(kind Kind, flags NodeFlags, loc core.TextRange, childLe
 }
 
 func (f *Factory) createSlots(kind Kind, flags NodeFlags, loc core.TextRange, childLen, listLen int) Handle {
-	h := f.store.AllocSlots(kind, flags, loc, childLen, listLen)
+	id := f.store.appendSlots(kind, flags, loc, childLen, listLen)
+	h := Handle{s: f.store, id: id, Kind: kind}
 	if f.hooks.OnCreate != nil {
 		f.hooks.OnCreate(h)
 	}
@@ -392,7 +393,7 @@ func (f *Factory) List(loc core.TextRange, elems ...Handle) ListRef {
 // copies subtrees: every ref must belong to this Factory's Store (or be 0).
 // It is the parser's allocation path; the []NodeRef scratch slice is noscan.
 func (f *Factory) ListRefs(loc core.TextRange, refs []NodeRef) ListRef {
-	list := f.store.AllocList(loc, len(refs))
+	list := f.store.appendList(loc, len(refs))
 	if len(refs) != 0 {
 		start := int(f.store.lists[uint32(list)].start)
 		copy(f.store.children[start:start+len(refs)], refs)

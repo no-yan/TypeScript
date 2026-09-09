@@ -256,6 +256,14 @@ func (s *Store) AllocSlots(kind Kind, flags NodeFlags, loc core.TextRange, child
 		panic("ast: Alloc on nil Store")
 	}
 	s.mustMutate()
+	return Handle{s: s, id: s.appendSlots(kind, flags, loc, childLen, listLen), Kind: kind}
+}
+
+// appendSlots is the build-phase allocator. It does not call mustMutate so the
+// compiler can keep len/cap of s.nodes in registers across the append. Factory
+// parse/emit construction uses this; AllocSlots keeps the freeze check for
+// other callers. Do not call after Freeze.
+func (s *Store) appendSlots(kind Kind, flags NodeFlags, loc core.TextRange, childLen, listLen int) NodeRef {
 	if childLen < 0 {
 		panic("ast: negative childLen")
 	}
@@ -285,7 +293,7 @@ func (s *Store) AllocSlots(kind Kind, flags NodeFlags, loc core.TextRange, child
 		end:        int32(loc.End()),
 		childStart: start,
 	})
-	return Handle{s: s, id: id, Kind: kind}
+	return id
 }
 
 func (s *Store) AllocList(loc core.TextRange, n int) ListRef {
@@ -293,6 +301,10 @@ func (s *Store) AllocList(loc core.TextRange, n int) ListRef {
 		panic("ast: AllocList on nil Store")
 	}
 	s.mustMutate()
+	return s.appendList(loc, n)
+}
+
+func (s *Store) appendList(loc core.TextRange, n int) ListRef {
 	if n < 0 {
 		panic("ast: negative list length")
 	}
@@ -319,6 +331,13 @@ func (s *Store) Intern(text string) uint32 {
 		return 0
 	}
 	s.mustMutate()
+	return s.intern(text)
+}
+
+func (s *Store) intern(text string) uint32 {
+	if text == "" {
+		return 0
+	}
 	if id, ok := s.internIdx[text]; ok {
 		return id
 	}
@@ -329,6 +348,55 @@ func (s *Store) Intern(text string) uint32 {
 		s.internIdx[text] = id
 	}
 	return id
+}
+
+// FinishParse writes context flags and source loc after a Factory constructor.
+// Parser-only; no mustMutate / mustLive, so the stores are one bounds-checked
+// header write. extraFlags is OR-ed into the flags Alloc already stored.
+func (s *Store) FinishParse(id NodeRef, extraFlags NodeFlags, pos, end int) {
+	n := &s.nodes[id]
+	n.flags |= extraFlags
+	n.pos = int32(pos)
+	n.end = int32(end)
+}
+
+func (s *Store) setIdent(id NodeRef, internID uint32) {
+	s.nodes[id].childStart = internID
+}
+
+// linkChild is the same-store parse attach. Foreign children fall back to
+// Handle.SetChild (emit). No mustMutate on the same-store path.
+func (s *Store) linkChild(parent NodeRef, slot int, child Handle) {
+	n := &s.nodes[parent]
+	idx := int(n.childStart) + slot
+	if child.id == 0 || child.s == nil {
+		s.children[idx] = 0
+		return
+	}
+	if child.s == s {
+		s.children[idx] = child.id
+		s.nodes[child.id].parent = parent
+		return
+	}
+	Handle{s: s, id: parent, Kind: n.kind}.SetChild(slot, child)
+}
+
+func (s *Store) linkList(parent NodeRef, slot int, list ListRef) {
+	n := &s.nodes[parent]
+	idx := n.listBase() + uint32(slot)
+	if list == 0 || s.listOwner(list) == s {
+		s.children[idx] = NodeRef(list)
+		if list != 0 {
+			lh := &s.lists[uint32(list)]
+			for i := uint32(0); i < lh.len; i++ {
+				if c := s.children[lh.start+i]; c != 0 {
+					s.nodes[c].parent = parent
+				}
+			}
+		}
+		return
+	}
+	Handle{s: s, id: parent, Kind: n.kind}.SetListSlot(slot, list)
 }
 
 func (s *Store) Seal() {
