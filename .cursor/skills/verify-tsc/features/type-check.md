@@ -15,7 +15,7 @@ errors without writing `.js` or `.d.ts` files.
 
 - Run `tsc --noEmit app.ts`.
 - Run `tsc --noEmit` in a directory that contains `tsconfig.json`.
-- Run `tsc -p ./path/to/tsconfig.json --noEmit`.
+- Run `tsc -p ./path/to/tsconfig.json --noEmit` (same option: `--project`).
 - Run `tsc -p ./path/to/project --noEmit`.
 
 ## Driving it with control-tsc
@@ -34,10 +34,12 @@ Preconditions:
 - **Confirm no emit.** Run `find /tmp/verify-tsc-$VERIFY_TSC_RUN_ID/type-check -name '*.js' -o -name '*.d.ts'`. The only hits, if any, are not compiler output from this drive.
 - **Optional smoke.** If `smoke/typescript-6.0/src/compiler` or
   `/tmp/typescript-6.0/src/compiler` exists, wipe `*.tsbuildinfo` in that
-  tree, then run `control-tsc cli -- -p <that-path> --noEmit`. Exit code is
-  `0`. A sub-second exit 0 is a cache hit. This is the CI smoke from
-  `.github/workflows/ci.yml`. Do not substitute a one-line file when
-  claiming Store or performance e2e.
+  tree, then run `control-tsc cli -- -p <that-path> --noEmit` to prove
+  no-emit type-check on that tree. Exit code is `0`. A sub-second exit 0 is
+  a cache hit. CI (`.github/workflows/ci.yml`) runs the same `-p` **without**
+  `--noEmit`; that job is not this feature. Do not substitute a one-line
+  file when claiming Store or performance e2e. Skip `--noCheck` here; that
+  path lives in monaco-nocheck.md.
 - **Proof.** Keep the `cli` transcript that shows argv `--noEmit`, exit `0`,
   and empty diagnostics. Re-read the fixture and confirm no new `.js`.
 
@@ -46,9 +48,10 @@ Preconditions:
 - A sub-second exit 0 on a large project is a cache hit, not a type-check.
   Wipe `*.tsbuildinfo` in the smoke tree, then rerun. Do not pass
   `--incremental false` on a composite project (TS6379).
-- `hereby build` uses `-tags=noembed`. If `lib.es5.d.ts` is missing next to
-  the binary, type-check fails with missing lib diagnostics that are not a
-  user-program error.
+- `hereby build` / `tsc:build` always passes `-tags=noembed`. If
+  `lib.es5.d.ts` is missing next to that binary, type-check fails with
+  missing lib diagnostics that are not a user-program error. For xctrace,
+  use `control-tsc launch --embed` instead.
 - Naming files on the command line while a `tsconfig.json` exists in cwd
   errors unless `--ignoreConfig` is set. Drive file lists from scratch or
   pass `--ignoreConfig`.

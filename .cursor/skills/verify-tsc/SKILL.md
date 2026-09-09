@@ -27,13 +27,27 @@ app under test. Those are a different compiler.
 
 ## Launch
 
-There is no long-lived server. Launch means build the noembed CI binary once,
+There is no long-lived server. Launch means build `built/local/tsc` once,
 then run each drive as its own short-lived process.
 
-`go build -C ./tsc ./cmd/tsc` without `-tags=noembed -o ../built/local/tsc`
-does not refresh `./built/local/tsc`. After the first `control-tsc launch`,
-rebuild with that tagged command. Do not rerun `npx hereby build` on every
-inner-loop change. hereby recopies libs.
+Default launch is the noembed CI shape (`npx hereby build`, which always
+passes `-tags=noembed`). That binary loads `lib.es*.d.ts` from the directory
+of `os.Executable()`. Instruments `xctrace --launch` can relocate the
+process, so noembed then fails with `Cannot find global type 'Array'`.
+
+For monaco PMC, launch the embed binary instead:
+
+```bash
+./.cursor/skills/verify-tsc/scripts/control-tsc launch --embed
+```
+
+`--embed` runs `npx hereby lib` then `go build -C ./tsc -o ../built/local/tsc ./cmd/tsc` with no `-tags=noembed`. hereby has no `--embed` flag; `tsc:build` is always noembed.
+
+`go build -C ./tsc ./cmd/tsc` without `-o ../built/local/tsc` does not
+refresh `./built/local/tsc`. After a noembed `control-tsc launch`, rebuild
+with `-tags=noembed -o ../built/local/tsc`. After `--embed`, rebuild without
+that tag. Do not rerun `npx hereby build` on every inner-loop change.
+hereby recopies libs and forces noembed.
 
 From the repository root, with Go matching `tsc/go.mod` (currently 1.26) on
 `PATH`. If the system Go cannot download that toolchain, use a local 1.26
@@ -61,7 +75,7 @@ Ready when all of these hold:
 
 - `built/local/tsc` exists and is executable
 - `built/local/lib.es5.d.ts` exists (hereby copies bundled libs next to the
-  noembed binary)
+  binary; embed still uses this for doctor, but runtime libs are in the binary)
 - `./built/local/tsc --version` prints `Version ` plus `core.Version()`
   (today `Version 7.1.0-dev`)
 - `control-tsc doctor` exits 0
@@ -109,14 +123,22 @@ Harness:
 `control-tsc fixture` prints `SCRATCH=...`. `control-tsc cli` always records
 cwd, argv, stdout, stderr, exit code, and duration under
 `.cursor/skills/verify-tsc/artifacts/$VERIFY_TSC_RUN_ID/`.
+`control-tsc pmc` launches the same binary under `xctrace record` (Instruments
+CPU Counters) and writes a `.trace` plus `pmc-summary.txt` next to that
+transcript. Do not use pprof for CPU or instruction claims.
 
 Rules:
 
 - Isolate every drive in `/tmp/verify-tsc-$VERIFY_TSC_RUN_ID/`. Put `outDir`,
   `declarationDir`, tsbuildinfo, and `--init` output there. Do not write
   compiler output into the git worktree.
-- Invoke only `built/local/tsc` through `control-tsc cli`. Pass compiler
-  flags after `--`.
+- Invoke only `built/local/tsc` through `control-tsc cli` or
+  `control-tsc pmc`. Pass compiler flags after `--`.
+- For bind-only monaco measurement, cwd is a vscode checkout (default
+  `/Users/noyan/ghq/github.com/microsoft/vscode`) and argv is
+  `--project src/tsconfig.monaco.json --noEmit --noCheck --declaration false`.
+  CPU accuracy for that path is Instruments PMC via `control-tsc pmc`, never
+  `pprof`.
 - Prefer project mode (`-p <dir-or-tsconfig>`) and explicit file lists over
   relying on a hidden cwd tsconfig.
 - Stable handles are compiler flags and paths: `--noEmit`, `--declaration`,
@@ -159,8 +181,15 @@ Standards:
 - Mocks are not used. The only allowed stand-in is an isolated fixture
   project; it is still compiled by the real binary. The CI smoke at
   `smoke/typescript-6.0/src/compiler` (TypeScript v6.0.3) is the large
-  live workload when a feature file asks for it. A one-line toy file must
-  not replace that workload for performance or Store e2e claims.
+  live workload when a feature file asks for it. The vscode monaco project
+  (`src/tsconfig.monaco.json`) is the large live workload when
+  `monaco-nocheck.md` asks for it. A one-line toy file must not replace
+  those workloads for performance or Store e2e claims.
+- Performance claims for monaco bind-only use `control-tsc pmc` (xctrace
+  CPU Counters). Do not use `go tool pprof`, `-cpuprofile`, or other pprof
+  profiles; they can mis-attribute CPU on this binary. Wall-clock
+  `--extendedDiagnostics` Bind time is optional companion evidence, not a
+  substitute for the `.trace`.
 
 ## Cleanup
 
@@ -180,10 +209,11 @@ is executable (`chmod +x`).
 
 | Command | What it does |
 | --- | --- |
-| `control-tsc launch` | Ensures Go, builds `built/local/tsc` with `npx hereby build`, records run state. Waits if a tsc-module `go` is already compiling |
+| `control-tsc launch` | Ensures Go, builds `built/local/tsc` (`hereby build` = noembed, or `--embed`) |
 | `control-tsc doctor` | Read-only health check of this checkout's binary and libs |
 | `control-tsc fixture <id>` | Writes an isolated project for a mapped feature id |
 | `control-tsc cli -- [tsc args]` | Runs `built/local/tsc` and writes a transcript under `artifacts/` |
+| `control-tsc pmc -- [tsc args]` | Launches `built/local/tsc` under `xctrace record` (CPU Counters). Never pprof |
 | `control-tsc go -- [go args]` | Runs `go` from the repo root under the same compile lock as `launch` |
 | `control-tsc cleanup` | Deletes scratch and recorded child PIDs; keeps artifacts |
 

@@ -13,7 +13,8 @@ run or ship.
 
 ## How to get to it (user POV)
 
-- Run `tsc app.ts --outDir dist`.
+- Run `tsc --ignoreConfig app.ts --outDir dist` (or run from a directory
+  with no `tsconfig.json`).
 - Run `tsc -p ./path/to/tsconfig.json`.
 - Run `tsc` in a directory whose `tsconfig.json` sets `outDir`.
 
@@ -41,6 +42,8 @@ Preconditions:
 
 - `--noEmit` from a copied tsconfig silently skips this feature. Use the
   `emit-javascript` fixture, not `type-check`.
+- Naming files on the command line while a `tsconfig.json` exists in cwd
+  (or an ancestor) errors unless `--ignoreConfig` is set. `tsc app.ts --outDir dist` is not a valid proof in a repo that has a tsconfig.
 - Default emit without `outDir` writes `.js` next to the `.ts` file. Always
   pass `--outDir` under scratch so cleanup can delete it.
 - Incremental `tsbuildinfo` beside `outDir` is output, not proof of JS emit.
