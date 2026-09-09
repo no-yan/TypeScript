@@ -96,8 +96,7 @@ type Parser struct {
 	jsdocTagCommentsPartsSpace []ast.NodeRef
 	reparseList                []ast.NodeRef
 
-	currentParent  ast.Handle
-	reparsedClones []ast.Handle
+	reparsedClones []ast.NodeRef
 
 	// listScratch is a LIFO scratch shared by every list loop. A loop records
 	// start := len(listScratch), pushes element refs, and finishScratchList
@@ -129,13 +128,6 @@ var parserPool = sync.Pool{
 
 func getParser() *Parser {
 	return parserPool.Get().(*Parser)
-}
-
-func (p *Parser) newList(loc core.TextRange, nodes []ast.Handle) ast.ListRef {
-	if len(nodes) == 0 {
-		return p.factory.List(loc)
-	}
-	return p.factory.List(loc, nodes...)
 }
 
 // newListRefs is the same-store list path used by the statement, member and
@@ -6150,14 +6142,6 @@ func (p *Parser) createIdentifierWithDiagnostic(isIdentifier bool, diagnosticMes
 		}
 	}
 	return p.createMissingIdentifier()
-}
-
-func (p *Parser) newNodeList(loc core.TextRange, nodes []ast.Handle) ast.ListRef {
-	return p.newList(loc, nodes)
-}
-
-func (p *Parser) newModifierList(loc core.TextRange, nodes []ast.Handle) ast.ListRef {
-	return p.newList(loc, nodes)
 }
 
 func (p *Parser) overrideParentInImmediateChildren(node ast.NodeRef) {

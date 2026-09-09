@@ -28,7 +28,7 @@ func (p *Parser) addDeepCloneReparse(node ast.NodeRef) ast.NodeRef {
 	clone := p.factory.CopySubtree(p.at(node))
 	if !clone.IsNil() {
 		clone.SetFlags(clone.Flags() | p.contextFlags | ast.NodeFlagsReparsed)
-		p.reparsedClones = append(p.reparsedClones, clone)
+		p.reparsedClones = append(p.reparsedClones, clone.Ref())
 	}
 	return clone.Ref()
 }
@@ -37,7 +37,7 @@ func (p *Parser) addTransformedReparse(newNode ast.NodeRef, old ast.NodeRef) ast
 	p.finishReparsedNode(newNode, old)
 	h := p.at(newNode)
 	h.SetFlags(h.Flags() | ast.NodeFlagsReparserTransformedLiteral)
-	p.reparsedClones = append(p.reparsedClones, h)
+	p.reparsedClones = append(p.reparsedClones, newNode)
 	return newNode
 }
 
@@ -762,6 +762,6 @@ func (p *Parser) wrapInJSDocNamespace(fullName ast.NodeRef, statement ast.NodeRe
 	}
 	result := p.factory.ParseModuleDeclaration(modifiers, ast.KindNamespaceKeyword, p.addDeepCloneReparse(p.at(fullName).Name().Ref()), block)
 	p.finishReparsedNode(result, fullName)
-	p.reparsedClones = append(p.reparsedClones, p.at(result))
+	p.reparsedClones = append(p.reparsedClones, result)
 	return result
 }
