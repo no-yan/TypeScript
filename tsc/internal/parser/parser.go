@@ -6136,13 +6136,13 @@ func (p *Parser) finishHandle(node ast.Handle, pos int) ast.Handle {
 }
 
 func (p *Parser) finishHandleWithEnd(node ast.Handle, pos int, end int) ast.Handle {
-	flags := node.Flags() | p.contextFlags
+	extra := p.contextFlags
 	if p.hasParseError {
-		flags |= ast.NodeFlagsThisNodeHasError
+		extra |= ast.NodeFlagsThisNodeHasError
 		p.hasParseError = false
 	}
-	node.SetFlags(flags)
-	return p.factory.Finish(node, core.NewTextRange(pos, end))
+	p.factory.Store().FinishParse(node.Ref(), extra, pos, end)
+	return node
 }
 
 func (p *Parser) finishNode(node ast.Handle, pos int) ast.Handle {

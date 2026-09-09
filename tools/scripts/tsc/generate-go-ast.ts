@@ -536,17 +536,21 @@ function emitStoreFactory(
     w.push();
     w.write(`h := f.createSlots(${kindArg}, ${flags}, core.UndefinedTextRange(), ${layout.children.length}, ${layout.lists.length})`);
     for (const m of layout.children) {
-        w.write(`h.SetChild(${slotConst(node.name, memberSuffix(m))}, ${m.goParamName()})`);
+        w.write(`f.store.linkChild(h.id, ${slotConst(node.name, memberSuffix(m))}, ${m.goParamName()})`);
     }
     for (const m of layout.lists) {
-        w.write(`h.SetListSlot(${listSlotConst(node.name, memberSuffix(m))}, ${m.goParamName()})`);
+        w.write(`f.store.linkList(h.id, ${listSlotConst(node.name, memberSuffix(m))}, ${m.goParamName()})`);
     }
+    const primaryString = layout.strings[0];
     for (const m of layout.values) {
+        if (m === primaryString) {
+            continue;
+        }
         emitStoreValuePut(w, m, "h");
     }
-    if (layout.strings.length > 0) {
-        const p = layout.strings[0].goParamName();
-        w.write(`if ${p} != "" { h.SetIdent(f.store.Intern(${p})) }`);
+    if (primaryString) {
+        const p = primaryString.goParamName();
+        w.write(`if ${p} != "" { f.store.setIdent(h.id, f.store.intern(${p})) }`);
     }
     w.write("return h");
     w.pop();
