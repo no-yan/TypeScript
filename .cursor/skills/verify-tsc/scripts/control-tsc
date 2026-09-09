@@ -35,16 +35,24 @@ usage() {
 Usage: control-tsc <command> [args]
 
 Commands:
-  launch                 Build built/local/tsc and record run state
+  launch [--embed|--noembed]
+                         Build built/local/tsc and record run state.
+                         Default --noembed matches hereby tsc:build.
+                         --embed is go build without -tags=noembed (xctrace/pmc)
   doctor                 Read-only health check of this checkout's binary
   fixture <feature-id>   Write an isolated project under scratch
   cli [--cwd DIR] -- [tsc args...]
                          Run built/local/tsc and record a transcript
+  pmc [--cwd DIR] [--template PATH|NAME] -- [tsc args...]
+                         Launch tsc under xctrace CPU Counters (not pprof)
   go [--] [go args...]   Run go under the tsc compile lock (waits for launch)
   cleanup                Delete scratch and recorded child PIDs; keep artifacts
 
 Environment:
-  VERIFY_TSC_RUN_ID      Isolate concurrent runs (default: timestamp-pid)
+  VERIFY_TSC_RUN_ID              Isolate concurrent runs (default: timestamp-pid)
+  VERIFY_TSC_EMBED               1 to default launch to --embed
+  VERIFY_TSC_XCTRACE_TEMPLATE    Instruments template name or .tracetemplate path
+  VERIFY_TSC_VSCODE_ROOT         vscode checkout for monaco-nocheck (optional)
 EOF
 }
 
@@ -75,13 +83,18 @@ ensure_go() {
   [[ -n "$required" ]] || die "could not read go version from tsc/go.mod"
 
   local candidate version
+  shopt -s nullglob
+  local extras=(/opt/homebrew/opt/go/bin/go /opt/homebrew/Cellar/go/"${required}"*/libexec/bin/go)
+  shopt -u nullglob
   for candidate in \
     "/tmp/go${required}/bin/go" \
     "/tmp/go${required}.0/bin/go" \
     "$HOME/sdk/go${required}/bin/go" \
+    "$HOME/sdk/go${required}.0/bin/go" \
+    "${extras[@]}" \
     "$(command -v go || true)"; do
     if [[ -x "$candidate" ]]; then
-      version=$("$candidate" env GOVERSION 2>/dev/null || true)
+      version=$(GOTOOLCHAIN=local "$candidate" env GOVERSION 2>/dev/null || true)
       if [[ "$version" == "go${required}"* || "$version" == "go${required}."* ]]; then
         export PATH="$(dirname "$candidate"):$PATH"
         export GOTOOLCHAIN=local
@@ -91,8 +104,8 @@ ensure_go() {
   done
 
   if command -v go >/dev/null 2>&1; then
-    version=$(go env GOVERSION 2>/dev/null || go version)
-    die "Go $required is required (tsc/go.mod); found $version. Install it or put it on PATH (example: /tmp/go${required}/bin)."
+    version=$(GOTOOLCHAIN=local go version 2>/dev/null || go version)
+    die "Go $required is required (tsc/go.mod); found $version. Install it or put it on PATH (example: /opt/homebrew/opt/go/bin or /tmp/go${required}/bin)."
   fi
   die "Go $required is required and no go binary was found"
 }
@@ -180,16 +193,47 @@ EOF
 
 cmd_launch() {
   load_paths
+  local embed=0
+  if [[ "${VERIFY_TSC_EMBED:-}" == "1" ]]; then
+    embed=1
+  fi
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --embed) embed=1 ;;
+      --noembed) embed=0 ;;
+      *) die "unknown launch argument '$1' (expected --embed or --noembed)" ;;
+    esac
+    shift
+  done
   write_last_run_id
   ensure_go
   if [[ ! -d "$REPO_ROOT/node_modules" ]]; then
     (cd "$REPO_ROOT" && npm ci)
   fi
-  (cd "$REPO_ROOT" && run_serialized_compile npx hereby build)
+  if [[ "$embed" == "1" ]]; then
+    # hereby tsc:build always passes -tags=noembed. Embed is a plain go build
+    # so xctrace can relocate the binary without losing bundled libs.
+    (cd "$REPO_ROOT" && run_serialized_compile npx hereby lib)
+    (cd "$REPO_ROOT" && run_serialized_compile go build -C ./tsc -o "$TSC_BIN" ./cmd/tsc)
+  else
+    (cd "$REPO_ROOT" && run_serialized_compile npx hereby build)
+  fi
   [[ -x "$TSC_BIN" ]] || die "build finished but $TSC_BIN is missing or not executable"
-  [[ -f "$REPO_ROOT/built/local/lib.es5.d.ts" ]] || die "build finished but built/local/lib.es5.d.ts is missing (noembed libs)"
+  [[ -f "$REPO_ROOT/built/local/lib.es5.d.ts" ]] || die "build finished but built/local/lib.es5.d.ts is missing (hereby lib)"
+  local tags
+  tags=$(go version -m "$TSC_BIN" 2>/dev/null || true)
+  if [[ "$embed" == "1" ]]; then
+    if [[ "$tags" == *"noembed"* ]]; then
+      die "asked for --embed but $TSC_BIN still has build tag noembed"
+    fi
+  else
+    if [[ "$tags" != *"noembed"* ]]; then
+      die "asked for --noembed but $TSC_BIN has no noembed build tag"
+    fi
+  fi
   record_state
-  echo "LAUNCH_OK run_id=$RUN_ID tsc=$TSC_BIN sha=$(git -C "$REPO_ROOT" rev-parse --short HEAD)"
+  printf 'BUILD_EMBED=%s\n' "$embed" >>"$STATE_DIR/state.env"
+  echo "LAUNCH_OK run_id=$RUN_ID tsc=$TSC_BIN embed=$embed sha=$(git -C "$REPO_ROOT" rev-parse --short HEAD)"
 }
 
 cmd_doctor() {
@@ -227,6 +271,19 @@ cmd_doctor() {
   fi
   check "tsc-version" "$([[ "$version_out" == "Version ${expected_version}"* ]] && echo 1 || echo 0)" "$(echo "$version_out" | head -n 1)"
   check "tsc-help" "$([[ "$help_out" == *"tsc: The TypeScript Compiler"* ]] && echo 1 || echo 0)" "help contains compiler banner"
+
+  local build_embed="" tags
+  tags=$(go version -m "$TSC_BIN" 2>/dev/null || true)
+  if [[ -f "$STATE_DIR/state.env" ]]; then
+    build_embed=$(awk -F= '/^BUILD_EMBED=/ { print $2 }' "$STATE_DIR/state.env")
+  fi
+  if [[ "$build_embed" == "1" ]]; then
+    check "tsc-embed" "$([[ "$tags" != *"noembed"* ]] && echo 1 || echo 0)" "embedded libs (no noembed tag)"
+  elif [[ "$build_embed" == "0" ]]; then
+    check "tsc-noembed" "$([[ "$tags" == *"noembed"* ]] && echo 1 || echo 0)" "noembed build tag"
+  else
+    echo "WARN  tsc-embed  no BUILD_EMBED in launch state"
+  fi
 
   local head_sha recorded_sha
   head_sha=$(git -C "$REPO_ROOT" rev-parse HEAD)
@@ -452,7 +509,11 @@ cmd_cli() {
     fi
   fi
 
-  mkdir -p "$cwd"
+  if [[ "$cwd" == /tmp/verify-tsc-* ]]; then
+    mkdir -p "$cwd"
+  else
+    [[ -d "$cwd" ]] || die "cwd does not exist: $cwd (refusing to mkdir outside scratch)"
+  fi
   local art
   art=$(next_artifact_dir "$slug")
   local start end elapsed status
@@ -501,6 +562,128 @@ cmd_cli() {
   return "$status"
 }
 
+default_xctrace_template() {
+  if [[ -n "${VERIFY_TSC_XCTRACE_TEMPLATE:-}" ]]; then
+    printf '%s\n' "$VERIFY_TSC_XCTRACE_TEMPLATE"
+    return 0
+  fi
+  local user_tpl="$HOME/Library/Application Support/Instruments/Templates/cpu-counter.tracetemplate"
+  if [[ -f "$user_tpl" ]]; then
+    printf '%s\n' "$user_tpl"
+    return 0
+  fi
+  printf '%s\n' "CPU Counters"
+}
+
+cmd_pmc() {
+  load_paths
+  [[ -x "$TSC_BIN" ]] || die "tsc is not built; run control-tsc launch"
+  xcrun --find xctrace >/dev/null 2>&1 || die "xcrun xctrace not found; Instruments CPU Counters require macOS Xcode CLT"
+  local cwd="$PWD"
+  local slug="pmc"
+  local template
+  template=$(default_xctrace_template)
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --cwd)
+        cwd="$2"
+        shift 2
+        ;;
+      --slug)
+        slug="$2"
+        shift 2
+        ;;
+      --template)
+        template="$2"
+        shift 2
+        ;;
+      --)
+        shift
+        break
+        ;;
+      *)
+        break
+        ;;
+    esac
+  done
+  [[ $# -gt 0 ]] || die "pmc requires tsc arguments after --"
+
+  if [[ "$cwd" == /tmp/verify-tsc-* ]]; then
+    mkdir -p "$cwd"
+  else
+    [[ -d "$cwd" ]] || die "cwd does not exist: $cwd (refusing to mkdir outside scratch)"
+  fi
+
+  local art
+  art=$(next_artifact_dir "$slug")
+  local trace="$art/cpu-counters.trace"
+  local start end elapsed status
+  start=$(date +%s)
+  set +e
+  (
+    cd "$cwd"
+    xcrun xctrace record \
+      --template "$template" \
+      --output "$trace" \
+      --no-prompt \
+      --target-stdout "$art/stdout.txt" \
+      --launch -- \
+      "$TSC_BIN" "$@"
+  ) >"$art/xctrace-stdout.txt" 2>"$art/xctrace-stderr.txt"
+  status=$?
+  set -e
+  end=$(date +%s)
+  elapsed=$((end - start))
+
+  : >"$art/stderr.txt"
+  if [[ -s "$art/xctrace-stderr.txt" ]]; then
+    # tsc has no --target-stderr; compiler errors may land here with xctrace logs.
+    cp "$art/xctrace-stderr.txt" "$art/stderr.txt"
+  fi
+
+  {
+    echo "run_id=$RUN_ID"
+    echo "git_sha=$(git -C "$REPO_ROOT" rev-parse HEAD)"
+    echo "tsc_bin=$TSC_BIN"
+    echo "cwd=$cwd"
+    echo "argv=$TSC_BIN $*"
+    echo "xctrace_template=$template"
+    echo "xctrace_exit=$status"
+    echo "duration_s=$elapsed"
+    echo "started_unix=$start"
+    echo "trace=$trace"
+    echo "pprof=forbidden"
+  } >"$art/meta.txt"
+
+  if [[ -e "$trace" ]]; then
+    xcrun xctrace export --input "$trace" --toc --output "$art/toc.xml" || true
+    xcrun xctrace export --input "$trace" --output "$art/MetricAggregationForProcess.xml" \
+      --xpath '/trace-toc/run[@number="1"]/data/table[@schema="MetricAggregationForProcess"]' || true
+    xcrun xctrace export --input "$trace" --output "$art/MetricTable.xml" \
+      --xpath '/trace-toc/run[@number="1"]/data/table[@schema="MetricTable"]' || true
+    python3 "$SCRIPT_DIR/summarize-xctrace-pmc.py" \
+      --toc "$art/toc.xml" \
+      --agg "$art/MetricAggregationForProcess.xml" \
+      --metrics "$art/MetricTable.xml" \
+      --out "$art/pmc-summary.txt" || true
+    local target_exit=""
+    if [[ -f "$art/pmc-summary.txt" ]]; then
+      target_exit=$(awk -F= '/^target_exit=/ { print $2 }' "$art/pmc-summary.txt")
+      echo "target_exit=$target_exit" >>"$art/meta.txt"
+    fi
+    if [[ -n "$target_exit" ]]; then
+      status="$target_exit"
+    fi
+  else
+    echo "warning=no .trace written; see xctrace-stderr.txt" >"$art/pmc-summary.txt"
+  fi
+
+  echo "ARTIFACT=$art"
+  echo "XCTRACE_EXIT=$status"
+  echo "TRACE=$trace"
+  return "$status"
+}
+
 cmd_go() {
   load_paths
   ensure_go
@@ -545,6 +728,7 @@ main() {
     doctor) cmd_doctor "$@" ;;
     fixture) cmd_fixture "$@" ;;
     cli) cmd_cli "$@" ;;
+    pmc) cmd_pmc "$@" ;;
     go) cmd_go "$@" ;;
     cleanup) cmd_cleanup "$@" ;;
     -h|--help|help) usage ;;

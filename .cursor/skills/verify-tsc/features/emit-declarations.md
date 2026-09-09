@@ -41,7 +41,7 @@ Preconditions:
 - `--declaration` without a successful type-check may skip emit (exit 1) or
   still emit (exit 2) depending on `noEmitOnError`. The fixture is well-typed
   so the expected exit is 0.
-- `--emitDeclarationOnly` without `--declaration` is not a valid substitute.
-  Pass both, or set them in tsconfig.
+- `--emitDeclarationOnly` requires `--declaration` or `composite`. Passing
+  neither is not a valid substitute.
 - Do not use checker `*.d.ts` baselines under `tsc/testdata/` as the user
   output path.

@@ -20,7 +20,8 @@ then use the matching feature file as the recipe.
 - Start every recipe from a fresh fixture unless its preconditions say
   otherwise.
 - Treat every command as literal. Keep flags and quoted paths unchanged.
-- Run compiler actions through `control-tsc cli -- `.
+- Run compiler actions through `control-tsc cli -- `. Use `control-tsc pmc`
+  only for monaco-nocheck CPU Counters.
 - Restore nothing in the git worktree; fixtures live in scratch.
 - Do not remove proof artifacts during cleanup.
 
@@ -56,8 +57,13 @@ handles, required state, commands, and observable proof.
   and on a project, including a clean program and the CI compiler smoke.
 - [Emit JavaScript](./emit-javascript.md) covers writing `.js` from a file
   list and from `-p`, and checking the output on disk.
-- [Emit declarations](./emit-declarations.md) covers `--declaration` and
-  `--declarationDir` output a user would ship.
+- [Emit declarations](./emit-declarations.md) covers `--declaration`,
+  `--declarationDir`, `--emitDeclarationOnly`, and `--declaration --noEmit`.
 - [Report diagnostics](./report-diagnostics.md) covers type errors, bad flags,
-  and missing project paths.
-- [Project mode](./project-mode.md) covers `-p`, `--init`, and `--build`.
+  and missing project paths (diagnostics on stdout).
+- [Project mode](./project-mode.md) covers `-p` / `--project`, `--init`, and
+  `--build`.
+- [Bind-only monaco project (no check)](./monaco-nocheck.md) covers
+  `--project src/tsconfig.monaco.json --noEmit --noCheck --declaration false`
+  on a vscode tree, plus Instruments CPU Counters via `control-tsc pmc`
+  (not pprof).
