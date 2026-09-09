@@ -532,27 +532,38 @@ function emitStoreFactory(
         ? "0"
         : nodeFlagsMembers.map(m => m.bitmask ? `${m.goParamName()} & ${m.bitmask}` : m.goParamName()).join(" | ");
 
-    w.write(`func (f *Factory) ${funcName}(${params}) Handle {`);
+    const parseName = `parse${funcName.slice(3)}`;
+    const parseArgs = members.map(m => m.goParamName()).join(", ");
+
+    w.write(`func (f *Factory) ${parseName}(${params}) NodeRef {`);
     w.push();
-    w.write(`h := f.createSlots(${kindArg}, ${flags}, core.UndefinedTextRange(), ${layout.children.length}, ${layout.lists.length})`);
+    w.write(`id := f.store.appendSlots(${kindArg}, ${flags}, core.UndefinedTextRange(), ${layout.children.length}, ${layout.lists.length})`);
     for (const m of layout.children) {
-        w.write(`f.store.linkChild(h.id, ${slotConst(node.name, memberSuffix(m))}, ${m.goParamName()})`);
+        w.write(`f.store.linkChild(id, ${slotConst(node.name, memberSuffix(m))}, ${m.goParamName()})`);
     }
     for (const m of layout.lists) {
-        w.write(`f.store.linkList(h.id, ${listSlotConst(node.name, memberSuffix(m))}, ${m.goParamName()})`);
+        w.write(`f.store.linkList(id, ${listSlotConst(node.name, memberSuffix(m))}, ${m.goParamName()})`);
     }
     const primaryString = layout.strings[0];
-    for (const m of layout.values) {
-        if (m === primaryString) {
-            continue;
+    const extraValues = layout.values.filter(m => m !== primaryString);
+    if (extraValues.length > 0) {
+        w.write(`h := Handle{s: f.store, id: id, Kind: ${kindArg}}`);
+        for (const m of extraValues) {
+            emitStoreValuePut(w, m, "h");
         }
-        emitStoreValuePut(w, m, "h");
     }
     if (primaryString) {
         const p = primaryString.goParamName();
-        w.write(`if ${p} != "" { f.store.setIdent(h.id, f.store.intern(${p})) }`);
+        w.write(`if ${p} != "" { f.store.setIdent(id, f.store.intern(${p})) }`);
     }
-    w.write("return h");
+    w.write("return id");
+    w.pop();
+    w.write("}");
+    w.write("");
+
+    w.write(`func (f *Factory) ${funcName}(${params}) Handle {`);
+    w.push();
+    w.write(`return f.handleFromParse(f.${parseName}(${parseArgs}), ${kindArg})`);
     w.pop();
     w.write("}");
     w.write("");

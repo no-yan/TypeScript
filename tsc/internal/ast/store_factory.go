@@ -62,13 +62,16 @@ func (f *Factory) create(kind Kind, flags NodeFlags, loc core.TextRange, childLe
 	return f.createSlots(kind, flags, loc, childLen, 0)
 }
 
-func (f *Factory) createSlots(kind Kind, flags NodeFlags, loc core.TextRange, childLen, listLen int) Handle {
-	id := f.store.appendSlots(kind, flags, loc, childLen, listLen)
+func (f *Factory) handleFromParse(id NodeRef, kind Kind) Handle {
 	h := Handle{s: f.store, id: id, Kind: kind}
 	if f.hooks.OnCreate != nil {
 		f.hooks.OnCreate(h)
 	}
 	return h
+}
+
+func (f *Factory) createSlots(kind Kind, flags NodeFlags, loc core.TextRange, childLen, listLen int) Handle {
+	return f.handleFromParse(f.store.appendSlots(kind, flags, loc, childLen, listLen), kind)
 }
 
 func (f *Factory) Identifier(text string) Handle {
