@@ -461,13 +461,21 @@ func (f *Factory) FunctionExpression(loc core.TextRange, params ListRef) Handle 
 	return h
 }
 
+// ParseSourceFile creates the Store-owned SourceFile syntax root as a NodeRef.
+func (f *Factory) ParseSourceFile(statements ListRef, endOfFileToken NodeRef) NodeRef {
+	id := f.store.appendSlots(KindSourceFile, 0, core.UndefinedTextRange(), slotSourceFileCount, listSlotSourceFileCount)
+	f.store.linkChildRef(id, slotSourceFileEndOfFileToken, endOfFileToken)
+	f.store.linkList(id, listSlotSourceFileStatements, statements)
+	return id
+}
+
 // NewSourceFile creates the Store-owned SourceFile syntax root. File metadata
 // is initialized when a pointer view is materialized for legacy consumers.
 func (f *Factory) NewSourceFile(statements ListRef, endOfFileToken Handle) Handle {
-	h := f.createSlots(KindSourceFile, 0, core.UndefinedTextRange(), slotSourceFileCount, listSlotSourceFileCount)
-	h.SetSourceFileEndOfFileToken(endOfFileToken)
-	h.SetSourceFileStatements(statements)
-	return h
+	id := f.store.appendSlots(KindSourceFile, 0, core.UndefinedTextRange(), slotSourceFileCount, listSlotSourceFileCount)
+	f.store.linkChild(id, slotSourceFileEndOfFileToken, endOfFileToken)
+	f.store.linkList(id, listSlotSourceFileStatements, statements)
+	return f.handleFromParse(id, KindSourceFile)
 }
 
 func (f *Factory) UpdateSourceFile(node Handle, statements ListRef, endOfFileToken Handle) Handle {
