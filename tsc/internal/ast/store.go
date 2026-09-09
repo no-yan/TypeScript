@@ -381,6 +381,15 @@ func (s *Store) linkChild(parent NodeRef, slot int, child Handle) {
 	Handle{s: s, id: parent, Kind: n.kind}.SetChild(slot, child)
 }
 
+func (s *Store) linkChildRef(parent NodeRef, slot int, child NodeRef) {
+	n := &s.nodes[parent]
+	idx := int(n.childStart) + slot
+	s.children[idx] = child
+	if child != 0 {
+		s.nodes[child].parent = parent
+	}
+}
+
 func (s *Store) linkList(parent NodeRef, slot int, list ListRef) {
 	n := &s.nodes[parent]
 	idx := n.listBase() + uint32(slot)

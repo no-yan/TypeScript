@@ -476,6 +476,11 @@ function storeParamType(m: MemberInfo): string {
     return m.listKind === undefined ? "Handle" : "ListRef";
 }
 
+function storeParseParamType(m: MemberInfo): string {
+    if (!m.isChild()) return m.type.formatGoReference();
+    return m.listKind === undefined ? "NodeRef" : "ListRef";
+}
+
 // Concrete FooNode aliases are Handle. Pointer AST fields stay *Node.
 function pointerGoRef(type: Type): string {
     const ref = type.formatGoReference();
@@ -532,14 +537,15 @@ function emitStoreFactory(
         ? "0"
         : nodeFlagsMembers.map(m => m.bitmask ? `${m.goParamName()} & ${m.bitmask}` : m.goParamName()).join(" | ");
 
-    const parseName = `parse${funcName.slice(3)}`;
-    const parseArgs = members.map(m => m.goParamName()).join(", ");
+    const parseName = `Parse${funcName.slice(3)}`;
+    const parseParams = members.map(m => `${m.goParamName()} ${storeParseParamType(m)}`).join(", ");
+    const leafParseArgs = members.map(m => m.goParamName()).join(", ");
 
-    w.write(`func (f *Factory) ${parseName}(${params}) NodeRef {`);
+    w.write(`func (f *Factory) ${parseName}(${parseParams}) NodeRef {`);
     w.push();
     w.write(`id := f.store.appendSlots(${kindArg}, ${flags}, core.UndefinedTextRange(), ${layout.children.length}, ${layout.lists.length})`);
     for (const m of layout.children) {
-        w.write(`f.store.linkChild(id, ${slotConst(node.name, memberSuffix(m))}, ${m.goParamName()})`);
+        w.write(`f.store.linkChildRef(id, ${slotConst(node.name, memberSuffix(m))}, ${m.goParamName()})`);
     }
     for (const m of layout.lists) {
         w.write(`f.store.linkList(id, ${listSlotConst(node.name, memberSuffix(m))}, ${m.goParamName()})`);
@@ -563,7 +569,34 @@ function emitStoreFactory(
 
     w.write(`func (f *Factory) ${funcName}(${params}) Handle {`);
     w.push();
-    w.write(`return f.handleFromParse(f.${parseName}(${parseArgs}), ${kindArg})`);
+    if (layout.children.length === 0) {
+        w.write(`return f.handleFromParse(f.${parseName}(${leafParseArgs}), ${kindArg})`);
+    } else {
+        w.write(`id := f.store.appendSlots(${kindArg}, ${flags}, core.UndefinedTextRange(), ${layout.children.length}, ${layout.lists.length})`);
+        for (const m of layout.children) {
+            w.write(`f.store.linkChild(id, ${slotConst(node.name, memberSuffix(m))}, ${m.goParamName()})`);
+        }
+        for (const m of layout.lists) {
+            w.write(`f.store.linkList(id, ${listSlotConst(node.name, memberSuffix(m))}, ${m.goParamName()})`);
+        }
+        if (extraValues.length > 0) {
+            w.write(`h := f.handleFromParse(id, ${kindArg})`);
+            for (const m of extraValues) {
+                emitStoreValuePut(w, m, "h");
+            }
+            if (primaryString) {
+                const p = primaryString.goParamName();
+                w.write(`if ${p} != "" { f.store.setIdent(id, f.store.intern(${p})) }`);
+            }
+            w.write("return h");
+        } else {
+            if (primaryString) {
+                const p = primaryString.goParamName();
+                w.write(`if ${p} != "" { f.store.setIdent(id, f.store.intern(${p})) }`);
+            }
+            w.write(`return f.handleFromParse(id, ${kindArg})`);
+        }
+    }
     w.pop();
     w.write("}");
     w.write("");
