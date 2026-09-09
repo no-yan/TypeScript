@@ -9,13 +9,18 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
 
-// NodeRef is a Store index. 0 is missing. It is not ast.NodeId.
+// NodeRef is a Store index. NoNodeRef is missing. It is not ast.NodeId.
 type NodeRef uint32
 
 // ListRef identifies both the owner and index of a packed list. Node headers
 // still store 32-bit local indexes; foreign list slots live in a sparse map.
 // Qualifying lists allows transforms to reuse unchanged lists across Stores.
 type ListRef uint64
+
+const (
+	NoNodeRef NodeRef = 0
+	NoListRef ListRef = 0
+)
 
 func (s *Store) listRef(index uint32) ListRef {
 	if index == 0 {
@@ -90,7 +95,7 @@ type Handle struct {
 
 // handleOf rebuilds a Handle with Kind cached from the header.
 func (s *Store) handleOf(id NodeRef) Handle {
-	if s == nil || id == 0 {
+	if s == nil || id == NoNodeRef {
 		return Handle{}
 	}
 	return Handle{s: s, id: id, Kind: s.nodes[id].kind}
@@ -381,6 +386,15 @@ func (s *Store) linkChild(parent NodeRef, slot int, child Handle) {
 	Handle{s: s, id: parent, Kind: n.kind}.SetChild(slot, child)
 }
 
+func (s *Store) linkChildRef(parent NodeRef, slot int, child NodeRef) {
+	n := &s.nodes[parent]
+	idx := int(n.childStart) + slot
+	s.children[idx] = child
+	if child != NoNodeRef {
+		s.nodes[child].parent = parent
+	}
+}
+
 func (s *Store) linkList(parent NodeRef, slot int, list ListRef) {
 	n := &s.nodes[parent]
 	idx := n.listBase() + uint32(slot)
@@ -511,23 +525,23 @@ func (s *Store) At(ref NodeRef) Handle {
 
 // HandleOf builds a Handle with a caller-supplied Kind (no header reload).
 func HandleOf(s *Store, id NodeRef, kind Kind) Handle {
-	if s == nil || id == 0 {
+	if s == nil || id == NoNodeRef {
 		return Handle{}
 	}
 	return Handle{s: s, id: id, Kind: kind}
 }
 
-// KindAt returns the node Kind. id 0 yields 0.
+// KindAt returns the node Kind. NoNodeRef yields KindUnknown.
 func (s *Store) KindAt(id NodeRef) Kind {
-	if s == nil || id == 0 {
-		return 0
+	if s == nil || id == NoNodeRef {
+		return KindUnknown
 	}
 	return s.nodes[id].kind
 }
 
 // FlagsAt returns the node flags without constructing a Handle.
 func (s *Store) FlagsAt(id NodeRef) NodeFlags {
-	if s == nil || id == 0 {
+	if s == nil || id == NoNodeRef {
 		return 0
 	}
 	return s.nodes[id].flags
@@ -535,7 +549,7 @@ func (s *Store) FlagsAt(id NodeRef) NodeFlags {
 
 // LocAt returns the source range without constructing a Handle.
 func (s *Store) LocAt(id NodeRef) core.TextRange {
-	if s == nil || id == 0 {
+	if s == nil || id == NoNodeRef {
 		return core.UndefinedTextRange()
 	}
 	n := &s.nodes[id]
@@ -544,7 +558,7 @@ func (s *Store) LocAt(id NodeRef) core.TextRange {
 
 // TextAt returns identifier or literal text without constructing a Handle.
 func (s *Store) TextAt(id NodeRef) string {
-	if s == nil || id == 0 {
+	if s == nil || id == NoNodeRef {
 		return ""
 	}
 	return s.internText(s.nodes[id].identID())
@@ -552,7 +566,7 @@ func (s *Store) TextAt(id NodeRef) string {
 
 // NumChildrenAt is the named-child slot count without constructing a Handle.
 func (s *Store) NumChildrenAt(id NodeRef) int {
-	if s == nil || id == 0 {
+	if s == nil || id == NoNodeRef {
 		return 0
 	}
 	return int(s.nodes[id].childLen)
@@ -560,7 +574,7 @@ func (s *Store) NumChildrenAt(id NodeRef) int {
 
 // NumListSlotsAt is the list-slot count without constructing a Handle.
 func (s *Store) NumListSlotsAt(id NodeRef) int {
-	if s == nil || id == 0 {
+	if s == nil || id == NoNodeRef {
 		return 0
 	}
 	return int(s.nodes[id].listLen)
@@ -568,18 +582,18 @@ func (s *Store) NumListSlotsAt(id NodeRef) int {
 
 // SetFlagsAt updates the node flags without constructing a Handle.
 func (s *Store) SetFlagsAt(id NodeRef, flags NodeFlags) {
-	if s == nil || id == 0 {
+	if s == nil || id == NoNodeRef {
 		return
 	}
 	s.mustMutate()
 	s.nodes[id].flags = flags
 }
 
-// ChildRef returns the same-Store child at kind-relative slot. 0 means missing
-// or an external child (use At(parent).Child for the slow path).
+// ChildRef returns the same-Store child at kind-relative slot. NoNodeRef means
+// missing or an external child (use At(parent).Child for the slow path).
 func (s *Store) ChildRef(parent NodeRef, slot uint32) NodeRef {
-	if s == nil || parent == 0 {
-		return 0
+	if s == nil || parent == NoNodeRef {
+		return NoNodeRef
 	}
 	n := &s.nodes[parent]
 	if slot >= uint32(n.childLen) {
@@ -590,8 +604,8 @@ func (s *Store) ChildRef(parent NodeRef, slot uint32) NodeRef {
 
 // ListSlotAt returns the ListRef at list-relative slot for parent.
 func (s *Store) ListSlotAt(parent NodeRef, slot uint32) ListRef {
-	if s == nil || parent == 0 {
-		return 0
+	if s == nil || parent == NoNodeRef {
+		return NoListRef
 	}
 	n := &s.nodes[parent]
 	if slot >= uint32(n.listLen) {
@@ -601,13 +615,13 @@ func (s *Store) ListSlotAt(parent NodeRef, slot uint32) ListRef {
 }
 
 // ListElem returns the same-Store element NodeRef at list index i.
-// 0 means missing or external (use ListAt for the slow path).
+// NoNodeRef means missing or external (use ListAt for the slow path).
 func (s *Store) ListElem(list ListRef, i int) NodeRef {
-	if list != 0 && s != nil {
+	if list != NoListRef && s != nil {
 		s = s.listOwner(list)
 	}
-	if list == 0 || s == nil {
-		return 0
+	if list == NoListRef || s == nil {
+		return NoNodeRef
 	}
 	l := &s.lists[uint32(list)]
 	if i < 0 || i >= int(l.len) {
@@ -618,7 +632,7 @@ func (s *Store) ListElem(list ListRef, i int) NodeRef {
 
 // ParentRef returns the packed same-Store parent, or 0.
 func (s *Store) ParentRef(id NodeRef) NodeRef {
-	if s == nil || id == 0 {
+	if s == nil || id == NoNodeRef {
 		return 0
 	}
 	return s.nodes[id].parent
@@ -1174,7 +1188,7 @@ func (h Handle) Ref() NodeRef { return h.id }
 func (h Handle) Store() *Store { return h.s }
 
 // IsNil reports the absent node. NodeRef 0 is optional-absent, not NodeIsMissing.
-func (h Handle) IsNil() bool { return h.s == nil || h.id == 0 }
+func (h Handle) IsNil() bool { return h.s == nil || h.id == NoNodeRef }
 
 func (h Handle) KindString() string {
 	if h.IsNil() {
@@ -1283,7 +1297,7 @@ func (h Handle) Child(i int) Handle {
 func (h Handle) childAt(rel uint32) Handle {
 	s := h.s
 	id := s.children[s.nodes[h.id].childStart+rel]
-	if id == 0 {
+	if id == NoNodeRef {
 		return h.childAtSlow(rel)
 	}
 	return Handle{s: s, id: id, Kind: s.nodes[id].kind}

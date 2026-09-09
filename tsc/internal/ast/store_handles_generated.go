@@ -7,28 +7,40 @@ import "github.com/microsoft/TypeScript/tsc/internal/core"
 // Factory constructors and Handle accessors mirror the pointer AST schema.
 // They are the public migration surface for Store-native producers and consumers.
 
+func (f *Factory) ParseToken(kind TokenSyntaxKind) NodeRef {
+	id := f.store.appendSlots(kind, 0, core.UndefinedTextRange(), 0, 0)
+	return id
+}
+
 func (f *Factory) NewToken(kind TokenSyntaxKind) Handle {
-	h := f.createSlots(kind, 0, core.UndefinedTextRange(), 0, 0)
-	return h
+	return f.handleFromParse(f.ParseToken(kind), kind)
+}
+
+func (f *Factory) ParseIdentifier(text string) NodeRef {
+	id := f.store.appendSlots(KindIdentifier, 0, core.UndefinedTextRange(), 0, 0)
+	if text != "" {
+		f.store.setIdent(id, f.store.intern(text))
+	}
+	return id
 }
 
 func (f *Factory) NewIdentifier(text string) Handle {
-	h := f.createSlots(KindIdentifier, 0, core.UndefinedTextRange(), 0, 0)
-	if text != "" {
-		f.store.setIdent(h.id, f.store.intern(text))
-	}
-	return h
+	return f.handleFromParse(f.ParseIdentifier(text), KindIdentifier)
 }
 
 func (h Handle) IdentifierText() string         { return h.StringValue(valueSlotIdentifierText) }
 func (h Handle) SetIdentifierText(value string) { h.SetStringValue(valueSlotIdentifierText, value) }
 
-func (f *Factory) NewPrivateIdentifier(text string) Handle {
-	h := f.createSlots(KindPrivateIdentifier, 0, core.UndefinedTextRange(), 0, 0)
+func (f *Factory) ParsePrivateIdentifier(text string) NodeRef {
+	id := f.store.appendSlots(KindPrivateIdentifier, 0, core.UndefinedTextRange(), 0, 0)
 	if text != "" {
-		f.store.setIdent(h.id, f.store.intern(text))
+		f.store.setIdent(id, f.store.intern(text))
 	}
-	return h
+	return id
+}
+
+func (f *Factory) NewPrivateIdentifier(text string) Handle {
+	return f.handleFromParse(f.ParsePrivateIdentifier(text), KindPrivateIdentifier)
 }
 
 func (h Handle) PrivateIdentifierText() string { return h.StringValue(valueSlotPrivateIdentifierText) }
@@ -37,11 +49,18 @@ func (h Handle) SetPrivateIdentifierText(value string) {
 	h.SetStringValue(valueSlotPrivateIdentifierText, value)
 }
 
+func (f *Factory) ParseQualifiedName(left NodeRef, right NodeRef) NodeRef {
+	id := f.store.appendSlots(KindQualifiedName, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotQualifiedNameLeft, left)
+	f.store.linkChildRef(id, slotQualifiedNameRight, right)
+	return id
+}
+
 func (f *Factory) NewQualifiedName(left Handle, right Handle) Handle {
-	h := f.createSlots(KindQualifiedName, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotQualifiedNameLeft, left)
-	f.store.linkChild(h.id, slotQualifiedNameRight, right)
-	return h
+	id := f.store.appendSlots(KindQualifiedName, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotQualifiedNameLeft, left)
+	f.store.linkChild(id, slotQualifiedNameRight, right)
+	return f.handleFromParse(id, KindQualifiedName)
 }
 
 func (f Factory) UpdateQualifiedName(node Handle, left Handle, right Handle) Handle {
@@ -57,10 +76,16 @@ func (h Handle) SetQualifiedNameLeft(value Handle) { h.SetChild(slotQualifiedNam
 func (h Handle) QualifiedNameRight() Handle         { return h.childAt(slotQualifiedNameRight) }
 func (h Handle) SetQualifiedNameRight(value Handle) { h.SetChild(slotQualifiedNameRight, value) }
 
+func (f *Factory) ParseComputedPropertyName(expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindComputedPropertyName, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotComputedPropertyNameExpression, expression)
+	return id
+}
+
 func (f *Factory) NewComputedPropertyName(expression Handle) Handle {
-	h := f.createSlots(KindComputedPropertyName, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotComputedPropertyNameExpression, expression)
-	return h
+	id := f.store.appendSlots(KindComputedPropertyName, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotComputedPropertyNameExpression, expression)
+	return f.handleFromParse(id, KindComputedPropertyName)
 }
 
 func (f Factory) UpdateComputedPropertyName(node Handle, expression Handle) Handle {
@@ -78,10 +103,16 @@ func (h Handle) SetComputedPropertyNameExpression(value Handle) {
 	h.SetChild(slotComputedPropertyNameExpression, value)
 }
 
+func (f *Factory) ParseDecorator(expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindDecorator, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotDecoratorExpression, expression)
+	return id
+}
+
 func (f *Factory) NewDecorator(expression Handle) Handle {
-	h := f.createSlots(KindDecorator, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotDecoratorExpression, expression)
-	return h
+	id := f.store.appendSlots(KindDecorator, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotDecoratorExpression, expression)
+	return f.handleFromParse(id, KindDecorator)
 }
 
 func (f Factory) UpdateDecorator(node Handle, expression Handle) Handle {
@@ -94,17 +125,29 @@ func (f Factory) UpdateDecorator(node Handle, expression Handle) Handle {
 func (h Handle) DecoratorExpression() Handle         { return h.childAt(slotDecoratorExpression) }
 func (h Handle) SetDecoratorExpression(value Handle) { h.SetChild(slotDecoratorExpression, value) }
 
+func (f *Factory) ParseEmptyStatement() NodeRef {
+	id := f.store.appendSlots(KindEmptyStatement, 0, core.UndefinedTextRange(), 0, 0)
+	return id
+}
+
 func (f *Factory) NewEmptyStatement() Handle {
-	h := f.createSlots(KindEmptyStatement, 0, core.UndefinedTextRange(), 0, 0)
-	return h
+	return f.handleFromParse(f.ParseEmptyStatement(), KindEmptyStatement)
+}
+
+func (f *Factory) ParseIfStatement(expression NodeRef, thenStatement NodeRef, elseStatement NodeRef) NodeRef {
+	id := f.store.appendSlots(KindIfStatement, 0, core.UndefinedTextRange(), 3, 0)
+	f.store.linkChildRef(id, slotIfStatementExpression, expression)
+	f.store.linkChildRef(id, slotIfStatementThenStatement, thenStatement)
+	f.store.linkChildRef(id, slotIfStatementElseStatement, elseStatement)
+	return id
 }
 
 func (f *Factory) NewIfStatement(expression Handle, thenStatement Handle, elseStatement Handle) Handle {
-	h := f.createSlots(KindIfStatement, 0, core.UndefinedTextRange(), 3, 0)
-	f.store.linkChild(h.id, slotIfStatementExpression, expression)
-	f.store.linkChild(h.id, slotIfStatementThenStatement, thenStatement)
-	f.store.linkChild(h.id, slotIfStatementElseStatement, elseStatement)
-	return h
+	id := f.store.appendSlots(KindIfStatement, 0, core.UndefinedTextRange(), 3, 0)
+	f.store.linkChild(id, slotIfStatementExpression, expression)
+	f.store.linkChild(id, slotIfStatementThenStatement, thenStatement)
+	f.store.linkChild(id, slotIfStatementElseStatement, elseStatement)
+	return f.handleFromParse(id, KindIfStatement)
 }
 
 func (f Factory) UpdateIfStatement(node Handle, expression Handle, thenStatement Handle, elseStatement Handle) Handle {
@@ -128,11 +171,18 @@ func (h Handle) SetIfStatementElseStatement(value Handle) {
 	h.SetChild(slotIfStatementElseStatement, value)
 }
 
+func (f *Factory) ParseDoStatement(statement NodeRef, expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindDoStatement, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotDoStatementStatement, statement)
+	f.store.linkChildRef(id, slotDoStatementExpression, expression)
+	return id
+}
+
 func (f *Factory) NewDoStatement(statement Handle, expression Handle) Handle {
-	h := f.createSlots(KindDoStatement, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotDoStatementStatement, statement)
-	f.store.linkChild(h.id, slotDoStatementExpression, expression)
-	return h
+	id := f.store.appendSlots(KindDoStatement, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotDoStatementStatement, statement)
+	f.store.linkChild(id, slotDoStatementExpression, expression)
+	return f.handleFromParse(id, KindDoStatement)
 }
 
 func (f Factory) UpdateDoStatement(node Handle, statement Handle, expression Handle) Handle {
@@ -149,11 +199,18 @@ func (h Handle) DoStatementExpression() Handle { return h.childAt(slotDoStatemen
 
 func (h Handle) SetDoStatementExpression(value Handle) { h.SetChild(slotDoStatementExpression, value) }
 
+func (f *Factory) ParseWhileStatement(expression NodeRef, statement NodeRef) NodeRef {
+	id := f.store.appendSlots(KindWhileStatement, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotWhileStatementExpression, expression)
+	f.store.linkChildRef(id, slotWhileStatementStatement, statement)
+	return id
+}
+
 func (f *Factory) NewWhileStatement(expression Handle, statement Handle) Handle {
-	h := f.createSlots(KindWhileStatement, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotWhileStatementExpression, expression)
-	f.store.linkChild(h.id, slotWhileStatementStatement, statement)
-	return h
+	id := f.store.appendSlots(KindWhileStatement, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotWhileStatementExpression, expression)
+	f.store.linkChild(id, slotWhileStatementStatement, statement)
+	return f.handleFromParse(id, KindWhileStatement)
 }
 
 func (f Factory) UpdateWhileStatement(node Handle, expression Handle, statement Handle) Handle {
@@ -173,13 +230,22 @@ func (h Handle) SetWhileStatementStatement(value Handle) {
 	h.SetChild(slotWhileStatementStatement, value)
 }
 
+func (f *Factory) ParseForStatement(initializer NodeRef, condition NodeRef, incrementor NodeRef, statement NodeRef) NodeRef {
+	id := f.store.appendSlots(KindForStatement, 0, core.UndefinedTextRange(), 4, 0)
+	f.store.linkChildRef(id, slotForStatementInitializer, initializer)
+	f.store.linkChildRef(id, slotForStatementCondition, condition)
+	f.store.linkChildRef(id, slotForStatementIncrementor, incrementor)
+	f.store.linkChildRef(id, slotForStatementStatement, statement)
+	return id
+}
+
 func (f *Factory) NewForStatement(initializer Handle, condition Handle, incrementor Handle, statement Handle) Handle {
-	h := f.createSlots(KindForStatement, 0, core.UndefinedTextRange(), 4, 0)
-	f.store.linkChild(h.id, slotForStatementInitializer, initializer)
-	f.store.linkChild(h.id, slotForStatementCondition, condition)
-	f.store.linkChild(h.id, slotForStatementIncrementor, incrementor)
-	f.store.linkChild(h.id, slotForStatementStatement, statement)
-	return h
+	id := f.store.appendSlots(KindForStatement, 0, core.UndefinedTextRange(), 4, 0)
+	f.store.linkChild(id, slotForStatementInitializer, initializer)
+	f.store.linkChild(id, slotForStatementCondition, condition)
+	f.store.linkChild(id, slotForStatementIncrementor, incrementor)
+	f.store.linkChild(id, slotForStatementStatement, statement)
+	return f.handleFromParse(id, KindForStatement)
 }
 
 func (f Factory) UpdateForStatement(node Handle, initializer Handle, condition Handle, incrementor Handle, statement Handle) Handle {
@@ -207,13 +273,22 @@ func (h Handle) ForStatementStatement() Handle { return h.childAt(slotForStateme
 
 func (h Handle) SetForStatementStatement(value Handle) { h.SetChild(slotForStatementStatement, value) }
 
+func (f *Factory) ParseForInOrOfStatement(kind Kind, awaitModifier NodeRef, initializer NodeRef, expression NodeRef, statement NodeRef) NodeRef {
+	id := f.store.appendSlots(kind, 0, core.UndefinedTextRange(), 4, 0)
+	f.store.linkChildRef(id, slotForInOrOfStatementAwaitModifier, awaitModifier)
+	f.store.linkChildRef(id, slotForInOrOfStatementInitializer, initializer)
+	f.store.linkChildRef(id, slotForInOrOfStatementExpression, expression)
+	f.store.linkChildRef(id, slotForInOrOfStatementStatement, statement)
+	return id
+}
+
 func (f *Factory) NewForInOrOfStatement(kind Kind, awaitModifier Handle, initializer Handle, expression Handle, statement Handle) Handle {
-	h := f.createSlots(kind, 0, core.UndefinedTextRange(), 4, 0)
-	f.store.linkChild(h.id, slotForInOrOfStatementAwaitModifier, awaitModifier)
-	f.store.linkChild(h.id, slotForInOrOfStatementInitializer, initializer)
-	f.store.linkChild(h.id, slotForInOrOfStatementExpression, expression)
-	f.store.linkChild(h.id, slotForInOrOfStatementStatement, statement)
-	return h
+	id := f.store.appendSlots(kind, 0, core.UndefinedTextRange(), 4, 0)
+	f.store.linkChild(id, slotForInOrOfStatementAwaitModifier, awaitModifier)
+	f.store.linkChild(id, slotForInOrOfStatementInitializer, initializer)
+	f.store.linkChild(id, slotForInOrOfStatementExpression, expression)
+	f.store.linkChild(id, slotForInOrOfStatementStatement, statement)
+	return f.handleFromParse(id, kind)
 }
 
 func (f Factory) UpdateForInOrOfStatement(node Handle, awaitModifier Handle, initializer Handle, expression Handle, statement Handle) Handle {
@@ -255,10 +330,16 @@ func (h Handle) SetForInOrOfStatementStatement(value Handle) {
 	h.SetChild(slotForInOrOfStatementStatement, value)
 }
 
+func (f *Factory) ParseBreakStatement(label NodeRef) NodeRef {
+	id := f.store.appendSlots(KindBreakStatement, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotBreakStatementLabel, label)
+	return id
+}
+
 func (f *Factory) NewBreakStatement(label Handle) Handle {
-	h := f.createSlots(KindBreakStatement, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotBreakStatementLabel, label)
-	return h
+	id := f.store.appendSlots(KindBreakStatement, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotBreakStatementLabel, label)
+	return f.handleFromParse(id, KindBreakStatement)
 }
 
 func (f Factory) UpdateBreakStatement(node Handle, label Handle) Handle {
@@ -271,10 +352,16 @@ func (f Factory) UpdateBreakStatement(node Handle, label Handle) Handle {
 func (h Handle) BreakStatementLabel() Handle         { return h.childAt(slotBreakStatementLabel) }
 func (h Handle) SetBreakStatementLabel(value Handle) { h.SetChild(slotBreakStatementLabel, value) }
 
+func (f *Factory) ParseContinueStatement(label NodeRef) NodeRef {
+	id := f.store.appendSlots(KindContinueStatement, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotContinueStatementLabel, label)
+	return id
+}
+
 func (f *Factory) NewContinueStatement(label Handle) Handle {
-	h := f.createSlots(KindContinueStatement, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotContinueStatementLabel, label)
-	return h
+	id := f.store.appendSlots(KindContinueStatement, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotContinueStatementLabel, label)
+	return f.handleFromParse(id, KindContinueStatement)
 }
 
 func (f Factory) UpdateContinueStatement(node Handle, label Handle) Handle {
@@ -289,10 +376,16 @@ func (h Handle) SetContinueStatementLabel(value Handle) {
 	h.SetChild(slotContinueStatementLabel, value)
 }
 
+func (f *Factory) ParseReturnStatement(expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindReturnStatement, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotReturnStatementExpression, expression)
+	return id
+}
+
 func (f *Factory) NewReturnStatement(expression Handle) Handle {
-	h := f.createSlots(KindReturnStatement, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotReturnStatementExpression, expression)
-	return h
+	id := f.store.appendSlots(KindReturnStatement, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotReturnStatementExpression, expression)
+	return f.handleFromParse(id, KindReturnStatement)
 }
 
 func (f Factory) UpdateReturnStatement(node Handle, expression Handle) Handle {
@@ -308,11 +401,18 @@ func (h Handle) SetReturnStatementExpression(value Handle) {
 	h.SetChild(slotReturnStatementExpression, value)
 }
 
+func (f *Factory) ParseWithStatement(expression NodeRef, statement NodeRef) NodeRef {
+	id := f.store.appendSlots(KindWithStatement, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotWithStatementExpression, expression)
+	f.store.linkChildRef(id, slotWithStatementStatement, statement)
+	return id
+}
+
 func (f *Factory) NewWithStatement(expression Handle, statement Handle) Handle {
-	h := f.createSlots(KindWithStatement, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotWithStatementExpression, expression)
-	f.store.linkChild(h.id, slotWithStatementStatement, statement)
-	return h
+	id := f.store.appendSlots(KindWithStatement, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotWithStatementExpression, expression)
+	f.store.linkChild(id, slotWithStatementStatement, statement)
+	return f.handleFromParse(id, KindWithStatement)
 }
 
 func (f Factory) UpdateWithStatement(node Handle, expression Handle, statement Handle) Handle {
@@ -332,11 +432,18 @@ func (h Handle) SetWithStatementStatement(value Handle) {
 	h.SetChild(slotWithStatementStatement, value)
 }
 
+func (f *Factory) ParseSwitchStatement(expression NodeRef, caseBlock NodeRef) NodeRef {
+	id := f.store.appendSlots(KindSwitchStatement, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotSwitchStatementExpression, expression)
+	f.store.linkChildRef(id, slotSwitchStatementCaseBlock, caseBlock)
+	return id
+}
+
 func (f *Factory) NewSwitchStatement(expression Handle, caseBlock Handle) Handle {
-	h := f.createSlots(KindSwitchStatement, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotSwitchStatementExpression, expression)
-	f.store.linkChild(h.id, slotSwitchStatementCaseBlock, caseBlock)
-	return h
+	id := f.store.appendSlots(KindSwitchStatement, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotSwitchStatementExpression, expression)
+	f.store.linkChild(id, slotSwitchStatementCaseBlock, caseBlock)
+	return f.handleFromParse(id, KindSwitchStatement)
 }
 
 func (f Factory) UpdateSwitchStatement(node Handle, expression Handle, caseBlock Handle) Handle {
@@ -357,10 +464,14 @@ func (h Handle) SetSwitchStatementCaseBlock(value Handle) {
 	h.SetChild(slotSwitchStatementCaseBlock, value)
 }
 
+func (f *Factory) ParseCaseBlock(clauses ListRef) NodeRef {
+	id := f.store.appendSlots(KindCaseBlock, 0, core.UndefinedTextRange(), 0, 1)
+	f.store.linkList(id, listSlotCaseBlockClauses, clauses)
+	return id
+}
+
 func (f *Factory) NewCaseBlock(clauses ListRef) Handle {
-	h := f.createSlots(KindCaseBlock, 0, core.UndefinedTextRange(), 0, 1)
-	f.store.linkList(h.id, listSlotCaseBlockClauses, clauses)
-	return h
+	return f.handleFromParse(f.ParseCaseBlock(clauses), KindCaseBlock)
 }
 
 func (f Factory) UpdateCaseBlock(node Handle, clauses ListRef) Handle {
@@ -373,11 +484,18 @@ func (f Factory) UpdateCaseBlock(node Handle, clauses ListRef) Handle {
 func (h Handle) CaseBlockClauses() ListRef         { return h.ListSlot(listSlotCaseBlockClauses) }
 func (h Handle) SetCaseBlockClauses(value ListRef) { h.SetListSlot(listSlotCaseBlockClauses, value) }
 
+func (f *Factory) ParseCaseOrDefaultClause(kind Kind, expression NodeRef, statements ListRef) NodeRef {
+	id := f.store.appendSlots(kind, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChildRef(id, slotCaseOrDefaultClauseExpression, expression)
+	f.store.linkList(id, listSlotCaseOrDefaultClauseStatements, statements)
+	return id
+}
+
 func (f *Factory) NewCaseOrDefaultClause(kind Kind, expression Handle, statements ListRef) Handle {
-	h := f.createSlots(kind, 0, core.UndefinedTextRange(), 1, 1)
-	f.store.linkChild(h.id, slotCaseOrDefaultClauseExpression, expression)
-	f.store.linkList(h.id, listSlotCaseOrDefaultClauseStatements, statements)
-	return h
+	id := f.store.appendSlots(kind, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChild(id, slotCaseOrDefaultClauseExpression, expression)
+	f.store.linkList(id, listSlotCaseOrDefaultClauseStatements, statements)
+	return f.handleFromParse(id, kind)
 }
 
 func (f Factory) UpdateCaseOrDefaultClause(node Handle, expression Handle, statements ListRef) Handle {
@@ -403,10 +521,16 @@ func (h Handle) SetCaseOrDefaultClauseStatements(value ListRef) {
 	h.SetListSlot(listSlotCaseOrDefaultClauseStatements, value)
 }
 
+func (f *Factory) ParseThrowStatement(expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindThrowStatement, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotThrowStatementExpression, expression)
+	return id
+}
+
 func (f *Factory) NewThrowStatement(expression Handle) Handle {
-	h := f.createSlots(KindThrowStatement, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotThrowStatementExpression, expression)
-	return h
+	id := f.store.appendSlots(KindThrowStatement, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotThrowStatementExpression, expression)
+	return f.handleFromParse(id, KindThrowStatement)
 }
 
 func (f Factory) UpdateThrowStatement(node Handle, expression Handle) Handle {
@@ -421,12 +545,20 @@ func (h Handle) SetThrowStatementExpression(value Handle) {
 	h.SetChild(slotThrowStatementExpression, value)
 }
 
+func (f *Factory) ParseTryStatement(tryBlock NodeRef, catchClause NodeRef, finallyBlock NodeRef) NodeRef {
+	id := f.store.appendSlots(KindTryStatement, 0, core.UndefinedTextRange(), 3, 0)
+	f.store.linkChildRef(id, slotTryStatementTryBlock, tryBlock)
+	f.store.linkChildRef(id, slotTryStatementCatchClause, catchClause)
+	f.store.linkChildRef(id, slotTryStatementFinallyBlock, finallyBlock)
+	return id
+}
+
 func (f *Factory) NewTryStatement(tryBlock Handle, catchClause Handle, finallyBlock Handle) Handle {
-	h := f.createSlots(KindTryStatement, 0, core.UndefinedTextRange(), 3, 0)
-	f.store.linkChild(h.id, slotTryStatementTryBlock, tryBlock)
-	f.store.linkChild(h.id, slotTryStatementCatchClause, catchClause)
-	f.store.linkChild(h.id, slotTryStatementFinallyBlock, finallyBlock)
-	return h
+	id := f.store.appendSlots(KindTryStatement, 0, core.UndefinedTextRange(), 3, 0)
+	f.store.linkChild(id, slotTryStatementTryBlock, tryBlock)
+	f.store.linkChild(id, slotTryStatementCatchClause, catchClause)
+	f.store.linkChild(id, slotTryStatementFinallyBlock, finallyBlock)
+	return f.handleFromParse(id, KindTryStatement)
 }
 
 func (f Factory) UpdateTryStatement(node Handle, tryBlock Handle, catchClause Handle, finallyBlock Handle) Handle {
@@ -449,11 +581,18 @@ func (h Handle) SetTryStatementFinallyBlock(value Handle) {
 	h.SetChild(slotTryStatementFinallyBlock, value)
 }
 
+func (f *Factory) ParseCatchClause(variableDeclaration NodeRef, block NodeRef) NodeRef {
+	id := f.store.appendSlots(KindCatchClause, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotCatchClauseVariableDeclaration, variableDeclaration)
+	f.store.linkChildRef(id, slotCatchClauseBlock, block)
+	return id
+}
+
 func (f *Factory) NewCatchClause(variableDeclaration Handle, block Handle) Handle {
-	h := f.createSlots(KindCatchClause, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotCatchClauseVariableDeclaration, variableDeclaration)
-	f.store.linkChild(h.id, slotCatchClauseBlock, block)
-	return h
+	id := f.store.appendSlots(KindCatchClause, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotCatchClauseVariableDeclaration, variableDeclaration)
+	f.store.linkChild(id, slotCatchClauseBlock, block)
+	return f.handleFromParse(id, KindCatchClause)
 }
 
 func (f Factory) UpdateCatchClause(node Handle, variableDeclaration Handle, block Handle) Handle {
@@ -474,16 +613,27 @@ func (h Handle) SetCatchClauseVariableDeclaration(value Handle) {
 func (h Handle) CatchClauseBlock() Handle         { return h.childAt(slotCatchClauseBlock) }
 func (h Handle) SetCatchClauseBlock(value Handle) { h.SetChild(slotCatchClauseBlock, value) }
 
+func (f *Factory) ParseDebuggerStatement() NodeRef {
+	id := f.store.appendSlots(KindDebuggerStatement, 0, core.UndefinedTextRange(), 0, 0)
+	return id
+}
+
 func (f *Factory) NewDebuggerStatement() Handle {
-	h := f.createSlots(KindDebuggerStatement, 0, core.UndefinedTextRange(), 0, 0)
-	return h
+	return f.handleFromParse(f.ParseDebuggerStatement(), KindDebuggerStatement)
+}
+
+func (f *Factory) ParseLabeledStatement(label NodeRef, statement NodeRef) NodeRef {
+	id := f.store.appendSlots(KindLabeledStatement, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotLabeledStatementLabel, label)
+	f.store.linkChildRef(id, slotLabeledStatementStatement, statement)
+	return id
 }
 
 func (f *Factory) NewLabeledStatement(label Handle, statement Handle) Handle {
-	h := f.createSlots(KindLabeledStatement, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotLabeledStatementLabel, label)
-	f.store.linkChild(h.id, slotLabeledStatementStatement, statement)
-	return h
+	id := f.store.appendSlots(KindLabeledStatement, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotLabeledStatementLabel, label)
+	f.store.linkChild(id, slotLabeledStatementStatement, statement)
+	return f.handleFromParse(id, KindLabeledStatement)
 }
 
 func (f Factory) UpdateLabeledStatement(node Handle, label Handle, statement Handle) Handle {
@@ -503,10 +653,16 @@ func (h Handle) SetLabeledStatementStatement(value Handle) {
 	h.SetChild(slotLabeledStatementStatement, value)
 }
 
+func (f *Factory) ParseExpressionStatement(expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindExpressionStatement, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotExpressionStatementExpression, expression)
+	return id
+}
+
 func (f *Factory) NewExpressionStatement(expression Handle) Handle {
-	h := f.createSlots(KindExpressionStatement, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotExpressionStatementExpression, expression)
-	return h
+	id := f.store.appendSlots(KindExpressionStatement, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotExpressionStatementExpression, expression)
+	return f.handleFromParse(id, KindExpressionStatement)
 }
 
 func (f Factory) UpdateExpressionStatement(node Handle, expression Handle) Handle {
@@ -524,13 +680,18 @@ func (h Handle) SetExpressionStatementExpression(value Handle) {
 	h.SetChild(slotExpressionStatementExpression, value)
 }
 
-func (f *Factory) NewBlock(statements ListRef, multiLine bool) Handle {
-	h := f.createSlots(KindBlock, 0, core.UndefinedTextRange(), 0, 1)
-	f.store.linkList(h.id, listSlotBlockStatements, statements)
+func (f *Factory) ParseBlock(statements ListRef, multiLine bool) NodeRef {
+	id := f.store.appendSlots(KindBlock, 0, core.UndefinedTextRange(), 0, 1)
+	f.store.linkList(id, listSlotBlockStatements, statements)
+	h := Handle{s: f.store, id: id, Kind: KindBlock}
 	if multiLine {
 		h.SetUintValue(valueSlotBlockMultiLine, 1)
 	}
-	return h
+	return id
+}
+
+func (f *Factory) NewBlock(statements ListRef, multiLine bool) Handle {
+	return f.handleFromParse(f.ParseBlock(statements, multiLine), KindBlock)
 }
 
 func (f Factory) UpdateBlock(node Handle, statements ListRef, multiLine bool) Handle {
@@ -552,11 +713,18 @@ func (h Handle) SetBlockMultiLine(value bool) {
 	}
 }
 
+func (f *Factory) ParseVariableStatement(modifiers ListRef, declarationList NodeRef) NodeRef {
+	id := f.store.appendSlots(KindVariableStatement, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChildRef(id, slotVariableStatementDeclarationList, declarationList)
+	f.store.linkList(id, listSlotVariableStatementModifiers, modifiers)
+	return id
+}
+
 func (f *Factory) NewVariableStatement(modifiers ListRef, declarationList Handle) Handle {
-	h := f.createSlots(KindVariableStatement, 0, core.UndefinedTextRange(), 1, 1)
-	f.store.linkChild(h.id, slotVariableStatementDeclarationList, declarationList)
-	f.store.linkList(h.id, listSlotVariableStatementModifiers, modifiers)
-	return h
+	id := f.store.appendSlots(KindVariableStatement, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChild(id, slotVariableStatementDeclarationList, declarationList)
+	f.store.linkList(id, listSlotVariableStatementModifiers, modifiers)
+	return f.handleFromParse(id, KindVariableStatement)
 }
 
 func (f Factory) UpdateVariableStatement(node Handle, modifiers ListRef, declarationList Handle) Handle {
@@ -582,13 +750,22 @@ func (h Handle) SetVariableStatementModifiers(value ListRef) {
 	h.SetListSlot(listSlotVariableStatementModifiers, value)
 }
 
+func (f *Factory) ParseVariableDeclaration(name NodeRef, exclamationToken NodeRef, typeNode NodeRef, initializer NodeRef) NodeRef {
+	id := f.store.appendSlots(KindVariableDeclaration, 0, core.UndefinedTextRange(), 4, 0)
+	f.store.linkChildRef(id, slotVariableDeclarationName, name)
+	f.store.linkChildRef(id, slotVariableDeclarationExclamationToken, exclamationToken)
+	f.store.linkChildRef(id, slotVariableDeclarationType, typeNode)
+	f.store.linkChildRef(id, slotVariableDeclarationInitializer, initializer)
+	return id
+}
+
 func (f *Factory) NewVariableDeclaration(name Handle, exclamationToken Handle, typeNode Handle, initializer Handle) Handle {
-	h := f.createSlots(KindVariableDeclaration, 0, core.UndefinedTextRange(), 4, 0)
-	f.store.linkChild(h.id, slotVariableDeclarationName, name)
-	f.store.linkChild(h.id, slotVariableDeclarationExclamationToken, exclamationToken)
-	f.store.linkChild(h.id, slotVariableDeclarationType, typeNode)
-	f.store.linkChild(h.id, slotVariableDeclarationInitializer, initializer)
-	return h
+	id := f.store.appendSlots(KindVariableDeclaration, 0, core.UndefinedTextRange(), 4, 0)
+	f.store.linkChild(id, slotVariableDeclarationName, name)
+	f.store.linkChild(id, slotVariableDeclarationExclamationToken, exclamationToken)
+	f.store.linkChild(id, slotVariableDeclarationType, typeNode)
+	f.store.linkChild(id, slotVariableDeclarationInitializer, initializer)
+	return f.handleFromParse(id, KindVariableDeclaration)
 }
 
 func (f Factory) UpdateVariableDeclaration(node Handle, name Handle, exclamationToken Handle, typeNode Handle, initializer Handle) Handle {
@@ -624,10 +801,14 @@ func (h Handle) SetVariableDeclarationInitializer(value Handle) {
 	h.SetChild(slotVariableDeclarationInitializer, value)
 }
 
+func (f *Factory) ParseVariableDeclarationList(declarations ListRef, flags NodeFlags) NodeRef {
+	id := f.store.appendSlots(KindVariableDeclarationList, flags, core.UndefinedTextRange(), 0, 1)
+	f.store.linkList(id, listSlotVariableDeclarationListDeclarations, declarations)
+	return id
+}
+
 func (f *Factory) NewVariableDeclarationList(declarations ListRef, flags NodeFlags) Handle {
-	h := f.createSlots(KindVariableDeclarationList, flags, core.UndefinedTextRange(), 0, 1)
-	f.store.linkList(h.id, listSlotVariableDeclarationListDeclarations, declarations)
-	return h
+	return f.handleFromParse(f.ParseVariableDeclarationList(declarations, flags), KindVariableDeclarationList)
 }
 
 func (f Factory) UpdateVariableDeclarationList(node Handle, declarations ListRef, flags NodeFlags) Handle {
@@ -645,10 +826,14 @@ func (h Handle) SetVariableDeclarationListDeclarations(value ListRef) {
 	h.SetListSlot(listSlotVariableDeclarationListDeclarations, value)
 }
 
+func (f *Factory) ParseBindingPattern(kind Kind, elements ListRef) NodeRef {
+	id := f.store.appendSlots(kind, 0, core.UndefinedTextRange(), 0, 1)
+	f.store.linkList(id, listSlotBindingPatternElements, elements)
+	return id
+}
+
 func (f *Factory) NewBindingPattern(kind Kind, elements ListRef) Handle {
-	h := f.createSlots(kind, 0, core.UndefinedTextRange(), 0, 1)
-	f.store.linkList(h.id, listSlotBindingPatternElements, elements)
-	return h
+	return f.handleFromParse(f.ParseBindingPattern(kind, elements), kind)
 }
 
 func (f Factory) UpdateBindingPattern(node Handle, elements ListRef) Handle {
@@ -664,15 +849,26 @@ func (h Handle) SetBindingPatternElements(value ListRef) {
 	h.SetListSlot(listSlotBindingPatternElements, value)
 }
 
+func (f *Factory) ParseParameterDeclaration(modifiers ListRef, dotDotDotToken NodeRef, name NodeRef, questionToken NodeRef, typeNode NodeRef, initializer NodeRef) NodeRef {
+	id := f.store.appendSlots(KindParameter, 0, core.UndefinedTextRange(), 5, 1)
+	f.store.linkChildRef(id, slotParameterDeclarationDotDotDotToken, dotDotDotToken)
+	f.store.linkChildRef(id, slotParameterDeclarationName, name)
+	f.store.linkChildRef(id, slotParameterDeclarationQuestionToken, questionToken)
+	f.store.linkChildRef(id, slotParameterDeclarationType, typeNode)
+	f.store.linkChildRef(id, slotParameterDeclarationInitializer, initializer)
+	f.store.linkList(id, listSlotParameterDeclarationModifiers, modifiers)
+	return id
+}
+
 func (f *Factory) NewParameterDeclaration(modifiers ListRef, dotDotDotToken Handle, name Handle, questionToken Handle, typeNode Handle, initializer Handle) Handle {
-	h := f.createSlots(KindParameter, 0, core.UndefinedTextRange(), 5, 1)
-	f.store.linkChild(h.id, slotParameterDeclarationDotDotDotToken, dotDotDotToken)
-	f.store.linkChild(h.id, slotParameterDeclarationName, name)
-	f.store.linkChild(h.id, slotParameterDeclarationQuestionToken, questionToken)
-	f.store.linkChild(h.id, slotParameterDeclarationType, typeNode)
-	f.store.linkChild(h.id, slotParameterDeclarationInitializer, initializer)
-	f.store.linkList(h.id, listSlotParameterDeclarationModifiers, modifiers)
-	return h
+	id := f.store.appendSlots(KindParameter, 0, core.UndefinedTextRange(), 5, 1)
+	f.store.linkChild(id, slotParameterDeclarationDotDotDotToken, dotDotDotToken)
+	f.store.linkChild(id, slotParameterDeclarationName, name)
+	f.store.linkChild(id, slotParameterDeclarationQuestionToken, questionToken)
+	f.store.linkChild(id, slotParameterDeclarationType, typeNode)
+	f.store.linkChild(id, slotParameterDeclarationInitializer, initializer)
+	f.store.linkList(id, listSlotParameterDeclarationModifiers, modifiers)
+	return f.handleFromParse(id, KindParameter)
 }
 
 func (f Factory) UpdateParameterDeclaration(node Handle, modifiers ListRef, dotDotDotToken Handle, name Handle, questionToken Handle, typeNode Handle, initializer Handle) Handle {
@@ -724,13 +920,22 @@ func (h Handle) SetParameterDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotParameterDeclarationModifiers, value)
 }
 
+func (f *Factory) ParseBindingElement(dotDotDotToken NodeRef, propertyName NodeRef, name NodeRef, initializer NodeRef) NodeRef {
+	id := f.store.appendSlots(KindBindingElement, 0, core.UndefinedTextRange(), 4, 0)
+	f.store.linkChildRef(id, slotBindingElementDotDotDotToken, dotDotDotToken)
+	f.store.linkChildRef(id, slotBindingElementPropertyName, propertyName)
+	f.store.linkChildRef(id, slotBindingElementName, name)
+	f.store.linkChildRef(id, slotBindingElementInitializer, initializer)
+	return id
+}
+
 func (f *Factory) NewBindingElement(dotDotDotToken Handle, propertyName Handle, name Handle, initializer Handle) Handle {
-	h := f.createSlots(KindBindingElement, 0, core.UndefinedTextRange(), 4, 0)
-	f.store.linkChild(h.id, slotBindingElementDotDotDotToken, dotDotDotToken)
-	f.store.linkChild(h.id, slotBindingElementPropertyName, propertyName)
-	f.store.linkChild(h.id, slotBindingElementName, name)
-	f.store.linkChild(h.id, slotBindingElementInitializer, initializer)
-	return h
+	id := f.store.appendSlots(KindBindingElement, 0, core.UndefinedTextRange(), 4, 0)
+	f.store.linkChild(id, slotBindingElementDotDotDotToken, dotDotDotToken)
+	f.store.linkChild(id, slotBindingElementPropertyName, propertyName)
+	f.store.linkChild(id, slotBindingElementName, name)
+	f.store.linkChild(id, slotBindingElementInitializer, initializer)
+	return f.handleFromParse(id, KindBindingElement)
 }
 
 func (f Factory) UpdateBindingElement(node Handle, dotDotDotToken Handle, propertyName Handle, name Handle, initializer Handle) Handle {
@@ -763,10 +968,14 @@ func (h Handle) SetBindingElementInitializer(value Handle) {
 	h.SetChild(slotBindingElementInitializer, value)
 }
 
+func (f *Factory) ParseMissingDeclaration(modifiers ListRef) NodeRef {
+	id := f.store.appendSlots(KindMissingDeclaration, 0, core.UndefinedTextRange(), 0, 1)
+	f.store.linkList(id, listSlotMissingDeclarationModifiers, modifiers)
+	return id
+}
+
 func (f *Factory) NewMissingDeclaration(modifiers ListRef) Handle {
-	h := f.createSlots(KindMissingDeclaration, 0, core.UndefinedTextRange(), 0, 1)
-	f.store.linkList(h.id, listSlotMissingDeclarationModifiers, modifiers)
-	return h
+	return f.handleFromParse(f.ParseMissingDeclaration(modifiers), KindMissingDeclaration)
 }
 
 func (f Factory) UpdateMissingDeclaration(node Handle, modifiers ListRef) Handle {
@@ -784,17 +993,30 @@ func (h Handle) SetMissingDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotMissingDeclarationModifiers, value)
 }
 
+func (f *Factory) ParseFunctionDeclaration(modifiers ListRef, asteriskToken NodeRef, name NodeRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
+	id := f.store.appendSlots(KindFunctionDeclaration, 0, core.UndefinedTextRange(), 5, 3)
+	f.store.linkChildRef(id, slotFunctionDeclarationAsteriskToken, asteriskToken)
+	f.store.linkChildRef(id, slotFunctionDeclarationName, name)
+	f.store.linkChildRef(id, slotFunctionDeclarationType, typeNode)
+	f.store.linkChildRef(id, slotFunctionDeclarationFullSignature, fullSignature)
+	f.store.linkChildRef(id, slotFunctionDeclarationBody, body)
+	f.store.linkList(id, listSlotFunctionDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotFunctionDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotFunctionDeclarationParameters, parameters)
+	return id
+}
+
 func (f *Factory) NewFunctionDeclaration(modifiers ListRef, asteriskToken Handle, name Handle, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, body Handle) Handle {
-	h := f.createSlots(KindFunctionDeclaration, 0, core.UndefinedTextRange(), 5, 3)
-	f.store.linkChild(h.id, slotFunctionDeclarationAsteriskToken, asteriskToken)
-	f.store.linkChild(h.id, slotFunctionDeclarationName, name)
-	f.store.linkChild(h.id, slotFunctionDeclarationType, typeNode)
-	f.store.linkChild(h.id, slotFunctionDeclarationFullSignature, fullSignature)
-	f.store.linkChild(h.id, slotFunctionDeclarationBody, body)
-	f.store.linkList(h.id, listSlotFunctionDeclarationModifiers, modifiers)
-	f.store.linkList(h.id, listSlotFunctionDeclarationTypeParameters, typeParameters)
-	f.store.linkList(h.id, listSlotFunctionDeclarationParameters, parameters)
-	return h
+	id := f.store.appendSlots(KindFunctionDeclaration, 0, core.UndefinedTextRange(), 5, 3)
+	f.store.linkChild(id, slotFunctionDeclarationAsteriskToken, asteriskToken)
+	f.store.linkChild(id, slotFunctionDeclarationName, name)
+	f.store.linkChild(id, slotFunctionDeclarationType, typeNode)
+	f.store.linkChild(id, slotFunctionDeclarationFullSignature, fullSignature)
+	f.store.linkChild(id, slotFunctionDeclarationBody, body)
+	f.store.linkList(id, listSlotFunctionDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotFunctionDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotFunctionDeclarationParameters, parameters)
+	return f.handleFromParse(id, KindFunctionDeclaration)
 }
 
 func (f Factory) UpdateFunctionDeclaration(node Handle, modifiers ListRef, asteriskToken Handle, name Handle, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, body Handle) Handle {
@@ -859,14 +1081,24 @@ func (h Handle) SetFunctionDeclarationParameters(value ListRef) {
 	h.SetListSlot(listSlotFunctionDeclarationParameters, value)
 }
 
+func (f *Factory) ParseClassDeclaration(modifiers ListRef, name NodeRef, typeParameters ListRef, heritageClauses ListRef, members ListRef) NodeRef {
+	id := f.store.appendSlots(KindClassDeclaration, 0, core.UndefinedTextRange(), 1, 4)
+	f.store.linkChildRef(id, slotClassDeclarationName, name)
+	f.store.linkList(id, listSlotClassDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotClassDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotClassDeclarationHeritageClauses, heritageClauses)
+	f.store.linkList(id, listSlotClassDeclarationMembers, members)
+	return id
+}
+
 func (f *Factory) NewClassDeclaration(modifiers ListRef, name Handle, typeParameters ListRef, heritageClauses ListRef, members ListRef) Handle {
-	h := f.createSlots(KindClassDeclaration, 0, core.UndefinedTextRange(), 1, 4)
-	f.store.linkChild(h.id, slotClassDeclarationName, name)
-	f.store.linkList(h.id, listSlotClassDeclarationModifiers, modifiers)
-	f.store.linkList(h.id, listSlotClassDeclarationTypeParameters, typeParameters)
-	f.store.linkList(h.id, listSlotClassDeclarationHeritageClauses, heritageClauses)
-	f.store.linkList(h.id, listSlotClassDeclarationMembers, members)
-	return h
+	id := f.store.appendSlots(KindClassDeclaration, 0, core.UndefinedTextRange(), 1, 4)
+	f.store.linkChild(id, slotClassDeclarationName, name)
+	f.store.linkList(id, listSlotClassDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotClassDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotClassDeclarationHeritageClauses, heritageClauses)
+	f.store.linkList(id, listSlotClassDeclarationMembers, members)
+	return f.handleFromParse(id, KindClassDeclaration)
 }
 
 func (f Factory) UpdateClassDeclaration(node Handle, modifiers ListRef, name Handle, typeParameters ListRef, heritageClauses ListRef, members ListRef) Handle {
@@ -909,14 +1141,24 @@ func (h Handle) SetClassDeclarationMembers(value ListRef) {
 	h.SetListSlot(listSlotClassDeclarationMembers, value)
 }
 
+func (f *Factory) ParseClassExpression(modifiers ListRef, name NodeRef, typeParameters ListRef, heritageClauses ListRef, members ListRef) NodeRef {
+	id := f.store.appendSlots(KindClassExpression, 0, core.UndefinedTextRange(), 1, 4)
+	f.store.linkChildRef(id, slotClassExpressionName, name)
+	f.store.linkList(id, listSlotClassExpressionModifiers, modifiers)
+	f.store.linkList(id, listSlotClassExpressionTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotClassExpressionHeritageClauses, heritageClauses)
+	f.store.linkList(id, listSlotClassExpressionMembers, members)
+	return id
+}
+
 func (f *Factory) NewClassExpression(modifiers ListRef, name Handle, typeParameters ListRef, heritageClauses ListRef, members ListRef) Handle {
-	h := f.createSlots(KindClassExpression, 0, core.UndefinedTextRange(), 1, 4)
-	f.store.linkChild(h.id, slotClassExpressionName, name)
-	f.store.linkList(h.id, listSlotClassExpressionModifiers, modifiers)
-	f.store.linkList(h.id, listSlotClassExpressionTypeParameters, typeParameters)
-	f.store.linkList(h.id, listSlotClassExpressionHeritageClauses, heritageClauses)
-	f.store.linkList(h.id, listSlotClassExpressionMembers, members)
-	return h
+	id := f.store.appendSlots(KindClassExpression, 0, core.UndefinedTextRange(), 1, 4)
+	f.store.linkChild(id, slotClassExpressionName, name)
+	f.store.linkList(id, listSlotClassExpressionModifiers, modifiers)
+	f.store.linkList(id, listSlotClassExpressionTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotClassExpressionHeritageClauses, heritageClauses)
+	f.store.linkList(id, listSlotClassExpressionMembers, members)
+	return f.handleFromParse(id, KindClassExpression)
 }
 
 func (f Factory) UpdateClassExpression(node Handle, modifiers ListRef, name Handle, typeParameters ListRef, heritageClauses ListRef, members ListRef) Handle {
@@ -959,11 +1201,16 @@ func (h Handle) SetClassExpressionMembers(value ListRef) {
 	h.SetListSlot(listSlotClassExpressionMembers, value)
 }
 
-func (f *Factory) NewHeritageClause(token Kind, types ListRef) Handle {
-	h := f.createSlots(KindHeritageClause, 0, core.UndefinedTextRange(), 0, 1)
-	f.store.linkList(h.id, listSlotHeritageClauseTypes, types)
+func (f *Factory) ParseHeritageClause(token Kind, types ListRef) NodeRef {
+	id := f.store.appendSlots(KindHeritageClause, 0, core.UndefinedTextRange(), 0, 1)
+	f.store.linkList(id, listSlotHeritageClauseTypes, types)
+	h := Handle{s: f.store, id: id, Kind: KindHeritageClause}
 	h.SetUintValue(valueSlotHeritageClauseToken, uint64(token))
-	return h
+	return id
+}
+
+func (f *Factory) NewHeritageClause(token Kind, types ListRef) Handle {
+	return f.handleFromParse(f.ParseHeritageClause(token, types), KindHeritageClause)
 }
 
 func (f Factory) UpdateHeritageClause(node Handle, token Kind, types ListRef) Handle {
@@ -984,14 +1231,24 @@ func (h Handle) SetHeritageClauseToken(value Kind) {
 	h.SetUintValue(valueSlotHeritageClauseToken, uint64(value))
 }
 
+func (f *Factory) ParseInterfaceDeclaration(modifiers ListRef, name NodeRef, typeParameters ListRef, heritageClauses ListRef, members ListRef) NodeRef {
+	id := f.store.appendSlots(KindInterfaceDeclaration, 0, core.UndefinedTextRange(), 1, 4)
+	f.store.linkChildRef(id, slotInterfaceDeclarationName, name)
+	f.store.linkList(id, listSlotInterfaceDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotInterfaceDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotInterfaceDeclarationHeritageClauses, heritageClauses)
+	f.store.linkList(id, listSlotInterfaceDeclarationMembers, members)
+	return id
+}
+
 func (f *Factory) NewInterfaceDeclaration(modifiers ListRef, name Handle, typeParameters ListRef, heritageClauses ListRef, members ListRef) Handle {
-	h := f.createSlots(KindInterfaceDeclaration, 0, core.UndefinedTextRange(), 1, 4)
-	f.store.linkChild(h.id, slotInterfaceDeclarationName, name)
-	f.store.linkList(h.id, listSlotInterfaceDeclarationModifiers, modifiers)
-	f.store.linkList(h.id, listSlotInterfaceDeclarationTypeParameters, typeParameters)
-	f.store.linkList(h.id, listSlotInterfaceDeclarationHeritageClauses, heritageClauses)
-	f.store.linkList(h.id, listSlotInterfaceDeclarationMembers, members)
-	return h
+	id := f.store.appendSlots(KindInterfaceDeclaration, 0, core.UndefinedTextRange(), 1, 4)
+	f.store.linkChild(id, slotInterfaceDeclarationName, name)
+	f.store.linkList(id, listSlotInterfaceDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotInterfaceDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotInterfaceDeclarationHeritageClauses, heritageClauses)
+	f.store.linkList(id, listSlotInterfaceDeclarationMembers, members)
+	return f.handleFromParse(id, KindInterfaceDeclaration)
 }
 
 func (f Factory) UpdateInterfaceDeclaration(node Handle, modifiers ListRef, name Handle, typeParameters ListRef, heritageClauses ListRef, members ListRef) Handle {
@@ -1038,22 +1295,40 @@ func (h Handle) SetInterfaceDeclarationMembers(value ListRef) {
 	h.SetListSlot(listSlotInterfaceDeclarationMembers, value)
 }
 
+func (f *Factory) ParseTypeAliasDeclaration(modifiers ListRef, name NodeRef, typeParameters ListRef, typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindTypeAliasDeclaration, 0, core.UndefinedTextRange(), 2, 2)
+	f.store.linkChildRef(id, slotTypeAliasDeclarationName, name)
+	f.store.linkChildRef(id, slotTypeAliasDeclarationType, typeNode)
+	f.store.linkList(id, listSlotTypeAliasDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotTypeAliasDeclarationTypeParameters, typeParameters)
+	return id
+}
+
 func (f *Factory) NewTypeAliasDeclaration(modifiers ListRef, name Handle, typeParameters ListRef, typeNode Handle) Handle {
-	h := f.createSlots(KindTypeAliasDeclaration, 0, core.UndefinedTextRange(), 2, 2)
-	f.store.linkChild(h.id, slotTypeAliasDeclarationName, name)
-	f.store.linkChild(h.id, slotTypeAliasDeclarationType, typeNode)
-	f.store.linkList(h.id, listSlotTypeAliasDeclarationModifiers, modifiers)
-	f.store.linkList(h.id, listSlotTypeAliasDeclarationTypeParameters, typeParameters)
-	return h
+	id := f.store.appendSlots(KindTypeAliasDeclaration, 0, core.UndefinedTextRange(), 2, 2)
+	f.store.linkChild(id, slotTypeAliasDeclarationName, name)
+	f.store.linkChild(id, slotTypeAliasDeclarationType, typeNode)
+	f.store.linkList(id, listSlotTypeAliasDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotTypeAliasDeclarationTypeParameters, typeParameters)
+	return f.handleFromParse(id, KindTypeAliasDeclaration)
+}
+
+func (f *Factory) ParseJSTypeAliasDeclaration(modifiers ListRef, name NodeRef, typeParameters ListRef, typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindJSTypeAliasDeclaration, 0, core.UndefinedTextRange(), 2, 2)
+	f.store.linkChildRef(id, slotTypeAliasDeclarationName, name)
+	f.store.linkChildRef(id, slotTypeAliasDeclarationType, typeNode)
+	f.store.linkList(id, listSlotTypeAliasDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotTypeAliasDeclarationTypeParameters, typeParameters)
+	return id
 }
 
 func (f *Factory) NewJSTypeAliasDeclaration(modifiers ListRef, name Handle, typeParameters ListRef, typeNode Handle) Handle {
-	h := f.createSlots(KindJSTypeAliasDeclaration, 0, core.UndefinedTextRange(), 2, 2)
-	f.store.linkChild(h.id, slotTypeAliasDeclarationName, name)
-	f.store.linkChild(h.id, slotTypeAliasDeclarationType, typeNode)
-	f.store.linkList(h.id, listSlotTypeAliasDeclarationModifiers, modifiers)
-	f.store.linkList(h.id, listSlotTypeAliasDeclarationTypeParameters, typeParameters)
-	return h
+	id := f.store.appendSlots(KindJSTypeAliasDeclaration, 0, core.UndefinedTextRange(), 2, 2)
+	f.store.linkChild(id, slotTypeAliasDeclarationName, name)
+	f.store.linkChild(id, slotTypeAliasDeclarationType, typeNode)
+	f.store.linkList(id, listSlotTypeAliasDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotTypeAliasDeclarationTypeParameters, typeParameters)
+	return f.handleFromParse(id, KindJSTypeAliasDeclaration)
 }
 
 func (f Factory) UpdateTypeAliasDeclaration(node Handle, modifiers ListRef, name Handle, typeParameters ListRef, typeNode Handle) Handle {
@@ -1096,11 +1371,18 @@ func (h Handle) SetTypeAliasDeclarationTypeParameters(value ListRef) {
 	h.SetListSlot(listSlotTypeAliasDeclarationTypeParameters, value)
 }
 
+func (f *Factory) ParseEnumMember(name NodeRef, initializer NodeRef) NodeRef {
+	id := f.store.appendSlots(KindEnumMember, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotEnumMemberName, name)
+	f.store.linkChildRef(id, slotEnumMemberInitializer, initializer)
+	return id
+}
+
 func (f *Factory) NewEnumMember(name Handle, initializer Handle) Handle {
-	h := f.createSlots(KindEnumMember, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotEnumMemberName, name)
-	f.store.linkChild(h.id, slotEnumMemberInitializer, initializer)
-	return h
+	id := f.store.appendSlots(KindEnumMember, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotEnumMemberName, name)
+	f.store.linkChild(id, slotEnumMemberInitializer, initializer)
+	return f.handleFromParse(id, KindEnumMember)
 }
 
 func (f Factory) UpdateEnumMember(node Handle, name Handle, initializer Handle) Handle {
@@ -1117,12 +1399,20 @@ func (h Handle) EnumMemberInitializer() Handle { return h.childAt(slotEnumMember
 
 func (h Handle) SetEnumMemberInitializer(value Handle) { h.SetChild(slotEnumMemberInitializer, value) }
 
+func (f *Factory) ParseEnumDeclaration(modifiers ListRef, name NodeRef, members ListRef) NodeRef {
+	id := f.store.appendSlots(KindEnumDeclaration, 0, core.UndefinedTextRange(), 1, 2)
+	f.store.linkChildRef(id, slotEnumDeclarationName, name)
+	f.store.linkList(id, listSlotEnumDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotEnumDeclarationMembers, members)
+	return id
+}
+
 func (f *Factory) NewEnumDeclaration(modifiers ListRef, name Handle, members ListRef) Handle {
-	h := f.createSlots(KindEnumDeclaration, 0, core.UndefinedTextRange(), 1, 2)
-	f.store.linkChild(h.id, slotEnumDeclarationName, name)
-	f.store.linkList(h.id, listSlotEnumDeclarationModifiers, modifiers)
-	f.store.linkList(h.id, listSlotEnumDeclarationMembers, members)
-	return h
+	id := f.store.appendSlots(KindEnumDeclaration, 0, core.UndefinedTextRange(), 1, 2)
+	f.store.linkChild(id, slotEnumDeclarationName, name)
+	f.store.linkList(id, listSlotEnumDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotEnumDeclarationMembers, members)
+	return f.handleFromParse(id, KindEnumDeclaration)
 }
 
 func (f Factory) UpdateEnumDeclaration(node Handle, modifiers ListRef, name Handle, members ListRef) Handle {
@@ -1149,10 +1439,14 @@ func (h Handle) SetEnumDeclarationMembers(value ListRef) {
 	h.SetListSlot(listSlotEnumDeclarationMembers, value)
 }
 
+func (f *Factory) ParseModuleBlock(statements ListRef) NodeRef {
+	id := f.store.appendSlots(KindModuleBlock, 0, core.UndefinedTextRange(), 0, 1)
+	f.store.linkList(id, listSlotModuleBlockStatements, statements)
+	return id
+}
+
 func (f *Factory) NewModuleBlock(statements ListRef) Handle {
-	h := f.createSlots(KindModuleBlock, 0, core.UndefinedTextRange(), 0, 1)
-	f.store.linkList(h.id, listSlotModuleBlockStatements, statements)
-	return h
+	return f.handleFromParse(f.ParseModuleBlock(statements), KindModuleBlock)
 }
 
 func (f Factory) UpdateModuleBlock(node Handle, statements ListRef) Handle {
@@ -1167,32 +1461,58 @@ func (h Handle) SetModuleBlockStatements(value ListRef) {
 	h.SetListSlot(listSlotModuleBlockStatements, value)
 }
 
+func (f *Factory) ParseNotEmittedStatement() NodeRef {
+	id := f.store.appendSlots(KindNotEmittedStatement, 0, core.UndefinedTextRange(), 0, 0)
+	return id
+}
+
 func (f *Factory) NewNotEmittedStatement() Handle {
-	h := f.createSlots(KindNotEmittedStatement, 0, core.UndefinedTextRange(), 0, 0)
-	return h
+	return f.handleFromParse(f.ParseNotEmittedStatement(), KindNotEmittedStatement)
+}
+
+func (f *Factory) ParseNotEmittedTypeElement() NodeRef {
+	id := f.store.appendSlots(KindNotEmittedTypeElement, 0, core.UndefinedTextRange(), 0, 0)
+	return id
 }
 
 func (f *Factory) NewNotEmittedTypeElement() Handle {
-	h := f.createSlots(KindNotEmittedTypeElement, 0, core.UndefinedTextRange(), 0, 0)
-	return h
+	return f.handleFromParse(f.ParseNotEmittedTypeElement(), KindNotEmittedTypeElement)
+}
+
+func (f *Factory) ParseImportDeclaration(modifiers ListRef, importClause NodeRef, moduleSpecifier NodeRef, attributes NodeRef) NodeRef {
+	id := f.store.appendSlots(KindImportDeclaration, 0, core.UndefinedTextRange(), 3, 1)
+	f.store.linkChildRef(id, slotImportDeclarationImportClause, importClause)
+	f.store.linkChildRef(id, slotImportDeclarationModuleSpecifier, moduleSpecifier)
+	f.store.linkChildRef(id, slotImportDeclarationAttributes, attributes)
+	f.store.linkList(id, listSlotImportDeclarationModifiers, modifiers)
+	return id
 }
 
 func (f *Factory) NewImportDeclaration(modifiers ListRef, importClause Handle, moduleSpecifier Handle, attributes Handle) Handle {
-	h := f.createSlots(KindImportDeclaration, 0, core.UndefinedTextRange(), 3, 1)
-	f.store.linkChild(h.id, slotImportDeclarationImportClause, importClause)
-	f.store.linkChild(h.id, slotImportDeclarationModuleSpecifier, moduleSpecifier)
-	f.store.linkChild(h.id, slotImportDeclarationAttributes, attributes)
-	f.store.linkList(h.id, listSlotImportDeclarationModifiers, modifiers)
-	return h
+	id := f.store.appendSlots(KindImportDeclaration, 0, core.UndefinedTextRange(), 3, 1)
+	f.store.linkChild(id, slotImportDeclarationImportClause, importClause)
+	f.store.linkChild(id, slotImportDeclarationModuleSpecifier, moduleSpecifier)
+	f.store.linkChild(id, slotImportDeclarationAttributes, attributes)
+	f.store.linkList(id, listSlotImportDeclarationModifiers, modifiers)
+	return f.handleFromParse(id, KindImportDeclaration)
+}
+
+func (f *Factory) ParseJSImportDeclaration(modifiers ListRef, importClause NodeRef, moduleSpecifier NodeRef, attributes NodeRef) NodeRef {
+	id := f.store.appendSlots(KindJSImportDeclaration, 0, core.UndefinedTextRange(), 3, 1)
+	f.store.linkChildRef(id, slotImportDeclarationImportClause, importClause)
+	f.store.linkChildRef(id, slotImportDeclarationModuleSpecifier, moduleSpecifier)
+	f.store.linkChildRef(id, slotImportDeclarationAttributes, attributes)
+	f.store.linkList(id, listSlotImportDeclarationModifiers, modifiers)
+	return id
 }
 
 func (f *Factory) NewJSImportDeclaration(modifiers ListRef, importClause Handle, moduleSpecifier Handle, attributes Handle) Handle {
-	h := f.createSlots(KindJSImportDeclaration, 0, core.UndefinedTextRange(), 3, 1)
-	f.store.linkChild(h.id, slotImportDeclarationImportClause, importClause)
-	f.store.linkChild(h.id, slotImportDeclarationModuleSpecifier, moduleSpecifier)
-	f.store.linkChild(h.id, slotImportDeclarationAttributes, attributes)
-	f.store.linkList(h.id, listSlotImportDeclarationModifiers, modifiers)
-	return h
+	id := f.store.appendSlots(KindJSImportDeclaration, 0, core.UndefinedTextRange(), 3, 1)
+	f.store.linkChild(id, slotImportDeclarationImportClause, importClause)
+	f.store.linkChild(id, slotImportDeclarationModuleSpecifier, moduleSpecifier)
+	f.store.linkChild(id, slotImportDeclarationAttributes, attributes)
+	f.store.linkList(id, listSlotImportDeclarationModifiers, modifiers)
+	return f.handleFromParse(id, KindJSImportDeclaration)
 }
 
 func (f Factory) UpdateImportDeclaration(node Handle, modifiers ListRef, importClause Handle, moduleSpecifier Handle, attributes Handle) Handle {
@@ -1241,10 +1561,16 @@ func (h Handle) SetImportDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotImportDeclarationModifiers, value)
 }
 
+func (f *Factory) ParseExternalModuleReference(expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindExternalModuleReference, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotExternalModuleReferenceExpression, expression)
+	return id
+}
+
 func (f *Factory) NewExternalModuleReference(expression Handle) Handle {
-	h := f.createSlots(KindExternalModuleReference, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotExternalModuleReferenceExpression, expression)
-	return h
+	id := f.store.appendSlots(KindExternalModuleReference, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotExternalModuleReferenceExpression, expression)
+	return f.handleFromParse(id, KindExternalModuleReference)
 }
 
 func (f Factory) UpdateExternalModuleReference(node Handle, expression Handle) Handle {
@@ -1262,10 +1588,16 @@ func (h Handle) SetExternalModuleReferenceExpression(value Handle) {
 	h.SetChild(slotExternalModuleReferenceExpression, value)
 }
 
+func (f *Factory) ParseNamespaceImport(name NodeRef) NodeRef {
+	id := f.store.appendSlots(KindNamespaceImport, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotNamespaceImportName, name)
+	return id
+}
+
 func (f *Factory) NewNamespaceImport(name Handle) Handle {
-	h := f.createSlots(KindNamespaceImport, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotNamespaceImportName, name)
-	return h
+	id := f.store.appendSlots(KindNamespaceImport, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotNamespaceImportName, name)
+	return f.handleFromParse(id, KindNamespaceImport)
 }
 
 func (f Factory) UpdateNamespaceImport(node Handle, name Handle) Handle {
@@ -1278,10 +1610,14 @@ func (f Factory) UpdateNamespaceImport(node Handle, name Handle) Handle {
 func (h Handle) NamespaceImportName() Handle         { return h.childAt(slotNamespaceImportName) }
 func (h Handle) SetNamespaceImportName(value Handle) { h.SetChild(slotNamespaceImportName, value) }
 
+func (f *Factory) ParseNamedImports(elements ListRef) NodeRef {
+	id := f.store.appendSlots(KindNamedImports, 0, core.UndefinedTextRange(), 0, 1)
+	f.store.linkList(id, listSlotNamedImportsElements, elements)
+	return id
+}
+
 func (f *Factory) NewNamedImports(elements ListRef) Handle {
-	h := f.createSlots(KindNamedImports, 0, core.UndefinedTextRange(), 0, 1)
-	f.store.linkList(h.id, listSlotNamedImportsElements, elements)
-	return h
+	return f.handleFromParse(f.ParseNamedImports(elements), KindNamedImports)
 }
 
 func (f Factory) UpdateNamedImports(node Handle, elements ListRef) Handle {
@@ -1296,11 +1632,24 @@ func (h Handle) SetNamedImportsElements(value ListRef) {
 	h.SetListSlot(listSlotNamedImportsElements, value)
 }
 
+func (f *Factory) ParseExportAssignment(modifiers ListRef, isExportEquals bool, typeNode NodeRef, expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindExportAssignment, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChildRef(id, slotExportAssignmentType, typeNode)
+	f.store.linkChildRef(id, slotExportAssignmentExpression, expression)
+	f.store.linkList(id, listSlotExportAssignmentModifiers, modifiers)
+	h := Handle{s: f.store, id: id, Kind: KindExportAssignment}
+	if isExportEquals {
+		h.SetUintValue(valueSlotExportAssignmentIsExportEquals, 1)
+	}
+	return id
+}
+
 func (f *Factory) NewExportAssignment(modifiers ListRef, isExportEquals bool, typeNode Handle, expression Handle) Handle {
-	h := f.createSlots(KindExportAssignment, 0, core.UndefinedTextRange(), 2, 1)
-	f.store.linkChild(h.id, slotExportAssignmentType, typeNode)
-	f.store.linkChild(h.id, slotExportAssignmentExpression, expression)
-	f.store.linkList(h.id, listSlotExportAssignmentModifiers, modifiers)
+	id := f.store.appendSlots(KindExportAssignment, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChild(id, slotExportAssignmentType, typeNode)
+	f.store.linkChild(id, slotExportAssignmentExpression, expression)
+	f.store.linkList(id, listSlotExportAssignmentModifiers, modifiers)
+	h := f.handleFromParse(id, KindExportAssignment)
 	if isExportEquals {
 		h.SetUintValue(valueSlotExportAssignmentIsExportEquals, 1)
 	}
@@ -1343,11 +1692,18 @@ func (h Handle) SetExportAssignmentIsExportEquals(value bool) {
 	}
 }
 
+func (f *Factory) ParseNamespaceExportDeclaration(modifiers ListRef, name NodeRef) NodeRef {
+	id := f.store.appendSlots(KindNamespaceExportDeclaration, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChildRef(id, slotNamespaceExportDeclarationName, name)
+	f.store.linkList(id, listSlotNamespaceExportDeclarationModifiers, modifiers)
+	return id
+}
+
 func (f *Factory) NewNamespaceExportDeclaration(modifiers ListRef, name Handle) Handle {
-	h := f.createSlots(KindNamespaceExportDeclaration, 0, core.UndefinedTextRange(), 1, 1)
-	f.store.linkChild(h.id, slotNamespaceExportDeclarationName, name)
-	f.store.linkList(h.id, listSlotNamespaceExportDeclarationModifiers, modifiers)
-	return h
+	id := f.store.appendSlots(KindNamespaceExportDeclaration, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChild(id, slotNamespaceExportDeclarationName, name)
+	f.store.linkList(id, listSlotNamespaceExportDeclarationModifiers, modifiers)
+	return f.handleFromParse(id, KindNamespaceExportDeclaration)
 }
 
 func (f Factory) UpdateNamespaceExportDeclaration(node Handle, modifiers ListRef, name Handle) Handle {
@@ -1373,10 +1729,16 @@ func (h Handle) SetNamespaceExportDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotNamespaceExportDeclarationModifiers, value)
 }
 
+func (f *Factory) ParseNamespaceExport(name NodeRef) NodeRef {
+	id := f.store.appendSlots(KindNamespaceExport, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotNamespaceExportName, name)
+	return id
+}
+
 func (f *Factory) NewNamespaceExport(name Handle) Handle {
-	h := f.createSlots(KindNamespaceExport, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotNamespaceExportName, name)
-	return h
+	id := f.store.appendSlots(KindNamespaceExport, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotNamespaceExportName, name)
+	return f.handleFromParse(id, KindNamespaceExport)
 }
 
 func (f Factory) UpdateNamespaceExport(node Handle, name Handle) Handle {
@@ -1389,10 +1751,14 @@ func (f Factory) UpdateNamespaceExport(node Handle, name Handle) Handle {
 func (h Handle) NamespaceExportName() Handle         { return h.childAt(slotNamespaceExportName) }
 func (h Handle) SetNamespaceExportName(value Handle) { h.SetChild(slotNamespaceExportName, value) }
 
+func (f *Factory) ParseNamedExports(elements ListRef) NodeRef {
+	id := f.store.appendSlots(KindNamedExports, 0, core.UndefinedTextRange(), 0, 1)
+	f.store.linkList(id, listSlotNamedExportsElements, elements)
+	return id
+}
+
 func (f *Factory) NewNamedExports(elements ListRef) Handle {
-	h := f.createSlots(KindNamedExports, 0, core.UndefinedTextRange(), 0, 1)
-	f.store.linkList(h.id, listSlotNamedExportsElements, elements)
-	return h
+	return f.handleFromParse(f.ParseNamedExports(elements), KindNamedExports)
 }
 
 func (f Factory) UpdateNamedExports(node Handle, elements ListRef) Handle {
@@ -1407,10 +1773,22 @@ func (h Handle) SetNamedExportsElements(value ListRef) {
 	h.SetListSlot(listSlotNamedExportsElements, value)
 }
 
+func (f *Factory) ParseExportSpecifier(isTypeOnly bool, propertyName NodeRef, name NodeRef) NodeRef {
+	id := f.store.appendSlots(KindExportSpecifier, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotExportSpecifierPropertyName, propertyName)
+	f.store.linkChildRef(id, slotExportSpecifierName, name)
+	h := Handle{s: f.store, id: id, Kind: KindExportSpecifier}
+	if isTypeOnly {
+		h.SetUintValue(valueSlotExportSpecifierIsTypeOnly, 1)
+	}
+	return id
+}
+
 func (f *Factory) NewExportSpecifier(isTypeOnly bool, propertyName Handle, name Handle) Handle {
-	h := f.createSlots(KindExportSpecifier, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotExportSpecifierPropertyName, propertyName)
-	f.store.linkChild(h.id, slotExportSpecifierName, name)
+	id := f.store.appendSlots(KindExportSpecifier, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotExportSpecifierPropertyName, propertyName)
+	f.store.linkChild(id, slotExportSpecifierName, name)
+	h := f.handleFromParse(id, KindExportSpecifier)
 	if isTypeOnly {
 		h.SetUintValue(valueSlotExportSpecifierIsTypeOnly, 1)
 	}
@@ -1447,12 +1825,20 @@ func (h Handle) SetExportSpecifierIsTypeOnly(value bool) {
 	}
 }
 
+func (f *Factory) ParseCallSignatureDeclaration(typeParameters ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindCallSignature, 0, core.UndefinedTextRange(), 1, 2)
+	f.store.linkChildRef(id, slotCallSignatureDeclarationType, typeNode)
+	f.store.linkList(id, listSlotCallSignatureDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotCallSignatureDeclarationParameters, parameters)
+	return id
+}
+
 func (f *Factory) NewCallSignatureDeclaration(typeParameters ListRef, parameters ListRef, typeNode Handle) Handle {
-	h := f.createSlots(KindCallSignature, 0, core.UndefinedTextRange(), 1, 2)
-	f.store.linkChild(h.id, slotCallSignatureDeclarationType, typeNode)
-	f.store.linkList(h.id, listSlotCallSignatureDeclarationTypeParameters, typeParameters)
-	f.store.linkList(h.id, listSlotCallSignatureDeclarationParameters, parameters)
-	return h
+	id := f.store.appendSlots(KindCallSignature, 0, core.UndefinedTextRange(), 1, 2)
+	f.store.linkChild(id, slotCallSignatureDeclarationType, typeNode)
+	f.store.linkList(id, listSlotCallSignatureDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotCallSignatureDeclarationParameters, parameters)
+	return f.handleFromParse(id, KindCallSignature)
 }
 
 func (f Factory) UpdateCallSignatureDeclaration(node Handle, typeParameters ListRef, parameters ListRef, typeNode Handle) Handle {
@@ -1486,12 +1872,20 @@ func (h Handle) SetCallSignatureDeclarationParameters(value ListRef) {
 	h.SetListSlot(listSlotCallSignatureDeclarationParameters, value)
 }
 
+func (f *Factory) ParseConstructSignatureDeclaration(typeParameters ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindConstructSignature, 0, core.UndefinedTextRange(), 1, 2)
+	f.store.linkChildRef(id, slotConstructSignatureDeclarationType, typeNode)
+	f.store.linkList(id, listSlotConstructSignatureDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotConstructSignatureDeclarationParameters, parameters)
+	return id
+}
+
 func (f *Factory) NewConstructSignatureDeclaration(typeParameters ListRef, parameters ListRef, typeNode Handle) Handle {
-	h := f.createSlots(KindConstructSignature, 0, core.UndefinedTextRange(), 1, 2)
-	f.store.linkChild(h.id, slotConstructSignatureDeclarationType, typeNode)
-	f.store.linkList(h.id, listSlotConstructSignatureDeclarationTypeParameters, typeParameters)
-	f.store.linkList(h.id, listSlotConstructSignatureDeclarationParameters, parameters)
-	return h
+	id := f.store.appendSlots(KindConstructSignature, 0, core.UndefinedTextRange(), 1, 2)
+	f.store.linkChild(id, slotConstructSignatureDeclarationType, typeNode)
+	f.store.linkList(id, listSlotConstructSignatureDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotConstructSignatureDeclarationParameters, parameters)
+	return f.handleFromParse(id, KindConstructSignature)
 }
 
 func (f Factory) UpdateConstructSignatureDeclaration(node Handle, typeParameters ListRef, parameters ListRef, typeNode Handle) Handle {
@@ -1525,15 +1919,26 @@ func (h Handle) SetConstructSignatureDeclarationParameters(value ListRef) {
 	h.SetListSlot(listSlotConstructSignatureDeclarationParameters, value)
 }
 
+func (f *Factory) ParseConstructorDeclaration(modifiers ListRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
+	id := f.store.appendSlots(KindConstructor, 0, core.UndefinedTextRange(), 3, 3)
+	f.store.linkChildRef(id, slotConstructorDeclarationType, typeNode)
+	f.store.linkChildRef(id, slotConstructorDeclarationFullSignature, fullSignature)
+	f.store.linkChildRef(id, slotConstructorDeclarationBody, body)
+	f.store.linkList(id, listSlotConstructorDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotConstructorDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotConstructorDeclarationParameters, parameters)
+	return id
+}
+
 func (f *Factory) NewConstructorDeclaration(modifiers ListRef, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, body Handle) Handle {
-	h := f.createSlots(KindConstructor, 0, core.UndefinedTextRange(), 3, 3)
-	f.store.linkChild(h.id, slotConstructorDeclarationType, typeNode)
-	f.store.linkChild(h.id, slotConstructorDeclarationFullSignature, fullSignature)
-	f.store.linkChild(h.id, slotConstructorDeclarationBody, body)
-	f.store.linkList(h.id, listSlotConstructorDeclarationModifiers, modifiers)
-	f.store.linkList(h.id, listSlotConstructorDeclarationTypeParameters, typeParameters)
-	f.store.linkList(h.id, listSlotConstructorDeclarationParameters, parameters)
-	return h
+	id := f.store.appendSlots(KindConstructor, 0, core.UndefinedTextRange(), 3, 3)
+	f.store.linkChild(id, slotConstructorDeclarationType, typeNode)
+	f.store.linkChild(id, slotConstructorDeclarationFullSignature, fullSignature)
+	f.store.linkChild(id, slotConstructorDeclarationBody, body)
+	f.store.linkList(id, listSlotConstructorDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotConstructorDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotConstructorDeclarationParameters, parameters)
+	return f.handleFromParse(id, KindConstructor)
 }
 
 func (f Factory) UpdateConstructorDeclaration(node Handle, modifiers ListRef, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, body Handle) Handle {
@@ -1587,16 +1992,28 @@ func (h Handle) SetConstructorDeclarationParameters(value ListRef) {
 	h.SetListSlot(listSlotConstructorDeclarationParameters, value)
 }
 
+func (f *Factory) ParseGetAccessorDeclaration(modifiers ListRef, name NodeRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
+	id := f.store.appendSlots(KindGetAccessor, 0, core.UndefinedTextRange(), 4, 3)
+	f.store.linkChildRef(id, slotGetAccessorDeclarationName, name)
+	f.store.linkChildRef(id, slotGetAccessorDeclarationType, typeNode)
+	f.store.linkChildRef(id, slotGetAccessorDeclarationFullSignature, fullSignature)
+	f.store.linkChildRef(id, slotGetAccessorDeclarationBody, body)
+	f.store.linkList(id, listSlotGetAccessorDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotGetAccessorDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotGetAccessorDeclarationParameters, parameters)
+	return id
+}
+
 func (f *Factory) NewGetAccessorDeclaration(modifiers ListRef, name Handle, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, body Handle) Handle {
-	h := f.createSlots(KindGetAccessor, 0, core.UndefinedTextRange(), 4, 3)
-	f.store.linkChild(h.id, slotGetAccessorDeclarationName, name)
-	f.store.linkChild(h.id, slotGetAccessorDeclarationType, typeNode)
-	f.store.linkChild(h.id, slotGetAccessorDeclarationFullSignature, fullSignature)
-	f.store.linkChild(h.id, slotGetAccessorDeclarationBody, body)
-	f.store.linkList(h.id, listSlotGetAccessorDeclarationModifiers, modifiers)
-	f.store.linkList(h.id, listSlotGetAccessorDeclarationTypeParameters, typeParameters)
-	f.store.linkList(h.id, listSlotGetAccessorDeclarationParameters, parameters)
-	return h
+	id := f.store.appendSlots(KindGetAccessor, 0, core.UndefinedTextRange(), 4, 3)
+	f.store.linkChild(id, slotGetAccessorDeclarationName, name)
+	f.store.linkChild(id, slotGetAccessorDeclarationType, typeNode)
+	f.store.linkChild(id, slotGetAccessorDeclarationFullSignature, fullSignature)
+	f.store.linkChild(id, slotGetAccessorDeclarationBody, body)
+	f.store.linkList(id, listSlotGetAccessorDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotGetAccessorDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotGetAccessorDeclarationParameters, parameters)
+	return f.handleFromParse(id, KindGetAccessor)
 }
 
 func (f Factory) UpdateGetAccessorDeclaration(node Handle, modifiers ListRef, name Handle, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, body Handle) Handle {
@@ -1656,16 +2073,28 @@ func (h Handle) SetGetAccessorDeclarationParameters(value ListRef) {
 	h.SetListSlot(listSlotGetAccessorDeclarationParameters, value)
 }
 
+func (f *Factory) ParseSetAccessorDeclaration(modifiers ListRef, name NodeRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
+	id := f.store.appendSlots(KindSetAccessor, 0, core.UndefinedTextRange(), 4, 3)
+	f.store.linkChildRef(id, slotSetAccessorDeclarationName, name)
+	f.store.linkChildRef(id, slotSetAccessorDeclarationType, typeNode)
+	f.store.linkChildRef(id, slotSetAccessorDeclarationFullSignature, fullSignature)
+	f.store.linkChildRef(id, slotSetAccessorDeclarationBody, body)
+	f.store.linkList(id, listSlotSetAccessorDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotSetAccessorDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotSetAccessorDeclarationParameters, parameters)
+	return id
+}
+
 func (f *Factory) NewSetAccessorDeclaration(modifiers ListRef, name Handle, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, body Handle) Handle {
-	h := f.createSlots(KindSetAccessor, 0, core.UndefinedTextRange(), 4, 3)
-	f.store.linkChild(h.id, slotSetAccessorDeclarationName, name)
-	f.store.linkChild(h.id, slotSetAccessorDeclarationType, typeNode)
-	f.store.linkChild(h.id, slotSetAccessorDeclarationFullSignature, fullSignature)
-	f.store.linkChild(h.id, slotSetAccessorDeclarationBody, body)
-	f.store.linkList(h.id, listSlotSetAccessorDeclarationModifiers, modifiers)
-	f.store.linkList(h.id, listSlotSetAccessorDeclarationTypeParameters, typeParameters)
-	f.store.linkList(h.id, listSlotSetAccessorDeclarationParameters, parameters)
-	return h
+	id := f.store.appendSlots(KindSetAccessor, 0, core.UndefinedTextRange(), 4, 3)
+	f.store.linkChild(id, slotSetAccessorDeclarationName, name)
+	f.store.linkChild(id, slotSetAccessorDeclarationType, typeNode)
+	f.store.linkChild(id, slotSetAccessorDeclarationFullSignature, fullSignature)
+	f.store.linkChild(id, slotSetAccessorDeclarationBody, body)
+	f.store.linkList(id, listSlotSetAccessorDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotSetAccessorDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotSetAccessorDeclarationParameters, parameters)
+	return f.handleFromParse(id, KindSetAccessor)
 }
 
 func (f Factory) UpdateSetAccessorDeclaration(node Handle, modifiers ListRef, name Handle, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, body Handle) Handle {
@@ -1725,12 +2154,20 @@ func (h Handle) SetSetAccessorDeclarationParameters(value ListRef) {
 	h.SetListSlot(listSlotSetAccessorDeclarationParameters, value)
 }
 
+func (f *Factory) ParseIndexSignatureDeclaration(modifiers ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindIndexSignature, 0, core.UndefinedTextRange(), 1, 2)
+	f.store.linkChildRef(id, slotIndexSignatureDeclarationType, typeNode)
+	f.store.linkList(id, listSlotIndexSignatureDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotIndexSignatureDeclarationParameters, parameters)
+	return id
+}
+
 func (f *Factory) NewIndexSignatureDeclaration(modifiers ListRef, parameters ListRef, typeNode Handle) Handle {
-	h := f.createSlots(KindIndexSignature, 0, core.UndefinedTextRange(), 1, 2)
-	f.store.linkChild(h.id, slotIndexSignatureDeclarationType, typeNode)
-	f.store.linkList(h.id, listSlotIndexSignatureDeclarationModifiers, modifiers)
-	f.store.linkList(h.id, listSlotIndexSignatureDeclarationParameters, parameters)
-	return h
+	id := f.store.appendSlots(KindIndexSignature, 0, core.UndefinedTextRange(), 1, 2)
+	f.store.linkChild(id, slotIndexSignatureDeclarationType, typeNode)
+	f.store.linkList(id, listSlotIndexSignatureDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotIndexSignatureDeclarationParameters, parameters)
+	return f.handleFromParse(id, KindIndexSignature)
 }
 
 func (f Factory) UpdateIndexSignatureDeclaration(node Handle, modifiers ListRef, parameters ListRef, typeNode Handle) Handle {
@@ -1764,15 +2201,26 @@ func (h Handle) SetIndexSignatureDeclarationParameters(value ListRef) {
 	h.SetListSlot(listSlotIndexSignatureDeclarationParameters, value)
 }
 
+func (f *Factory) ParseMethodSignatureDeclaration(modifiers ListRef, name NodeRef, postfixToken NodeRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindMethodSignature, 0, core.UndefinedTextRange(), 3, 3)
+	f.store.linkChildRef(id, slotMethodSignatureDeclarationName, name)
+	f.store.linkChildRef(id, slotMethodSignatureDeclarationPostfixToken, postfixToken)
+	f.store.linkChildRef(id, slotMethodSignatureDeclarationType, typeNode)
+	f.store.linkList(id, listSlotMethodSignatureDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotMethodSignatureDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotMethodSignatureDeclarationParameters, parameters)
+	return id
+}
+
 func (f *Factory) NewMethodSignatureDeclaration(modifiers ListRef, name Handle, postfixToken Handle, typeParameters ListRef, parameters ListRef, typeNode Handle) Handle {
-	h := f.createSlots(KindMethodSignature, 0, core.UndefinedTextRange(), 3, 3)
-	f.store.linkChild(h.id, slotMethodSignatureDeclarationName, name)
-	f.store.linkChild(h.id, slotMethodSignatureDeclarationPostfixToken, postfixToken)
-	f.store.linkChild(h.id, slotMethodSignatureDeclarationType, typeNode)
-	f.store.linkList(h.id, listSlotMethodSignatureDeclarationModifiers, modifiers)
-	f.store.linkList(h.id, listSlotMethodSignatureDeclarationTypeParameters, typeParameters)
-	f.store.linkList(h.id, listSlotMethodSignatureDeclarationParameters, parameters)
-	return h
+	id := f.store.appendSlots(KindMethodSignature, 0, core.UndefinedTextRange(), 3, 3)
+	f.store.linkChild(id, slotMethodSignatureDeclarationName, name)
+	f.store.linkChild(id, slotMethodSignatureDeclarationPostfixToken, postfixToken)
+	f.store.linkChild(id, slotMethodSignatureDeclarationType, typeNode)
+	f.store.linkList(id, listSlotMethodSignatureDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotMethodSignatureDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotMethodSignatureDeclarationParameters, parameters)
+	return f.handleFromParse(id, KindMethodSignature)
 }
 
 func (f Factory) UpdateMethodSignatureDeclaration(node Handle, modifiers ListRef, name Handle, postfixToken Handle, typeParameters ListRef, parameters ListRef, typeNode Handle) Handle {
@@ -1830,18 +2278,32 @@ func (h Handle) SetMethodSignatureDeclarationParameters(value ListRef) {
 	h.SetListSlot(listSlotMethodSignatureDeclarationParameters, value)
 }
 
+func (f *Factory) ParseMethodDeclaration(modifiers ListRef, asteriskToken NodeRef, name NodeRef, postfixToken NodeRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
+	id := f.store.appendSlots(KindMethodDeclaration, 0, core.UndefinedTextRange(), 6, 3)
+	f.store.linkChildRef(id, slotMethodDeclarationAsteriskToken, asteriskToken)
+	f.store.linkChildRef(id, slotMethodDeclarationName, name)
+	f.store.linkChildRef(id, slotMethodDeclarationPostfixToken, postfixToken)
+	f.store.linkChildRef(id, slotMethodDeclarationType, typeNode)
+	f.store.linkChildRef(id, slotMethodDeclarationFullSignature, fullSignature)
+	f.store.linkChildRef(id, slotMethodDeclarationBody, body)
+	f.store.linkList(id, listSlotMethodDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotMethodDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotMethodDeclarationParameters, parameters)
+	return id
+}
+
 func (f *Factory) NewMethodDeclaration(modifiers ListRef, asteriskToken Handle, name Handle, postfixToken Handle, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, body Handle) Handle {
-	h := f.createSlots(KindMethodDeclaration, 0, core.UndefinedTextRange(), 6, 3)
-	f.store.linkChild(h.id, slotMethodDeclarationAsteriskToken, asteriskToken)
-	f.store.linkChild(h.id, slotMethodDeclarationName, name)
-	f.store.linkChild(h.id, slotMethodDeclarationPostfixToken, postfixToken)
-	f.store.linkChild(h.id, slotMethodDeclarationType, typeNode)
-	f.store.linkChild(h.id, slotMethodDeclarationFullSignature, fullSignature)
-	f.store.linkChild(h.id, slotMethodDeclarationBody, body)
-	f.store.linkList(h.id, listSlotMethodDeclarationModifiers, modifiers)
-	f.store.linkList(h.id, listSlotMethodDeclarationTypeParameters, typeParameters)
-	f.store.linkList(h.id, listSlotMethodDeclarationParameters, parameters)
-	return h
+	id := f.store.appendSlots(KindMethodDeclaration, 0, core.UndefinedTextRange(), 6, 3)
+	f.store.linkChild(id, slotMethodDeclarationAsteriskToken, asteriskToken)
+	f.store.linkChild(id, slotMethodDeclarationName, name)
+	f.store.linkChild(id, slotMethodDeclarationPostfixToken, postfixToken)
+	f.store.linkChild(id, slotMethodDeclarationType, typeNode)
+	f.store.linkChild(id, slotMethodDeclarationFullSignature, fullSignature)
+	f.store.linkChild(id, slotMethodDeclarationBody, body)
+	f.store.linkList(id, listSlotMethodDeclarationModifiers, modifiers)
+	f.store.linkList(id, listSlotMethodDeclarationTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotMethodDeclarationParameters, parameters)
+	return f.handleFromParse(id, KindMethodDeclaration)
 }
 
 func (f Factory) UpdateMethodDeclaration(node Handle, modifiers ListRef, asteriskToken Handle, name Handle, postfixToken Handle, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, body Handle) Handle {
@@ -1911,14 +2373,24 @@ func (h Handle) SetMethodDeclarationParameters(value ListRef) {
 	h.SetListSlot(listSlotMethodDeclarationParameters, value)
 }
 
+func (f *Factory) ParsePropertySignatureDeclaration(modifiers ListRef, name NodeRef, postfixToken NodeRef, typeNode NodeRef, initializer NodeRef) NodeRef {
+	id := f.store.appendSlots(KindPropertySignature, 0, core.UndefinedTextRange(), 4, 1)
+	f.store.linkChildRef(id, slotPropertySignatureDeclarationName, name)
+	f.store.linkChildRef(id, slotPropertySignatureDeclarationPostfixToken, postfixToken)
+	f.store.linkChildRef(id, slotPropertySignatureDeclarationType, typeNode)
+	f.store.linkChildRef(id, slotPropertySignatureDeclarationInitializer, initializer)
+	f.store.linkList(id, listSlotPropertySignatureDeclarationModifiers, modifiers)
+	return id
+}
+
 func (f *Factory) NewPropertySignatureDeclaration(modifiers ListRef, name Handle, postfixToken Handle, typeNode Handle, initializer Handle) Handle {
-	h := f.createSlots(KindPropertySignature, 0, core.UndefinedTextRange(), 4, 1)
-	f.store.linkChild(h.id, slotPropertySignatureDeclarationName, name)
-	f.store.linkChild(h.id, slotPropertySignatureDeclarationPostfixToken, postfixToken)
-	f.store.linkChild(h.id, slotPropertySignatureDeclarationType, typeNode)
-	f.store.linkChild(h.id, slotPropertySignatureDeclarationInitializer, initializer)
-	f.store.linkList(h.id, listSlotPropertySignatureDeclarationModifiers, modifiers)
-	return h
+	id := f.store.appendSlots(KindPropertySignature, 0, core.UndefinedTextRange(), 4, 1)
+	f.store.linkChild(id, slotPropertySignatureDeclarationName, name)
+	f.store.linkChild(id, slotPropertySignatureDeclarationPostfixToken, postfixToken)
+	f.store.linkChild(id, slotPropertySignatureDeclarationType, typeNode)
+	f.store.linkChild(id, slotPropertySignatureDeclarationInitializer, initializer)
+	f.store.linkList(id, listSlotPropertySignatureDeclarationModifiers, modifiers)
+	return f.handleFromParse(id, KindPropertySignature)
 }
 
 func (f Factory) UpdatePropertySignatureDeclaration(node Handle, modifiers ListRef, name Handle, postfixToken Handle, typeNode Handle, initializer Handle) Handle {
@@ -1968,14 +2440,24 @@ func (h Handle) SetPropertySignatureDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotPropertySignatureDeclarationModifiers, value)
 }
 
+func (f *Factory) ParsePropertyDeclaration(modifiers ListRef, name NodeRef, postfixToken NodeRef, typeNode NodeRef, initializer NodeRef) NodeRef {
+	id := f.store.appendSlots(KindPropertyDeclaration, 0, core.UndefinedTextRange(), 4, 1)
+	f.store.linkChildRef(id, slotPropertyDeclarationName, name)
+	f.store.linkChildRef(id, slotPropertyDeclarationPostfixToken, postfixToken)
+	f.store.linkChildRef(id, slotPropertyDeclarationType, typeNode)
+	f.store.linkChildRef(id, slotPropertyDeclarationInitializer, initializer)
+	f.store.linkList(id, listSlotPropertyDeclarationModifiers, modifiers)
+	return id
+}
+
 func (f *Factory) NewPropertyDeclaration(modifiers ListRef, name Handle, postfixToken Handle, typeNode Handle, initializer Handle) Handle {
-	h := f.createSlots(KindPropertyDeclaration, 0, core.UndefinedTextRange(), 4, 1)
-	f.store.linkChild(h.id, slotPropertyDeclarationName, name)
-	f.store.linkChild(h.id, slotPropertyDeclarationPostfixToken, postfixToken)
-	f.store.linkChild(h.id, slotPropertyDeclarationType, typeNode)
-	f.store.linkChild(h.id, slotPropertyDeclarationInitializer, initializer)
-	f.store.linkList(h.id, listSlotPropertyDeclarationModifiers, modifiers)
-	return h
+	id := f.store.appendSlots(KindPropertyDeclaration, 0, core.UndefinedTextRange(), 4, 1)
+	f.store.linkChild(id, slotPropertyDeclarationName, name)
+	f.store.linkChild(id, slotPropertyDeclarationPostfixToken, postfixToken)
+	f.store.linkChild(id, slotPropertyDeclarationType, typeNode)
+	f.store.linkChild(id, slotPropertyDeclarationInitializer, initializer)
+	f.store.linkList(id, listSlotPropertyDeclarationModifiers, modifiers)
+	return f.handleFromParse(id, KindPropertyDeclaration)
 }
 
 func (f Factory) UpdatePropertyDeclaration(node Handle, modifiers ListRef, name Handle, postfixToken Handle, typeNode Handle, initializer Handle) Handle {
@@ -2019,16 +2501,27 @@ func (h Handle) SetPropertyDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotPropertyDeclarationModifiers, value)
 }
 
+func (f *Factory) ParseSemicolonClassElement() NodeRef {
+	id := f.store.appendSlots(KindSemicolonClassElement, 0, core.UndefinedTextRange(), 0, 0)
+	return id
+}
+
 func (f *Factory) NewSemicolonClassElement() Handle {
-	h := f.createSlots(KindSemicolonClassElement, 0, core.UndefinedTextRange(), 0, 0)
-	return h
+	return f.handleFromParse(f.ParseSemicolonClassElement(), KindSemicolonClassElement)
+}
+
+func (f *Factory) ParseClassStaticBlockDeclaration(modifiers ListRef, body NodeRef) NodeRef {
+	id := f.store.appendSlots(KindClassStaticBlockDeclaration, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChildRef(id, slotClassStaticBlockDeclarationBody, body)
+	f.store.linkList(id, listSlotClassStaticBlockDeclarationModifiers, modifiers)
+	return id
 }
 
 func (f *Factory) NewClassStaticBlockDeclaration(modifiers ListRef, body Handle) Handle {
-	h := f.createSlots(KindClassStaticBlockDeclaration, 0, core.UndefinedTextRange(), 1, 1)
-	f.store.linkChild(h.id, slotClassStaticBlockDeclarationBody, body)
-	f.store.linkList(h.id, listSlotClassStaticBlockDeclarationModifiers, modifiers)
-	return h
+	id := f.store.appendSlots(KindClassStaticBlockDeclaration, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChild(id, slotClassStaticBlockDeclarationBody, body)
+	f.store.linkList(id, listSlotClassStaticBlockDeclarationModifiers, modifiers)
+	return f.handleFromParse(id, KindClassStaticBlockDeclaration)
 }
 
 func (f Factory) UpdateClassStaticBlockDeclaration(node Handle, modifiers ListRef, body Handle) Handle {
@@ -2054,23 +2547,36 @@ func (h Handle) SetClassStaticBlockDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotClassStaticBlockDeclarationModifiers, value)
 }
 
+func (f *Factory) ParseOmittedExpression() NodeRef {
+	id := f.store.appendSlots(KindOmittedExpression, 0, core.UndefinedTextRange(), 0, 0)
+	return id
+}
+
 func (f *Factory) NewOmittedExpression() Handle {
-	h := f.createSlots(KindOmittedExpression, 0, core.UndefinedTextRange(), 0, 0)
-	return h
+	return f.handleFromParse(f.ParseOmittedExpression(), KindOmittedExpression)
+}
+
+func (f *Factory) ParseKeywordExpression(kind KeywordExpressionSyntaxKind) NodeRef {
+	id := f.store.appendSlots(kind, 0, core.UndefinedTextRange(), 0, 0)
+	return id
 }
 
 func (f *Factory) NewKeywordExpression(kind KeywordExpressionSyntaxKind) Handle {
-	h := f.createSlots(kind, 0, core.UndefinedTextRange(), 0, 0)
-	return h
+	return f.handleFromParse(f.ParseKeywordExpression(kind), kind)
+}
+
+func (f *Factory) ParseStringLiteral(text string, tokenFlags TokenFlags) NodeRef {
+	id := f.store.appendSlots(KindStringLiteral, 0, core.UndefinedTextRange(), 0, 0)
+	h := Handle{s: f.store, id: id, Kind: KindStringLiteral}
+	h.SetTokenFlags(tokenFlags & TokenFlagsStringLiteralFlags)
+	if text != "" {
+		f.store.setIdent(id, f.store.intern(text))
+	}
+	return id
 }
 
 func (f *Factory) NewStringLiteral(text string, tokenFlags TokenFlags) Handle {
-	h := f.createSlots(KindStringLiteral, 0, core.UndefinedTextRange(), 0, 0)
-	h.SetTokenFlags(tokenFlags & TokenFlagsStringLiteralFlags)
-	if text != "" {
-		f.store.setIdent(h.id, f.store.intern(text))
-	}
-	return h
+	return f.handleFromParse(f.ParseStringLiteral(text, tokenFlags), KindStringLiteral)
 }
 
 func (h Handle) StringLiteralText() string { return h.StringValue(valueSlotStringLiteralText) }
@@ -2081,13 +2587,18 @@ func (h Handle) SetStringLiteralText(value string) {
 func (h Handle) StringLiteralTokenFlags() TokenFlags         { return h.TokenFlags() }
 func (h Handle) SetStringLiteralTokenFlags(value TokenFlags) { h.SetTokenFlags(value) }
 
-func (f *Factory) NewNumericLiteral(text string, tokenFlags TokenFlags) Handle {
-	h := f.createSlots(KindNumericLiteral, 0, core.UndefinedTextRange(), 0, 0)
+func (f *Factory) ParseNumericLiteral(text string, tokenFlags TokenFlags) NodeRef {
+	id := f.store.appendSlots(KindNumericLiteral, 0, core.UndefinedTextRange(), 0, 0)
+	h := Handle{s: f.store, id: id, Kind: KindNumericLiteral}
 	h.SetTokenFlags(tokenFlags & TokenFlagsNumericLiteralFlags)
 	if text != "" {
-		f.store.setIdent(h.id, f.store.intern(text))
+		f.store.setIdent(id, f.store.intern(text))
 	}
-	return h
+	return id
+}
+
+func (f *Factory) NewNumericLiteral(text string, tokenFlags TokenFlags) Handle {
+	return f.handleFromParse(f.ParseNumericLiteral(text, tokenFlags), KindNumericLiteral)
 }
 
 func (h Handle) NumericLiteralText() string { return h.StringValue(valueSlotNumericLiteralText) }
@@ -2098,13 +2609,18 @@ func (h Handle) SetNumericLiteralText(value string) {
 func (h Handle) NumericLiteralTokenFlags() TokenFlags         { return h.TokenFlags() }
 func (h Handle) SetNumericLiteralTokenFlags(value TokenFlags) { h.SetTokenFlags(value) }
 
-func (f *Factory) NewBigIntLiteral(text string, tokenFlags TokenFlags) Handle {
-	h := f.createSlots(KindBigIntLiteral, 0, core.UndefinedTextRange(), 0, 0)
+func (f *Factory) ParseBigIntLiteral(text string, tokenFlags TokenFlags) NodeRef {
+	id := f.store.appendSlots(KindBigIntLiteral, 0, core.UndefinedTextRange(), 0, 0)
+	h := Handle{s: f.store, id: id, Kind: KindBigIntLiteral}
 	h.SetTokenFlags(tokenFlags & TokenFlagsNumericLiteralFlags)
 	if text != "" {
-		f.store.setIdent(h.id, f.store.intern(text))
+		f.store.setIdent(id, f.store.intern(text))
 	}
-	return h
+	return id
+}
+
+func (f *Factory) NewBigIntLiteral(text string, tokenFlags TokenFlags) Handle {
+	return f.handleFromParse(f.ParseBigIntLiteral(text, tokenFlags), KindBigIntLiteral)
 }
 
 func (h Handle) BigIntLiteralText() string { return h.StringValue(valueSlotBigIntLiteralText) }
@@ -2115,13 +2631,18 @@ func (h Handle) SetBigIntLiteralText(value string) {
 func (h Handle) BigIntLiteralTokenFlags() TokenFlags         { return h.TokenFlags() }
 func (h Handle) SetBigIntLiteralTokenFlags(value TokenFlags) { h.SetTokenFlags(value) }
 
-func (f *Factory) NewRegularExpressionLiteral(text string, tokenFlags TokenFlags) Handle {
-	h := f.createSlots(KindRegularExpressionLiteral, 0, core.UndefinedTextRange(), 0, 0)
+func (f *Factory) ParseRegularExpressionLiteral(text string, tokenFlags TokenFlags) NodeRef {
+	id := f.store.appendSlots(KindRegularExpressionLiteral, 0, core.UndefinedTextRange(), 0, 0)
+	h := Handle{s: f.store, id: id, Kind: KindRegularExpressionLiteral}
 	h.SetTokenFlags(tokenFlags & TokenFlagsRegularExpressionLiteralFlags)
 	if text != "" {
-		f.store.setIdent(h.id, f.store.intern(text))
+		f.store.setIdent(id, f.store.intern(text))
 	}
-	return h
+	return id
+}
+
+func (f *Factory) NewRegularExpressionLiteral(text string, tokenFlags TokenFlags) Handle {
+	return f.handleFromParse(f.ParseRegularExpressionLiteral(text, tokenFlags), KindRegularExpressionLiteral)
 }
 
 func (h Handle) RegularExpressionLiteralText() string {
@@ -2135,13 +2656,18 @@ func (h Handle) SetRegularExpressionLiteralText(value string) {
 func (h Handle) RegularExpressionLiteralTokenFlags() TokenFlags         { return h.TokenFlags() }
 func (h Handle) SetRegularExpressionLiteralTokenFlags(value TokenFlags) { h.SetTokenFlags(value) }
 
-func (f *Factory) NewNoSubstitutionTemplateLiteral(text string, templateFlags TokenFlags) Handle {
-	h := f.createSlots(KindNoSubstitutionTemplateLiteral, 0, core.UndefinedTextRange(), 0, 0)
+func (f *Factory) ParseNoSubstitutionTemplateLiteral(text string, templateFlags TokenFlags) NodeRef {
+	id := f.store.appendSlots(KindNoSubstitutionTemplateLiteral, 0, core.UndefinedTextRange(), 0, 0)
+	h := Handle{s: f.store, id: id, Kind: KindNoSubstitutionTemplateLiteral}
 	h.SetTokenFlags(templateFlags & TokenFlagsTemplateLiteralLikeFlags)
 	if text != "" {
-		f.store.setIdent(h.id, f.store.intern(text))
+		f.store.setIdent(id, f.store.intern(text))
 	}
-	return h
+	return id
+}
+
+func (f *Factory) NewNoSubstitutionTemplateLiteral(text string, templateFlags TokenFlags) Handle {
+	return f.handleFromParse(f.ParseNoSubstitutionTemplateLiteral(text, templateFlags), KindNoSubstitutionTemplateLiteral)
 }
 
 func (h Handle) NoSubstitutionTemplateLiteralText() string {
@@ -2157,14 +2683,24 @@ func (h Handle) SetNoSubstitutionTemplateLiteralTemplateFlags(value TokenFlags) 
 	h.SetTokenFlags(value)
 }
 
+func (f *Factory) ParseBinaryExpression(modifiers ListRef, left NodeRef, typeNode NodeRef, operatorToken NodeRef, right NodeRef) NodeRef {
+	id := f.store.appendSlots(KindBinaryExpression, 0, core.UndefinedTextRange(), 4, 1)
+	f.store.linkChildRef(id, slotBinaryExpressionLeft, left)
+	f.store.linkChildRef(id, slotBinaryExpressionType, typeNode)
+	f.store.linkChildRef(id, slotBinaryExpressionOperatorToken, operatorToken)
+	f.store.linkChildRef(id, slotBinaryExpressionRight, right)
+	f.store.linkList(id, listSlotBinaryExpressionModifiers, modifiers)
+	return id
+}
+
 func (f *Factory) NewBinaryExpression(modifiers ListRef, left Handle, typeNode Handle, operatorToken Handle, right Handle) Handle {
-	h := f.createSlots(KindBinaryExpression, 0, core.UndefinedTextRange(), 4, 1)
-	f.store.linkChild(h.id, slotBinaryExpressionLeft, left)
-	f.store.linkChild(h.id, slotBinaryExpressionType, typeNode)
-	f.store.linkChild(h.id, slotBinaryExpressionOperatorToken, operatorToken)
-	f.store.linkChild(h.id, slotBinaryExpressionRight, right)
-	f.store.linkList(h.id, listSlotBinaryExpressionModifiers, modifiers)
-	return h
+	id := f.store.appendSlots(KindBinaryExpression, 0, core.UndefinedTextRange(), 4, 1)
+	f.store.linkChild(id, slotBinaryExpressionLeft, left)
+	f.store.linkChild(id, slotBinaryExpressionType, typeNode)
+	f.store.linkChild(id, slotBinaryExpressionOperatorToken, operatorToken)
+	f.store.linkChild(id, slotBinaryExpressionRight, right)
+	f.store.linkList(id, listSlotBinaryExpressionModifiers, modifiers)
+	return f.handleFromParse(id, KindBinaryExpression)
 }
 
 func (f Factory) UpdateBinaryExpression(node Handle, modifiers ListRef, left Handle, typeNode Handle, operatorToken Handle, right Handle) Handle {
@@ -2200,9 +2736,18 @@ func (h Handle) SetBinaryExpressionModifiers(value ListRef) {
 	h.SetListSlot(listSlotBinaryExpressionModifiers, value)
 }
 
+func (f *Factory) ParsePrefixUnaryExpression(operator Kind, operand NodeRef) NodeRef {
+	id := f.store.appendSlots(KindPrefixUnaryExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotPrefixUnaryExpressionOperand, operand)
+	h := Handle{s: f.store, id: id, Kind: KindPrefixUnaryExpression}
+	h.SetUintValue(valueSlotPrefixUnaryExpressionOperator, uint64(operator))
+	return id
+}
+
 func (f *Factory) NewPrefixUnaryExpression(operator Kind, operand Handle) Handle {
-	h := f.createSlots(KindPrefixUnaryExpression, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotPrefixUnaryExpressionOperand, operand)
+	id := f.store.appendSlots(KindPrefixUnaryExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotPrefixUnaryExpressionOperand, operand)
+	h := f.handleFromParse(id, KindPrefixUnaryExpression)
 	h.SetUintValue(valueSlotPrefixUnaryExpressionOperator, uint64(operator))
 	return h
 }
@@ -2230,9 +2775,18 @@ func (h Handle) SetPrefixUnaryExpressionOperator(value Kind) {
 	h.SetUintValue(valueSlotPrefixUnaryExpressionOperator, uint64(value))
 }
 
+func (f *Factory) ParsePostfixUnaryExpression(operand NodeRef, operator Kind) NodeRef {
+	id := f.store.appendSlots(KindPostfixUnaryExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotPostfixUnaryExpressionOperand, operand)
+	h := Handle{s: f.store, id: id, Kind: KindPostfixUnaryExpression}
+	h.SetUintValue(valueSlotPostfixUnaryExpressionOperator, uint64(operator))
+	return id
+}
+
 func (f *Factory) NewPostfixUnaryExpression(operand Handle, operator Kind) Handle {
-	h := f.createSlots(KindPostfixUnaryExpression, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotPostfixUnaryExpressionOperand, operand)
+	id := f.store.appendSlots(KindPostfixUnaryExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotPostfixUnaryExpressionOperand, operand)
+	h := f.handleFromParse(id, KindPostfixUnaryExpression)
 	h.SetUintValue(valueSlotPostfixUnaryExpressionOperator, uint64(operator))
 	return h
 }
@@ -2260,11 +2814,18 @@ func (h Handle) SetPostfixUnaryExpressionOperator(value Kind) {
 	h.SetUintValue(valueSlotPostfixUnaryExpressionOperator, uint64(value))
 }
 
+func (f *Factory) ParseYieldExpression(asteriskToken NodeRef, expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindYieldExpression, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotYieldExpressionAsteriskToken, asteriskToken)
+	f.store.linkChildRef(id, slotYieldExpressionExpression, expression)
+	return id
+}
+
 func (f *Factory) NewYieldExpression(asteriskToken Handle, expression Handle) Handle {
-	h := f.createSlots(KindYieldExpression, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotYieldExpressionAsteriskToken, asteriskToken)
-	f.store.linkChild(h.id, slotYieldExpressionExpression, expression)
-	return h
+	id := f.store.appendSlots(KindYieldExpression, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotYieldExpressionAsteriskToken, asteriskToken)
+	f.store.linkChild(id, slotYieldExpressionExpression, expression)
+	return f.handleFromParse(id, KindYieldExpression)
 }
 
 func (f Factory) UpdateYieldExpression(node Handle, asteriskToken Handle, expression Handle) Handle {
@@ -2288,16 +2849,28 @@ func (h Handle) SetYieldExpressionExpression(value Handle) {
 	h.SetChild(slotYieldExpressionExpression, value)
 }
 
+func (f *Factory) ParseArrowFunction(modifiers ListRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, equalsGreaterThanToken NodeRef, body NodeRef) NodeRef {
+	id := f.store.appendSlots(KindArrowFunction, 0, core.UndefinedTextRange(), 4, 3)
+	f.store.linkChildRef(id, slotArrowFunctionType, typeNode)
+	f.store.linkChildRef(id, slotArrowFunctionFullSignature, fullSignature)
+	f.store.linkChildRef(id, slotArrowFunctionEqualsGreaterThanToken, equalsGreaterThanToken)
+	f.store.linkChildRef(id, slotArrowFunctionBody, body)
+	f.store.linkList(id, listSlotArrowFunctionModifiers, modifiers)
+	f.store.linkList(id, listSlotArrowFunctionTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotArrowFunctionParameters, parameters)
+	return id
+}
+
 func (f *Factory) NewArrowFunction(modifiers ListRef, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, equalsGreaterThanToken Handle, body Handle) Handle {
-	h := f.createSlots(KindArrowFunction, 0, core.UndefinedTextRange(), 4, 3)
-	f.store.linkChild(h.id, slotArrowFunctionType, typeNode)
-	f.store.linkChild(h.id, slotArrowFunctionFullSignature, fullSignature)
-	f.store.linkChild(h.id, slotArrowFunctionEqualsGreaterThanToken, equalsGreaterThanToken)
-	f.store.linkChild(h.id, slotArrowFunctionBody, body)
-	f.store.linkList(h.id, listSlotArrowFunctionModifiers, modifiers)
-	f.store.linkList(h.id, listSlotArrowFunctionTypeParameters, typeParameters)
-	f.store.linkList(h.id, listSlotArrowFunctionParameters, parameters)
-	return h
+	id := f.store.appendSlots(KindArrowFunction, 0, core.UndefinedTextRange(), 4, 3)
+	f.store.linkChild(id, slotArrowFunctionType, typeNode)
+	f.store.linkChild(id, slotArrowFunctionFullSignature, fullSignature)
+	f.store.linkChild(id, slotArrowFunctionEqualsGreaterThanToken, equalsGreaterThanToken)
+	f.store.linkChild(id, slotArrowFunctionBody, body)
+	f.store.linkList(id, listSlotArrowFunctionModifiers, modifiers)
+	f.store.linkList(id, listSlotArrowFunctionTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotArrowFunctionParameters, parameters)
+	return f.handleFromParse(id, KindArrowFunction)
 }
 
 func (f Factory) UpdateArrowFunction(node Handle, modifiers ListRef, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, equalsGreaterThanToken Handle, body Handle) Handle {
@@ -2347,17 +2920,30 @@ func (h Handle) SetArrowFunctionParameters(value ListRef) {
 	h.SetListSlot(listSlotArrowFunctionParameters, value)
 }
 
+func (f *Factory) ParseFunctionExpression(modifiers ListRef, asteriskToken NodeRef, name NodeRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
+	id := f.store.appendSlots(KindFunctionExpression, 0, core.UndefinedTextRange(), 5, 3)
+	f.store.linkChildRef(id, slotFunctionExpressionAsteriskToken, asteriskToken)
+	f.store.linkChildRef(id, slotFunctionExpressionName, name)
+	f.store.linkChildRef(id, slotFunctionExpressionType, typeNode)
+	f.store.linkChildRef(id, slotFunctionExpressionFullSignature, fullSignature)
+	f.store.linkChildRef(id, slotFunctionExpressionBody, body)
+	f.store.linkList(id, listSlotFunctionExpressionModifiers, modifiers)
+	f.store.linkList(id, listSlotFunctionExpressionTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotFunctionExpressionParameters, parameters)
+	return id
+}
+
 func (f *Factory) NewFunctionExpression(modifiers ListRef, asteriskToken Handle, name Handle, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, body Handle) Handle {
-	h := f.createSlots(KindFunctionExpression, 0, core.UndefinedTextRange(), 5, 3)
-	f.store.linkChild(h.id, slotFunctionExpressionAsteriskToken, asteriskToken)
-	f.store.linkChild(h.id, slotFunctionExpressionName, name)
-	f.store.linkChild(h.id, slotFunctionExpressionType, typeNode)
-	f.store.linkChild(h.id, slotFunctionExpressionFullSignature, fullSignature)
-	f.store.linkChild(h.id, slotFunctionExpressionBody, body)
-	f.store.linkList(h.id, listSlotFunctionExpressionModifiers, modifiers)
-	f.store.linkList(h.id, listSlotFunctionExpressionTypeParameters, typeParameters)
-	f.store.linkList(h.id, listSlotFunctionExpressionParameters, parameters)
-	return h
+	id := f.store.appendSlots(KindFunctionExpression, 0, core.UndefinedTextRange(), 5, 3)
+	f.store.linkChild(id, slotFunctionExpressionAsteriskToken, asteriskToken)
+	f.store.linkChild(id, slotFunctionExpressionName, name)
+	f.store.linkChild(id, slotFunctionExpressionType, typeNode)
+	f.store.linkChild(id, slotFunctionExpressionFullSignature, fullSignature)
+	f.store.linkChild(id, slotFunctionExpressionBody, body)
+	f.store.linkList(id, listSlotFunctionExpressionModifiers, modifiers)
+	f.store.linkList(id, listSlotFunctionExpressionTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotFunctionExpressionParameters, parameters)
+	return f.handleFromParse(id, KindFunctionExpression)
 }
 
 func (f Factory) UpdateFunctionExpression(node Handle, modifiers ListRef, asteriskToken Handle, name Handle, typeParameters ListRef, parameters ListRef, typeNode Handle, fullSignature Handle, body Handle) Handle {
@@ -2422,11 +3008,18 @@ func (h Handle) SetFunctionExpressionParameters(value ListRef) {
 	h.SetListSlot(listSlotFunctionExpressionParameters, value)
 }
 
+func (f *Factory) ParseAsExpression(expression NodeRef, typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindAsExpression, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotAsExpressionExpression, expression)
+	f.store.linkChildRef(id, slotAsExpressionType, typeNode)
+	return id
+}
+
 func (f *Factory) NewAsExpression(expression Handle, typeNode Handle) Handle {
-	h := f.createSlots(KindAsExpression, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotAsExpressionExpression, expression)
-	f.store.linkChild(h.id, slotAsExpressionType, typeNode)
-	return h
+	id := f.store.appendSlots(KindAsExpression, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotAsExpressionExpression, expression)
+	f.store.linkChild(id, slotAsExpressionType, typeNode)
+	return f.handleFromParse(id, KindAsExpression)
 }
 
 func (f Factory) UpdateAsExpression(node Handle, expression Handle, typeNode Handle) Handle {
@@ -2444,11 +3037,18 @@ func (h Handle) SetAsExpressionExpression(value Handle) {
 func (h Handle) AsExpressionType() Handle         { return h.childAt(slotAsExpressionType) }
 func (h Handle) SetAsExpressionType(value Handle) { h.SetChild(slotAsExpressionType, value) }
 
+func (f *Factory) ParseSatisfiesExpression(expression NodeRef, typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindSatisfiesExpression, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotSatisfiesExpressionExpression, expression)
+	f.store.linkChildRef(id, slotSatisfiesExpressionType, typeNode)
+	return id
+}
+
 func (f *Factory) NewSatisfiesExpression(expression Handle, typeNode Handle) Handle {
-	h := f.createSlots(KindSatisfiesExpression, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotSatisfiesExpressionExpression, expression)
-	f.store.linkChild(h.id, slotSatisfiesExpressionType, typeNode)
-	return h
+	id := f.store.appendSlots(KindSatisfiesExpression, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotSatisfiesExpressionExpression, expression)
+	f.store.linkChild(id, slotSatisfiesExpressionType, typeNode)
+	return f.handleFromParse(id, KindSatisfiesExpression)
 }
 
 func (f Factory) UpdateSatisfiesExpression(node Handle, expression Handle, typeNode Handle) Handle {
@@ -2471,14 +3071,24 @@ func (h Handle) SetSatisfiesExpressionType(value Handle) {
 	h.SetChild(slotSatisfiesExpressionType, value)
 }
 
+func (f *Factory) ParseConditionalExpression(condition NodeRef, questionToken NodeRef, whenTrue NodeRef, colonToken NodeRef, whenFalse NodeRef) NodeRef {
+	id := f.store.appendSlots(KindConditionalExpression, 0, core.UndefinedTextRange(), 5, 0)
+	f.store.linkChildRef(id, slotConditionalExpressionCondition, condition)
+	f.store.linkChildRef(id, slotConditionalExpressionQuestionToken, questionToken)
+	f.store.linkChildRef(id, slotConditionalExpressionWhenTrue, whenTrue)
+	f.store.linkChildRef(id, slotConditionalExpressionColonToken, colonToken)
+	f.store.linkChildRef(id, slotConditionalExpressionWhenFalse, whenFalse)
+	return id
+}
+
 func (f *Factory) NewConditionalExpression(condition Handle, questionToken Handle, whenTrue Handle, colonToken Handle, whenFalse Handle) Handle {
-	h := f.createSlots(KindConditionalExpression, 0, core.UndefinedTextRange(), 5, 0)
-	f.store.linkChild(h.id, slotConditionalExpressionCondition, condition)
-	f.store.linkChild(h.id, slotConditionalExpressionQuestionToken, questionToken)
-	f.store.linkChild(h.id, slotConditionalExpressionWhenTrue, whenTrue)
-	f.store.linkChild(h.id, slotConditionalExpressionColonToken, colonToken)
-	f.store.linkChild(h.id, slotConditionalExpressionWhenFalse, whenFalse)
-	return h
+	id := f.store.appendSlots(KindConditionalExpression, 0, core.UndefinedTextRange(), 5, 0)
+	f.store.linkChild(id, slotConditionalExpressionCondition, condition)
+	f.store.linkChild(id, slotConditionalExpressionQuestionToken, questionToken)
+	f.store.linkChild(id, slotConditionalExpressionWhenTrue, whenTrue)
+	f.store.linkChild(id, slotConditionalExpressionColonToken, colonToken)
+	f.store.linkChild(id, slotConditionalExpressionWhenFalse, whenFalse)
+	return f.handleFromParse(id, KindConditionalExpression)
 }
 
 func (f Factory) UpdateConditionalExpression(node Handle, condition Handle, questionToken Handle, whenTrue Handle, colonToken Handle, whenFalse Handle) Handle {
@@ -2528,12 +3138,20 @@ func (h Handle) SetConditionalExpressionWhenFalse(value Handle) {
 	h.SetChild(slotConditionalExpressionWhenFalse, value)
 }
 
+func (f *Factory) ParsePropertyAccessExpression(expression NodeRef, questionDotToken NodeRef, name NodeRef, flags NodeFlags) NodeRef {
+	id := f.store.appendSlots(KindPropertyAccessExpression, flags&NodeFlagsOptionalChain, core.UndefinedTextRange(), 3, 0)
+	f.store.linkChildRef(id, slotPropertyAccessExpressionExpression, expression)
+	f.store.linkChildRef(id, slotPropertyAccessExpressionQuestionDotToken, questionDotToken)
+	f.store.linkChildRef(id, slotPropertyAccessExpressionName, name)
+	return id
+}
+
 func (f *Factory) NewPropertyAccessExpression(expression Handle, questionDotToken Handle, name Handle, flags NodeFlags) Handle {
-	h := f.createSlots(KindPropertyAccessExpression, flags&NodeFlagsOptionalChain, core.UndefinedTextRange(), 3, 0)
-	f.store.linkChild(h.id, slotPropertyAccessExpressionExpression, expression)
-	f.store.linkChild(h.id, slotPropertyAccessExpressionQuestionDotToken, questionDotToken)
-	f.store.linkChild(h.id, slotPropertyAccessExpressionName, name)
-	return h
+	id := f.store.appendSlots(KindPropertyAccessExpression, flags&NodeFlagsOptionalChain, core.UndefinedTextRange(), 3, 0)
+	f.store.linkChild(id, slotPropertyAccessExpressionExpression, expression)
+	f.store.linkChild(id, slotPropertyAccessExpressionQuestionDotToken, questionDotToken)
+	f.store.linkChild(id, slotPropertyAccessExpressionName, name)
+	return f.handleFromParse(id, KindPropertyAccessExpression)
 }
 
 func (f Factory) UpdatePropertyAccessExpression(node Handle, expression Handle, questionDotToken Handle, name Handle, flags NodeFlags) Handle {
@@ -2567,12 +3185,20 @@ func (h Handle) SetPropertyAccessExpressionName(value Handle) {
 	h.SetChild(slotPropertyAccessExpressionName, value)
 }
 
+func (f *Factory) ParseElementAccessExpression(expression NodeRef, questionDotToken NodeRef, argumentExpression NodeRef, flags NodeFlags) NodeRef {
+	id := f.store.appendSlots(KindElementAccessExpression, flags&NodeFlagsOptionalChain, core.UndefinedTextRange(), 3, 0)
+	f.store.linkChildRef(id, slotElementAccessExpressionExpression, expression)
+	f.store.linkChildRef(id, slotElementAccessExpressionQuestionDotToken, questionDotToken)
+	f.store.linkChildRef(id, slotElementAccessExpressionArgumentExpression, argumentExpression)
+	return id
+}
+
 func (f *Factory) NewElementAccessExpression(expression Handle, questionDotToken Handle, argumentExpression Handle, flags NodeFlags) Handle {
-	h := f.createSlots(KindElementAccessExpression, flags&NodeFlagsOptionalChain, core.UndefinedTextRange(), 3, 0)
-	f.store.linkChild(h.id, slotElementAccessExpressionExpression, expression)
-	f.store.linkChild(h.id, slotElementAccessExpressionQuestionDotToken, questionDotToken)
-	f.store.linkChild(h.id, slotElementAccessExpressionArgumentExpression, argumentExpression)
-	return h
+	id := f.store.appendSlots(KindElementAccessExpression, flags&NodeFlagsOptionalChain, core.UndefinedTextRange(), 3, 0)
+	f.store.linkChild(id, slotElementAccessExpressionExpression, expression)
+	f.store.linkChild(id, slotElementAccessExpressionQuestionDotToken, questionDotToken)
+	f.store.linkChild(id, slotElementAccessExpressionArgumentExpression, argumentExpression)
+	return f.handleFromParse(id, KindElementAccessExpression)
 }
 
 func (f Factory) UpdateElementAccessExpression(node Handle, expression Handle, questionDotToken Handle, argumentExpression Handle, flags NodeFlags) Handle {
@@ -2606,13 +3232,22 @@ func (h Handle) SetElementAccessExpressionArgumentExpression(value Handle) {
 	h.SetChild(slotElementAccessExpressionArgumentExpression, value)
 }
 
+func (f *Factory) ParseCallExpression(expression NodeRef, questionDotToken NodeRef, typeArguments ListRef, arguments ListRef, flags NodeFlags) NodeRef {
+	id := f.store.appendSlots(KindCallExpression, flags&NodeFlagsOptionalChain, core.UndefinedTextRange(), 2, 2)
+	f.store.linkChildRef(id, slotCallExpressionExpression, expression)
+	f.store.linkChildRef(id, slotCallExpressionQuestionDotToken, questionDotToken)
+	f.store.linkList(id, listSlotCallExpressionTypeArguments, typeArguments)
+	f.store.linkList(id, listSlotCallExpressionArguments, arguments)
+	return id
+}
+
 func (f *Factory) NewCallExpression(expression Handle, questionDotToken Handle, typeArguments ListRef, arguments ListRef, flags NodeFlags) Handle {
-	h := f.createSlots(KindCallExpression, flags&NodeFlagsOptionalChain, core.UndefinedTextRange(), 2, 2)
-	f.store.linkChild(h.id, slotCallExpressionExpression, expression)
-	f.store.linkChild(h.id, slotCallExpressionQuestionDotToken, questionDotToken)
-	f.store.linkList(h.id, listSlotCallExpressionTypeArguments, typeArguments)
-	f.store.linkList(h.id, listSlotCallExpressionArguments, arguments)
-	return h
+	id := f.store.appendSlots(KindCallExpression, flags&NodeFlagsOptionalChain, core.UndefinedTextRange(), 2, 2)
+	f.store.linkChild(id, slotCallExpressionExpression, expression)
+	f.store.linkChild(id, slotCallExpressionQuestionDotToken, questionDotToken)
+	f.store.linkList(id, listSlotCallExpressionTypeArguments, typeArguments)
+	f.store.linkList(id, listSlotCallExpressionArguments, arguments)
+	return f.handleFromParse(id, KindCallExpression)
 }
 
 func (f Factory) UpdateCallExpression(node Handle, expression Handle, questionDotToken Handle, typeArguments ListRef, arguments ListRef, flags NodeFlags) Handle {
@@ -2649,12 +3284,20 @@ func (h Handle) SetCallExpressionArguments(value ListRef) {
 	h.SetListSlot(listSlotCallExpressionArguments, value)
 }
 
+func (f *Factory) ParseNewExpression(expression NodeRef, typeArguments ListRef, arguments ListRef) NodeRef {
+	id := f.store.appendSlots(KindNewExpression, 0, core.UndefinedTextRange(), 1, 2)
+	f.store.linkChildRef(id, slotNewExpressionExpression, expression)
+	f.store.linkList(id, listSlotNewExpressionTypeArguments, typeArguments)
+	f.store.linkList(id, listSlotNewExpressionArguments, arguments)
+	return id
+}
+
 func (f *Factory) NewNewExpression(expression Handle, typeArguments ListRef, arguments ListRef) Handle {
-	h := f.createSlots(KindNewExpression, 0, core.UndefinedTextRange(), 1, 2)
-	f.store.linkChild(h.id, slotNewExpressionExpression, expression)
-	f.store.linkList(h.id, listSlotNewExpressionTypeArguments, typeArguments)
-	f.store.linkList(h.id, listSlotNewExpressionArguments, arguments)
-	return h
+	id := f.store.appendSlots(KindNewExpression, 0, core.UndefinedTextRange(), 1, 2)
+	f.store.linkChild(id, slotNewExpressionExpression, expression)
+	f.store.linkList(id, listSlotNewExpressionTypeArguments, typeArguments)
+	f.store.linkList(id, listSlotNewExpressionArguments, arguments)
+	return f.handleFromParse(id, KindNewExpression)
 }
 
 func (f Factory) UpdateNewExpression(node Handle, expression Handle, typeArguments ListRef, arguments ListRef) Handle {
@@ -2683,9 +3326,18 @@ func (h Handle) SetNewExpressionArguments(value ListRef) {
 	h.SetListSlot(listSlotNewExpressionArguments, value)
 }
 
+func (f *Factory) ParseMetaProperty(keywordToken Kind, name NodeRef) NodeRef {
+	id := f.store.appendSlots(KindMetaProperty, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotMetaPropertyName, name)
+	h := Handle{s: f.store, id: id, Kind: KindMetaProperty}
+	h.SetUintValue(valueSlotMetaPropertyKeywordToken, uint64(keywordToken))
+	return id
+}
+
 func (f *Factory) NewMetaProperty(keywordToken Kind, name Handle) Handle {
-	h := f.createSlots(KindMetaProperty, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotMetaPropertyName, name)
+	id := f.store.appendSlots(KindMetaProperty, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotMetaPropertyName, name)
+	h := f.handleFromParse(id, KindMetaProperty)
 	h.SetUintValue(valueSlotMetaPropertyKeywordToken, uint64(keywordToken))
 	return h
 }
@@ -2708,10 +3360,16 @@ func (h Handle) SetMetaPropertyKeywordToken(value Kind) {
 	h.SetUintValue(valueSlotMetaPropertyKeywordToken, uint64(value))
 }
 
+func (f *Factory) ParseNonNullExpression(expression NodeRef, flags NodeFlags) NodeRef {
+	id := f.store.appendSlots(KindNonNullExpression, flags&NodeFlagsOptionalChain, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotNonNullExpressionExpression, expression)
+	return id
+}
+
 func (f *Factory) NewNonNullExpression(expression Handle, flags NodeFlags) Handle {
-	h := f.createSlots(KindNonNullExpression, flags&NodeFlagsOptionalChain, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotNonNullExpressionExpression, expression)
-	return h
+	id := f.store.appendSlots(KindNonNullExpression, flags&NodeFlagsOptionalChain, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotNonNullExpressionExpression, expression)
+	return f.handleFromParse(id, KindNonNullExpression)
 }
 
 func (f Factory) UpdateNonNullExpression(node Handle, expression Handle, flags NodeFlags) Handle {
@@ -2729,10 +3387,16 @@ func (h Handle) SetNonNullExpressionExpression(value Handle) {
 	h.SetChild(slotNonNullExpressionExpression, value)
 }
 
+func (f *Factory) ParseSpreadElement(expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindSpreadElement, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotSpreadElementExpression, expression)
+	return id
+}
+
 func (f *Factory) NewSpreadElement(expression Handle) Handle {
-	h := f.createSlots(KindSpreadElement, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotSpreadElementExpression, expression)
-	return h
+	id := f.store.appendSlots(KindSpreadElement, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotSpreadElementExpression, expression)
+	return f.handleFromParse(id, KindSpreadElement)
 }
 
 func (f Factory) UpdateSpreadElement(node Handle, expression Handle) Handle {
@@ -2747,11 +3411,18 @@ func (h Handle) SetSpreadElementExpression(value Handle) {
 	h.SetChild(slotSpreadElementExpression, value)
 }
 
+func (f *Factory) ParseTemplateExpression(head NodeRef, templateSpans ListRef) NodeRef {
+	id := f.store.appendSlots(KindTemplateExpression, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChildRef(id, slotTemplateExpressionHead, head)
+	f.store.linkList(id, listSlotTemplateExpressionTemplateSpans, templateSpans)
+	return id
+}
+
 func (f *Factory) NewTemplateExpression(head Handle, templateSpans ListRef) Handle {
-	h := f.createSlots(KindTemplateExpression, 0, core.UndefinedTextRange(), 1, 1)
-	f.store.linkChild(h.id, slotTemplateExpressionHead, head)
-	f.store.linkList(h.id, listSlotTemplateExpressionTemplateSpans, templateSpans)
-	return h
+	id := f.store.appendSlots(KindTemplateExpression, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChild(id, slotTemplateExpressionHead, head)
+	f.store.linkList(id, listSlotTemplateExpressionTemplateSpans, templateSpans)
+	return f.handleFromParse(id, KindTemplateExpression)
 }
 
 func (f Factory) UpdateTemplateExpression(node Handle, head Handle, templateSpans ListRef) Handle {
@@ -2774,11 +3445,18 @@ func (h Handle) SetTemplateExpressionTemplateSpans(value ListRef) {
 	h.SetListSlot(listSlotTemplateExpressionTemplateSpans, value)
 }
 
+func (f *Factory) ParseTemplateSpan(expression NodeRef, literal NodeRef) NodeRef {
+	id := f.store.appendSlots(KindTemplateSpan, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotTemplateSpanExpression, expression)
+	f.store.linkChildRef(id, slotTemplateSpanLiteral, literal)
+	return id
+}
+
 func (f *Factory) NewTemplateSpan(expression Handle, literal Handle) Handle {
-	h := f.createSlots(KindTemplateSpan, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotTemplateSpanExpression, expression)
-	f.store.linkChild(h.id, slotTemplateSpanLiteral, literal)
-	return h
+	id := f.store.appendSlots(KindTemplateSpan, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotTemplateSpanExpression, expression)
+	f.store.linkChild(id, slotTemplateSpanLiteral, literal)
+	return f.handleFromParse(id, KindTemplateSpan)
 }
 
 func (f Factory) UpdateTemplateSpan(node Handle, expression Handle, literal Handle) Handle {
@@ -2796,13 +3474,22 @@ func (h Handle) SetTemplateSpanExpression(value Handle) {
 func (h Handle) TemplateSpanLiteral() Handle         { return h.childAt(slotTemplateSpanLiteral) }
 func (h Handle) SetTemplateSpanLiteral(value Handle) { h.SetChild(slotTemplateSpanLiteral, value) }
 
+func (f *Factory) ParseTaggedTemplateExpression(tag NodeRef, questionDotToken NodeRef, typeArguments ListRef, template NodeRef, flags NodeFlags) NodeRef {
+	id := f.store.appendSlots(KindTaggedTemplateExpression, flags&NodeFlagsOptionalChain, core.UndefinedTextRange(), 3, 1)
+	f.store.linkChildRef(id, slotTaggedTemplateExpressionTag, tag)
+	f.store.linkChildRef(id, slotTaggedTemplateExpressionQuestionDotToken, questionDotToken)
+	f.store.linkChildRef(id, slotTaggedTemplateExpressionTemplate, template)
+	f.store.linkList(id, listSlotTaggedTemplateExpressionTypeArguments, typeArguments)
+	return id
+}
+
 func (f *Factory) NewTaggedTemplateExpression(tag Handle, questionDotToken Handle, typeArguments ListRef, template Handle, flags NodeFlags) Handle {
-	h := f.createSlots(KindTaggedTemplateExpression, flags&NodeFlagsOptionalChain, core.UndefinedTextRange(), 3, 1)
-	f.store.linkChild(h.id, slotTaggedTemplateExpressionTag, tag)
-	f.store.linkChild(h.id, slotTaggedTemplateExpressionQuestionDotToken, questionDotToken)
-	f.store.linkChild(h.id, slotTaggedTemplateExpressionTemplate, template)
-	f.store.linkList(h.id, listSlotTaggedTemplateExpressionTypeArguments, typeArguments)
-	return h
+	id := f.store.appendSlots(KindTaggedTemplateExpression, flags&NodeFlagsOptionalChain, core.UndefinedTextRange(), 3, 1)
+	f.store.linkChild(id, slotTaggedTemplateExpressionTag, tag)
+	f.store.linkChild(id, slotTaggedTemplateExpressionQuestionDotToken, questionDotToken)
+	f.store.linkChild(id, slotTaggedTemplateExpressionTemplate, template)
+	f.store.linkList(id, listSlotTaggedTemplateExpressionTypeArguments, typeArguments)
+	return f.handleFromParse(id, KindTaggedTemplateExpression)
 }
 
 func (f Factory) UpdateTaggedTemplateExpression(node Handle, tag Handle, questionDotToken Handle, typeArguments ListRef, template Handle, flags NodeFlags) Handle {
@@ -2844,10 +3531,16 @@ func (h Handle) SetTaggedTemplateExpressionTypeArguments(value ListRef) {
 	h.SetListSlot(listSlotTaggedTemplateExpressionTypeArguments, value)
 }
 
+func (f *Factory) ParseParenthesizedExpression(expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindParenthesizedExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotParenthesizedExpressionExpression, expression)
+	return id
+}
+
 func (f *Factory) NewParenthesizedExpression(expression Handle) Handle {
-	h := f.createSlots(KindParenthesizedExpression, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotParenthesizedExpressionExpression, expression)
-	return h
+	id := f.store.appendSlots(KindParenthesizedExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotParenthesizedExpressionExpression, expression)
+	return f.handleFromParse(id, KindParenthesizedExpression)
 }
 
 func (f Factory) UpdateParenthesizedExpression(node Handle, expression Handle) Handle {
@@ -2865,13 +3558,18 @@ func (h Handle) SetParenthesizedExpressionExpression(value Handle) {
 	h.SetChild(slotParenthesizedExpressionExpression, value)
 }
 
-func (f *Factory) NewArrayLiteralExpression(elements ListRef, multiLine bool) Handle {
-	h := f.createSlots(KindArrayLiteralExpression, 0, core.UndefinedTextRange(), 0, 1)
-	f.store.linkList(h.id, listSlotArrayLiteralExpressionElements, elements)
+func (f *Factory) ParseArrayLiteralExpression(elements ListRef, multiLine bool) NodeRef {
+	id := f.store.appendSlots(KindArrayLiteralExpression, 0, core.UndefinedTextRange(), 0, 1)
+	f.store.linkList(id, listSlotArrayLiteralExpressionElements, elements)
+	h := Handle{s: f.store, id: id, Kind: KindArrayLiteralExpression}
 	if multiLine {
 		h.SetUintValue(valueSlotArrayLiteralExpressionMultiLine, 1)
 	}
-	return h
+	return id
+}
+
+func (f *Factory) NewArrayLiteralExpression(elements ListRef, multiLine bool) Handle {
+	return f.handleFromParse(f.ParseArrayLiteralExpression(elements, multiLine), KindArrayLiteralExpression)
 }
 
 func (f Factory) UpdateArrayLiteralExpression(node Handle, elements ListRef, multiLine bool) Handle {
@@ -2901,13 +3599,18 @@ func (h Handle) SetArrayLiteralExpressionMultiLine(value bool) {
 	}
 }
 
-func (f *Factory) NewObjectLiteralExpression(properties ListRef, multiLine bool) Handle {
-	h := f.createSlots(KindObjectLiteralExpression, 0, core.UndefinedTextRange(), 0, 1)
-	f.store.linkList(h.id, listSlotObjectLiteralExpressionProperties, properties)
+func (f *Factory) ParseObjectLiteralExpression(properties ListRef, multiLine bool) NodeRef {
+	id := f.store.appendSlots(KindObjectLiteralExpression, 0, core.UndefinedTextRange(), 0, 1)
+	f.store.linkList(id, listSlotObjectLiteralExpressionProperties, properties)
+	h := Handle{s: f.store, id: id, Kind: KindObjectLiteralExpression}
 	if multiLine {
 		h.SetUintValue(valueSlotObjectLiteralExpressionMultiLine, 1)
 	}
-	return h
+	return id
+}
+
+func (f *Factory) NewObjectLiteralExpression(properties ListRef, multiLine bool) Handle {
+	return f.handleFromParse(f.ParseObjectLiteralExpression(properties, multiLine), KindObjectLiteralExpression)
 }
 
 func (f Factory) UpdateObjectLiteralExpression(node Handle, properties ListRef, multiLine bool) Handle {
@@ -2937,10 +3640,16 @@ func (h Handle) SetObjectLiteralExpressionMultiLine(value bool) {
 	}
 }
 
+func (f *Factory) ParseSpreadAssignment(expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindSpreadAssignment, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotSpreadAssignmentExpression, expression)
+	return id
+}
+
 func (f *Factory) NewSpreadAssignment(expression Handle) Handle {
-	h := f.createSlots(KindSpreadAssignment, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotSpreadAssignmentExpression, expression)
-	return h
+	id := f.store.appendSlots(KindSpreadAssignment, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotSpreadAssignmentExpression, expression)
+	return f.handleFromParse(id, KindSpreadAssignment)
 }
 
 func (f Factory) UpdateSpreadAssignment(node Handle, expression Handle) Handle {
@@ -2956,14 +3665,24 @@ func (h Handle) SetSpreadAssignmentExpression(value Handle) {
 	h.SetChild(slotSpreadAssignmentExpression, value)
 }
 
+func (f *Factory) ParsePropertyAssignment(modifiers ListRef, name NodeRef, postfixToken NodeRef, typeNode NodeRef, initializer NodeRef) NodeRef {
+	id := f.store.appendSlots(KindPropertyAssignment, 0, core.UndefinedTextRange(), 4, 1)
+	f.store.linkChildRef(id, slotPropertyAssignmentName, name)
+	f.store.linkChildRef(id, slotPropertyAssignmentPostfixToken, postfixToken)
+	f.store.linkChildRef(id, slotPropertyAssignmentType, typeNode)
+	f.store.linkChildRef(id, slotPropertyAssignmentInitializer, initializer)
+	f.store.linkList(id, listSlotPropertyAssignmentModifiers, modifiers)
+	return id
+}
+
 func (f *Factory) NewPropertyAssignment(modifiers ListRef, name Handle, postfixToken Handle, typeNode Handle, initializer Handle) Handle {
-	h := f.createSlots(KindPropertyAssignment, 0, core.UndefinedTextRange(), 4, 1)
-	f.store.linkChild(h.id, slotPropertyAssignmentName, name)
-	f.store.linkChild(h.id, slotPropertyAssignmentPostfixToken, postfixToken)
-	f.store.linkChild(h.id, slotPropertyAssignmentType, typeNode)
-	f.store.linkChild(h.id, slotPropertyAssignmentInitializer, initializer)
-	f.store.linkList(h.id, listSlotPropertyAssignmentModifiers, modifiers)
-	return h
+	id := f.store.appendSlots(KindPropertyAssignment, 0, core.UndefinedTextRange(), 4, 1)
+	f.store.linkChild(id, slotPropertyAssignmentName, name)
+	f.store.linkChild(id, slotPropertyAssignmentPostfixToken, postfixToken)
+	f.store.linkChild(id, slotPropertyAssignmentType, typeNode)
+	f.store.linkChild(id, slotPropertyAssignmentInitializer, initializer)
+	f.store.linkList(id, listSlotPropertyAssignmentModifiers, modifiers)
+	return f.handleFromParse(id, KindPropertyAssignment)
 }
 
 func (f Factory) UpdatePropertyAssignment(node Handle, modifiers ListRef, name Handle, postfixToken Handle, typeNode Handle, initializer Handle) Handle {
@@ -3007,15 +3726,26 @@ func (h Handle) SetPropertyAssignmentModifiers(value ListRef) {
 	h.SetListSlot(listSlotPropertyAssignmentModifiers, value)
 }
 
+func (f *Factory) ParseShorthandPropertyAssignment(modifiers ListRef, name NodeRef, postfixToken NodeRef, typeNode NodeRef, equalsToken NodeRef, objectAssignmentInitializer NodeRef) NodeRef {
+	id := f.store.appendSlots(KindShorthandPropertyAssignment, 0, core.UndefinedTextRange(), 5, 1)
+	f.store.linkChildRef(id, slotShorthandPropertyAssignmentName, name)
+	f.store.linkChildRef(id, slotShorthandPropertyAssignmentPostfixToken, postfixToken)
+	f.store.linkChildRef(id, slotShorthandPropertyAssignmentType, typeNode)
+	f.store.linkChildRef(id, slotShorthandPropertyAssignmentEqualsToken, equalsToken)
+	f.store.linkChildRef(id, slotShorthandPropertyAssignmentObjectAssignmentInitializer, objectAssignmentInitializer)
+	f.store.linkList(id, listSlotShorthandPropertyAssignmentModifiers, modifiers)
+	return id
+}
+
 func (f *Factory) NewShorthandPropertyAssignment(modifiers ListRef, name Handle, postfixToken Handle, typeNode Handle, equalsToken Handle, objectAssignmentInitializer Handle) Handle {
-	h := f.createSlots(KindShorthandPropertyAssignment, 0, core.UndefinedTextRange(), 5, 1)
-	f.store.linkChild(h.id, slotShorthandPropertyAssignmentName, name)
-	f.store.linkChild(h.id, slotShorthandPropertyAssignmentPostfixToken, postfixToken)
-	f.store.linkChild(h.id, slotShorthandPropertyAssignmentType, typeNode)
-	f.store.linkChild(h.id, slotShorthandPropertyAssignmentEqualsToken, equalsToken)
-	f.store.linkChild(h.id, slotShorthandPropertyAssignmentObjectAssignmentInitializer, objectAssignmentInitializer)
-	f.store.linkList(h.id, listSlotShorthandPropertyAssignmentModifiers, modifiers)
-	return h
+	id := f.store.appendSlots(KindShorthandPropertyAssignment, 0, core.UndefinedTextRange(), 5, 1)
+	f.store.linkChild(id, slotShorthandPropertyAssignmentName, name)
+	f.store.linkChild(id, slotShorthandPropertyAssignmentPostfixToken, postfixToken)
+	f.store.linkChild(id, slotShorthandPropertyAssignmentType, typeNode)
+	f.store.linkChild(id, slotShorthandPropertyAssignmentEqualsToken, equalsToken)
+	f.store.linkChild(id, slotShorthandPropertyAssignmentObjectAssignmentInitializer, objectAssignmentInitializer)
+	f.store.linkList(id, listSlotShorthandPropertyAssignmentModifiers, modifiers)
+	return f.handleFromParse(id, KindShorthandPropertyAssignment)
 }
 
 func (f Factory) UpdateShorthandPropertyAssignment(node Handle, modifiers ListRef, name Handle, postfixToken Handle, typeNode Handle, equalsToken Handle, objectAssignmentInitializer Handle) Handle {
@@ -3073,10 +3803,16 @@ func (h Handle) SetShorthandPropertyAssignmentModifiers(value ListRef) {
 	h.SetListSlot(listSlotShorthandPropertyAssignmentModifiers, value)
 }
 
+func (f *Factory) ParseDeleteExpression(expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindDeleteExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotDeleteExpressionExpression, expression)
+	return id
+}
+
 func (f *Factory) NewDeleteExpression(expression Handle) Handle {
-	h := f.createSlots(KindDeleteExpression, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotDeleteExpressionExpression, expression)
-	return h
+	id := f.store.appendSlots(KindDeleteExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotDeleteExpressionExpression, expression)
+	return f.handleFromParse(id, KindDeleteExpression)
 }
 
 func (f Factory) UpdateDeleteExpression(node Handle, expression Handle) Handle {
@@ -3092,10 +3828,16 @@ func (h Handle) SetDeleteExpressionExpression(value Handle) {
 	h.SetChild(slotDeleteExpressionExpression, value)
 }
 
+func (f *Factory) ParseTypeOfExpression(expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindTypeOfExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotTypeOfExpressionExpression, expression)
+	return id
+}
+
 func (f *Factory) NewTypeOfExpression(expression Handle) Handle {
-	h := f.createSlots(KindTypeOfExpression, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotTypeOfExpressionExpression, expression)
-	return h
+	id := f.store.appendSlots(KindTypeOfExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotTypeOfExpressionExpression, expression)
+	return f.handleFromParse(id, KindTypeOfExpression)
 }
 
 func (f Factory) UpdateTypeOfExpression(node Handle, expression Handle) Handle {
@@ -3111,10 +3853,16 @@ func (h Handle) SetTypeOfExpressionExpression(value Handle) {
 	h.SetChild(slotTypeOfExpressionExpression, value)
 }
 
+func (f *Factory) ParseVoidExpression(expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindVoidExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotVoidExpressionExpression, expression)
+	return id
+}
+
 func (f *Factory) NewVoidExpression(expression Handle) Handle {
-	h := f.createSlots(KindVoidExpression, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotVoidExpressionExpression, expression)
-	return h
+	id := f.store.appendSlots(KindVoidExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotVoidExpressionExpression, expression)
+	return f.handleFromParse(id, KindVoidExpression)
 }
 
 func (f Factory) UpdateVoidExpression(node Handle, expression Handle) Handle {
@@ -3129,10 +3877,16 @@ func (h Handle) SetVoidExpressionExpression(value Handle) {
 	h.SetChild(slotVoidExpressionExpression, value)
 }
 
+func (f *Factory) ParseAwaitExpression(expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindAwaitExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotAwaitExpressionExpression, expression)
+	return id
+}
+
 func (f *Factory) NewAwaitExpression(expression Handle) Handle {
-	h := f.createSlots(KindAwaitExpression, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotAwaitExpressionExpression, expression)
-	return h
+	id := f.store.appendSlots(KindAwaitExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotAwaitExpressionExpression, expression)
+	return f.handleFromParse(id, KindAwaitExpression)
 }
 
 func (f Factory) UpdateAwaitExpression(node Handle, expression Handle) Handle {
@@ -3148,11 +3902,18 @@ func (h Handle) SetAwaitExpressionExpression(value Handle) {
 	h.SetChild(slotAwaitExpressionExpression, value)
 }
 
+func (f *Factory) ParseTypeAssertion(typeNode NodeRef, expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindTypeAssertionExpression, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotTypeAssertionType, typeNode)
+	f.store.linkChildRef(id, slotTypeAssertionExpression, expression)
+	return id
+}
+
 func (f *Factory) NewTypeAssertion(typeNode Handle, expression Handle) Handle {
-	h := f.createSlots(KindTypeAssertionExpression, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotTypeAssertionType, typeNode)
-	f.store.linkChild(h.id, slotTypeAssertionExpression, expression)
-	return h
+	id := f.store.appendSlots(KindTypeAssertionExpression, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotTypeAssertionType, typeNode)
+	f.store.linkChild(id, slotTypeAssertionExpression, expression)
+	return f.handleFromParse(id, KindTypeAssertionExpression)
 }
 
 func (f Factory) UpdateTypeAssertion(node Handle, typeNode Handle, expression Handle) Handle {
@@ -3170,15 +3931,23 @@ func (h Handle) SetTypeAssertionExpression(value Handle) {
 	h.SetChild(slotTypeAssertionExpression, value)
 }
 
+func (f *Factory) ParseKeywordTypeNode(kind KeywordTypeSyntaxKind) NodeRef {
+	id := f.store.appendSlots(kind, 0, core.UndefinedTextRange(), 0, 0)
+	return id
+}
+
 func (f *Factory) NewKeywordTypeNode(kind KeywordTypeSyntaxKind) Handle {
-	h := f.createSlots(kind, 0, core.UndefinedTextRange(), 0, 0)
-	return h
+	return f.handleFromParse(f.ParseKeywordTypeNode(kind), kind)
+}
+
+func (f *Factory) ParseUnionTypeNode(types ListRef) NodeRef {
+	id := f.store.appendSlots(KindUnionType, 0, core.UndefinedTextRange(), 0, 1)
+	f.store.linkList(id, listSlotUnionTypeNodeTypes, types)
+	return id
 }
 
 func (f *Factory) NewUnionTypeNode(types ListRef) Handle {
-	h := f.createSlots(KindUnionType, 0, core.UndefinedTextRange(), 0, 1)
-	f.store.linkList(h.id, listSlotUnionTypeNodeTypes, types)
-	return h
+	return f.handleFromParse(f.ParseUnionTypeNode(types), KindUnionType)
 }
 
 func (f Factory) UpdateUnionTypeNode(node Handle, types ListRef) Handle {
@@ -3193,10 +3962,14 @@ func (h Handle) SetUnionTypeNodeTypes(value ListRef) {
 	h.SetListSlot(listSlotUnionTypeNodeTypes, value)
 }
 
+func (f *Factory) ParseIntersectionTypeNode(types ListRef) NodeRef {
+	id := f.store.appendSlots(KindIntersectionType, 0, core.UndefinedTextRange(), 0, 1)
+	f.store.linkList(id, listSlotIntersectionTypeNodeTypes, types)
+	return id
+}
+
 func (f *Factory) NewIntersectionTypeNode(types ListRef) Handle {
-	h := f.createSlots(KindIntersectionType, 0, core.UndefinedTextRange(), 0, 1)
-	f.store.linkList(h.id, listSlotIntersectionTypeNodeTypes, types)
-	return h
+	return f.handleFromParse(f.ParseIntersectionTypeNode(types), KindIntersectionType)
 }
 
 func (f Factory) UpdateIntersectionTypeNode(node Handle, types ListRef) Handle {
@@ -3214,13 +3987,22 @@ func (h Handle) SetIntersectionTypeNodeTypes(value ListRef) {
 	h.SetListSlot(listSlotIntersectionTypeNodeTypes, value)
 }
 
+func (f *Factory) ParseConditionalTypeNode(checkType NodeRef, extendsType NodeRef, trueType NodeRef, falseType NodeRef) NodeRef {
+	id := f.store.appendSlots(KindConditionalType, 0, core.UndefinedTextRange(), 4, 0)
+	f.store.linkChildRef(id, slotConditionalTypeNodeCheckType, checkType)
+	f.store.linkChildRef(id, slotConditionalTypeNodeExtendsType, extendsType)
+	f.store.linkChildRef(id, slotConditionalTypeNodeTrueType, trueType)
+	f.store.linkChildRef(id, slotConditionalTypeNodeFalseType, falseType)
+	return id
+}
+
 func (f *Factory) NewConditionalTypeNode(checkType Handle, extendsType Handle, trueType Handle, falseType Handle) Handle {
-	h := f.createSlots(KindConditionalType, 0, core.UndefinedTextRange(), 4, 0)
-	f.store.linkChild(h.id, slotConditionalTypeNodeCheckType, checkType)
-	f.store.linkChild(h.id, slotConditionalTypeNodeExtendsType, extendsType)
-	f.store.linkChild(h.id, slotConditionalTypeNodeTrueType, trueType)
-	f.store.linkChild(h.id, slotConditionalTypeNodeFalseType, falseType)
-	return h
+	id := f.store.appendSlots(KindConditionalType, 0, core.UndefinedTextRange(), 4, 0)
+	f.store.linkChild(id, slotConditionalTypeNodeCheckType, checkType)
+	f.store.linkChild(id, slotConditionalTypeNodeExtendsType, extendsType)
+	f.store.linkChild(id, slotConditionalTypeNodeTrueType, trueType)
+	f.store.linkChild(id, slotConditionalTypeNodeFalseType, falseType)
+	return f.handleFromParse(id, KindConditionalType)
 }
 
 func (f Factory) UpdateConditionalTypeNode(node Handle, checkType Handle, extendsType Handle, trueType Handle, falseType Handle) Handle {
@@ -3262,9 +4044,18 @@ func (h Handle) SetConditionalTypeNodeFalseType(value Handle) {
 	h.SetChild(slotConditionalTypeNodeFalseType, value)
 }
 
+func (f *Factory) ParseTypeOperatorNode(operator Kind, typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindTypeOperator, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotTypeOperatorNodeType, typeNode)
+	h := Handle{s: f.store, id: id, Kind: KindTypeOperator}
+	h.SetUintValue(valueSlotTypeOperatorNodeOperator, uint64(operator))
+	return id
+}
+
 func (f *Factory) NewTypeOperatorNode(operator Kind, typeNode Handle) Handle {
-	h := f.createSlots(KindTypeOperator, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotTypeOperatorNodeType, typeNode)
+	id := f.store.appendSlots(KindTypeOperator, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotTypeOperatorNodeType, typeNode)
+	h := f.handleFromParse(id, KindTypeOperator)
 	h.SetUintValue(valueSlotTypeOperatorNodeOperator, uint64(operator))
 	return h
 }
@@ -3287,10 +4078,16 @@ func (h Handle) SetTypeOperatorNodeOperator(value Kind) {
 	h.SetUintValue(valueSlotTypeOperatorNodeOperator, uint64(value))
 }
 
+func (f *Factory) ParseInferTypeNode(typeParameter NodeRef) NodeRef {
+	id := f.store.appendSlots(KindInferType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotInferTypeNodeTypeParameter, typeParameter)
+	return id
+}
+
 func (f *Factory) NewInferTypeNode(typeParameter Handle) Handle {
-	h := f.createSlots(KindInferType, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotInferTypeNodeTypeParameter, typeParameter)
-	return h
+	id := f.store.appendSlots(KindInferType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotInferTypeNodeTypeParameter, typeParameter)
+	return f.handleFromParse(id, KindInferType)
 }
 
 func (f Factory) UpdateInferTypeNode(node Handle, typeParameter Handle) Handle {
@@ -3306,10 +4103,16 @@ func (h Handle) SetInferTypeNodeTypeParameter(value Handle) {
 	h.SetChild(slotInferTypeNodeTypeParameter, value)
 }
 
+func (f *Factory) ParseArrayTypeNode(elementType NodeRef) NodeRef {
+	id := f.store.appendSlots(KindArrayType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotArrayTypeNodeElementType, elementType)
+	return id
+}
+
 func (f *Factory) NewArrayTypeNode(elementType Handle) Handle {
-	h := f.createSlots(KindArrayType, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotArrayTypeNodeElementType, elementType)
-	return h
+	id := f.store.appendSlots(KindArrayType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotArrayTypeNodeElementType, elementType)
+	return f.handleFromParse(id, KindArrayType)
 }
 
 func (f Factory) UpdateArrayTypeNode(node Handle, elementType Handle) Handle {
@@ -3324,11 +4127,18 @@ func (h Handle) SetArrayTypeNodeElementType(value Handle) {
 	h.SetChild(slotArrayTypeNodeElementType, value)
 }
 
+func (f *Factory) ParseIndexedAccessTypeNode(objectType NodeRef, indexType NodeRef) NodeRef {
+	id := f.store.appendSlots(KindIndexedAccessType, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotIndexedAccessTypeNodeObjectType, objectType)
+	f.store.linkChildRef(id, slotIndexedAccessTypeNodeIndexType, indexType)
+	return id
+}
+
 func (f *Factory) NewIndexedAccessTypeNode(objectType Handle, indexType Handle) Handle {
-	h := f.createSlots(KindIndexedAccessType, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotIndexedAccessTypeNodeObjectType, objectType)
-	f.store.linkChild(h.id, slotIndexedAccessTypeNodeIndexType, indexType)
-	return h
+	id := f.store.appendSlots(KindIndexedAccessType, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotIndexedAccessTypeNodeObjectType, objectType)
+	f.store.linkChild(id, slotIndexedAccessTypeNodeIndexType, indexType)
+	return f.handleFromParse(id, KindIndexedAccessType)
 }
 
 func (f Factory) UpdateIndexedAccessTypeNode(node Handle, objectType Handle, indexType Handle) Handle {
@@ -3354,11 +4164,18 @@ func (h Handle) SetIndexedAccessTypeNodeIndexType(value Handle) {
 	h.SetChild(slotIndexedAccessTypeNodeIndexType, value)
 }
 
+func (f *Factory) ParseTypeReferenceNode(typeName NodeRef, typeArguments ListRef) NodeRef {
+	id := f.store.appendSlots(KindTypeReference, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChildRef(id, slotTypeReferenceNodeTypeName, typeName)
+	f.store.linkList(id, listSlotTypeReferenceNodeTypeArguments, typeArguments)
+	return id
+}
+
 func (f *Factory) NewTypeReferenceNode(typeName Handle, typeArguments ListRef) Handle {
-	h := f.createSlots(KindTypeReference, 0, core.UndefinedTextRange(), 1, 1)
-	f.store.linkChild(h.id, slotTypeReferenceNodeTypeName, typeName)
-	f.store.linkList(h.id, listSlotTypeReferenceNodeTypeArguments, typeArguments)
-	return h
+	id := f.store.appendSlots(KindTypeReference, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChild(id, slotTypeReferenceNodeTypeName, typeName)
+	f.store.linkList(id, listSlotTypeReferenceNodeTypeArguments, typeArguments)
+	return f.handleFromParse(id, KindTypeReference)
 }
 
 func (f Factory) UpdateTypeReferenceNode(node Handle, typeName Handle, typeArguments ListRef) Handle {
@@ -3382,11 +4199,18 @@ func (h Handle) SetTypeReferenceNodeTypeArguments(value ListRef) {
 	h.SetListSlot(listSlotTypeReferenceNodeTypeArguments, value)
 }
 
+func (f *Factory) ParseExpressionWithTypeArguments(expression NodeRef, typeArguments ListRef) NodeRef {
+	id := f.store.appendSlots(KindExpressionWithTypeArguments, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChildRef(id, slotExpressionWithTypeArgumentsExpression, expression)
+	f.store.linkList(id, listSlotExpressionWithTypeArgumentsTypeArguments, typeArguments)
+	return id
+}
+
 func (f *Factory) NewExpressionWithTypeArguments(expression Handle, typeArguments ListRef) Handle {
-	h := f.createSlots(KindExpressionWithTypeArguments, 0, core.UndefinedTextRange(), 1, 1)
-	f.store.linkChild(h.id, slotExpressionWithTypeArgumentsExpression, expression)
-	f.store.linkList(h.id, listSlotExpressionWithTypeArgumentsTypeArguments, typeArguments)
-	return h
+	id := f.store.appendSlots(KindExpressionWithTypeArguments, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChild(id, slotExpressionWithTypeArgumentsExpression, expression)
+	f.store.linkList(id, listSlotExpressionWithTypeArgumentsTypeArguments, typeArguments)
+	return f.handleFromParse(id, KindExpressionWithTypeArguments)
 }
 
 func (f Factory) UpdateExpressionWithTypeArguments(node Handle, expression Handle, typeArguments ListRef) Handle {
@@ -3412,10 +4236,16 @@ func (h Handle) SetExpressionWithTypeArgumentsTypeArguments(value ListRef) {
 	h.SetListSlot(listSlotExpressionWithTypeArgumentsTypeArguments, value)
 }
 
+func (f *Factory) ParseLiteralTypeNode(literal NodeRef) NodeRef {
+	id := f.store.appendSlots(KindLiteralType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotLiteralTypeNodeLiteral, literal)
+	return id
+}
+
 func (f *Factory) NewLiteralTypeNode(literal Handle) Handle {
-	h := f.createSlots(KindLiteralType, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotLiteralTypeNodeLiteral, literal)
-	return h
+	id := f.store.appendSlots(KindLiteralType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotLiteralTypeNodeLiteral, literal)
+	return f.handleFromParse(id, KindLiteralType)
 }
 
 func (f Factory) UpdateLiteralTypeNode(node Handle, literal Handle) Handle {
@@ -3430,17 +4260,29 @@ func (h Handle) SetLiteralTypeNodeLiteral(value Handle) {
 	h.SetChild(slotLiteralTypeNodeLiteral, value)
 }
 
+func (f *Factory) ParseThisTypeNode() NodeRef {
+	id := f.store.appendSlots(KindThisType, 0, core.UndefinedTextRange(), 0, 0)
+	return id
+}
+
 func (f *Factory) NewThisTypeNode() Handle {
-	h := f.createSlots(KindThisType, 0, core.UndefinedTextRange(), 0, 0)
-	return h
+	return f.handleFromParse(f.ParseThisTypeNode(), KindThisType)
+}
+
+func (f *Factory) ParseTypePredicateNode(assertsModifier NodeRef, parameterName NodeRef, typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindTypePredicate, 0, core.UndefinedTextRange(), 3, 0)
+	f.store.linkChildRef(id, slotTypePredicateNodeAssertsModifier, assertsModifier)
+	f.store.linkChildRef(id, slotTypePredicateNodeParameterName, parameterName)
+	f.store.linkChildRef(id, slotTypePredicateNodeType, typeNode)
+	return id
 }
 
 func (f *Factory) NewTypePredicateNode(assertsModifier Handle, parameterName Handle, typeNode Handle) Handle {
-	h := f.createSlots(KindTypePredicate, 0, core.UndefinedTextRange(), 3, 0)
-	f.store.linkChild(h.id, slotTypePredicateNodeAssertsModifier, assertsModifier)
-	f.store.linkChild(h.id, slotTypePredicateNodeParameterName, parameterName)
-	f.store.linkChild(h.id, slotTypePredicateNodeType, typeNode)
-	return h
+	id := f.store.appendSlots(KindTypePredicate, 0, core.UndefinedTextRange(), 3, 0)
+	f.store.linkChild(id, slotTypePredicateNodeAssertsModifier, assertsModifier)
+	f.store.linkChild(id, slotTypePredicateNodeParameterName, parameterName)
+	f.store.linkChild(id, slotTypePredicateNodeType, typeNode)
+	return f.handleFromParse(id, KindTypePredicate)
 }
 
 func (f Factory) UpdateTypePredicateNode(node Handle, assertsModifier Handle, parameterName Handle, typeNode Handle) Handle {
@@ -3470,11 +4312,18 @@ func (h Handle) TypePredicateNodeType() Handle { return h.childAt(slotTypePredic
 
 func (h Handle) SetTypePredicateNodeType(value Handle) { h.SetChild(slotTypePredicateNodeType, value) }
 
+func (f *Factory) ParseImportAttribute(name NodeRef, value NodeRef) NodeRef {
+	id := f.store.appendSlots(KindImportAttribute, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotImportAttributeName, name)
+	f.store.linkChildRef(id, slotImportAttributeValue, value)
+	return id
+}
+
 func (f *Factory) NewImportAttribute(name Handle, value Handle) Handle {
-	h := f.createSlots(KindImportAttribute, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotImportAttributeName, name)
-	f.store.linkChild(h.id, slotImportAttributeValue, value)
-	return h
+	id := f.store.appendSlots(KindImportAttribute, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotImportAttributeName, name)
+	f.store.linkChild(id, slotImportAttributeValue, value)
+	return f.handleFromParse(id, KindImportAttribute)
 }
 
 func (f Factory) UpdateImportAttribute(node Handle, name Handle, value Handle) Handle {
@@ -3490,14 +4339,19 @@ func (h Handle) SetImportAttributeName(value Handle) { h.SetChild(slotImportAttr
 func (h Handle) ImportAttributeValue() Handle         { return h.childAt(slotImportAttributeValue) }
 func (h Handle) SetImportAttributeValue(value Handle) { h.SetChild(slotImportAttributeValue, value) }
 
-func (f *Factory) NewImportAttributes(token Kind, attributes ListRef, multiLine bool) Handle {
-	h := f.createSlots(KindImportAttributes, 0, core.UndefinedTextRange(), 0, 1)
-	f.store.linkList(h.id, listSlotImportAttributesAttributes, attributes)
+func (f *Factory) ParseImportAttributes(token Kind, attributes ListRef, multiLine bool) NodeRef {
+	id := f.store.appendSlots(KindImportAttributes, 0, core.UndefinedTextRange(), 0, 1)
+	f.store.linkList(id, listSlotImportAttributesAttributes, attributes)
+	h := Handle{s: f.store, id: id, Kind: KindImportAttributes}
 	h.SetUintValue(valueSlotImportAttributesToken, uint64(token))
 	if multiLine {
 		h.SetUintValue(valueSlotImportAttributesMultiLine, 1)
 	}
-	return h
+	return id
+}
+
+func (f *Factory) NewImportAttributes(token Kind, attributes ListRef, multiLine bool) Handle {
+	return f.handleFromParse(f.ParseImportAttributes(token, attributes, multiLine), KindImportAttributes)
 }
 
 func (f Factory) UpdateImportAttributes(node Handle, token Kind, attributes ListRef, multiLine bool) Handle {
@@ -3535,11 +4389,18 @@ func (h Handle) SetImportAttributesMultiLine(value bool) {
 	}
 }
 
+func (f *Factory) ParseTypeQueryNode(exprName NodeRef, typeArguments ListRef) NodeRef {
+	id := f.store.appendSlots(KindTypeQuery, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChildRef(id, slotTypeQueryNodeExprName, exprName)
+	f.store.linkList(id, listSlotTypeQueryNodeTypeArguments, typeArguments)
+	return id
+}
+
 func (f *Factory) NewTypeQueryNode(exprName Handle, typeArguments ListRef) Handle {
-	h := f.createSlots(KindTypeQuery, 0, core.UndefinedTextRange(), 1, 1)
-	f.store.linkChild(h.id, slotTypeQueryNodeExprName, exprName)
-	f.store.linkList(h.id, listSlotTypeQueryNodeTypeArguments, typeArguments)
-	return h
+	id := f.store.appendSlots(KindTypeQuery, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChild(id, slotTypeQueryNodeExprName, exprName)
+	f.store.linkList(id, listSlotTypeQueryNodeTypeArguments, typeArguments)
+	return f.handleFromParse(id, KindTypeQuery)
 }
 
 func (f Factory) UpdateTypeQueryNode(node Handle, exprName Handle, typeArguments ListRef) Handle {
@@ -3561,15 +4422,26 @@ func (h Handle) SetTypeQueryNodeTypeArguments(value ListRef) {
 	h.SetListSlot(listSlotTypeQueryNodeTypeArguments, value)
 }
 
+func (f *Factory) ParseMappedTypeNode(readonlyToken NodeRef, typeParameter NodeRef, nameType NodeRef, questionToken NodeRef, typeNode NodeRef, members ListRef) NodeRef {
+	id := f.store.appendSlots(KindMappedType, 0, core.UndefinedTextRange(), 5, 1)
+	f.store.linkChildRef(id, slotMappedTypeNodeReadonlyToken, readonlyToken)
+	f.store.linkChildRef(id, slotMappedTypeNodeTypeParameter, typeParameter)
+	f.store.linkChildRef(id, slotMappedTypeNodeNameType, nameType)
+	f.store.linkChildRef(id, slotMappedTypeNodeQuestionToken, questionToken)
+	f.store.linkChildRef(id, slotMappedTypeNodeType, typeNode)
+	f.store.linkList(id, listSlotMappedTypeNodeMembers, members)
+	return id
+}
+
 func (f *Factory) NewMappedTypeNode(readonlyToken Handle, typeParameter Handle, nameType Handle, questionToken Handle, typeNode Handle, members ListRef) Handle {
-	h := f.createSlots(KindMappedType, 0, core.UndefinedTextRange(), 5, 1)
-	f.store.linkChild(h.id, slotMappedTypeNodeReadonlyToken, readonlyToken)
-	f.store.linkChild(h.id, slotMappedTypeNodeTypeParameter, typeParameter)
-	f.store.linkChild(h.id, slotMappedTypeNodeNameType, nameType)
-	f.store.linkChild(h.id, slotMappedTypeNodeQuestionToken, questionToken)
-	f.store.linkChild(h.id, slotMappedTypeNodeType, typeNode)
-	f.store.linkList(h.id, listSlotMappedTypeNodeMembers, members)
-	return h
+	id := f.store.appendSlots(KindMappedType, 0, core.UndefinedTextRange(), 5, 1)
+	f.store.linkChild(id, slotMappedTypeNodeReadonlyToken, readonlyToken)
+	f.store.linkChild(id, slotMappedTypeNodeTypeParameter, typeParameter)
+	f.store.linkChild(id, slotMappedTypeNodeNameType, nameType)
+	f.store.linkChild(id, slotMappedTypeNodeQuestionToken, questionToken)
+	f.store.linkChild(id, slotMappedTypeNodeType, typeNode)
+	f.store.linkList(id, listSlotMappedTypeNodeMembers, members)
+	return f.handleFromParse(id, KindMappedType)
 }
 
 func (f Factory) UpdateMappedTypeNode(node Handle, readonlyToken Handle, typeParameter Handle, nameType Handle, questionToken Handle, typeNode Handle, members ListRef) Handle {
@@ -3616,10 +4488,14 @@ func (h Handle) SetMappedTypeNodeMembers(value ListRef) {
 	h.SetListSlot(listSlotMappedTypeNodeMembers, value)
 }
 
+func (f *Factory) ParseTypeLiteralNode(members ListRef) NodeRef {
+	id := f.store.appendSlots(KindTypeLiteral, 0, core.UndefinedTextRange(), 0, 1)
+	f.store.linkList(id, listSlotTypeLiteralNodeMembers, members)
+	return id
+}
+
 func (f *Factory) NewTypeLiteralNode(members ListRef) Handle {
-	h := f.createSlots(KindTypeLiteral, 0, core.UndefinedTextRange(), 0, 1)
-	f.store.linkList(h.id, listSlotTypeLiteralNodeMembers, members)
-	return h
+	return f.handleFromParse(f.ParseTypeLiteralNode(members), KindTypeLiteral)
 }
 
 func (f Factory) UpdateTypeLiteralNode(node Handle, members ListRef) Handle {
@@ -3635,10 +4511,14 @@ func (h Handle) SetTypeLiteralNodeMembers(value ListRef) {
 	h.SetListSlot(listSlotTypeLiteralNodeMembers, value)
 }
 
+func (f *Factory) ParseTupleTypeNode(elements ListRef) NodeRef {
+	id := f.store.appendSlots(KindTupleType, 0, core.UndefinedTextRange(), 0, 1)
+	f.store.linkList(id, listSlotTupleTypeNodeElements, elements)
+	return id
+}
+
 func (f *Factory) NewTupleTypeNode(elements ListRef) Handle {
-	h := f.createSlots(KindTupleType, 0, core.UndefinedTextRange(), 0, 1)
-	f.store.linkList(h.id, listSlotTupleTypeNodeElements, elements)
-	return h
+	return f.handleFromParse(f.ParseTupleTypeNode(elements), KindTupleType)
 }
 
 func (f Factory) UpdateTupleTypeNode(node Handle, elements ListRef) Handle {
@@ -3653,13 +4533,22 @@ func (h Handle) SetTupleTypeNodeElements(value ListRef) {
 	h.SetListSlot(listSlotTupleTypeNodeElements, value)
 }
 
+func (f *Factory) ParseNamedTupleMember(dotDotDotToken NodeRef, name NodeRef, questionToken NodeRef, typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindNamedTupleMember, 0, core.UndefinedTextRange(), 4, 0)
+	f.store.linkChildRef(id, slotNamedTupleMemberDotDotDotToken, dotDotDotToken)
+	f.store.linkChildRef(id, slotNamedTupleMemberName, name)
+	f.store.linkChildRef(id, slotNamedTupleMemberQuestionToken, questionToken)
+	f.store.linkChildRef(id, slotNamedTupleMemberType, typeNode)
+	return id
+}
+
 func (f *Factory) NewNamedTupleMember(dotDotDotToken Handle, name Handle, questionToken Handle, typeNode Handle) Handle {
-	h := f.createSlots(KindNamedTupleMember, 0, core.UndefinedTextRange(), 4, 0)
-	f.store.linkChild(h.id, slotNamedTupleMemberDotDotDotToken, dotDotDotToken)
-	f.store.linkChild(h.id, slotNamedTupleMemberName, name)
-	f.store.linkChild(h.id, slotNamedTupleMemberQuestionToken, questionToken)
-	f.store.linkChild(h.id, slotNamedTupleMemberType, typeNode)
-	return h
+	id := f.store.appendSlots(KindNamedTupleMember, 0, core.UndefinedTextRange(), 4, 0)
+	f.store.linkChild(id, slotNamedTupleMemberDotDotDotToken, dotDotDotToken)
+	f.store.linkChild(id, slotNamedTupleMemberName, name)
+	f.store.linkChild(id, slotNamedTupleMemberQuestionToken, questionToken)
+	f.store.linkChild(id, slotNamedTupleMemberType, typeNode)
+	return f.handleFromParse(id, KindNamedTupleMember)
 }
 
 func (f Factory) UpdateNamedTupleMember(node Handle, dotDotDotToken Handle, name Handle, questionToken Handle, typeNode Handle) Handle {
@@ -3691,10 +4580,16 @@ func (h Handle) SetNamedTupleMemberQuestionToken(value Handle) {
 func (h Handle) NamedTupleMemberType() Handle         { return h.childAt(slotNamedTupleMemberType) }
 func (h Handle) SetNamedTupleMemberType(value Handle) { h.SetChild(slotNamedTupleMemberType, value) }
 
+func (f *Factory) ParseOptionalTypeNode(typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindOptionalType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotOptionalTypeNodeType, typeNode)
+	return id
+}
+
 func (f *Factory) NewOptionalTypeNode(typeNode Handle) Handle {
-	h := f.createSlots(KindOptionalType, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotOptionalTypeNodeType, typeNode)
-	return h
+	id := f.store.appendSlots(KindOptionalType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotOptionalTypeNodeType, typeNode)
+	return f.handleFromParse(id, KindOptionalType)
 }
 
 func (f Factory) UpdateOptionalTypeNode(node Handle, typeNode Handle) Handle {
@@ -3707,10 +4602,16 @@ func (f Factory) UpdateOptionalTypeNode(node Handle, typeNode Handle) Handle {
 func (h Handle) OptionalTypeNodeType() Handle         { return h.childAt(slotOptionalTypeNodeType) }
 func (h Handle) SetOptionalTypeNodeType(value Handle) { h.SetChild(slotOptionalTypeNodeType, value) }
 
+func (f *Factory) ParseRestTypeNode(typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindRestType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotRestTypeNodeType, typeNode)
+	return id
+}
+
 func (f *Factory) NewRestTypeNode(typeNode Handle) Handle {
-	h := f.createSlots(KindRestType, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotRestTypeNodeType, typeNode)
-	return h
+	id := f.store.appendSlots(KindRestType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotRestTypeNodeType, typeNode)
+	return f.handleFromParse(id, KindRestType)
 }
 
 func (f Factory) UpdateRestTypeNode(node Handle, typeNode Handle) Handle {
@@ -3723,10 +4624,16 @@ func (f Factory) UpdateRestTypeNode(node Handle, typeNode Handle) Handle {
 func (h Handle) RestTypeNodeType() Handle         { return h.childAt(slotRestTypeNodeType) }
 func (h Handle) SetRestTypeNodeType(value Handle) { h.SetChild(slotRestTypeNodeType, value) }
 
+func (f *Factory) ParseParenthesizedTypeNode(typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindParenthesizedType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotParenthesizedTypeNodeType, typeNode)
+	return id
+}
+
 func (f *Factory) NewParenthesizedTypeNode(typeNode Handle) Handle {
-	h := f.createSlots(KindParenthesizedType, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotParenthesizedTypeNodeType, typeNode)
-	return h
+	id := f.store.appendSlots(KindParenthesizedType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotParenthesizedTypeNodeType, typeNode)
+	return f.handleFromParse(id, KindParenthesizedType)
 }
 
 func (f Factory) UpdateParenthesizedTypeNode(node Handle, typeNode Handle) Handle {
@@ -3742,12 +4649,20 @@ func (h Handle) SetParenthesizedTypeNodeType(value Handle) {
 	h.SetChild(slotParenthesizedTypeNodeType, value)
 }
 
+func (f *Factory) ParseFunctionTypeNode(typeParameters ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindFunctionType, 0, core.UndefinedTextRange(), 1, 2)
+	f.store.linkChildRef(id, slotFunctionTypeNodeType, typeNode)
+	f.store.linkList(id, listSlotFunctionTypeNodeTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotFunctionTypeNodeParameters, parameters)
+	return id
+}
+
 func (f *Factory) NewFunctionTypeNode(typeParameters ListRef, parameters ListRef, typeNode Handle) Handle {
-	h := f.createSlots(KindFunctionType, 0, core.UndefinedTextRange(), 1, 2)
-	f.store.linkChild(h.id, slotFunctionTypeNodeType, typeNode)
-	f.store.linkList(h.id, listSlotFunctionTypeNodeTypeParameters, typeParameters)
-	f.store.linkList(h.id, listSlotFunctionTypeNodeParameters, parameters)
-	return h
+	id := f.store.appendSlots(KindFunctionType, 0, core.UndefinedTextRange(), 1, 2)
+	f.store.linkChild(id, slotFunctionTypeNodeType, typeNode)
+	f.store.linkList(id, listSlotFunctionTypeNodeTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotFunctionTypeNodeParameters, parameters)
+	return f.handleFromParse(id, KindFunctionType)
 }
 
 func (f Factory) UpdateFunctionTypeNode(node Handle, typeParameters ListRef, parameters ListRef, typeNode Handle) Handle {
@@ -3776,13 +4691,22 @@ func (h Handle) SetFunctionTypeNodeParameters(value ListRef) {
 	h.SetListSlot(listSlotFunctionTypeNodeParameters, value)
 }
 
+func (f *Factory) ParseConstructorTypeNode(modifiers ListRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindConstructorType, 0, core.UndefinedTextRange(), 1, 3)
+	f.store.linkChildRef(id, slotConstructorTypeNodeType, typeNode)
+	f.store.linkList(id, listSlotConstructorTypeNodeModifiers, modifiers)
+	f.store.linkList(id, listSlotConstructorTypeNodeTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotConstructorTypeNodeParameters, parameters)
+	return id
+}
+
 func (f *Factory) NewConstructorTypeNode(modifiers ListRef, typeParameters ListRef, parameters ListRef, typeNode Handle) Handle {
-	h := f.createSlots(KindConstructorType, 0, core.UndefinedTextRange(), 1, 3)
-	f.store.linkChild(h.id, slotConstructorTypeNodeType, typeNode)
-	f.store.linkList(h.id, listSlotConstructorTypeNodeModifiers, modifiers)
-	f.store.linkList(h.id, listSlotConstructorTypeNodeTypeParameters, typeParameters)
-	f.store.linkList(h.id, listSlotConstructorTypeNodeParameters, parameters)
-	return h
+	id := f.store.appendSlots(KindConstructorType, 0, core.UndefinedTextRange(), 1, 3)
+	f.store.linkChild(id, slotConstructorTypeNodeType, typeNode)
+	f.store.linkList(id, listSlotConstructorTypeNodeModifiers, modifiers)
+	f.store.linkList(id, listSlotConstructorTypeNodeTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotConstructorTypeNodeParameters, parameters)
+	return f.handleFromParse(id, KindConstructorType)
 }
 
 func (f Factory) UpdateConstructorTypeNode(node Handle, modifiers ListRef, typeParameters ListRef, parameters ListRef, typeNode Handle) Handle {
@@ -3821,14 +4745,19 @@ func (h Handle) SetConstructorTypeNodeParameters(value ListRef) {
 	h.SetListSlot(listSlotConstructorTypeNodeParameters, value)
 }
 
-func (f *Factory) NewTemplateHead(text string, rawText string, templateFlags TokenFlags) Handle {
-	h := f.createSlots(KindTemplateHead, 0, core.UndefinedTextRange(), 0, 0)
+func (f *Factory) ParseTemplateHead(text string, rawText string, templateFlags TokenFlags) NodeRef {
+	id := f.store.appendSlots(KindTemplateHead, 0, core.UndefinedTextRange(), 0, 0)
+	h := Handle{s: f.store, id: id, Kind: KindTemplateHead}
 	h.SetStringValue(valueSlotTemplateHeadRawText, rawText)
 	h.SetTokenFlags(templateFlags & TokenFlagsTemplateLiteralLikeFlags)
 	if text != "" {
-		f.store.setIdent(h.id, f.store.intern(text))
+		f.store.setIdent(id, f.store.intern(text))
 	}
-	return h
+	return id
+}
+
+func (f *Factory) NewTemplateHead(text string, rawText string, templateFlags TokenFlags) Handle {
+	return f.handleFromParse(f.ParseTemplateHead(text, rawText, templateFlags), KindTemplateHead)
 }
 
 func (h Handle) TemplateHeadText() string { return h.StringValue(valueSlotTemplateHeadText) }
@@ -3843,14 +4772,19 @@ func (h Handle) SetTemplateHeadRawText(value string) {
 func (h Handle) TemplateHeadTemplateFlags() TokenFlags         { return h.TokenFlags() }
 func (h Handle) SetTemplateHeadTemplateFlags(value TokenFlags) { h.SetTokenFlags(value) }
 
-func (f *Factory) NewTemplateMiddle(text string, rawText string, templateFlags TokenFlags) Handle {
-	h := f.createSlots(KindTemplateMiddle, 0, core.UndefinedTextRange(), 0, 0)
+func (f *Factory) ParseTemplateMiddle(text string, rawText string, templateFlags TokenFlags) NodeRef {
+	id := f.store.appendSlots(KindTemplateMiddle, 0, core.UndefinedTextRange(), 0, 0)
+	h := Handle{s: f.store, id: id, Kind: KindTemplateMiddle}
 	h.SetStringValue(valueSlotTemplateMiddleRawText, rawText)
 	h.SetTokenFlags(templateFlags & TokenFlagsTemplateLiteralLikeFlags)
 	if text != "" {
-		f.store.setIdent(h.id, f.store.intern(text))
+		f.store.setIdent(id, f.store.intern(text))
 	}
-	return h
+	return id
+}
+
+func (f *Factory) NewTemplateMiddle(text string, rawText string, templateFlags TokenFlags) Handle {
+	return f.handleFromParse(f.ParseTemplateMiddle(text, rawText, templateFlags), KindTemplateMiddle)
 }
 
 func (h Handle) TemplateMiddleText() string { return h.StringValue(valueSlotTemplateMiddleText) }
@@ -3867,14 +4801,19 @@ func (h Handle) SetTemplateMiddleRawText(value string) {
 func (h Handle) TemplateMiddleTemplateFlags() TokenFlags         { return h.TokenFlags() }
 func (h Handle) SetTemplateMiddleTemplateFlags(value TokenFlags) { h.SetTokenFlags(value) }
 
-func (f *Factory) NewTemplateTail(text string, rawText string, templateFlags TokenFlags) Handle {
-	h := f.createSlots(KindTemplateTail, 0, core.UndefinedTextRange(), 0, 0)
+func (f *Factory) ParseTemplateTail(text string, rawText string, templateFlags TokenFlags) NodeRef {
+	id := f.store.appendSlots(KindTemplateTail, 0, core.UndefinedTextRange(), 0, 0)
+	h := Handle{s: f.store, id: id, Kind: KindTemplateTail}
 	h.SetStringValue(valueSlotTemplateTailRawText, rawText)
 	h.SetTokenFlags(templateFlags & TokenFlagsTemplateLiteralLikeFlags)
 	if text != "" {
-		f.store.setIdent(h.id, f.store.intern(text))
+		f.store.setIdent(id, f.store.intern(text))
 	}
-	return h
+	return id
+}
+
+func (f *Factory) NewTemplateTail(text string, rawText string, templateFlags TokenFlags) Handle {
+	return f.handleFromParse(f.ParseTemplateTail(text, rawText, templateFlags), KindTemplateTail)
 }
 
 func (h Handle) TemplateTailText() string { return h.StringValue(valueSlotTemplateTailText) }
@@ -3889,11 +4828,18 @@ func (h Handle) SetTemplateTailRawText(value string) {
 func (h Handle) TemplateTailTemplateFlags() TokenFlags         { return h.TokenFlags() }
 func (h Handle) SetTemplateTailTemplateFlags(value TokenFlags) { h.SetTokenFlags(value) }
 
+func (f *Factory) ParseTemplateLiteralTypeNode(head NodeRef, templateSpans ListRef) NodeRef {
+	id := f.store.appendSlots(KindTemplateLiteralType, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChildRef(id, slotTemplateLiteralTypeNodeHead, head)
+	f.store.linkList(id, listSlotTemplateLiteralTypeNodeTemplateSpans, templateSpans)
+	return id
+}
+
 func (f *Factory) NewTemplateLiteralTypeNode(head Handle, templateSpans ListRef) Handle {
-	h := f.createSlots(KindTemplateLiteralType, 0, core.UndefinedTextRange(), 1, 1)
-	f.store.linkChild(h.id, slotTemplateLiteralTypeNodeHead, head)
-	f.store.linkList(h.id, listSlotTemplateLiteralTypeNodeTemplateSpans, templateSpans)
-	return h
+	id := f.store.appendSlots(KindTemplateLiteralType, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChild(id, slotTemplateLiteralTypeNodeHead, head)
+	f.store.linkList(id, listSlotTemplateLiteralTypeNodeTemplateSpans, templateSpans)
+	return f.handleFromParse(id, KindTemplateLiteralType)
 }
 
 func (f Factory) UpdateTemplateLiteralTypeNode(node Handle, head Handle, templateSpans ListRef) Handle {
@@ -3919,11 +4865,18 @@ func (h Handle) SetTemplateLiteralTypeNodeTemplateSpans(value ListRef) {
 	h.SetListSlot(listSlotTemplateLiteralTypeNodeTemplateSpans, value)
 }
 
+func (f *Factory) ParseTemplateLiteralTypeSpan(typeNode NodeRef, literal NodeRef) NodeRef {
+	id := f.store.appendSlots(KindTemplateLiteralTypeSpan, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotTemplateLiteralTypeSpanType, typeNode)
+	f.store.linkChildRef(id, slotTemplateLiteralTypeSpanLiteral, literal)
+	return id
+}
+
 func (f *Factory) NewTemplateLiteralTypeSpan(typeNode Handle, literal Handle) Handle {
-	h := f.createSlots(KindTemplateLiteralTypeSpan, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotTemplateLiteralTypeSpanType, typeNode)
-	f.store.linkChild(h.id, slotTemplateLiteralTypeSpanLiteral, literal)
-	return h
+	id := f.store.appendSlots(KindTemplateLiteralTypeSpan, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotTemplateLiteralTypeSpanType, typeNode)
+	f.store.linkChild(id, slotTemplateLiteralTypeSpanLiteral, literal)
+	return f.handleFromParse(id, KindTemplateLiteralTypeSpan)
 }
 
 func (f Factory) UpdateTemplateLiteralTypeSpan(node Handle, typeNode Handle, literal Handle) Handle {
@@ -3949,9 +4902,21 @@ func (h Handle) SetTemplateLiteralTypeSpanLiteral(value Handle) {
 	h.SetChild(slotTemplateLiteralTypeSpanLiteral, value)
 }
 
+func (f *Factory) ParseSyntheticExpression(typeNode any, isSpread bool, tupleNameSource NodeRef) NodeRef {
+	id := f.store.appendSlots(KindSyntheticExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotSyntheticExpressionTupleNameSource, tupleNameSource)
+	h := Handle{s: f.store, id: id, Kind: KindSyntheticExpression}
+	h.SetObjectValue(valueSlotSyntheticExpressionType, typeNode)
+	if isSpread {
+		h.SetUintValue(valueSlotSyntheticExpressionIsSpread, 1)
+	}
+	return id
+}
+
 func (f *Factory) NewSyntheticExpression(typeNode any, isSpread bool, tupleNameSource Handle) Handle {
-	h := f.createSlots(KindSyntheticExpression, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotSyntheticExpressionTupleNameSource, tupleNameSource)
+	id := f.store.appendSlots(KindSyntheticExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotSyntheticExpressionTupleNameSource, tupleNameSource)
+	h := f.handleFromParse(id, KindSyntheticExpression)
 	h.SetObjectValue(valueSlotSyntheticExpressionType, typeNode)
 	if isSpread {
 		h.SetUintValue(valueSlotSyntheticExpressionIsSpread, 1)
@@ -3994,10 +4959,16 @@ func (h Handle) SetSyntheticExpressionIsSpread(value bool) {
 	}
 }
 
+func (f *Factory) ParsePartiallyEmittedExpression(expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindPartiallyEmittedExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotPartiallyEmittedExpressionExpression, expression)
+	return id
+}
+
 func (f *Factory) NewPartiallyEmittedExpression(expression Handle) Handle {
-	h := f.createSlots(KindPartiallyEmittedExpression, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotPartiallyEmittedExpressionExpression, expression)
-	return h
+	id := f.store.appendSlots(KindPartiallyEmittedExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotPartiallyEmittedExpressionExpression, expression)
+	return f.handleFromParse(id, KindPartiallyEmittedExpression)
 }
 
 func (f Factory) UpdatePartiallyEmittedExpression(node Handle, expression Handle) Handle {
@@ -4015,12 +4986,20 @@ func (h Handle) SetPartiallyEmittedExpressionExpression(value Handle) {
 	h.SetChild(slotPartiallyEmittedExpressionExpression, value)
 }
 
+func (f *Factory) ParseJsxElement(openingElement NodeRef, children ListRef, closingElement NodeRef) NodeRef {
+	id := f.store.appendSlots(KindJsxElement, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChildRef(id, slotJsxElementOpeningElement, openingElement)
+	f.store.linkChildRef(id, slotJsxElementClosingElement, closingElement)
+	f.store.linkList(id, listSlotJsxElementChildren, children)
+	return id
+}
+
 func (f *Factory) NewJsxElement(openingElement Handle, children ListRef, closingElement Handle) Handle {
-	h := f.createSlots(KindJsxElement, 0, core.UndefinedTextRange(), 2, 1)
-	f.store.linkChild(h.id, slotJsxElementOpeningElement, openingElement)
-	f.store.linkChild(h.id, slotJsxElementClosingElement, closingElement)
-	f.store.linkList(h.id, listSlotJsxElementChildren, children)
-	return h
+	id := f.store.appendSlots(KindJsxElement, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChild(id, slotJsxElementOpeningElement, openingElement)
+	f.store.linkChild(id, slotJsxElementClosingElement, closingElement)
+	f.store.linkList(id, listSlotJsxElementChildren, children)
+	return f.handleFromParse(id, KindJsxElement)
 }
 
 func (f Factory) UpdateJsxElement(node Handle, openingElement Handle, children ListRef, closingElement Handle) Handle {
@@ -4045,10 +5024,14 @@ func (h Handle) SetJsxElementChildren(value ListRef) {
 	h.SetListSlot(listSlotJsxElementChildren, value)
 }
 
+func (f *Factory) ParseJsxAttributes(properties ListRef) NodeRef {
+	id := f.store.appendSlots(KindJsxAttributes, 0, core.UndefinedTextRange(), 0, 1)
+	f.store.linkList(id, listSlotJsxAttributesProperties, properties)
+	return id
+}
+
 func (f *Factory) NewJsxAttributes(properties ListRef) Handle {
-	h := f.createSlots(KindJsxAttributes, 0, core.UndefinedTextRange(), 0, 1)
-	f.store.linkList(h.id, listSlotJsxAttributesProperties, properties)
-	return h
+	return f.handleFromParse(f.ParseJsxAttributes(properties), KindJsxAttributes)
 }
 
 func (f Factory) UpdateJsxAttributes(node Handle, properties ListRef) Handle {
@@ -4064,11 +5047,18 @@ func (h Handle) SetJsxAttributesProperties(value ListRef) {
 	h.SetListSlot(listSlotJsxAttributesProperties, value)
 }
 
+func (f *Factory) ParseJsxNamespacedName(namespace NodeRef, name NodeRef) NodeRef {
+	id := f.store.appendSlots(KindJsxNamespacedName, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotJsxNamespacedNameNamespace, namespace)
+	f.store.linkChildRef(id, slotJsxNamespacedNameName, name)
+	return id
+}
+
 func (f *Factory) NewJsxNamespacedName(namespace Handle, name Handle) Handle {
-	h := f.createSlots(KindJsxNamespacedName, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotJsxNamespacedNameNamespace, namespace)
-	f.store.linkChild(h.id, slotJsxNamespacedNameName, name)
-	return h
+	id := f.store.appendSlots(KindJsxNamespacedName, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotJsxNamespacedNameNamespace, namespace)
+	f.store.linkChild(id, slotJsxNamespacedNameName, name)
+	return f.handleFromParse(id, KindJsxNamespacedName)
 }
 
 func (f Factory) UpdateJsxNamespacedName(node Handle, namespace Handle, name Handle) Handle {
@@ -4088,12 +5078,20 @@ func (h Handle) JsxNamespacedNameName() Handle { return h.childAt(slotJsxNamespa
 
 func (h Handle) SetJsxNamespacedNameName(value Handle) { h.SetChild(slotJsxNamespacedNameName, value) }
 
+func (f *Factory) ParseJsxOpeningElement(tagName NodeRef, typeArguments ListRef, attributes NodeRef) NodeRef {
+	id := f.store.appendSlots(KindJsxOpeningElement, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChildRef(id, slotJsxOpeningElementTagName, tagName)
+	f.store.linkChildRef(id, slotJsxOpeningElementAttributes, attributes)
+	f.store.linkList(id, listSlotJsxOpeningElementTypeArguments, typeArguments)
+	return id
+}
+
 func (f *Factory) NewJsxOpeningElement(tagName Handle, typeArguments ListRef, attributes Handle) Handle {
-	h := f.createSlots(KindJsxOpeningElement, 0, core.UndefinedTextRange(), 2, 1)
-	f.store.linkChild(h.id, slotJsxOpeningElementTagName, tagName)
-	f.store.linkChild(h.id, slotJsxOpeningElementAttributes, attributes)
-	f.store.linkList(h.id, listSlotJsxOpeningElementTypeArguments, typeArguments)
-	return h
+	id := f.store.appendSlots(KindJsxOpeningElement, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChild(id, slotJsxOpeningElementTagName, tagName)
+	f.store.linkChild(id, slotJsxOpeningElementAttributes, attributes)
+	f.store.linkList(id, listSlotJsxOpeningElementTypeArguments, typeArguments)
+	return f.handleFromParse(id, KindJsxOpeningElement)
 }
 
 func (f Factory) UpdateJsxOpeningElement(node Handle, tagName Handle, typeArguments ListRef, attributes Handle) Handle {
@@ -4124,12 +5122,20 @@ func (h Handle) SetJsxOpeningElementTypeArguments(value ListRef) {
 	h.SetListSlot(listSlotJsxOpeningElementTypeArguments, value)
 }
 
+func (f *Factory) ParseJsxSelfClosingElement(tagName NodeRef, typeArguments ListRef, attributes NodeRef) NodeRef {
+	id := f.store.appendSlots(KindJsxSelfClosingElement, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChildRef(id, slotJsxSelfClosingElementTagName, tagName)
+	f.store.linkChildRef(id, slotJsxSelfClosingElementAttributes, attributes)
+	f.store.linkList(id, listSlotJsxSelfClosingElementTypeArguments, typeArguments)
+	return id
+}
+
 func (f *Factory) NewJsxSelfClosingElement(tagName Handle, typeArguments ListRef, attributes Handle) Handle {
-	h := f.createSlots(KindJsxSelfClosingElement, 0, core.UndefinedTextRange(), 2, 1)
-	f.store.linkChild(h.id, slotJsxSelfClosingElementTagName, tagName)
-	f.store.linkChild(h.id, slotJsxSelfClosingElementAttributes, attributes)
-	f.store.linkList(h.id, listSlotJsxSelfClosingElementTypeArguments, typeArguments)
-	return h
+	id := f.store.appendSlots(KindJsxSelfClosingElement, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChild(id, slotJsxSelfClosingElementTagName, tagName)
+	f.store.linkChild(id, slotJsxSelfClosingElementAttributes, attributes)
+	f.store.linkList(id, listSlotJsxSelfClosingElementTypeArguments, typeArguments)
+	return f.handleFromParse(id, KindJsxSelfClosingElement)
 }
 
 func (f Factory) UpdateJsxSelfClosingElement(node Handle, tagName Handle, typeArguments ListRef, attributes Handle) Handle {
@@ -4163,12 +5169,20 @@ func (h Handle) SetJsxSelfClosingElementTypeArguments(value ListRef) {
 	h.SetListSlot(listSlotJsxSelfClosingElementTypeArguments, value)
 }
 
+func (f *Factory) ParseJsxFragment(openingFragment NodeRef, children ListRef, closingFragment NodeRef) NodeRef {
+	id := f.store.appendSlots(KindJsxFragment, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChildRef(id, slotJsxFragmentOpeningFragment, openingFragment)
+	f.store.linkChildRef(id, slotJsxFragmentClosingFragment, closingFragment)
+	f.store.linkList(id, listSlotJsxFragmentChildren, children)
+	return id
+}
+
 func (f *Factory) NewJsxFragment(openingFragment Handle, children ListRef, closingFragment Handle) Handle {
-	h := f.createSlots(KindJsxFragment, 0, core.UndefinedTextRange(), 2, 1)
-	f.store.linkChild(h.id, slotJsxFragmentOpeningFragment, openingFragment)
-	f.store.linkChild(h.id, slotJsxFragmentClosingFragment, closingFragment)
-	f.store.linkList(h.id, listSlotJsxFragmentChildren, children)
-	return h
+	id := f.store.appendSlots(KindJsxFragment, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChild(id, slotJsxFragmentOpeningFragment, openingFragment)
+	f.store.linkChild(id, slotJsxFragmentClosingFragment, closingFragment)
+	f.store.linkList(id, listSlotJsxFragmentChildren, children)
+	return f.handleFromParse(id, KindJsxFragment)
 }
 
 func (f Factory) UpdateJsxFragment(node Handle, openingFragment Handle, children ListRef, closingFragment Handle) Handle {
@@ -4195,21 +5209,36 @@ func (h Handle) SetJsxFragmentChildren(value ListRef) {
 	h.SetListSlot(listSlotJsxFragmentChildren, value)
 }
 
+func (f *Factory) ParseJsxOpeningFragment() NodeRef {
+	id := f.store.appendSlots(KindJsxOpeningFragment, 0, core.UndefinedTextRange(), 0, 0)
+	return id
+}
+
 func (f *Factory) NewJsxOpeningFragment() Handle {
-	h := f.createSlots(KindJsxOpeningFragment, 0, core.UndefinedTextRange(), 0, 0)
-	return h
+	return f.handleFromParse(f.ParseJsxOpeningFragment(), KindJsxOpeningFragment)
+}
+
+func (f *Factory) ParseJsxClosingFragment() NodeRef {
+	id := f.store.appendSlots(KindJsxClosingFragment, 0, core.UndefinedTextRange(), 0, 0)
+	return id
 }
 
 func (f *Factory) NewJsxClosingFragment() Handle {
-	h := f.createSlots(KindJsxClosingFragment, 0, core.UndefinedTextRange(), 0, 0)
-	return h
+	return f.handleFromParse(f.ParseJsxClosingFragment(), KindJsxClosingFragment)
+}
+
+func (f *Factory) ParseJsxAttribute(name NodeRef, initializer NodeRef) NodeRef {
+	id := f.store.appendSlots(KindJsxAttribute, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotJsxAttributeName, name)
+	f.store.linkChildRef(id, slotJsxAttributeInitializer, initializer)
+	return id
 }
 
 func (f *Factory) NewJsxAttribute(name Handle, initializer Handle) Handle {
-	h := f.createSlots(KindJsxAttribute, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotJsxAttributeName, name)
-	f.store.linkChild(h.id, slotJsxAttributeInitializer, initializer)
-	return h
+	id := f.store.appendSlots(KindJsxAttribute, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotJsxAttributeName, name)
+	f.store.linkChild(id, slotJsxAttributeInitializer, initializer)
+	return f.handleFromParse(id, KindJsxAttribute)
 }
 
 func (f Factory) UpdateJsxAttribute(node Handle, name Handle, initializer Handle) Handle {
@@ -4227,10 +5256,16 @@ func (h Handle) SetJsxAttributeInitializer(value Handle) {
 	h.SetChild(slotJsxAttributeInitializer, value)
 }
 
+func (f *Factory) ParseJsxSpreadAttribute(expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindJsxSpreadAttribute, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotJsxSpreadAttributeExpression, expression)
+	return id
+}
+
 func (f *Factory) NewJsxSpreadAttribute(expression Handle) Handle {
-	h := f.createSlots(KindJsxSpreadAttribute, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotJsxSpreadAttributeExpression, expression)
-	return h
+	id := f.store.appendSlots(KindJsxSpreadAttribute, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotJsxSpreadAttributeExpression, expression)
+	return f.handleFromParse(id, KindJsxSpreadAttribute)
 }
 
 func (f Factory) UpdateJsxSpreadAttribute(node Handle, expression Handle) Handle {
@@ -4248,10 +5283,16 @@ func (h Handle) SetJsxSpreadAttributeExpression(value Handle) {
 	h.SetChild(slotJsxSpreadAttributeExpression, value)
 }
 
+func (f *Factory) ParseJsxClosingElement(tagName NodeRef) NodeRef {
+	id := f.store.appendSlots(KindJsxClosingElement, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotJsxClosingElementTagName, tagName)
+	return id
+}
+
 func (f *Factory) NewJsxClosingElement(tagName Handle) Handle {
-	h := f.createSlots(KindJsxClosingElement, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotJsxClosingElementTagName, tagName)
-	return h
+	id := f.store.appendSlots(KindJsxClosingElement, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotJsxClosingElementTagName, tagName)
+	return f.handleFromParse(id, KindJsxClosingElement)
 }
 
 func (f Factory) UpdateJsxClosingElement(node Handle, tagName Handle) Handle {
@@ -4266,11 +5307,18 @@ func (h Handle) SetJsxClosingElementTagName(value Handle) {
 	h.SetChild(slotJsxClosingElementTagName, value)
 }
 
+func (f *Factory) ParseJsxExpression(dotDotDotToken NodeRef, expression NodeRef) NodeRef {
+	id := f.store.appendSlots(KindJsxExpression, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotJsxExpressionDotDotDotToken, dotDotDotToken)
+	f.store.linkChildRef(id, slotJsxExpressionExpression, expression)
+	return id
+}
+
 func (f *Factory) NewJsxExpression(dotDotDotToken Handle, expression Handle) Handle {
-	h := f.createSlots(KindJsxExpression, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotJsxExpressionDotDotDotToken, dotDotDotToken)
-	f.store.linkChild(h.id, slotJsxExpressionExpression, expression)
-	return h
+	id := f.store.appendSlots(KindJsxExpression, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotJsxExpressionDotDotDotToken, dotDotDotToken)
+	f.store.linkChild(id, slotJsxExpressionExpression, expression)
+	return f.handleFromParse(id, KindJsxExpression)
 }
 
 func (f Factory) UpdateJsxExpression(node Handle, dotDotDotToken Handle, expression Handle) Handle {
@@ -4293,15 +5341,20 @@ func (h Handle) SetJsxExpressionExpression(value Handle) {
 	h.SetChild(slotJsxExpressionExpression, value)
 }
 
-func (f *Factory) NewJsxText(text string, containsOnlyTriviaWhiteSpaces bool) Handle {
-	h := f.createSlots(KindJsxText, 0, core.UndefinedTextRange(), 0, 0)
+func (f *Factory) ParseJsxText(text string, containsOnlyTriviaWhiteSpaces bool) NodeRef {
+	id := f.store.appendSlots(KindJsxText, 0, core.UndefinedTextRange(), 0, 0)
+	h := Handle{s: f.store, id: id, Kind: KindJsxText}
 	if containsOnlyTriviaWhiteSpaces {
 		h.SetUintValue(valueSlotJsxTextContainsOnlyTriviaWhiteSpaces, 1)
 	}
 	if text != "" {
-		f.store.setIdent(h.id, f.store.intern(text))
+		f.store.setIdent(id, f.store.intern(text))
 	}
-	return h
+	return id
+}
+
+func (f *Factory) NewJsxText(text string, containsOnlyTriviaWhiteSpaces bool) Handle {
+	return f.handleFromParse(f.ParseJsxText(text, containsOnlyTriviaWhiteSpaces), KindJsxText)
 }
 
 func (h Handle) JsxTextText() string         { return h.StringValue(valueSlotJsxTextText) }
@@ -4319,10 +5372,14 @@ func (h Handle) SetJsxTextContainsOnlyTriviaWhiteSpaces(value bool) {
 	}
 }
 
+func (f *Factory) ParseSyntaxList(children ListRef) NodeRef {
+	id := f.store.appendSlots(KindSyntaxList, 0, core.UndefinedTextRange(), 0, 1)
+	f.store.linkList(id, listSlotSyntaxListChildren, children)
+	return id
+}
+
 func (f *Factory) NewSyntaxList(children ListRef) Handle {
-	h := f.createSlots(KindSyntaxList, 0, core.UndefinedTextRange(), 0, 1)
-	f.store.linkList(h.id, listSlotSyntaxListChildren, children)
-	return h
+	return f.handleFromParse(f.ParseSyntaxList(children), KindSyntaxList)
 }
 
 func (f Factory) UpdateSyntaxList(node Handle, children ListRef) Handle {
@@ -4337,11 +5394,15 @@ func (h Handle) SetSyntaxListChildren(value ListRef) {
 	h.SetListSlot(listSlotSyntaxListChildren, value)
 }
 
+func (f *Factory) ParseJSDoc(comment ListRef, tags ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDoc, 0, core.UndefinedTextRange(), 0, 2)
+	f.store.linkList(id, listSlotJSDocComment, comment)
+	f.store.linkList(id, listSlotJSDocTags, tags)
+	return id
+}
+
 func (f *Factory) NewJSDoc(comment ListRef, tags ListRef) Handle {
-	h := f.createSlots(KindJSDoc, 0, core.UndefinedTextRange(), 0, 2)
-	f.store.linkList(h.id, listSlotJSDocComment, comment)
-	f.store.linkList(h.id, listSlotJSDocTags, tags)
-	return h
+	return f.handleFromParse(f.ParseJSDoc(comment, tags), KindJSDoc)
 }
 
 func (f Factory) UpdateJSDoc(node Handle, comment ListRef, tags ListRef) Handle {
@@ -4357,10 +5418,16 @@ func (h Handle) SetJSDocComment(value ListRef) { h.SetListSlot(listSlotJSDocComm
 func (h Handle) JSDocTags() ListRef         { return h.ListSlot(listSlotJSDocTags) }
 func (h Handle) SetJSDocTags(value ListRef) { h.SetListSlot(listSlotJSDocTags, value) }
 
+func (f *Factory) ParseJSDocTypeExpression(typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocTypeExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotJSDocTypeExpressionType, typeNode)
+	return id
+}
+
 func (f *Factory) NewJSDocTypeExpression(typeNode Handle) Handle {
-	h := f.createSlots(KindJSDocTypeExpression, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotJSDocTypeExpressionType, typeNode)
-	return h
+	id := f.store.appendSlots(KindJSDocTypeExpression, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotJSDocTypeExpressionType, typeNode)
+	return f.handleFromParse(id, KindJSDocTypeExpression)
 }
 
 func (f Factory) UpdateJSDocTypeExpression(node Handle, typeNode Handle) Handle {
@@ -4375,10 +5442,16 @@ func (h Handle) SetJSDocTypeExpressionType(value Handle) {
 	h.SetChild(slotJSDocTypeExpressionType, value)
 }
 
+func (f *Factory) ParseJSDocNonNullableType(typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocNonNullableType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotJSDocNonNullableTypeType, typeNode)
+	return id
+}
+
 func (f *Factory) NewJSDocNonNullableType(typeNode Handle) Handle {
-	h := f.createSlots(KindJSDocNonNullableType, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotJSDocNonNullableTypeType, typeNode)
-	return h
+	id := f.store.appendSlots(KindJSDocNonNullableType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotJSDocNonNullableTypeType, typeNode)
+	return f.handleFromParse(id, KindJSDocNonNullableType)
 }
 
 func (f Factory) UpdateJSDocNonNullableType(node Handle, typeNode Handle) Handle {
@@ -4393,10 +5466,16 @@ func (h Handle) SetJSDocNonNullableTypeType(value Handle) {
 	h.SetChild(slotJSDocNonNullableTypeType, value)
 }
 
+func (f *Factory) ParseJSDocNullableType(typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocNullableType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotJSDocNullableTypeType, typeNode)
+	return id
+}
+
 func (f *Factory) NewJSDocNullableType(typeNode Handle) Handle {
-	h := f.createSlots(KindJSDocNullableType, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotJSDocNullableTypeType, typeNode)
-	return h
+	id := f.store.appendSlots(KindJSDocNullableType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotJSDocNullableTypeType, typeNode)
+	return f.handleFromParse(id, KindJSDocNullableType)
 }
 
 func (f Factory) UpdateJSDocNullableType(node Handle, typeNode Handle) Handle {
@@ -4410,15 +5489,25 @@ func (h Handle) JSDocNullableTypeType() Handle { return h.childAt(slotJSDocNulla
 
 func (h Handle) SetJSDocNullableTypeType(value Handle) { h.SetChild(slotJSDocNullableTypeType, value) }
 
+func (f *Factory) ParseJSDocAllType() NodeRef {
+	id := f.store.appendSlots(KindJSDocAllType, 0, core.UndefinedTextRange(), 0, 0)
+	return id
+}
+
 func (f *Factory) NewJSDocAllType() Handle {
-	h := f.createSlots(KindJSDocAllType, 0, core.UndefinedTextRange(), 0, 0)
-	return h
+	return f.handleFromParse(f.ParseJSDocAllType(), KindJSDocAllType)
+}
+
+func (f *Factory) ParseJSDocVariadicType(typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocVariadicType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotJSDocVariadicTypeType, typeNode)
+	return id
 }
 
 func (f *Factory) NewJSDocVariadicType(typeNode Handle) Handle {
-	h := f.createSlots(KindJSDocVariadicType, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotJSDocVariadicTypeType, typeNode)
-	return h
+	id := f.store.appendSlots(KindJSDocVariadicType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotJSDocVariadicTypeType, typeNode)
+	return f.handleFromParse(id, KindJSDocVariadicType)
 }
 
 func (f Factory) UpdateJSDocVariadicType(node Handle, typeNode Handle) Handle {
@@ -4432,10 +5521,16 @@ func (h Handle) JSDocVariadicTypeType() Handle { return h.childAt(slotJSDocVaria
 
 func (h Handle) SetJSDocVariadicTypeType(value Handle) { h.SetChild(slotJSDocVariadicTypeType, value) }
 
+func (f *Factory) ParseJSDocOptionalType(typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocOptionalType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotJSDocOptionalTypeType, typeNode)
+	return id
+}
+
 func (f *Factory) NewJSDocOptionalType(typeNode Handle) Handle {
-	h := f.createSlots(KindJSDocOptionalType, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotJSDocOptionalTypeType, typeNode)
-	return h
+	id := f.store.appendSlots(KindJSDocOptionalType, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotJSDocOptionalTypeType, typeNode)
+	return f.handleFromParse(id, KindJSDocOptionalType)
 }
 
 func (f Factory) UpdateJSDocOptionalType(node Handle, typeNode Handle) Handle {
@@ -4449,12 +5544,20 @@ func (h Handle) JSDocOptionalTypeType() Handle { return h.childAt(slotJSDocOptio
 
 func (h Handle) SetJSDocOptionalTypeType(value Handle) { h.SetChild(slotJSDocOptionalTypeType, value) }
 
+func (f *Factory) ParseJSDocTypeTag(tagName NodeRef, typeExpression NodeRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocTypeTag, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChildRef(id, slotJSDocTypeTagTagName, tagName)
+	f.store.linkChildRef(id, slotJSDocTypeTagTypeExpression, typeExpression)
+	f.store.linkList(id, listSlotJSDocTypeTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocTypeTag(tagName Handle, typeExpression Handle, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocTypeTag, 0, core.UndefinedTextRange(), 2, 1)
-	f.store.linkChild(h.id, slotJSDocTypeTagTagName, tagName)
-	f.store.linkChild(h.id, slotJSDocTypeTagTypeExpression, typeExpression)
-	f.store.linkList(h.id, listSlotJSDocTypeTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocTypeTag, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChild(id, slotJSDocTypeTagTagName, tagName)
+	f.store.linkChild(id, slotJSDocTypeTagTypeExpression, typeExpression)
+	f.store.linkList(id, listSlotJSDocTypeTagComment, comment)
+	return f.handleFromParse(id, KindJSDocTypeTag)
 }
 
 func (f Factory) UpdateJSDocTypeTag(node Handle, tagName Handle, typeExpression Handle, comment ListRef) Handle {
@@ -4478,11 +5581,18 @@ func (h Handle) SetJSDocTypeTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocTypeTagComment, value)
 }
 
+func (f *Factory) ParseJSDocUnknownTag(tagName NodeRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocUnknownTag, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChildRef(id, slotJSDocUnknownTagTagName, tagName)
+	f.store.linkList(id, listSlotJSDocUnknownTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocUnknownTag(tagName Handle, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocUnknownTag, 0, core.UndefinedTextRange(), 1, 1)
-	f.store.linkChild(h.id, slotJSDocUnknownTagTagName, tagName)
-	f.store.linkList(h.id, listSlotJSDocUnknownTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocUnknownTag, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChild(id, slotJSDocUnknownTagTagName, tagName)
+	f.store.linkList(id, listSlotJSDocUnknownTagComment, comment)
+	return f.handleFromParse(id, KindJSDocUnknownTag)
 }
 
 func (f Factory) UpdateJSDocUnknownTag(node Handle, tagName Handle, comment ListRef) Handle {
@@ -4503,13 +5613,22 @@ func (h Handle) SetJSDocUnknownTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocUnknownTagComment, value)
 }
 
+func (f *Factory) ParseJSDocTemplateTag(tagName NodeRef, constraint NodeRef, typeParameters ListRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocTemplateTag, 0, core.UndefinedTextRange(), 2, 2)
+	f.store.linkChildRef(id, slotJSDocTemplateTagTagName, tagName)
+	f.store.linkChildRef(id, slotJSDocTemplateTagConstraint, constraint)
+	f.store.linkList(id, listSlotJSDocTemplateTagTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotJSDocTemplateTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocTemplateTag(tagName Handle, constraint Handle, typeParameters ListRef, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocTemplateTag, 0, core.UndefinedTextRange(), 2, 2)
-	f.store.linkChild(h.id, slotJSDocTemplateTagTagName, tagName)
-	f.store.linkChild(h.id, slotJSDocTemplateTagConstraint, constraint)
-	f.store.linkList(h.id, listSlotJSDocTemplateTagTypeParameters, typeParameters)
-	f.store.linkList(h.id, listSlotJSDocTemplateTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocTemplateTag, 0, core.UndefinedTextRange(), 2, 2)
+	f.store.linkChild(id, slotJSDocTemplateTagTagName, tagName)
+	f.store.linkChild(id, slotJSDocTemplateTagConstraint, constraint)
+	f.store.linkList(id, listSlotJSDocTemplateTagTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotJSDocTemplateTagComment, comment)
+	return f.handleFromParse(id, KindJSDocTemplateTag)
 }
 
 func (f Factory) UpdateJSDocTemplateTag(node Handle, tagName Handle, constraint Handle, typeParameters ListRef, comment ListRef) Handle {
@@ -4544,12 +5663,20 @@ func (h Handle) SetJSDocTemplateTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocTemplateTagComment, value)
 }
 
+func (f *Factory) ParseJSDocReturnTag(tagName NodeRef, typeExpression NodeRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocReturnTag, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChildRef(id, slotJSDocReturnTagTagName, tagName)
+	f.store.linkChildRef(id, slotJSDocReturnTagTypeExpression, typeExpression)
+	f.store.linkList(id, listSlotJSDocReturnTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocReturnTag(tagName Handle, typeExpression Handle, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocReturnTag, 0, core.UndefinedTextRange(), 2, 1)
-	f.store.linkChild(h.id, slotJSDocReturnTagTagName, tagName)
-	f.store.linkChild(h.id, slotJSDocReturnTagTypeExpression, typeExpression)
-	f.store.linkList(h.id, listSlotJSDocReturnTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocReturnTag, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChild(id, slotJSDocReturnTagTagName, tagName)
+	f.store.linkChild(id, slotJSDocReturnTagTypeExpression, typeExpression)
+	f.store.linkList(id, listSlotJSDocReturnTagComment, comment)
+	return f.handleFromParse(id, KindJSDocReturnTag)
 }
 
 func (f Factory) UpdateJSDocReturnTag(node Handle, tagName Handle, typeExpression Handle, comment ListRef) Handle {
@@ -4576,11 +5703,18 @@ func (h Handle) SetJSDocReturnTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocReturnTagComment, value)
 }
 
+func (f *Factory) ParseJSDocPublicTag(tagName NodeRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocPublicTag, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChildRef(id, slotJSDocPublicTagTagName, tagName)
+	f.store.linkList(id, listSlotJSDocPublicTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocPublicTag(tagName Handle, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocPublicTag, 0, core.UndefinedTextRange(), 1, 1)
-	f.store.linkChild(h.id, slotJSDocPublicTagTagName, tagName)
-	f.store.linkList(h.id, listSlotJSDocPublicTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocPublicTag, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChild(id, slotJSDocPublicTagTagName, tagName)
+	f.store.linkList(id, listSlotJSDocPublicTagComment, comment)
+	return f.handleFromParse(id, KindJSDocPublicTag)
 }
 
 func (f Factory) UpdateJSDocPublicTag(node Handle, tagName Handle, comment ListRef) Handle {
@@ -4599,11 +5733,18 @@ func (h Handle) SetJSDocPublicTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocPublicTagComment, value)
 }
 
+func (f *Factory) ParseJSDocPrivateTag(tagName NodeRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocPrivateTag, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChildRef(id, slotJSDocPrivateTagTagName, tagName)
+	f.store.linkList(id, listSlotJSDocPrivateTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocPrivateTag(tagName Handle, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocPrivateTag, 0, core.UndefinedTextRange(), 1, 1)
-	f.store.linkChild(h.id, slotJSDocPrivateTagTagName, tagName)
-	f.store.linkList(h.id, listSlotJSDocPrivateTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocPrivateTag, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChild(id, slotJSDocPrivateTagTagName, tagName)
+	f.store.linkList(id, listSlotJSDocPrivateTagComment, comment)
+	return f.handleFromParse(id, KindJSDocPrivateTag)
 }
 
 func (f Factory) UpdateJSDocPrivateTag(node Handle, tagName Handle, comment ListRef) Handle {
@@ -4624,11 +5765,18 @@ func (h Handle) SetJSDocPrivateTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocPrivateTagComment, value)
 }
 
+func (f *Factory) ParseJSDocProtectedTag(tagName NodeRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocProtectedTag, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChildRef(id, slotJSDocProtectedTagTagName, tagName)
+	f.store.linkList(id, listSlotJSDocProtectedTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocProtectedTag(tagName Handle, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocProtectedTag, 0, core.UndefinedTextRange(), 1, 1)
-	f.store.linkChild(h.id, slotJSDocProtectedTagTagName, tagName)
-	f.store.linkList(h.id, listSlotJSDocProtectedTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocProtectedTag, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChild(id, slotJSDocProtectedTagTagName, tagName)
+	f.store.linkList(id, listSlotJSDocProtectedTagComment, comment)
+	return f.handleFromParse(id, KindJSDocProtectedTag)
 }
 
 func (f Factory) UpdateJSDocProtectedTag(node Handle, tagName Handle, comment ListRef) Handle {
@@ -4651,11 +5799,18 @@ func (h Handle) SetJSDocProtectedTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocProtectedTagComment, value)
 }
 
+func (f *Factory) ParseJSDocReadonlyTag(tagName NodeRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocReadonlyTag, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChildRef(id, slotJSDocReadonlyTagTagName, tagName)
+	f.store.linkList(id, listSlotJSDocReadonlyTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocReadonlyTag(tagName Handle, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocReadonlyTag, 0, core.UndefinedTextRange(), 1, 1)
-	f.store.linkChild(h.id, slotJSDocReadonlyTagTagName, tagName)
-	f.store.linkList(h.id, listSlotJSDocReadonlyTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocReadonlyTag, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChild(id, slotJSDocReadonlyTagTagName, tagName)
+	f.store.linkList(id, listSlotJSDocReadonlyTagComment, comment)
+	return f.handleFromParse(id, KindJSDocReadonlyTag)
 }
 
 func (f Factory) UpdateJSDocReadonlyTag(node Handle, tagName Handle, comment ListRef) Handle {
@@ -4676,11 +5831,18 @@ func (h Handle) SetJSDocReadonlyTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocReadonlyTagComment, value)
 }
 
+func (f *Factory) ParseJSDocOverrideTag(tagName NodeRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocOverrideTag, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChildRef(id, slotJSDocOverrideTagTagName, tagName)
+	f.store.linkList(id, listSlotJSDocOverrideTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocOverrideTag(tagName Handle, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocOverrideTag, 0, core.UndefinedTextRange(), 1, 1)
-	f.store.linkChild(h.id, slotJSDocOverrideTagTagName, tagName)
-	f.store.linkList(h.id, listSlotJSDocOverrideTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocOverrideTag, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChild(id, slotJSDocOverrideTagTagName, tagName)
+	f.store.linkList(id, listSlotJSDocOverrideTagComment, comment)
+	return f.handleFromParse(id, KindJSDocOverrideTag)
 }
 
 func (f Factory) UpdateJSDocOverrideTag(node Handle, tagName Handle, comment ListRef) Handle {
@@ -4701,11 +5863,18 @@ func (h Handle) SetJSDocOverrideTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocOverrideTagComment, value)
 }
 
+func (f *Factory) ParseJSDocDeprecatedTag(tagName NodeRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocDeprecatedTag, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChildRef(id, slotJSDocDeprecatedTagTagName, tagName)
+	f.store.linkList(id, listSlotJSDocDeprecatedTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocDeprecatedTag(tagName Handle, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocDeprecatedTag, 0, core.UndefinedTextRange(), 1, 1)
-	f.store.linkChild(h.id, slotJSDocDeprecatedTagTagName, tagName)
-	f.store.linkList(h.id, listSlotJSDocDeprecatedTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocDeprecatedTag, 0, core.UndefinedTextRange(), 1, 1)
+	f.store.linkChild(id, slotJSDocDeprecatedTagTagName, tagName)
+	f.store.linkList(id, listSlotJSDocDeprecatedTagComment, comment)
+	return f.handleFromParse(id, KindJSDocDeprecatedTag)
 }
 
 func (f Factory) UpdateJSDocDeprecatedTag(node Handle, tagName Handle, comment ListRef) Handle {
@@ -4729,12 +5898,20 @@ func (h Handle) SetJSDocDeprecatedTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocDeprecatedTagComment, value)
 }
 
+func (f *Factory) ParseJSDocSeeTag(tagName NodeRef, nameExpression NodeRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocSeeTag, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChildRef(id, slotJSDocSeeTagTagName, tagName)
+	f.store.linkChildRef(id, slotJSDocSeeTagNameExpression, nameExpression)
+	f.store.linkList(id, listSlotJSDocSeeTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocSeeTag(tagName Handle, nameExpression Handle, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocSeeTag, 0, core.UndefinedTextRange(), 2, 1)
-	f.store.linkChild(h.id, slotJSDocSeeTagTagName, tagName)
-	f.store.linkChild(h.id, slotJSDocSeeTagNameExpression, nameExpression)
-	f.store.linkList(h.id, listSlotJSDocSeeTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocSeeTag, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChild(id, slotJSDocSeeTagTagName, tagName)
+	f.store.linkChild(id, slotJSDocSeeTagNameExpression, nameExpression)
+	f.store.linkList(id, listSlotJSDocSeeTagComment, comment)
+	return f.handleFromParse(id, KindJSDocSeeTag)
 }
 
 func (f Factory) UpdateJSDocSeeTag(node Handle, tagName Handle, nameExpression Handle, comment ListRef) Handle {
@@ -4758,12 +5935,20 @@ func (h Handle) SetJSDocSeeTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocSeeTagComment, value)
 }
 
+func (f *Factory) ParseJSDocImplementsTag(tagName NodeRef, className NodeRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocImplementsTag, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChildRef(id, slotJSDocImplementsTagTagName, tagName)
+	f.store.linkChildRef(id, slotJSDocImplementsTagClassName, className)
+	f.store.linkList(id, listSlotJSDocImplementsTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocImplementsTag(tagName Handle, className Handle, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocImplementsTag, 0, core.UndefinedTextRange(), 2, 1)
-	f.store.linkChild(h.id, slotJSDocImplementsTagTagName, tagName)
-	f.store.linkChild(h.id, slotJSDocImplementsTagClassName, className)
-	f.store.linkList(h.id, listSlotJSDocImplementsTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocImplementsTag, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChild(id, slotJSDocImplementsTagTagName, tagName)
+	f.store.linkChild(id, slotJSDocImplementsTagClassName, className)
+	f.store.linkList(id, listSlotJSDocImplementsTagComment, comment)
+	return f.handleFromParse(id, KindJSDocImplementsTag)
 }
 
 func (f Factory) UpdateJSDocImplementsTag(node Handle, tagName Handle, className Handle, comment ListRef) Handle {
@@ -4795,12 +5980,20 @@ func (h Handle) SetJSDocImplementsTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocImplementsTagComment, value)
 }
 
+func (f *Factory) ParseJSDocAugmentsTag(tagName NodeRef, className NodeRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocAugmentsTag, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChildRef(id, slotJSDocAugmentsTagTagName, tagName)
+	f.store.linkChildRef(id, slotJSDocAugmentsTagClassName, className)
+	f.store.linkList(id, listSlotJSDocAugmentsTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocAugmentsTag(tagName Handle, className Handle, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocAugmentsTag, 0, core.UndefinedTextRange(), 2, 1)
-	f.store.linkChild(h.id, slotJSDocAugmentsTagTagName, tagName)
-	f.store.linkChild(h.id, slotJSDocAugmentsTagClassName, className)
-	f.store.linkList(h.id, listSlotJSDocAugmentsTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocAugmentsTag, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChild(id, slotJSDocAugmentsTagTagName, tagName)
+	f.store.linkChild(id, slotJSDocAugmentsTagClassName, className)
+	f.store.linkList(id, listSlotJSDocAugmentsTagComment, comment)
+	return f.handleFromParse(id, KindJSDocAugmentsTag)
 }
 
 func (f Factory) UpdateJSDocAugmentsTag(node Handle, tagName Handle, className Handle, comment ListRef) Handle {
@@ -4827,12 +6020,20 @@ func (h Handle) SetJSDocAugmentsTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocAugmentsTagComment, value)
 }
 
+func (f *Factory) ParseJSDocSatisfiesTag(tagName NodeRef, typeExpression NodeRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocSatisfiesTag, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChildRef(id, slotJSDocSatisfiesTagTagName, tagName)
+	f.store.linkChildRef(id, slotJSDocSatisfiesTagTypeExpression, typeExpression)
+	f.store.linkList(id, listSlotJSDocSatisfiesTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocSatisfiesTag(tagName Handle, typeExpression Handle, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocSatisfiesTag, 0, core.UndefinedTextRange(), 2, 1)
-	f.store.linkChild(h.id, slotJSDocSatisfiesTagTagName, tagName)
-	f.store.linkChild(h.id, slotJSDocSatisfiesTagTypeExpression, typeExpression)
-	f.store.linkList(h.id, listSlotJSDocSatisfiesTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocSatisfiesTag, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChild(id, slotJSDocSatisfiesTagTagName, tagName)
+	f.store.linkChild(id, slotJSDocSatisfiesTagTypeExpression, typeExpression)
+	f.store.linkList(id, listSlotJSDocSatisfiesTagComment, comment)
+	return f.handleFromParse(id, KindJSDocSatisfiesTag)
 }
 
 func (f Factory) UpdateJSDocSatisfiesTag(node Handle, tagName Handle, typeExpression Handle, comment ListRef) Handle {
@@ -4863,12 +6064,20 @@ func (h Handle) SetJSDocSatisfiesTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocSatisfiesTagComment, value)
 }
 
+func (f *Factory) ParseJSDocThrowsTag(tagName NodeRef, typeExpression NodeRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocThrowsTag, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChildRef(id, slotJSDocThrowsTagTagName, tagName)
+	f.store.linkChildRef(id, slotJSDocThrowsTagTypeExpression, typeExpression)
+	f.store.linkList(id, listSlotJSDocThrowsTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocThrowsTag(tagName Handle, typeExpression Handle, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocThrowsTag, 0, core.UndefinedTextRange(), 2, 1)
-	f.store.linkChild(h.id, slotJSDocThrowsTagTagName, tagName)
-	f.store.linkChild(h.id, slotJSDocThrowsTagTypeExpression, typeExpression)
-	f.store.linkList(h.id, listSlotJSDocThrowsTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocThrowsTag, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChild(id, slotJSDocThrowsTagTagName, tagName)
+	f.store.linkChild(id, slotJSDocThrowsTagTypeExpression, typeExpression)
+	f.store.linkList(id, listSlotJSDocThrowsTagComment, comment)
+	return f.handleFromParse(id, KindJSDocThrowsTag)
 }
 
 func (f Factory) UpdateJSDocThrowsTag(node Handle, tagName Handle, typeExpression Handle, comment ListRef) Handle {
@@ -4895,12 +6104,20 @@ func (h Handle) SetJSDocThrowsTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocThrowsTagComment, value)
 }
 
+func (f *Factory) ParseJSDocThisTag(tagName NodeRef, typeExpression NodeRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocThisTag, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChildRef(id, slotJSDocThisTagTagName, tagName)
+	f.store.linkChildRef(id, slotJSDocThisTagTypeExpression, typeExpression)
+	f.store.linkList(id, listSlotJSDocThisTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocThisTag(tagName Handle, typeExpression Handle, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocThisTag, 0, core.UndefinedTextRange(), 2, 1)
-	f.store.linkChild(h.id, slotJSDocThisTagTagName, tagName)
-	f.store.linkChild(h.id, slotJSDocThisTagTypeExpression, typeExpression)
-	f.store.linkList(h.id, listSlotJSDocThisTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocThisTag, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChild(id, slotJSDocThisTagTagName, tagName)
+	f.store.linkChild(id, slotJSDocThisTagTypeExpression, typeExpression)
+	f.store.linkList(id, listSlotJSDocThisTagComment, comment)
+	return f.handleFromParse(id, KindJSDocThisTag)
 }
 
 func (f Factory) UpdateJSDocThisTag(node Handle, tagName Handle, typeExpression Handle, comment ListRef) Handle {
@@ -4924,14 +6141,24 @@ func (h Handle) SetJSDocThisTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocThisTagComment, value)
 }
 
+func (f *Factory) ParseJSDocImportTag(tagName NodeRef, importClause NodeRef, moduleSpecifier NodeRef, attributes NodeRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocImportTag, 0, core.UndefinedTextRange(), 4, 1)
+	f.store.linkChildRef(id, slotJSDocImportTagTagName, tagName)
+	f.store.linkChildRef(id, slotJSDocImportTagImportClause, importClause)
+	f.store.linkChildRef(id, slotJSDocImportTagModuleSpecifier, moduleSpecifier)
+	f.store.linkChildRef(id, slotJSDocImportTagAttributes, attributes)
+	f.store.linkList(id, listSlotJSDocImportTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocImportTag(tagName Handle, importClause Handle, moduleSpecifier Handle, attributes Handle, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocImportTag, 0, core.UndefinedTextRange(), 4, 1)
-	f.store.linkChild(h.id, slotJSDocImportTagTagName, tagName)
-	f.store.linkChild(h.id, slotJSDocImportTagImportClause, importClause)
-	f.store.linkChild(h.id, slotJSDocImportTagModuleSpecifier, moduleSpecifier)
-	f.store.linkChild(h.id, slotJSDocImportTagAttributes, attributes)
-	f.store.linkList(h.id, listSlotJSDocImportTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocImportTag, 0, core.UndefinedTextRange(), 4, 1)
+	f.store.linkChild(id, slotJSDocImportTagTagName, tagName)
+	f.store.linkChild(id, slotJSDocImportTagImportClause, importClause)
+	f.store.linkChild(id, slotJSDocImportTagModuleSpecifier, moduleSpecifier)
+	f.store.linkChild(id, slotJSDocImportTagAttributes, attributes)
+	f.store.linkList(id, listSlotJSDocImportTagComment, comment)
+	return f.handleFromParse(id, KindJSDocImportTag)
 }
 
 func (f Factory) UpdateJSDocImportTag(node Handle, tagName Handle, importClause Handle, moduleSpecifier Handle, attributes Handle, comment ListRef) Handle {
@@ -4969,13 +6196,22 @@ func (h Handle) SetJSDocImportTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocImportTagComment, value)
 }
 
+func (f *Factory) ParseJSDocCallbackTag(tagName NodeRef, typeExpression NodeRef, name NodeRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocCallbackTag, 0, core.UndefinedTextRange(), 3, 1)
+	f.store.linkChildRef(id, slotJSDocCallbackTagTagName, tagName)
+	f.store.linkChildRef(id, slotJSDocCallbackTagTypeExpression, typeExpression)
+	f.store.linkChildRef(id, slotJSDocCallbackTagName, name)
+	f.store.linkList(id, listSlotJSDocCallbackTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocCallbackTag(tagName Handle, typeExpression Handle, name Handle, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocCallbackTag, 0, core.UndefinedTextRange(), 3, 1)
-	f.store.linkChild(h.id, slotJSDocCallbackTagTagName, tagName)
-	f.store.linkChild(h.id, slotJSDocCallbackTagTypeExpression, typeExpression)
-	f.store.linkChild(h.id, slotJSDocCallbackTagName, name)
-	f.store.linkList(h.id, listSlotJSDocCallbackTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocCallbackTag, 0, core.UndefinedTextRange(), 3, 1)
+	f.store.linkChild(id, slotJSDocCallbackTagTagName, tagName)
+	f.store.linkChild(id, slotJSDocCallbackTagTypeExpression, typeExpression)
+	f.store.linkChild(id, slotJSDocCallbackTagName, name)
+	f.store.linkList(id, listSlotJSDocCallbackTagComment, comment)
+	return f.handleFromParse(id, KindJSDocCallbackTag)
 }
 
 func (f Factory) UpdateJSDocCallbackTag(node Handle, tagName Handle, typeExpression Handle, name Handle, comment ListRef) Handle {
@@ -5007,12 +6243,20 @@ func (h Handle) SetJSDocCallbackTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocCallbackTagComment, value)
 }
 
+func (f *Factory) ParseJSDocOverloadTag(tagName NodeRef, typeExpression NodeRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocOverloadTag, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChildRef(id, slotJSDocOverloadTagTagName, tagName)
+	f.store.linkChildRef(id, slotJSDocOverloadTagTypeExpression, typeExpression)
+	f.store.linkList(id, listSlotJSDocOverloadTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocOverloadTag(tagName Handle, typeExpression Handle, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocOverloadTag, 0, core.UndefinedTextRange(), 2, 1)
-	f.store.linkChild(h.id, slotJSDocOverloadTagTagName, tagName)
-	f.store.linkChild(h.id, slotJSDocOverloadTagTypeExpression, typeExpression)
-	f.store.linkList(h.id, listSlotJSDocOverloadTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocOverloadTag, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChild(id, slotJSDocOverloadTagTagName, tagName)
+	f.store.linkChild(id, slotJSDocOverloadTagTypeExpression, typeExpression)
+	f.store.linkList(id, listSlotJSDocOverloadTagComment, comment)
+	return f.handleFromParse(id, KindJSDocOverloadTag)
 }
 
 func (f Factory) UpdateJSDocOverloadTag(node Handle, tagName Handle, typeExpression Handle, comment ListRef) Handle {
@@ -5041,13 +6285,22 @@ func (h Handle) SetJSDocOverloadTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocOverloadTagComment, value)
 }
 
+func (f *Factory) ParseJSDocTypedefTag(tagName NodeRef, typeExpression NodeRef, name NodeRef, comment ListRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocTypedefTag, 0, core.UndefinedTextRange(), 3, 1)
+	f.store.linkChildRef(id, slotJSDocTypedefTagTagName, tagName)
+	f.store.linkChildRef(id, slotJSDocTypedefTagTypeExpression, typeExpression)
+	f.store.linkChildRef(id, slotJSDocTypedefTagName, name)
+	f.store.linkList(id, listSlotJSDocTypedefTagComment, comment)
+	return id
+}
+
 func (f *Factory) NewJSDocTypedefTag(tagName Handle, typeExpression Handle, name Handle, comment ListRef) Handle {
-	h := f.createSlots(KindJSDocTypedefTag, 0, core.UndefinedTextRange(), 3, 1)
-	f.store.linkChild(h.id, slotJSDocTypedefTagTagName, tagName)
-	f.store.linkChild(h.id, slotJSDocTypedefTagTypeExpression, typeExpression)
-	f.store.linkChild(h.id, slotJSDocTypedefTagName, name)
-	f.store.linkList(h.id, listSlotJSDocTypedefTagComment, comment)
-	return h
+	id := f.store.appendSlots(KindJSDocTypedefTag, 0, core.UndefinedTextRange(), 3, 1)
+	f.store.linkChild(id, slotJSDocTypedefTagTagName, tagName)
+	f.store.linkChild(id, slotJSDocTypedefTagTypeExpression, typeExpression)
+	f.store.linkChild(id, slotJSDocTypedefTagName, name)
+	f.store.linkList(id, listSlotJSDocTypedefTagComment, comment)
+	return f.handleFromParse(id, KindJSDocTypedefTag)
 }
 
 func (f Factory) UpdateJSDocTypedefTag(node Handle, tagName Handle, typeExpression Handle, name Handle, comment ListRef) Handle {
@@ -5079,12 +6332,20 @@ func (h Handle) SetJSDocTypedefTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocTypedefTagComment, value)
 }
 
+func (f *Factory) ParseJSDocSignature(typeParameters ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocSignature, 0, core.UndefinedTextRange(), 1, 2)
+	f.store.linkChildRef(id, slotJSDocSignatureType, typeNode)
+	f.store.linkList(id, listSlotJSDocSignatureTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotJSDocSignatureParameters, parameters)
+	return id
+}
+
 func (f *Factory) NewJSDocSignature(typeParameters ListRef, parameters ListRef, typeNode Handle) Handle {
-	h := f.createSlots(KindJSDocSignature, 0, core.UndefinedTextRange(), 1, 2)
-	f.store.linkChild(h.id, slotJSDocSignatureType, typeNode)
-	f.store.linkList(h.id, listSlotJSDocSignatureTypeParameters, typeParameters)
-	f.store.linkList(h.id, listSlotJSDocSignatureParameters, parameters)
-	return h
+	id := f.store.appendSlots(KindJSDocSignature, 0, core.UndefinedTextRange(), 1, 2)
+	f.store.linkChild(id, slotJSDocSignatureType, typeNode)
+	f.store.linkList(id, listSlotJSDocSignatureTypeParameters, typeParameters)
+	f.store.linkList(id, listSlotJSDocSignatureParameters, parameters)
+	return f.handleFromParse(id, KindJSDocSignature)
 }
 
 func (f Factory) UpdateJSDocSignature(node Handle, typeParameters ListRef, parameters ListRef, typeNode Handle) Handle {
@@ -5113,10 +6374,16 @@ func (h Handle) SetJSDocSignatureParameters(value ListRef) {
 	h.SetListSlot(listSlotJSDocSignatureParameters, value)
 }
 
+func (f *Factory) ParseJSDocNameReference(name NodeRef) NodeRef {
+	id := f.store.appendSlots(KindJSDocNameReference, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotJSDocNameReferenceName, name)
+	return id
+}
+
 func (f *Factory) NewJSDocNameReference(name Handle) Handle {
-	h := f.createSlots(KindJSDocNameReference, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotJSDocNameReferenceName, name)
-	return h
+	id := f.store.appendSlots(KindJSDocNameReference, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotJSDocNameReferenceName, name)
+	return f.handleFromParse(id, KindJSDocNameReference)
 }
 
 func (f Factory) UpdateJSDocNameReference(node Handle, name Handle) Handle {
@@ -5141,11 +6408,22 @@ func (h Handle) SetSourceFileStatements(value ListRef) {
 	h.SetListSlot(listSlotSourceFileStatements, value)
 }
 
+func (f *Factory) ParseModuleDeclaration(modifiers ListRef, keyword Kind, name NodeRef, body NodeRef) NodeRef {
+	id := f.store.appendSlots(KindModuleDeclaration, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChildRef(id, slotModuleDeclarationName, name)
+	f.store.linkChildRef(id, slotModuleDeclarationBody, body)
+	f.store.linkList(id, listSlotModuleDeclarationModifiers, modifiers)
+	h := Handle{s: f.store, id: id, Kind: KindModuleDeclaration}
+	h.SetUintValue(valueSlotModuleDeclarationKeyword, uint64(keyword))
+	return id
+}
+
 func (f *Factory) NewModuleDeclaration(modifiers ListRef, keyword Kind, name Handle, body Handle) Handle {
-	h := f.createSlots(KindModuleDeclaration, 0, core.UndefinedTextRange(), 2, 1)
-	f.store.linkChild(h.id, slotModuleDeclarationName, name)
-	f.store.linkChild(h.id, slotModuleDeclarationBody, body)
-	f.store.linkList(h.id, listSlotModuleDeclarationModifiers, modifiers)
+	id := f.store.appendSlots(KindModuleDeclaration, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChild(id, slotModuleDeclarationName, name)
+	f.store.linkChild(id, slotModuleDeclarationBody, body)
+	f.store.linkList(id, listSlotModuleDeclarationModifiers, modifiers)
+	h := f.handleFromParse(id, KindModuleDeclaration)
 	h.SetUintValue(valueSlotModuleDeclarationKeyword, uint64(keyword))
 	return h
 }
@@ -5181,11 +6459,24 @@ func (h Handle) SetModuleDeclarationKeyword(value Kind) {
 	h.SetUintValue(valueSlotModuleDeclarationKeyword, uint64(value))
 }
 
+func (f *Factory) ParseImportEqualsDeclaration(modifiers ListRef, isTypeOnly bool, name NodeRef, moduleReference NodeRef) NodeRef {
+	id := f.store.appendSlots(KindImportEqualsDeclaration, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChildRef(id, slotImportEqualsDeclarationName, name)
+	f.store.linkChildRef(id, slotImportEqualsDeclarationModuleReference, moduleReference)
+	f.store.linkList(id, listSlotImportEqualsDeclarationModifiers, modifiers)
+	h := Handle{s: f.store, id: id, Kind: KindImportEqualsDeclaration}
+	if isTypeOnly {
+		h.SetUintValue(valueSlotImportEqualsDeclarationIsTypeOnly, 1)
+	}
+	return id
+}
+
 func (f *Factory) NewImportEqualsDeclaration(modifiers ListRef, isTypeOnly bool, name Handle, moduleReference Handle) Handle {
-	h := f.createSlots(KindImportEqualsDeclaration, 0, core.UndefinedTextRange(), 2, 1)
-	f.store.linkChild(h.id, slotImportEqualsDeclarationName, name)
-	f.store.linkChild(h.id, slotImportEqualsDeclarationModuleReference, moduleReference)
-	f.store.linkList(h.id, listSlotImportEqualsDeclarationModifiers, modifiers)
+	id := f.store.appendSlots(KindImportEqualsDeclaration, 0, core.UndefinedTextRange(), 2, 1)
+	f.store.linkChild(id, slotImportEqualsDeclarationName, name)
+	f.store.linkChild(id, slotImportEqualsDeclarationModuleReference, moduleReference)
+	f.store.linkList(id, listSlotImportEqualsDeclarationModifiers, modifiers)
+	h := f.handleFromParse(id, KindImportEqualsDeclaration)
 	if isTypeOnly {
 		h.SetUintValue(valueSlotImportEqualsDeclarationIsTypeOnly, 1)
 	}
@@ -5235,12 +6526,26 @@ func (h Handle) SetImportEqualsDeclarationIsTypeOnly(value bool) {
 	}
 }
 
+func (f *Factory) ParseExportDeclaration(modifiers ListRef, isTypeOnly bool, exportClause NodeRef, moduleSpecifier NodeRef, attributes NodeRef) NodeRef {
+	id := f.store.appendSlots(KindExportDeclaration, 0, core.UndefinedTextRange(), 3, 1)
+	f.store.linkChildRef(id, slotExportDeclarationExportClause, exportClause)
+	f.store.linkChildRef(id, slotExportDeclarationModuleSpecifier, moduleSpecifier)
+	f.store.linkChildRef(id, slotExportDeclarationAttributes, attributes)
+	f.store.linkList(id, listSlotExportDeclarationModifiers, modifiers)
+	h := Handle{s: f.store, id: id, Kind: KindExportDeclaration}
+	if isTypeOnly {
+		h.SetUintValue(valueSlotExportDeclarationIsTypeOnly, 1)
+	}
+	return id
+}
+
 func (f *Factory) NewExportDeclaration(modifiers ListRef, isTypeOnly bool, exportClause Handle, moduleSpecifier Handle, attributes Handle) Handle {
-	h := f.createSlots(KindExportDeclaration, 0, core.UndefinedTextRange(), 3, 1)
-	f.store.linkChild(h.id, slotExportDeclarationExportClause, exportClause)
-	f.store.linkChild(h.id, slotExportDeclarationModuleSpecifier, moduleSpecifier)
-	f.store.linkChild(h.id, slotExportDeclarationAttributes, attributes)
-	f.store.linkList(h.id, listSlotExportDeclarationModifiers, modifiers)
+	id := f.store.appendSlots(KindExportDeclaration, 0, core.UndefinedTextRange(), 3, 1)
+	f.store.linkChild(id, slotExportDeclarationExportClause, exportClause)
+	f.store.linkChild(id, slotExportDeclarationModuleSpecifier, moduleSpecifier)
+	f.store.linkChild(id, slotExportDeclarationAttributes, attributes)
+	f.store.linkList(id, listSlotExportDeclarationModifiers, modifiers)
+	h := f.handleFromParse(id, KindExportDeclaration)
 	if isTypeOnly {
 		h.SetUintValue(valueSlotExportDeclarationIsTypeOnly, 1)
 	}
@@ -5298,12 +6603,26 @@ func (h Handle) SetExportDeclarationIsTypeOnly(value bool) {
 	}
 }
 
+func (f *Factory) ParseImportTypeNode(isTypeOf bool, argument NodeRef, attributes NodeRef, qualifier NodeRef, typeArguments ListRef) NodeRef {
+	id := f.store.appendSlots(KindImportType, 0, core.UndefinedTextRange(), 3, 1)
+	f.store.linkChildRef(id, slotImportTypeNodeArgument, argument)
+	f.store.linkChildRef(id, slotImportTypeNodeAttributes, attributes)
+	f.store.linkChildRef(id, slotImportTypeNodeQualifier, qualifier)
+	f.store.linkList(id, listSlotImportTypeNodeTypeArguments, typeArguments)
+	h := Handle{s: f.store, id: id, Kind: KindImportType}
+	if isTypeOf {
+		h.SetUintValue(valueSlotImportTypeNodeIsTypeOf, 1)
+	}
+	return id
+}
+
 func (f *Factory) NewImportTypeNode(isTypeOf bool, argument Handle, attributes Handle, qualifier Handle, typeArguments ListRef) Handle {
-	h := f.createSlots(KindImportType, 0, core.UndefinedTextRange(), 3, 1)
-	f.store.linkChild(h.id, slotImportTypeNodeArgument, argument)
-	f.store.linkChild(h.id, slotImportTypeNodeAttributes, attributes)
-	f.store.linkChild(h.id, slotImportTypeNodeQualifier, qualifier)
-	f.store.linkList(h.id, listSlotImportTypeNodeTypeArguments, typeArguments)
+	id := f.store.appendSlots(KindImportType, 0, core.UndefinedTextRange(), 3, 1)
+	f.store.linkChild(id, slotImportTypeNodeArgument, argument)
+	f.store.linkChild(id, slotImportTypeNodeAttributes, attributes)
+	f.store.linkChild(id, slotImportTypeNodeQualifier, qualifier)
+	f.store.linkList(id, listSlotImportTypeNodeTypeArguments, typeArguments)
+	h := f.handleFromParse(id, KindImportType)
 	if isTypeOf {
 		h.SetUintValue(valueSlotImportTypeNodeIsTypeOf, 1)
 	}
@@ -5352,10 +6671,20 @@ func (h Handle) SetImportTypeNodeIsTypeOf(value bool) {
 	}
 }
 
+func (f *Factory) ParseImportClause(phaseModifier ImportPhaseModifierSyntaxKind, name NodeRef, namedBindings NodeRef) NodeRef {
+	id := f.store.appendSlots(KindImportClause, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotImportClauseName, name)
+	f.store.linkChildRef(id, slotImportClauseNamedBindings, namedBindings)
+	h := Handle{s: f.store, id: id, Kind: KindImportClause}
+	h.SetUintValue(valueSlotImportClausePhaseModifier, uint64(phaseModifier))
+	return id
+}
+
 func (f *Factory) NewImportClause(phaseModifier ImportPhaseModifierSyntaxKind, name Handle, namedBindings Handle) Handle {
-	h := f.createSlots(KindImportClause, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotImportClauseName, name)
-	f.store.linkChild(h.id, slotImportClauseNamedBindings, namedBindings)
+	id := f.store.appendSlots(KindImportClause, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotImportClauseName, name)
+	f.store.linkChild(id, slotImportClauseNamedBindings, namedBindings)
+	h := f.handleFromParse(id, KindImportClause)
 	h.SetUintValue(valueSlotImportClausePhaseModifier, uint64(phaseModifier))
 	return h
 }
@@ -5384,10 +6713,22 @@ func (h Handle) SetImportClausePhaseModifier(value ImportPhaseModifierSyntaxKind
 	h.SetUintValue(valueSlotImportClausePhaseModifier, uint64(value))
 }
 
+func (f *Factory) ParseImportSpecifier(isTypeOnly bool, propertyName NodeRef, name NodeRef) NodeRef {
+	id := f.store.appendSlots(KindImportSpecifier, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotImportSpecifierPropertyName, propertyName)
+	f.store.linkChildRef(id, slotImportSpecifierName, name)
+	h := Handle{s: f.store, id: id, Kind: KindImportSpecifier}
+	if isTypeOnly {
+		h.SetUintValue(valueSlotImportSpecifierIsTypeOnly, 1)
+	}
+	return id
+}
+
 func (f *Factory) NewImportSpecifier(isTypeOnly bool, propertyName Handle, name Handle) Handle {
-	h := f.createSlots(KindImportSpecifier, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotImportSpecifierPropertyName, propertyName)
-	f.store.linkChild(h.id, slotImportSpecifierName, name)
+	id := f.store.appendSlots(KindImportSpecifier, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotImportSpecifierPropertyName, propertyName)
+	f.store.linkChild(id, slotImportSpecifierName, name)
+	h := f.handleFromParse(id, KindImportSpecifier)
 	if isTypeOnly {
 		h.SetUintValue(valueSlotImportSpecifierIsTypeOnly, 1)
 	}
@@ -5424,10 +6765,15 @@ func (h Handle) SetImportSpecifierIsTypeOnly(value bool) {
 	}
 }
 
-func (f *Factory) NewJSDocText(text []string) Handle {
-	h := f.createSlots(KindJSDocText, 0, core.UndefinedTextRange(), 0, 0)
+func (f *Factory) ParseJSDocText(text []string) NodeRef {
+	id := f.store.appendSlots(KindJSDocText, 0, core.UndefinedTextRange(), 0, 0)
+	h := Handle{s: f.store, id: id, Kind: KindJSDocText}
 	h.SetObjectValue(valueSlotJSDocTextText, text)
-	return h
+	return id
+}
+
+func (f *Factory) NewJSDocText(text []string) Handle {
+	return f.handleFromParse(f.ParseJSDocText(text), KindJSDocText)
 }
 
 func (h Handle) JSDocTextText() []string {
@@ -5435,9 +6781,18 @@ func (h Handle) JSDocTextText() []string {
 }
 func (h Handle) SetJSDocTextText(value []string) { h.SetObjectValue(valueSlotJSDocTextText, value) }
 
+func (f *Factory) ParseJSDocLink(name NodeRef, text []string) NodeRef {
+	id := f.store.appendSlots(KindJSDocLink, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotJSDocLinkName, name)
+	h := Handle{s: f.store, id: id, Kind: KindJSDocLink}
+	h.SetObjectValue(valueSlotJSDocLinkText, text)
+	return id
+}
+
 func (f *Factory) NewJSDocLink(name Handle, text []string) Handle {
-	h := f.createSlots(KindJSDocLink, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotJSDocLinkName, name)
+	id := f.store.appendSlots(KindJSDocLink, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotJSDocLinkName, name)
+	h := f.handleFromParse(id, KindJSDocLink)
 	h.SetObjectValue(valueSlotJSDocLinkText, text)
 	return h
 }
@@ -5457,9 +6812,18 @@ func (h Handle) JSDocLinkText() []string {
 }
 func (h Handle) SetJSDocLinkText(value []string) { h.SetObjectValue(valueSlotJSDocLinkText, value) }
 
+func (f *Factory) ParseJSDocLinkPlain(name NodeRef, text []string) NodeRef {
+	id := f.store.appendSlots(KindJSDocLinkPlain, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotJSDocLinkPlainName, name)
+	h := Handle{s: f.store, id: id, Kind: KindJSDocLinkPlain}
+	h.SetObjectValue(valueSlotJSDocLinkPlainText, text)
+	return id
+}
+
 func (f *Factory) NewJSDocLinkPlain(name Handle, text []string) Handle {
-	h := f.createSlots(KindJSDocLinkPlain, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotJSDocLinkPlainName, name)
+	id := f.store.appendSlots(KindJSDocLinkPlain, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotJSDocLinkPlainName, name)
+	h := f.handleFromParse(id, KindJSDocLinkPlain)
 	h.SetObjectValue(valueSlotJSDocLinkPlainText, text)
 	return h
 }
@@ -5482,9 +6846,18 @@ func (h Handle) SetJSDocLinkPlainText(value []string) {
 	h.SetObjectValue(valueSlotJSDocLinkPlainText, value)
 }
 
+func (f *Factory) ParseJSDocLinkCode(name NodeRef, text []string) NodeRef {
+	id := f.store.appendSlots(KindJSDocLinkCode, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChildRef(id, slotJSDocLinkCodeName, name)
+	h := Handle{s: f.store, id: id, Kind: KindJSDocLinkCode}
+	h.SetObjectValue(valueSlotJSDocLinkCodeText, text)
+	return id
+}
+
 func (f *Factory) NewJSDocLinkCode(name Handle, text []string) Handle {
-	h := f.createSlots(KindJSDocLinkCode, 0, core.UndefinedTextRange(), 1, 0)
-	f.store.linkChild(h.id, slotJSDocLinkCodeName, name)
+	id := f.store.appendSlots(KindJSDocLinkCode, 0, core.UndefinedTextRange(), 1, 0)
+	f.store.linkChild(id, slotJSDocLinkCodeName, name)
+	h := f.handleFromParse(id, KindJSDocLinkCode)
 	h.SetObjectValue(valueSlotJSDocLinkCodeText, text)
 	return h
 }
@@ -5507,14 +6880,24 @@ func (h Handle) SetJSDocLinkCodeText(value []string) {
 	h.SetObjectValue(valueSlotJSDocLinkCodeText, value)
 }
 
+func (f *Factory) ParseTypeParameterDeclaration(modifiers ListRef, name NodeRef, constraint NodeRef, expression NodeRef, defaultType NodeRef) NodeRef {
+	id := f.store.appendSlots(KindTypeParameter, 0, core.UndefinedTextRange(), 4, 1)
+	f.store.linkChildRef(id, slotTypeParameterDeclarationName, name)
+	f.store.linkChildRef(id, slotTypeParameterDeclarationConstraint, constraint)
+	f.store.linkChildRef(id, slotTypeParameterDeclarationExpression, expression)
+	f.store.linkChildRef(id, slotTypeParameterDeclarationDefaultType, defaultType)
+	f.store.linkList(id, listSlotTypeParameterDeclarationModifiers, modifiers)
+	return id
+}
+
 func (f *Factory) NewTypeParameterDeclaration(modifiers ListRef, name Handle, constraint Handle, expression Handle, defaultType Handle) Handle {
-	h := f.createSlots(KindTypeParameter, 0, core.UndefinedTextRange(), 4, 1)
-	f.store.linkChild(h.id, slotTypeParameterDeclarationName, name)
-	f.store.linkChild(h.id, slotTypeParameterDeclarationConstraint, constraint)
-	f.store.linkChild(h.id, slotTypeParameterDeclarationExpression, expression)
-	f.store.linkChild(h.id, slotTypeParameterDeclarationDefaultType, defaultType)
-	f.store.linkList(h.id, listSlotTypeParameterDeclarationModifiers, modifiers)
-	return h
+	id := f.store.appendSlots(KindTypeParameter, 0, core.UndefinedTextRange(), 4, 1)
+	f.store.linkChild(id, slotTypeParameterDeclarationName, name)
+	f.store.linkChild(id, slotTypeParameterDeclarationConstraint, constraint)
+	f.store.linkChild(id, slotTypeParameterDeclarationExpression, expression)
+	f.store.linkChild(id, slotTypeParameterDeclarationDefaultType, defaultType)
+	f.store.linkList(id, listSlotTypeParameterDeclarationModifiers, modifiers)
+	return f.handleFromParse(id, KindTypeParameter)
 }
 
 func (f Factory) UpdateTypeParameterDeclaration(node Handle, modifiers ListRef, name Handle, constraint Handle, expression Handle, defaultType Handle) Handle {
@@ -5564,11 +6947,18 @@ func (h Handle) SetTypeParameterDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotTypeParameterDeclarationModifiers, value)
 }
 
+func (f *Factory) ParseSyntheticReferenceExpression(expression NodeRef, thisArg NodeRef) NodeRef {
+	id := f.store.appendSlots(KindSyntheticReferenceExpression, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChildRef(id, slotSyntheticReferenceExpressionExpression, expression)
+	f.store.linkChildRef(id, slotSyntheticReferenceExpressionThisArg, thisArg)
+	return id
+}
+
 func (f *Factory) NewSyntheticReferenceExpression(expression Handle, thisArg Handle) Handle {
-	h := f.createSlots(KindSyntheticReferenceExpression, 0, core.UndefinedTextRange(), 2, 0)
-	f.store.linkChild(h.id, slotSyntheticReferenceExpressionExpression, expression)
-	f.store.linkChild(h.id, slotSyntheticReferenceExpressionThisArg, thisArg)
-	return h
+	id := f.store.appendSlots(KindSyntheticReferenceExpression, 0, core.UndefinedTextRange(), 2, 0)
+	f.store.linkChild(id, slotSyntheticReferenceExpressionExpression, expression)
+	f.store.linkChild(id, slotSyntheticReferenceExpressionThisArg, thisArg)
+	return f.handleFromParse(id, KindSyntheticReferenceExpression)
 }
 
 func (f Factory) UpdateSyntheticReferenceExpression(node Handle, expression Handle, thisArg Handle) Handle {
@@ -5594,13 +6984,18 @@ func (h Handle) SetSyntheticReferenceExpressionThisArg(value Handle) {
 	h.SetChild(slotSyntheticReferenceExpressionThisArg, value)
 }
 
-func (f *Factory) NewJSDocTypeLiteral(jsdocPropertyTags ListRef, isArrayType bool) Handle {
-	h := f.createSlots(KindJSDocTypeLiteral, 0, core.UndefinedTextRange(), 0, 1)
-	f.store.linkList(h.id, listSlotJSDocTypeLiteralJSDocPropertyTags, jsdocPropertyTags)
+func (f *Factory) ParseJSDocTypeLiteral(jsdocPropertyTags ListRef, isArrayType bool) NodeRef {
+	id := f.store.appendSlots(KindJSDocTypeLiteral, 0, core.UndefinedTextRange(), 0, 1)
+	f.store.linkList(id, listSlotJSDocTypeLiteralJSDocPropertyTags, jsdocPropertyTags)
+	h := Handle{s: f.store, id: id, Kind: KindJSDocTypeLiteral}
 	if isArrayType {
 		h.SetUintValue(valueSlotJSDocTypeLiteralIsArrayType, 1)
 	}
-	return h
+	return id
+}
+
+func (f *Factory) NewJSDocTypeLiteral(jsdocPropertyTags ListRef, isArrayType bool) Handle {
+	return f.handleFromParse(f.ParseJSDocTypeLiteral(jsdocPropertyTags, isArrayType), KindJSDocTypeLiteral)
 }
 
 func (f Factory) UpdateJSDocTypeLiteral(node Handle, jsdocPropertyTags ListRef, isArrayType bool) Handle {
@@ -5630,12 +7025,29 @@ func (h Handle) SetJSDocTypeLiteralIsArrayType(value bool) {
 	}
 }
 
+func (f *Factory) ParseJSDocParameterOrPropertyTag(kind Kind, tagName NodeRef, name NodeRef, isBracketed bool, typeExpression NodeRef, isNameFirst bool, comment ListRef) NodeRef {
+	id := f.store.appendSlots(kind, 0, core.UndefinedTextRange(), 3, 1)
+	f.store.linkChildRef(id, slotJSDocParameterOrPropertyTagTagName, tagName)
+	f.store.linkChildRef(id, slotJSDocParameterOrPropertyTagName, name)
+	f.store.linkChildRef(id, slotJSDocParameterOrPropertyTagTypeExpression, typeExpression)
+	f.store.linkList(id, listSlotJSDocParameterOrPropertyTagComment, comment)
+	h := Handle{s: f.store, id: id, Kind: kind}
+	if isBracketed {
+		h.SetUintValue(valueSlotJSDocParameterOrPropertyTagIsBracketed, 1)
+	}
+	if isNameFirst {
+		h.SetUintValue(valueSlotJSDocParameterOrPropertyTagIsNameFirst, 1)
+	}
+	return id
+}
+
 func (f *Factory) NewJSDocParameterOrPropertyTag(kind Kind, tagName Handle, name Handle, isBracketed bool, typeExpression Handle, isNameFirst bool, comment ListRef) Handle {
-	h := f.createSlots(kind, 0, core.UndefinedTextRange(), 3, 1)
-	f.store.linkChild(h.id, slotJSDocParameterOrPropertyTagTagName, tagName)
-	f.store.linkChild(h.id, slotJSDocParameterOrPropertyTagName, name)
-	f.store.linkChild(h.id, slotJSDocParameterOrPropertyTagTypeExpression, typeExpression)
-	f.store.linkList(h.id, listSlotJSDocParameterOrPropertyTagComment, comment)
+	id := f.store.appendSlots(kind, 0, core.UndefinedTextRange(), 3, 1)
+	f.store.linkChild(id, slotJSDocParameterOrPropertyTagTagName, tagName)
+	f.store.linkChild(id, slotJSDocParameterOrPropertyTagName, name)
+	f.store.linkChild(id, slotJSDocParameterOrPropertyTagTypeExpression, typeExpression)
+	f.store.linkList(id, listSlotJSDocParameterOrPropertyTagComment, comment)
+	h := f.handleFromParse(id, kind)
 	if isBracketed {
 		h.SetUintValue(valueSlotJSDocParameterOrPropertyTagIsBracketed, 1)
 	}

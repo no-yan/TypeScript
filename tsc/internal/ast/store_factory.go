@@ -62,13 +62,16 @@ func (f *Factory) create(kind Kind, flags NodeFlags, loc core.TextRange, childLe
 	return f.createSlots(kind, flags, loc, childLen, 0)
 }
 
-func (f *Factory) createSlots(kind Kind, flags NodeFlags, loc core.TextRange, childLen, listLen int) Handle {
-	id := f.store.appendSlots(kind, flags, loc, childLen, listLen)
+func (f *Factory) handleFromParse(id NodeRef, kind Kind) Handle {
 	h := Handle{s: f.store, id: id, Kind: kind}
 	if f.hooks.OnCreate != nil {
 		f.hooks.OnCreate(h)
 	}
 	return h
+}
+
+func (f *Factory) createSlots(kind Kind, flags NodeFlags, loc core.TextRange, childLen, listLen int) Handle {
+	return f.handleFromParse(f.store.appendSlots(kind, flags, loc, childLen, listLen), kind)
 }
 
 func (f *Factory) Identifier(text string) Handle {
@@ -458,13 +461,21 @@ func (f *Factory) FunctionExpression(loc core.TextRange, params ListRef) Handle 
 	return h
 }
 
+// ParseSourceFile creates the Store-owned SourceFile syntax root as a NodeRef.
+func (f *Factory) ParseSourceFile(statements ListRef, endOfFileToken NodeRef) NodeRef {
+	id := f.store.appendSlots(KindSourceFile, 0, core.UndefinedTextRange(), slotSourceFileCount, listSlotSourceFileCount)
+	f.store.linkChildRef(id, slotSourceFileEndOfFileToken, endOfFileToken)
+	f.store.linkList(id, listSlotSourceFileStatements, statements)
+	return id
+}
+
 // NewSourceFile creates the Store-owned SourceFile syntax root. File metadata
 // is initialized when a pointer view is materialized for legacy consumers.
 func (f *Factory) NewSourceFile(statements ListRef, endOfFileToken Handle) Handle {
-	h := f.createSlots(KindSourceFile, 0, core.UndefinedTextRange(), slotSourceFileCount, listSlotSourceFileCount)
-	h.SetSourceFileEndOfFileToken(endOfFileToken)
-	h.SetSourceFileStatements(statements)
-	return h
+	id := f.store.appendSlots(KindSourceFile, 0, core.UndefinedTextRange(), slotSourceFileCount, listSlotSourceFileCount)
+	f.store.linkChild(id, slotSourceFileEndOfFileToken, endOfFileToken)
+	f.store.linkList(id, listSlotSourceFileStatements, statements)
+	return f.handleFromParse(id, KindSourceFile)
 }
 
 func (f *Factory) UpdateSourceFile(node Handle, statements ListRef, endOfFileToken Handle) Handle {
