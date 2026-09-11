@@ -14,7 +14,7 @@ comparison.jsonまたはsnapshot.jsonから正確なテスト名を選び、Go�
 
 ## Driving it with conformance.py
 
-SKILL.mdのfocusedコマンドで`indexSignatureTypeInference.ts`を実行する。snapshot.jsonの対象ケースがそのファイルだけで、0件ではないことを確認する。比較する両版には同一filterを使う。cleanup後もfocused snapshotを読めることを確認する。
+SKILL.mdのfocusedコマンドで`indexSignatureTypeInference.ts`を実行する。snapshot.jsonの対象ケースがそのファイルだけで、0件ではないことを確認する。子検証まで絞った場合は、期待する完全なtest名が存在して終了statusを持つことも確認する。比較する両版には同一filterを使う。cleanup後もfocused snapshotを読めることを確認する。
 
 ## Gotchas
 

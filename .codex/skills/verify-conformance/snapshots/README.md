@@ -2,7 +2,7 @@
 
 Gitで追跡するconformance結果。更新するたびに同じファイルへ書き出し、コミット間のdiffで比較する。Oxcのcoverage/CLI snapshotを参考にした独自のテキスト形式であり、Insta用ファイルではない。
 
-- `summary.snap`: 検証対象commit、入力・参照・ハーネス契約のdigest、ファイル×設定の集計。
+- `summary.snap`: 検証対象TypeScript commit SHA、入力・参照・ハーネス契約のdigest、全体および機能カテゴリ別のファイル×設定集計と比率。
 - `cases-*.snap`: 全ケースの結果と失敗・skipの理由。
 - `<stage>-*.snap`: 検証段階ごとの結果、出力fingerprint、期待値と実出力の差分。
 - 末尾`0`〜`f`はテスト名のSHA256先頭1桁。追加・削除で既存ケースの格納先は変わらない。

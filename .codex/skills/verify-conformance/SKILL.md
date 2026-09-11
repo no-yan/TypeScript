@@ -83,7 +83,7 @@ python3 "$SKILL/scripts/export_snapshots.py" --source "$SKILL/artifacts/head-a" 
 
 終了コードは0=一致、1=差分あり、2=不完全capture・内容欠損等の異常。`--check`は一切書き換えない。異なるcommitならsummaryのcommit行も変わる。差分ありは自動的に新規回帰という意味ではない。意味判定には既存の`compare`を使う。
 
-summaryはcommit・入力契約・件数を記録する。stage別snapshotは全ケースのstatus、成功を含む出力fingerprint、失敗/skipの理由、期待値とactualのunified diffを含む。時刻・実行秒数・一時ディレクトリは含めない。出力fingerprintは成功した出力の変化も見逃さないために残す。実際の出力全文はartifactに保存する。
+summaryは検証したTypeScript sourceのcommit SHA・入力契約・全体件数に加え、conformance入力の最上位ディレクトリを機能カテゴリとしてpass/fail/skip/unfinishedの件数と比率を記録する。比率の分母は各カテゴリで観測したfile/configurationケース総数。stage別snapshotは全ケースのstatus、成功を含む出力fingerprint、失敗/skipの理由、期待値とactualのunified diffを含む。時刻・実行秒数・一時ディレクトリは含めない。出力fingerprintは成功した出力の変化も見逃さないために残す。実際の出力全文はartifactに保存する。
 
 ファイル名末尾の0〜fはテスト名のSHA256先頭1桁による固定区分。ケース追加で他の区分が移動せず、巨大なstageもGitHubでレビューしやすいサイズに分割できる。snapshot更新は既存失敗の記録であり、TypeScriptの期待baselineの承認ではない。絞り込み結果でsuite全体のsnapshotを置き換えない（focused用に別の出力先を指定する）。
 

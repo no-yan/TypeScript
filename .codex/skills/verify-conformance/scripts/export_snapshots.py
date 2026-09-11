@@ -7,9 +7,13 @@ import json
 from pathlib import Path
 import re
 import sys
-from conformance import read, sha, normalize_output, digest
+from conformance import read, sha, normalize_output, digest, summarize_categories
 
 HEADER = '---\nsource: tsc/internal/testrunner/compiler_runner_test.go\nformat: conformance-text-v1\n---\n'
+
+
+def percentage(count, total):
+    return f'{(count * 100 / total):.2f}%'
 
 
 def render(source):
@@ -33,6 +37,20 @@ def render(source):
              '', 'File/configuration summary:']
     for status, count in sorted(data['case_counts'].items()):
         lines.append(f'{status}: {count}')
+    cases = {key: value for key, value in data['tests'].items()
+             if key.startswith('TestLocal/') and key.count('/') == 1}
+    derived_category_counts = summarize_categories(cases, info)
+    category_counts = data.get('category_counts', derived_category_counts)
+    if category_counts != derived_category_counts:
+        raise ValueError('Category summary does not match captured cases')
+    lines += ['', 'Category summary:']
+    for category, counts in sorted(category_counts.items()):
+        total = sum(counts.values())
+        lines += ['', f'{category} Summary:']
+        for label, status in [('Passed', 'pass'), ('Failed', 'fail'), ('Skipped', 'skip'),
+                              ('Unfinished', 'unfinished')]:
+            count = counts.get(status, 0)
+            lines.append(f'{label:<10}: {count}/{total} ({percentage(count, total)})')
     files['summary.snap'] = '\n'.join(lines) + '\n'
     groups = defaultdict(list)
     for name, item in sorted(data['tests'].items()):

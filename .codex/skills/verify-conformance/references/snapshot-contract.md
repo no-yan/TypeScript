@@ -6,6 +6,8 @@ prepareは指定commitのarchive、overlay、binaryを作る。identityにはrep
 
 snapshot.jsonはGo JSONイベントの正確なテスト名をkeyとする。ファイル名は既存runnerが一意性検査する。各子検証にはstatus、失敗/skipログの正規化hash、capture一覧（baseline相対path、actual SHA、reference SHA）を保持する。実内容はcontentsに保存する。
 
+category_countsはconformance入力の最上位ディレクトリを機能カテゴリとし、file/configurationケースのstatusを集計する。ディレクトリ直下の入力は`(root)`。runnerが保証する一意なbasenameから入力pathへ戻し、configuration suffixは同じ入力カテゴリに数える。pass、fail、skip、unfinishedはカテゴリ総ケース数を共通分母として別々に表示し、親ケースと子stageを混ぜない。
+
 成功したbaseline.Runも捕捉する。内容が不要な場合の既存`NoContent`も記録する。overlayはbaseline承認や期待値の更新をしない。baseline.Runに到達する前のpanicにはcaptureがなく、結果ログが証拠になる。
 
 actual/referenceはその実行の隔離repo絶対pathだけを`<REPO>`へ置換する。改行・型表示・診断番号などは維持する。失敗メッセージではGoの進行行、volatileなstackフレーム、テストソースの行番号を正規化する。assertion内のhex値を無差別に削らない。rawログは無変更で保存する。stackだけの差はフィンガープリントで潰れる場合があるため、原因分析ではrawも読む。

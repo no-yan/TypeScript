@@ -87,6 +87,38 @@ def digest(value):
     return sha(json.dumps(value, sort_keys=True, separators=(',', ':')).encode())
 
 
+def conformance_categories(info):
+    """Map the runner's unique basename to its top-level conformance feature."""
+    prefix = 'tsc/testdata/tests/cases/conformance/'
+    categories = {}
+    for path in info['conformance_files']:
+        if not path.startswith(prefix):
+            raise ValueError('Unexpected conformance input: ' + path)
+        relative = path[len(prefix):]
+        basename = Path(relative).name
+        category = relative.split('/', 1)[0] if '/' in relative else '(root)'
+        if basename in categories:
+            raise ValueError('Duplicate conformance basename: ' + basename)
+        categories[basename] = category
+    return categories
+
+
+def summarize_categories(cases, info):
+    categories = conformance_categories(info)
+    counts = collections.defaultdict(collections.Counter)
+    # Configuration suffixes are appended to the unique input basename (the
+    # current runner uses both spaces and underscores), so prefer longer
+    # basenames to distinguish e.g. sample.ts from sample.tsx.
+    basenames = sorted(categories, key=len, reverse=True)
+    for name, item in cases.items():
+        case = name.removeprefix('TestLocal/')
+        basename = next((value for value in basenames if case.startswith(value)), None)
+        if basename is None:
+            raise ValueError('Cannot map conformance case to an input: ' + name)
+        counts[categories[basename]][item['status']] += 1
+    return {category: dict(statuses) for category, statuses in sorted(counts.items())}
+
+
 CAPTURE = r'''
 // Verification overlay only: record the actual user-visible baseline content.
 var conformanceCaptureMu sync.Mutex
@@ -292,16 +324,19 @@ def summarize(out, info, root, code, run_filter):
         del item['messages']
     cases = {k: v for k, v in results.items() if k.startswith('TestLocal/') and k.count('/') == 1}
     counts = dict(collections.Counter(v['status'] for v in cases.values()))
+    category_counts = summarize_categories(cases, info)
     complete = bool(cases) and not fatal and not malformed and code in (0, 1) and all(v['status'] != 'unfinished' for v in results.values())
     if code == 1 and not any(v['status'] == 'fail' for v in results.values()):
         complete = False
     snapshot = {'schema': SCHEMA, 'identity': info, 'filter': run_filter, 'exit_code': code,
-                'complete': complete, 'case_counts': counts, 'fatal_errors': fatal,
+                'complete': complete, 'case_counts': counts, 'category_counts': category_counts,
+                'fatal_errors': fatal,
                 'malformed_json_lines': malformed, 'tests': results}
     dump(out / 'snapshot.json', snapshot)
     (out / 'report.md').write_text('# Conformance snapshot\n\n' +
         f"Commit: `{info['typescript_go_git_rev']}`\n\nComplete: {complete}; exit code: {code}\n\n" +
         f'File/configuration results: `{json.dumps(counts)}`\n\n' +
+        f'Category results: `{json.dumps(category_counts)}`\n\n' +
         'Raw: test.jsonl; actual/expected contents: contents/; structured result: snapshot.json.\n')
     return snapshot
 

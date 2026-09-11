@@ -16,7 +16,9 @@ class ExportTests(unittest.TestCase):
         self.source.mkdir()
         (self.source / 'contents').mkdir()
         self.data = {'schema': 1, 'complete': True, 'filter': '^TestLocal$', 'exit_code': 1,
-                     'identity': {'typescript_go_git_rev': 'abc', 'contract': {}},
+                     'identity': {'typescript_go_git_rev': 'abc', 'contract': {},
+                                  'conformance_files': [
+                                      'tsc/testdata/tests/cases/conformance/types/sample.ts']},
                      'case_counts': {'fail': 1}, 'tests': {}}
         (self.source / 'invocation.json').write_text(json.dumps({'prepared': str(self.root / 'build')}))
         (self.source / 'test.jsonl').write_text('')
@@ -30,6 +32,8 @@ class ExportTests(unittest.TestCase):
             'status': 'fail', 'message_sha256': digest([]), 'captures': [{
                 'path': 'conformance/sample.errors.txt',
                 'reference': sha(expected.encode()), 'actual': sha(actual.encode())}]}
+        self.data['tests']['TestLocal/sample.ts'] = {
+            'status': 'fail', 'message_sha256': digest([]), 'captures': []}
         (self.source / 'snapshot.json').write_text(json.dumps(self.data))
 
     def test_same_count_changed_output_is_readable(self):
@@ -39,6 +43,19 @@ class ExportTests(unittest.TestCase):
         self.assertNotEqual(a, b)
         self.assertIn('+new actual', '\n'.join(b.values()))
         self.assertIn('-expected', '\n'.join(b.values()))
+
+    def test_summary_reports_category_counts_and_rates(self):
+        summary = render(self.source)['summary.snap']
+        self.assertIn('types Summary:', summary)
+        self.assertIn('Passed    : 0/1 (0.00%)', summary)
+        self.assertIn('Failed    : 1/1 (100.00%)', summary)
+        self.assertIn('Skipped   : 0/1 (0.00%)', summary)
+
+    def test_inconsistent_category_summary_is_rejected(self):
+        self.data['category_counts'] = {'types': {'pass': 1}}
+        (self.source / 'snapshot.json').write_text(json.dumps(self.data))
+        with self.assertRaisesRegex(ValueError, 'does not match'):
+            render(self.source)
 
     def test_crlf_output_exports_lf_text_and_checks_equal(self):
         self.capture('changed\r\n')

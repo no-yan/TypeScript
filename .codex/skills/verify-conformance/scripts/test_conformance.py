@@ -2,7 +2,7 @@
 """Regression checks for snapshot comparisons, not compiler correctness tests."""
 import copy
 import unittest
-from conformance import comparison, normalize_output
+from conformance import comparison, normalize_output, summarize_categories
 from pathlib import Path
 
 
@@ -49,6 +49,21 @@ class ComparisonTests(unittest.TestCase):
     def test_assertion_hex_values_are_preserved(self):
         self.assertEqual(normalize_output('    sample_test.go:12: want 0x10 got 0x20\n', Path('/tmp/root')),
                          '    sample_test.go:<line>: want 0x10 got 0x20')
+
+    def test_category_counts_include_configurations(self):
+        info = {'conformance_files': [
+            'tsc/testdata/tests/cases/conformance/types/sample.ts',
+            'tsc/testdata/tests/cases/conformance/root.ts',
+        ]}
+        cases = {
+            'TestLocal/sample.ts': {'status': 'pass'},
+            'TestLocal/sample.ts_target=es5': {'status': 'fail'},
+            'TestLocal/root.ts': {'status': 'skip'},
+        }
+        self.assertEqual(summarize_categories(cases, info), {
+            '(root)': {'skip': 1},
+            'types': {'pass': 1, 'fail': 1},
+        })
 
 
 if __name__ == '__main__':

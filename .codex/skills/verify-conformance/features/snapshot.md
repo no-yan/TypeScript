@@ -6,6 +6,7 @@
 
 - 指定commitだけを独立したコピーへ展開してbuild。
 - suiteの成功・失敗・skip・未終了を記録。
+- conformance入力の最上位ディレクトリを機能カテゴリとして、file/configurationケースの成功・失敗・skip・未終了の件数と比率を記録。
 - 診断/出力/type/symbol等のactual・referenceを保存。
 
 ## How to get to it (user POV)
@@ -14,7 +15,7 @@ repo rootから`conformance.py prepare --revision HEAD`と`doctor`を実行す�
 
 ## Driving it with conformance.py
 
-SKILL.mdのLaunchとDriveに従い、新しいartifact名でprepare → doctor → snapshotを実行する。report.mdとsnapshot.jsonのcommit、case_counts、complete、exit_codeを確認する。`contents/`と`captures.jsonl`があり、baseline-diffsが指定artifact配下に作られることを確認する。cleanup後もsnapshot・内容が読めることが証拠。
+SKILL.mdのLaunchとDriveに従い、新しいartifact名でprepare → doctor → snapshotを実行する。report.mdとsnapshot.jsonのcommit、case_counts、category_counts、complete、exit_codeを確認する。各カテゴリのstatus合計がそのカテゴリの総ケース数と一致し、全カテゴリの合計がcase_countsと一致することを確認する。`contents/`と`captures.jsonl`があり、baseline-diffsが指定artifact配下に作られることを確認する。cleanup後もsnapshot・内容が読めることが証拠。
 
 ## Gotchas
 
