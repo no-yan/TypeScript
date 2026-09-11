@@ -73,6 +73,31 @@ GOGC=off sudo /tmp/binder.kperf.test -test.run '^$' \
 - 最初の 1 回は同じバイナリを 2 度回し、`inst/op` の差が 1% 未満であることを確認する。
   これが成り立たなければ環境 (他プロセス、xctrace の残骸、root 権限不足) を疑う。
 
+## エージェントから root を取る
+
+Cursor のシェル承認カードと `sudo -n` では足りない。エージェントのシェルに TTY が無いので
+`sudo /tmp/binder.kperf.test …` はパスワード待ちで止まる。`sudo -n true` はタイムスタンプが
+無ければ失敗し、それを `kpc=unreachable` と書いて終わらせてはいけない。
+
+macOS の管理者ダイアログは `osascript` の Authorization Services で出す。
+
+```sh
+osascript -e 'do shell script "/tmp/run-kpc.sh" with administrator privileges with prompt "kperf kpc を root で実行します"'
+```
+
+Touch ID または管理者パスワードの標準ダイアログが出る。成功するとそのスクリプトは uid=root で走る。
+
+制約:
+
+- ドライバーと `go test -c` したバイナリは内蔵ディスクに置く。SanDisk 上のスクリプトは
+  osascript が実行できないことがある。`/tmp/run-kpc.sh` と `/tmp/*.kperf.test` にコピーしてから叩く。
+- `do shell script` はログインシェルではない。`GOGC=off` と `KPERF_TESTDATA` はドライバー内で export する。
+- ビルドはユーザー権限のまま。root で `go test` すると HOME が root のキャッシュになる。
+- Cursor の `request_smart_mode_approval` は Auto-review 用で、このダイアログにはならない。
+
+対話 Terminal で `sudo -v` したあとにエージェントが `sudo -n` で走る経路は残してよい。
+エージェントだけで完結させるときは osascript を使う。
+
 ## 判定基準
 
 - **採用条件は cycles/op と inst/op の両方が下がること。** 2026-09-09 の生成 walker は
