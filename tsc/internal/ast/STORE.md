@@ -57,7 +57,7 @@ Columns and side tables on `Store`:
 
 | Data | Shape | Why |
 | --- | --- | --- |
-| `nodes`, `lists`, `children`, `internBuf`, `internOff` | dense, noscan | the layout bet |
+| `nodes`, `lists`, `children`, `internBuf`, `internOff` | dense, noscan | the layout bet. Bind-hot sketch to pack Kind beside each child ref: [bind-store-layout-design.md](docs/bind-store-layout-design.md) |
 | `internIdx` | `map[string]uint32` | construction-time dedup; dropped by `Seal` / `Freeze`. `Intern` after `Seal` appends without dedup during build; `Freeze` prohibits further interning |
 | `symbolIdx []uint32` + `symbolRefs []*Symbol` | dense index column + 1-based fill-only pointer slice | about one node in eight has a Symbol; the GC scans 1/8 the pointers of a dense `[]*Symbol` |
 | `flows []uint32` | dense noscan column of ids into the Store's chunked `FlowNode` arena (`NewFlow`), sized at `PrepareBindTables` | fill is about 50%; 4 B/node and no GC scan. FlowNodes not from this arena (copied from another Store, checker literals) get a slot in `foreignFlows`; see `docs/flow-index-column-bench.md` |

@@ -1,0 +1,1229 @@
+{
+  "purpose": "Design scope inventory from existing call-site counts; not a new benchmark or a machine-instruction attribution",
+  "repo_root": "/Volumes/SanDisk1TB/worktree/cursor-ast-store-tests",
+  "typescript_go_git_rev": "32598cba146fa4dd7b6162b838630c90d865ab28",
+  "tsgolint_git_rev": null,
+  "current_source_sha256": {
+    "tsc/internal/binder/binder.go": "a3dfbaa33074e9290aaab577dbe48308389a811dde405fd7514f9c42d5045020",
+    "tsc/internal/binder/bindwalk_generated.go": "b3950e6ba3047121ffa388fd05c7bfff943ecf5f3e44db3672136769878d23aa",
+    "tsc/internal/ast/store.go": "73ce0410408c60880df17f2736d679a6ecdf0b238cc862e588c488d4766e00ef",
+    "tsc/internal/ast/store_factory.go": "b4a397175ffb378dd57373aebe9991baade0c0e38200f691c2e4b0d0a034674b",
+    "tsc/internal/ast/store_query_manual.go": "daa26e39b950e688a7f4d0e154c1ebbf280241284ca33028602c4788ce3adc15",
+    "tsc/internal/ast/ast.go": "2fe293d0f5a0ae82469bdb608b74a09bf3aa4f3811a1918b81cf87e0a8dd39dc",
+    "tsc/internal/parser/jsdoc.go": "37ffc4b8a112a6b2e6366c6affaea497d9eea9441c57379a8c87abfa2044aa0c",
+    "tools/scripts/tsc/generate-go-ast.ts": "9d55b9df04e7e1832b72c07fa0ceb071c72ff510e2e064add7db234556fd2a8c"
+  },
+  "inputs": {
+    ".cursor/skills/verify-tsc/artifacts/20260910-binder-investigation-02/audit-sites/results/Herebyfile.mjs.json": "f561318ad277e9d2004e7fa5669c1c76e6613691a8fda9a95a7c30a118762129",
+    ".cursor/skills/verify-tsc/artifacts/20260910-binder-investigation-02/audit-sites/results/api.ts.json": "b17459276f42005ae5025aa1ef8c8e43aa360b289358564d0e07735a48e360da",
+    ".cursor/skills/verify-tsc/artifacts/20260910-binder-investigation-02/audit-sites/results/checker.ts.json": "b8da593890f51d2135714c95ad4f1d80ec753e26d74214355b85d3c0bf9a03bf",
+    ".cursor/skills/verify-tsc/artifacts/20260910-binder-investigation-02/audit-sites/results/client.ts.json": "addc59a2365c9cab0d71cae7a76930384d2e19888fece2150b34acce02dc9676",
+    ".cursor/skills/verify-tsc/artifacts/20260910-binder-investigation-02/audit-sites/results/dom.generated.d.ts.json": "9a353c2a17b732ae7c0247d56c33f461aa9707268c5ed5aa80a046dc3c290c9a",
+    ".cursor/skills/verify-tsc/artifacts/20260910-binder-investigation-02/audit-sites/results/jsxComplexSignatureHasApplicabilityError.tsx.json": "8c94f60d3fbe9bbd6814706954068e75724e5140476203238235eeffbe88ccbc",
+    ".cursor/skills/verify-tsc/artifacts/20260910-binder-investigation-02/audit-sites/results/mapCode.ts.json": "3269c828e3dac4e26c5421fe6ecc0138cce32db4fe0ef0ddf320dad5691ee414",
+    ".cursor/skills/verify-tsc/artifacts/20260910-binder-investigation-02/audit-sites/results/proto.generated.ts.json": "e8b43c7901fa7ed7ef93d1e853ff795d66f3437377b7aa368d662dc90de381a0"
+  },
+  "fixtures": {
+    "Herebyfile.mjs": {
+      "totals": {
+        "ChildRef": 7759,
+        "FlagsAt": 6547,
+        "ID": 4843,
+        "KindAt": 9236,
+        "ListElem": 1707,
+        "ListLen": 2303,
+        "ListSlotAt": 2195,
+        "NewFlow": 460,
+        "ParentRef": 2330,
+        "TextAt": 1423,
+        "listOwner": 3714,
+        "walker.ChildRef": 3390
+      },
+      "sites": {
+        "ChildRef": {
+          "binder.(*Binder).asteriskTokenRefGenerated": 13,
+          "binder.(*Binder).binaryOperatorKindAt": 126,
+          "binder.(*Binder).bindBinaryExpressionFlowRef": 128,
+          "binder.(*Binder).bindBinaryExpressionKind": 42,
+          "binder.(*Binder).bindBindingElementFlowRef": 26,
+          "binder.(*Binder).bindChildrenRef": 2,
+          "binder.(*Binder).bindConditionalExpressionFlowRef": 25,
+          "binder.(*Binder).bindForInOrForOfStatementRef": 10,
+          "binder.(*Binder).bindFunctionsFirstChildrenGenerated": 1,
+          "binder.(*Binder).bindIfStatementRef": 42,
+          "binder.(*Binder).bindLogicalLikeExpressionRef": 30,
+          "binder.(*Binder).bindOptionalChainRestRef": 4,
+          "binder.(*Binder).bindParameterFlowRef": 22,
+          "binder.(*Binder).bindPostfixUnaryExpressionFlowRef": 1,
+          "binder.(*Binder).bindTryStatementRef": 3,
+          "binder.(*Binder).bindWhileStatementRef": 1,
+          "binder.(*Binder).caseBlockRefGenerated": 2,
+          "binder.(*Binder).exportClauseRefGenerated": 8,
+          "binder.(*Binder).expressionRefGenerated": 783,
+          "binder.(*Binder).functionLikeBodyRefGenerated": 117,
+          "binder.(*Binder).initializerRefGenerated": 307,
+          "binder.(*Binder).investigationWalkerChildRef": 3390,
+          "binder.(*Binder).isDestructuringAssignmentRef": 17,
+          "binder.(*Binder).isIdentifierNameRef": 45,
+          "binder.(*Binder).isOptionalChainRootRef": 8,
+          "binder.(*Binder).nameRefGenerated": 2448,
+          "binder.(*Binder).postfixTokenRefGenerated": 18,
+          "binder.(*Binder).questionTokenRefGenerated": 22,
+          "binder.(*Binder).typeRefGenerated": 118
+        },
+        "FlagsAt": {
+          "binder.(*Binder).bindContainer": 123,
+          "binder.(*Binder).bindFunctionDeclarationRef": 11,
+          "binder.(*Binder).bindFunctionExpressionRef": 52,
+          "binder.(*Binder).bindKind": 3822,
+          "binder.(*Binder).bindParameterRef": 22,
+          "binder.(*Binder).bindPropertyOrMethodOrAccessorRef": 279,
+          "binder.(*Binder).checkContextualIdentifierRef": 1196,
+          "binder.(*Binder).checkStrictModeFunctionNameRef": 11,
+          "binder.(*Binder).combinedNodeFlagsRef": 406,
+          "binder.(*Binder).declareModuleMemberRef": 40,
+          "binder.(*Binder).isOptionalChainRef": 447,
+          "binder.(*Binder).isVariableDeclarationInitializedToRequireRef": 137,
+          "binder.(*Binder).setExportContextFlagRef": 1
+        },
+        "ID": {
+          "ast.(*Store).listOwner": 3714,
+          "ast.(*Store).listRef": 1128,
+          "ast.(*StoreSet).register": 1
+        },
+        "KindAt": {
+          "binder.(*Binder).at": 813,
+          "binder.(*Binder).binaryOperatorKindAt": 126,
+          "binder.(*Binder).bindBinaryExpressionKind": 42,
+          "binder.(*Binder).bindCallExpressionFlowRef": 436,
+          "binder.(*Binder).bindCaseBlockRef": 7,
+          "binder.(*Binder).bindChildRef": 1929,
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 572,
+          "binder.(*Binder).bindExportAssignmentRef": 1,
+          "binder.(*Binder).bindExportDeclarationRef": 4,
+          "binder.(*Binder).bindInitializedVariableFlowRef": 156,
+          "binder.(*Binder).bindListRef": 990,
+          "binder.(*Binder).bindParameterRef": 22,
+          "binder.(*Binder).bindRef": 29,
+          "binder.(*Binder).bindSwitchStatementRef": 5,
+          "binder.(*Binder).bindVariableDeclarationFlowRef": 130,
+          "binder.(*Binder).combinedModifierFlagsRef": 142,
+          "binder.(*Binder).combinedNodeFlagsRef": 274,
+          "binder.(*Binder).getImmediatelyInvokedFunctionExpressionRef": 62,
+          "binder.(*Binder).getOptionalSymbolFlagForRef": 9,
+          "binder.(*Binder).isDestructuringAssignmentRef": 17,
+          "binder.(*Binder).isIdentifierNameRef": 1163,
+          "binder.(*Binder).isImplicitlyExportedJSDocDeclarationRef": 76,
+          "binder.(*Binder).isObjectLiteralMethodRef": 2,
+          "binder.(*Binder).isObjectLiteralOrClassExpressionMethodOrAccessorRef": 2,
+          "binder.(*Binder).isOutermostOptionalChainRef": 6,
+          "binder.(*Binder).isPartOfTypeQueryRef": 3,
+          "binder.(*Binder).isRequireCallRef": 45,
+          "binder.(*Binder).isVariableDeclarationInitializedToRequireRef": 225,
+          "binder.(*Binder).maybeBindExpressionFlowIfCallN": 36,
+          "binder.(*Binder).modifierFlagsRef": 120,
+          "binder.(*Binder).nameOfDeclarationRef": 1499,
+          "binder.(*Binder).rootDeclarationRef": 39,
+          "binder.(*Binder).skipParenthesesRef": 254
+        },
+        "ListElem": {
+          "binder.(*Binder).bindCaseBlockRef": 7,
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 572,
+          "binder.(*Binder).bindInitializedVariableFlowRef": 13,
+          "binder.(*Binder).bindListRef": 990,
+          "binder.(*Binder).bindSwitchStatementRef": 5,
+          "binder.(*Binder).modifierFlagsRef": 120
+        },
+        "ListLen": {
+          "ast.NodeSeq.Len": 226,
+          "ast.NodeSeq.Slice.NodeSeq.All.func1": 204,
+          "binder.(*Binder).bindCaseBlockRef": 6,
+          "binder.(*Binder).bindContainer": 1,
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 73,
+          "binder.(*Binder).bindInitializedVariableFlowRef": 6,
+          "binder.(*Binder).bindListRef": 687,
+          "binder.(*Binder).bindSwitchStatementRef": 6,
+          "binder.(*Binder).modifierFlagsRef": 1086,
+          "binder.hasNarrowableArgument": 8
+        },
+        "ListSlotAt": {
+          "binder.(*Binder).argumentsRefGenerated": 2,
+          "binder.(*Binder).bindFunctionsFirstChildrenGenerated": 73,
+          "binder.(*Binder).bindInitializedVariableFlowRef": 6,
+          "binder.(*Binder).bindOptionalChainRestRef": 2,
+          "binder.(*Binder).caseBlockClausesRefGenerated": 2,
+          "binder.(*Binder).forEachBindChildGenerated": 1411,
+          "binder.(*Binder).modifiersRefGenerated": 689,
+          "binder.(*Binder).statementsRefGenerated": 10
+        },
+        "NewFlow": {},
+        "ParentRef": {
+          "binder.(*Binder).bindCaseBlockRef": 1,
+          "binder.(*Binder).bindParameterRef": 22,
+          "binder.(*Binder).bindVariableDeclarationFlowRef": 260,
+          "binder.(*Binder).combinedModifierFlagsRef": 142,
+          "binder.(*Binder).combinedNodeFlagsRef": 274,
+          "binder.(*Binder).getImmediatelyInvokedFunctionExpressionRef": 31,
+          "binder.(*Binder).isIdentifierNameRef": 1163,
+          "binder.(*Binder).isImplicitlyExportedJSDocDeclarationRef": 76,
+          "binder.(*Binder).isObjectLiteralMethodRef": 2,
+          "binder.(*Binder).isObjectLiteralOrClassExpressionMethodOrAccessorRef": 2,
+          "binder.(*Binder).isOutermostOptionalChainRef": 6,
+          "binder.(*Binder).isPartOfTypeQueryRef": 3,
+          "binder.(*Binder).isVariableDeclarationInitializedToRequireRef": 264,
+          "binder.(*Binder).rootDeclarationRef": 78,
+          "binder.(*Binder).setContinueTargetRef": 6
+        },
+        "TextAt": {
+          "binder.(*Binder).checkContextualIdentifierRef": 681,
+          "binder.(*Binder).checkStrictModeEvalOrArgumentsRef": 183,
+          "binder.(*Binder).declareSymbolRef": 8,
+          "binder.(*Binder).getDeclarationNameRef": 522,
+          "binder.(*Binder).isRequireCallRef": 29
+        },
+        "listOwner": {
+          "ast.(*Store).ListAt": 444,
+          "ast.(*Store).ListElem": 1707,
+          "ast.(*Store).ListLen": 1337,
+          "ast.(*Store).ListSlice": 226
+        },
+        "walker.ChildRef": {}
+      },
+      "logical_counts": {
+        "condition_calls": 47,
+        "contextual_identifier_checks": 1196,
+        "flows_created": 460,
+        "identifier_name_tests": 1163,
+        "node_visits": 3602,
+        "symbols_created": 667
+      },
+      "derived": {
+        "walker_child_reads": 3390,
+        "generated_helper_child_reads": 3837,
+        "manual_other_child_reads": 532,
+        "generated_direct_getter_eligible_upper_reads": 7227,
+        "two_loop_list_elem_reads": 1562,
+        "two_loop_list_elem_share": 0.9150556531927357
+      }
+    },
+    "api.ts": {
+      "totals": {
+        "ChildRef": 26350,
+        "FlagsAt": 22019,
+        "ID": 9731,
+        "KindAt": 28513,
+        "ListElem": 4703,
+        "ListLen": 4801,
+        "ListSlotAt": 6806,
+        "NewFlow": 1700,
+        "ParentRef": 6056,
+        "TextAt": 4312,
+        "listOwner": 7233,
+        "walker.ChildRef": 11298
+      },
+      "sites": {
+        "ChildRef": {
+          "binder.(*Binder).asteriskTokenRefGenerated": 247,
+          "binder.(*Binder).binaryOperatorKindAt": 927,
+          "binder.(*Binder).bindBinaryExpressionFlowRef": 1076,
+          "binder.(*Binder).bindBinaryExpressionKind": 309,
+          "binder.(*Binder).bindBindingElementFlowRef": 4,
+          "binder.(*Binder).bindChildrenRef": 2,
+          "binder.(*Binder).bindConditionalExpressionFlowRef": 335,
+          "binder.(*Binder).bindForInOrForOfStatementRef": 10,
+          "binder.(*Binder).bindForStatementRef": 6,
+          "binder.(*Binder).bindFunctionsFirstChildrenGenerated": 1,
+          "binder.(*Binder).bindIfStatementRef": 176,
+          "binder.(*Binder).bindLogicalLikeExpressionRef": 120,
+          "binder.(*Binder).bindOptionalChainRestRef": 7,
+          "binder.(*Binder).bindParameterFlowRef": 317,
+          "binder.(*Binder).bindPostfixUnaryExpressionFlowRef": 2,
+          "binder.(*Binder).bindTryStatementRef": 3,
+          "binder.(*Binder).caseBlockRefGenerated": 2,
+          "binder.(*Binder).exportClauseRefGenerated": 6,
+          "binder.(*Binder).expressionRefGenerated": 1887,
+          "binder.(*Binder).functionLikeBodyRefGenerated": 364,
+          "binder.(*Binder).initializerRefGenerated": 476,
+          "binder.(*Binder).investigationWalkerChildRef": 11298,
+          "binder.(*Binder).isDestructuringAssignmentRef": 141,
+          "binder.(*Binder).isIdentifierNameRef": 117,
+          "binder.(*Binder).isOptionalChainRootRef": 7,
+          "binder.(*Binder).nameRefGenerated": 7487,
+          "binder.(*Binder).postfixTokenRefGenerated": 389,
+          "binder.(*Binder).questionTokenRefGenerated": 317,
+          "binder.(*Binder).typeRefGenerated": 317
+        },
+        "FlagsAt": {
+          "binder.(*Binder).bindContainer": 658,
+          "binder.(*Binder).bindFunctionDeclarationRef": 21,
+          "binder.(*Binder).bindFunctionExpressionRef": 34,
+          "binder.(*Binder).bindKind": 13390,
+          "binder.(*Binder).bindParameterRef": 317,
+          "binder.(*Binder).bindPropertyOrMethodOrAccessorRef": 726,
+          "binder.(*Binder).checkContextualIdentifierRef": 4411,
+          "binder.(*Binder).checkStrictModeFunctionNameRef": 21,
+          "binder.(*Binder).combinedNodeFlagsRef": 445,
+          "binder.(*Binder).declareModuleMemberRef": 4,
+          "binder.(*Binder).isOptionalChainRef": 1840,
+          "binder.(*Binder).isVariableDeclarationInitializedToRequireRef": 151,
+          "binder.(*Binder).setExportContextFlagRef": 1
+        },
+        "ID": {
+          "ast.(*Store).listOwner": 7233,
+          "ast.(*Store).listRef": 2497,
+          "ast.(*StoreSet).register": 1
+        },
+        "KindAt": {
+          "binder.(*Binder).at": 3476,
+          "binder.(*Binder).binaryOperatorKindAt": 927,
+          "binder.(*Binder).bindBinaryExpressionKind": 309,
+          "binder.(*Binder).bindCallExpressionFlowRef": 858,
+          "binder.(*Binder).bindCaseBlockRef": 4,
+          "binder.(*Binder).bindChildRef": 6999,
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 1480,
+          "binder.(*Binder).bindExportDeclarationRef": 3,
+          "binder.(*Binder).bindInitializedVariableFlowRef": 154,
+          "binder.(*Binder).bindListRef": 2617,
+          "binder.(*Binder).bindParameterRef": 317,
+          "binder.(*Binder).bindRef": 290,
+          "binder.(*Binder).bindSwitchStatementRef": 2,
+          "binder.(*Binder).bindVariableDeclarationFlowRef": 150,
+          "binder.(*Binder).combinedNodeFlagsRef": 302,
+          "binder.(*Binder).getImmediatelyInvokedFunctionExpressionRef": 68,
+          "binder.(*Binder).getOptionalSymbolFlagForRef": 41,
+          "binder.(*Binder).isDestructuringAssignmentRef": 141,
+          "binder.(*Binder).isIdentifierNameRef": 4411,
+          "binder.(*Binder).isImplicitlyExportedJSDocDeclarationRef": 190,
+          "binder.(*Binder).isObjectLiteralMethodRef": 238,
+          "binder.(*Binder).isObjectLiteralOrClassExpressionMethodOrAccessorRef": 241,
+          "binder.(*Binder).isOutermostOptionalChainRef": 7,
+          "binder.(*Binder).maybeBindExpressionFlowIfCallN": 52,
+          "binder.(*Binder).modifierFlagsRef": 598,
+          "binder.(*Binder).nameOfDeclarationRef": 4153,
+          "binder.(*Binder).rootDeclarationRef": 4,
+          "binder.(*Binder).skipParenthesesRef": 481
+        },
+        "ListElem": {
+          "binder.(*Binder).bindCaseBlockRef": 4,
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 1480,
+          "binder.(*Binder).bindInitializedVariableFlowRef": 2,
+          "binder.(*Binder).bindListRef": 2617,
+          "binder.(*Binder).bindSwitchStatementRef": 2,
+          "binder.(*Binder).modifierFlagsRef": 598
+        },
+        "ListLen": {
+          "binder.(*Binder).bindCaseBlockRef": 3,
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 322,
+          "binder.(*Binder).bindInitializedVariableFlowRef": 1,
+          "binder.(*Binder).bindListRef": 1556,
+          "binder.(*Binder).bindSwitchStatementRef": 2,
+          "binder.(*Binder).modifierFlagsRef": 2877,
+          "binder.hasNarrowableArgument": 40
+        },
+        "ListSlotAt": {
+          "binder.(*Binder).bindFunctionsFirstChildrenGenerated": 322,
+          "binder.(*Binder).bindInitializedVariableFlowRef": 1,
+          "binder.(*Binder).caseBlockClausesRefGenerated": 2,
+          "binder.(*Binder).forEachBindChildGenerated": 3806,
+          "binder.(*Binder).modifiersRefGenerated": 2671,
+          "binder.(*Binder).statementsRefGenerated": 4
+        },
+        "NewFlow": {},
+        "ParentRef": {
+          "binder.(*Binder).bindCaseBlockRef": 1,
+          "binder.(*Binder).bindParameterRef": 317,
+          "binder.(*Binder).bindVariableDeclarationFlowRef": 300,
+          "binder.(*Binder).combinedNodeFlagsRef": 302,
+          "binder.(*Binder).getImmediatelyInvokedFunctionExpressionRef": 34,
+          "binder.(*Binder).isIdentifierNameRef": 4411,
+          "binder.(*Binder).isImplicitlyExportedJSDocDeclarationRef": 190,
+          "binder.(*Binder).isObjectLiteralMethodRef": 238,
+          "binder.(*Binder).isObjectLiteralOrClassExpressionMethodOrAccessorRef": 241,
+          "binder.(*Binder).isOutermostOptionalChainRef": 7,
+          "binder.(*Binder).rootDeclarationRef": 8,
+          "binder.(*Binder).setContinueTargetRef": 7
+        },
+        "TextAt": {
+          "binder.(*Binder).checkContextualIdentifierRef": 2281,
+          "binder.(*Binder).checkStrictModeEvalOrArgumentsRef": 497,
+          "binder.(*Binder).declareSymbolRef": 73,
+          "binder.(*Binder).getDeclarationNameRef": 1461
+        },
+        "listOwner": {
+          "ast.(*Store).ListAt": 32,
+          "ast.(*Store).ListElem": 4703,
+          "ast.(*Store).ListLen": 2498
+        },
+        "walker.ChildRef": {}
+      },
+      "logical_counts": {
+        "condition_calls": 233,
+        "contextual_identifier_checks": 4411,
+        "flows_created": 1700,
+        "identifier_name_tests": 4411,
+        "node_visits": 12961,
+        "symbols_created": 1709
+      },
+      "derived": {
+        "walker_child_reads": 11298,
+        "generated_helper_child_reads": 11493,
+        "manual_other_child_reads": 3559,
+        "generated_direct_getter_eligible_upper_reads": 22791,
+        "two_loop_list_elem_reads": 4097,
+        "two_loop_list_elem_share": 0.8711460769721454
+      }
+    },
+    "checker.ts": {
+      "totals": {
+        "ChildRef": 558230,
+        "FlagsAt": 530841,
+        "ID": 224750,
+        "KindAt": 688528,
+        "ListElem": 104178,
+        "ListLen": 84229,
+        "ListSlotAt": 110158,
+        "NewFlow": 79990,
+        "ParentRef": 160977,
+        "TextAt": 131978,
+        "listOwner": 170288,
+        "walker.ChildRef": 189849
+      },
+      "sites": {
+        "ChildRef": {
+          "binder.(*Binder).asteriskTokenRefGenerated": 2458,
+          "binder.(*Binder).binaryOperatorKindAt": 49579,
+          "binder.(*Binder).bindBinaryExpressionFlowRef": 40904,
+          "binder.(*Binder).bindBinaryExpressionKind": 16527,
+          "binder.(*Binder).bindBindingElementFlowRef": 322,
+          "binder.(*Binder).bindChildrenRef": 303,
+          "binder.(*Binder).bindConditionalExpressionFlowRef": 10695,
+          "binder.(*Binder).bindDestructuringAssignmentFlowRef": 8,
+          "binder.(*Binder).bindDoStatementRef": 6,
+          "binder.(*Binder).bindForInOrForOfStatementRef": 624,
+          "binder.(*Binder).bindForStatementRef": 366,
+          "binder.(*Binder).bindFunctionsFirstChildrenGenerated": 1,
+          "binder.(*Binder).bindIfStatementRef": 12724,
+          "binder.(*Binder).bindLabeledStatementRef": 6,
+          "binder.(*Binder).bindLogicalLikeExpressionRef": 18897,
+          "binder.(*Binder).bindOptionalChainRestRef": 501,
+          "binder.(*Binder).bindParameterFlowRef": 5788,
+          "binder.(*Binder).bindPostfixUnaryExpressionFlowRef": 190,
+          "binder.(*Binder).bindPrefixUnaryExpressionFlowRef": 1,
+          "binder.(*Binder).bindTryStatementRef": 12,
+          "binder.(*Binder).bindWhileStatementRef": 73,
+          "binder.(*Binder).caseBlockRefGenerated": 294,
+          "binder.(*Binder).expressionRefGenerated": 61891,
+          "binder.(*Binder).functionLikeBodyRefGenerated": 4664,
+          "binder.(*Binder).initializerRefGenerated": 13119,
+          "binder.(*Binder).investigationWalkerChildRef": 189849,
+          "binder.(*Binder).isDestructuringAssignmentRef": 2178,
+          "binder.(*Binder).isIdentifierNameRef": 1345,
+          "binder.(*Binder).isOptionalChainRootRef": 761,
+          "binder.(*Binder).nameRefGenerated": 112417,
+          "binder.(*Binder).postfixTokenRefGenerated": 149,
+          "binder.(*Binder).questionTokenRefGenerated": 5788,
+          "binder.(*Binder).skipParenthesesRef": 2,
+          "binder.(*Binder).typeRefGenerated": 5788
+        },
+        "FlagsAt": {
+          "binder.(*Binder).bindContainer": 4978,
+          "binder.(*Binder).bindFunctionDeclarationRef": 2455,
+          "binder.(*Binder).bindFunctionExpressionRef": 872,
+          "binder.(*Binder).bindKind": 316520,
+          "binder.(*Binder).bindParameterRef": 5788,
+          "binder.(*Binder).bindPropertyOrMethodOrAccessorRef": 967,
+          "binder.(*Binder).checkContextualIdentifierRef": 123554,
+          "binder.(*Binder).checkStrictModeFunctionNameRef": 2459,
+          "binder.(*Binder).combinedNodeFlagsRef": 19953,
+          "binder.(*Binder).declareModuleMemberRef": 40,
+          "binder.(*Binder).isImplicitlyExportedJSDocDeclarationRef": 2,
+          "binder.(*Binder).isOptionalChainRef": 46422,
+          "binder.(*Binder).isVariableDeclarationInitializedToRequireRef": 6828,
+          "binder.(*Binder).setExportContextFlagRef": 3
+        },
+        "ID": {
+          "ast.(*Store).listOwner": 170288,
+          "ast.(*Store).listRef": 54461,
+          "ast.(*StoreSet).register": 1
+        },
+        "KindAt": {
+          "binder.(*Binder).at": 115545,
+          "binder.(*Binder).binaryOperatorKindAt": 49579,
+          "binder.(*Binder).bindBinaryExpressionKind": 16527,
+          "binder.(*Binder).bindCallExpressionFlowRef": 36703,
+          "binder.(*Binder).bindCaseBlockRef": 1700,
+          "binder.(*Binder).bindChildRef": 121262,
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 49632,
+          "binder.(*Binder).bindInitializedVariableFlowRef": 6605,
+          "binder.(*Binder).bindListRef": 50646,
+          "binder.(*Binder).bindParameterRef": 5788,
+          "binder.(*Binder).bindRef": 8323,
+          "binder.(*Binder).bindSwitchStatementRef": 1406,
+          "binder.(*Binder).bindVariableDeclarationFlowRef": 6736,
+          "binder.(*Binder).combinedModifierFlagsRef": 42,
+          "binder.(*Binder).combinedNodeFlagsRef": 13566,
+          "binder.(*Binder).getImmediatelyInvokedFunctionExpressionRef": 1746,
+          "binder.(*Binder).getOptionalSymbolFlagForRef": 11,
+          "binder.(*Binder).isBlockOrCatchScopedRef": 279,
+          "binder.(*Binder).isDestructuringAssignmentRef": 2178,
+          "binder.(*Binder).isIdentifierNameRef": 123553,
+          "binder.(*Binder).isImplicitlyExportedJSDocDeclarationRef": 1190,
+          "binder.(*Binder).isObjectLiteralMethodRef": 42,
+          "binder.(*Binder).isObjectLiteralOrClassExpressionMethodOrAccessorRef": 45,
+          "binder.(*Binder).isOutermostOptionalChainRef": 617,
+          "binder.(*Binder).isPartOfTypeQueryRef": 13,
+          "binder.(*Binder).maybeBindExpressionFlowIfCallN": 2620,
+          "binder.(*Binder).modifierFlagsRef": 142,
+          "binder.(*Binder).nameOfDeclarationRef": 50632,
+          "binder.(*Binder).rootDeclarationRef": 416,
+          "binder.(*Binder).setContinueTargetRef": 6,
+          "binder.(*Binder).skipParenthesesRef": 20974,
+          "binder.eachList": 4
+        },
+        "ListElem": {
+          "binder.(*Binder).bindCaseBlockRef": 2202,
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 49632,
+          "binder.(*Binder).bindInitializedVariableFlowRef": 116,
+          "binder.(*Binder).bindListRef": 50646,
+          "binder.(*Binder).bindSwitchStatementRef": 1406,
+          "binder.(*Binder).modifierFlagsRef": 142,
+          "binder.eachList": 4,
+          "binder.listIndexRef": 30
+        },
+        "ListLen": {
+          "ast.Handle.ForEachChild": 2,
+          "binder.(*Binder).bindCaseBlockRef": 1553,
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 9688,
+          "binder.(*Binder).bindInitializedVariableFlowRef": 69,
+          "binder.(*Binder).bindListRef": 32874,
+          "binder.(*Binder).bindSwitchStatementRef": 1494,
+          "binder.(*Binder).modifierFlagsRef": 28548,
+          "binder.eachList": 2,
+          "binder.hasNarrowableArgument": 9978,
+          "binder.listIndexRef": 21
+        },
+        "ListSlotAt": {
+          "binder.(*Binder).argumentsRefGenerated": 115,
+          "binder.(*Binder).bindCallExpressionFlowRef": 1,
+          "binder.(*Binder).bindFunctionsFirstChildrenGenerated": 9688,
+          "binder.(*Binder).bindInitializedVariableFlowRef": 69,
+          "binder.(*Binder).bindOptionalChainRestRef": 114,
+          "binder.(*Binder).caseBlockClausesRefGenerated": 294,
+          "binder.(*Binder).forEachBindChildGenerated": 72074,
+          "binder.(*Binder).modifiersRefGenerated": 24970,
+          "binder.(*Binder).parametersRefGenerated": 21,
+          "binder.(*Binder).statementsRefGenerated": 2812
+        },
+        "NewFlow": {},
+        "ParentRef": {
+          "binder.(*Binder).bindCaseBlockRef": 147,
+          "binder.(*Binder).bindParameterRef": 5788,
+          "binder.(*Binder).bindVariableDeclarationFlowRef": 13472,
+          "binder.(*Binder).combinedModifierFlagsRef": 42,
+          "binder.(*Binder).combinedNodeFlagsRef": 13566,
+          "binder.(*Binder).getImmediatelyInvokedFunctionExpressionRef": 875,
+          "binder.(*Binder).isBlockOrCatchScopedRef": 279,
+          "binder.(*Binder).isIdentifierNameRef": 123553,
+          "binder.(*Binder).isImplicitlyExportedJSDocDeclarationRef": 1190,
+          "binder.(*Binder).isObjectLiteralMethodRef": 42,
+          "binder.(*Binder).isObjectLiteralOrClassExpressionMethodOrAccessorRef": 45,
+          "binder.(*Binder).isOutermostOptionalChainRef": 617,
+          "binder.(*Binder).isPartOfTypeQueryRef": 13,
+          "binder.(*Binder).rootDeclarationRef": 832,
+          "binder.(*Binder).setContinueTargetRef": 516
+        },
+        "TextAt": {
+          "binder.(*Binder).bindBreakOrContinueStatementRef": 4,
+          "binder.(*Binder).bindClassLikeDeclarationRef": 1,
+          "binder.(*Binder).bindFunctionExpressionRef": 4,
+          "binder.(*Binder).bindLabeledStatementRef": 3,
+          "binder.(*Binder).checkContextualIdentifierRef": 97872,
+          "binder.(*Binder).checkStrictModeEvalOrArgumentsRef": 16836,
+          "binder.(*Binder).getDeclarationNameRef": 17258
+        },
+        "listOwner": {
+          "ast.(*Store).ListAt": 10302,
+          "ast.(*Store).ListElem": 104178,
+          "ast.(*Store).ListLen": 55808
+        },
+        "walker.ChildRef": {}
+      },
+      "logical_counts": {
+        "condition_calls": 21187,
+        "contextual_identifier_checks": 123554,
+        "flows_created": 79990,
+        "identifier_name_tests": 123553,
+        "node_visits": 298054,
+        "symbols_created": 18444
+      },
+      "derived": {
+        "walker_child_reads": 189849,
+        "generated_helper_child_reads": 206569,
+        "manual_other_child_reads": 161812,
+        "generated_direct_getter_eligible_upper_reads": 396418,
+        "two_loop_list_elem_reads": 100278,
+        "two_loop_list_elem_share": 0.9625640730288545
+      }
+    },
+    "client.ts": {
+      "totals": {
+        "ChildRef": 6472,
+        "FlagsAt": 5437,
+        "ID": 2838,
+        "KindAt": 7202,
+        "ListElem": 1296,
+        "ListLen": 1136,
+        "ListSlotAt": 1418,
+        "NewFlow": 583,
+        "ParentRef": 1419,
+        "TextAt": 894,
+        "listOwner": 2094,
+        "walker.ChildRef": 2630
+      },
+      "sites": {
+        "ChildRef": {
+          "binder.(*Binder).asteriskTokenRefGenerated": 32,
+          "binder.(*Binder).binaryOperatorKindAt": 285,
+          "binder.(*Binder).bindBinaryExpressionFlowRef": 328,
+          "binder.(*Binder).bindBinaryExpressionKind": 95,
+          "binder.(*Binder).bindBindingElementFlowRef": 2,
+          "binder.(*Binder).bindChildrenRef": 16,
+          "binder.(*Binder).bindConditionalExpressionFlowRef": 55,
+          "binder.(*Binder).bindForInOrForOfStatementRef": 18,
+          "binder.(*Binder).bindFunctionsFirstChildrenGenerated": 1,
+          "binder.(*Binder).bindIfStatementRef": 90,
+          "binder.(*Binder).bindLogicalLikeExpressionRef": 39,
+          "binder.(*Binder).bindOptionalChainRestRef": 10,
+          "binder.(*Binder).bindParameterFlowRef": 47,
+          "binder.(*Binder).bindTryStatementRef": 3,
+          "binder.(*Binder).caseBlockRefGenerated": 8,
+          "binder.(*Binder).expressionRefGenerated": 695,
+          "binder.(*Binder).functionLikeBodyRefGenerated": 71,
+          "binder.(*Binder).initializerRefGenerated": 112,
+          "binder.(*Binder).investigationWalkerChildRef": 2630,
+          "binder.(*Binder).isDestructuringAssignmentRef": 50,
+          "binder.(*Binder).isIdentifierNameRef": 74,
+          "binder.(*Binder).isOptionalChainRootRef": 15,
+          "binder.(*Binder).nameRefGenerated": 1630,
+          "binder.(*Binder).postfixTokenRefGenerated": 72,
+          "binder.(*Binder).questionTokenRefGenerated": 47,
+          "binder.(*Binder).typeRefGenerated": 47
+        },
+        "FlagsAt": {
+          "binder.(*Binder).bindContainer": 124,
+          "binder.(*Binder).bindFunctionDeclarationRef": 4,
+          "binder.(*Binder).bindFunctionExpressionRef": 13,
+          "binder.(*Binder).bindKind": 3372,
+          "binder.(*Binder).bindParameterRef": 47,
+          "binder.(*Binder).bindPropertyOrMethodOrAccessorRef": 131,
+          "binder.(*Binder).checkContextualIdentifierRef": 982,
+          "binder.(*Binder).checkStrictModeFunctionNameRef": 4,
+          "binder.(*Binder).combinedNodeFlagsRef": 155,
+          "binder.(*Binder).declareModuleMemberRef": 9,
+          "binder.(*Binder).isOptionalChainRef": 539,
+          "binder.(*Binder).isVariableDeclarationInitializedToRequireRef": 56,
+          "binder.(*Binder).setExportContextFlagRef": 1
+        },
+        "ID": {
+          "ast.(*Store).listOwner": 2094,
+          "ast.(*Store).listRef": 743,
+          "ast.(*StoreSet).register": 1
+        },
+        "KindAt": {
+          "binder.(*Binder).at": 1069,
+          "binder.(*Binder).binaryOperatorKindAt": 285,
+          "binder.(*Binder).bindBinaryExpressionKind": 95,
+          "binder.(*Binder).bindCallExpressionFlowRef": 294,
+          "binder.(*Binder).bindCaseBlockRef": 19,
+          "binder.(*Binder).bindChildRef": 1615,
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 534,
+          "binder.(*Binder).bindInitializedVariableFlowRef": 53,
+          "binder.(*Binder).bindListRef": 600,
+          "binder.(*Binder).bindParameterRef": 47,
+          "binder.(*Binder).bindRef": 69,
+          "binder.(*Binder).bindSwitchStatementRef": 11,
+          "binder.(*Binder).bindVariableDeclarationFlowRef": 55,
+          "binder.(*Binder).combinedModifierFlagsRef": 4,
+          "binder.(*Binder).combinedNodeFlagsRef": 109,
+          "binder.(*Binder).getImmediatelyInvokedFunctionExpressionRef": 22,
+          "binder.(*Binder).getOptionalSymbolFlagForRef": 6,
+          "binder.(*Binder).isBlockOrCatchScopedRef": 1,
+          "binder.(*Binder).isDestructuringAssignmentRef": 50,
+          "binder.(*Binder).isIdentifierNameRef": 982,
+          "binder.(*Binder).isImplicitlyExportedJSDocDeclarationRef": 43,
+          "binder.(*Binder).isObjectLiteralMethodRef": 28,
+          "binder.(*Binder).isObjectLiteralOrClassExpressionMethodOrAccessorRef": 29,
+          "binder.(*Binder).isOutermostOptionalChainRef": 12,
+          "binder.(*Binder).isPartOfTypeQueryRef": 22,
+          "binder.(*Binder).maybeBindExpressionFlowIfCallN": 36,
+          "binder.(*Binder).modifierFlagsRef": 128,
+          "binder.(*Binder).nameOfDeclarationRef": 797,
+          "binder.(*Binder).rootDeclarationRef": 4,
+          "binder.(*Binder).skipParenthesesRef": 183
+        },
+        "ListElem": {
+          "binder.(*Binder).bindCaseBlockRef": 22,
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 534,
+          "binder.(*Binder).bindListRef": 600,
+          "binder.(*Binder).bindSwitchStatementRef": 11,
+          "binder.(*Binder).modifierFlagsRef": 128,
+          "binder.listIndexRef": 1
+        },
+        "ListLen": {
+          "binder.(*Binder).bindCaseBlockRef": 15,
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 103,
+          "binder.(*Binder).bindListRef": 454,
+          "binder.(*Binder).bindSwitchStatementRef": 11,
+          "binder.(*Binder).modifierFlagsRef": 502,
+          "binder.hasNarrowableArgument": 50,
+          "binder.listIndexRef": 1
+        },
+        "ListSlotAt": {
+          "binder.(*Binder).argumentsRefGenerated": 2,
+          "binder.(*Binder).bindFunctionsFirstChildrenGenerated": 103,
+          "binder.(*Binder).bindOptionalChainRestRef": 2,
+          "binder.(*Binder).caseBlockClausesRefGenerated": 8,
+          "binder.(*Binder).forEachBindChildGenerated": 859,
+          "binder.(*Binder).modifiersRefGenerated": 421,
+          "binder.(*Binder).parametersRefGenerated": 1,
+          "binder.(*Binder).statementsRefGenerated": 22
+        },
+        "NewFlow": {},
+        "ParentRef": {
+          "binder.(*Binder).bindCaseBlockRef": 4,
+          "binder.(*Binder).bindParameterRef": 47,
+          "binder.(*Binder).bindVariableDeclarationFlowRef": 110,
+          "binder.(*Binder).combinedModifierFlagsRef": 4,
+          "binder.(*Binder).combinedNodeFlagsRef": 109,
+          "binder.(*Binder).getImmediatelyInvokedFunctionExpressionRef": 11,
+          "binder.(*Binder).isBlockOrCatchScopedRef": 1,
+          "binder.(*Binder).isIdentifierNameRef": 982,
+          "binder.(*Binder).isImplicitlyExportedJSDocDeclarationRef": 43,
+          "binder.(*Binder).isObjectLiteralMethodRef": 28,
+          "binder.(*Binder).isObjectLiteralOrClassExpressionMethodOrAccessorRef": 29,
+          "binder.(*Binder).isOutermostOptionalChainRef": 12,
+          "binder.(*Binder).isPartOfTypeQueryRef": 22,
+          "binder.(*Binder).rootDeclarationRef": 8,
+          "binder.(*Binder).setContinueTargetRef": 9
+        },
+        "TextAt": {
+          "binder.(*Binder).checkContextualIdentifierRef": 492,
+          "binder.(*Binder).checkStrictModeEvalOrArgumentsRef": 124,
+          "binder.(*Binder).getDeclarationNameRef": 278
+        },
+        "listOwner": {
+          "ast.(*Store).ListAt": 48,
+          "ast.(*Store).ListElem": 1296,
+          "ast.(*Store).ListLen": 750
+        },
+        "walker.ChildRef": {}
+      },
+      "logical_counts": {
+        "condition_calls": 82,
+        "contextual_identifier_checks": 982,
+        "flows_created": 583,
+        "identifier_name_tests": 982,
+        "node_visits": 3223,
+        "symbols_created": 345
+      },
+      "derived": {
+        "walker_child_reads": 2630,
+        "generated_helper_child_reads": 2715,
+        "manual_other_child_reads": 1127,
+        "generated_direct_getter_eligible_upper_reads": 5345,
+        "two_loop_list_elem_reads": 1134,
+        "two_loop_list_elem_share": 0.875
+      }
+    },
+    "dom.generated.d.ts": {
+      "totals": {
+        "ChildRef": 196338,
+        "FlagsAt": 164574,
+        "ID": 91885,
+        "KindAt": 200203,
+        "ListElem": 47961,
+        "ListLen": 51046,
+        "ListSlotAt": 87747,
+        "NewFlow": 4845,
+        "ParentRef": 13113,
+        "TextAt": 24252,
+        "listOwner": 69924,
+        "walker.ChildRef": 74321
+      },
+      "sites": {
+        "ChildRef": {
+          "binder.(*Binder).bindFunctionsFirstChildrenGenerated": 1,
+          "binder.(*Binder).bindParameterFlowRef": 8446,
+          "binder.(*Binder).bodyRefGenerated": 2,
+          "binder.(*Binder).functionLikeBodyRefGenerated": 180,
+          "binder.(*Binder).initializerRefGenerated": 9340,
+          "binder.(*Binder).investigationWalkerChildRef": 74321,
+          "binder.(*Binder).nameRefGenerated": 75859,
+          "binder.(*Binder).postfixTokenRefGenerated": 11297,
+          "binder.(*Binder).questionTokenRefGenerated": 8446,
+          "binder.(*Binder).typeRefGenerated": 8446
+        },
+        "FlagsAt": {
+          "binder.(*Binder).bindContainer": 6389,
+          "binder.(*Binder).bindKind": 109605,
+          "binder.(*Binder).bindParameterRef": 8446,
+          "binder.(*Binder).checkContextualIdentifierRef": 36271,
+          "binder.(*Binder).checkStrictModeFunctionNameRef": 120,
+          "binder.(*Binder).combinedNodeFlagsRef": 2682,
+          "binder.(*Binder).declareModuleMemberRef": 114,
+          "binder.(*Binder).isOptionalChainRef": 50,
+          "binder.(*Binder).isVariableDeclarationInitializedToRequireRef": 894,
+          "binder.(*Binder).setExportContextFlagRef": 3
+        },
+        "ID": {
+          "ast.(*Store).listOwner": 69924,
+          "ast.(*Store).listRef": 21960,
+          "ast.(*StoreSet).register": 1
+        },
+        "KindAt": {
+          "binder.(*Binder).at": 18716,
+          "binder.(*Binder).bindChildRef": 52545,
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 5838,
+          "binder.(*Binder).bindListRef": 35424,
+          "binder.(*Binder).bindParameterRef": 8446,
+          "binder.(*Binder).bindRef": 1,
+          "binder.(*Binder).bindVariableDeclarationFlowRef": 894,
+          "binder.(*Binder).combinedModifierFlagsRef": 24,
+          "binder.(*Binder).combinedNodeFlagsRef": 1788,
+          "binder.(*Binder).getOptionalSymbolFlagForRef": 1346,
+          "binder.(*Binder).hasExportDeclarationsRef": 2921,
+          "binder.(*Binder).isBlockOrCatchScopedRef": 893,
+          "binder.(*Binder).isImplicitlyExportedJSDocDeclarationRef": 114,
+          "binder.(*Binder).isObjectLiteralOrClassExpressionMethodOrAccessorRef": 60,
+          "binder.(*Binder).modifierFlagsRef": 3780,
+          "binder.(*Binder).nameOfDeclarationRef": 67413
+        },
+        "ListElem": {
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 5838,
+          "binder.(*Binder).bindListRef": 35424,
+          "binder.(*Binder).hasExportDeclarationsRef": 2919,
+          "binder.(*Binder).modifierFlagsRef": 3780
+        },
+        "ListLen": {
+          "ast.Handle.ForEachChild": 2,
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 3,
+          "binder.(*Binder).bindListRef": 18172,
+          "binder.(*Binder).hasExportDeclarationsRef": 3,
+          "binder.(*Binder).modifierFlagsRef": 32866
+        },
+        "ListSlotAt": {
+          "binder.(*Binder).bindFunctionsFirstChildrenGenerated": 3,
+          "binder.(*Binder).forEachBindChildGenerated": 48138,
+          "binder.(*Binder).modifiersRefGenerated": 39603,
+          "binder.(*Binder).statementsRefGenerated": 3
+        },
+        "NewFlow": {},
+        "ParentRef": {
+          "binder.(*Binder).bindParameterRef": 8446,
+          "binder.(*Binder).bindVariableDeclarationFlowRef": 1788,
+          "binder.(*Binder).combinedModifierFlagsRef": 24,
+          "binder.(*Binder).combinedNodeFlagsRef": 1788,
+          "binder.(*Binder).isBlockOrCatchScopedRef": 893,
+          "binder.(*Binder).isImplicitlyExportedJSDocDeclarationRef": 114,
+          "binder.(*Binder).isObjectLiteralOrClassExpressionMethodOrAccessorRef": 60
+        },
+        "TextAt": {
+          "binder.(*Binder).checkStrictModeEvalOrArgumentsRef": 894,
+          "binder.(*Binder).getDeclarationNameRef": 23358
+        },
+        "listOwner": {
+          "ast.(*Store).ListAt": 3,
+          "ast.(*Store).ListElem": 47961,
+          "ast.(*Store).ListLen": 21960
+        },
+        "walker.ChildRef": {}
+      },
+      "logical_counts": {
+        "contextual_identifier_checks": 36271,
+        "flows_created": 4845,
+        "node_visits": 109605,
+        "symbols_created": 25112
+      },
+      "derived": {
+        "walker_child_reads": 74321,
+        "generated_helper_child_reads": 113571,
+        "manual_other_child_reads": 8446,
+        "generated_direct_getter_eligible_upper_reads": 187892,
+        "two_loop_list_elem_reads": 41262,
+        "two_loop_list_elem_share": 0.8603240132607743
+      }
+    },
+    "jsxComplexSignatureHasApplicabilityError.tsx": {
+      "totals": {
+        "ChildRef": 2416,
+        "FlagsAt": 2161,
+        "ID": 1581,
+        "KindAt": 3114,
+        "ListElem": 700,
+        "ListLen": 704,
+        "ListSlotAt": 1110,
+        "NewFlow": 48,
+        "ParentRef": 574,
+        "TextAt": 703,
+        "listOwner": 1140,
+        "walker.ChildRef": 1113
+      },
+      "sites": {
+        "ChildRef": {
+          "binder.(*Binder).asteriskTokenRefGenerated": 1,
+          "binder.(*Binder).binaryOperatorKindAt": 3,
+          "binder.(*Binder).bindBinaryExpressionFlowRef": 4,
+          "binder.(*Binder).bindBinaryExpressionKind": 1,
+          "binder.(*Binder).bindConditionalExpressionFlowRef": 5,
+          "binder.(*Binder).bindFunctionsFirstChildrenGenerated": 1,
+          "binder.(*Binder).bindIfStatementRef": 2,
+          "binder.(*Binder).bindParameterFlowRef": 42,
+          "binder.(*Binder).expressionRefGenerated": 8,
+          "binder.(*Binder).functionLikeBodyRefGenerated": 6,
+          "binder.(*Binder).initializerRefGenerated": 42,
+          "binder.(*Binder).investigationWalkerChildRef": 1113,
+          "binder.(*Binder).isIdentifierNameRef": 34,
+          "binder.(*Binder).nameRefGenerated": 946,
+          "binder.(*Binder).postfixTokenRefGenerated": 124,
+          "binder.(*Binder).questionTokenRefGenerated": 42,
+          "binder.(*Binder).typeRefGenerated": 42
+        },
+        "FlagsAt": {
+          "binder.(*Binder).bindContainer": 47,
+          "binder.(*Binder).bindFunctionDeclarationRef": 1,
+          "binder.(*Binder).bindFunctionExpressionRef": 2,
+          "binder.(*Binder).bindKind": 1418,
+          "binder.(*Binder).bindParameterRef": 42,
+          "binder.(*Binder).bindPropertyOrMethodOrAccessorRef": 124,
+          "binder.(*Binder).checkContextualIdentifierRef": 517,
+          "binder.(*Binder).checkStrictModeFunctionNameRef": 1,
+          "binder.(*Binder).declareModuleMemberRef": 3,
+          "binder.(*Binder).isOptionalChainRef": 5,
+          "binder.(*Binder).setExportContextFlagRef": 1
+        },
+        "ID": {
+          "ast.(*Store).listOwner": 1140,
+          "ast.(*Store).listRef": 440,
+          "ast.(*StoreSet).register": 1
+        },
+        "KindAt": {
+          "binder.(*Binder).at": 97,
+          "binder.(*Binder).binaryOperatorKindAt": 3,
+          "binder.(*Binder).bindBinaryExpressionKind": 1,
+          "binder.(*Binder).bindCallExpressionFlowRef": 2,
+          "binder.(*Binder).bindChildRef": 861,
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 108,
+          "binder.(*Binder).bindListRef": 405,
+          "binder.(*Binder).bindParameterRef": 42,
+          "binder.(*Binder).bindRef": 3,
+          "binder.(*Binder).getImmediatelyInvokedFunctionExpressionRef": 4,
+          "binder.(*Binder).getOptionalSymbolFlagForRef": 94,
+          "binder.(*Binder).isIdentifierNameRef": 505,
+          "binder.(*Binder).isImplicitlyExportedJSDocDeclarationRef": 4,
+          "binder.(*Binder).isObjectLiteralMethodRef": 2,
+          "binder.(*Binder).isObjectLiteralOrClassExpressionMethodOrAccessorRef": 2,
+          "binder.(*Binder).isPartOfTypeQueryRef": 17,
+          "binder.(*Binder).maybeBindExpressionFlowIfCallN": 1,
+          "binder.(*Binder).modifierFlagsRef": 187,
+          "binder.(*Binder).nameOfDeclarationRef": 774,
+          "binder.(*Binder).skipParenthesesRef": 2
+        },
+        "ListElem": {
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 108,
+          "binder.(*Binder).bindListRef": 405,
+          "binder.(*Binder).modifierFlagsRef": 187
+        },
+        "ListLen": {
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 5,
+          "binder.(*Binder).bindListRef": 248,
+          "binder.(*Binder).modifierFlagsRef": 451
+        },
+        "ListSlotAt": {
+          "binder.(*Binder).bindFunctionsFirstChildrenGenerated": 5,
+          "binder.(*Binder).forEachBindChildGenerated": 618,
+          "binder.(*Binder).modifiersRefGenerated": 487
+        },
+        "NewFlow": {},
+        "ParentRef": {
+          "binder.(*Binder).bindParameterRef": 42,
+          "binder.(*Binder).getImmediatelyInvokedFunctionExpressionRef": 2,
+          "binder.(*Binder).isIdentifierNameRef": 505,
+          "binder.(*Binder).isImplicitlyExportedJSDocDeclarationRef": 4,
+          "binder.(*Binder).isObjectLiteralMethodRef": 2,
+          "binder.(*Binder).isObjectLiteralOrClassExpressionMethodOrAccessorRef": 2,
+          "binder.(*Binder).isPartOfTypeQueryRef": 17
+        },
+        "TextAt": {
+          "binder.(*Binder).checkContextualIdentifierRef": 358,
+          "binder.(*Binder).checkStrictModeEvalOrArgumentsRef": 42,
+          "binder.(*Binder).getDeclarationNameRef": 303
+        },
+        "listOwner": {
+          "ast.(*Store).ListElem": 700,
+          "ast.(*Store).ListLen": 440
+        },
+        "walker.ChildRef": {}
+      },
+      "logical_counts": {
+        "condition_calls": 2,
+        "contextual_identifier_checks": 517,
+        "flows_created": 48,
+        "identifier_name_tests": 505,
+        "node_visits": 1417,
+        "symbols_created": 375
+      },
+      "derived": {
+        "walker_child_reads": 1113,
+        "generated_helper_child_reads": 1212,
+        "manual_other_child_reads": 91,
+        "generated_direct_getter_eligible_upper_reads": 2325,
+        "two_loop_list_elem_reads": 513,
+        "two_loop_list_elem_share": 0.7328571428571429
+      }
+    },
+    "mapCode.ts": {
+      "totals": {
+        "ChildRef": 2468,
+        "FlagsAt": 2203,
+        "ID": 961,
+        "KindAt": 2868,
+        "ListElem": 434,
+        "ListLen": 494,
+        "ListSlotAt": 593,
+        "NewFlow": 263,
+        "ParentRef": 700,
+        "TextAt": 566,
+        "listOwner": 714,
+        "walker.ChildRef": 868
+      },
+      "sites": {
+        "ChildRef": {
+          "binder.(*Binder).asteriskTokenRefGenerated": 8,
+          "binder.(*Binder).binaryOperatorKindAt": 111,
+          "binder.(*Binder).bindBinaryExpressionFlowRef": 92,
+          "binder.(*Binder).bindBinaryExpressionKind": 37,
+          "binder.(*Binder).bindBindingElementFlowRef": 6,
+          "binder.(*Binder).bindChildrenRef": 1,
+          "binder.(*Binder).bindForInOrForOfStatementRef": 8,
+          "binder.(*Binder).bindFunctionsFirstChildrenGenerated": 1,
+          "binder.(*Binder).bindIfStatementRef": 38,
+          "binder.(*Binder).bindLogicalLikeExpressionRef": 42,
+          "binder.(*Binder).bindOptionalChainRestRef": 13,
+          "binder.(*Binder).bindParameterFlowRef": 42,
+          "binder.(*Binder).expressionRefGenerated": 319,
+          "binder.(*Binder).functionLikeBodyRefGenerated": 51,
+          "binder.(*Binder).initializerRefGenerated": 68,
+          "binder.(*Binder).investigationWalkerChildRef": 868,
+          "binder.(*Binder).isDestructuringAssignmentRef": 6,
+          "binder.(*Binder).isIdentifierNameRef": 43,
+          "binder.(*Binder).isOptionalChainRootRef": 25,
+          "binder.(*Binder).nameRefGenerated": 605,
+          "binder.(*Binder).questionTokenRefGenerated": 42,
+          "binder.(*Binder).typeRefGenerated": 42
+        },
+        "FlagsAt": {
+          "binder.(*Binder).bindContainer": 56,
+          "binder.(*Binder).bindFunctionDeclarationRef": 8,
+          "binder.(*Binder).bindFunctionExpressionRef": 19,
+          "binder.(*Binder).bindKind": 1248,
+          "binder.(*Binder).bindParameterRef": 42,
+          "binder.(*Binder).bindPropertyOrMethodOrAccessorRef": 9,
+          "binder.(*Binder).checkContextualIdentifierRef": 480,
+          "binder.(*Binder).checkStrictModeFunctionNameRef": 8,
+          "binder.(*Binder).combinedNodeFlagsRef": 55,
+          "binder.(*Binder).declareModuleMemberRef": 7,
+          "binder.(*Binder).isOptionalChainRef": 250,
+          "binder.(*Binder).isVariableDeclarationInitializedToRequireRef": 20,
+          "binder.(*Binder).setExportContextFlagRef": 1
+        },
+        "ID": {
+          "ast.(*Store).listOwner": 714,
+          "ast.(*Store).listRef": 246,
+          "ast.(*StoreSet).register": 1
+        },
+        "KindAt": {
+          "binder.(*Binder).at": 446,
+          "binder.(*Binder).binaryOperatorKindAt": 111,
+          "binder.(*Binder).bindBinaryExpressionKind": 37,
+          "binder.(*Binder).bindCallExpressionFlowRef": 158,
+          "binder.(*Binder).bindChildRef": 523,
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 174,
+          "binder.(*Binder).bindInitializedVariableFlowRef": 24,
+          "binder.(*Binder).bindListRef": 252,
+          "binder.(*Binder).bindParameterRef": 42,
+          "binder.(*Binder).bindRef": 14,
+          "binder.(*Binder).bindVariableDeclarationFlowRef": 19,
+          "binder.(*Binder).combinedNodeFlagsRef": 40,
+          "binder.(*Binder).getImmediatelyInvokedFunctionExpressionRef": 38,
+          "binder.(*Binder).isDestructuringAssignmentRef": 6,
+          "binder.(*Binder).isIdentifierNameRef": 480,
+          "binder.(*Binder).isImplicitlyExportedJSDocDeclarationRef": 45,
+          "binder.(*Binder).isOutermostOptionalChainRef": 19,
+          "binder.(*Binder).isPartOfTypeQueryRef": 1,
+          "binder.(*Binder).maybeBindExpressionFlowIfCallN": 16,
+          "binder.(*Binder).modifierFlagsRef": 5,
+          "binder.(*Binder).nameOfDeclarationRef": 317,
+          "binder.(*Binder).rootDeclarationRef": 6,
+          "binder.(*Binder).skipParenthesesRef": 95
+        },
+        "ListElem": {
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 174,
+          "binder.(*Binder).bindInitializedVariableFlowRef": 3,
+          "binder.(*Binder).bindListRef": 252,
+          "binder.(*Binder).modifierFlagsRef": 5
+        },
+        "ListLen": {
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 35,
+          "binder.(*Binder).bindInitializedVariableFlowRef": 2,
+          "binder.(*Binder).bindListRef": 158,
+          "binder.(*Binder).modifierFlagsRef": 253,
+          "binder.hasNarrowableArgument": 46
+        },
+        "ListSlotAt": {
+          "binder.(*Binder).argumentsRefGenerated": 6,
+          "binder.(*Binder).bindFunctionsFirstChildrenGenerated": 35,
+          "binder.(*Binder).bindInitializedVariableFlowRef": 2,
+          "binder.(*Binder).bindOptionalChainRestRef": 6,
+          "binder.(*Binder).forEachBindChildGenerated": 345,
+          "binder.(*Binder).modifiersRefGenerated": 199
+        },
+        "NewFlow": {},
+        "ParentRef": {
+          "binder.(*Binder).bindParameterRef": 42,
+          "binder.(*Binder).bindVariableDeclarationFlowRef": 38,
+          "binder.(*Binder).combinedNodeFlagsRef": 40,
+          "binder.(*Binder).getImmediatelyInvokedFunctionExpressionRef": 19,
+          "binder.(*Binder).isIdentifierNameRef": 480,
+          "binder.(*Binder).isImplicitlyExportedJSDocDeclarationRef": 45,
+          "binder.(*Binder).isOutermostOptionalChainRef": 19,
+          "binder.(*Binder).isPartOfTypeQueryRef": 1,
+          "binder.(*Binder).rootDeclarationRef": 12,
+          "binder.(*Binder).setContinueTargetRef": 4
+        },
+        "TextAt": {
+          "binder.(*Binder).checkContextualIdentifierRef": 375,
+          "binder.(*Binder).checkStrictModeEvalOrArgumentsRef": 73,
+          "binder.(*Binder).getDeclarationNameRef": 118
+        },
+        "listOwner": {
+          "ast.(*Store).ListAt": 34,
+          "ast.(*Store).ListElem": 434,
+          "ast.(*Store).ListLen": 246
+        },
+        "walker.ChildRef": {}
+      },
+      "logical_counts": {
+        "condition_calls": 47,
+        "contextual_identifier_checks": 480,
+        "flows_created": 263,
+        "identifier_name_tests": 480,
+        "node_visits": 1163,
+        "symbols_created": 142
+      },
+      "derived": {
+        "walker_child_reads": 868,
+        "generated_helper_child_reads": 1136,
+        "manual_other_child_reads": 464,
+        "generated_direct_getter_eligible_upper_reads": 2004,
+        "two_loop_list_elem_reads": 426,
+        "two_loop_list_elem_share": 0.9815668202764977
+      }
+    },
+    "proto.generated.ts": {
+      "totals": {
+        "ChildRef": 6463,
+        "FlagsAt": 5182,
+        "ID": 3315,
+        "KindAt": 7364,
+        "ListElem": 1706,
+        "ListLen": 1402,
+        "ListSlotAt": 2497,
+        "NewFlow": 2,
+        "ParentRef": 1158,
+        "TextAt": 1356,
+        "listOwner": 2510,
+        "walker.ChildRef": 3122
+      },
+      "sites": {
+        "ChildRef": {
+          "binder.(*Binder).bindFunctionsFirstChildrenGenerated": 1,
+          "binder.(*Binder).investigationWalkerChildRef": 3122,
+          "binder.(*Binder).isIdentifierNameRef": 6,
+          "binder.(*Binder).nameRefGenerated": 2750,
+          "binder.(*Binder).postfixTokenRefGenerated": 584
+        },
+        "FlagsAt": {
+          "binder.(*Binder).bindContainer": 99,
+          "binder.(*Binder).bindKind": 3346,
+          "binder.(*Binder).bindPropertyOrMethodOrAccessorRef": 584,
+          "binder.(*Binder).checkContextualIdentifierRef": 1152,
+          "binder.(*Binder).setExportContextFlagRef": 1
+        },
+        "ID": {
+          "ast.(*Store).listOwner": 2510,
+          "ast.(*Store).listRef": 804,
+          "ast.(*StoreSet).register": 1
+        },
+        "KindAt": {
+          "binder.(*Binder).bindChildRef": 2135,
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 208,
+          "binder.(*Binder).bindListRef": 1106,
+          "binder.(*Binder).bindRef": 1,
+          "binder.(*Binder).getOptionalSymbolFlagForRef": 204,
+          "binder.(*Binder).isIdentifierNameRef": 1152,
+          "binder.(*Binder).isImplicitlyExportedJSDocDeclarationRef": 6,
+          "binder.(*Binder).modifierFlagsRef": 392,
+          "binder.(*Binder).nameOfDeclarationRef": 2160
+        },
+        "ListElem": {
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 208,
+          "binder.(*Binder).bindListRef": 1106,
+          "binder.(*Binder).modifierFlagsRef": 392
+        },
+        "ListLen": {
+          "binder.(*Binder).bindEachStatementFunctionsFirstRef": 1,
+          "binder.(*Binder).bindListRef": 411,
+          "binder.(*Binder).modifierFlagsRef": 990
+        },
+        "ListSlotAt": {
+          "binder.(*Binder).bindFunctionsFirstChildrenGenerated": 1,
+          "binder.(*Binder).forEachBindChildGenerated": 1518,
+          "binder.(*Binder).modifiersRefGenerated": 978
+        },
+        "NewFlow": {},
+        "ParentRef": {
+          "binder.(*Binder).isIdentifierNameRef": 1152,
+          "binder.(*Binder).isImplicitlyExportedJSDocDeclarationRef": 6
+        },
+        "TextAt": {
+          "binder.(*Binder).checkContextualIdentifierRef": 568,
+          "binder.(*Binder).getDeclarationNameRef": 788
+        },
+        "listOwner": {
+          "ast.(*Store).ListElem": 1706,
+          "ast.(*Store).ListLen": 804
+        },
+        "walker.ChildRef": {}
+      },
+      "logical_counts": {
+        "contextual_identifier_checks": 1152,
+        "flows_created": 2,
+        "identifier_name_tests": 1152,
+        "node_visits": 3346,
+        "symbols_created": 791
+      },
+      "derived": {
+        "walker_child_reads": 3122,
+        "generated_helper_child_reads": 3335,
+        "manual_other_child_reads": 6,
+        "generated_direct_getter_eligible_upper_reads": 6457,
+        "two_loop_list_elem_reads": 1314,
+        "two_loop_list_elem_share": 0.7702227432590856
+      }
+    }
+  },
+  "input_identity_status": "current",
+  "input_identity_path": ".cursor/skills/verify-tsc/artifacts/20260910-binder-investigation-02/audit-sites/identity.json",
+  "saved_baseline_binder_sha256": "c635b3479c3053eb2a316161517c47e2a7aea22acfc97e918cb824896fd46ec3",
+  "current_binder_equals_saved_baseline": false
+}
