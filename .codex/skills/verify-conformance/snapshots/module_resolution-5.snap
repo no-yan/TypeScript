@@ -1,0 +1,24 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+PASS: TestLocal/bundlerConditionsExcludesNode.ts_module=esnext/module_resolution
+baseline: conformance/bundlerConditionsExcludesNode(module=esnext).trace.json
+reference: 19f4e0bb0f9279bb290ea63fb6570564fee92308a0f57117b1563dcc51082ed7
+actual: 19f4e0bb0f9279bb290ea63fb6570564fee92308a0f57117b1563dcc51082ed7
+
+PASS: TestLocal/nodeModulesExportsBlocksTypesVersions.ts_module=nodenext/module_resolution
+baseline: conformance/nodeModulesExportsBlocksTypesVersions(module=nodenext).trace.json
+reference: 14e244c616810a308b1a8531f9082ce67338204c14ecb1c64ba7df27b360df8f
+actual: 14e244c616810a308b1a8531f9082ce67338204c14ecb1c64ba7df27b360df8f
+
+PASS: TestLocal/typesVersionsDeclarationEmit.multiFile.ts/module_resolution
+baseline: conformance/typesVersionsDeclarationEmit.multiFile.trace.json
+reference: e615116df4f06f999878ca270cc98a1f76d0e20baef5d6ce8056342f04382095
+actual: e615116df4f06f999878ca270cc98a1f76d0e20baef5d6ce8056342f04382095
+
+PASS: TestLocal/typesVersionsDeclarationEmit.multiFileBackReferenceToSelf.ts/module_resolution
+baseline: conformance/typesVersionsDeclarationEmit.multiFileBackReferenceToSelf.trace.json
+reference: 76cde75ced7d0007db9ae9a4afa6829bb4281b057712e45c088d3a3c09153730
+actual: 76cde75ced7d0007db9ae9a4afa6829bb4281b057712e45c088d3a3c09153730

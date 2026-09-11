@@ -1,0 +1,15 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+commit: b5dffe8c9295d57c500c68cc16fe3a842c961f7a
+filter: ^TestLocal$
+suite exit code: 1
+capture: complete
+input/reference/harness contract: eba11b9de5f4266f8b0c47aa3d49c2717b51e7d91f3879072f3a8394ff86c4ea
+
+File/configuration summary:
+fail: 1833
+pass: 4713
+skip: 1164

@@ -1,0 +1,24 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+PASS: TestLocal/nodeModulesExportsBlocksTypesVersions.ts_module=node18/module_resolution
+baseline: conformance/nodeModulesExportsBlocksTypesVersions(module=node18).trace.json
+reference: 52d91712843771691ad0aeaa2752bea52fbcc1208fbe092009be05cc2de38b6a
+actual: 52d91712843771691ad0aeaa2752bea52fbcc1208fbe092009be05cc2de38b6a
+
+PASS: TestLocal/nodeModulesPackageImportsRootWildcardNode16_promoted.ts/module_resolution
+baseline: conformance/nodeModulesPackageImportsRootWildcardNode16_promoted.trace.json
+reference: 2f09178208fe09ac1855453bb453763249e723f2a3f303624c673a6fa5af4c3c
+actual: 2f09178208fe09ac1855453bb453763249e723f2a3f303624c673a6fa5af4c3c
+
+PASS: TestLocal/scopedPackages.ts/module_resolution
+baseline: conformance/scopedPackages.trace.json
+reference: 18bce6155b99ae0d575b904c906e85c572381631023657878a268c94a743a498
+actual: 18bce6155b99ae0d575b904c906e85c572381631023657878a268c94a743a498
+
+PASS: TestLocal/typesVersionsDeclarationEmit.ambient.ts/module_resolution
+baseline: conformance/typesVersionsDeclarationEmit.ambient.trace.json
+reference: bbc2c6df0de3f05fd20ead6b02e7a7d5024318b501d314bba5641354d0c38cb0
+actual: bbc2c6df0de3f05fd20ead6b02e7a7d5024318b501d314bba5641354d0c38cb0

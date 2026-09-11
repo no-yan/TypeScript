@@ -1,0 +1,792 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+PASS: TestLocal/ES5For-of10.ts_target=es2015/union_ordering
+
+PASS: TestLocal/ES5For-of21.ts_target=es2015/union_ordering
+
+PASS: TestLocal/ES5For-ofTypeCheck14.ts_target=es2015/union_ordering
+
+PASS: TestLocal/ES5For-ofTypeCheck3.ts_target=es2015/union_ordering
+
+PASS: TestLocal/ExportClassWhichExtendsInterfaceWithInaccessibleType.ts/union_ordering
+
+PASS: TestLocal/ModuleWithExportedAndNonExportedClasses.ts/union_ordering
+
+PASS: TestLocal/Protected5.ts/union_ordering
+
+PASS: TestLocal/YieldExpression2_es6.ts/union_ordering
+
+PASS: TestLocal/accessibilityModifiers.ts_target=es2015/union_ordering
+
+PASS: TestLocal/accessorsOverrideProperty9.ts/union_ordering
+
+PASS: TestLocal/anonymousClassAccessorsDeclarationEmit1.ts/union_ordering
+
+PASS: TestLocal/anyAsConstructor.ts/union_ordering
+
+PASS: TestLocal/apparentTypeSupertype.ts/union_ordering
+
+PASS: TestLocal/arrowFunctionWithParameterNameAsync_es5.ts_target=es2015/union_ordering
+
+PASS: TestLocal/asiPreventsParsingAsInterface04.ts/union_ordering
+
+PASS: TestLocal/assignmentCompatWithObjectMembers5.ts/union_ordering
+
+PASS: TestLocal/asyncArrowFunction5_es6.ts/union_ordering
+
+PASS: TestLocal/asyncArrowFunction6_es2017.ts/union_ordering
+
+PASS: TestLocal/asyncArrowFunction7_es5.ts_target=es2015/union_ordering
+
+PASS: TestLocal/asyncFunctionDeclaration11_es2017.ts/union_ordering
+
+PASS: TestLocal/asyncFunctionDeclaration14_es6.ts/union_ordering
+
+PASS: TestLocal/asyncFunctionDeclaration3_es5.ts_target=es2015/union_ordering
+
+PASS: TestLocal/asyncFunctionDeclarationCapturesArguments_es5.ts_target=es2015/union_ordering
+
+PASS: TestLocal/asyncGeneratorParameterEvaluation.ts_target=es2015/union_ordering
+
+PASS: TestLocal/asyncGetter_es5.ts_target=es2015/union_ordering
+
+PASS: TestLocal/asyncQualifiedReturnType_es5.ts_target=es2015/union_ordering
+
+PASS: TestLocal/autoAccessor11.ts/union_ordering
+
+PASS: TestLocal/autoAccessor8.ts/union_ordering
+
+PASS: TestLocal/awaitBinaryExpression3_es5.ts_target=es2015/union_ordering
+
+PASS: TestLocal/awaitUsingDeclarations.10.ts/union_ordering
+
+PASS: TestLocal/awaitUsingDeclarationsInForAwaitOf.ts_target=es2022/union_ordering
+
+PASS: TestLocal/awaitUsingDeclarationsInForOf.2.ts/union_ordering
+
+PASS: TestLocal/awaitUsingDeclarationsTopLevelOfModule.1.ts_module=esnext/union_ordering
+
+PASS: TestLocal/bitwiseNotOperatorWithEnumType.ts/union_ordering
+
+PASS: TestLocal/bitwiseNotOperatorWithStringType.ts/union_ordering
+
+PASS: TestLocal/bundlerConditionsExcludesNode.ts_module=preserve/union_ordering
+
+PASS: TestLocal/callSignatureAssignabilityInInheritance4.ts/union_ordering
+
+PASS: TestLocal/callSignaturesWithOptionalParameters.ts/union_ordering
+
+PASS: TestLocal/castingTuple.ts/union_ordering
+
+PASS: TestLocal/checkJsdocTypeTag1.ts/union_ordering
+
+PASS: TestLocal/checkJsdocTypeTag5.ts/union_ordering
+
+PASS: TestLocal/checkJsxChildrenProperty5.tsx/union_ordering
+
+PASS: TestLocal/checkJsxGenericTagHasCorrectInferences.tsx/union_ordering
+
+PASS: TestLocal/circular1.ts/union_ordering
+
+PASS: TestLocal/circularReference.ts/union_ordering
+
+PASS: TestLocal/cjsErrors.ts_module=nodenext/union_ordering
+
+PASS: TestLocal/classAbstractConstructor.ts/union_ordering
+
+PASS: TestLocal/classAbstractFactoryFunction.ts/union_ordering
+
+PASS: TestLocal/classAbstractProperties.ts/union_ordering
+
+PASS: TestLocal/classExpression1.ts/union_ordering
+
+PASS: TestLocal/classExpression2.ts/union_ordering
+
+PASS: TestLocal/classExtendingOptionalChain.ts/union_ordering
+
+PASS: TestLocal/classInsideBlock.ts/union_ordering
+
+PASS: TestLocal/classStaticBlock11.ts_target=es2015/union_ordering
+
+PASS: TestLocal/classStaticBlock16.ts/union_ordering
+
+PASS: TestLocal/classStaticBlock2.ts_target=es2015/union_ordering
+
+PASS: TestLocal/classStaticBlock2.ts_target=esnext/union_ordering
+
+PASS: TestLocal/classStaticBlockUseBeforeDef1.ts_target=es2022/union_ordering
+
+PASS: TestLocal/classWithStaticFieldInParameterBindingPattern.2.ts_target=es2015/union_ordering
+
+PASS: TestLocal/comparisonOperatorWithNoRelationshipObjectsOnOptionalProperty.ts/union_ordering
+
+PASS: TestLocal/compoundExponentiationAssignmentLHSCanBeAssigned1.ts/union_ordering
+
+PASS: TestLocal/computedPropertyNames15_ES5.ts_target=es2015/union_ordering
+
+PASS: TestLocal/computedPropertyNames17_ES5.ts_target=es2015/union_ordering
+
+PASS: TestLocal/computedPropertyNames25_ES5.ts_target=es2015/union_ordering
+
+PASS: TestLocal/computedPropertyNames27_ES6.ts/union_ordering
+
+PASS: TestLocal/computedPropertyNames43_ES5.ts_target=es2015/union_ordering
+
+PASS: TestLocal/computedPropertyNames47_ES5.ts_target=es2015/union_ordering
+
+PASS: TestLocal/computedPropertyNames48_ES6.ts/union_ordering
+
+PASS: TestLocal/computedPropertyNames7_ES6.ts/union_ordering
+
+PASS: TestLocal/computedPropertyNamesContextualType8_ES5.ts_target=es2015/union_ordering
+
+PASS: TestLocal/computedPropertyNamesDeclarationEmit4_ES6.ts/union_ordering
+
+PASS: TestLocal/conditionalExportsResolutionFallbackNull.ts_moduleresolution=nodenext/union_ordering
+
+PASS: TestLocal/constructSignatureAssignabilityInInheritance5.ts/union_ordering
+
+PASS: TestLocal/constructorNameInAccessor.ts/union_ordering
+
+PASS: TestLocal/contextuallyTypedObjectLiteralMethodDeclaration01.ts/union_ordering
+
+PASS: TestLocal/controlFlowBinaryOrExpression.ts/union_ordering
+
+PASS: TestLocal/controlFlowBindingElement.ts/union_ordering
+
+PASS: TestLocal/controlFlowTypeofObject.ts/union_ordering
+
+PASS: TestLocal/declaredClassMergedwithSelf.ts/union_ordering
+
+PASS: TestLocal/decoratorMetadata.ts_target=es2015/union_ordering
+
+PASS: TestLocal/decoratorOnClassAccessor8.ts_target=es2015/union_ordering
+
+PASS: TestLocal/decoratorOnClassMethod4.ts/union_ordering
+
+PASS: TestLocal/decoratorOnClassMethod5.ts/union_ordering
+
+PASS: TestLocal/decoratorOnClassMethodOverload1.ts_target=es2015/union_ordering
+
+PASS: TestLocal/decoratorOnClassProperty6.ts_target=es2015/union_ordering
+
+PASS: TestLocal/decoratorOnVar.ts/union_ordering
+
+PASS: TestLocal/deleteOperatorInvalidOperations.ts/union_ordering
+
+PASS: TestLocal/derivedClassParameterProperties.ts/union_ordering
+
+PASS: TestLocal/derivedClassSuperCallsInNonConstructorMembers.ts/union_ordering
+
+PASS: TestLocal/derivedClassWithoutExplicitConstructor.ts/union_ordering
+
+PASS: TestLocal/destructuringParameterDeclaration1ES5.ts/union_ordering
+
+PASS: TestLocal/directDependenceBetweenTypeAliases.ts/union_ordering
+
+PASS: TestLocal/discriminatedUnionTypes3.ts/union_ordering
+
+PASS: TestLocal/emitArrowFunctionWhenUsingArguments09.ts_target=es2015/union_ordering
+
+PASS: TestLocal/emitDefaultParametersFunctionExpressionES6.ts/union_ordering
+
+PASS: TestLocal/emptyAssignmentPatterns02_ES5iterable.ts_target=es2015/union_ordering
+
+PASS: TestLocal/emptyAssignmentPatterns02_ES6.ts/union_ordering
+
+PASS: TestLocal/enumConstantMemberWithTemplateLiterals.ts/union_ordering
+
+PASS: TestLocal/enumTagOnExports2.ts/union_ordering
+
+PASS: TestLocal/equalityStrictNulls.ts/union_ordering
+
+PASS: TestLocal/esDecorators-classDeclaration-accessors-nonStaticAbstract.ts_target=es2015/union_ordering
+
+PASS: TestLocal/esDecorators-classDeclaration-accessors-staticPrivate.ts_target=es2022/union_ordering
+
+PASS: TestLocal/esDecorators-classDeclaration-commentPreservation.ts_module=commonjs,target=es2015/union_ordering
+
+PASS: TestLocal/esDecorators-classDeclaration-exportModifier.ts/union_ordering
+
+PASS: TestLocal/esDecorators-classDeclaration-fields-nonStatic.ts_target=esnext,usedefineforclassfields=false/union_ordering
+
+PASS: TestLocal/esDecorators-classDeclaration-fields-nonStaticPrivate.ts_target=es2015/union_ordering
+
+PASS: TestLocal/esDecorators-classDeclaration-fields-nonStaticPrivateAccessor.ts_target=es2022/union_ordering
+
+PASS: TestLocal/esDecorators-classDeclaration-fields-staticAccessor.ts_target=es2015/union_ordering
+
+PASS: TestLocal/esDecorators-classDeclaration-methods-nonStaticAbstract.ts_target=es2022/union_ordering
+
+PASS: TestLocal/esnextmodulekindWithES5Target7.ts_target=es2015/union_ordering
+
+PASS: TestLocal/everyTypeWithAnnotationAndInitializer.ts/union_ordering
+
+PASS: TestLocal/exportAsNamespace3.ts_module=esnext/union_ordering
+
+PASS: TestLocal/exportAsNamespace_exportAssignment.ts/union_ordering
+
+PASS: TestLocal/exportAssignmentConstrainedGenericType.ts/union_ordering
+
+PASS: TestLocal/exportDeclaration.ts_isolatedmodules=false/union_ordering
+
+PASS: TestLocal/exportNamespace11.ts/union_ordering
+
+PASS: TestLocal/exportNamespace7.ts/union_ordering
+
+PASS: TestLocal/exportStar.ts_target=es2015/union_ordering
+
+PASS: TestLocal/exportsAndImports3.ts/union_ordering
+
+PASS: TestLocal/extendsClause.ts/union_ordering
+
+PASS: TestLocal/for-inStatementsDestructuring4.ts/union_ordering
+
+PASS: TestLocal/for-of11.ts/union_ordering
+
+PASS: TestLocal/for-of22.ts/union_ordering
+
+PASS: TestLocal/for-of34.ts/union_ordering
+
+PASS: TestLocal/forgottenNew.ts/union_ordering
+
+PASS: TestLocal/functionExpressionContextualTyping1.ts/union_ordering
+
+PASS: TestLocal/functionExpressionContextualTyping3.ts/union_ordering
+
+PASS: TestLocal/functionNameConflicts.ts/union_ordering
+
+PASS: TestLocal/functionOverloadErrorsSyntax.ts/union_ordering
+
+PASS: TestLocal/generatorInAmbientContext4.d.ts/union_ordering
+
+PASS: TestLocal/generatorTypeCheck12.ts/union_ordering
+
+PASS: TestLocal/generatorTypeCheck37.ts/union_ordering
+
+PASS: TestLocal/genericCallWithGenericSignatureArguments3.ts/union_ordering
+
+PASS: TestLocal/globalMergeWithCommonJSAssignmentDeclaration.ts/union_ordering
+
+PASS: TestLocal/globalThisTypeIndexAccess.ts/union_ordering
+
+PASS: TestLocal/implementingAnInterfaceExtendingClassWithPrivates2.ts/union_ordering
+
+PASS: TestLocal/importAssertion1.ts_module=esnext/union_ordering
+
+PASS: TestLocal/importAssertion3.ts_module=esnext/union_ordering
+
+PASS: TestLocal/importCallExpressionAsyncES2020.ts/union_ordering
+
+PASS: TestLocal/importCallExpressionDeclarationEmit2.ts/union_ordering
+
+PASS: TestLocal/importCallExpressionInCJS5.ts/union_ordering
+
+PASS: TestLocal/importStatementsInterfaces.ts/union_ordering
+
+PASS: TestLocal/importTag25.ts/union_ordering
+
+PASS: TestLocal/importTypeNestedNoRef.ts/union_ordering
+
+PASS: TestLocal/indexerWithTuple.ts/union_ordering
+
+PASS: TestLocal/inferringClassMembersFromAssignments8.ts/union_ordering
+
+PASS: TestLocal/initializationOrdering1.ts_target=esnext,usedefineforclassfields=true/union_ordering
+
+PASS: TestLocal/inlineJsxFactoryLocalTypeGlobalFallback.tsx/union_ordering
+
+PASS: TestLocal/interfaceWithAccessibilityModifiers.ts/union_ordering
+
+PASS: TestLocal/interfaceWithOverloadedCallAndConstructSignatures.ts/union_ordering
+
+PASS: TestLocal/interfaceWithStringIndexerHidingBaseTypeIndexer.ts/union_ordering
+
+PASS: TestLocal/invalidDoWhileContinueStatements.ts/union_ordering
+
+PASS: TestLocal/invalidNewTarget.es6.ts/union_ordering
+
+PASS: TestLocal/invalidWhileBreakStatements.ts/union_ordering
+
+PASS: TestLocal/iterableArrayPattern1.ts/union_ordering
+
+PASS: TestLocal/iterableArrayPattern19.ts/union_ordering
+
+PASS: TestLocal/iterableArrayPattern21.ts/union_ordering
+
+PASS: TestLocal/iteratorSpreadInArray3.ts/union_ordering
+
+PASS: TestLocal/iteratorSpreadInCall5.ts/union_ordering
+
+PASS: TestLocal/jsDeclarationsClassLeadingOptional.ts_target=es2015/union_ordering
+
+PASS: TestLocal/jsDeclarationsClassMethod.ts/union_ordering
+
+PASS: TestLocal/jsDeclarationsComputedNames.ts_target=es2015/union_ordering
+
+PASS: TestLocal/jsDeclarationsExportAssignedConstructorFunctionWithSub.ts_target=es2015/union_ordering
+
+PASS: TestLocal/jsDeclarationsMissingGenerics.ts_target=es2015/union_ordering
+
+PASS: TestLocal/jsDeclarationsTypeReferences2.ts_target=es2015/union_ordering
+
+PASS: TestLocal/jsOverrideMap.ts/union_ordering
+
+PASS: TestLocal/jsdocImplements_missingType.ts/union_ordering
+
+PASS: TestLocal/jsdocImportType2.ts/union_ordering
+
+PASS: TestLocal/jsdocTemplateTag5.ts/union_ordering
+
+PASS: TestLocal/jsdocTypeFromChainedAssignment2.ts/union_ordering
+
+PASS: TestLocal/jsdocTypeTagRequiredParameters.ts/union_ordering
+
+PASS: TestLocal/jsxAttributeInitializer.ts_jsx=react/union_ordering
+
+PASS: TestLocal/jsxJsxsCjsTransformNestedSelfClosingChild.tsx_jsx=react-jsxdev/union_ordering
+
+PASS: TestLocal/jsxJsxsCjsTransformSubstitutesNames.tsx_jsx=react-jsx/union_ordering
+
+PASS: TestLocal/jsxJsxsCjsTransformSubstitutesNames.tsx_jsx=react-jsxdev/union_ordering
+
+PASS: TestLocal/jsxParsingError3.tsx/union_ordering
+
+PASS: TestLocal/jsxParsingErrorImmediateSpreadInAttributeValue.tsx/union_ordering
+
+PASS: TestLocal/keyofAndIndexedAccess2.ts/union_ordering
+
+PASS: TestLocal/labeledStatementDeclarationListInLoopNoCrash3.ts_target=es2015/union_ordering
+
+PASS: TestLocal/lateBoundAssignmentDeclarationSupport3.ts/union_ordering
+
+PASS: TestLocal/logicalAndOperatorStrictMode.ts/union_ordering
+
+PASS: TestLocal/logicalAssignment3.ts_target=esnext/union_ordering
+
+PASS: TestLocal/logicalAssignment5.ts_target=es2015/union_ordering
+
+PASS: TestLocal/mergedInterfacesWithInheritedPrivates3.ts/union_ordering
+
+PASS: TestLocal/missingDecoratorType.ts_target=es2015/union_ordering
+
+PASS: TestLocal/moduleExportsElementAccessAssignment2.ts/union_ordering
+
+PASS: TestLocal/moduleWithStatementsOfEveryKind.ts/union_ordering
+
+PASS: TestLocal/multipleExportDefault2.ts/union_ordering
+
+PASS: TestLocal/nameDelimitedBySlashes.ts/union_ordering
+
+PASS: TestLocal/negateOperatorWithStringType.ts/union_ordering
+
+PASS: TestLocal/neverIntersectionNotCallable.ts/union_ordering
+
+PASS: TestLocal/newTarget.es5.ts_target=es2015/union_ordering
+
+PASS: TestLocal/newTargetNarrowing.ts/union_ordering
+
+PASS: TestLocal/nodeModulesAllowJs1.ts_module=nodenext/union_ordering
+
+PASS: TestLocal/nodeModulesAllowJsConditionalPackageExports.ts_module=node20/union_ordering
+
+PASS: TestLocal/nodeModulesAllowJsDynamicImport.ts_module=node16/union_ordering
+
+PASS: TestLocal/nodeModulesAllowJsDynamicImport.ts_module=node20/union_ordering
+
+PASS: TestLocal/nodeModulesAllowJsGeneratedNameCollisions.ts_module=node18/union_ordering
+
+PASS: TestLocal/nodeModulesAllowJsImportHelpersCollisions1.ts_module=nodenext/union_ordering
+
+PASS: TestLocal/nodeModulesAllowJsTopLevelAwait.ts_module=nodenext/union_ordering
+
+PASS: TestLocal/nodeModulesCjsFormatFileAlwaysHasDefault.ts_module=node18/union_ordering
+
+PASS: TestLocal/nodeModulesExportsBlocksTypesVersions.ts_module=node16/union_ordering
+
+PASS: TestLocal/nodeModulesForbidenSyntax.ts_module=nodenext/union_ordering
+
+PASS: TestLocal/nodeModulesImportAssignments.ts_module=node20/union_ordering
+
+PASS: TestLocal/nodeModulesImportMeta.ts_module=nodenext/union_ordering
+
+PASS: TestLocal/nodeModulesImportModeDeclarationEmit1.ts_module=node16/union_ordering
+
+PASS: TestLocal/nodeModulesImportResolutionNoCycle.ts_module=node20/union_ordering
+
+PASS: TestLocal/nodeModulesImportTypeModeDeclarationEmit1.ts_module=nodenext/union_ordering
+
+PASS: TestLocal/nodeModulesImportTypeModeDeclarationEmitErrors1.ts_module=node16/union_ordering
+
+PASS: TestLocal/nodeModulesJson.ts_module=nodenext/union_ordering
+
+PASS: TestLocal/nodeModulesPackageExports.ts_module=nodenext/union_ordering
+
+PASS: TestLocal/nodeModulesPackagePatternExports.ts_module=nodenext/union_ordering
+
+PASS: TestLocal/nodeModulesPackagePatternExportsExclude.ts_module=node16/union_ordering
+
+PASS: TestLocal/nodeModulesPackagePatternExportsExclude.ts_module=node18/union_ordering
+
+PASS: TestLocal/nodeModulesPackagePatternExportsTrailers.ts_module=node18/union_ordering
+
+PASS: TestLocal/nodeModulesTopLevelAwait.ts_module=node18/union_ordering
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeDeclarationEmit2.ts_module=node20/union_ordering
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeDeclarationEmit5.ts_module=node18/union_ordering
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeDeclarationEmit6.ts_module=node20/union_ordering
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeOverride2.ts_module=node18/union_ordering
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeOverride3.ts_module=node18/union_ordering
+
+PASS: TestLocal/nodeModulesTypesVersionPackageExports.ts_module=node18/union_ordering
+
+PASS: TestLocal/nonPrimitiveIndexingWithForIn.ts/union_ordering
+
+PASS: TestLocal/nullishCoalescingOperator4.ts/union_ordering
+
+PASS: TestLocal/numericStringLiteralTypes.ts/union_ordering
+
+PASS: TestLocal/objectBindingPatternKeywordIdentifiers06.ts/union_ordering
+
+PASS: TestLocal/objectLiteralShorthandPropertiesAssignmentES6.ts/union_ordering
+
+PASS: TestLocal/objectSpreadIndexSignature.ts/union_ordering
+
+PASS: TestLocal/objectSpreadSetonlyAccessor.ts/union_ordering
+
+PASS: TestLocal/objectTypeWithStringNamedPropertyOfIllegalCharacters.ts/union_ordering
+
+PASS: TestLocal/objectTypesIdentity.ts/union_ordering
+
+PASS: TestLocal/objectTypesIdentityWithCallSignatures3.ts/union_ordering
+
+PASS: TestLocal/objectTypesIdentityWithGenericConstructSignaturesDifferingByConstraints.ts/union_ordering
+
+PASS: TestLocal/optionalBindingParametersInOverloads1.ts/union_ordering
+
+PASS: TestLocal/optionalChainingInParameterBindingPattern.2.ts_target=es2015/union_ordering
+
+PASS: TestLocal/optionalChainingInParameterBindingPattern.2.ts_target=esnext/union_ordering
+
+PASS: TestLocal/override6.ts/union_ordering
+
+PASS: TestLocal/parameterInitializersForwardReferencing.2.ts_target=es2015/union_ordering
+
+PASS: TestLocal/parseRegularExpressionMixedWithComments.ts/union_ordering
+
+PASS: TestLocal/parser.asyncGenerators.classMethods.es2018.ts_alwaysstrict=true/union_ordering
+
+PASS: TestLocal/parser.numericSeparators.unicodeEscape.ts/union_ordering
+
+PASS: TestLocal/parser509546_1.ts/union_ordering
+
+PASS: TestLocal/parser630933.ts/union_ordering
+
+PASS: TestLocal/parserAccessors2.ts_target=es2015/union_ordering
+
+PASS: TestLocal/parserAmbiguity3.ts/union_ordering
+
+PASS: TestLocal/parserAmbiguityWithBinaryOperator3.ts/union_ordering
+
+PASS: TestLocal/parserArrayLiteralExpression15.ts/union_ordering
+
+PASS: TestLocal/parserArrayLiteralExpression5.ts/union_ordering
+
+PASS: TestLocal/parserArrayLiteralExpression9.ts/union_ordering
+
+PASS: TestLocal/parserArrowFunctionExpression14.ts/union_ordering
+
+PASS: TestLocal/parserClassDeclaration10.ts/union_ordering
+
+PASS: TestLocal/parserClassDeclaration12.ts/union_ordering
+
+PASS: TestLocal/parserClassDeclaration7.d.ts/union_ordering
+
+PASS: TestLocal/parserClassDeclaration8.ts/union_ordering
+
+PASS: TestLocal/parserCommaInTypeMemberList1.ts/union_ordering
+
+PASS: TestLocal/parserComputedPropertyName3.ts/union_ordering
+
+PASS: TestLocal/parserConstructorAmbiguity1.ts/union_ordering
+
+PASS: TestLocal/parserES5SymbolProperty7.ts_target=es2015/union_ordering
+
+PASS: TestLocal/parserES5SymbolProperty8.ts_target=es2015/union_ordering
+
+PASS: TestLocal/parserErrantAccessibilityModifierInModule1.ts/union_ordering
+
+PASS: TestLocal/parserErrantSemicolonInClass1.ts/union_ordering
+
+PASS: TestLocal/parserErrorRecovery_ExtendsOrImplementsClause4.ts/union_ordering
+
+PASS: TestLocal/parserForInStatement4.ts/union_ordering
+
+PASS: TestLocal/parserForInStatement5.ts/union_ordering
+
+PASS: TestLocal/parserForInStatement7.ts/union_ordering
+
+PASS: TestLocal/parserForOfStatement16.ts/union_ordering
+
+PASS: TestLocal/parserForOfStatement8.ts/union_ordering
+
+PASS: TestLocal/parserForStatement1.d.ts/union_ordering
+
+PASS: TestLocal/parserGenericClass1.ts/union_ordering
+
+PASS: TestLocal/parserGenericClass2.ts/union_ordering
+
+PASS: TestLocal/parserGreaterThanTokenAmbiguity13.ts/union_ordering
+
+PASS: TestLocal/parserIfStatement1.d.ts/union_ordering
+
+PASS: TestLocal/parserIndexMemberDeclaration7.ts/union_ordering
+
+PASS: TestLocal/parserIndexSignature6.ts/union_ordering
+
+PASS: TestLocal/parserInvocationOfMemberAccessOffOfObjectCreationExpression1.ts/union_ordering
+
+PASS: TestLocal/parserMethodSignature9.ts/union_ordering
+
+PASS: TestLocal/parserModuleDeclaration3.ts/union_ordering
+
+PASS: TestLocal/parserObjectCreationArrayLiteral3.ts/union_ordering
+
+PASS: TestLocal/parserObjectType4.ts/union_ordering
+
+PASS: TestLocal/parserParameterList13.ts/union_ordering
+
+PASS: TestLocal/parserParameterList16.ts/union_ordering
+
+PASS: TestLocal/parserParameterList5.ts/union_ordering
+
+PASS: TestLocal/parserParenthesizedVariableAndFunctionInTernary.ts/union_ordering
+
+PASS: TestLocal/parserRegularExpression1.ts/union_ordering
+
+PASS: TestLocal/parserRegularExpressionDivideAmbiguity1.ts/union_ordering
+
+PASS: TestLocal/parserSetAccessorWithTypeParameters1.ts_target=es2015/union_ordering
+
+PASS: TestLocal/parserSkippedTokens6.ts/union_ordering
+
+PASS: TestLocal/parserStrictMode9.ts/union_ordering
+
+PASS: TestLocal/parserSuperExpression4.ts/union_ordering
+
+PASS: TestLocal/parserVariableDeclaration3.ts/union_ordering
+
+PASS: TestLocal/parserVariableDeclaration4.d.ts/union_ordering
+
+PASS: TestLocal/parserVariableStatement2.ts/union_ordering
+
+PASS: TestLocal/parserWhileStatement1.d.ts/union_ordering
+
+PASS: TestLocal/parser_breakInIterationOrSwitchStatement4.ts/union_ordering
+
+PASS: TestLocal/parser_breakNotInIterationOrSwitchStatement2.ts/union_ordering
+
+PASS: TestLocal/parser_breakTarget4.ts/union_ordering
+
+PASS: TestLocal/parser_duplicateLabel3.ts/union_ordering
+
+PASS: TestLocal/parservoidInQualifiedName0.ts/union_ordering
+
+PASS: TestLocal/partiallyNamedTuples2.ts/union_ordering
+
+PASS: TestLocal/privateNameAndPropertySignature.ts/union_ordering
+
+PASS: TestLocal/privateNameMethod.ts/union_ordering
+
+PASS: TestLocal/privateNameStaticFieldInitializer.ts_target=es2015/union_ordering
+
+PASS: TestLocal/privateNamesAndStaticMethods.ts_target=es2022/union_ordering
+
+PASS: TestLocal/privateWriteOnlyAccessorRead.ts/union_ordering
+
+PASS: TestLocal/propertyAssignmentOnUnresolvedImportedSymbol.ts/union_ordering
+
+PASS: TestLocal/propertyOverridesMethod.ts/union_ordering
+
+PASS: TestLocal/restElementMustBeLast.ts/union_ordering
+
+PASS: TestLocal/restElementWithAssignmentPattern2.ts/union_ordering
+
+PASS: TestLocal/restElementWithInitializer1.ts/union_ordering
+
+PASS: TestLocal/scannerES3NumericLiteral3.ts/union_ordering
+
+PASS: TestLocal/scannerES3NumericLiteral4.ts/union_ordering
+
+PASS: TestLocal/seeTag1.ts/union_ordering
+
+PASS: TestLocal/spreadOverwritesPropertyStrict.ts/union_ordering
+
+PASS: TestLocal/staticAndNonStaticPropertiesSameName.ts/union_ordering
+
+PASS: TestLocal/staticAutoAccessors.ts_target=es2022/union_ordering
+
+PASS: TestLocal/stringLiteralCheckedInIf02.ts/union_ordering
+
+PASS: TestLocal/stringLiteralTypesInVariableDeclarations01.ts/union_ordering
+
+PASS: TestLocal/stringLiteralsWithEqualityChecks02.ts/union_ordering
+
+PASS: TestLocal/stringLiteralsWithSwitchStatements02.ts/union_ordering
+
+PASS: TestLocal/stringLiteralsWithSwitchStatements03.ts/union_ordering
+
+PASS: TestLocal/subtypesOfTypeParameter.ts/union_ordering
+
+PASS: TestLocal/subtypingWithCallSignatures2.ts/union_ordering
+
+PASS: TestLocal/subtypingWithCallSignaturesA.ts/union_ordering
+
+PASS: TestLocal/subtypingWithConstructSignatures6.ts/union_ordering
+
+PASS: TestLocal/symbolProperty1.ts/union_ordering
+
+PASS: TestLocal/symbolProperty24.ts/union_ordering
+
+PASS: TestLocal/symbolProperty30.ts/union_ordering
+
+PASS: TestLocal/symbolProperty54.ts/union_ordering
+
+PASS: TestLocal/taggedTemplateStringsWithOverloadResolution1.ts/union_ordering
+
+PASS: TestLocal/taggedTemplateStringsWithTagsTypedAsAnyES6.ts/union_ordering
+
+PASS: TestLocal/templateStringBinaryOperationsInvalid.ts/union_ordering
+
+PASS: TestLocal/templateStringInFunctionExpression.ts/union_ordering
+
+PASS: TestLocal/templateStringInParentheses.ts/union_ordering
+
+PASS: TestLocal/templateStringInPropertyAssignment.ts/union_ordering
+
+PASS: TestLocal/templateStringInTypeAssertion.ts/union_ordering
+
+PASS: TestLocal/templateStringInUnaryPlus.ts/union_ordering
+
+PASS: TestLocal/templateStringInWhile.ts/union_ordering
+
+PASS: TestLocal/templateStringInWhileES6.ts/union_ordering
+
+PASS: TestLocal/templateStringInYieldKeyword.ts/union_ordering
+
+PASS: TestLocal/templateStringTermination5.ts/union_ordering
+
+PASS: TestLocal/thisInObjectLiterals.ts/union_ordering
+
+PASS: TestLocal/topLevelAwait.1.ts_module=esnext,target=es2015/union_ordering
+
+PASS: TestLocal/topLevelAwaitErrors.6.ts_module=es2022/union_ordering
+
+PASS: TestLocal/tsxAttributeInvalidNames.tsx/union_ordering
+
+PASS: TestLocal/tsxAttributeResolution7.tsx/union_ordering
+
+PASS: TestLocal/tsxElementResolution18.tsx/union_ordering
+
+PASS: TestLocal/tsxElementResolution19.tsx/union_ordering
+
+PASS: TestLocal/tsxEmit3.tsx/union_ordering
+
+PASS: TestLocal/tsxErrorRecovery2.tsx/union_ordering
+
+PASS: TestLocal/tsxFragmentErrors.tsx/union_ordering
+
+PASS: TestLocal/tsxReactEmit1.tsx/union_ordering
+
+PASS: TestLocal/tsxReactEmitSpreadAttribute.ts_target=es2018/union_ordering
+
+PASS: TestLocal/tsxSpreadAttributesResolution9.tsx/union_ordering
+
+PASS: TestLocal/tsxUnionElementType2.tsx/union_ordering
+
+PASS: TestLocal/typeAliasesDoNotMerge.ts/union_ordering
+
+PASS: TestLocal/typeArgumentInference.ts/union_ordering
+
+PASS: TestLocal/typeFromPropertyAssignment24.ts/union_ordering
+
+PASS: TestLocal/typeFromPropertyAssignment34.ts/union_ordering
+
+PASS: TestLocal/typeGuardEnums.ts/union_ordering
+
+PASS: TestLocal/typeGuardNarrowsToLiteralType.ts/union_ordering
+
+PASS: TestLocal/typeGuardOfFormThisMember.ts_target=es2015/union_ordering
+
+PASS: TestLocal/typeGuardsInClassAccessors.ts_target=es2015/union_ordering
+
+PASS: TestLocal/typeGuardsInProperties.ts_target=es2015/union_ordering
+
+PASS: TestLocal/typeOfThisInStaticMembers11.ts_target=es2022/union_ordering
+
+PASS: TestLocal/typeQuery.ts/union_ordering
+
+PASS: TestLocal/typeSatisfaction_propertyValueConformance2.ts_nouncheckedindexedaccess=true/union_ordering
+
+PASS: TestLocal/typeTagCircularReferenceOnConstructorFunction.ts/union_ordering
+
+PASS: TestLocal/typeofThisWithImplicitThis.ts/union_ordering
+
+PASS: TestLocal/typeofTypeParameter.ts/union_ordering
+
+PASS: TestLocal/typingsSuggestion2.ts/union_ordering
+
+PASS: TestLocal/unicodeExtendedEscapesInRegularExpressions08.ts_target=es6/union_ordering
+
+PASS: TestLocal/unicodeExtendedEscapesInRegularExpressions09.ts_target=es6/union_ordering
+
+PASS: TestLocal/unicodeExtendedEscapesInStrings25.ts_target=es6/union_ordering
+
+PASS: TestLocal/unicodeExtendedEscapesInTemplates12.ts_target=es6/union_ordering
+
+PASS: TestLocal/unionTypeReduction.ts/union_ordering
+
+PASS: TestLocal/unionTypeWithIndexSignature.ts/union_ordering
+
+PASS: TestLocal/uniqueSymbolsDeclarations.ts/union_ordering
+
+PASS: TestLocal/uniqueSymbolsPropertyNames.ts/union_ordering
+
+PASS: TestLocal/usingDeclarations.1.ts_target=es2015/union_ordering
+
+PASS: TestLocal/usingDeclarationsDeclarationEmit.1.ts/union_ordering
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.1.ts_module=commonjs,target=es2015/union_ordering
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.10.ts_module=esnext,target=es2015/union_ordering
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.11.ts_module=commonjs,target=esnext/union_ordering
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.3.ts_module=esnext,target=esnext/union_ordering
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.8.ts_module=commonjs,target=esnext/union_ordering
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.1.ts_module=commonjs,target=esnext/union_ordering
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.10.ts_module=commonjs,target=es2015/union_ordering
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.3.ts_module=esnext,target=esnext/union_ordering
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.6.ts_module=commonjs,target=es2015/union_ordering
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.7.ts_module=esnext,target=esnext/union_ordering
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.8.ts_module=esnext,target=es2015/union_ordering
+
+PASS: TestLocal/validUndefinedAssignments.ts/union_ordering
+
+PASS: TestLocal/variadicTuples1.ts/union_ordering
+
+PASS: TestLocal/yieldStatementNoAsiAfterTransform.ts_target=esnext/union_ordering

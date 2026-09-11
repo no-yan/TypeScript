@@ -1,0 +1,1226 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+SKIP: TestLocal/ES5For-of1.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/ES5For-of11.ts_target=es2015
+
+PASS: TestLocal/ES5For-of14.ts_target=es2015
+
+PASS: TestLocal/ES5For-of23.ts_target=es2015
+
+SKIP: TestLocal/ES5For-of28.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+SKIP: TestLocal/ES5For-of31.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/ES5For-ofTypeCheck1.ts_target=es2015
+
+SKIP: TestLocal/ES5For-ofTypeCheck12.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/ES5For-ofTypeCheck13.ts_target=es2015
+
+SKIP: TestLocal/ES5For-ofTypeCheck8.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+FAIL: TestLocal/ExportModuleWithAccessibleTypesOnItsExportedMembers.ts
+
+PASS: TestLocal/ModuleWithExportedAndNonExportedEnums.ts
+
+PASS: TestLocal/YieldExpression10_es6.ts
+
+FAIL: TestLocal/accessorsOverrideProperty.ts
+
+PASS: TestLocal/accessorsOverrideProperty5.ts
+
+PASS: TestLocal/additionOperatorWithNullValueAndInvalidOperator.ts
+
+SKIP: TestLocal/allowImportingTsExtensions.ts_moduleresolution=classic
+    compiler_runner.go:<line>: unsupported module resolution kind 1
+
+PASS: TestLocal/allowImportingTypesDtsExtension.ts_allowimportingtsextensions=false,moduleresolution=node16
+
+PASS: TestLocal/allowImportingTypesDtsExtension2.ts_nouncheckedsideeffectimports=false,verbatimmodulesyntax=true
+
+PASS: TestLocal/ambientShorthand.ts
+
+PASS: TestLocal/ambientShorthand_reExport.ts
+
+SKIP: TestLocal/amdImportAsPrimaryExpression.ts
+    compiler_runner.go:<line>: unsupported module kind AMD
+
+PASS: TestLocal/arityAndOrderCompatibility01.ts
+
+PASS: TestLocal/arrayTypeOfFunctionTypes.ts
+
+PASS: TestLocal/arrowFunctionWithParameterNameAsync_es6.ts_target=es2015
+
+FAIL: TestLocal/asiPreventsParsingAsInterface02.ts
+
+PASS: TestLocal/asiPreventsParsingAsInterface05.ts
+
+FAIL: TestLocal/assignmentCompatWithCallSignatures6.ts
+
+FAIL: TestLocal/assignmentToParenthesizedIdentifiers.ts
+
+PASS: TestLocal/asyncArrowFunction1_es5.ts_target=es2015
+
+SKIP: TestLocal/asyncArrowFunction2_es5.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/asyncArrowFunctionCapturesThis_es2017.ts
+
+PASS: TestLocal/asyncArrowFunctionCapturesThis_es6.ts
+
+PASS: TestLocal/asyncFunctionDeclaration12_es2017.ts
+
+PASS: TestLocal/asyncFunctionDeclaration12_es5.ts_target=es2015
+
+PASS: TestLocal/asyncFunctionDeclaration1_es2017.ts
+
+SKIP: TestLocal/asyncFunctionDeclaration2_es5.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/asyncFunctionDeclaration4_es2017.ts
+
+FAIL: TestLocal/asyncFunctionDeclaration7_es6.ts
+
+PASS: TestLocal/asyncFunctionDeclarationCapturesArguments_es5.ts_target=es2015
+
+SKIP: TestLocal/asyncUnParenthesizedArrowFunction_es5.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/asyncUseStrict_es5.ts_target=es2015
+
+PASS: TestLocal/autoAccessor7.ts_target=es2022,usedefineforclassfields=false
+
+SKIP: TestLocal/awaitBinaryExpression5_es5.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/awaitCallExpression7_es6.ts
+
+PASS: TestLocal/awaitUnion_es5.ts_target=es2015
+
+PASS: TestLocal/awaitUsingDeclarations.1.ts_target=es2015
+
+PASS: TestLocal/awaitUsingDeclarations.17.ts
+
+PASS: TestLocal/awaitUsingDeclarations.5.ts
+
+PASS: TestLocal/awaitUsingDeclarationsInForAwaitOf.ts_target=es2022
+
+PASS: TestLocal/awaitUsingDeclarationsInForOf.1.ts_target=esnext
+
+PASS: TestLocal/awaitUsingDeclarationsInForOf.3.ts
+
+FAIL: TestLocal/awaitUsingDeclarationsInForOf.5.ts_target=esnext
+
+PASS: TestLocal/await_unaryExpression_es2017_3.ts
+
+PASS: TestLocal/builtinIteratorReturn.ts_strictbuiltiniteratorreturn=false
+
+PASS: TestLocal/bundlerRelative1.ts_module=preserve
+
+FAIL: TestLocal/callChainWithSuper.ts_target=es2017
+
+PASS: TestLocal/callSignaturesThatDifferOnlyByReturnType3.ts
+
+PASS: TestLocal/callSignaturesWithOptionalParameters.ts
+
+PASS: TestLocal/callSignaturesWithOptionalParameters2.ts
+
+FAIL: TestLocal/callbackCrossModule.ts
+
+FAIL: TestLocal/callbackTagNestedParameter.ts
+
+FAIL: TestLocal/checkExportsObjectAssignProperty.ts
+
+SKIP: TestLocal/checkJsdocReturnTag2.ts
+    compiler_runner.go:<line>: unsupported outFile /.src/dummy.js
+
+PASS: TestLocal/checkJsdocTypeTag7.ts
+
+FAIL: TestLocal/checkJsdocTypeTag8.ts
+
+FAIL: TestLocal/checkJsdocTypeTagOnObjectProperty2.ts
+
+FAIL: TestLocal/checkJsxChildrenProperty4.tsx
+
+PASS: TestLocal/checkSpecialPropertyAssignments.ts
+
+PASS: TestLocal/circular4.ts
+
+PASS: TestLocal/cjsErrors.ts_module=node18
+
+PASS: TestLocal/classAbstractAssignabilityConstructorFunction.ts
+
+PASS: TestLocal/classAbstractConstructor.ts
+
+PASS: TestLocal/classAbstractInstantiations1.ts
+
+FAIL: TestLocal/classAbstractInstantiations2.ts
+
+PASS: TestLocal/classAbstractMethodInNonAbstractClass.ts
+
+PASS: TestLocal/classAbstractUsingAbstractMethod1.ts
+
+PASS: TestLocal/classAbstractWithInterface.ts
+
+PASS: TestLocal/classAndInterfaceWithSameName.ts
+
+PASS: TestLocal/classExtendingNonConstructor.ts
+
+PASS: TestLocal/classExtendingNull.ts
+
+PASS: TestLocal/classStaticBlock1.ts_target=es2015
+
+PASS: TestLocal/classStaticBlock12.ts
+
+FAIL: TestLocal/classStaticBlock23.ts_target=esnext
+
+PASS: TestLocal/classStaticBlock7.ts
+
+PASS: TestLocal/classStaticBlockUseBeforeDef2.ts_target=es2022
+
+PASS: TestLocal/classWithBaseClassButNoConstructor.ts
+
+PASS: TestLocal/commaOperatorInvalidAssignmentType.ts
+
+PASS: TestLocal/commonJsImportBindingElementNarrowType.ts
+
+PASS: TestLocal/comparisonOperatorWithIdenticalPrimitiveType.ts
+
+PASS: TestLocal/comparisonOperatorWithSubtypeEnumAndNumber.ts
+
+PASS: TestLocal/computedPropertyNames13_ES5.ts_target=es2015
+
+SKIP: TestLocal/computedPropertyNames1_ES5.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+SKIP: TestLocal/computedPropertyNames2_ES5.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+SKIP: TestLocal/computedPropertyNames44_ES5.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+SKIP: TestLocal/computedPropertyNamesContextualType1_ES5.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/computedPropertyNamesContextualType4_ES6.ts
+
+SKIP: TestLocal/computedPropertyNamesContextualType7_ES5.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/computedPropertyNamesContextualType8_ES5.ts_target=es2015
+
+PASS: TestLocal/computedPropertyNamesDeclarationEmit2_ES5.ts_target=es2015
+
+SKIP: TestLocal/computedPropertyNamesDeclarationEmit5_ES5.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/computedPropertyNamesOnOverloads_ES6.ts
+
+PASS: TestLocal/computedPropertyNamesSourceMap1_ES6.ts
+
+PASS: TestLocal/computedPropertyNamesSourceMap2_ES5.ts_target=es2015
+
+PASS: TestLocal/conditionalExportsResolutionFallbackNull.ts_moduleresolution=node16
+
+PASS: TestLocal/conditionalExportsResolutionFallbackNull.ts_moduleresolution=nodenext
+
+FAIL: TestLocal/conditionalOperatorWithoutIdenticalBCT.ts
+
+FAIL: TestLocal/constructSignatureAssignabilityInInheritance5.ts
+
+FAIL: TestLocal/constructorFunctionTypeIsAssignableToBaseType2.ts
+
+PASS: TestLocal/constructorOverloadsWithDefaultValues.ts
+
+PASS: TestLocal/contextualIntersectionType.ts
+
+PASS: TestLocal/controlFlowAssignmentExpression.ts
+
+PASS: TestLocal/controlFlowConditionalExpression.ts
+
+PASS: TestLocal/controlFlowDestructuringDeclaration.ts
+
+PASS: TestLocal/declarationEmitThisPredicatesWithPrivateName01.ts
+
+PASS: TestLocal/declarationFilesForNodeNativeModules.ts_allowarbitraryextensions=true,module=nodenext
+
+SKIP: TestLocal/decoratorChecksFunctionBodies.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+SKIP: TestLocal/decoratorMetadata-jsdoc.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+FAIL: TestLocal/decoratorOnClass9.ts_target=es2015
+
+FAIL: TestLocal/decoratorOnClassMethod1.es6.ts
+
+SKIP: TestLocal/decoratorOnClassMethod1.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+FAIL: TestLocal/decoratorOnClassMethod12.ts_target=es2015
+
+FAIL: TestLocal/decoratorOnClassMethod19.ts_target=es2022
+
+FAIL: TestLocal/decoratorOnClassProperty11.ts_target=es2015
+
+FAIL: TestLocal/decoratorOnUsing.ts
+
+SKIP: TestLocal/derivedClassOverridesProtectedMembers.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/derivedClassWithPrivateStaticShadowingProtectedStatic.ts_target=es2015
+
+PASS: TestLocal/derivedClassWithPrivateStaticShadowingPublicStatic.ts
+
+FAIL: TestLocal/derivedClassWithoutExplicitConstructor.ts
+
+PASS: TestLocal/destructuringArrayBindingPatternAndAssignment1ES5iterable.ts
+
+PASS: TestLocal/destructuringObjectBindingPatternAndAssignment4.ts
+
+PASS: TestLocal/destructuringParameterDeclaration3ES5.ts
+
+PASS: TestLocal/destructuringParameterDeclaration7ES5.ts_target=es2015
+
+FAIL: TestLocal/destructuringParameterProperties3.ts
+
+FAIL: TestLocal/destructuringParameterProperties5.ts
+
+PASS: TestLocal/destructuringTypeAssertionsES5_1.ts_target=es2015
+
+SKIP: TestLocal/destructuringTypeAssertionsES5_4.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/destructuringVariableDeclaration1ES6.ts
+
+PASS: TestLocal/destructuringVariableDeclaration2.ts
+
+FAIL: TestLocal/duplicateNumericIndexers.ts
+
+SKIP: TestLocal/emitArrowFunctionWhenUsingArguments02.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+SKIP: TestLocal/emitArrowFunctionWhenUsingArguments03.ts_alwaysstrict=false,target=es2015
+    compiler_runner.go:<line>: alwaysStrict=false is unsupported
+
+SKIP: TestLocal/emitArrowFunctionWhenUsingArguments03.ts_alwaysstrict=false,target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+SKIP: TestLocal/emitArrowFunctionWhenUsingArguments06.ts_alwaysstrict=true,target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+SKIP: TestLocal/emitArrowFunctionWhenUsingArguments06_ES6.ts_alwaysstrict=false
+    compiler_runner.go:<line>: alwaysStrict=false is unsupported
+
+SKIP: TestLocal/emitArrowFunctionWhenUsingArguments07_ES6.ts_alwaysstrict=false
+    compiler_runner.go:<line>: alwaysStrict=false is unsupported
+
+SKIP: TestLocal/emitArrowFunctionWhenUsingArguments08_ES6.ts_alwaysstrict=false
+    compiler_runner.go:<line>: alwaysStrict=false is unsupported
+
+FAIL: TestLocal/emitArrowFunctionWhenUsingArguments09_ES6.ts
+
+PASS: TestLocal/emitArrowFunctionWhenUsingArguments10.ts_target=es2015
+
+FAIL: TestLocal/emitArrowFunctionWhenUsingArguments11.ts_alwaysstrict=true,target=es2015
+
+SKIP: TestLocal/emitArrowFunctionWhenUsingArguments15.ts_alwaysstrict=false,target=es2015
+    compiler_runner.go:<line>: alwaysStrict=false is unsupported
+
+PASS: TestLocal/emitArrowFunctionWhenUsingArguments15_ES6.ts_alwaysstrict=true
+
+SKIP: TestLocal/emitArrowFunctionWhenUsingArguments17.ts_alwaysstrict=true,target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/emitClassDeclarationWithGetterSetterInES6.ts
+
+FAIL: TestLocal/emitClassDeclarationWithThisKeywordInES6.ts
+
+SKIP: TestLocal/emitCompoundExponentiationAssignmentWithIndexingOnLHS3.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+SKIP: TestLocal/emitExponentiationOperator3.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/emitModuleCommonJS.ts_module=nodenext
+
+SKIP: TestLocal/emptyAssignmentPatterns01_ES5.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+FAIL: TestLocal/es2020IntlAPIs.ts
+
+PASS: TestLocal/es2021LocalesObjectArgument.ts
+
+PASS: TestLocal/es6modulekindWithES5Target5.ts_target=es2015
+
+SKIP: TestLocal/es6modulekindWithES5Target7.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+SKIP: TestLocal/esDecorators-classDeclaration-accessors-nonStatic.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/esDecorators-classDeclaration-accessors-nonStaticPrivate.ts_target=esnext
+
+PASS: TestLocal/esDecorators-classDeclaration-accessors-static.ts_target=esnext
+
+PASS: TestLocal/esDecorators-classDeclaration-commentPreservation.ts_module=esnext,target=esnext
+
+FAIL: TestLocal/esDecorators-classDeclaration-commonjs.ts
+
+PASS: TestLocal/esDecorators-classDeclaration-fields-nonStaticAbstractAccessor.ts_target=es2015
+
+PASS: TestLocal/esDecorators-classDeclaration-fields-nonStaticAccessor.ts_target=es2022
+
+PASS: TestLocal/esDecorators-classDeclaration-fields-nonStaticPrivateAccessor.ts_target=esnext
+
+PASS: TestLocal/esDecorators-classDeclaration-fields-static.ts_target=es2022,usedefineforclassfields=true
+
+SKIP: TestLocal/esDecorators-classDeclaration-fields-staticAmbient.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+FAIL: TestLocal/esDecorators-classDeclaration-fields-staticPrivateAccessor.ts_target=es2022
+
+FAIL: TestLocal/esDecorators-classDeclaration-methods-nonStatic.ts_target=es2015
+
+PASS: TestLocal/esDecorators-classDeclaration-methods-nonStaticAbstract.ts_target=esnext
+
+PASS: TestLocal/esDecorators-classDeclaration-methods-static.ts_target=es2022
+
+SKIP: TestLocal/esDecorators-classDeclaration-missingEmitHelpers-nonStaticPrivateSetter.ts
+    compiler_runner.go:<line>: unsupported module resolution kind 1
+
+PASS: TestLocal/esDecorators-classExpression-classSuper.1.ts
+
+PASS: TestLocal/esDecorators-classExpression-namedEvaluation.10.ts
+
+PASS: TestLocal/esDecorators-emitDecoratorMetadata.ts_target=esnext
+
+SKIP: TestLocal/esnextmodulekindWithES5Target11.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/exponentiationOperatorWithNullValueAndValidOperands.ts
+
+SKIP: TestLocal/exponentiationOperatorWithTemplateStringInvalid.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/exportAmbientClassNameWithObject.ts_target=es2015
+
+PASS: TestLocal/exportNamespace1.ts
+
+PASS: TestLocal/exportsAndImports1.ts
+
+FAIL: TestLocal/extendStringInterface.ts
+
+PASS: TestLocal/extendsTag1.ts
+
+PASS: TestLocal/float16Array.ts
+
+PASS: TestLocal/fluentClasses.ts
+
+SKIP: TestLocal/for-inStatementsDestructuring.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/for-of41.ts
+
+PASS: TestLocal/for-of49.ts
+
+PASS: TestLocal/for-of52.ts
+
+FAIL: TestLocal/functionWithUseStrictAndSimpleParameterList.ts
+
+PASS: TestLocal/generatorExplicitReturnType.ts
+
+PASS: TestLocal/generatorTypeCheck18.ts
+
+PASS: TestLocal/generatorTypeCheck19.ts
+
+PASS: TestLocal/generatorTypeCheck22.ts
+
+PASS: TestLocal/generatorTypeCheck24.ts
+
+PASS: TestLocal/generatorTypeCheck32.ts
+
+SKIP: TestLocal/generatorTypeCheck38.ts_alwaysstrict=false
+    compiler_runner.go:<line>: alwaysStrict=false is unsupported
+
+FAIL: TestLocal/genericObjectRest.ts
+
+FAIL: TestLocal/genericRestParameters2.ts
+
+PASS: TestLocal/grammarAmbiguities.ts
+
+PASS: TestLocal/importAssertion1.ts_module=es2015
+
+PASS: TestLocal/importAttributes6.ts_module=nodenext
+
+SKIP: TestLocal/importCallExpressionES5AMD.ts_target=es2015
+    compiler_runner.go:<line>: unsupported module kind AMD
+
+PASS: TestLocal/importCallExpressionInScriptContext2.ts
+
+SKIP: TestLocal/importCallExpressionInUMD2.ts
+    compiler_runner.go:<line>: unsupported module kind UMD
+
+PASS: TestLocal/importCallExpressionIncorrect2.ts
+
+SKIP: TestLocal/importCallExpressionNestedES20152.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+SKIP: TestLocal/importMeta.ts_module=esnext,target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+FAIL: TestLocal/importTag18.ts
+    testutil.go:<line>: Panic on compiling test <REPO>/tsc/testdata/tests/cases/conformance/jsdoc/importTag18.ts:
+        unhandled statement: KindJSImportDeclaration
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/printer.(...)
+github.com/microsoft/TypeScript/tsc/internal/printer.(...)
+github.com/microsoft/TypeScript/tsc/internal/printer.(...)
+github.com/microsoft/TypeScript/tsc/internal/printer.(...)
+github.com/microsoft/TypeScript/tsc/internal/printer.(...)
+github.com/microsoft/TypeScript/tsc/internal/compiler.(...)
+github.com/microsoft/TypeScript/tsc/internal/compiler.(...)
+github.com/microsoft/TypeScript/tsc/internal/compiler.(...)
+        github.com/microsoft/TypeScript/tsc/internal/compiler.(*Program).Emit.func2()
+github.com/microsoft/TypeScript/tsc/internal/core.(...)
+github.com/microsoft/TypeScript/tsc/internal/compiler.(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/harnessutil.compileFilesWithHost(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/harnessutil.CompileFilesEx(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/harnessutil.CompileFiles(...)
+github.com/microsoft/TypeScript/tsc/internal/testrunner.newCompilerTest(...)
+github.com/microsoft/TypeScript/tsc/internal/testrunner.(...)
+github.com/microsoft/TypeScript/tsc/internal/testrunner.(...)
+testing.tRunner(...)
+
+PASS: TestLocal/importTag9.ts
+
+FAIL: TestLocal/importTypeGeneric.ts
+
+PASS: TestLocal/importTypeNested.ts
+
+PASS: TestLocal/importWithTypeArguments.ts
+
+PASS: TestLocal/incrementOperatorWithAnyOtherTypeInvalidOperations.ts
+
+FAIL: TestLocal/indexSignatureTypeInference.ts
+
+FAIL: TestLocal/indexSignatures1.ts
+
+SKIP: TestLocal/inferringClassMembersFromAssignments.ts
+    compiler_runner.go:<line>: unsupported outFile /.src/output.js
+
+PASS: TestLocal/inferringClassMembersFromAssignments2.ts
+
+FAIL: TestLocal/initializationOrdering1.ts_target=esnext,usedefineforclassfields=true
+
+FAIL: TestLocal/inlineJsxFactoryDeclarations.tsx
+
+FAIL: TestLocal/inlineJsxFactoryDeclarationsLocalTypes.tsx
+    testutil.go:<line>: Panic on compiling test <REPO>/tsc/testdata/tests/cases/conformance/jsx/inline/inlineJsxFactoryDeclarationsLocalTypes.tsx:
+        runtime error: invalid memory address or nil pointer dereference
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/binder.(...)
+github.com/microsoft/TypeScript/tsc/internal/binder.(...)
+github.com/microsoft/TypeScript/tsc/internal/binder.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers/estransforms.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.Handle.ForEachChild(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers/estransforms.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.Handle.ForEachChild(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers/estransforms.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.Handle.ForEachChild(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers/estransforms.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers/estransforms.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers/estransforms.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers/estransforms.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers/estransforms.(...)
+        github.com/microsoft/TypeScript/tsc/internal/transformers/estransforms.(*classFieldsTransformer).visitClassDeclaration(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers/estransforms.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/printer.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers/estransforms.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers/estransforms.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/ast.(...)
+github.com/microsoft/TypeScript/tsc/internal/transformers.(...)
+github.com/microsoft/TypeScript/tsc/internal/compiler.(...)
+github.com/microsoft/TypeScript/tsc/internal/compiler.(...)
+github.com/microsoft/TypeScript/tsc/internal/compiler.(...)
+        github.com/microsoft/TypeScript/tsc/internal/compiler.(*Program).Emit.func2()
+github.com/microsoft/TypeScript/tsc/internal/core.(...)
+github.com/microsoft/TypeScript/tsc/internal/compiler.(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/harnessutil.compileFilesWithHost(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/harnessutil.CompileFilesEx(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/harnessutil.CompileFiles(...)
+github.com/microsoft/TypeScript/tsc/internal/testrunner.newCompilerTest(...)
+github.com/microsoft/TypeScript/tsc/internal/testrunner.(...)
+github.com/microsoft/TypeScript/tsc/internal/testrunner.(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/instanceofOperatorWithRHSHasSymbolHasInstance.ts
+
+PASS: TestLocal/interfaceWithCallSignaturesThatHidesBaseSignature2.ts
+
+PASS: TestLocal/interfaceWithConstructSignaturesThatHidesBaseSignature2.ts
+
+PASS: TestLocal/interfaceWithMultipleBaseTypes2.ts
+
+PASS: TestLocal/intersectionTypeEquivalence.ts
+
+PASS: TestLocal/invalidDoWhileBreakStatements.ts
+
+PASS: TestLocal/invalidDoWhileContinueStatements.ts
+
+FAIL: TestLocal/invalidNewTarget.es5.ts_target=es2015
+
+PASS: TestLocal/iterableArrayPattern16.ts
+
+PASS: TestLocal/iterableArrayPattern5.ts
+
+PASS: TestLocal/iteratorSpreadInArray3.ts
+
+FAIL: TestLocal/iteratorSpreadInCall10.ts
+
+PASS: TestLocal/iteratorSpreadInCall5.ts
+
+SKIP: TestLocal/jsDeclarationsDefault2.ts
+    compiler_runner.go:<line>: unsupported target ES5
+
+SKIP: TestLocal/jsDeclarationsDocCommentsOnConsts.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+SKIP: TestLocal/jsDeclarationsEnums.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+SKIP: TestLocal/jsDeclarationsExportAssignedClassInstance2.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+SKIP: TestLocal/jsDeclarationsExportFormsErr.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+SKIP: TestLocal/jsDeclarationsFunctionJSDoc.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+SKIP: TestLocal/jsDeclarationsImportTypeBundled.ts
+    compiler_runner.go:<line>: unsupported module kind AMD
+
+PASS: TestLocal/jsDeclarationsNestedParams.ts
+
+PASS: TestLocal/jsdocLinkTag3.ts
+
+FAIL: TestLocal/jsdocParamTagNoName.ts
+
+SKIP: TestLocal/jsdocReturnTag1.ts
+    compiler_runner.go:<line>: unsupported outFile /.src/dummy.js
+
+FAIL: TestLocal/jsdocTypeReferenceToValue.ts
+
+PASS: TestLocal/jsxJsxsCjsTransformKeyPropCustomImportPragma.tsx_jsx=react-jsxdev
+
+SKIP: TestLocal/labeledStatementDeclarationListInLoopNoCrash3.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/leaveOptionalParameterAsWritten.ts
+
+PASS: TestLocal/localesObjectArgument.ts
+
+PASS: TestLocal/logicalAndOperatorStrictMode.ts
+
+PASS: TestLocal/logicalAssignment2.ts_target=es2015
+
+FAIL: TestLocal/logicalAssignment5.ts_target=es2015
+
+FAIL: TestLocal/logicalAssignment5.ts_target=es2020
+
+FAIL: TestLocal/mappedTypeErrors.ts
+
+PASS: TestLocal/mappedTypeOverlappingStringEnumKeys.ts
+
+PASS: TestLocal/mergedInterfacesWithMultipleBases2.ts
+
+FAIL: TestLocal/mixinAccessors4.ts
+
+PASS: TestLocal/mixinClassesMembers.ts
+
+PASS: TestLocal/moduleExportAssignment4.ts
+
+PASS: TestLocal/multipleDefaultExports01.ts_target=es2015
+
+PASS: TestLocal/multipleExportDefault6.ts
+
+FAIL: TestLocal/nameWithRelativePaths.ts
+
+FAIL: TestLocal/narrowExceptionVariableInCatchClause.ts
+
+FAIL: TestLocal/nestedDestructuringOfRequire.ts
+    testutil.go:<line>: Panic on compiling test <REPO>/tsc/testdata/tests/cases/conformance/salsa/nestedDestructuringOfRequire.ts:
+        Unexpected nil in resolveAlias for symbol: grey
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+        github.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).checkSourceElementsSeq-range1(...)
+        github.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).checkSourceElementsSeq.NodeSeq.All.func1(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+        github.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).checkSourceElementsSeq-range1(...)
+        github.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).checkSourceElementsSeq.NodeSeq.All.func1(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+        github.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).checkSourceElementsSeq-range1(...)
+        github.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).checkSourceElementsSeq.NodeSeq.All.func1(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+        github.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).checkSourceElementsSeq-range1(...)
+        github.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).checkSourceElementsSeq.NodeSeq.All.func1(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+github.com/microsoft/TypeScript/tsc/internal/checker.(...)
+        github.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).GetDiagnostics(...)
+github.com/microsoft/TypeScript/tsc/internal/compiler.(...)
+github.com/microsoft/TypeScript/tsc/internal/compiler.(...)
+github.com/microsoft/TypeScript/tsc/internal/compiler.(...)
+        github.com/microsoft/TypeScript/tsc/internal/compiler.(*checkerPool).forEachCheckerGroupDo.func1()
+github.com/microsoft/TypeScript/tsc/internal/core.(...)
+github.com/microsoft/TypeScript/tsc/internal/compiler.(...)
+github.com/microsoft/TypeScript/tsc/internal/compiler.(...)
+github.com/microsoft/TypeScript/tsc/internal/compiler.(...)
+github.com/microsoft/TypeScript/tsc/internal/compiler.(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/harnessutil.compileFilesWithHost(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/harnessutil.CompileFilesEx(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/harnessutil.CompileFiles(...)
+github.com/microsoft/TypeScript/tsc/internal/testrunner.newCompilerTest(...)
+github.com/microsoft/TypeScript/tsc/internal/testrunner.(...)
+github.com/microsoft/TypeScript/tsc/internal/testrunner.(...)
+testing.tRunner(...)
+
+PASS: TestLocal/nodeModulesAllowJs1.ts_module=nodenext
+
+PASS: TestLocal/nodeModulesAllowJsExportlessJsModuleDetectionAuto.ts_module=node20
+
+PASS: TestLocal/nodeModulesAllowJsImportAssignment.ts_module=node18
+
+PASS: TestLocal/nodeModulesConditionalPackageExports.ts_module=node16
+
+PASS: TestLocal/nodeModulesDynamicImport.ts_module=node16
+
+PASS: TestLocal/nodeModulesExportsSourceTs.ts_module=node16
+
+PASS: TestLocal/nodeModulesExportsSpecifierGenerationConditions.ts_module=node16
+
+PASS: TestLocal/nodeModulesExportsSpecifierGenerationDirectory.ts_module=node20
+
+PASS: TestLocal/nodeModulesExportsSpecifierGenerationPattern.ts_module=node18
+
+PASS: TestLocal/nodeModulesForbidenSyntax.ts_module=node18
+
+PASS: TestLocal/nodeModulesImportAssertions.ts_module=nodenext
+
+FAIL: TestLocal/nodeModulesImportAttributesTypeModeDeclarationEmit.ts_module=node20
+
+FAIL: TestLocal/nodeModulesImportHelpersCollisions2.ts_module=node20
+
+PASS: TestLocal/nodeModulesImportResolutionIntoExport.ts_module=nodenext
+
+FAIL: TestLocal/nodeModulesImportTypeModeDeclarationEmitErrors1.ts_module=node18
+
+FAIL: TestLocal/nodeModulesImportTypeModeDeclarationEmitErrors1.ts_module=node20
+
+FAIL: TestLocal/nodeModulesJson.ts_module=node18
+
+FAIL: TestLocal/nodeModulesJson.ts_module=nodenext
+
+PASS: TestLocal/nodeModulesSynchronousCallErrors.ts_module=nodenext
+
+PASS: TestLocal/nodeModulesTopLevelAwait.ts_module=node20
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeDeclarationEmit1.ts_module=node18
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeOverride2.ts_module=node16
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeOverride3.ts_module=node20
+
+PASS: TestLocal/nodeModulesTypesVersionPackageExports.ts_module=node18
+
+PASS: TestLocal/nodePackageSelfNameScoped.ts_module=nodenext
+
+PASS: TestLocal/nominalSubtypeCheckOfTypeParameter2.ts
+
+PASS: TestLocal/nonIterableRestElement2.ts
+
+PASS: TestLocal/nonPrimitiveAssignError.ts
+
+FAIL: TestLocal/nonPrimitiveConstraintOfIndexAccessType.ts
+
+FAIL: TestLocal/objectLiteralShorthandPropertiesAssignment.ts
+
+PASS: TestLocal/objectLiteralShorthandPropertiesErrorFromNotUsingIdentifier.ts
+
+PASS: TestLocal/objectRestAssignment.ts
+
+PASS: TestLocal/objectTypeWithCallSignatureHidingMembersOfFunction.ts
+
+FAIL: TestLocal/objectTypesIdentityWithCallSignatures.ts
+
+PASS: TestLocal/objectTypesIdentityWithComplexConstraints.ts
+
+FAIL: TestLocal/objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints.ts
+
+FAIL: TestLocal/objectTypesIdentityWithGenericCallSignaturesDifferingTypeParameterNames.ts
+
+FAIL: TestLocal/objectTypesIdentityWithGenericConstructSignaturesDifferingByConstraints.ts
+
+PASS: TestLocal/objectTypesIdentityWithPrivates2.ts
+
+PASS: TestLocal/optionalBindingParameters2.ts
+
+SKIP: TestLocal/optionalChainingInArrow.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/optionalChainingInParameterInitializer.2.ts_target=esnext
+
+FAIL: TestLocal/optionalChainingInference.ts
+
+PASS: TestLocal/override7.ts
+
+PASS: TestLocal/overrideDynamicName1.ts_noimplicitoverride=true
+
+PASS: TestLocal/packageJsonImportsErrors.ts_module=nodenext
+
+FAIL: TestLocal/paramTagNestedWithoutTopLevelObject.ts
+
+FAIL: TestLocal/parameterInitializersForwardReferencing.ts_target=es2015
+
+FAIL: TestLocal/parametersWithNoAnnotationAreAny.ts
+
+PASS: TestLocal/parser509693.ts
+
+PASS: TestLocal/parser579071.ts
+
+PASS: TestLocal/parser645086_2.ts
+
+PASS: TestLocal/parserAmbiguity1.ts
+
+PASS: TestLocal/parserAmbiguity3.ts
+
+PASS: TestLocal/parserAmbiguityWithBinaryOperator4.ts
+
+FAIL: TestLocal/parserArrowFunctionExpression12.ts
+
+PASS: TestLocal/parserComputedPropertyName19.ts
+
+PASS: TestLocal/parserComputedPropertyName34.ts
+
+PASS: TestLocal/parserComputedPropertyName37.ts
+
+PASS: TestLocal/parserComputedPropertyName41.ts
+
+PASS: TestLocal/parserConditionalExpression1.ts
+
+PASS: TestLocal/parserDebuggerStatement1.d.ts
+
+PASS: TestLocal/parserES3Accessors3.ts
+
+PASS: TestLocal/parserES5ComputedPropertyName2.ts_target=es2015
+
+PASS: TestLocal/parserEnum3.ts
+
+PASS: TestLocal/parserEnum7.ts
+
+PASS: TestLocal/parserEnumDeclaration2.ts
+
+PASS: TestLocal/parserErrorRecovery_ArgumentList4.ts
+
+PASS: TestLocal/parserForStatement5.ts
+
+PASS: TestLocal/parserForStatement9.ts
+
+PASS: TestLocal/parserFunctionDeclaration1.d.ts
+
+PASS: TestLocal/parserFunctionPropertyAssignment1.ts
+
+PASS: TestLocal/parserGenericClass2.ts
+
+PASS: TestLocal/parserIndexMemberDeclaration9.ts
+
+PASS: TestLocal/parserIndexSignature6.ts
+
+PASS: TestLocal/parserInterfaceDeclaration3.ts
+
+PASS: TestLocal/parserInterfaceDeclaration5.ts
+
+SKIP: TestLocal/parserMemberAccessorDeclaration6.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/parserMethodSignature2.ts
+
+PASS: TestLocal/parserMethodSignature8.ts
+
+FAIL: TestLocal/parserModule1.ts
+
+PASS: TestLocal/parserModuleDeclaration10.ts
+
+PASS: TestLocal/parserModuleDeclaration2.d.ts
+
+PASS: TestLocal/parserNotHexLiteral1.ts
+
+PASS: TestLocal/parserParameterList6.ts
+
+FAIL: TestLocal/parserRealSource7.ts
+
+FAIL: TestLocal/parserRealSource9.ts
+
+FAIL: TestLocal/parserRegularExpressionDivideAmbiguity6.ts
+
+PASS: TestLocal/parserS7.2_A1.5_T2.ts
+
+PASS: TestLocal/parserS7.9_A5.7_T1.ts
+
+PASS: TestLocal/parserSwitchStatement1.d.ts
+
+PASS: TestLocal/parserUnfinishedTypeNameBeforeKeyword1.ts
+
+PASS: TestLocal/parserVariableDeclaration1.ts
+
+PASS: TestLocal/parserVariableDeclaration7.ts
+
+PASS: TestLocal/parser_breakTarget5.ts
+
+PASS: TestLocal/parser_continueInIterationStatement4.ts
+
+PASS: TestLocal/parser_continueNotInIterationStatement2.ts
+
+PASS: TestLocal/parser_continueTarget2.ts
+
+FAIL: TestLocal/partiallyNamedTuples2.ts
+
+PASS: TestLocal/privateNameAccessorsAccess.ts
+
+FAIL: TestLocal/privateNameAndObjectRestSpread.ts
+
+FAIL: TestLocal/privateNameComputedPropertyName2.ts_target=es2015
+
+FAIL: TestLocal/privateNameComputedPropertyName3.ts_target=es2015
+
+FAIL: TestLocal/privateNameComputedPropertyName3.ts_target=esnext
+
+FAIL: TestLocal/privateNameFieldDestructuredBinding.ts_target=es2022
+
+FAIL: TestLocal/privateNameStaticFieldAssignment.ts
+
+PASS: TestLocal/privateNameStaticFieldInitializer.ts_target=es2015
+
+PASS: TestLocal/privateStaticNotAccessibleInClodule.ts
+
+FAIL: TestLocal/propertyAccessOnTypeParameterWithoutConstraints.ts
+
+PASS: TestLocal/readonlyReadonly.ts
+
+PASS: TestLocal/reservedNamesInAliases.ts
+
+PASS: TestLocal/restElementWithAssignmentPattern1.ts
+
+PASS: TestLocal/scannerES3NumericLiteral2.ts
+
+PASS: TestLocal/scannerES3NumericLiteral7.ts
+
+PASS: TestLocal/scannerNumericLiteral7.ts_target=es2015
+
+PASS: TestLocal/scannerS7.6_A4.2_T1.ts
+
+SKIP: TestLocal/scopedPackagesClassic.ts
+    compiler_runner.go:<line>: unsupported module resolution kind 1
+
+PASS: TestLocal/sharedMemory.ts
+
+PASS: TestLocal/spreadNonPrimitive.ts
+
+FAIL: TestLocal/spreadObjectOrFalsy.ts
+
+PASS: TestLocal/staticPropertyNameConflictsInAmbientContext.ts
+
+FAIL: TestLocal/stringEnumLiteralTypes1.ts
+
+PASS: TestLocal/stringIndexerConstrainsPropertyDeclarations.ts
+
+FAIL: TestLocal/stringLiteralTypeIsSubtypeOfString.ts
+
+FAIL: TestLocal/stringLiteralTypesOverloadAssignability02.ts
+
+FAIL: TestLocal/stringLiteralTypesOverloadAssignability03.ts
+
+PASS: TestLocal/symbolProperty37.ts
+
+FAIL: TestLocal/symbolProperty42.ts
+
+PASS: TestLocal/symbolProperty51.ts
+
+PASS: TestLocal/symbolProperty54.ts
+
+PASS: TestLocal/symbolProperty55.ts
+
+PASS: TestLocal/symbolProperty6.ts
+
+FAIL: TestLocal/symbolProperty61.ts
+
+PASS: TestLocal/symbolType14.ts
+
+FAIL: TestLocal/taggedTemplateStringsTypeArgumentInference.ts
+
+FAIL: TestLocal/taggedTemplateStringsWithOverloadResolution2_ES6.ts
+
+PASS: TestLocal/taggedTemplateStringsWithTagNamedDeclareES6.ts
+
+FAIL: TestLocal/taggedTemplateStringsWithTypeErrorInFunctionExpressionsInSubstitutionExpression.ts
+
+FAIL: TestLocal/templateLiteralTypes2.ts
+
+PASS: TestLocal/templateStringBinaryOperations.ts
+
+PASS: TestLocal/templateStringInCallExpressionES6.ts
+
+PASS: TestLocal/templateStringInConditionalES6.ts
+
+FAIL: TestLocal/templateStringInFunctionParameterType.ts
+
+PASS: TestLocal/templateStringInSwitchAndCase.ts
+
+PASS: TestLocal/templateStringMultiline1.ts
+
+PASS: TestLocal/templateStringMultiline1_ES6.ts
+
+PASS: TestLocal/templateStringTermination2.ts
+
+PASS: TestLocal/templateStringTermination3.ts
+
+PASS: TestLocal/templateStringUnterminated2_ES6.ts
+
+PASS: TestLocal/templateStringUnterminated5_ES6.ts
+
+PASS: TestLocal/templateStringWithEmbeddedInOperator.ts
+
+PASS: TestLocal/templateStringWithEmbeddedModuloES6.ts
+
+FAIL: TestLocal/templateStringsWithTypeErrorInFunctionExpressionsInSubstitutionExpressionES6.ts
+
+PASS: TestLocal/thisPropertyOverridesAccessors.ts
+
+FAIL: TestLocal/thisTypeInFunctionsNegative.ts
+
+FAIL: TestLocal/thisTypeInObjectLiterals.ts
+
+FAIL: TestLocal/thisTypeInObjectLiterals2.ts_target=es2015
+
+PASS: TestLocal/topLevelAwait.3.ts_module=esnext
+
+PASS: TestLocal/topLevelAwaitErrors.2.ts_module=es2022
+
+PASS: TestLocal/topLevelAwaitErrors.6.ts_module=esnext
+
+PASS: TestLocal/ts-expect-error-nocheck.ts
+
+PASS: TestLocal/tsNoCheckForTypescriptComments1.ts
+
+PASS: TestLocal/tsxDefaultAttributesResolution1.tsx
+
+PASS: TestLocal/tsxFragmentPreserveEmit.tsx
+
+FAIL: TestLocal/tsxIntrinsicAttributeErrors.tsx
+
+PASS: TestLocal/tsxNamespacedAttributeName2.tsx
+
+FAIL: TestLocal/tsxParseTests1.tsx
+
+SKIP: TestLocal/tsxPreserveEmit1.tsx_target=es2015
+    compiler_runner.go:<line>: unsupported module kind AMD
+
+FAIL: TestLocal/tsxReactEmit1.tsx
+
+FAIL: TestLocal/tsxReactEmitSpreadAttribute.ts_target=es2015
+
+PASS: TestLocal/tsxSpreadAttributesResolution12.tsx
+
+FAIL: TestLocal/tsxSpreadAttributesResolution13.tsx
+
+SKIP: TestLocal/tsxStatelessFunctionComponentWithDefaultTypeParameter1.tsx
+    compiler_runner.go:<line>: unsupported module kind AMD
+
+SKIP: TestLocal/tsxStatelessFunctionComponents3.tsx
+    compiler_runner.go:<line>: unsupported module kind AMD
+
+PASS: TestLocal/typeFromJSConstructor.ts
+
+PASS: TestLocal/typeFromPrivatePropertyAssignmentJs.ts
+
+PASS: TestLocal/typeFromPropertyAssignment13.ts
+
+PASS: TestLocal/typeFromPropertyAssignment28.ts
+
+FAIL: TestLocal/typeFromPropertyAssignment29.ts
+
+PASS: TestLocal/typeFromPropertyAssignment8_1.ts
+
+PASS: TestLocal/typeGuardFunctionOfFormThis.ts
+
+FAIL: TestLocal/typeGuardFunctionOfFormThisErrors.ts
+
+FAIL: TestLocal/typeGuardsDefeat.ts
+
+FAIL: TestLocal/typeGuardsInFunctionAndModuleBlock.ts
+
+PASS: TestLocal/typeOfThisInStaticMembers4.ts_target=esnext
+
+PASS: TestLocal/typeOnlyMerge3.ts
+
+PASS: TestLocal/typeParameterIndirectlyConstrainedToItself.ts
+
+PASS: TestLocal/typeSatisfaction_propertyValueConformance3.ts
+
+PASS: TestLocal/typeofOperatorWithBooleanType.ts
+
+PASS: TestLocal/typingsLookup2.ts
+
+PASS: TestLocal/umd7.ts
+
+PASS: TestLocal/unicodeExtendedEscapesInRegularExpressions06.ts_target=es6
+
+PASS: TestLocal/unicodeExtendedEscapesInRegularExpressions12.ts_target=es6
+
+SKIP: TestLocal/unicodeExtendedEscapesInRegularExpressions17.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/unicodeExtendedEscapesInStrings01.ts_target=es6
+
+PASS: TestLocal/unicodeExtendedEscapesInStrings04.ts_target=es6
+
+PASS: TestLocal/unicodeExtendedEscapesInStrings11.ts_target=es6
+
+PASS: TestLocal/unicodeExtendedEscapesInStrings24.ts_target=es6
+
+PASS: TestLocal/unicodeExtendedEscapesInTemplates16.ts_target=es6
+
+FAIL: TestLocal/unionAndIntersectionInference1.ts
+
+PASS: TestLocal/unionTypeWithIndexSignature.ts
+
+PASS: TestLocal/untypedModuleImport_noImplicitAny_relativePath.ts
+
+PASS: TestLocal/untypedModuleImport_vsAmbient.ts
+
+PASS: TestLocal/untypedModuleImport_withAugmentation.ts
+
+SKIP: TestLocal/useSharedArrayBuffer2.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+SKIP: TestLocal/useSharedArrayBuffer5.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/usingDeclarationsInFor.ts_target=es2022
+
+SKIP: TestLocal/usingDeclarationsInForAwaitOf.ts_target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+PASS: TestLocal/usingDeclarationsInForAwaitOf.ts_target=esnext
+
+SKIP: TestLocal/usingDeclarationsTopLevelOfModule.3.ts_module=amd
+    compiler_runner.go:<line>: unsupported module kind AMD
+
+SKIP: TestLocal/usingDeclarationsWithESClassDecorators.1.ts_module=system,target=es2015
+    compiler_runner.go:<line>: unsupported module kind System
+
+SKIP: TestLocal/usingDeclarationsWithESClassDecorators.3.ts_module=esnext,target=es5
+    compiler_runner.go:<line>: unsupported target ES5
+
+SKIP: TestLocal/usingDeclarationsWithESClassDecorators.4.ts_module=system,target=es2015
+    compiler_runner.go:<line>: unsupported module kind System
+
+SKIP: TestLocal/usingDeclarationsWithESClassDecorators.5.ts_module=system,target=esnext
+    compiler_runner.go:<line>: unsupported module kind System
+
+SKIP: TestLocal/usingDeclarationsWithESClassDecorators.7.ts_module=system,target=esnext
+    compiler_runner.go:<line>: unsupported module kind System
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.9.ts_module=esnext,target=esnext
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.10.ts_module=esnext,target=esnext
+
+SKIP: TestLocal/usingDeclarationsWithLegacyClassDecorators.10.ts_module=system,target=esnext
+    compiler_runner.go:<line>: unsupported module kind System
+
+FAIL: TestLocal/varianceAnnotations.ts
+
+FAIL: TestLocal/verbatimModuleSyntaxRestrictionsCJS.ts
+
+PASS: TestLocal/yieldStatementNoAsiAfterTransform.ts_target=esnext

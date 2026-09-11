@@ -1,0 +1,776 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+PASS: TestLocal/ES5For-of19.ts_alwaysstrict=true,target=es2015/sourcemap
+
+PASS: TestLocal/ES5For-of28.ts_target=es2015/sourcemap
+
+PASS: TestLocal/ES5For-ofTypeCheck8.ts_target=es2015/sourcemap
+
+PASS: TestLocal/ES5SymbolProperty7.ts_target=es2015/sourcemap
+
+PASS: TestLocal/ExportVariableWithInaccessibleTypeInTypeAnnotation.ts/sourcemap
+
+PASS: TestLocal/FunctionAndModuleWithSameNameAndDifferentCommonRoot.ts/sourcemap
+
+PASS: TestLocal/FunctionDeclaration7_es6.ts/sourcemap
+
+PASS: TestLocal/TupleType4.ts/sourcemap
+
+PASS: TestLocal/YieldExpression12_es6.ts/sourcemap
+
+PASS: TestLocal/YieldExpression13_es6.ts/sourcemap
+
+PASS: TestLocal/YieldStarExpression4_es6.ts/sourcemap
+
+PASS: TestLocal/abstractProperty.ts_target=esnext/sourcemap
+
+PASS: TestLocal/allowUnescapedParagraphAndLineSeparatorsInStringLiteral.ts/sourcemap
+
+PASS: TestLocal/allowsImportingTsExtension.ts/sourcemap
+
+PASS: TestLocal/arithmeticOperatorWithEnumUnion.ts/sourcemap
+
+PASS: TestLocal/arithmeticOperatorWithNullValueAndValidOperands.ts/sourcemap
+
+PASS: TestLocal/arrayTypeOfTypeOf.ts/sourcemap
+
+PASS: TestLocal/assignmentCompatWithCallSignatures2.ts/sourcemap
+
+PASS: TestLocal/assignmentCompatWithConstructSignatures4.ts/sourcemap
+
+PASS: TestLocal/assignmentCompatWithObjectMembersAccessibility.ts/sourcemap
+
+PASS: TestLocal/assignmentCompatWithObjectMembersStringNumericNames.ts/sourcemap
+
+PASS: TestLocal/assignmentCompatWithStringIndexer3.ts/sourcemap
+
+PASS: TestLocal/assignmentToVoidZero2.ts/sourcemap
+
+PASS: TestLocal/asyncAwait_es2017.ts/sourcemap
+
+PASS: TestLocal/asyncFunctionDeclaration10_es5.ts_target=es2015/sourcemap
+
+PASS: TestLocal/asyncFunctionDeclaration7_es2017.ts/sourcemap
+
+PASS: TestLocal/asyncModule_es6.ts/sourcemap
+
+PASS: TestLocal/autoAccessor1.ts_target=es2022/sourcemap
+
+PASS: TestLocal/autoAccessor7.ts_target=es2022,usedefineforclassfields=false/sourcemap
+
+PASS: TestLocal/awaitBinaryExpression2_es2017.ts/sourcemap
+
+PASS: TestLocal/awaitBinaryExpression5_es2017.ts/sourcemap
+
+PASS: TestLocal/awaitCallExpression2_es2017.ts/sourcemap
+
+PASS: TestLocal/awaitCallExpression2_es5.ts_target=es2015/sourcemap
+
+PASS: TestLocal/awaitCallExpression3_es6.ts/sourcemap
+
+PASS: TestLocal/awaitInheritedPromise_es2017.ts/sourcemap
+
+PASS: TestLocal/awaitUnion_es5.ts_target=es2015/sourcemap
+
+PASS: TestLocal/bitwiseNotOperatorInvalidOperations.ts/sourcemap
+
+PASS: TestLocal/booleanLiteralTypes1.ts/sourcemap
+
+PASS: TestLocal/bundlerConditionsExcludesNode.ts_module=esnext/sourcemap
+
+PASS: TestLocal/callChainWithSuper.ts_target=es2017/sourcemap
+
+PASS: TestLocal/callSignaturesThatDifferOnlyByReturnType2.ts/sourcemap
+
+PASS: TestLocal/checkJsxChildrenProperty5.tsx/sourcemap
+
+PASS: TestLocal/classAbstractSingleLineDecl.ts/sourcemap
+
+PASS: TestLocal/classExtendsItselfIndirectly.ts/sourcemap
+
+PASS: TestLocal/classStaticBlock1.ts_target=esnext/sourcemap
+
+PASS: TestLocal/classStaticBlock19.ts/sourcemap
+
+PASS: TestLocal/classStaticBlock9.ts_target=es2022/sourcemap
+
+PASS: TestLocal/classStaticBlockUseBeforeDef1.ts_target=es2022/sourcemap
+
+PASS: TestLocal/classWithEmptyBody.ts/sourcemap
+
+PASS: TestLocal/classWithOnlyPublicMembersEquivalentToInterface2.ts_target=es2015/sourcemap
+
+PASS: TestLocal/commaOperatorWithSecondOperandBooleanType.ts/sourcemap
+
+PASS: TestLocal/comparisonOperatorWithNumberOperand.ts/sourcemap
+
+PASS: TestLocal/computedPropertyNames11_ES5.ts_target=es2015/sourcemap
+
+PASS: TestLocal/computedPropertyNames16_ES5.ts_target=es2015/sourcemap
+
+PASS: TestLocal/computedPropertyNames36_ES5.ts_target=es2015/sourcemap
+
+PASS: TestLocal/computedPropertyNames42_ES6.ts/sourcemap
+
+PASS: TestLocal/computedPropertyNames51_ES6.ts/sourcemap
+
+PASS: TestLocal/computedPropertyNamesContextualType1_ES6.ts/sourcemap
+
+PASS: TestLocal/computedPropertyNamesContextualType5_ES6.ts/sourcemap
+
+PASS: TestLocal/computedPropertyNamesSourceMap1_ES5.ts_target=es2015/sourcemap
+baseline: conformance/computedPropertyNamesSourceMap1_ES5(target=es2015).js.map
+reference: 2e8247d8df2a37ef52244644d7506a284df825994aedb48cdfdd1734ee1e8da4
+actual: 2e8247d8df2a37ef52244644d7506a284df825994aedb48cdfdd1734ee1e8da4
+
+PASS: TestLocal/computedPropertyNamesSourceMap1_ES6.ts/sourcemap
+baseline: conformance/computedPropertyNamesSourceMap1_ES6.js.map
+reference: dc6325c83e94b2fbf1d8a34909a6eafaa78374d11d5ec8ad7017c745cdd8d054
+actual: dc6325c83e94b2fbf1d8a34909a6eafaa78374d11d5ec8ad7017c745cdd8d054
+
+PASS: TestLocal/constAssertions.ts/sourcemap
+
+PASS: TestLocal/constructSignatureAssignabilityInInheritance2.ts/sourcemap
+
+PASS: TestLocal/constructorNameInAccessor.ts/sourcemap
+
+PASS: TestLocal/constructorTagOnNestedBinaryExpression.ts/sourcemap
+
+PASS: TestLocal/constructorTagOnObjectLiteralMethod.ts/sourcemap
+
+PASS: TestLocal/contextualIntersectionType.ts/sourcemap
+
+PASS: TestLocal/contextuallyTypeLogicalAnd01.ts/sourcemap
+
+PASS: TestLocal/controlFlowDeleteOperator.ts/sourcemap
+
+PASS: TestLocal/controlFlowInstanceofExtendsFunction.ts/sourcemap
+
+PASS: TestLocal/controlFlowTruthiness.ts/sourcemap
+
+PASS: TestLocal/declarationEmitThisPredicates01.ts/sourcemap
+
+PASS: TestLocal/declarationFilesForNodeNativeModules.ts_allowarbitraryextensions=true,module=node20/sourcemap
+
+PASS: TestLocal/decoratedClassExportsCommonJS1.ts/sourcemap
+
+PASS: TestLocal/decoratorMetadataWithTypeOnlyImport.ts_target=es2015/sourcemap
+
+PASS: TestLocal/decoratorOnClass1.ts_target=es2015/sourcemap
+
+PASS: TestLocal/decoratorOnClass5.es6.ts/sourcemap
+
+PASS: TestLocal/decoratorOnFunctionExpression.ts/sourcemap
+
+PASS: TestLocal/deleteOperatorInvalidOperations.ts/sourcemap
+
+PASS: TestLocal/deleteOperatorWithAnyOtherType.ts_alwaysstrict=true/sourcemap
+
+PASS: TestLocal/dependentDestructuredVariables.ts/sourcemap
+
+PASS: TestLocal/derivedClassConstructorWithoutSuperCall.ts/sourcemap
+
+PASS: TestLocal/derivedClassParameterProperties.ts/sourcemap
+
+PASS: TestLocal/derivedInterfaceIncompatibleWithBaseIndexer.ts/sourcemap
+
+PASS: TestLocal/destructuringParameterDeclaration5.ts/sourcemap
+
+PASS: TestLocal/destructuringTypeAssertionsES5_2.ts_target=es2015/sourcemap
+
+PASS: TestLocal/destructuringVariableDeclaration2.ts/sourcemap
+
+PASS: TestLocal/destructuringWithLiteralInitializers2.ts/sourcemap
+
+PASS: TestLocal/discriminatedUnionInference.ts/sourcemap
+
+PASS: TestLocal/emit.ts_jsx=preserve/sourcemap
+
+PASS: TestLocal/emitArrowFunctionWhenUsingArguments16.ts_alwaysstrict=true,target=es2015/sourcemap
+
+PASS: TestLocal/emitClassDeclarationOverloadInES6.ts/sourcemap
+
+PASS: TestLocal/emitClassDeclarationWithExtensionInES6.ts/sourcemap
+
+PASS: TestLocal/emitCompoundExponentiationOperator1.ts_target=es2015/sourcemap
+
+PASS: TestLocal/emptyTuplesTypeAssertion01.ts/sourcemap
+
+PASS: TestLocal/enumErrors.ts/sourcemap
+
+PASS: TestLocal/enumTagImported.ts/sourcemap
+
+PASS: TestLocal/es2016IntlAPIs.ts/sourcemap
+
+PASS: TestLocal/es2022IntlAPIs.ts/sourcemap
+
+PASS: TestLocal/es2024SharedMemory.ts/sourcemap
+
+PASS: TestLocal/es6modulekindExportClassNameWithObject.ts_target=es2015/sourcemap
+
+PASS: TestLocal/es6modulekindWithES5Target12.ts_target=es2015/sourcemap
+
+PASS: TestLocal/esDecorators-classDeclaration-classSuper.5.ts/sourcemap
+
+PASS: TestLocal/esDecorators-classDeclaration-fields-nonStaticPrivate.ts_target=es2015/sourcemap
+
+PASS: TestLocal/esDecorators-classDeclaration-fields-static.ts_target=es2022,usedefineforclassfields=false/sourcemap
+
+PASS: TestLocal/esDecorators-classDeclaration-methods-nonStatic.ts_target=esnext/sourcemap
+
+PASS: TestLocal/esDecorators-classDeclaration-methods-static.ts_target=esnext/sourcemap
+
+PASS: TestLocal/esDecorators-classDeclaration-outerThisReference.ts_target=es2015/sourcemap
+
+PASS: TestLocal/everyTypeWithInitializer.ts/sourcemap
+
+PASS: TestLocal/exponentiationOperatorWithInvalidOperands.ts/sourcemap
+
+PASS: TestLocal/exponentiationOperatorWithOnlyNullValueOrUndefinedValue.ts/sourcemap
+
+PASS: TestLocal/exportAssignmentGenericType.ts/sourcemap
+
+PASS: TestLocal/exportClassNameWithObjectCommonJS.ts_target=es2015/sourcemap
+
+PASS: TestLocal/exportNonLocalDeclarations.ts/sourcemap
+
+PASS: TestLocal/for-inStatementsArrayErrors.ts/sourcemap
+
+PASS: TestLocal/for-of19.ts/sourcemap
+
+PASS: TestLocal/for-of2.ts/sourcemap
+
+PASS: TestLocal/for-of23.ts/sourcemap
+
+PASS: TestLocal/for-of27.ts/sourcemap
+
+PASS: TestLocal/for-of50.ts/sourcemap
+
+PASS: TestLocal/functionConstraintSatisfaction.ts/sourcemap
+
+PASS: TestLocal/functionExpressionContextualTyping2.ts/sourcemap
+
+PASS: TestLocal/functionWithMultipleReturnStatements2.ts/sourcemap
+
+PASS: TestLocal/generatorTypeCheck17.ts/sourcemap
+
+PASS: TestLocal/generatorTypeCheck24.ts/sourcemap
+
+PASS: TestLocal/generatorTypeCheck26.ts/sourcemap
+
+PASS: TestLocal/generatorTypeCheck39.ts/sourcemap
+
+PASS: TestLocal/generatorTypeCheck57.ts/sourcemap
+
+PASS: TestLocal/generatorTypeCheck61.ts/sourcemap
+
+PASS: TestLocal/genericCallWithConstraintsTypeArgumentInference.ts/sourcemap
+
+PASS: TestLocal/genericCallWithObjectLiteralArgs.ts/sourcemap
+
+PASS: TestLocal/implementsClause.ts/sourcemap
+
+PASS: TestLocal/importDefaultNamedType.ts/sourcemap
+
+PASS: TestLocal/importDeferNamespace.ts_module=es2015/sourcemap
+
+PASS: TestLocal/importEquals2.ts/sourcemap
+
+PASS: TestLocal/importTypeGenericTypes.ts/sourcemap
+
+PASS: TestLocal/importsImplicitlyReadonly.ts/sourcemap
+
+PASS: TestLocal/initializerReferencingConstructorParameters.ts/sourcemap
+
+PASS: TestLocal/inlineJsxAndJsxFragPragma.tsx/sourcemap
+
+PASS: TestLocal/invalidBooleanAssignments.ts/sourcemap
+
+PASS: TestLocal/invalidMultipleVariableDeclarations.ts/sourcemap
+
+PASS: TestLocal/iterableArrayPattern11.ts/sourcemap
+
+PASS: TestLocal/iteratorSpreadInArray11.ts/sourcemap
+
+PASS: TestLocal/jsDeclarationsClassLeadingOptional.ts_target=es2015/sourcemap
+
+PASS: TestLocal/jsDeclarationsEnums.ts_target=es2015/sourcemap
+
+PASS: TestLocal/jsDeclarationsOptionalTypeLiteralProps1.ts/sourcemap
+
+PASS: TestLocal/jsdocAugmentsMissingType.ts/sourcemap
+
+PASS: TestLocal/jsdocAugments_withTypeParameter.ts/sourcemap
+
+PASS: TestLocal/jsdocDestructuringParameterDeclaration.ts/sourcemap
+
+PASS: TestLocal/jsdocParseDotDotDotInJSDocFunction.ts/sourcemap
+
+PASS: TestLocal/jsdocPostfixEqualsAddsOptionality.ts/sourcemap
+
+PASS: TestLocal/jsdocReadonly.ts/sourcemap
+
+PASS: TestLocal/jsdocTemplateTag5.ts/sourcemap
+
+PASS: TestLocal/jsdocTemplateTag7.ts/sourcemap
+
+PASS: TestLocal/jsdocTypeReferenceToImportOfFunctionExpression.ts/sourcemap
+
+PASS: TestLocal/jsxJsxsCjsTransformChildren.tsx_jsx=react-jsxdev/sourcemap
+
+PASS: TestLocal/jsxParsingError1.tsx/sourcemap
+
+PASS: TestLocal/jsxParsingError2.tsx/sourcemap
+
+PASS: TestLocal/lateBoundAssignmentDeclarationSupport3.ts/sourcemap
+
+PASS: TestLocal/literalTypes2.ts/sourcemap
+
+PASS: TestLocal/literalTypesAndTypeAssertions.ts/sourcemap
+
+PASS: TestLocal/logicalAssignment5.ts_target=esnext/sourcemap
+
+PASS: TestLocal/logicalOrExpressionIsNotContextuallyTyped.ts/sourcemap
+
+PASS: TestLocal/mappedTypeWithAny.ts/sourcemap
+
+PASS: TestLocal/mappedTypes5.ts/sourcemap
+
+PASS: TestLocal/memberFunctionsWithPrivateOverloads.ts/sourcemap
+
+PASS: TestLocal/memberFunctionsWithPublicOverloads.ts/sourcemap
+
+PASS: TestLocal/mixinAccessors5.ts/sourcemap
+
+PASS: TestLocal/moduleResolutionWithoutExtension2.ts/sourcemap
+
+PASS: TestLocal/moduleResolutionWithoutExtension3.ts_module=node18/sourcemap
+
+PASS: TestLocal/moduleResolutionWithoutExtension3.ts_module=nodenext/sourcemap
+
+PASS: TestLocal/multipleExportDefault3.ts/sourcemap
+
+PASS: TestLocal/narrowFromAnyWithInstanceof.ts/sourcemap
+
+PASS: TestLocal/neverIntersectionNotCallable.ts/sourcemap
+
+PASS: TestLocal/neverUnionIntersection.ts/sourcemap
+
+PASS: TestLocal/newTarget.es5.ts_target=es2015/sourcemap
+
+PASS: TestLocal/newWithSpreadES6.ts/sourcemap
+
+PASS: TestLocal/noAssertForUnparseableTypedefs.ts/sourcemap
+
+PASS: TestLocal/nodeAllowJsPackageSelfName2.ts/sourcemap
+
+PASS: TestLocal/nodeModulesAllowJs1.ts_module=nodenext/sourcemap
+
+PASS: TestLocal/nodeModulesAllowJsCjsFromJs.ts_module=nodenext/sourcemap
+
+PASS: TestLocal/nodeModulesAllowJsConditionalPackageExports.ts_module=node16/sourcemap
+
+PASS: TestLocal/nodeModulesAllowJsExportlessJsModuleDetectionAuto.ts_module=nodenext/sourcemap
+
+PASS: TestLocal/nodeModulesAllowJsImportHelpersCollisions2.ts_module=node20/sourcemap
+
+PASS: TestLocal/nodeModulesAllowJsPackageImports.ts_module=node16/sourcemap
+
+PASS: TestLocal/nodeModulesAllowJsPackagePatternExports.ts_module=nodenext/sourcemap
+
+PASS: TestLocal/nodeModulesAllowJsSynchronousCallErrors.ts_module=node18/sourcemap
+
+PASS: TestLocal/nodeModulesCJSResolvingToESM3_modulePackageJson.ts/sourcemap
+
+PASS: TestLocal/nodeModulesDeclarationEmitDynamicImportWithPackageExports.ts_module=nodenext/sourcemap
+
+PASS: TestLocal/nodeModulesDynamicImport.ts_module=node18/sourcemap
+
+PASS: TestLocal/nodeModulesExportsDoubleAsterisk.ts_module=node18/sourcemap
+
+PASS: TestLocal/nodeModulesExportsSpecifierGenerationPattern.ts_module=node20/sourcemap
+
+PASS: TestLocal/nodeModulesForbidenSyntax.ts_module=node16/sourcemap
+
+PASS: TestLocal/nodeModulesImportAttributes.ts_module=nodenext/sourcemap
+
+PASS: TestLocal/nodeModulesImportAttributesModeDeclarationEmitErrors.ts_module=node16/sourcemap
+
+PASS: TestLocal/nodeModulesImportAttributesTypeModeDeclarationEmitErrors.ts_module=node18/sourcemap
+
+PASS: TestLocal/nodeModulesImportHelpersCollisions3.ts_module=nodenext,target=es2015/sourcemap
+
+PASS: TestLocal/nodeModulesImportModeDeclarationEmitErrors1.ts_module=nodenext/sourcemap
+
+PASS: TestLocal/nodeModulesImportTypeModeDeclarationEmitErrors1.ts_module=node20/sourcemap
+
+PASS: TestLocal/nodeModulesPackageExports.ts_module=node16/sourcemap
+
+PASS: TestLocal/nodeModulesPackagePatternExports.ts_module=nodenext/sourcemap
+
+PASS: TestLocal/nodeModulesPackagePatternExportsTrailers.ts_module=nodenext/sourcemap
+
+PASS: TestLocal/nodeModulesTopLevelAwait.ts_module=nodenext/sourcemap
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeDeclarationEmit5.ts_module=node16/sourcemap
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeOverrideOldResolutionError.ts/sourcemap
+
+PASS: TestLocal/nonPrimitiveAccessProperty.ts/sourcemap
+
+PASS: TestLocal/nullIsSubtypeOfEverythingButUndefined.ts/sourcemap
+
+PASS: TestLocal/nullOrUndefinedTypeGuardIsOrderIndependent.ts/sourcemap
+
+PASS: TestLocal/nullishCoalescingOperatorInParameterBindingPattern.ts_target=es2015/sourcemap
+
+PASS: TestLocal/objectLiteralNormalization.ts/sourcemap
+
+PASS: TestLocal/objectLiteralShorthandPropertiesAssignmentError.ts/sourcemap
+
+PASS: TestLocal/objectTypesIdentityWithConstructSignatures2.ts/sourcemap
+
+PASS: TestLocal/octalIntegerLiteralES6.ts/sourcemap
+
+PASS: TestLocal/optionalBindingParametersInOverloads1.ts/sourcemap
+
+PASS: TestLocal/optionalChainingInParameterInitializer.2.ts_target=es2015/sourcemap
+
+PASS: TestLocal/override10.ts/sourcemap
+
+PASS: TestLocal/override11.ts/sourcemap
+
+PASS: TestLocal/override16.ts_target=es2015/sourcemap
+
+PASS: TestLocal/override9.ts/sourcemap
+
+PASS: TestLocal/packageJsonImportsExportsOptionCompat.ts_moduleresolution=nodenext/sourcemap
+
+PASS: TestLocal/parameterInitializersBackwardReferencing.ts_target=esnext/sourcemap
+
+PASS: TestLocal/parser509534.ts/sourcemap
+
+PASS: TestLocal/parser509668.ts/sourcemap
+
+PASS: TestLocal/parserAccessibilityAfterStatic7.ts/sourcemap
+
+PASS: TestLocal/parserArrayLiteralExpression11.ts/sourcemap
+
+PASS: TestLocal/parserArrayLiteralExpression2.ts/sourcemap
+
+PASS: TestLocal/parserClassDeclaration2.ts/sourcemap
+
+PASS: TestLocal/parserClassDeclaration20.ts/sourcemap
+
+PASS: TestLocal/parserComputedPropertyName1.ts/sourcemap
+
+PASS: TestLocal/parserComputedPropertyName38.ts/sourcemap
+
+PASS: TestLocal/parserES3Accessors3.ts/sourcemap
+
+PASS: TestLocal/parserES3Accessors4.ts/sourcemap
+
+PASS: TestLocal/parserES5ComputedPropertyName2.ts_target=es2015/sourcemap
+
+PASS: TestLocal/parserES5SymbolProperty1.ts_target=es2015/sourcemap
+
+PASS: TestLocal/parserES5SymbolProperty2.ts_target=es2015/sourcemap
+
+PASS: TestLocal/parserEmptyFile1.ts/sourcemap
+
+PASS: TestLocal/parserErrantEqualsGreaterThanAfterFunction2.ts/sourcemap
+
+PASS: TestLocal/parserErrantSemicolonInClass1.ts/sourcemap
+
+PASS: TestLocal/parserErrorRecovery_ArgumentList6.ts/sourcemap
+
+PASS: TestLocal/parserErrorRecovery_LeftShift1.ts/sourcemap
+
+PASS: TestLocal/parserErrorRecovery_ObjectLiteral3.ts/sourcemap
+
+PASS: TestLocal/parserErrorRecovery_ParameterList2.ts/sourcemap
+
+PASS: TestLocal/parserExportAssignment4.ts/sourcemap
+
+PASS: TestLocal/parserForOfStatement1.d.ts/sourcemap
+
+PASS: TestLocal/parserForOfStatement2.ts/sourcemap
+
+PASS: TestLocal/parserFunctionDeclaration7.ts/sourcemap
+
+PASS: TestLocal/parserFunctionPropertyAssignment1.ts/sourcemap
+
+PASS: TestLocal/parserGreaterThanTokenAmbiguity12.ts/sourcemap
+
+PASS: TestLocal/parserIfStatement2.ts/sourcemap
+
+PASS: TestLocal/parserInterfaceDeclaration2.ts/sourcemap
+
+PASS: TestLocal/parserMemberAccessorDeclaration5.ts_target=es2015/sourcemap
+
+PASS: TestLocal/parserMemberFunctionDeclaration5.ts/sourcemap
+
+PASS: TestLocal/parserNotRegex2.ts/sourcemap
+
+PASS: TestLocal/parserParameterList10.ts/sourcemap
+
+PASS: TestLocal/parserParameterList11.ts/sourcemap
+
+PASS: TestLocal/parserParameterList16.ts/sourcemap
+
+PASS: TestLocal/parserPropertySignature10.ts/sourcemap
+
+PASS: TestLocal/parserPropertySignature7.ts/sourcemap
+
+PASS: TestLocal/parserRealSource9.ts/sourcemap
+
+PASS: TestLocal/parserReturnStatement3.ts/sourcemap
+
+PASS: TestLocal/parserS12.11_A3_T4.ts/sourcemap
+
+PASS: TestLocal/parserSkippedTokens10.ts/sourcemap
+
+PASS: TestLocal/parserStrictMode1.ts/sourcemap
+
+PASS: TestLocal/parserSymbolProperty4.ts/sourcemap
+
+PASS: TestLocal/parserSymbolProperty5.ts/sourcemap
+
+PASS: TestLocal/parserTypeQuery4.ts/sourcemap
+
+PASS: TestLocal/parserUnfinishedTypeNameBeforeKeyword1.ts/sourcemap
+
+PASS: TestLocal/parser_breakNotInIterationOrSwitchStatement1.ts/sourcemap
+
+PASS: TestLocal/parser_breakTarget6.ts/sourcemap
+
+PASS: TestLocal/parser_continueLabel.ts/sourcemap
+
+PASS: TestLocal/partiallyNamedTuples2.ts/sourcemap
+
+PASS: TestLocal/plainJSGrammarErrors4.ts/sourcemap
+
+PASS: TestLocal/privateClassPropertyAccessibleWithinClass.ts/sourcemap
+
+PASS: TestLocal/privateIdentifierChain.1.ts/sourcemap
+
+PASS: TestLocal/privateNameAndAny.ts/sourcemap
+
+PASS: TestLocal/privateNameComputedPropertyName2.ts_target=esnext/sourcemap
+
+PASS: TestLocal/privateNameImplicitDeclaration.ts/sourcemap
+
+PASS: TestLocal/privateNameInInExpressionUnused.ts_target=esnext/sourcemap
+
+PASS: TestLocal/privateNameStaticEmitHelpers.ts/sourcemap
+
+PASS: TestLocal/privateNameStaticFieldAccess.ts/sourcemap
+
+PASS: TestLocal/privateNamesAssertion.ts_target=es2022/sourcemap
+
+PASS: TestLocal/propertyAccessChain.2.ts/sourcemap
+
+PASS: TestLocal/propertyAccessOnTypeParameterWithConstraints.ts/sourcemap
+
+PASS: TestLocal/propertyAssignmentOnParenthesizedNumber.ts/sourcemap
+
+PASS: TestLocal/publicIndexer.ts/sourcemap
+
+PASS: TestLocal/restElementWithAssignmentPattern3.ts/sourcemap
+
+PASS: TestLocal/restElementWithAssignmentPattern5.ts/sourcemap
+
+PASS: TestLocal/seeTag3.ts/sourcemap
+
+PASS: TestLocal/spreadOverwritesPropertyStrict.ts/sourcemap
+
+PASS: TestLocal/staticIndexers.ts/sourcemap
+
+PASS: TestLocal/staticMembersUsingClassTypeParameter.ts/sourcemap
+
+PASS: TestLocal/staticPropertyAndFunctionWithSameName.ts/sourcemap
+
+PASS: TestLocal/stringLiteralTypesOverloads04.ts/sourcemap
+
+PASS: TestLocal/subtypingWithConstructSignaturesWithOptionalParameters.ts/sourcemap
+
+PASS: TestLocal/subtypingWithNumericIndexer.ts/sourcemap
+
+PASS: TestLocal/subtypingWithNumericIndexer4.ts/sourcemap
+
+PASS: TestLocal/subtypingWithOptionalProperties.ts/sourcemap
+
+PASS: TestLocal/superCallParameterContextualTyping3.ts/sourcemap
+
+PASS: TestLocal/superCalls.ts/sourcemap
+
+PASS: TestLocal/switchBreakStatements.ts/sourcemap
+
+PASS: TestLocal/symbolDeclarationEmit12.ts/sourcemap
+
+PASS: TestLocal/symbolProperty13.ts/sourcemap
+
+PASS: TestLocal/symbolType20.ts/sourcemap
+
+PASS: TestLocal/taggedTemplateContextualTyping2.ts/sourcemap
+
+PASS: TestLocal/taggedTemplateStringsPlainCharactersThatArePartsOfEscapes02.ts/sourcemap
+
+PASS: TestLocal/taggedTemplateStringsWithTagNamedDeclare.ts/sourcemap
+
+PASS: TestLocal/taggedTemplateStringsWithTypeErrorInFunctionExpressionsInSubstitutionExpression.ts/sourcemap
+
+PASS: TestLocal/templateLiteralTypes5.ts/sourcemap
+
+PASS: TestLocal/templateStringBinaryOperations.ts/sourcemap
+
+PASS: TestLocal/templateStringInMultiplication.ts/sourcemap
+
+PASS: TestLocal/templateStringInObjectLiteralES6.ts/sourcemap
+
+PASS: TestLocal/templateStringInTypeAssertion.ts/sourcemap
+
+PASS: TestLocal/templateStringInTypeOfES6.ts/sourcemap
+
+PASS: TestLocal/templateStringTermination4.ts/sourcemap
+
+PASS: TestLocal/templateStringUnterminated1.ts/sourcemap
+
+PASS: TestLocal/templateStringWithEmbeddedCommentsES6.ts/sourcemap
+
+PASS: TestLocal/templateStringWithEmbeddedConditionalES6.ts/sourcemap
+
+PASS: TestLocal/templateStringWithOpenCommentInStringPortion.ts/sourcemap
+
+PASS: TestLocal/thisInObjectLiterals.ts/sourcemap
+
+PASS: TestLocal/thisPrototypeMethodCompoundAssignmentJs.ts/sourcemap
+
+PASS: TestLocal/throwStatements.ts/sourcemap
+
+PASS: TestLocal/topLevelAwait.1.ts_module=esnext,target=es2015/sourcemap
+
+PASS: TestLocal/topLevelAwaitErrors.1.ts_module=es2022/sourcemap
+
+PASS: TestLocal/topLevelAwaitErrors.11.ts/sourcemap
+
+PASS: TestLocal/topLevelFileModuleMissing.ts/sourcemap
+
+PASS: TestLocal/tryStatements.ts/sourcemap
+
+PASS: TestLocal/tsxAttributeResolution2.tsx/sourcemap
+
+PASS: TestLocal/tsxAttributeResolution6.tsx/sourcemap
+
+PASS: TestLocal/tsxElementResolution6.tsx/sourcemap
+
+PASS: TestLocal/tsxEmitSpreadAttribute.ts_target=es2015/sourcemap
+
+PASS: TestLocal/tsxEmitSpreadAttribute.ts_target=esnext/sourcemap
+
+PASS: TestLocal/tsxGenericAttributesType7.tsx/sourcemap
+
+PASS: TestLocal/tsxGenericAttributesType8.tsx/sourcemap
+
+PASS: TestLocal/tsxReactEmit5.tsx/sourcemap
+
+PASS: TestLocal/tsxReactEmitSpreadAttribute.ts_target=es2018/sourcemap
+
+PASS: TestLocal/tsxReactEmitWhitespace2.tsx/sourcemap
+
+PASS: TestLocal/tsxSpreadAttributesResolution1.tsx/sourcemap
+
+PASS: TestLocal/tsxSpreadAttributesResolution4.tsx/sourcemap
+
+PASS: TestLocal/tupleLengthCheck.ts/sourcemap
+
+PASS: TestLocal/typeArgumentInferenceWithObjectLiteral.ts/sourcemap
+
+PASS: TestLocal/typeFromPrivatePropertyAssignment.ts/sourcemap
+
+PASS: TestLocal/typeFromPropertyAssignment23.ts/sourcemap
+
+PASS: TestLocal/typeFromPrototypeAssignment2.ts/sourcemap
+
+PASS: TestLocal/typeGuardFunction.ts/sourcemap
+
+PASS: TestLocal/typeGuardOfFormExpr1AndExpr2.ts/sourcemap
+
+PASS: TestLocal/typeGuardOfFormTypeOfFunction.ts/sourcemap
+
+PASS: TestLocal/typeGuardOfFormTypeOfOther.ts/sourcemap
+
+PASS: TestLocal/typeGuardsNestedAssignments.ts/sourcemap
+
+PASS: TestLocal/typeOfThisInStaticMembers.ts/sourcemap
+
+PASS: TestLocal/typeOfThisInStaticMembers10.ts_target=es2022/sourcemap
+
+PASS: TestLocal/typeOfThisInStaticMembers4.ts_target=es2022/sourcemap
+
+PASS: TestLocal/typeOfThisInStaticMembers5.ts_target=es6/sourcemap
+
+PASS: TestLocal/typeOfThisInStaticMembers8.ts_target=es6/sourcemap
+
+PASS: TestLocal/typeOnlyMerge2.ts/sourcemap
+
+PASS: TestLocal/typeParameterAsTypeParameterConstraint2.ts/sourcemap
+
+PASS: TestLocal/typeParameterAssignability2.ts/sourcemap
+
+PASS: TestLocal/typeParametersAvailableInNestedScope.ts/sourcemap
+
+PASS: TestLocal/typeReferenceRelatedFiles.ts/sourcemap
+
+PASS: TestLocal/types.asyncGenerators.es2018.2.ts/sourcemap
+
+PASS: TestLocal/types.forAwait.es2018.3.ts/sourcemap
+
+PASS: TestLocal/typesWithPublicConstructor.ts/sourcemap
+
+PASS: TestLocal/typingsLookup3.ts/sourcemap
+
+PASS: TestLocal/umd-augmentation-3.ts/sourcemap
+
+PASS: TestLocal/unicodeExtendedEscapesInStrings09.ts_target=es6/sourcemap
+
+PASS: TestLocal/unicodeExtendedEscapesInTemplates07.ts_target=es6/sourcemap
+
+PASS: TestLocal/unionAndIntersectionInference3.ts/sourcemap
+
+PASS: TestLocal/unionTypeInference.ts/sourcemap
+
+PASS: TestLocal/useObjectValuesAndEntries3.ts/sourcemap
+
+PASS: TestLocal/usingDeclarations.11.ts_target=es2015/sourcemap
+
+PASS: TestLocal/usingDeclarations.8.ts/sourcemap
+
+PASS: TestLocal/usingDeclarationsInForOf.2.ts/sourcemap
+
+PASS: TestLocal/usingDeclarationsTopLevelOfModule.3.ts_module=commonjs/sourcemap
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.1.ts_module=commonjs,target=esnext/sourcemap
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.3.ts_module=commonjs,target=esnext/sourcemap
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.8.ts_module=esnext,target=es2015/sourcemap
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.9.ts_module=commonjs,target=es2015/sourcemap
+
+PASS: TestLocal/usingDeclarationsWithImportHelpers.ts/sourcemap
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.12.ts_module=esnext,target=es2015/sourcemap
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.3.ts_module=commonjs,target=es2015/sourcemap
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.6.ts_module=esnext,target=es2015/sourcemap
+
+PASS: TestLocal/valuesMergingAcrossModules.ts/sourcemap
+
+PASS: TestLocal/varianceAnnotationsWithCircularlyReferencesError.ts/sourcemap
+
+PASS: TestLocal/verbatimModuleSyntaxConstEnumUsage.ts/sourcemap

@@ -1,0 +1,29 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+PASS: TestLocal/nodeModulesPackageImports.ts_module=node20/module_resolution
+baseline: conformance/nodeModulesPackageImports(module=node20).trace.json
+reference: de77a1772dd3ee855762c1550dcff2339f112224121ea3293e9433837cbc4a0b
+actual: de77a1772dd3ee855762c1550dcff2339f112224121ea3293e9433837cbc4a0b
+
+PASS: TestLocal/nodeModulesPackageImports.ts_module=nodenext/module_resolution
+baseline: conformance/nodeModulesPackageImports(module=nodenext).trace.json
+reference: bcc390de3dcae93afdddaf0260d9d362980420322c17c4e3346a1a5f559e2933
+actual: bcc390de3dcae93afdddaf0260d9d362980420322c17c4e3346a1a5f559e2933
+
+PASS: TestLocal/nodeModulesPackageImportsRootWildcard_promoted.ts/module_resolution
+baseline: conformance/nodeModulesPackageImportsRootWildcard_promoted.trace.json
+reference: d5bde8cb84318c73031b39ef985d396ef13fbc4e3430d53b57c0f4cb09be8e38
+actual: d5bde8cb84318c73031b39ef985d396ef13fbc4e3430d53b57c0f4cb09be8e38
+
+PASS: TestLocal/nodeModulesPackagePatternExportsTrailers.ts_module=node16/module_resolution
+baseline: conformance/nodeModulesPackagePatternExportsTrailers(module=node16).trace.json
+reference: 306aa37595e0f4fecc9224b954fb34663fb95578b012b096ed4b9fe1243f65c0
+actual: 306aa37595e0f4fecc9224b954fb34663fb95578b012b096ed4b9fe1243f65c0
+
+PASS: TestLocal/typesVersions.multiFile.ts/module_resolution
+baseline: conformance/typesVersions.multiFile.trace.json
+reference: e615116df4f06f999878ca270cc98a1f76d0e20baef5d6ce8056342f04382095
+actual: e615116df4f06f999878ca270cc98a1f76d0e20baef5d6ce8056342f04382095

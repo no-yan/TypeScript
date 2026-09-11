@@ -1,0 +1,14 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+PASS: TestLocal/resolutionModeCache.ts/module_resolution
+baseline: conformance/resolutionModeCache.trace.json
+reference: 4933c6e311fac670a83cef4820b3729bfef0c091af0afce273220f58a21aaf17
+actual: 4933c6e311fac670a83cef4820b3729bfef0c091af0afce273220f58a21aaf17
+
+PASS: TestLocal/typingsLookup1.ts/module_resolution
+baseline: conformance/typingsLookup1.trace.json
+reference: 6d67cc991b7464d78d57c108b68d164df1c8c430b4c6602e3b620f2907f4fc5e
+actual: 6d67cc991b7464d78d57c108b68d164df1c8c430b4c6602e3b620f2907f4fc5e

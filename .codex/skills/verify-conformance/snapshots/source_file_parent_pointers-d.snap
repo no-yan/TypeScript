@@ -1,0 +1,830 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+PASS: TestLocal/ES5For-of15.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/ES5For-of28.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/ES5For-of29.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/ES5For-of3.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/ES5For-ofTypeCheck9.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/ExportClassWithInaccessibleTypeInTypeParameterConstraint.ts/source_file_parent_pointers
+
+PASS: TestLocal/MemberFunctionDeclaration1_es6.ts/source_file_parent_pointers
+
+PASS: TestLocal/MemberFunctionDeclaration7_es6.ts/source_file_parent_pointers
+
+PASS: TestLocal/ModuleWithExportedAndNonExportedFunctions.ts/source_file_parent_pointers
+
+PASS: TestLocal/Protected2.ts/source_file_parent_pointers
+
+PASS: TestLocal/Protected8.ts/source_file_parent_pointers
+
+PASS: TestLocal/Protected9.ts/source_file_parent_pointers
+
+PASS: TestLocal/TupleType2.ts/source_file_parent_pointers
+
+PASS: TestLocal/VariableDeclaration11_es6.ts/source_file_parent_pointers
+
+PASS: TestLocal/VariableDeclaration9_es6.ts/source_file_parent_pointers
+
+PASS: TestLocal/abstractProperty.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/accessorsOverrideProperty3.ts/source_file_parent_pointers
+
+PASS: TestLocal/ambientShorthand_merging.ts/source_file_parent_pointers
+
+PASS: TestLocal/arraySpreadInCall.ts/source_file_parent_pointers
+
+PASS: TestLocal/asOperatorASI.ts/source_file_parent_pointers
+
+PASS: TestLocal/asOperatorContextualType.ts/source_file_parent_pointers
+
+PASS: TestLocal/asiPreventsParsingAsInterface03.ts/source_file_parent_pointers
+
+PASS: TestLocal/asiPreventsParsingAsNamespace03.ts/source_file_parent_pointers
+
+PASS: TestLocal/assignFromStringInterface2.ts/source_file_parent_pointers
+
+PASS: TestLocal/assignmentCompatWithCallSignatures.ts/source_file_parent_pointers
+
+PASS: TestLocal/assignmentCompatWithCallSignatures2.ts/source_file_parent_pointers
+
+PASS: TestLocal/assignmentCompatWithCallSignatures3.ts/source_file_parent_pointers
+
+PASS: TestLocal/assignmentCompatWithConstructSignatures.ts/source_file_parent_pointers
+
+PASS: TestLocal/assignmentCompatWithConstructSignatures6.ts/source_file_parent_pointers
+
+PASS: TestLocal/assignmentCompatWithGenericCallSignatures2.ts/source_file_parent_pointers
+
+PASS: TestLocal/assignmentCompatWithObjectMembers5.ts/source_file_parent_pointers
+
+PASS: TestLocal/assignmentCompatWithObjectMembersOptionality.ts/source_file_parent_pointers
+
+PASS: TestLocal/asyncArrowFunction10_es2017.ts/source_file_parent_pointers
+
+PASS: TestLocal/asyncArrowFunction2_es5.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/asyncArrowFunction5_es2017.ts/source_file_parent_pointers
+
+PASS: TestLocal/asyncFunctionDeclaration11_es5.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/asyncFunctionDeclaration16_es5.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/asyncFunctionDeclaration8_es5.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/asyncGeneratorPromiseNextType.ts/source_file_parent_pointers
+
+PASS: TestLocal/asyncMethodWithSuper_es6.ts/source_file_parent_pointers
+
+PASS: TestLocal/autoAccessor1.ts_target=es2022/source_file_parent_pointers
+
+PASS: TestLocal/awaitBinaryExpression2_es2017.ts/source_file_parent_pointers
+
+PASS: TestLocal/awaitCallExpression4_es5.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/awaitCallExpression4_es6.ts/source_file_parent_pointers
+
+PASS: TestLocal/awaitUsingDeclarations.3.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/awaitUsingDeclarationsInForIn.ts/source_file_parent_pointers
+
+PASS: TestLocal/bigintMissingESNext.ts/source_file_parent_pointers
+
+PASS: TestLocal/binaryIntegerLiteralError.ts/source_file_parent_pointers
+
+PASS: TestLocal/bundlerConditionsExcludesNode.ts_module=esnext/source_file_parent_pointers
+
+PASS: TestLocal/callChainWithSuper.ts_target=es2016/source_file_parent_pointers
+
+PASS: TestLocal/callChainWithSuper.ts_target=es2021/source_file_parent_pointers
+
+PASS: TestLocal/callSignatureAssignabilityInInheritance2.ts/source_file_parent_pointers
+
+PASS: TestLocal/callSignaturesWithOptionalParameters2.ts/source_file_parent_pointers
+
+PASS: TestLocal/callWithMissingVoid.ts/source_file_parent_pointers
+
+PASS: TestLocal/chained.ts/source_file_parent_pointers
+
+PASS: TestLocal/circularTypeofWithVarOrFunc.ts/source_file_parent_pointers
+
+PASS: TestLocal/cjsErrors.ts_module=nodenext/source_file_parent_pointers
+
+PASS: TestLocal/classAbstractAsIdentifier.ts/source_file_parent_pointers
+
+PASS: TestLocal/classAbstractAssignabilityConstructorFunction.ts/source_file_parent_pointers
+
+PASS: TestLocal/classExtendingClassLikeType.ts/source_file_parent_pointers
+
+PASS: TestLocal/classStaticBlock13.ts_target=es2022/source_file_parent_pointers
+
+PASS: TestLocal/classStaticBlock17.ts/source_file_parent_pointers
+
+PASS: TestLocal/classStaticBlockUseBeforeDef3.ts/source_file_parent_pointers
+
+PASS: TestLocal/commaOperatorOtherInvalidOperation.ts/source_file_parent_pointers
+
+PASS: TestLocal/comparisonOperatorWithNoRelationshipObjectsOnConstructorSignature.ts/source_file_parent_pointers
+
+PASS: TestLocal/comparisonOperatorWithNoRelationshipObjectsOnProperty.ts/source_file_parent_pointers
+
+PASS: TestLocal/comparisonOperatorWithOneOperandIsAny.ts/source_file_parent_pointers
+
+PASS: TestLocal/comparisonOperatorWithOneOperandIsUndefined.ts/source_file_parent_pointers
+
+PASS: TestLocal/comparisonOperatorWithSubtypeEnumAndNumber.ts/source_file_parent_pointers
+
+PASS: TestLocal/comparisonOperatorWithSubtypeObjectOnCallSignature.ts/source_file_parent_pointers
+
+PASS: TestLocal/comparisonOperatorWithSubtypeObjectOnInstantiatedCallSignature.ts/source_file_parent_pointers
+
+PASS: TestLocal/computedPropertyNames11_ES5.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/computedPropertyNames14_ES5.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/computedPropertyNames1_ES5.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/computedPropertyNames1_ES6.ts/source_file_parent_pointers
+
+PASS: TestLocal/computedPropertyNames20_ES6.ts/source_file_parent_pointers
+
+PASS: TestLocal/computedPropertyNames28_ES5.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/computedPropertyNames2_ES6.ts/source_file_parent_pointers
+
+PASS: TestLocal/computedPropertyNames32_ES6.ts/source_file_parent_pointers
+
+PASS: TestLocal/computedPropertyNames33_ES6.ts/source_file_parent_pointers
+
+PASS: TestLocal/computedPropertyNames34_ES6.ts/source_file_parent_pointers
+
+PASS: TestLocal/computedPropertyNames35_ES5.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/computedPropertyNames43_ES6.ts/source_file_parent_pointers
+
+PASS: TestLocal/computedPropertyNames8_ES5.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/computedPropertyNamesDeclarationEmit2_ES5.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/computedPropertyNamesSourceMap1_ES6.ts/source_file_parent_pointers
+
+PASS: TestLocal/conditionalExportsResolutionFallback.ts_moduleresolution=nodenext/source_file_parent_pointers
+
+PASS: TestLocal/constructorFunctionTypeIsAssignableToBaseType.ts/source_file_parent_pointers
+
+PASS: TestLocal/constructorParameterShadowsOuterScopes2.ts/source_file_parent_pointers
+
+PASS: TestLocal/contextuallyTypeCommaOperator03.ts/source_file_parent_pointers
+
+PASS: TestLocal/contextuallyTypeLogicalAnd02.ts/source_file_parent_pointers
+
+PASS: TestLocal/contextuallyTypedObjectLiteralMethodDeclaration01.ts/source_file_parent_pointers
+
+PASS: TestLocal/controlFlowAliasingCatchVariables.ts_useunknownincatchvariables=false/source_file_parent_pointers
+
+PASS: TestLocal/controlFlowElementAccess2.ts/source_file_parent_pointers
+
+PASS: TestLocal/controlFlowTruthiness.ts/source_file_parent_pointers
+
+PASS: TestLocal/declarationEmitIdentifierPredicates01.ts/source_file_parent_pointers
+
+PASS: TestLocal/declarationEmitWorkWithInlineComments.ts/source_file_parent_pointers
+
+PASS: TestLocal/declarationWithNoInitializer.ts/source_file_parent_pointers
+
+PASS: TestLocal/decoratorOnClass3.es6.ts/source_file_parent_pointers
+
+PASS: TestLocal/decoratorOnClassConstructorParameter4.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/decoratorOnClassMethod11.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/decoratorOnClassMethod17.ts/source_file_parent_pointers
+
+PASS: TestLocal/decoratorOnClassMethodParameter3.ts/source_file_parent_pointers
+
+PASS: TestLocal/decrementOperatorWithEnumTypeInvalidOperations.ts/source_file_parent_pointers
+
+PASS: TestLocal/definiteAssignmentAssertions.ts/source_file_parent_pointers
+
+PASS: TestLocal/derivedClassTransitivity3.ts/source_file_parent_pointers
+
+PASS: TestLocal/destructuringObjectBindingPatternAndAssignment3.ts/source_file_parent_pointers
+
+PASS: TestLocal/destructuringParameterDeclaration10.ts_strict=false/source_file_parent_pointers
+
+PASS: TestLocal/destructuringTypeAssertionsES5_6.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/emitArrowFunctionWhenUsingArguments05_ES6.ts_alwaysstrict=true/source_file_parent_pointers
+
+PASS: TestLocal/emitCompoundExponentiationAssignmentWithPropertyAccessingOnLHS1.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/emitDefaultParametersFunctionProperty.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/emitDefaultParametersFunctionPropertyES6.ts/source_file_parent_pointers
+
+PASS: TestLocal/emitExponentiationOperator2.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/emitExponentiationOperatorInTemplateString1ES6.ts/source_file_parent_pointers
+
+PASS: TestLocal/emitExponentiationOperatorInTemplateString2ES6.ts/source_file_parent_pointers
+
+PASS: TestLocal/emitter.asyncGenerators.classMethods.es2015.ts/source_file_parent_pointers
+
+PASS: TestLocal/emptyObjectBindingPatternParameter01.ts/source_file_parent_pointers
+
+PASS: TestLocal/enumClassification.ts/source_file_parent_pointers
+
+PASS: TestLocal/enumConstantMemberWithStringEmitDeclaration.ts/source_file_parent_pointers
+
+PASS: TestLocal/enumIsNotASubtypeOfAnythingButNumber.ts/source_file_parent_pointers
+
+PASS: TestLocal/es2016IntlAPIs.ts/source_file_parent_pointers
+
+PASS: TestLocal/esDecorators-classDeclaration-fields-nonStatic.ts_target=es2022,usedefineforclassfields=false/source_file_parent_pointers
+
+PASS: TestLocal/esDecorators-classExpression-classSuper.5.ts/source_file_parent_pointers
+
+PASS: TestLocal/esmModuleExports3.ts/source_file_parent_pointers
+
+PASS: TestLocal/esnextmodulekindWithES5Target2.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/esnextmodulekindWithES5Target9.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/exportAmbientClassNameWithObject.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/exportAsNamespace1.ts_module=commonjs/source_file_parent_pointers
+
+PASS: TestLocal/exportAsNamespace4.ts_module=commonjs/source_file_parent_pointers
+
+PASS: TestLocal/exportAssignmentOfExportNamespaceWithDefault.ts/source_file_parent_pointers
+
+PASS: TestLocal/exportImportAlias.ts/source_file_parent_pointers
+
+PASS: TestLocal/exportNamespace6.ts/source_file_parent_pointers
+
+PASS: TestLocal/exportNamespace_js.ts/source_file_parent_pointers
+
+PASS: TestLocal/exportNestedNamespaces.ts/source_file_parent_pointers
+
+PASS: TestLocal/exportSpellingSuggestion.ts/source_file_parent_pointers
+
+PASS: TestLocal/extendClassExpressionFromModule.ts/source_file_parent_pointers
+
+PASS: TestLocal/extendsTag3.ts/source_file_parent_pointers
+
+PASS: TestLocal/fixSignatureCaching.ts/source_file_parent_pointers
+
+PASS: TestLocal/fluentInterfaces.ts/source_file_parent_pointers
+
+PASS: TestLocal/for-of10.ts/source_file_parent_pointers
+
+PASS: TestLocal/for-of53.ts/source_file_parent_pointers
+
+PASS: TestLocal/forStatementsMultipleInvalidDecl.ts/source_file_parent_pointers
+
+PASS: TestLocal/functionCalls.ts/source_file_parent_pointers
+
+PASS: TestLocal/functionExpressionContextualTyping2.ts/source_file_parent_pointers
+
+PASS: TestLocal/functionWithMultipleReturnStatements.ts/source_file_parent_pointers
+
+PASS: TestLocal/generatorReturnTypeIndirectReferenceToGlobalType.ts/source_file_parent_pointers
+
+PASS: TestLocal/generatorTypeCheck22.ts/source_file_parent_pointers
+
+PASS: TestLocal/genericContextualTypes1.ts/source_file_parent_pointers
+
+PASS: TestLocal/genericTypeReferenceWithoutTypeArgument.d.ts/source_file_parent_pointers
+
+PASS: TestLocal/identicalCallSignatures3.ts/source_file_parent_pointers
+
+PASS: TestLocal/importAssertion1.ts_module=commonjs/source_file_parent_pointers
+
+PASS: TestLocal/importAssertion1.ts_module=es2015/source_file_parent_pointers
+
+PASS: TestLocal/importAssertion3.ts_module=es2015/source_file_parent_pointers
+
+PASS: TestLocal/importAttributes6.ts_module=node20/source_file_parent_pointers
+
+PASS: TestLocal/importCallExpressionDeclarationEmit2.ts/source_file_parent_pointers
+
+PASS: TestLocal/importCallExpressionErrorInES2015.ts/source_file_parent_pointers
+
+PASS: TestLocal/importCallExpressionIncorrect1.ts/source_file_parent_pointers
+
+PASS: TestLocal/importCallExpressionSpecifierNotStringTypeError.ts/source_file_parent_pointers
+
+PASS: TestLocal/importClause_default.ts/source_file_parent_pointers
+
+PASS: TestLocal/importDeferDeclaration.ts/source_file_parent_pointers
+
+PASS: TestLocal/importDeferFromInvalid.ts/source_file_parent_pointers
+
+PASS: TestLocal/importDeferNamespace.ts_module=commonjs/source_file_parent_pointers
+
+PASS: TestLocal/importEquals1.ts/source_file_parent_pointers
+
+PASS: TestLocal/importEqualsBindingDefer.ts/source_file_parent_pointers
+
+PASS: TestLocal/importStatementsInterfaces.ts/source_file_parent_pointers
+
+PASS: TestLocal/importTag17.ts/source_file_parent_pointers
+
+PASS: TestLocal/importTag8.ts/source_file_parent_pointers
+
+PASS: TestLocal/importTypeGeneric.ts/source_file_parent_pointers
+
+PASS: TestLocal/incrementAndDecrement.ts/source_file_parent_pointers
+
+PASS: TestLocal/incrementOperatorWithAnyOtherTypeInvalidOperations.ts/source_file_parent_pointers
+
+PASS: TestLocal/indexSignatures1.ts/source_file_parent_pointers
+
+PASS: TestLocal/inlineJsxFactoryWithFragmentIsError.tsx/source_file_parent_pointers
+
+PASS: TestLocal/interfaceWithCallSignaturesThatHidesBaseSignature2.ts/source_file_parent_pointers
+
+PASS: TestLocal/intersectionReductionStrict.ts/source_file_parent_pointers
+
+PASS: TestLocal/intersectionsAndEmptyObjects.ts/source_file_parent_pointers
+
+PASS: TestLocal/intlNumberFormatES5UseGrouping.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/invalidStringAssignments.ts/source_file_parent_pointers
+
+PASS: TestLocal/iteratorSpreadInCall3.ts/source_file_parent_pointers
+
+PASS: TestLocal/jsDeclarationsClassLeadingOptional.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/jsDeclarationsExportAssignedConstructorFunction.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/jsDeclarationsReactComponents.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/jsDeclarationsRestArgsWithThisTypeInJSDocFunction.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/jsDeclarationsTypeReferences3.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/jsdocFunctionType.ts/source_file_parent_pointers
+
+PASS: TestLocal/jsdocImportType2.ts/source_file_parent_pointers
+
+PASS: TestLocal/jsdocOuterTypeParameters1.ts/source_file_parent_pointers
+
+PASS: TestLocal/jsdocParamTag.ts/source_file_parent_pointers
+
+PASS: TestLocal/jsdocParseDotDotDotInJSDocFunction.ts/source_file_parent_pointers
+
+PASS: TestLocal/jsdocParseStarEquals.ts/source_file_parent_pointers
+
+PASS: TestLocal/jsdocPrototypePropertyAccessWithType.ts/source_file_parent_pointers
+
+PASS: TestLocal/jsdocTemplateClass.ts/source_file_parent_pointers
+
+PASS: TestLocal/jsdocTemplateTag6.ts/source_file_parent_pointers
+
+PASS: TestLocal/jsdocTemplateTag7.ts/source_file_parent_pointers
+
+PASS: TestLocal/jsdocTypeFromChainedAssignment3.ts/source_file_parent_pointers
+
+PASS: TestLocal/jsdocVariadicType.ts/source_file_parent_pointers
+
+PASS: TestLocal/jsxJsxsCjsTransformCustomImportPragma.tsx_jsx=react-jsx/source_file_parent_pointers
+
+PASS: TestLocal/keyofAndIndexedAccessErrors.ts/source_file_parent_pointers
+
+PASS: TestLocal/labeledStatementDeclarationListInLoopNoCrash3.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/lateBoundAssignmentDeclarationSupport3.ts/source_file_parent_pointers
+
+PASS: TestLocal/library-reference-7.ts/source_file_parent_pointers
+
+PASS: TestLocal/library-reference-8.ts/source_file_parent_pointers
+
+PASS: TestLocal/literalTypesAndTypeAssertions.ts/source_file_parent_pointers
+
+PASS: TestLocal/localTypes1.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/logicalAssignment8.ts_target=esnext/source_file_parent_pointers
+
+PASS: TestLocal/mappedTypeProperties.ts/source_file_parent_pointers
+
+PASS: TestLocal/mergedInterfacesWithConflictingPropertyNames2.ts/source_file_parent_pointers
+
+PASS: TestLocal/missingDecoratorType.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/mixinAccessors1.ts/source_file_parent_pointers
+
+PASS: TestLocal/mixinClassesAnnotated.ts/source_file_parent_pointers
+
+PASS: TestLocal/moduleExportAliasElementAccessExpression.ts/source_file_parent_pointers
+
+PASS: TestLocal/moduleExportDuplicateAlias.ts/source_file_parent_pointers
+
+PASS: TestLocal/moduleExportDuplicateAlias2.ts/source_file_parent_pointers
+
+PASS: TestLocal/moduleResolutionWithExtensions.ts/source_file_parent_pointers
+
+PASS: TestLocal/moduleResolutionWithoutExtension3.ts_module=node18/source_file_parent_pointers
+
+PASS: TestLocal/multipleStringIndexers.ts/source_file_parent_pointers
+
+PASS: TestLocal/nameWithRelativePaths.ts/source_file_parent_pointers
+
+PASS: TestLocal/namespaceMemberAccess.ts/source_file_parent_pointers
+
+PASS: TestLocal/narrowFromAnyWithInstanceof.ts/source_file_parent_pointers
+
+PASS: TestLocal/negateOperatorWithNumberType.ts/source_file_parent_pointers
+
+PASS: TestLocal/neverReturningFunctions1.ts/source_file_parent_pointers
+
+PASS: TestLocal/neverTypeErrors1.ts/source_file_parent_pointers
+
+PASS: TestLocal/nodeModulesAllowJsCjsFromJs.ts_module=nodenext/source_file_parent_pointers
+
+PASS: TestLocal/nodeModulesAllowJsDynamicImport.ts_module=node18/source_file_parent_pointers
+
+PASS: TestLocal/nodeModulesAllowJsDynamicImport.ts_module=node20/source_file_parent_pointers
+
+PASS: TestLocal/nodeModulesAllowJsImportHelpersCollisions2.ts_module=node18/source_file_parent_pointers
+
+PASS: TestLocal/nodeModulesAllowJsPackagePatternExports.ts_module=nodenext/source_file_parent_pointers
+
+PASS: TestLocal/nodeModulesAllowJsPackagePatternExportsTrailers.ts_module=node18/source_file_parent_pointers
+
+PASS: TestLocal/nodeModulesAtTypesPriority.ts/source_file_parent_pointers
+
+PASS: TestLocal/nodeModulesDeclarationEmitWithPackageExportsNoOutDir.ts_module=node18/source_file_parent_pointers
+
+PASS: TestLocal/nodeModulesExportAssignments.ts_module=node16/source_file_parent_pointers
+
+PASS: TestLocal/nodeModulesImportMeta.ts_module=nodenext/source_file_parent_pointers
+
+PASS: TestLocal/nodeModulesImportTypeModeDeclarationEmit1.ts_module=nodenext/source_file_parent_pointers
+
+PASS: TestLocal/nodeModulesPackageExports.ts_module=node18/source_file_parent_pointers
+
+PASS: TestLocal/nodeModulesResolveJsonModule.ts_module=node16/source_file_parent_pointers
+
+PASS: TestLocal/nodeModulesTopLevelAwait.ts_module=node20/source_file_parent_pointers
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeDeclarationEmit5.ts_module=node18/source_file_parent_pointers
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeOverride2.ts_module=node18/source_file_parent_pointers
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeOverride2.ts_module=nodenext/source_file_parent_pointers
+
+PASS: TestLocal/nonInstantiatedModule.ts/source_file_parent_pointers
+
+PASS: TestLocal/nonPrimitiveInGeneric.ts/source_file_parent_pointers
+
+PASS: TestLocal/nullishCoalescingOperator2.ts/source_file_parent_pointers
+
+PASS: TestLocal/numericNamedPropertyDuplicates.ts/source_file_parent_pointers
+
+PASS: TestLocal/objectSpreadIndexSignature.ts/source_file_parent_pointers
+
+PASS: TestLocal/objectTypesIdentity2.ts/source_file_parent_pointers
+
+PASS: TestLocal/objectTypesIdentityWithCallSignaturesDifferingParamCounts2.ts/source_file_parent_pointers
+
+PASS: TestLocal/optionalBindingParametersInOverloads2.ts/source_file_parent_pointers
+
+PASS: TestLocal/optionalChainingInParameterInitializer.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/optionalProperties02.ts/source_file_parent_pointers
+
+PASS: TestLocal/override13.ts/source_file_parent_pointers
+
+PASS: TestLocal/override15.ts/source_file_parent_pointers
+
+PASS: TestLocal/override5.ts/source_file_parent_pointers
+
+PASS: TestLocal/overrideLateBindableIndexSignature1.ts_noimplicitoverride=true/source_file_parent_pointers
+
+PASS: TestLocal/parameterInitializersForwardReferencing1_es6.ts/source_file_parent_pointers
+
+PASS: TestLocal/parser.asyncGenerators.classMethods.es2018.ts_alwaysstrict=true/source_file_parent_pointers
+
+PASS: TestLocal/parser10.1.1-8gs.ts/source_file_parent_pointers
+
+PASS: TestLocal/parser645086_1.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserAmbiguity2.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserArrayLiteralExpression11.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserArrayLiteralExpression13.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserClassDeclaration14.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserClassDeclaration4.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserComputedPropertyName5.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserComputedPropertyName9.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserConstructorDeclaration6.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserConstructorDeclaration7.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserDebuggerStatement1.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserDebuggerStatement2.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserES5ComputedPropertyName2.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/parserES5ComputedPropertyName5.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/parserErrorRecovery_ArgumentList3.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserExportAssignment1.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserForOfStatement19.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserForOfStatement4.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserForOfStatement6.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserForOfStatement8.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserFunctionDeclaration7.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserGreaterThanTokenAmbiguity16.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserIndexMemberDeclaration10.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserInterfaceDeclaration7.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserMemberAccessorDeclaration12.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/parserMemberAccessorDeclaration14.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/parserMemberVariableDeclaration3.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserMethodSignature11.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserMethodSignature5.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserMissingToken2.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserModuleDeclaration2.d.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserObjectType6.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserParameterList3.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserPropertySignature1.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserRegularExpression6.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserReturnStatement1.d.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserSetAccessorWithTypeAnnotation1.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/parserShorthandPropertyAssignment5.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserSkippedTokens8.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserStrictMode14.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserStrictMode5.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserStrictMode9.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserSwitchStatement1.d.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserVariableDeclaration4.d.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserVariableDeclaration8.ts/source_file_parent_pointers
+
+PASS: TestLocal/parserVariableDeclaration9.ts/source_file_parent_pointers
+
+PASS: TestLocal/parser_breakTarget3.ts/source_file_parent_pointers
+
+PASS: TestLocal/plusOperatorWithStringType.ts/source_file_parent_pointers
+
+PASS: TestLocal/privateNameComputedPropertyName1.ts_target=es2022/source_file_parent_pointers
+
+PASS: TestLocal/privateNameComputedPropertyName2.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/privateNameComputedPropertyName4.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/privateNameFieldAccess.ts/source_file_parent_pointers
+
+PASS: TestLocal/privateNameFieldDestructuredBinding.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/privateNameFieldsESNext.ts_target=esnext/source_file_parent_pointers
+
+PASS: TestLocal/privateNameHashCharName.ts/source_file_parent_pointers
+
+PASS: TestLocal/privateNameInObjectLiteral-2.ts/source_file_parent_pointers
+
+PASS: TestLocal/privateNameJsBadDeclaration.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/privateNameNotAccessibleOutsideDefiningClass.ts/source_file_parent_pointers
+
+PASS: TestLocal/privateNameStaticFieldCallExpression.ts/source_file_parent_pointers
+
+PASS: TestLocal/privateNameStaticFieldClassExpression.ts/source_file_parent_pointers
+
+PASS: TestLocal/privateNamesConstructorChain-2.ts/source_file_parent_pointers
+
+PASS: TestLocal/privateNamesUnique-4.ts/source_file_parent_pointers
+
+PASS: TestLocal/protectedClassPropertyAccessibleWithinSubclass3.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/recursiveIntersectionTypes.ts/source_file_parent_pointers
+
+PASS: TestLocal/resolutionModeTripleSlash3.ts/source_file_parent_pointers
+
+PASS: TestLocal/restElementMustBeLast.ts/source_file_parent_pointers
+
+PASS: TestLocal/restElementWithBindingPattern2.ts/source_file_parent_pointers
+
+PASS: TestLocal/restTupleElements1.ts/source_file_parent_pointers
+
+PASS: TestLocal/restTuplesFromContextualTypes.ts/source_file_parent_pointers
+
+PASS: TestLocal/returnStatementNoAsiAfterTransform.ts_target=esnext/source_file_parent_pointers
+
+PASS: TestLocal/scannerStringLiterals.ts/source_file_parent_pointers
+
+PASS: TestLocal/staticAutoAccessors.ts_target=es2022/source_file_parent_pointers
+
+PASS: TestLocal/staticIndexers.ts/source_file_parent_pointers
+
+PASS: TestLocal/staticPropertyNameConflictsInAmbientContext.ts/source_file_parent_pointers
+
+PASS: TestLocal/stringIndexingResults.ts/source_file_parent_pointers
+
+PASS: TestLocal/stringLiteralCheckedInIf01.ts/source_file_parent_pointers
+
+PASS: TestLocal/stringLiteralTypesAndLogicalOrExpressions01.ts/source_file_parent_pointers
+
+PASS: TestLocal/stringLiteralTypesOverloads01.ts/source_file_parent_pointers
+
+PASS: TestLocal/stringMappingReduction.ts/source_file_parent_pointers
+
+PASS: TestLocal/stringNamedPropertyAccess.ts/source_file_parent_pointers
+
+PASS: TestLocal/subtypingWithCallSignaturesWithSpecializedSignatures.ts/source_file_parent_pointers
+
+PASS: TestLocal/subtypingWithConstructSignatures2.ts/source_file_parent_pointers
+
+PASS: TestLocal/superCalls.ts/source_file_parent_pointers
+
+PASS: TestLocal/symbolDeclarationEmit11.ts/source_file_parent_pointers
+
+PASS: TestLocal/symbolProperty13.ts/source_file_parent_pointers
+
+PASS: TestLocal/symbolProperty19.ts/source_file_parent_pointers
+
+PASS: TestLocal/symbolProperty4.ts/source_file_parent_pointers
+
+PASS: TestLocal/symbolProperty50.ts/source_file_parent_pointers
+
+PASS: TestLocal/symbolProperty53.ts/source_file_parent_pointers
+
+PASS: TestLocal/symbolProperty54.ts/source_file_parent_pointers
+
+PASS: TestLocal/symbolProperty59.ts/source_file_parent_pointers
+
+PASS: TestLocal/taggedTemplateStringsWithTypedTags.ts/source_file_parent_pointers
+
+PASS: TestLocal/templateStringInArrowFunction.ts/source_file_parent_pointers
+
+PASS: TestLocal/templateStringInModulo.ts/source_file_parent_pointers
+
+PASS: TestLocal/templateStringInMultiplicationES6.ts/source_file_parent_pointers
+
+PASS: TestLocal/templateStringMultiline3.ts/source_file_parent_pointers
+
+PASS: TestLocal/templateStringWithEmbeddedDivision.ts/source_file_parent_pointers
+
+PASS: TestLocal/templateStringWithEmbeddedUnaryPlusES6.ts/source_file_parent_pointers
+
+PASS: TestLocal/templateStringWithEmptyLiteralPortionsES6.ts/source_file_parent_pointers
+
+PASS: TestLocal/thisTypeErrors.ts/source_file_parent_pointers
+
+PASS: TestLocal/thisTypeOfConstructorFunctions.ts/source_file_parent_pointers
+
+PASS: TestLocal/topLevelAwait.1.ts_module=esnext,target=es2017/source_file_parent_pointers
+
+PASS: TestLocal/topLevelAwaitErrors.1.ts_module=es2022/source_file_parent_pointers
+
+PASS: TestLocal/topLevelAwaitErrors.5.ts_module=es2022/source_file_parent_pointers
+
+PASS: TestLocal/topLevelAwaitErrors.9.ts_module=esnext/source_file_parent_pointers
+
+PASS: TestLocal/topLevelAwaitNonModule.ts_module=es2022/source_file_parent_pointers
+
+PASS: TestLocal/trailingCommasInBindingPatterns.ts/source_file_parent_pointers
+
+PASS: TestLocal/tsxAttributeResolution13.tsx/source_file_parent_pointers
+
+PASS: TestLocal/tsxAttributeResolution15.tsx/source_file_parent_pointers
+
+PASS: TestLocal/tsxElementResolution13.tsx/source_file_parent_pointers
+
+PASS: TestLocal/tsxGenericAttributesType4.tsx/source_file_parent_pointers
+
+PASS: TestLocal/tsxReactEmit3.tsx/source_file_parent_pointers
+
+PASS: TestLocal/tsxSfcReturnUndefinedStrictNullChecks.tsx/source_file_parent_pointers
+
+PASS: TestLocal/tupleElementTypes2.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeAliases.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeFromJSConstructor.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeFromPropertyAssignment18.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeFromPropertyAssignment3.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeFromPropertyAssignment9_1.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeFromPropertyAssignmentWithExport.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeGuardFunction.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeGuardOfFormTypeOfFunction.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeGuardOfFromPropNameInUnionType.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeGuardsInForStatement.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeOfThisInConstructorParamList.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeOfThisInStaticMembers10.ts_target=es2022/source_file_parent_pointers
+
+PASS: TestLocal/typeOfThisInStaticMembers3.ts_target=esnext/source_file_parent_pointers
+
+PASS: TestLocal/typeParameterConstModifiersWithIntersection.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeParameterIndirectlyConstrainedToItself.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeParameterUsedAsTypeParameterConstraint2.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeSatisfaction_propertyNameFulfillment.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeSatisfaction_propertyValueConformance3.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeTagModuleExports.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeTagPrototypeAssignment.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeofImportTypeOnlyExport.ts/source_file_parent_pointers
+
+PASS: TestLocal/typeofOperatorWithNumberType.ts/source_file_parent_pointers
+
+PASS: TestLocal/types.forAwait.es2018.1.ts/source_file_parent_pointers
+
+PASS: TestLocal/typesWithOptionalProperty.ts/source_file_parent_pointers
+
+PASS: TestLocal/typesWithProtectedConstructor.ts/source_file_parent_pointers
+
+PASS: TestLocal/unicodeExtendedEscapesInRegularExpressions14.ts_target=es6/source_file_parent_pointers
+
+PASS: TestLocal/unicodeExtendedEscapesInRegularExpressions19.ts_target=es6/source_file_parent_pointers
+
+PASS: TestLocal/unicodeExtendedEscapesInStrings01.ts_target=es6/source_file_parent_pointers
+
+PASS: TestLocal/unicodeExtendedEscapesInStrings04.ts_target=es6/source_file_parent_pointers
+
+PASS: TestLocal/unicodeExtendedEscapesInStrings08.ts_target=es6/source_file_parent_pointers
+
+PASS: TestLocal/unicodeExtendedEscapesInStrings14.ts_target=es6/source_file_parent_pointers
+
+PASS: TestLocal/unicodeExtendedEscapesInStrings19.ts_target=es6/source_file_parent_pointers
+
+PASS: TestLocal/unicodeExtendedEscapesInTemplates08.ts_target=es6/source_file_parent_pointers
+
+PASS: TestLocal/unicodeExtendedEscapesInTemplates20.ts_target=es6/source_file_parent_pointers
+
+PASS: TestLocal/unionTypeEquivalence.ts/source_file_parent_pointers
+
+PASS: TestLocal/usingDeclarations.13.ts/source_file_parent_pointers
+
+PASS: TestLocal/usingDeclarations.3.ts_target=es2022/source_file_parent_pointers
+
+PASS: TestLocal/usingDeclarationsInForOf.1.ts_target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.5.ts_module=esnext,target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.6.ts_module=esnext,target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.8.ts_module=esnext,target=es2015/source_file_parent_pointers
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.4.ts_module=commonjs,target=esnext/source_file_parent_pointers
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.4.ts_module=esnext,target=es2015/source_file_parent_pointers

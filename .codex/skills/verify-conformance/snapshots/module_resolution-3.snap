@@ -1,0 +1,49 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+PASS: TestLocal/bundlerDirectoryModule.ts_module=node20,moduleresolution=nodenext/module_resolution
+baseline: conformance/bundlerDirectoryModule(module=node20,moduleresolution=nodenext).trace.json
+reference: 90dc6fa1cab9a9030bf99136429df4e6954deefecc3f78836f903e2a235144a5
+actual: 90dc6fa1cab9a9030bf99136429df4e6954deefecc3f78836f903e2a235144a5
+
+PASS: TestLocal/bundlerRelative1.ts_module=esnext/module_resolution
+baseline: conformance/bundlerRelative1(module=esnext).trace.json
+reference: d762e8a261a61d3620fb38d484f51633a644419748a25e0a98c798a993bcd5a8
+actual: d762e8a261a61d3620fb38d484f51633a644419748a25e0a98c798a993bcd5a8
+
+PASS: TestLocal/library-reference-5.ts/module_resolution
+baseline: conformance/library-reference-5.trace.json
+reference: 515b9170795a70b5580f80c5876666f2f6e16efedb8e402a104104d53bf50cbd
+actual: 515b9170795a70b5580f80c5876666f2f6e16efedb8e402a104104d53bf50cbd
+
+PASS: TestLocal/library-reference-6.ts/module_resolution
+baseline: conformance/library-reference-6.trace.json
+reference: 6e767fe4dd29c9d9c917fa10c1e1ffacdef98e8bb8948c13b40bd8d3422c4c94
+actual: 6e767fe4dd29c9d9c917fa10c1e1ffacdef98e8bb8948c13b40bd8d3422c4c94
+
+PASS: TestLocal/library-reference-7.ts/module_resolution
+baseline: conformance/library-reference-7.trace.json
+reference: 43482020760a39dba5c77792ce8c6e506129b5ec966fa92c6c316c2387d33360
+actual: 43482020760a39dba5c77792ce8c6e506129b5ec966fa92c6c316c2387d33360
+
+PASS: TestLocal/nodeModulesPackageImports.ts_module=node16/module_resolution
+baseline: conformance/nodeModulesPackageImports(module=node16).trace.json
+reference: de77a1772dd3ee855762c1550dcff2339f112224121ea3293e9433837cbc4a0b
+actual: de77a1772dd3ee855762c1550dcff2339f112224121ea3293e9433837cbc4a0b
+
+PASS: TestLocal/nodeModulesPackagePatternExportsTrailers.ts_module=nodenext/module_resolution
+baseline: conformance/nodeModulesPackagePatternExportsTrailers(module=nodenext).trace.json
+reference: 897864e1e86f0f444cc148539f5070acf16912e1f3f7d33f80f952161eca577f
+actual: 897864e1e86f0f444cc148539f5070acf16912e1f3f7d33f80f952161eca577f
+
+PASS: TestLocal/resolvesWithoutExportsDiagnostic1.ts_moduleresolution=bundler/module_resolution
+baseline: conformance/resolvesWithoutExportsDiagnostic1(moduleresolution=bundler).trace.json
+reference: f3563270cd46342ee548e1bbac92562cda5dfcd7599c71843d6ac9896d217cea
+actual: f3563270cd46342ee548e1bbac92562cda5dfcd7599c71843d6ac9896d217cea
+
+PASS: TestLocal/typingsLookup4.ts/module_resolution
+baseline: conformance/typingsLookup4.trace.json
+reference: e9672e832a28c61e4f1310d04d961fa05fdc700e412ff5069805fc8ef2b975ec
+actual: e9672e832a28c61e4f1310d04d961fa05fdc700e412ff5069805fc8ef2b975ec

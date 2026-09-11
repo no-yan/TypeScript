@@ -1,0 +1,39 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+PASS: TestLocal/bundlerNodeModules1.ts_module=preserve/module_resolution
+baseline: conformance/bundlerNodeModules1(module=preserve).trace.json
+reference: dc08874f9b00ba700c5b16983bdde70cc4c738d71c548cc182a3ed1d1ab90045
+actual: dc08874f9b00ba700c5b16983bdde70cc4c738d71c548cc182a3ed1d1ab90045
+
+PASS: TestLocal/library-reference-1.ts/module_resolution
+baseline: conformance/library-reference-1.trace.json
+reference: 56adb99186ec2e0809ca2c987ce9746383b3586b899e17c78c84ba531ae19113
+actual: 56adb99186ec2e0809ca2c987ce9746383b3586b899e17c78c84ba531ae19113
+
+PASS: TestLocal/library-reference-10.ts/module_resolution
+baseline: conformance/library-reference-10.trace.json
+reference: 57822e6a635a2aef3f3453b7f06ed9d4bdd972feaa1b38ea35a68c491d2f5026
+actual: 57822e6a635a2aef3f3453b7f06ed9d4bdd972feaa1b38ea35a68c491d2f5026
+
+PASS: TestLocal/library-reference-14.ts/module_resolution
+baseline: conformance/library-reference-14.trace.json
+reference: b22a11b6a1a4f8ff95493e363718fe525dc383f8c606bea46fdfeda668196e88
+actual: b22a11b6a1a4f8ff95493e363718fe525dc383f8c606bea46fdfeda668196e88
+
+PASS: TestLocal/library-reference-4.ts/module_resolution
+baseline: conformance/library-reference-4.trace.json
+reference: 77f5edf7fa48aa0290ddf97b824f6415ad8625c3908440c035ee37dd7f1d1218
+actual: 77f5edf7fa48aa0290ddf97b824f6415ad8625c3908440c035ee37dd7f1d1218
+
+PASS: TestLocal/nodeModulesAtTypesPriority.ts/module_resolution
+baseline: conformance/nodeModulesAtTypesPriority.trace.json
+reference: 09ce9e0972e27c47755c55de7d13ce05c93275decf0d5c1fbec57b1f013a28ee
+actual: 09ce9e0972e27c47755c55de7d13ce05c93275decf0d5c1fbec57b1f013a28ee
+
+PASS: TestLocal/nodeModulesExportsBlocksTypesVersions.ts_module=node16/module_resolution
+baseline: conformance/nodeModulesExportsBlocksTypesVersions(module=node16).trace.json
+reference: 52d91712843771691ad0aeaa2752bea52fbcc1208fbe092009be05cc2de38b6a
+actual: 52d91712843771691ad0aeaa2752bea52fbcc1208fbe092009be05cc2de38b6a

@@ -1,0 +1,14 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+PASS: TestLocal/bundlerImportTsExtensions.ts_allowimportingtsextensions=false,noemit=false/module_resolution
+baseline: conformance/bundlerImportTsExtensions(allowimportingtsextensions=false,noemit=false).trace.json
+reference: 1b303e27942c841bd0f84f0c95d13b854e8d55a96d1bde6c7e35f9da22cb7ca8
+actual: 1b303e27942c841bd0f84f0c95d13b854e8d55a96d1bde6c7e35f9da22cb7ca8
+
+PASS: TestLocal/library-reference-15.ts/module_resolution
+baseline: conformance/library-reference-15.trace.json
+reference: 5c3f8dc74349cacac67882892307f9f1cb42d60660b9e8bf99a53cef418053bf
+actual: 5c3f8dc74349cacac67882892307f9f1cb42d60660b9e8bf99a53cef418053bf

@@ -1,0 +1,29 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+PASS: TestLocal/bundlerNodeModules1.ts_module=esnext/module_resolution
+baseline: conformance/bundlerNodeModules1(module=esnext).trace.json
+reference: dc08874f9b00ba700c5b16983bdde70cc4c738d71c548cc182a3ed1d1ab90045
+actual: dc08874f9b00ba700c5b16983bdde70cc4c738d71c548cc182a3ed1d1ab90045
+
+PASS: TestLocal/customConditions.ts_resolvepackagejsonexports=false/module_resolution
+baseline: conformance/customConditions(resolvepackagejsonexports=false).trace.json
+reference: d789d42248b813740e28070eba9d159b47709e9d816bf969e569b1115537b94d
+actual: d789d42248b813740e28070eba9d159b47709e9d816bf969e569b1115537b94d
+
+PASS: TestLocal/library-reference-scoped-packages.ts/module_resolution
+baseline: conformance/library-reference-scoped-packages.trace.json
+reference: 0ec882b0ff6b97fc52bee3ee43ba91c59589d1f59a110e86b5f33327953467be
+actual: 0ec882b0ff6b97fc52bee3ee43ba91c59589d1f59a110e86b5f33327953467be
+
+PASS: TestLocal/nestedPackageJsonRedirect.ts_moduleresolution=node16/module_resolution
+baseline: conformance/nestedPackageJsonRedirect(moduleresolution=node16).trace.json
+reference: 016afc11f3ffb664065dcbcc265be2f28ad421897a3b94994f216c964c58deb2
+actual: 016afc11f3ffb664065dcbcc265be2f28ad421897a3b94994f216c964c58deb2
+
+PASS: TestLocal/resolvesWithoutExportsDiagnostic1.ts_moduleresolution=node16/module_resolution
+baseline: conformance/resolvesWithoutExportsDiagnostic1(moduleresolution=node16).trace.json
+reference: 6ec6eee784a855ea6df004f5f7be4c9b8e2037f099bc1cebfd63f271a5a8f6da
+actual: 6ec6eee784a855ea6df004f5f7be4c9b8e2037f099bc1cebfd63f271a5a8f6da

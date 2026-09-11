@@ -1,0 +1,3389 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+FAIL: TestLocal/ClassAndModuleThatMergeWithModulesExportedStaticFunctionUsingClassPrivateStatics.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/internalModules/DeclarationMerging/ClassAndModuleThatMergeWithModulesExportedStaticFunctionUsingClassPrivateStatics.ts:
+        runtime error: slice bounds out of range [11:10]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/ES5For-of15.ts_target=es2015/symbol
+baseline: conformance/ES5For-of15(target=es2015).symbols
+reference: e3595a8a218059e40b6f50a1746f3854c7eff73004ca2f1d1a4387f032359ffe
+actual: e3595a8a218059e40b6f50a1746f3854c7eff73004ca2f1d1a4387f032359ffe
+
+PASS: TestLocal/ES5For-of33.ts_target=es2015/symbol
+baseline: conformance/ES5For-of33(target=es2015).symbols
+reference: 8308bd0580217126efbb9ce50d95d3483bb69153ba773c9b2a34dcfd4703ed6f
+actual: 8308bd0580217126efbb9ce50d95d3483bb69153ba773c9b2a34dcfd4703ed6f
+
+FAIL: TestLocal/ExportFunctionWithInaccessibleTypesInParameterTypeAnnotation.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/internalModules/exportDeclarations/ExportFunctionWithInaccessibleTypesInParameterTypeAnnotation.ts:
+        runtime error: slice bounds out of range [13:12]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/FunctionAndModuleWithSameNameAndDifferentCommonRoot.ts/symbol
+baseline: conformance/FunctionAndModuleWithSameNameAndDifferentCommonRoot.symbols
+reference: 005c206f9125de7d685d23def2c7a573e2414c93d977a084227d58103ec6c15a
+actual: 005c206f9125de7d685d23def2c7a573e2414c93d977a084227d58103ec6c15a
+
+PASS: TestLocal/FunctionDeclaration6_es6.ts/symbol
+baseline: conformance/FunctionDeclaration6_es6.symbols
+reference: 63543073c4b06af2fb68a9d2bbe2e5124a33cb38329b92ff1f89e57405081327
+actual: 63543073c4b06af2fb68a9d2bbe2e5124a33cb38329b92ff1f89e57405081327
+
+PASS: TestLocal/MemberFunctionDeclaration2_es6.ts/symbol
+baseline: conformance/MemberFunctionDeclaration2_es6.symbols
+reference: 5eaaf3f4499cf7a0eda1760a7fb00f094aefc03b17813cc8f9c3c5c75cb650c0
+actual: 5eaaf3f4499cf7a0eda1760a7fb00f094aefc03b17813cc8f9c3c5c75cb650c0
+
+PASS: TestLocal/MemberFunctionDeclaration5_es6.ts/symbol
+baseline: conformance/MemberFunctionDeclaration5_es6.symbols
+reference: 58a22e5a731173d1942f30bc2bfdd2023b2c3e82811052b8c548efee803c2a6f
+actual: 58a22e5a731173d1942f30bc2bfdd2023b2c3e82811052b8c548efee803c2a6f
+
+PASS: TestLocal/ModuleWithExportedAndNonExportedVariables.ts/symbol
+baseline: conformance/ModuleWithExportedAndNonExportedVariables.symbols
+reference: 271d11bc0aa45c15cfc40924ceb342ec251c654d240de8f30166d439f7a85150
+actual: 271d11bc0aa45c15cfc40924ceb342ec251c654d240de8f30166d439f7a85150
+
+PASS: TestLocal/Protected1.ts/symbol
+baseline: conformance/Protected1.symbols
+reference: ba57a3e50d94c439b6abb93963759098262cc8e6511d0e4bf644c115f3f66b77
+actual: ba57a3e50d94c439b6abb93963759098262cc8e6511d0e4bf644c115f3f66b77
+
+PASS: TestLocal/Protected5.ts/symbol
+baseline: conformance/Protected5.symbols
+reference: 5d055f4ecbfe30ef7641ce13961fda85d20070fbb1245e3b1f0df8808c74c874
+actual: 5d055f4ecbfe30ef7641ce13961fda85d20070fbb1245e3b1f0df8808c74c874
+
+FAIL: TestLocal/TypeGuardWithEnumUnion.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/expressions/typeGuards/TypeGuardWithEnumUnion.ts:
+        runtime error: slice bounds out of range [10:3]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/VariableDeclaration3_es6.ts/symbol
+baseline: conformance/VariableDeclaration3_es6.symbols
+reference: b8eabfd40b9db39d1c4dd97537efbb1a2b81c7a6ccd037102929a290ff64ac6d
+actual: b8eabfd40b9db39d1c4dd97537efbb1a2b81c7a6ccd037102929a290ff64ac6d
+
+PASS: TestLocal/arrayLiterals3.ts/symbol
+baseline: conformance/arrayLiterals3.symbols
+reference: 70c82df77678dd11fc433d7495bb450f9234c242adcabf0068de42735ae35dd2
+actual: 70c82df77678dd11fc433d7495bb450f9234c242adcabf0068de42735ae35dd2
+
+FAIL: TestLocal/arrowFunctionContexts.ts_alwaysstrict=true/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/arrowFunctionContexts(alwaysstrict=true).symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/arrowFunctionContexts(alwaysstrict=true).symbols
+reference: 8f51ac4b224e0135fbf5425f4eabd726bb40367cead24f5473ce2440876d6d1d
+actual: b187fe2505d85cc7664a6afa633c0be878d9f94c5b407d05bb4adaf58e92b63a
+--- expected/conformance/arrowFunctionContexts(alwaysstrict=true).symbols
++++ actual/conformance/arrowFunctionContexts(alwaysstrict=true).symbols
+@@ -164,30 +164,30 @@
+ // <Identifier>(ParamList) => { ... } is a generic arrow function
+ var generic1 = <T>(n: T) => [n];
+ >generic1 : Symbol(generic1, Decl(arrowFunctionContexts.ts, 83, 3), Decl(arrowFunctionContexts.ts, 84, 3))
++>n : Symbol(n, Decl(arrowFunctionContexts.ts, 83, 19))
+ >T : Symbol(T, Decl(arrowFunctionContexts.ts, 83, 16))
+ >n : Symbol(n, Decl(arrowFunctionContexts.ts, 83, 19))
+ >T : Symbol(T, Decl(arrowFunctionContexts.ts, 83, 16))
+->n : Symbol(n, Decl(arrowFunctionContexts.ts, 83, 19))
+ 
+ var generic1: { <T>(n: T): T[] }; // Incorrect error, Bug 829597
+ >generic1 : Symbol(generic1, Decl(arrowFunctionContexts.ts, 83, 3), Decl(arrowFunctionContexts.ts, 84, 3))
+ >T : Symbol(T, Decl(arrowFunctionContexts.ts, 84, 17))
++>T : Symbol(T, Decl(arrowFunctionContexts.ts, 84, 17))
+ >n : Symbol(n, Decl(arrowFunctionContexts.ts, 84, 20))
+ >T : Symbol(T, Decl(arrowFunctionContexts.ts, 84, 17))
+->T : Symbol(T, Decl(arrowFunctionContexts.ts, 84, 17))
+ 
+ var generic2 = <T>(n: T) => { return [n]; };
+ >generic2 : Symbol(generic2, Decl(arrowFunctionContexts.ts, 85, 3), Decl(arrowFunctionContexts.ts, 86, 3))
++>n : Symbol(n, Decl(arrowFunctionContexts.ts, 85, 19))
+ >T : Symbol(T, Decl(arrowFunctionContexts.ts, 85, 16))
+ >n : Symbol(n, Decl(arrowFunctionContexts.ts, 85, 19))
+ >T : Symbol(T, Decl(arrowFunctionContexts.ts, 85, 16))
+->n : Symbol(n, Decl(arrowFunctionContexts.ts, 85, 19))
+ 
+ var generic2: { <T>(n: T): T[] };
+ >generic2 : Symbol(generic2, Decl(arrowFunctionContexts.ts, 85, 3), Decl(arrowFunctionContexts.ts, 86, 3))
+ >T : Symbol(T, Decl(arrowFunctionContexts.ts, 86, 17))
++>T : Symbol(T, Decl(arrowFunctionContexts.ts, 86, 17))
+ >n : Symbol(n, Decl(arrowFunctionContexts.ts, 86, 20))
+->T : Symbol(T, Decl(arrowFunctionContexts.ts, 86, 17))
+ >T : Symbol(T, Decl(arrowFunctionContexts.ts, 86, 17))
+ 
+ // <Identifier> ((ParamList) => { ... } ) is a type assertion to an arrow function
+
+PASS: TestLocal/asiPreventsParsingAsInterface01.ts/symbol
+baseline: conformance/asiPreventsParsingAsInterface01.symbols
+reference: 2f06797ee7d6e2eeec0b8bdb553aa109f0df7dae66381d5abeef4ada78cba7a8
+actual: 2f06797ee7d6e2eeec0b8bdb553aa109f0df7dae66381d5abeef4ada78cba7a8
+
+PASS: TestLocal/assignParameterPropertyToPropertyDeclarationESNext.ts/symbol
+baseline: conformance/assignParameterPropertyToPropertyDeclarationESNext.symbols
+reference: 202f509721e3a2e2be02398d567cf01708235c808b5abf61d626814589873082
+actual: 202f509721e3a2e2be02398d567cf01708235c808b5abf61d626814589873082
+
+PASS: TestLocal/assignmentCompatWithCallSignaturesWithOptionalParameters.ts/symbol
+baseline: conformance/assignmentCompatWithCallSignaturesWithOptionalParameters.symbols
+reference: 57290660fa4043bea24c27c05ca9ce50e1e280849fdd864a2abad7b2b9299bae
+actual: 57290660fa4043bea24c27c05ca9ce50e1e280849fdd864a2abad7b2b9299bae
+
+FAIL: TestLocal/assignmentCompatWithGenericCallSignatures3.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/assignmentCompatWithGenericCallSignatures3.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/assignmentCompatWithGenericCallSignatures3.symbols
+reference: 8262a43c4095c98555102aa1591a38cac452926d16d3e4b3945e02f47d361643
+actual: a6e47b4d04a760dacdada79c5ff41b81faa56d8f8a31af7c15ae86049774820d
+--- expected/conformance/assignmentCompatWithGenericCallSignatures3.symbols
++++ actual/conformance/assignmentCompatWithGenericCallSignatures3.symbols
+@@ -10,43 +10,43 @@
+ 
+     <U>(f: (x: T) => (y: S) => U): U
+ >U : Symbol(U, Decl(assignmentCompatWithGenericCallSignatures3.ts, 3, 5))
++>U : Symbol(U, Decl(assignmentCompatWithGenericCallSignatures3.ts, 3, 5))
+ >f : Symbol(f, Decl(assignmentCompatWithGenericCallSignatures3.ts, 3, 8))
++>U : Symbol(U, Decl(assignmentCompatWithGenericCallSignatures3.ts, 3, 5))
++>y : Symbol(y, Decl(assignmentCompatWithGenericCallSignatures3.ts, 3, 22))
++>S : Symbol(S, Decl(assignmentCompatWithGenericCallSignatures3.ts, 2, 14))
+ >x : Symbol(x, Decl(assignmentCompatWithGenericCallSignatures3.ts, 3, 12))
+ >T : Symbol(T, Decl(assignmentCompatWithGenericCallSignatures3.ts, 2, 12))
+->y : Symbol(y, Decl(assignmentCompatWithGenericCallSignatures3.ts, 3, 22))
+->S : Symbol(S, Decl(assignmentCompatWithGenericCallSignatures3.ts, 2, 14))
+->U : Symbol(U, Decl(assignmentCompatWithGenericCallSignatures3.ts, 3, 5))
+->U : Symbol(U, Decl(assignmentCompatWithGenericCallSignatures3.ts, 3, 5))
+ }
+ 
+ var g: <T>(x: T) => <S>(y: S) => I<T, S>
+ >g : Symbol(g, Decl(assignmentCompatWithGenericCallSignatures3.ts, 6, 3))
++>I : Symbol(I, Decl(assignmentCompatWithGenericCallSignatures3.ts, 0, 0))
++>T : Symbol(T, Decl(assignmentCompatWithGenericCallSignatures3.ts, 6, 8))
++>S : Symbol(S, Decl(assignmentCompatWithGenericCallSignatures3.ts, 6, 21))
++>S : Symbol(S, Decl(assignmentCompatWithGenericCallSignatures3.ts, 6, 21))
++>y : Symbol(y, Decl(assignmentCompatWithGenericCallSignatures3.ts, 6, 24))
++>S : Symbol(S, Decl(assignmentCompatWithGenericCallSignatures3.ts, 6, 21))
+ >T : Symbol(T, Decl(assignmentCompatWithGenericCallSignatures3.ts, 6, 8))
+ >x : Symbol(x, Decl(assignmentCompatWithGenericCallSignatures3.ts, 6, 11))
+ >T : Symbol(T, Decl(assignmentCompatWithGenericCallSignatures3.ts, 6, 8))
+->S : Symbol(S, Decl(assignmentCompatWithGenericCallSignatures3.ts, 6, 21))
+->y : Symbol(y, Decl(assignmentCompatWithGenericCallSignatures3.ts, 6, 24))
+->S : Symbol(S, Decl(assignmentCompatWithGenericCallSignatures3.ts, 6, 21))
+->I : Symbol(I, Decl(assignmentCompatWithGenericCallSignatures3.ts, 0, 0))
+->T : Symbol(T, Decl(assignmentCompatWithGenericCallSignatures3.ts, 6, 8))
+->S : Symbol(S, Decl(assignmentCompatWithGenericCallSignatures3.ts, 6, 21))
+ 
+ var h: <T>(x: T) => <S>(y: S) => { <U>(f: (x: T) => (y: S) => U): U }
+ >h : Symbol(h, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 3))
+->T : Symbol(T, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 8))
+->x : Symbol(x, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 11))
++>U : Symbol(U, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 36))
++>U : Symbol(U, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 36))
++>f : Symbol(f, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 39))
++>U : Symbol(U, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 36))
++>y : Symbol(y, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 53))
++>S : Symbol(S, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 21))
++>x : Symbol(x, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 43))
+ >T : Symbol(T, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 8))
+ >S : Symbol(S, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 21))
+ >y : Symbol(y, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 24))
+ >S : Symbol(S, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 21))
+->U : Symbol(U, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 36))
+->f : Symbol(f, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 39))
+->x : Symbol(x, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 43))
+ >T : Symbol(T, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 8))
+->y : Symbol(y, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 53))
+->S : Symbol(S, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 21))
+->U : Symbol(U, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 36))
+->U : Symbol(U, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 36))
++>x : Symbol(x, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 11))
++>T : Symbol(T, Decl(assignmentCompatWithGenericCallSignatures3.ts, 7, 8))
+ 
+ g = h // ok
+ >g : Symbol(g, Decl(assignmentCompatWithGenericCallSignatures3.ts, 6, 3))
+
+PASS: TestLocal/assignmentCompatWithObjectMembers5.ts/symbol
+baseline: conformance/assignmentCompatWithObjectMembers5.symbols
+reference: 0a8baa18fe9ca19b97028421451ef65968b107df77bec0dfd360dd54c6ae7d2b
+actual: 0a8baa18fe9ca19b97028421451ef65968b107df77bec0dfd360dd54c6ae7d2b
+
+PASS: TestLocal/assignmentCompatWithObjectMembersOptionality.ts/symbol
+baseline: conformance/assignmentCompatWithObjectMembersOptionality.symbols
+reference: ab9aecd98ad366c0e8d543348c65261d3956427351ffa8017c46bc5d5b473a37
+actual: ab9aecd98ad366c0e8d543348c65261d3956427351ffa8017c46bc5d5b473a37
+
+FAIL: TestLocal/asyncArrowFunction6_es5.ts_target=es2015/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/asyncArrowFunction6_es5(target=es2015).symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/asyncArrowFunction6_es5(target=es2015).symbols
+reference: dc4180090abc71ceb57fe64f5c251e3e37d870a1b39847658bdd7b9aa8b0316b
+actual: 20ee074e5bab1a53b918eff6e3b539f1a8383684c2259ecf28537b7807fb3c0f
+--- expected/conformance/asyncArrowFunction6_es5(target=es2015).symbols
++++ actual/conformance/asyncArrowFunction6_es5(target=es2015).symbols
+@@ -3,6 +3,6 @@
+ === asyncArrowFunction6_es5.ts ===
+ var foo = async (a = await): Promise<void> => {
+ >foo : Symbol(foo, Decl(asyncArrowFunction6_es5.ts, 0, 3))
++>Promise : Symbol(Promise, Decl(lib.es5.d.ts, --, --), Decl(lib.es2015.promise.d.ts, --, --))
+ >a : Symbol(a, Decl(asyncArrowFunction6_es5.ts, 0, 17))
+->Promise : Symbol(Promise, Decl(lib.es5.d.ts, --, --), Decl(lib.es2015.promise.d.ts, --, --))
+ }
+
+FAIL: TestLocal/asyncArrowFunction6_es6.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/asyncArrowFunction6_es6.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/asyncArrowFunction6_es6.symbols
+reference: adeae1e0d11d6d67f182f0fa7fc2fefaf2df2b7bf34249ab1690467f0c05386c
+actual: b9e05ca90c5aa5c2c924b003995f330b048977c9e12e01417300c9c4fe92200e
+--- expected/conformance/asyncArrowFunction6_es6.symbols
++++ actual/conformance/asyncArrowFunction6_es6.symbols
+@@ -3,6 +3,6 @@
+ === asyncArrowFunction6_es6.ts ===
+ var foo = async (a = await): Promise<void> => {
+ >foo : Symbol(foo, Decl(asyncArrowFunction6_es6.ts, 0, 3))
++>Promise : Symbol(Promise, Decl(lib.es5.d.ts, --, --), Decl(lib.es2015.iterable.d.ts, --, --), Decl(lib.es2015.promise.d.ts, --, --), Decl(lib.es2015.symbol.wellknown.d.ts, --, --))
+ >a : Symbol(a, Decl(asyncArrowFunction6_es6.ts, 0, 17))
+->Promise : Symbol(Promise, Decl(lib.es5.d.ts, --, --), Decl(lib.es2015.iterable.d.ts, --, --), Decl(lib.es2015.promise.d.ts, --, --), Decl(lib.es2015.symbol.wellknown.d.ts, --, --))
+ }
+
+PASS: TestLocal/asyncArrowFunction9_es6.ts/symbol
+baseline: conformance/asyncArrowFunction9_es6.symbols
+reference: 3e3c09572377240a70e1dbeefc8028da4af177442a9e29dc87e3896899ca9036
+actual: 3e3c09572377240a70e1dbeefc8028da4af177442a9e29dc87e3896899ca9036
+
+PASS: TestLocal/asyncAwaitNestedClasses_es5.ts_target=es2015/symbol
+baseline: conformance/asyncAwaitNestedClasses_es5(target=es2015).symbols
+reference: 7205122169047ddb854217d096d43ea057005551fb261f3ed6e345d29c451c97
+actual: 7205122169047ddb854217d096d43ea057005551fb261f3ed6e345d29c451c97
+
+PASS: TestLocal/asyncFunctionDeclaration2_es5.ts_target=es2015/symbol
+baseline: conformance/asyncFunctionDeclaration2_es5(target=es2015).symbols
+reference: 0f263694428b8b1bc9063216a70744169bb467917a1c04567b74f9b97c8f4839
+actual: 0f263694428b8b1bc9063216a70744169bb467917a1c04567b74f9b97c8f4839
+
+FAIL: TestLocal/asyncFunctionDeclaration6_es5.ts_target=es2015/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/asyncFunctionDeclaration6_es5(target=es2015).symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/asyncFunctionDeclaration6_es5(target=es2015).symbols
+reference: e92e7b8dd4a44ae39b9fe1c5736ba3189c9441536756a823ac6c84a926b7081f
+actual: b06c4fa477e5d2eb3a8451e38e67daac80747cd64fd35cee6971de59b8259b22
+--- expected/conformance/asyncFunctionDeclaration6_es5(target=es2015).symbols
++++ actual/conformance/asyncFunctionDeclaration6_es5(target=es2015).symbols
+@@ -3,6 +3,6 @@
+ === asyncFunctionDeclaration6_es5.ts ===
+ async function foo(a = await): Promise<void> {
+ >foo : Symbol(foo, Decl(asyncFunctionDeclaration6_es5.ts, 0, 0))
++>Promise : Symbol(Promise, Decl(lib.es5.d.ts, --, --), Decl(lib.es2015.promise.d.ts, --, --))
+ >a : Symbol(a, Decl(asyncFunctionDeclaration6_es5.ts, 0, 19))
+->Promise : Symbol(Promise, Decl(lib.es5.d.ts, --, --), Decl(lib.es2015.promise.d.ts, --, --))
+ }
+
+FAIL: TestLocal/asyncImportedPromise_es5.ts_target=es2015/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/asyncImportedPromise_es5(target=es2015).symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/asyncImportedPromise_es5(target=es2015).symbols
+reference: e1459c7f3bf756da7afcd5f6ee501f3aca8c5ccc0d4e47abcfaa8889618bb695
+actual: 48fa8285951b5d0c4666fa5ed4ffce89986ecaaf5a34c024f53e201e8f855261
+--- expected/conformance/asyncImportedPromise_es5(target=es2015).symbols
++++ actual/conformance/asyncImportedPromise_es5(target=es2015).symbols
+@@ -16,7 +16,7 @@
+ 
+     async example<T>(): Task<T> { return; }
+ >example : Symbol(Test.example, Decl(test.ts, 1, 12))
+->T : Symbol(T, Decl(test.ts, 2, 18))
+ >Task : Symbol(Task, Decl(test.ts, 0, 8))
+ >T : Symbol(T, Decl(test.ts, 2, 18))
++>T : Symbol(T, Decl(test.ts, 2, 18))
+ }
+
+FAIL: TestLocal/asyncWithVarShadowing_es6.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/async/es6/asyncWithVarShadowing_es6.ts:
+        runtime error: slice bounds out of range [5:4]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/augmentedTypeAssignmentCompatIndexSignature.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/augmentedTypeAssignmentCompatIndexSignature.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/augmentedTypeAssignmentCompatIndexSignature.symbols
+reference: a8730fe32e5ee3e6af9ad2e8962767a8a4ad2a13691bc150780a2e157c8612f0
+actual: 088e99d495746cfb748a3b3f2628039552e204f4946b7ffdf18f0c464a7a7c53
+--- expected/conformance/augmentedTypeAssignmentCompatIndexSignature.symbols
++++ actual/conformance/augmentedTypeAssignmentCompatIndexSignature.symbols
+@@ -13,16 +13,16 @@
+ >Object : Symbol(Object, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(augmentedTypeAssignmentCompatIndexSignature.ts, 1, 19))
+ 
+     [n: number]: Foo;
++>Foo : Symbol(Foo, Decl(augmentedTypeAssignmentCompatIndexSignature.ts, 0, 0))
+ >n : Symbol(n, Decl(augmentedTypeAssignmentCompatIndexSignature.ts, 4, 5))
+->Foo : Symbol(Foo, Decl(augmentedTypeAssignmentCompatIndexSignature.ts, 0, 0))
+ }
+ 
+ interface Function {
+ >Function : Symbol(Function, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.es2015.core.d.ts, --, --), Decl(lib.es2015.symbol.wellknown.d.ts, --, --), Decl(augmentedTypeAssignmentCompatIndexSignature.ts, 5, 1))
+ 
+     [n: number]: Bar;
++>Bar : Symbol(Bar, Decl(augmentedTypeAssignmentCompatIndexSignature.ts, 0, 19))
+ >n : Symbol(n, Decl(augmentedTypeAssignmentCompatIndexSignature.ts, 8, 5))
+->Bar : Symbol(Bar, Decl(augmentedTypeAssignmentCompatIndexSignature.ts, 0, 19))
+ }
+ 
+ var o = {};
+@@ -35,8 +35,8 @@
+ >v1 : Symbol(v1, Decl(augmentedTypeAssignmentCompatIndexSignature.ts, 14, 3))
+ 
+     [n: number]: Foo
++>Foo : Symbol(Foo, Decl(augmentedTypeAssignmentCompatIndexSignature.ts, 0, 0))
+ >n : Symbol(n, Decl(augmentedTypeAssignmentCompatIndexSignature.ts, 15, 5))
+->Foo : Symbol(Foo, Decl(augmentedTypeAssignmentCompatIndexSignature.ts, 0, 0))
+ 
+ } = o; // Should be allowed
+ >o : Symbol(o, Decl(augmentedTypeAssignmentCompatIndexSignature.ts, 11, 3))
+@@ -45,8 +45,8 @@
+ >v2 : Symbol(v2, Decl(augmentedTypeAssignmentCompatIndexSignature.ts, 18, 3))
+ 
+     [n: number]: Bar
++>Bar : Symbol(Bar, Decl(augmentedTypeAssignmentCompatIndexSignature.ts, 0, 19))
+ >n : Symbol(n, Decl(augmentedTypeAssignmentCompatIndexSignature.ts, 19, 5))
+->Bar : Symbol(Bar, Decl(augmentedTypeAssignmentCompatIndexSignature.ts, 0, 19))
+ 
+ } = f; // Should be allowed
+ >f : Symbol(f, Decl(augmentedTypeAssignmentCompatIndexSignature.ts, 12, 3))
+
+PASS: TestLocal/autoAccessor2.ts_target=es2022/symbol
+baseline: conformance/autoAccessor2(target=es2022).symbols
+reference: bc5c614b9893c39120883eb2895f3d349582a86cc528011d876bbf7cf13696d9
+actual: bc5c614b9893c39120883eb2895f3d349582a86cc528011d876bbf7cf13696d9
+
+PASS: TestLocal/autoAccessor4.ts_target=es2015/symbol
+baseline: conformance/autoAccessor4(target=es2015).symbols
+reference: 395d38c0b57a4b95e40c11b059bef6606507ab2d8fca7009099509c90ce3c66c
+actual: 395d38c0b57a4b95e40c11b059bef6606507ab2d8fca7009099509c90ce3c66c
+
+PASS: TestLocal/autoAccessor4.ts_target=esnext/symbol
+baseline: conformance/autoAccessor4(target=esnext).symbols
+reference: 395d38c0b57a4b95e40c11b059bef6606507ab2d8fca7009099509c90ce3c66c
+actual: 395d38c0b57a4b95e40c11b059bef6606507ab2d8fca7009099509c90ce3c66c
+
+PASS: TestLocal/autoAccessor7.ts_target=esnext,usedefineforclassfields=false/symbol
+baseline: conformance/autoAccessor7(target=esnext,usedefineforclassfields=false).symbols
+reference: 5b280db622f152f787e7f4402c6d2d6d2b8d37ecd59a0a0cf96fc01fbf5cc288
+actual: 5b280db622f152f787e7f4402c6d2d6d2b8d37ecd59a0a0cf96fc01fbf5cc288
+
+PASS: TestLocal/binderUninitializedModuleExportsAssignment.ts/symbol
+baseline: conformance/binderUninitializedModuleExportsAssignment.symbols
+reference: 2400019c1826712152e536ed313626721022f8cc85998d886bbeb9d6a5b5b78f
+actual: 2400019c1826712152e536ed313626721022f8cc85998d886bbeb9d6a5b5b78f
+
+PASS: TestLocal/bundlerImportESM.ts_module=preserve/symbol
+baseline: conformance/bundlerImportESM(module=preserve).symbols
+reference: 38bcc2fb18b820e6de0a94587539177a22eaae04d386dac3e39f9fff69302b8c
+actual: 38bcc2fb18b820e6de0a94587539177a22eaae04d386dac3e39f9fff69302b8c
+
+PASS: TestLocal/bundlerSyntaxRestrictions.ts_module=preserve/symbol
+baseline: conformance/bundlerSyntaxRestrictions(module=preserve).symbols
+reference: 5bce59f6563e7bc89a3a5940a62944eaa595cffc9bb2d0228ed37da932532ab3
+actual: 5bce59f6563e7bc89a3a5940a62944eaa595cffc9bb2d0228ed37da932532ab3
+
+PASS: TestLocal/callOverload.ts/symbol
+baseline: conformance/callOverload.symbols
+reference: 3e756fee5ed633b697268e44b05ab3f5b1a7cf9489bff8811ae50a83c978a6ce
+actual: 3e756fee5ed633b697268e44b05ab3f5b1a7cf9489bff8811ae50a83c978a6ce
+
+PASS: TestLocal/checkJsdocSatisfiesTag7.ts/symbol
+baseline: conformance/checkJsdocSatisfiesTag7.symbols
+reference: d3aae64773400d02a10f9d205d6f639c33ad00465c3edab54fd06ae3b2fe1be6
+actual: d3aae64773400d02a10f9d205d6f639c33ad00465c3edab54fd06ae3b2fe1be6
+
+FAIL: TestLocal/checkJsdocTypeTagOnObjectProperty1.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/jsdoc/checkJsdocTypeTagOnObjectProperty1.ts:
+        runtime error: slice bounds out of range [10:9]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/checkJsxChildrenProperty8.tsx/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/jsx/checkJsxChildrenProperty8.tsx:
+        runtime error: slice bounds out of range [18:17]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/checkJsxIntersectionElementPropsType.tsx/symbol
+baseline: conformance/checkJsxIntersectionElementPropsType.symbols
+reference: 7a5a547bc75091606bd7c0689c8e8dd9a912c5ded808634d6f42457a74e09356
+actual: 7a5a547bc75091606bd7c0689c8e8dd9a912c5ded808634d6f42457a74e09356
+
+PASS: TestLocal/checkOtherObjectAssignProperty.ts/symbol
+baseline: conformance/checkOtherObjectAssignProperty.symbols
+reference: 55b3f9b16379c47dceebd33a05ea663bcfc4c545985ec11d344deb1d6fbaf94e
+actual: 55b3f9b16379c47dceebd33a05ea663bcfc4c545985ec11d344deb1d6fbaf94e
+
+PASS: TestLocal/classAbstractAsIdentifier.ts/symbol
+baseline: conformance/classAbstractAsIdentifier.symbols
+reference: ee71d0be432d4bf74d398e81e2e87ff3a8c0a538293fe1360f83cbcf4172d667
+actual: ee71d0be432d4bf74d398e81e2e87ff3a8c0a538293fe1360f83cbcf4172d667
+
+PASS: TestLocal/classAppearsToHaveMembersOfObject.ts/symbol
+baseline: conformance/classAppearsToHaveMembersOfObject.symbols
+reference: 11e09763ba81ae0fdde73706e41bd913b5b6b5269ad003d429732fe2014f2a6f
+actual: 11e09763ba81ae0fdde73706e41bd913b5b6b5269ad003d429732fe2014f2a6f
+
+FAIL: TestLocal/classDoesNotDependOnBaseTypes.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/classDoesNotDependOnBaseTypes.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/classDoesNotDependOnBaseTypes.symbols
+reference: 29072212a2261e1fc084d02a59844176b0283587fe611aa61dd7962ce19c7513
+actual: 322718323f89e8d3f8ad74c68f40d31e7ef2ea7dc28f0ef31e15e5a9567adbda
+--- expected/conformance/classDoesNotDependOnBaseTypes.symbols
++++ actual/conformance/classDoesNotDependOnBaseTypes.symbols
+@@ -9,8 +9,8 @@
+ >StringTreeCollectionBase : Symbol(StringTreeCollectionBase, Decl(classDoesNotDependOnBaseTypes.ts, 0, 48))
+ 
+     [n: number]: StringTree;
++>StringTree : Symbol(StringTree, Decl(classDoesNotDependOnBaseTypes.ts, 0, 0))
+ >n : Symbol(n, Decl(classDoesNotDependOnBaseTypes.ts, 2, 5))
+->StringTree : Symbol(StringTree, Decl(classDoesNotDependOnBaseTypes.ts, 0, 0))
+ }
+ 
+ class StringTreeCollection extends StringTreeCollectionBase { }
+
+PASS: TestLocal/classExpressionES63.ts/symbol
+baseline: conformance/classExpressionES63.symbols
+reference: 0be7f2a77b38f329f685cecf34ebfb2e6511c915a3cc4606386f9b28842a3473
+actual: 0be7f2a77b38f329f685cecf34ebfb2e6511c915a3cc4606386f9b28842a3473
+
+PASS: TestLocal/classExtendingNull.ts/symbol
+baseline: conformance/classExtendingNull.symbols
+reference: 6aad8f80dd3e66f97614a98e5257a205212187e1e7c277dcf45a7ba95d787e43
+actual: 6aad8f80dd3e66f97614a98e5257a205212187e1e7c277dcf45a7ba95d787e43
+
+PASS: TestLocal/classInsideBlock.ts/symbol
+baseline: conformance/classInsideBlock.symbols
+reference: e8949fb998602e66d9676ffc670a6d5ead4004b64ebe30d6ea839cae8ef75838
+actual: e8949fb998602e66d9676ffc670a6d5ead4004b64ebe30d6ea839cae8ef75838
+
+PASS: TestLocal/classStaticBlock15.ts_target=esnext/symbol
+baseline: conformance/classStaticBlock15(target=esnext).symbols
+reference: 7831b0d2d84cf2d3ee9743763a1987bcfdfa8b1a37cc31a5f1dfc9c49e4bf2aa
+actual: 7831b0d2d84cf2d3ee9743763a1987bcfdfa8b1a37cc31a5f1dfc9c49e4bf2aa
+
+FAIL: TestLocal/classStaticBlock22.ts_target=es2022/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/classes/classStaticBlock/classStaticBlock22.ts:
+        runtime error: slice bounds out of range [50:49]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/classStaticBlock25.ts_target=es2022/symbol
+baseline: conformance/classStaticBlock25(target=es2022).symbols
+reference: 906b35a6c1446e54ca75af31812d6b6207ac18eb04e8f972c6bd46f6630ea6ed
+actual: 906b35a6c1446e54ca75af31812d6b6207ac18eb04e8f972c6bd46f6630ea6ed
+
+PASS: TestLocal/classStaticBlock26.ts_target=esnext/symbol
+baseline: conformance/classStaticBlock26(target=esnext).symbols
+reference: a717ff97b7e7c69063eaec5d82452b657241e8fb848a151854fbc6e0649622db
+actual: a717ff97b7e7c69063eaec5d82452b657241e8fb848a151854fbc6e0649622db
+
+PASS: TestLocal/classWithNoConstructorOrBaseClass.ts/symbol
+baseline: conformance/classWithNoConstructorOrBaseClass.symbols
+reference: 2c058326e60109ce1dda959ae865867a74df05084817164c316bea4cdc503038
+actual: 2c058326e60109ce1dda959ae865867a74df05084817164c316bea4cdc503038
+
+FAIL: TestLocal/commonJSImportExportedClassExpression.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/salsa/commonJSImportExportedClassExpression.ts:
+        runtime error: slice bounds out of range [4:3]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/commonJsImportBindingElementNarrowType.ts/symbol
+baseline: conformance/commonJsImportBindingElementNarrowType.symbols
+reference: 98503ec81855804071fd6d77e40e16f37150c902c7434a4b3358e0b23bf5f5a0
+actual: 98503ec81855804071fd6d77e40e16f37150c902c7434a4b3358e0b23bf5f5a0
+
+FAIL: TestLocal/comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.symbols
+reference: f5aa6abc97983968e08b05a19935ffb2c00080ce35fe158154504df4d3b02861
+actual: 4ba40485b64031ccf9a621ce29e6ea3017ce0bb3cde082fa7b04f57bcb3746af
+--- expected/conformance/comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.symbols
++++ actual/conformance/comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.symbols
+@@ -19,9 +19,9 @@
+ var a1: { new <T>(x: T): T };
+ >a1 : Symbol(a1, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 8, 3))
+ >T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 8, 15))
++>T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 8, 15))
+ >x : Symbol(x, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 8, 18))
+ >T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 8, 15))
+->T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 8, 15))
+ 
+ var b1: { new (x: string): string };
+ >b1 : Symbol(b1, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 9, 3))
+@@ -29,10 +29,10 @@
+ 
+ var a2: { new <T>(x: T): T };
+ >a2 : Symbol(a2, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 11, 3))
++>T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 11, 15))
+ >T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 11, 15))
+ >x : Symbol(x, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 11, 18))
+ >T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 11, 15))
+->T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 11, 15))
+ 
+ var b2: { new (x: string, y: number): string };
+ >b2 : Symbol(b2, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 12, 3))
+@@ -41,13 +41,13 @@
+ 
+ var a3: { new <T, U>(x: T, y: U): T };
+ >a3 : Symbol(a3, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 14, 3))
++>T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 14, 15))
+ >T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 14, 15))
+ >U : Symbol(U, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 14, 17))
+ >x : Symbol(x, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 14, 21))
+ >T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 14, 15))
+ >y : Symbol(y, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 14, 26))
+ >U : Symbol(U, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 14, 17))
+->T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 14, 15))
+ 
+ var b3: { new (x: string, y: number): string };
+ >b3 : Symbol(b3, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 15, 3))
+@@ -56,10 +56,10 @@
+ 
+ var a4: { new <T>(x?: T): T };
+ >a4 : Symbol(a4, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 17, 3))
++>T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 17, 15))
+ >T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 17, 15))
+ >x : Symbol(x, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 17, 18))
+ >T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 17, 15))
+->T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 17, 15))
+ 
+ var b4: { new (x?: string): string };
+ >b4 : Symbol(b4, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 18, 3))
+@@ -67,10 +67,10 @@
+ 
+ var a5: { new <T>(...x: T[]): T };
+ >a5 : Symbol(a5, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 20, 3))
++>T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 20, 15))
+ >T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 20, 15))
+ >x : Symbol(x, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 20, 18))
+ >T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 20, 15))
+->T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 20, 15))
+ 
+ var b5: { new (...x: string[]): string };
+ >b5 : Symbol(b5, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 21, 3))
+@@ -78,12 +78,12 @@
+ 
+ var a6: { new <T>(x: T, y: T): T };
+ >a6 : Symbol(a6, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 23, 3))
++>T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 23, 15))
+ >T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 23, 15))
+ >x : Symbol(x, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 23, 18))
+ >T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 23, 15))
+ >y : Symbol(y, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 23, 23))
+ >T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 23, 15))
+->T : Symbol(T, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 23, 15))
+ 
+ var b6: { new (x: string, y: number): {} };
+ >b6 : Symbol(b6, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 24, 3))
+@@ -93,11 +93,11 @@
+ //var a7: { new <T, U extends T>(x: T, y: U): T };
+ var b7: { new (x: Base, y: Derived): Base };
+ >b7 : Symbol(b7, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 27, 3))
++>Base : Symbol(Base, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 0, 0))
+ >x : Symbol(x, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 27, 15))
+ >Base : Symbol(Base, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 0, 0))
+ >y : Symbol(y, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 27, 23))
+ >Derived : Symbol(Derived, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 2, 1))
+->Base : Symbol(Base, Decl(comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts, 0, 0))
+ 
+ // operator <
+ var r1a1 = a1 < b1;
+
+PASS: TestLocal/computedPropertyNames26_ES5.ts_target=es2015/symbol
+baseline: conformance/computedPropertyNames26_ES5(target=es2015).symbols
+reference: 95c963f2b051fb65f864d058960ac8a674cad60bb69ced2ed01cc765cc0223bc
+actual: 95c963f2b051fb65f864d058960ac8a674cad60bb69ced2ed01cc765cc0223bc
+
+PASS: TestLocal/computedPropertyNames31_ES5.ts_target=es2015/symbol
+baseline: conformance/computedPropertyNames31_ES5(target=es2015).symbols
+reference: 3f2410f8986b5498f6451084ad6e36babf89e8dce896f1c3887013fb846065e2
+actual: 3f2410f8986b5498f6451084ad6e36babf89e8dce896f1c3887013fb846065e2
+
+PASS: TestLocal/computedPropertyNames33_ES6.ts/symbol
+baseline: conformance/computedPropertyNames33_ES6.symbols
+reference: 44cc063c8480a37dacc8670d481ed78eb1d051c5685cf87f83d08b164c186418
+actual: 44cc063c8480a37dacc8670d481ed78eb1d051c5685cf87f83d08b164c186418
+
+FAIL: TestLocal/computedPropertyNames44_ES5.ts_target=es2015/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/computedPropertyNames44_ES5(target=es2015).symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/computedPropertyNames44_ES5(target=es2015).symbols
+reference: d468c852f11fb3f5fecf268e6b715e6ae725ee534b36bd69ea25f194ad8505e0
+actual: 14109b6a10d23acbeb74df8ffe7d269493e79a342f17c83a29dd2c453827c9ea
+--- expected/conformance/computedPropertyNames44_ES5(target=es2015).symbols
++++ actual/conformance/computedPropertyNames44_ES5(target=es2015).symbols
+@@ -14,8 +14,8 @@
+ >C : Symbol(C, Decl(computedPropertyNames44_ES5.ts, 1, 19))
+ 
+     [s: string]: Foo2;
++>Foo2 : Symbol(Foo2, Decl(computedPropertyNames44_ES5.ts, 0, 15))
+ >s : Symbol(s, Decl(computedPropertyNames44_ES5.ts, 4, 5))
+->Foo2 : Symbol(Foo2, Decl(computedPropertyNames44_ES5.ts, 0, 15))
+ 
+     get ["get1"]() { return new Foo }
+ >["get1"] : Symbol(C["get1"], Decl(computedPropertyNames44_ES5.ts, 4, 22))
+
+PASS: TestLocal/computedPropertyNames6_ES5.ts_target=es2015/symbol
+baseline: conformance/computedPropertyNames6_ES5(target=es2015).symbols
+reference: f9c2d8b178446390ad7073f4dab090033d7e747e34a4b7780d47661bdb2ef2bd
+actual: f9c2d8b178446390ad7073f4dab090033d7e747e34a4b7780d47661bdb2ef2bd
+
+PASS: TestLocal/computedPropertyNames6_ES6.ts/symbol
+baseline: conformance/computedPropertyNames6_ES6.symbols
+reference: 53839545944ad9ecbd047b3620327b8875ac81b8f540f1a2c1288786c0fa3e28
+actual: 53839545944ad9ecbd047b3620327b8875ac81b8f540f1a2c1288786c0fa3e28
+
+FAIL: TestLocal/conditionalOperatorWithIdenticalBCT.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/conditionalOperatorWithIdenticalBCT.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/conditionalOperatorWithIdenticalBCT.symbols
+reference: e9b6ac84728602e20dca1b97db789354200b3e268ef69d42d1394caf67692070
+actual: 02aa2c275c88a7a4a6e5b67c2cd45cd1531b22892923995f1c375715af55596e
+--- expected/conformance/conditionalOperatorWithIdenticalBCT.symbols
++++ actual/conformance/conditionalOperatorWithIdenticalBCT.symbols
+@@ -68,14 +68,14 @@
+ >result4 : Symbol(result4, Decl(conditionalOperatorWithIdenticalBCT.ts, 22, 3))
+ >t : Symbol(t, Decl(conditionalOperatorWithIdenticalBCT.ts, 22, 14))
+ >A : Symbol(A, Decl(conditionalOperatorWithIdenticalBCT.ts, 1, 67))
+->m : Symbol(m, Decl(conditionalOperatorWithIdenticalBCT.ts, 22, 37))
+ >m.propertyX : Symbol(X.propertyX, Decl(conditionalOperatorWithIdenticalBCT.ts, 1, 9))
+ >m : Symbol(m, Decl(conditionalOperatorWithIdenticalBCT.ts, 22, 37))
+ >propertyX : Symbol(X.propertyX, Decl(conditionalOperatorWithIdenticalBCT.ts, 1, 9))
+->n : Symbol(n, Decl(conditionalOperatorWithIdenticalBCT.ts, 22, 58))
++>m : Symbol(m, Decl(conditionalOperatorWithIdenticalBCT.ts, 22, 37))
+ >n.propertyA : Symbol(A.propertyA, Decl(conditionalOperatorWithIdenticalBCT.ts, 2, 19))
+ >n : Symbol(n, Decl(conditionalOperatorWithIdenticalBCT.ts, 22, 58))
+ >propertyA : Symbol(A.propertyA, Decl(conditionalOperatorWithIdenticalBCT.ts, 2, 19))
++>n : Symbol(n, Decl(conditionalOperatorWithIdenticalBCT.ts, 22, 58))
+ 
+ //Cond ? Expr1 : Expr2,  Expr2 is supertype
+ //Be Not contextually typed
+@@ -115,14 +115,14 @@
+ >result8 : Symbol(result8, Decl(conditionalOperatorWithIdenticalBCT.ts, 37, 3))
+ >t : Symbol(t, Decl(conditionalOperatorWithIdenticalBCT.ts, 37, 14))
+ >A : Symbol(A, Decl(conditionalOperatorWithIdenticalBCT.ts, 1, 67))
+->m : Symbol(m, Decl(conditionalOperatorWithIdenticalBCT.ts, 37, 37))
+ >m.propertyA : Symbol(A.propertyA, Decl(conditionalOperatorWithIdenticalBCT.ts, 2, 19))
+ >m : Symbol(m, Decl(conditionalOperatorWithIdenticalBCT.ts, 37, 37))
+ >propertyA : Symbol(A.propertyA, Decl(conditionalOperatorWithIdenticalBCT.ts, 2, 19))
+->n : Symbol(n, Decl(conditionalOperatorWithIdenticalBCT.ts, 37, 58))
++>m : Symbol(m, Decl(conditionalOperatorWithIdenticalBCT.ts, 37, 37))
+ >n.propertyX : Symbol(X.propertyX, Decl(conditionalOperatorWithIdenticalBCT.ts, 1, 9))
+ >n : Symbol(n, Decl(conditionalOperatorWithIdenticalBCT.ts, 37, 58))
+ >propertyX : Symbol(X.propertyX, Decl(conditionalOperatorWithIdenticalBCT.ts, 1, 9))
++>n : Symbol(n, Decl(conditionalOperatorWithIdenticalBCT.ts, 37, 58))
+ 
+ //Result = Cond ? Expr1 : Expr2,  Result is supertype
+ //Contextually typed
+@@ -136,14 +136,14 @@
+ >result10 : Symbol(result10, Decl(conditionalOperatorWithIdenticalBCT.ts, 42, 3))
+ >t : Symbol(t, Decl(conditionalOperatorWithIdenticalBCT.ts, 42, 15))
+ >X : Symbol(X, Decl(conditionalOperatorWithIdenticalBCT.ts, 0, 0))
+->m : Symbol(m, Decl(conditionalOperatorWithIdenticalBCT.ts, 42, 38))
+ >m.propertyX1 : Symbol(X.propertyX1, Decl(conditionalOperatorWithIdenticalBCT.ts, 1, 25))
+ >m : Symbol(m, Decl(conditionalOperatorWithIdenticalBCT.ts, 42, 38))
+ >propertyX1 : Symbol(X.propertyX1, Decl(conditionalOperatorWithIdenticalBCT.ts, 1, 25))
+->n : Symbol(n, Decl(conditionalOperatorWithIdenticalBCT.ts, 42, 60))
++>m : Symbol(m, Decl(conditionalOperatorWithIdenticalBCT.ts, 42, 38))
+ >n.propertyX2 : Symbol(X.propertyX2, Decl(conditionalOperatorWithIdenticalBCT.ts, 1, 45))
+ >n : Symbol(n, Decl(conditionalOperatorWithIdenticalBCT.ts, 42, 60))
+ >propertyX2 : Symbol(X.propertyX2, Decl(conditionalOperatorWithIdenticalBCT.ts, 1, 45))
++>n : Symbol(n, Decl(conditionalOperatorWithIdenticalBCT.ts, 42, 60))
+ 
+ //Expr1 and Expr2 are literals
+ var result11: any = true ? 1 : 'string';
+
+FAIL: TestLocal/constructorParameterShadowsOuterScopes2.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/classes/propertyMemberDeclarations/constructorParameterShadowsOuterScopes2.ts:
+        runtime error: slice bounds out of range [23:22]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/constructorTagOnClassConstructor.ts/symbol
+baseline: conformance/constructorTagOnClassConstructor.symbols
+reference: 8944bef4ddc8c78d39bfe63d6866dabe313875f08b1173a135d6fa5e0ef43b7f
+actual: 8944bef4ddc8c78d39bfe63d6866dabe313875f08b1173a135d6fa5e0ef43b7f
+
+PASS: TestLocal/constructorTagOnObjectLiteralMethod.ts/symbol
+baseline: conformance/constructorTagOnObjectLiteralMethod.symbols
+reference: 8cce9626a5f09c7a0c333d370fbe59a1fb40792c81a1f1d87c505833e3b65fa1
+actual: 8cce9626a5f09c7a0c333d370fbe59a1fb40792c81a1f1d87c505833e3b65fa1
+
+PASS: TestLocal/contextuallyTypeCommaOperator01.ts/symbol
+baseline: conformance/contextuallyTypeCommaOperator01.symbols
+reference: 8a01cabbeff7591f53a83386e1d6ec9fe06722c47e7abd24dbae4e0b375735bc
+actual: 8a01cabbeff7591f53a83386e1d6ec9fe06722c47e7abd24dbae4e0b375735bc
+
+PASS: TestLocal/controlFlowAssignmentExpression.ts/symbol
+baseline: conformance/controlFlowAssignmentExpression.symbols
+reference: 41c3ddbd877f79258ba47d750bb9431ead4c3aec99793e2963f01e9b2557b714
+actual: 41c3ddbd877f79258ba47d750bb9431ead4c3aec99793e2963f01e9b2557b714
+
+PASS: TestLocal/controlFlowBindingPatternOrder.ts/symbol
+baseline: conformance/controlFlowBindingPatternOrder.symbols
+reference: f90b55c3eae33c0f4d644c321bcfd32d5ad49e5fee9a85bdbc53ed478a288cd0
+actual: f90b55c3eae33c0f4d644c321bcfd32d5ad49e5fee9a85bdbc53ed478a288cd0
+
+FAIL: TestLocal/controlFlowElementAccessNoCrash1.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/controlFlow/controlFlowElementAccessNoCrash1.ts:
+        runtime error: slice bounds out of range [27:20]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/controlFlowInstanceOfGuardPrimitives.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/controlFlow/controlFlowInstanceOfGuardPrimitives.ts:
+        runtime error: slice bounds out of range [7:1]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/controlFlowOptionalChain2.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/controlFlow/controlFlowOptionalChain2.ts:
+        runtime error: slice bounds out of range [17:10]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/controlFlowTypeofObject.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/controlFlow/controlFlowTypeofObject.ts:
+        runtime error: slice bounds out of range [8:3]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/covariantCallbacks.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/types/typeRelationships/assignmentCompatibility/covariantCallbacks.ts:
+        runtime error: slice bounds out of range [12:10]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/declarationFileForHtmlImport.ts_allowarbitraryextensions=false/symbol
+baseline: conformance/declarationFileForHtmlImport(allowarbitraryextensions=false).symbols
+reference: f5ee356e919d2e1e5503d6ae3d60dd2d10afc00a8b2aa87f8c3ac996d426f53d
+actual: f5ee356e919d2e1e5503d6ae3d60dd2d10afc00a8b2aa87f8c3ac996d426f53d
+
+PASS: TestLocal/declarationFileForTsJsImport.ts_module=nodenext/symbol
+baseline: conformance/declarationFileForTsJsImport(module=nodenext).symbols
+reference: 33f335adb09e41f95287f1323c9cb141b44cbe64849157bf5a95ad480769232a
+actual: 33f335adb09e41f95287f1323c9cb141b44cbe64849157bf5a95ad480769232a
+
+PASS: TestLocal/declarationFilesForNodeNativeModules.ts_allowarbitraryextensions=true,module=nodenext/symbol
+baseline: conformance/declarationFilesForNodeNativeModules(allowarbitraryextensions=true,module=nodenext).symbols
+reference: e00d2c5a3f98fe04f89617392569f31f7a6e406972557a594687d487905a73cd
+actual: e00d2c5a3f98fe04f89617392569f31f7a6e406972557a594687d487905a73cd
+
+FAIL: TestLocal/decoratedClassFromExternalModule.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/decorators/class/decoratedClassFromExternalModule.ts:
+        runtime error: slice bounds out of range [4:3]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/decoratorOnClassAccessor8.ts_target=es2015/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/decoratorOnClassAccessor8(target=es2015).symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/decoratorOnClassAccessor8(target=es2015).symbols
+reference: 37eaa127039540875034b5b5b543891c0c3e762c7de8a3dd4a1f3661fb32d683
+actual: 027c38445721dd37916ba4786a2d62b6d01da9464490313fbd30d34ae3dc9cb9
+--- expected/conformance/decoratorOnClassAccessor8(target=es2015).symbols
++++ actual/conformance/decoratorOnClassAccessor8(target=es2015).symbols
+@@ -3,12 +3,12 @@
+ === decoratorOnClassAccessor8.ts ===
+ declare function dec<T>(target: any, propertyKey: string, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T>;
+ >dec : Symbol(dec, Decl(decoratorOnClassAccessor8.ts, 0, 0))
++>TypedPropertyDescriptor : Symbol(TypedPropertyDescriptor, Decl(lib.es5.d.ts, --, --))
++>T : Symbol(T, Decl(decoratorOnClassAccessor8.ts, 0, 21))
+ >T : Symbol(T, Decl(decoratorOnClassAccessor8.ts, 0, 21))
+ >target : Symbol(target, Decl(decoratorOnClassAccessor8.ts, 0, 24))
+ >propertyKey : Symbol(propertyKey, Decl(decoratorOnClassAccessor8.ts, 0, 36))
+ >descriptor : Symbol(descriptor, Decl(decoratorOnClassAccessor8.ts, 0, 57))
+->TypedPropertyDescriptor : Symbol(TypedPropertyDescriptor, Decl(lib.es5.d.ts, --, --))
+->T : Symbol(T, Decl(decoratorOnClassAccessor8.ts, 0, 21))
+ >TypedPropertyDescriptor : Symbol(TypedPropertyDescriptor, Decl(lib.es5.d.ts, --, --))
+ >T : Symbol(T, Decl(decoratorOnClassAccessor8.ts, 0, 21))
+ 
+@@ -16,8 +16,8 @@
+ >A : Symbol(A, Decl(decoratorOnClassAccessor8.ts, 0, 126))
+ 
+     @dec get x() { return 0; }
++>x : Symbol(A.x, Decl(decoratorOnClassAccessor8.ts, 2, 9), Decl(decoratorOnClassAccessor8.ts, 3, 30))
+ >dec : Symbol(dec, Decl(decoratorOnClassAccessor8.ts, 0, 0))
+->x : Symbol(A.x, Decl(decoratorOnClassAccessor8.ts, 2, 9), Decl(decoratorOnClassAccessor8.ts, 3, 30))
+ 
+     set x(value: number) { }
+ >x : Symbol(A.x, Decl(decoratorOnClassAccessor8.ts, 2, 9), Decl(decoratorOnClassAccessor8.ts, 3, 30))
+@@ -31,8 +31,8 @@
+ >x : Symbol(B.x, Decl(decoratorOnClassAccessor8.ts, 7, 9), Decl(decoratorOnClassAccessor8.ts, 8, 25))
+ 
+     @dec set x(value: number) { }
++>x : Symbol(B.x, Decl(decoratorOnClassAccessor8.ts, 7, 9), Decl(decoratorOnClassAccessor8.ts, 8, 25))
+ >dec : Symbol(dec, Decl(decoratorOnClassAccessor8.ts, 0, 0))
+->x : Symbol(B.x, Decl(decoratorOnClassAccessor8.ts, 7, 9), Decl(decoratorOnClassAccessor8.ts, 8, 25))
+ >value : Symbol(value, Decl(decoratorOnClassAccessor8.ts, 9, 15))
+ }
+ 
+@@ -40,8 +40,8 @@
+ >C : Symbol(C, Decl(decoratorOnClassAccessor8.ts, 10, 1))
+ 
+     @dec set x(value: number) { }
++>x : Symbol(C.x, Decl(decoratorOnClassAccessor8.ts, 12, 9), Decl(decoratorOnClassAccessor8.ts, 13, 33))
+ >dec : Symbol(dec, Decl(decoratorOnClassAccessor8.ts, 0, 0))
+->x : Symbol(C.x, Decl(decoratorOnClassAccessor8.ts, 12, 9), Decl(decoratorOnClassAccessor8.ts, 13, 33))
+ >value : Symbol(value, Decl(decoratorOnClassAccessor8.ts, 13, 15))
+ 
+     get x() { return 0; }
+@@ -56,23 +56,23 @@
+ >value : Symbol(value, Decl(decoratorOnClassAccessor8.ts, 18, 10))
+ 
+     @dec get x() { return 0; }
++>x : Symbol(D.x, Decl(decoratorOnClassAccessor8.ts, 17, 9), Decl(decoratorOnClassAccessor8.ts, 18, 28))
+ >dec : Symbol(dec, Decl(decoratorOnClassAccessor8.ts, 0, 0))
+->x : Symbol(D.x, Decl(decoratorOnClassAccessor8.ts, 17, 9), Decl(decoratorOnClassAccessor8.ts, 18, 28))
+ }
+ 
+ class E {
+ >E : Symbol(E, Decl(decoratorOnClassAccessor8.ts, 20, 1))
+ 
+     @dec get x() { return 0; }
++>x : Symbol(E.x, Decl(decoratorOnClassAccessor8.ts, 22, 9))
+ >dec : Symbol(dec, Decl(decoratorOnClassAccessor8.ts, 0, 0))
+->x : Symbol(E.x, Decl(decoratorOnClassAccessor8.ts, 22, 9))
+ }
+ 
+ class F {
+ >F : Symbol(F, Decl(decoratorOnClassAccessor8.ts, 24, 1))
+ 
+     @dec set x(value: number) { }
++>x : Symbol(F.x, Decl(decoratorOnClassAccessor8.ts, 26, 9))
+ >dec : Symbol(dec, Decl(decoratorOnClassAccessor8.ts, 0, 0))
+->x : Symbol(F.x, Decl(decoratorOnClassAccessor8.ts, 26, 9))
+ >value : Symbol(value, Decl(decoratorOnClassAccessor8.ts, 27, 15))
+ }
+
+FAIL: TestLocal/decoratorOnClassMethod1.es6.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/decoratorOnClassMethod1.es6.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/decoratorOnClassMethod1.es6.symbols
+reference: c7745b0ba943d1546ad861c42a943e75b2a5cb5c07661f8ad75181d53565c98e
+actual: 255f45f86666719f4285ac5d80d4ccc2a5b0415b05578d762c768302558f6c5f
+--- expected/conformance/decoratorOnClassMethod1.es6.symbols
++++ actual/conformance/decoratorOnClassMethod1.es6.symbols
+@@ -3,17 +3,17 @@
+ === decoratorOnClassMethod1.es6.ts ===
+ declare function dec<T>(target: any, propertyKey: string, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T>;
+ >dec : Symbol(dec, Decl(decoratorOnClassMethod1.es6.ts, 0, 0))
++>TypedPropertyDescriptor : Symbol(TypedPropertyDescriptor, Decl(lib.es5.d.ts, --, --))
++>T : Symbol(T, Decl(decoratorOnClassMethod1.es6.ts, 0, 21))
+ >T : Symbol(T, Decl(decoratorOnClassMethod1.es6.ts, 0, 21))
+ >target : Symbol(target, Decl(decoratorOnClassMethod1.es6.ts, 0, 24))
+ >propertyKey : Symbol(propertyKey, Decl(decoratorOnClassMethod1.es6.ts, 0, 36))
+ >descriptor : Symbol(descriptor, Decl(decoratorOnClassMethod1.es6.ts, 0, 57))
+ >TypedPropertyDescriptor : Symbol(TypedPropertyDescriptor, Decl(lib.es5.d.ts, --, --))
+ >T : Symbol(T, Decl(decoratorOnClassMethod1.es6.ts, 0, 21))
+->TypedPropertyDescriptor : Symbol(TypedPropertyDescriptor, Decl(lib.es5.d.ts, --, --))
+->T : Symbol(T, Decl(decoratorOnClassMethod1.es6.ts, 0, 21))
+ 
+ export default class {
+     @dec method() {}
++>method : Symbol(default.method, Decl(decoratorOnClassMethod1.es6.ts, 2, 22))
+ >dec : Symbol(dec, Decl(decoratorOnClassMethod1.es6.ts, 0, 0))
+->method : Symbol(default.method, Decl(decoratorOnClassMethod1.es6.ts, 2, 22))
+ }
+
+FAIL: TestLocal/decoratorOnClassMethod19.ts_target=es2015/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/decorators/class/method/decoratorOnClassMethod19.ts:
+        runtime error: slice bounds out of range [8:7]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/decoratorOnClassMethod7.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/decoratorOnClassMethod7.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/decoratorOnClassMethod7.symbols
+reference: 9f793060b7c825db88a962cd57adef6a6f980e0e58863ebfc60f47b331e7ea5b
+actual: 62b1f6ace26f20b54feaf82e63f5afded9ae45446cd97277380f27febafb4892
+--- expected/conformance/decoratorOnClassMethod7.symbols
++++ actual/conformance/decoratorOnClassMethod7.symbols
+@@ -3,12 +3,12 @@
+ === decoratorOnClassMethod7.ts ===
+ declare function dec<T>(target: any, propertyKey: string, descriptor: TypedPropertyDescriptor<T>): TypedPropertyDescriptor<T>;
+ >dec : Symbol(dec, Decl(decoratorOnClassMethod7.ts, 0, 0))
++>TypedPropertyDescriptor : Symbol(TypedPropertyDescriptor, Decl(lib.es5.d.ts, --, --))
++>T : Symbol(T, Decl(decoratorOnClassMethod7.ts, 0, 21))
+ >T : Symbol(T, Decl(decoratorOnClassMethod7.ts, 0, 21))
+ >target : Symbol(target, Decl(decoratorOnClassMethod7.ts, 0, 24))
+ >propertyKey : Symbol(propertyKey, Decl(decoratorOnClassMethod7.ts, 0, 36))
+ >descriptor : Symbol(descriptor, Decl(decoratorOnClassMethod7.ts, 0, 57))
+->TypedPropertyDescriptor : Symbol(TypedPropertyDescriptor, Decl(lib.es5.d.ts, --, --))
+->T : Symbol(T, Decl(decoratorOnClassMethod7.ts, 0, 21))
+ >TypedPropertyDescriptor : Symbol(TypedPropertyDescriptor, Decl(lib.es5.d.ts, --, --))
+ >T : Symbol(T, Decl(decoratorOnClassMethod7.ts, 0, 21))
+ 
+@@ -16,7 +16,7 @@
+ >C : Symbol(C, Decl(decoratorOnClassMethod7.ts, 0, 126))
+ 
+     @dec public ["method"]() {}
+->dec : Symbol(dec, Decl(decoratorOnClassMethod7.ts, 0, 0))
+ >["method"] : Symbol(C["method"], Decl(decoratorOnClassMethod7.ts, 2, 9))
+ >"method" : Symbol(C["method"], Decl(decoratorOnClassMethod7.ts, 2, 9))
++>dec : Symbol(dec, Decl(decoratorOnClassMethod7.ts, 0, 0))
+ }
+
+FAIL: TestLocal/decoratorOnEnum2.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/decoratorOnEnum2.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/decoratorOnEnum2.symbols
+reference: 4b25fe16fa8bc8c84689f00c0d3e28db0607a7448248ce3894ae23c6bd42fee3
+actual: f625957e129f96d928452d37652b72393773fbf1eda207539392f6d11df553e2
+--- expected/conformance/decoratorOnEnum2.symbols
++++ actual/conformance/decoratorOnEnum2.symbols
+@@ -4,8 +4,8 @@
+ declare function dec<T>(target: T): T;
+ >dec : Symbol(dec, Decl(decoratorOnEnum2.ts, 0, 0))
+ >T : Symbol(T, Decl(decoratorOnEnum2.ts, 0, 21))
++>T : Symbol(T, Decl(decoratorOnEnum2.ts, 0, 21))
+ >target : Symbol(target, Decl(decoratorOnEnum2.ts, 0, 24))
+->T : Symbol(T, Decl(decoratorOnEnum2.ts, 0, 21))
+ >T : Symbol(T, Decl(decoratorOnEnum2.ts, 0, 21))
+ 
+ enum E {
+
+FAIL: TestLocal/decoratorOnUsing.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/decorators/invalid/decoratorOnUsing.ts:
+        runtime error: slice bounds out of range [7:6]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/deleteOperatorWithEnumType.ts/symbol
+baseline: conformance/deleteOperatorWithEnumType.symbols
+reference: 79dd13a5cd7e577dd3856b72898fa48d062aeb18c78a1f533328e9184d20b40b
+actual: 79dd13a5cd7e577dd3856b72898fa48d062aeb18c78a1f533328e9184d20b40b
+
+FAIL: TestLocal/dependentDestructuredVariables.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/controlFlow/dependentDestructuredVariables.ts:
+        runtime error: slice bounds out of range [10:5]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/derivedClassOverridesPrivates.ts/symbol
+baseline: conformance/derivedClassOverridesPrivates.symbols
+reference: 6797e51cb136ad214ccf863c77fa223a9883fbb7b9f831d342a9ec00b96cdc05
+actual: 6797e51cb136ad214ccf863c77fa223a9883fbb7b9f831d342a9ec00b96cdc05
+
+PASS: TestLocal/derivedClassTransitivity2.ts/symbol
+baseline: conformance/derivedClassTransitivity2.symbols
+reference: d187bb300991ac87bec007948c8637c53ed353ef7f09462d7b8465687e40e8e9
+actual: d187bb300991ac87bec007948c8637c53ed353ef7f09462d7b8465687e40e8e9
+
+PASS: TestLocal/derivedClassTransitivity3.ts/symbol
+baseline: conformance/derivedClassTransitivity3.symbols
+reference: 8414409d27c9611a8b3d9a31aa8ceda16a724161387e715626323d3e7310958d
+actual: 8414409d27c9611a8b3d9a31aa8ceda16a724161387e715626323d3e7310958d
+
+PASS: TestLocal/derivedClassWithPrivateStaticShadowingPublicStatic.ts/symbol
+baseline: conformance/derivedClassWithPrivateStaticShadowingPublicStatic.symbols
+reference: fceab8a6eb0ca2b5a6879c084b2994a56aa6b663b6e08272ce38976965a93acb
+actual: fceab8a6eb0ca2b5a6879c084b2994a56aa6b663b6e08272ce38976965a93acb
+
+PASS: TestLocal/derivedInterfaceDoesNotHideBaseSignatures.ts/symbol
+baseline: conformance/derivedInterfaceDoesNotHideBaseSignatures.symbols
+reference: cc0bf79651018bdee190ce86855c1bb534840c32bdb453d0e85beddff770093a
+actual: cc0bf79651018bdee190ce86855c1bb534840c32bdb453d0e85beddff770093a
+
+PASS: TestLocal/destructuringObjectBindingPatternAndAssignment8.ts_target=esnext/symbol
+baseline: conformance/destructuringObjectBindingPatternAndAssignment8(target=esnext).symbols
+reference: ac3fdedd90373399043cda649f4390400ee3bdf11d79861a1e11c1fad3936bb6
+actual: ac3fdedd90373399043cda649f4390400ee3bdf11d79861a1e11c1fad3936bb6
+
+PASS: TestLocal/destructuringParameterDeclaration3ES5.ts/symbol
+baseline: conformance/destructuringParameterDeclaration3ES5.symbols
+reference: 02e820b40a7690ac6af667eff9002ecdf2b8a1b8ee4e5904de62f6c389e513d9
+actual: 02e820b40a7690ac6af667eff9002ecdf2b8a1b8ee4e5904de62f6c389e513d9
+
+PASS: TestLocal/destructuringTypeAssertionsES5_4.ts_target=es2015/symbol
+baseline: conformance/destructuringTypeAssertionsES5_4(target=es2015).symbols
+reference: 89b0f94cbb4aa634d7cdabe40f21a02f258e2e9a5daf3b1f983872fc333eb37e
+actual: 89b0f94cbb4aa634d7cdabe40f21a02f258e2e9a5daf3b1f983872fc333eb37e
+
+PASS: TestLocal/destructuringTypeAssertionsES5_5.ts_target=es2015/symbol
+baseline: conformance/destructuringTypeAssertionsES5_5(target=es2015).symbols
+reference: 2ef1eb52a9b906fdeb7068d02a42d8f8197bc021588c2950696bfccdf0feb007
+actual: 2ef1eb52a9b906fdeb7068d02a42d8f8197bc021588c2950696bfccdf0feb007
+
+PASS: TestLocal/destructuringTypeAssertionsES5_7.ts_target=es2015/symbol
+baseline: conformance/destructuringTypeAssertionsES5_7(target=es2015).symbols
+reference: 55b010f69c8857da35a0aa793fce2fff7a647d0d69c588787f6832712277f474
+actual: 55b010f69c8857da35a0aa793fce2fff7a647d0d69c588787f6832712277f474
+
+PASS: TestLocal/destructuringVariableDeclaration1ES5.ts/symbol
+baseline: conformance/destructuringVariableDeclaration1ES5.symbols
+reference: 7db4c3c9a6dcdd69f20e867180068e88f0cfc80a0d3fb0bac519110682b42c07
+actual: 7db4c3c9a6dcdd69f20e867180068e88f0cfc80a0d3fb0bac519110682b42c07
+
+PASS: TestLocal/elementAccessChain.3.ts/symbol
+baseline: conformance/elementAccessChain.3.symbols
+reference: 62534a2ffe639825372e7c3851971ce969da708dfeae34f04cc39b8af86c3cb4
+actual: 62534a2ffe639825372e7c3851971ce969da708dfeae34f04cc39b8af86c3cb4
+
+FAIL: TestLocal/emitArrowFunctionWhenUsingArguments13_ES6.ts_alwaysstrict=true/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/emitArrowFunctionWhenUsingArguments13_ES6(alwaysstrict=true).symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/emitArrowFunctionWhenUsingArguments13_ES6(alwaysstrict=true).symbols
+reference: 498e66a7fe53301a1ba32ec7035f96bab32d0561827663b5c4833f1c77376ee5
+actual: db801625c3feb3a19177699a3ccfde6201dc5ec81f334afdfd6d0d8cf3d563b8
+--- expected/conformance/emitArrowFunctionWhenUsingArguments13_ES6(alwaysstrict=true).symbols
++++ actual/conformance/emitArrowFunctionWhenUsingArguments13_ES6(alwaysstrict=true).symbols
+@@ -9,6 +9,6 @@
+ 
+     var a = (arguments) => () => _arguments;
+ >a : Symbol(a, Decl(emitArrowFunctionWhenUsingArguments13_ES6.ts, 2, 7))
++>_arguments : Symbol(_arguments, Decl(emitArrowFunctionWhenUsingArguments13_ES6.ts, 1, 7))
+ >arguments : Symbol(arguments, Decl(emitArrowFunctionWhenUsingArguments13_ES6.ts, 2, 13))
+->_arguments : Symbol(_arguments, Decl(emitArrowFunctionWhenUsingArguments13_ES6.ts, 1, 7))
+ }
+
+PASS: TestLocal/emitDefaultParametersFunctionExpressionES6.ts/symbol
+baseline: conformance/emitDefaultParametersFunctionExpressionES6.symbols
+reference: b1f567f871f45661be3e3ede9c194237b55b4b9e0a3ec169c29d75ea4866e4f2
+actual: b1f567f871f45661be3e3ede9c194237b55b4b9e0a3ec169c29d75ea4866e4f2
+
+PASS: TestLocal/emitExponentiationOperatorInTempalteString4ES6.ts/symbol
+baseline: conformance/emitExponentiationOperatorInTempalteString4ES6.symbols
+reference: cd3b6b42bd8911bbc3c2597d22534321ac1728e1e42c944506baa499d23191e1
+actual: cd3b6b42bd8911bbc3c2597d22534321ac1728e1e42c944506baa499d23191e1
+
+PASS: TestLocal/emitter.asyncGenerators.objectLiteralMethods.es2015.ts/symbol
+baseline: conformance/emitter.asyncGenerators.objectLiteralMethods.es2015.symbols
+reference: 4222c9dfa3b638e999515ffb2532cfd71dab9191c075c2ed6817046eae5b7001
+actual: 4222c9dfa3b638e999515ffb2532cfd71dab9191c075c2ed6817046eae5b7001
+
+PASS: TestLocal/emitter.forAwait.ts_target=es2018/symbol
+baseline: conformance/emitter.forAwait(target=es2018).symbols
+reference: 6482863364752ebb05ba7022f9723700b542d8153960486cf604e3a255e32ca9
+actual: 6482863364752ebb05ba7022f9723700b542d8153960486cf604e3a255e32ca9
+
+PASS: TestLocal/emptyArrayBindingPatternParameter01.ts/symbol
+baseline: conformance/emptyArrayBindingPatternParameter01.symbols
+reference: 13cef2046893cd3cf3450e20b63e05d4a3cc80f8ea209f9b4f8698c81faaa48d
+actual: 13cef2046893cd3cf3450e20b63e05d4a3cc80f8ea209f9b4f8698c81faaa48d
+
+PASS: TestLocal/emptyTuplesTypeAssertion02.ts/symbol
+baseline: conformance/emptyTuplesTypeAssertion02.symbols
+reference: 6c85ce4064e0678350d326435fa86fa62aaa79dc3ce9186c5ac630a07ca91c81
+actual: 6c85ce4064e0678350d326435fa86fa62aaa79dc3ce9186c5ac630a07ca91c81
+
+FAIL: TestLocal/emptyVariableDeclarationBindingPatterns01_ES6.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/es6/destructuring/emptyVariableDeclarationBindingPatterns01_ES6.ts:
+        runtime error: slice bounds out of range [24:23]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/es2017DateAPIs.ts/symbol
+baseline: conformance/es2017DateAPIs.symbols
+reference: 334fa421e3ef8161bcc29798e7feb8b47094c5d5e1f7db1f9ca62c202a2224f9
+actual: 334fa421e3ef8161bcc29798e7feb8b47094c5d5e1f7db1f9ca62c202a2224f9
+
+PASS: TestLocal/es6modulekindWithES5Target7.ts_target=es2015/symbol
+baseline: conformance/es6modulekindWithES5Target7(target=es2015).symbols
+reference: 73d501bb4e4a16479f0ad24500cfe6ca904ea965bd92c2b42de49b9e70279e8e
+actual: 73d501bb4e4a16479f0ad24500cfe6ca904ea965bd92c2b42de49b9e70279e8e
+
+FAIL: TestLocal/esDecorators-classDeclaration-outerThisReference.ts_target=es2022/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/esDecorators/classDeclaration/esDecorators-classDeclaration-outerThisReference.ts:
+        runtime error: slice bounds out of range [7:6]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/exponentiationOperatorSyntaxError2.ts_target=es2015/symbol
+baseline: conformance/exponentiationOperatorSyntaxError2(target=es2015).symbols
+reference: 6667dd8d5d88cf28b72e2af0ad4a8c08df4a815aab758cb08efd91dc83fb265d
+actual: 6667dd8d5d88cf28b72e2af0ad4a8c08df4a815aab758cb08efd91dc83fb265d
+
+PASS: TestLocal/exponentiationOperatorWithUndefinedValueAndValidOperands.ts/symbol
+baseline: conformance/exponentiationOperatorWithUndefinedValueAndValidOperands.symbols
+reference: 03e4fbf300018985fe67f1d88e041c926816fc87d6ac2f9bae3c76da786c6339
+actual: 03e4fbf300018985fe67f1d88e041c926816fc87d6ac2f9bae3c76da786c6339
+
+PASS: TestLocal/exportAmbientClassNameWithObject.ts_target=es2015/symbol
+baseline: conformance/exportAmbientClassNameWithObject(target=es2015).symbols
+reference: 401328aaf98aa7d84ce36263b2eca1c7a5197123d306d66e8efddd2891bd0b15
+actual: 401328aaf98aa7d84ce36263b2eca1c7a5197123d306d66e8efddd2891bd0b15
+
+PASS: TestLocal/exportAsNamespace2.ts_module=es2015/symbol
+baseline: conformance/exportAsNamespace2(module=es2015).symbols
+reference: b1978b51b9893fc06b44d77a5e60faa204bfd3bc8cbebb6ed1e08e45cd6282bb
+actual: b1978b51b9893fc06b44d77a5e60faa204bfd3bc8cbebb6ed1e08e45cd6282bb
+
+PASS: TestLocal/exportAssignImportedIdentifier.ts/symbol
+baseline: conformance/exportAssignImportedIdentifier.symbols
+reference: 9fc22e040f44c01ae4dfc2e530921cc885a06fbb8d92c969274ff73bad699807
+actual: 9fc22e040f44c01ae4dfc2e530921cc885a06fbb8d92c969274ff73bad699807
+
+PASS: TestLocal/extendsTag4.ts/symbol
+baseline: conformance/extendsTag4.symbols
+reference: 37d4772ecea4ab3c066e0098f698150935004fa5e2f5cbd3bd8934cbfe978167
+actual: 37d4772ecea4ab3c066e0098f698150935004fa5e2f5cbd3bd8934cbfe978167
+
+FAIL: TestLocal/extendsTag5.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/jsdoc/extendsTag5.ts:
+        runtime error: slice bounds out of range [16:15]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/for-of1.ts/symbol
+baseline: conformance/for-of1.symbols
+reference: b3035fb6b50b6c9db565f419a73c267ada9409b61015f1e78106dbe39878950f
+actual: b3035fb6b50b6c9db565f419a73c267ada9409b61015f1e78106dbe39878950f
+
+PASS: TestLocal/for-of51.ts/symbol
+baseline: conformance/for-of51.symbols
+reference: ba7a7884cf369d0496e7e5b014eeb0debe18585909e8fdf326e27cfde7c66d44
+actual: ba7a7884cf369d0496e7e5b014eeb0debe18585909e8fdf326e27cfde7c66d44
+
+PASS: TestLocal/for-of9.ts/symbol
+baseline: conformance/for-of9.symbols
+reference: b5819cb199ba9f459000a09f9a870cf011c53612d1426ea51ac598e9588f8a6c
+actual: b5819cb199ba9f459000a09f9a870cf011c53612d1426ea51ac598e9588f8a6c
+
+FAIL: TestLocal/functionExpressionContextualTyping1.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/expressions/contextualTyping/functionExpressionContextualTyping1.ts:
+        runtime error: slice bounds out of range [10:9]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/functionWithMultipleReturnStatements.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/types/typeRelationships/bestCommonType/functionWithMultipleReturnStatements.ts:
+        runtime error: slice bounds out of range [52:48]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/generatorOverloads2.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/generatorOverloads2.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/generatorOverloads2.symbols
+reference: ff28c533c784817aeb20bb03d0079403ee5231389c1c1d9b7886fe2d7c4286cc
+actual: 8577a23411f4673e80980a8e80993544c6eb76d62fc2a54a9ea495ed5824f103
+--- expected/conformance/generatorOverloads2.symbols
++++ actual/conformance/generatorOverloads2.symbols
+@@ -6,16 +6,16 @@
+ 
+     function* f(s: string): Iterable<any>;
+ >f : Symbol(f, Decl(generatorOverloads2.ts, 0, 21), Decl(generatorOverloads2.ts, 1, 42), Decl(generatorOverloads2.ts, 2, 42))
++>Iterable : Symbol(Iterable, Decl(lib.es2015.iterable.d.ts, --, --))
+ >s : Symbol(s, Decl(generatorOverloads2.ts, 1, 16))
+->Iterable : Symbol(Iterable, Decl(lib.es2015.iterable.d.ts, --, --))
+ 
+     function* f(s: number): Iterable<any>;
+ >f : Symbol(f, Decl(generatorOverloads2.ts, 0, 21), Decl(generatorOverloads2.ts, 1, 42), Decl(generatorOverloads2.ts, 2, 42))
++>Iterable : Symbol(Iterable, Decl(lib.es2015.iterable.d.ts, --, --))
+ >s : Symbol(s, Decl(generatorOverloads2.ts, 2, 16))
+->Iterable : Symbol(Iterable, Decl(lib.es2015.iterable.d.ts, --, --))
+ 
+     function* f(s: any): Iterable<any>;
+ >f : Symbol(f, Decl(generatorOverloads2.ts, 0, 21), Decl(generatorOverloads2.ts, 1, 42), Decl(generatorOverloads2.ts, 2, 42))
++>Iterable : Symbol(Iterable, Decl(lib.es2015.iterable.d.ts, --, --))
+ >s : Symbol(s, Decl(generatorOverloads2.ts, 3, 16))
+->Iterable : Symbol(Iterable, Decl(lib.es2015.iterable.d.ts, --, --))
+ }
+
+PASS: TestLocal/generatorReturnTypeFallback.5.ts/symbol
+baseline: conformance/generatorReturnTypeFallback.5.symbols
+reference: c67823e01ee3fbc72b48cc186eb7bddd3b35d72484d3091543f18af499e1ad7a
+actual: c67823e01ee3fbc72b48cc186eb7bddd3b35d72484d3091543f18af499e1ad7a
+
+PASS: TestLocal/generatorTypeCheck1.ts/symbol
+baseline: conformance/generatorTypeCheck1.symbols
+reference: 5b97c2e68964fc5ec86740d33c23eb3308c7ef424110c939770b249c4eb69c97
+actual: 5b97c2e68964fc5ec86740d33c23eb3308c7ef424110c939770b249c4eb69c97
+
+PASS: TestLocal/generatorTypeCheck22.ts/symbol
+baseline: conformance/generatorTypeCheck22.symbols
+reference: 013cd5b4cc1ebfb3f71f042f2617ab5c619b71d478c3f7e43a404df076c3cf37
+actual: 013cd5b4cc1ebfb3f71f042f2617ab5c619b71d478c3f7e43a404df076c3cf37
+
+FAIL: TestLocal/generatorTypeCheck30.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/generatorTypeCheck30.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/generatorTypeCheck30.symbols
+reference: 375927366dc56e7a7cd960a8ce2f0c7c424eb8da1a177dc49d371f0e9a0dd4d7
+actual: 6b32e6974efcf6759da3ec99fa0b6226c15345abfdd17841d76185f5ac695925
+--- expected/conformance/generatorTypeCheck30.symbols
++++ actual/conformance/generatorTypeCheck30.symbols
+@@ -9,10 +9,10 @@
+ 
+     yield function* () {
+         yield x => x.length;
+->x : Symbol(x, Decl(generatorTypeCheck30.ts, 2, 13))
+ >x.length : Symbol(String.length, Decl(lib.es5.d.ts, --, --))
+ >x : Symbol(x, Decl(generatorTypeCheck30.ts, 2, 13))
+ >length : Symbol(String.length, Decl(lib.es5.d.ts, --, --))
++>x : Symbol(x, Decl(generatorTypeCheck30.ts, 2, 13))
+ 
+     } ()
+ }
+
+PASS: TestLocal/generatorTypeCheck38.ts_alwaysstrict=true/symbol
+baseline: conformance/generatorTypeCheck38(alwaysstrict=true).symbols
+reference: 2915b7fea848edf9556e6dd7fb139e9470611b38d8789bc200718fd124effbd6
+actual: 2915b7fea848edf9556e6dd7fb139e9470611b38d8789bc200718fd124effbd6
+
+FAIL: TestLocal/generatorTypeCheck45.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/generatorTypeCheck45.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/generatorTypeCheck45.symbols
+reference: ea6ac061617ccdd11d40bb5156a0d69f147ad862d6e8b84cd6adb0de4dc5aa8c
+actual: 34d209304a72b5e207518a760e7199f24d076c35e725901b42f9c9d4d55423b6
+--- expected/conformance/generatorTypeCheck45.symbols
++++ actual/conformance/generatorTypeCheck45.symbols
+@@ -4,26 +4,26 @@
+ declare function foo<T, U>(x: T, fun: () => Iterator<(x: T) => U>, fun2: (y: U) => T): T;
+ >foo : Symbol(foo, Decl(generatorTypeCheck45.ts, 0, 0))
+ >T : Symbol(T, Decl(generatorTypeCheck45.ts, 0, 21))
++>T : Symbol(T, Decl(generatorTypeCheck45.ts, 0, 21))
+ >U : Symbol(U, Decl(generatorTypeCheck45.ts, 0, 23))
+ >x : Symbol(x, Decl(generatorTypeCheck45.ts, 0, 27))
+ >T : Symbol(T, Decl(generatorTypeCheck45.ts, 0, 21))
+ >fun : Symbol(fun, Decl(generatorTypeCheck45.ts, 0, 32))
+ >Iterator : Symbol(Iterator, Decl(lib.es2015.iterable.d.ts, --, --))
++>U : Symbol(U, Decl(generatorTypeCheck45.ts, 0, 23))
+ >x : Symbol(x, Decl(generatorTypeCheck45.ts, 0, 54))
+ >T : Symbol(T, Decl(generatorTypeCheck45.ts, 0, 21))
+->U : Symbol(U, Decl(generatorTypeCheck45.ts, 0, 23))
+ >fun2 : Symbol(fun2, Decl(generatorTypeCheck45.ts, 0, 66))
++>T : Symbol(T, Decl(generatorTypeCheck45.ts, 0, 21))
+ >y : Symbol(y, Decl(generatorTypeCheck45.ts, 0, 74))
+ >U : Symbol(U, Decl(generatorTypeCheck45.ts, 0, 23))
+->T : Symbol(T, Decl(generatorTypeCheck45.ts, 0, 21))
+->T : Symbol(T, Decl(generatorTypeCheck45.ts, 0, 21))
+ 
+ foo("", function* () { yield x => x.length }, p => undefined); // T is fixed, should be string
+ >foo : Symbol(foo, Decl(generatorTypeCheck45.ts, 0, 0))
+->x : Symbol(x, Decl(generatorTypeCheck45.ts, 2, 28))
+ >x.length : Symbol(String.length, Decl(lib.es5.d.ts, --, --))
+ >x : Symbol(x, Decl(generatorTypeCheck45.ts, 2, 28))
+ >length : Symbol(String.length, Decl(lib.es5.d.ts, --, --))
++>x : Symbol(x, Decl(generatorTypeCheck45.ts, 2, 28))
++>undefined : Symbol(undefined)
+ >p : Symbol(p, Decl(generatorTypeCheck45.ts, 2, 45))
+->undefined : Symbol(undefined)
+ 
+
+PASS: TestLocal/generatorTypeCheck48.ts/symbol
+baseline: conformance/generatorTypeCheck48.symbols
+reference: 399619b07e447eac2ba6a94456f932f3b8c01982b4c46c878a87a98c8b9f89ca
+actual: 399619b07e447eac2ba6a94456f932f3b8c01982b4c46c878a87a98c8b9f89ca
+
+FAIL: TestLocal/generatorTypeCheck62.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/es6/yieldExpressions/generatorTypeCheck62.ts:
+        runtime error: slice bounds out of range [11:6]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/genericCallWithGenericSignatureArguments.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/types/typeRelationships/typeInference/genericCallWithGenericSignatureArguments.ts:
+        runtime error: slice bounds out of range [6:4]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/genericCallWithObjectTypeArgsAndInitializers.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/genericCallWithObjectTypeArgsAndInitializers.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/genericCallWithObjectTypeArgsAndInitializers.symbols
+reference: f09c413de932ea836b4508d0a9cc1de95806ea3e7fbc86a425a12601c308f4e6
+actual: 95395e77826d76f9f94fc4c9c2a34ae5a0c66d0109127217c935e05bbb110082
+--- expected/conformance/genericCallWithObjectTypeArgsAndInitializers.symbols
++++ actual/conformance/genericCallWithObjectTypeArgsAndInitializers.symbols
+@@ -5,18 +5,18 @@
+ 
+ function foo<T>(x: T = null) { return x; } // ok
+ >foo : Symbol(foo, Decl(genericCallWithObjectTypeArgsAndInitializers.ts, 0, 0))
++>x : Symbol(x, Decl(genericCallWithObjectTypeArgsAndInitializers.ts, 2, 16))
+ >T : Symbol(T, Decl(genericCallWithObjectTypeArgsAndInitializers.ts, 2, 13))
+ >x : Symbol(x, Decl(genericCallWithObjectTypeArgsAndInitializers.ts, 2, 16))
+ >T : Symbol(T, Decl(genericCallWithObjectTypeArgsAndInitializers.ts, 2, 13))
+->x : Symbol(x, Decl(genericCallWithObjectTypeArgsAndInitializers.ts, 2, 16))
+ 
+ function foo2<T>(x: T = undefined) { return x; } // ok
+ >foo2 : Symbol(foo2, Decl(genericCallWithObjectTypeArgsAndInitializers.ts, 2, 42))
++>x : Symbol(x, Decl(genericCallWithObjectTypeArgsAndInitializers.ts, 3, 17))
+ >T : Symbol(T, Decl(genericCallWithObjectTypeArgsAndInitializers.ts, 3, 14))
+ >x : Symbol(x, Decl(genericCallWithObjectTypeArgsAndInitializers.ts, 3, 17))
+ >T : Symbol(T, Decl(genericCallWithObjectTypeArgsAndInitializers.ts, 3, 14))
+ >undefined : Symbol(undefined)
+->x : Symbol(x, Decl(genericCallWithObjectTypeArgsAndInitializers.ts, 3, 17))
+ 
+ function foo3<T extends Number>(x: T = 1) { } // error
+ >foo3 : Symbol(foo3, Decl(genericCallWithObjectTypeArgsAndInitializers.ts, 3, 48))
+
+PASS: TestLocal/globalMergeWithCommonJSAssignmentDeclaration.ts/symbol
+baseline: conformance/globalMergeWithCommonJSAssignmentDeclaration.symbols
+reference: fec4db06215bcc0247b3d38eac1a16a2d35103926916c274af9b27858810ea69
+actual: fec4db06215bcc0247b3d38eac1a16a2d35103926916c274af9b27858810ea69
+
+PASS: TestLocal/importAssertion5.ts/symbol
+baseline: conformance/importAssertion5.symbols
+reference: 4a234d111c94e5f3a83cc691f5933f5dde11c156e132df1605f9768fbd07b943
+actual: 4a234d111c94e5f3a83cc691f5933f5dde11c156e132df1605f9768fbd07b943
+
+PASS: TestLocal/importAttributes2.ts_module=commonjs/symbol
+baseline: conformance/importAttributes2(module=commonjs).symbols
+reference: 90a1cba5856a32c136e5eed00d28b31b1d32d4aea045062571d01dcdfbee69a1
+actual: 90a1cba5856a32c136e5eed00d28b31b1d32d4aea045062571d01dcdfbee69a1
+
+FAIL: TestLocal/importCallExpressionInCJS3.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/dynamicImport/importCallExpressionInCJS3.ts:
+        runtime error: slice bounds out of range [5:3]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/importCallExpressionInCJS4.ts/symbol
+baseline: conformance/importCallExpressionInCJS4.symbols
+reference: 0568d14273882cab0d28103b9037a139df4248f46ed5f7a526d0eb3e8ac23747
+actual: 0568d14273882cab0d28103b9037a139df4248f46ed5f7a526d0eb3e8ac23747
+
+PASS: TestLocal/importCallExpressionIncorrect1.ts/symbol
+baseline: conformance/importCallExpressionIncorrect1.symbols
+reference: 99ae56ba35465dd870cf339f001c54ac4d2fc3054f2a6661a6f3c197bd973ada
+actual: 99ae56ba35465dd870cf339f001c54ac4d2fc3054f2a6661a6f3c197bd973ada
+
+PASS: TestLocal/importCallExpressionNestedCJS.ts/symbol
+baseline: conformance/importCallExpressionNestedCJS.symbols
+reference: 6b0c1a568ab90f919c0213c116abc06e4936db6b82ec6e2e383c9ffa99e6a934
+actual: 6b0c1a568ab90f919c0213c116abc06e4936db6b82ec6e2e383c9ffa99e6a934
+
+PASS: TestLocal/importDeferNamespace.ts_module=nodenext/symbol
+baseline: conformance/importDeferNamespace(module=nodenext).symbols
+reference: 4b96dcb860278d6bacbb3815cd38289655df2265c8cded9eca002c23adee35af
+actual: 4b96dcb860278d6bacbb3815cd38289655df2265c8cded9eca002c23adee35af
+
+PASS: TestLocal/inferringClassMembersFromAssignments7.ts/symbol
+baseline: conformance/inferringClassMembersFromAssignments7.symbols
+reference: 9e74435fe595a5dd2b1a7a8245ee9639bdaed31b31c8aa252ae620e1eaa1d010
+actual: 9e74435fe595a5dd2b1a7a8245ee9639bdaed31b31c8aa252ae620e1eaa1d010
+
+PASS: TestLocal/inferringClassMembersFromAssignments8.ts/symbol
+baseline: conformance/inferringClassMembersFromAssignments8.symbols
+reference: c257d29c05c80321cef3e4a5045e972902270f1e8c663e0caeb5621d6d86e520
+actual: c257d29c05c80321cef3e4a5045e972902270f1e8c663e0caeb5621d6d86e520
+
+PASS: TestLocal/inlineJsxFactoryLocalTypeGlobalFallback.tsx/symbol
+baseline: conformance/inlineJsxFactoryLocalTypeGlobalFallback.symbols
+reference: d3469e4b68c35a3a5aa4778b43b457bc6890a35ba4d88a220d9d06e61afbb2fd
+actual: d3469e4b68c35a3a5aa4778b43b457bc6890a35ba4d88a220d9d06e61afbb2fd
+
+PASS: TestLocal/interfaceWithCallAndConstructSignature.ts/symbol
+baseline: conformance/interfaceWithCallAndConstructSignature.symbols
+reference: 4b9091a6405070d41f24285fdde6532056f7175f0831ae2296f3d26a071343f1
+actual: 4b9091a6405070d41f24285fdde6532056f7175f0831ae2296f3d26a071343f1
+
+PASS: TestLocal/interfaceWithPropertyThatIsPrivateInBaseType.ts/symbol
+baseline: conformance/interfaceWithPropertyThatIsPrivateInBaseType.symbols
+reference: a48d9065f9fadb513be7bb7c9f29bb3a30051ea4722d2c325f7ce9e1ba6a0aa3
+actual: a48d9065f9fadb513be7bb7c9f29bb3a30051ea4722d2c325f7ce9e1ba6a0aa3
+
+PASS: TestLocal/intersectionOfUnionNarrowing.ts/symbol
+baseline: conformance/intersectionOfUnionNarrowing.symbols
+reference: e145484d9ef603fe4938397d2b47fce495551eb5932c34639201a12b4d95660f
+actual: e145484d9ef603fe4938397d2b47fce495551eb5932c34639201a12b4d95660f
+
+PASS: TestLocal/invalidDoWhileContinueStatements.ts/symbol
+baseline: conformance/invalidDoWhileContinueStatements.symbols
+reference: 98336c3c4721dd9863dd89adac80a07a39c80463fd0285fe1a86540a5da693fd
+actual: 98336c3c4721dd9863dd89adac80a07a39c80463fd0285fe1a86540a5da693fd
+
+FAIL: TestLocal/invalidTaggedTemplateEscapeSequences.ts_target=es2015/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/es2018/invalidTaggedTemplateEscapeSequences.ts:
+        runtime error: slice bounds out of range [2:1]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/iterableArrayPattern7.ts/symbol
+baseline: conformance/iterableArrayPattern7.symbols
+reference: dd7881b014dec1413bd5ed4016ca53d00f9ea05b94d2077aea88601136bb2163
+actual: dd7881b014dec1413bd5ed4016ca53d00f9ea05b94d2077aea88601136bb2163
+
+PASS: TestLocal/iteratorSpreadInArray6.ts/symbol
+baseline: conformance/iteratorSpreadInArray6.symbols
+reference: 46def6c3988e98d3a08f68b5575d0397573cead30c1372728bdfc94769474bd4
+actual: 46def6c3988e98d3a08f68b5575d0397573cead30c1372728bdfc94769474bd4
+
+PASS: TestLocal/jsDeclarationsCrossfileMerge.ts_target=es2015/symbol
+baseline: conformance/jsDeclarationsCrossfileMerge(target=es2015).symbols
+reference: 9f35c5b81fa2a51ee1a1f8082ab5ae44f1a35d1e007b2d94c097dd7e8981d951
+actual: 9f35c5b81fa2a51ee1a1f8082ab5ae44f1a35d1e007b2d94c097dd7e8981d951
+
+PASS: TestLocal/jsDeclarationsExportAssignedClassInstance1.ts_target=es2015/symbol
+baseline: conformance/jsDeclarationsExportAssignedClassInstance1(target=es2015).symbols
+reference: f31c576adaf54fdede4b559dea88b82ab849cfdcaaa57e2f8426ea362363b5ef
+actual: f31c576adaf54fdede4b559dea88b82ab849cfdcaaa57e2f8426ea362363b5ef
+
+PASS: TestLocal/jsDeclarationsJSDocRedirectedLookups.ts/symbol
+baseline: conformance/jsDeclarationsJSDocRedirectedLookups.symbols
+reference: 8485f1fe04aa92d9c5f56ff8b927498450c34f495574f8c0f49d2874c7b79bfb
+actual: 8485f1fe04aa92d9c5f56ff8b927498450c34f495574f8c0f49d2874c7b79bfb
+
+PASS: TestLocal/jsDeclarationsPrivateFields01.ts/symbol
+baseline: conformance/jsDeclarationsPrivateFields01.symbols
+reference: c0baea39fd7b5117fd77d38b76386daf513c89a3ac1380679384f047fb1cdc6d
+actual: c0baea39fd7b5117fd77d38b76386daf513c89a3ac1380679384f047fb1cdc6d
+
+PASS: TestLocal/jsDeclarationsTypedefDescriptionsPreserved.ts/symbol
+baseline: conformance/jsDeclarationsTypedefDescriptionsPreserved.symbols
+reference: f81476747b56bccc5c38214375a210c071d6185c5977c50cda62eaa0d9412cfb
+actual: f81476747b56bccc5c38214375a210c071d6185c5977c50cda62eaa0d9412cfb
+
+FAIL: TestLocal/jsDeclarationsTypedefFunction.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/jsdoc/declarations/jsDeclarationsTypedefFunction.ts:
+        runtime error: slice bounds out of range [14:13]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/jsdocImplements_properties.ts/symbol
+baseline: conformance/jsdocImplements_properties.symbols
+reference: ff1ac370d16c885c9307073693153cecb0abdce45ccd9894878d7f2a7f62c4ed
+actual: ff1ac370d16c885c9307073693153cecb0abdce45ccd9894878d7f2a7f62c4ed
+
+PASS: TestLocal/jsdocLinkTag4.ts/symbol
+baseline: conformance/jsdocLinkTag4.symbols
+reference: 05bd1ae6b96728941d4d96b99e6fd702c1c60f927bbcd062f292b41bb4d9bdc6
+actual: 05bd1ae6b96728941d4d96b99e6fd702c1c60f927bbcd062f292b41bb4d9bdc6
+
+PASS: TestLocal/jsdocTemplateTagDefault.ts/symbol
+baseline: conformance/jsdocTemplateTagDefault.symbols
+reference: 8178c09027148839970cbfdddac8b73588dab7a0982db163d39c23f1e749244c
+actual: 8178c09027148839970cbfdddac8b73588dab7a0982db163d39c23f1e749244c
+
+PASS: TestLocal/jsdocTypeDefAtStartOfFile.ts/symbol
+baseline: conformance/jsdocTypeDefAtStartOfFile.symbols
+reference: c459b42ca9597df54967faaa04ce2eeb4a931d2ef891f1e55622f9ba4cc965ba
+actual: c459b42ca9597df54967faaa04ce2eeb4a931d2ef891f1e55622f9ba4cc965ba
+
+FAIL: TestLocal/jsdocTypeFromChainedAssignment.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/jsdoc/jsdocTypeFromChainedAssignment.ts:
+        runtime error: slice bounds out of range [8:7]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/jsxAndTypeAssertion.tsx/symbol
+baseline: conformance/jsxAndTypeAssertion.symbols
+reference: 4a75fd36e3cb0716bf0568858122426665a932a476c258197933720df600c2f1
+actual: 4a75fd36e3cb0716bf0568858122426665a932a476c258197933720df600c2f1
+
+FAIL: TestLocal/legacyDecorators-contextualTypes.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/decorators/legacyDecorators-contextualTypes.ts:
+        runtime error: slice bounds out of range [2:1]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/logicalAssignment10.ts_target=es2015/symbol
+baseline: conformance/logicalAssignment10(target=es2015).symbols
+reference: a3029a1581e888d411911cff5c367251ca529e53b4c601a4c3dfd7d870ceca40
+actual: a3029a1581e888d411911cff5c367251ca529e53b4c601a4c3dfd7d870ceca40
+
+PASS: TestLocal/logicalAssignment11.ts_target=es2015/symbol
+baseline: conformance/logicalAssignment11(target=es2015).symbols
+reference: a0fd3199d7fecd8b58f03b19633d52b12764c49fc09db88d755b734cc813b4ce
+actual: a0fd3199d7fecd8b58f03b19633d52b12764c49fc09db88d755b734cc813b4ce
+
+PASS: TestLocal/logicalNotOperatorWithNumberType.ts/symbol
+baseline: conformance/logicalNotOperatorWithNumberType.symbols
+reference: 407547a9b4e21b9f9abacf84b2cf37c0e262032f3e492d4bb9124e2cd662d393
+actual: 407547a9b4e21b9f9abacf84b2cf37c0e262032f3e492d4bb9124e2cd662d393
+
+PASS: TestLocal/mergeThreeInterfaces.ts/symbol
+baseline: conformance/mergeThreeInterfaces.symbols
+reference: ee11b4b17b24ac925f4433b7d09f0fb8a48727667cf251543c4f107acc1929a5
+actual: ee11b4b17b24ac925f4433b7d09f0fb8a48727667cf251543c4f107acc1929a5
+
+FAIL: TestLocal/mixinAccessors4.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/classes/mixinAccessors4.ts:
+        runtime error: slice bounds out of range [12:10]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/moduleExportAlias3.ts/symbol
+baseline: conformance/moduleExportAlias3.symbols
+reference: 57a4f6f246a17017c289d654ef0b5c7aa16d48d8897a8aa74a51f8483b46a6c3
+actual: 57a4f6f246a17017c289d654ef0b5c7aa16d48d8897a8aa74a51f8483b46a6c3
+
+PASS: TestLocal/moduleExportAliasUnknown.ts/symbol
+baseline: conformance/moduleExportAliasUnknown.symbols
+reference: 6225d8f686a07926f455eefcbe8bf21b9a125d3413328416d7ea80a8569b5ebb
+actual: 6225d8f686a07926f455eefcbe8bf21b9a125d3413328416d7ea80a8569b5ebb
+
+PASS: TestLocal/moduleExportDuplicateAlias2.ts/symbol
+baseline: conformance/moduleExportDuplicateAlias2.symbols
+reference: b73df4bcb611a4bae6e93ce6e4ed38b3163842ed2109062956c07d320231aa03
+actual: b73df4bcb611a4bae6e93ce6e4ed38b3163842ed2109062956c07d320231aa03
+
+PASS: TestLocal/moduleExportsAliasLoop1.ts/symbol
+baseline: conformance/moduleExportsAliasLoop1.symbols
+reference: b62840e7a7b965dcfdd150355197ba6aa9ae41ae3031f863a880ace32e16ccd9
+actual: b62840e7a7b965dcfdd150355197ba6aa9ae41ae3031f863a880ace32e16ccd9
+
+PASS: TestLocal/moduleResolutionWithoutExtension5.ts/symbol
+baseline: conformance/moduleResolutionWithoutExtension5.symbols
+reference: f4a401f67b9e881285b540db48f4042785ac660cbac04c09b9046c196d4e5c12
+actual: f4a401f67b9e881285b540db48f4042785ac660cbac04c09b9046c196d4e5c12
+
+PASS: TestLocal/multipleExportDefault1.ts/symbol
+baseline: conformance/multipleExportDefault1.symbols
+reference: c0070cbd110838d1f8398ef8ef2ef51ce176ce675b07eceb5b652524551bed5c
+actual: c0070cbd110838d1f8398ef8ef2ef51ce176ce675b07eceb5b652524551bed5c
+
+PASS: TestLocal/nameCollision.ts/symbol
+baseline: conformance/nameCollision.symbols
+reference: 329e4a3e13f4fea04ab82528f7e07173b801c3854a61f70c6a8ff31dbd72f174
+actual: 329e4a3e13f4fea04ab82528f7e07173b801c3854a61f70c6a8ff31dbd72f174
+
+PASS: TestLocal/negateOperatorWithStringType.ts/symbol
+baseline: conformance/negateOperatorWithStringType.symbols
+reference: 794fd2d0ebd3ef76bd7d9819e93903135e97bd307653f11884af3f5233eba86c
+actual: 794fd2d0ebd3ef76bd7d9819e93903135e97bd307653f11884af3f5233eba86c
+
+FAIL: TestLocal/noInfer.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/noInfer.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/noInfer.symbols
+reference: 6018c6f874470235bc815778270ac42b10a528bf92e26d2c051b43bdf36a8033
+actual: e356f391abbb43c27c19473e9c5e57cb57ad321fa89ce409814839c1ceea7485
+--- expected/conformance/noInfer.symbols
++++ actual/conformance/noInfer.symbols
+@@ -46,23 +46,23 @@
+ 
+ type T20<T> = NoInfer<NoInfer<T>>;
+ >T20 : Symbol(T20, Decl(noInfer.ts, 13, 34))
++>NoInfer : Symbol(NoInfer, Decl(lib.es5.d.ts, --, --))
++>NoInfer : Symbol(NoInfer, Decl(lib.es5.d.ts, --, --))
+ >T : Symbol(T, Decl(noInfer.ts, 17, 9))
+->NoInfer : Symbol(NoInfer, Decl(lib.es5.d.ts, --, --))
+->NoInfer : Symbol(NoInfer, Decl(lib.es5.d.ts, --, --))
+ >T : Symbol(T, Decl(noInfer.ts, 17, 9))
+ 
+ type T21<T> = NoInfer<NoInfer<T> & string>;
+ >T21 : Symbol(T21, Decl(noInfer.ts, 17, 34))
++>NoInfer : Symbol(NoInfer, Decl(lib.es5.d.ts, --, --))
++>NoInfer : Symbol(NoInfer, Decl(lib.es5.d.ts, --, --))
+ >T : Symbol(T, Decl(noInfer.ts, 18, 9))
+->NoInfer : Symbol(NoInfer, Decl(lib.es5.d.ts, --, --))
+->NoInfer : Symbol(NoInfer, Decl(lib.es5.d.ts, --, --))
+ >T : Symbol(T, Decl(noInfer.ts, 18, 9))
+ 
+ type T22<T> = NoInfer<NoInfer<T> & string[]>;
+ >T22 : Symbol(T22, Decl(noInfer.ts, 18, 43))
++>NoInfer : Symbol(NoInfer, Decl(lib.es5.d.ts, --, --))
++>NoInfer : Symbol(NoInfer, Decl(lib.es5.d.ts, --, --))
+ >T : Symbol(T, Decl(noInfer.ts, 19, 9))
+->NoInfer : Symbol(NoInfer, Decl(lib.es5.d.ts, --, --))
+->NoInfer : Symbol(NoInfer, Decl(lib.es5.d.ts, --, --))
+ >T : Symbol(T, Decl(noInfer.ts, 19, 9))
+ 
+ // keyof NoInfer<T> is transformed into NoInfer<keyof T>
+@@ -75,8 +75,8 @@
+ 
+ type T31<T> = keyof NoInfer<T>;
+ >T31 : Symbol(T31, Decl(noInfer.ts, 23, 51))
++>NoInfer : Symbol(NoInfer, Decl(lib.es5.d.ts, --, --))
+ >T : Symbol(T, Decl(noInfer.ts, 24, 9))
+->NoInfer : Symbol(NoInfer, Decl(lib.es5.d.ts, --, --))
+ >T : Symbol(T, Decl(noInfer.ts, 24, 9))
+ 
+ type T32 = { [K in keyof NoInfer<{ a: string, b: string }>]: K };
+@@ -213,16 +213,16 @@
+ 
+ declare function invoke<T, R>(func: (value: T) => R, value: NoInfer<T>): R;
+ >invoke : Symbol(invoke, Decl(noInfer.ts, 52, 25))
++>R : Symbol(R, Decl(noInfer.ts, 54, 26))
+ >T : Symbol(T, Decl(noInfer.ts, 54, 24))
+ >R : Symbol(R, Decl(noInfer.ts, 54, 26))
+ >func : Symbol(func, Decl(noInfer.ts, 54, 30))
++>R : Symbol(R, Decl(noInfer.ts, 54, 26))
+ >value : Symbol(value, Decl(noInfer.ts, 54, 37))
+ >T : Symbol(T, Decl(noInfer.ts, 54, 24))
+->R : Symbol(R, Decl(noInfer.ts, 54, 26))
+ >value : Symbol(value, Decl(noInfer.ts, 54, 52))
+ >NoInfer : Symbol(NoInfer, Decl(lib.es5.d.ts, --, --))
+ >T : Symbol(T, Decl(noInfer.ts, 54, 24))
+->R : Symbol(R, Decl(noInfer.ts, 54, 26))
+ 
+ declare function test(value: { x: number; }): number;
+ >test : Symbol(test, Decl(noInfer.ts, 54, 75))
+@@ -242,8 +242,8 @@
+ 
+ type Component<Props> = { props: Props; };
+ >Component : Symbol(Component, Decl(noInfer.ts, 58, 21))
++>props : Symbol(props, Decl(noInfer.ts, 60, 25))
+ >Props : Symbol(Props, Decl(noInfer.ts, 60, 15))
+->props : Symbol(props, Decl(noInfer.ts, 60, 25))
+ >Props : Symbol(Props, Decl(noInfer.ts, 60, 15))
+ 
+ declare function doWork<Props>(Component: Component<Props>, props: NoInfer<Props>): void;
+@@ -273,19 +273,19 @@
+ declare function mutate<T>(callback: (a: NoInfer<T>, b: number) => T): T;
+ >mutate : Symbol(mutate, Decl(noInfer.ts, 65, 17))
+ >T : Symbol(T, Decl(noInfer.ts, 67, 24))
++>T : Symbol(T, Decl(noInfer.ts, 67, 24))
+ >callback : Symbol(callback, Decl(noInfer.ts, 67, 27))
++>T : Symbol(T, Decl(noInfer.ts, 67, 24))
+ >a : Symbol(a, Decl(noInfer.ts, 67, 38))
+ >NoInfer : Symbol(NoInfer, Decl(lib.es5.d.ts, --, --))
+ >T : Symbol(T, Decl(noInfer.ts, 67, 24))
+ >b : Symbol(b, Decl(noInfer.ts, 67, 52))
+->T : Symbol(T, Decl(noInfer.ts, 67, 24))
+->T : Symbol(T, Decl(noInfer.ts, 67, 24))
+ 
+ const mutate1 = mutate((a, b) => b);
+ >mutate1 : Symbol(mutate1, Decl(noInfer.ts, 68, 5))
+ >mutate : Symbol(mutate, Decl(noInfer.ts, 65, 17))
++>b : Symbol(b, Decl(noInfer.ts, 68, 26))
+ >a : Symbol(a, Decl(noInfer.ts, 68, 24))
+->b : Symbol(b, Decl(noInfer.ts, 68, 26))
+ >b : Symbol(b, Decl(noInfer.ts, 68, 26))
+ 
+ declare class ExampleClass<T> {}
+
+PASS: TestLocal/nodeModulesAllowJsConditionalPackageExports.ts_module=node20/symbol
+baseline: conformance/nodeModulesAllowJsConditionalPackageExports(module=node20).symbols
+reference: 4da494152e9d1fa5af5e9a197ffc801d183f6ca669ed248ce52263f7745ea0b5
+actual: 4da494152e9d1fa5af5e9a197ffc801d183f6ca669ed248ce52263f7745ea0b5
+
+PASS: TestLocal/nodeModulesAllowJsPackageImports.ts_module=node18/symbol
+baseline: conformance/nodeModulesAllowJsPackageImports(module=node18).symbols
+reference: 38406d278f6f92d286f921f7ecfd11a092c7d11427bf7da9127194353de35fdc
+actual: 38406d278f6f92d286f921f7ecfd11a092c7d11427bf7da9127194353de35fdc
+
+PASS: TestLocal/nodeModulesAllowJsPackagePatternExports.ts_module=node20/symbol
+baseline: conformance/nodeModulesAllowJsPackagePatternExports(module=node20).symbols
+reference: 66b84d11064631d42e99219f97fcc391c1d320eb0009100f0ca50ba4d5017eb6
+actual: 66b84d11064631d42e99219f97fcc391c1d320eb0009100f0ca50ba4d5017eb6
+
+PASS: TestLocal/nodeModulesAllowJsPackagePatternExportsExclude.ts_module=node16/symbol
+baseline: conformance/nodeModulesAllowJsPackagePatternExportsExclude(module=node16).symbols
+reference: 07a414724f6192ca48cba84a89909a3c3a2e9e0394943d7939fff01e568339c1
+actual: 07a414724f6192ca48cba84a89909a3c3a2e9e0394943d7939fff01e568339c1
+
+PASS: TestLocal/nodeModulesCjsFormatFileAlwaysHasDefault.ts_module=nodenext/symbol
+baseline: conformance/nodeModulesCjsFormatFileAlwaysHasDefault(module=nodenext).symbols
+reference: 141de76c01709248742489c3f9a46e4eaafb42849a59c970d7d46d1c1326b6e9
+actual: 141de76c01709248742489c3f9a46e4eaafb42849a59c970d7d46d1c1326b6e9
+
+PASS: TestLocal/nodeModulesForbidenSyntax.ts_module=nodenext/symbol
+baseline: conformance/nodeModulesForbidenSyntax(module=nodenext).symbols
+reference: feea6f0b48e4255b1b5d860d455aa81391ef8f2141a0aad7ade4df4f3ea2825f
+actual: feea6f0b48e4255b1b5d860d455aa81391ef8f2141a0aad7ade4df4f3ea2825f
+
+PASS: TestLocal/nodeModulesImportAssertions.ts_module=node16/symbol
+baseline: conformance/nodeModulesImportAssertions(module=node16).symbols
+reference: 95c13ba5e66ccc859f28b3a7a3b9acd74db16ae651475b90ba8861793868ce1a
+actual: 95c13ba5e66ccc859f28b3a7a3b9acd74db16ae651475b90ba8861793868ce1a
+
+PASS: TestLocal/nodeModulesImportAttributesModeDeclarationEmit2.ts_module=node16/symbol
+baseline: conformance/nodeModulesImportAttributesModeDeclarationEmit2(module=node16).symbols
+reference: 48b8f37a92b738676b1164c9832b090e5c64ace5b28571d10a0e4cc6c653c84f
+actual: 48b8f37a92b738676b1164c9832b090e5c64ace5b28571d10a0e4cc6c653c84f
+
+PASS: TestLocal/nodeModulesImportHelpersCollisions2.ts_module=node20/symbol
+baseline: conformance/nodeModulesImportHelpersCollisions2(module=node20).symbols
+reference: 6c31efa9f87e82f1e4aae9aa8a4d499caa3e973337af9f2213d3d09ccaade3db
+actual: 6c31efa9f87e82f1e4aae9aa8a4d499caa3e973337af9f2213d3d09ccaade3db
+
+PASS: TestLocal/nodeModulesImportHelpersCollisions3.ts_module=node20,target=es2015/symbol
+baseline: conformance/nodeModulesImportHelpersCollisions3(module=node20,target=es2015).symbols
+reference: 90260a706bb66e3097e2011d360a1a737d8f96358c9d54f455ab5b1e997f998d
+actual: 90260a706bb66e3097e2011d360a1a737d8f96358c9d54f455ab5b1e997f998d
+
+PASS: TestLocal/nodeModulesImportModeDeclarationEmit1.ts_module=node16/symbol
+baseline: conformance/nodeModulesImportModeDeclarationEmit1(module=node16).symbols
+reference: 9354530906f3be2db5638f112295c965ce59f46ae6e4dacbc5de559cad9541b6
+actual: 9354530906f3be2db5638f112295c965ce59f46ae6e4dacbc5de559cad9541b6
+
+PASS: TestLocal/nodeModulesImportModeDeclarationEmit1.ts_module=node18/symbol
+baseline: conformance/nodeModulesImportModeDeclarationEmit1(module=node18).symbols
+reference: 9354530906f3be2db5638f112295c965ce59f46ae6e4dacbc5de559cad9541b6
+actual: 9354530906f3be2db5638f112295c965ce59f46ae6e4dacbc5de559cad9541b6
+
+PASS: TestLocal/nodeModulesImportTypeModeDeclarationEmit1.ts_module=node18/symbol
+baseline: conformance/nodeModulesImportTypeModeDeclarationEmit1(module=node18).symbols
+reference: a516313fe056080368583deae423eb804b750f1b2ea8db61929e6884c8d1b1c3
+actual: a516313fe056080368583deae423eb804b750f1b2ea8db61929e6884c8d1b1c3
+
+PASS: TestLocal/nodeModulesSynchronousCallErrors.ts_module=node20/symbol
+baseline: conformance/nodeModulesSynchronousCallErrors(module=node20).symbols
+reference: d384c64b94aa892e1a1cfb08ecfaee481bdeaa318220e0a61e80ef678d2ee364
+actual: d384c64b94aa892e1a1cfb08ecfaee481bdeaa318220e0a61e80ef678d2ee364
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeDeclarationEmit3.ts_module=node16/symbol
+baseline: conformance/nodeModulesTripleSlashReferenceModeDeclarationEmit3(module=node16).symbols
+reference: 5768db920fed15283b94c356f90f9a7983a2ef038986ed7b3b3f216eeb7cae5a
+actual: 5768db920fed15283b94c356f90f9a7983a2ef038986ed7b3b3f216eeb7cae5a
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeDeclarationEmit5.ts_module=node20/symbol
+baseline: conformance/nodeModulesTripleSlashReferenceModeDeclarationEmit5(module=node20).symbols
+reference: 4f7a1c439705427d192cfa0681caa5ca9b5a9b0d76c15f43f1c74b47c9b19bcf
+actual: 4f7a1c439705427d192cfa0681caa5ca9b5a9b0d76c15f43f1c74b47c9b19bcf
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeDeclarationEmit6.ts_module=node20/symbol
+baseline: conformance/nodeModulesTripleSlashReferenceModeDeclarationEmit6(module=node20).symbols
+reference: c59e379ad1a68804403e1c70f941e7701b8074101492f06251fffd7ea39d0091
+actual: c59e379ad1a68804403e1c70f941e7701b8074101492f06251fffd7ea39d0091
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeOverride2.ts_module=node16/symbol
+baseline: conformance/nodeModulesTripleSlashReferenceModeOverride2(module=node16).symbols
+reference: e6b8bdc2da5748083cca796a178cb33bfeffd0d8e939fd3eaa449c5ae10e56c8
+actual: e6b8bdc2da5748083cca796a178cb33bfeffd0d8e939fd3eaa449c5ae10e56c8
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeOverride4.ts_module=node20/symbol
+baseline: conformance/nodeModulesTripleSlashReferenceModeOverride4(module=node20).symbols
+reference: 8581196f3cd80968271a66716fc0b4711ac7756c62ace97341923406d8bda884
+actual: 8581196f3cd80968271a66716fc0b4711ac7756c62ace97341923406d8bda884
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeOverride5.ts_module=nodenext/symbol
+baseline: conformance/nodeModulesTripleSlashReferenceModeOverride5(module=nodenext).symbols
+reference: e42e2fb8f1ba0b100b5ff5da312318f10c9f1199d3005ec24f9d582847f11a90
+actual: e42e2fb8f1ba0b100b5ff5da312318f10c9f1199d3005ec24f9d582847f11a90
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeOverrideModeError.ts_module=node20/symbol
+baseline: conformance/nodeModulesTripleSlashReferenceModeOverrideModeError(module=node20).symbols
+reference: c236ddcca41888c3b9fa974512cb2d805d2642551fb243949de16f14af597792
+actual: c236ddcca41888c3b9fa974512cb2d805d2642551fb243949de16f14af597792
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeOverrideModeError.ts_module=nodenext/symbol
+baseline: conformance/nodeModulesTripleSlashReferenceModeOverrideModeError(module=nodenext).symbols
+reference: c236ddcca41888c3b9fa974512cb2d805d2642551fb243949de16f14af597792
+actual: c236ddcca41888c3b9fa974512cb2d805d2642551fb243949de16f14af597792
+
+PASS: TestLocal/nodePackageSelfName.ts_module=node20/symbol
+baseline: conformance/nodePackageSelfName(module=node20).symbols
+reference: 79e78e253e8cf581ece6a4b0ba4a3a308e1c44a1efdd60ee9553964c3985a7ec
+actual: 79e78e253e8cf581ece6a4b0ba4a3a308e1c44a1efdd60ee9553964c3985a7ec
+
+PASS: TestLocal/nullAssignedToUndefined.ts/symbol
+baseline: conformance/nullAssignedToUndefined.symbols
+reference: 975f071fb2ece429af2297510670f96d86e627aa7eeb8521652934c5ec344188
+actual: 975f071fb2ece429af2297510670f96d86e627aa7eeb8521652934c5ec344188
+
+FAIL: TestLocal/nullOrUndefinedTypeGuardIsOrderIndependent.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/expressions/typeGuards/nullOrUndefinedTypeGuardIsOrderIndependent.ts:
+        runtime error: slice bounds out of range [11:1]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/objectLiteralShorthandPropertiesErrorFromNoneExistingIdentifier.ts/symbol
+baseline: conformance/objectLiteralShorthandPropertiesErrorFromNoneExistingIdentifier.symbols
+reference: cbc1a2211ac1e3ce21deb5e3a6ac1a40c4360ec0e1d35a0c584c44a3b29318d5
+actual: cbc1a2211ac1e3ce21deb5e3a6ac1a40c4360ec0e1d35a0c584c44a3b29318d5
+
+FAIL: TestLocal/objectRest2.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/types/rest/objectRest2.ts:
+        runtime error: slice bounds out of range [8:5]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/optionalBindingParameters2.ts/symbol
+baseline: conformance/optionalBindingParameters2.symbols
+reference: 07b88ab72480ccde979f7d6ec20eae9ae6905a9be6c29887588fc79a33b0b4c2
+actual: 07b88ab72480ccde979f7d6ec20eae9ae6905a9be6c29887588fc79a33b0b4c2
+
+PASS: TestLocal/optionalBindingParameters3.ts/symbol
+baseline: conformance/optionalBindingParameters3.symbols
+reference: e9c4ec0114e3333ffe19876fbb0d2ba2de7152b139ea463188bd660f290cc3ba
+actual: e9c4ec0114e3333ffe19876fbb0d2ba2de7152b139ea463188bd660f290cc3ba
+
+PASS: TestLocal/override5.ts/symbol
+baseline: conformance/override5.symbols
+reference: 0660bb2089c6e52878449d5c3adb98be305cb946b1546f55c207b28a3cc86791
+actual: 0660bb2089c6e52878449d5c3adb98be305cb946b1546f55c207b28a3cc86791
+
+PASS: TestLocal/override_js4.ts/symbol
+baseline: conformance/override_js4.symbols
+reference: acef3aa0a669cc660cd44b93677b006dbe29c5fa1dfa5aaa4e0fa59e6c3e4b95
+actual: acef3aa0a669cc660cd44b93677b006dbe29c5fa1dfa5aaa4e0fa59e6c3e4b95
+
+PASS: TestLocal/parseThrowsTag.ts/symbol
+baseline: conformance/parseThrowsTag.symbols
+reference: 78fa720b59345510210161bde7d56ef1e9d593714e67637bf965a45a60ec0268
+actual: 78fa720b59345510210161bde7d56ef1e9d593714e67637bf965a45a60ec0268
+
+PASS: TestLocal/parser.numericSeparators.octal.ts/symbol
+baseline: conformance/parser.numericSeparators.octal.symbols
+reference: 44f56b8d3e0614f910976e68bed9e78f9e32d76ef76bf9d32edcfc2b7af7a2c9
+actual: 44f56b8d3e0614f910976e68bed9e78f9e32d76ef76bf9d32edcfc2b7af7a2c9
+
+PASS: TestLocal/parser0_004152.ts/symbol
+baseline: conformance/parser0_004152.symbols
+reference: 452ab59dc296bdbf8c9fab484d1c2ed94ffcc0396777087bc49a87695beb53ef
+actual: 452ab59dc296bdbf8c9fab484d1c2ed94ffcc0396777087bc49a87695beb53ef
+
+PASS: TestLocal/parser509546.ts/symbol
+baseline: conformance/parser509546.symbols
+reference: 6c89843b2afcb049bb5fd228057ec4aadeea55c1e19efbd09d41e6b9e8c9bcc4
+actual: 6c89843b2afcb049bb5fd228057ec4aadeea55c1e19efbd09d41e6b9e8c9bcc4
+
+PASS: TestLocal/parser579071.ts/symbol
+baseline: conformance/parser579071.symbols
+reference: f428e7a7f75518540f583fe3906560db5404805c2cd5dfe6d674fbc8d9d19c10
+actual: f428e7a7f75518540f583fe3906560db5404805c2cd5dfe6d674fbc8d9d19c10
+
+PASS: TestLocal/parser596700.ts/symbol
+baseline: conformance/parser596700.symbols
+reference: baf17861dd1aae644a70860f6ff6005185bad5fbbea5d5b77e4bbc57a7d6906c
+actual: baf17861dd1aae644a70860f6ff6005185bad5fbbea5d5b77e4bbc57a7d6906c
+
+PASS: TestLocal/parser768531.ts/symbol
+baseline: conformance/parser768531.symbols
+reference: 9600883cb7c21aba4a66d7a8b1abade33bd2730e95b20ddf5e4aca56f388b6f7
+actual: 9600883cb7c21aba4a66d7a8b1abade33bd2730e95b20ddf5e4aca56f388b6f7
+
+PASS: TestLocal/parserAmbiguity2.ts/symbol
+baseline: conformance/parserAmbiguity2.symbols
+reference: 34ac5bda4d7f54e9878d7ee05ce496d575a44b3b571f754728803fa5536d9fff
+actual: 34ac5bda4d7f54e9878d7ee05ce496d575a44b3b571f754728803fa5536d9fff
+
+PASS: TestLocal/parserArrayLiteralExpression10.ts/symbol
+baseline: conformance/parserArrayLiteralExpression10.symbols
+reference: 83bd5255f96c280f8a7d1817b0839d59c3de4b915e045a32dbd7a5a5512a16c6
+actual: 83bd5255f96c280f8a7d1817b0839d59c3de4b915e045a32dbd7a5a5512a16c6
+
+PASS: TestLocal/parserArrayLiteralExpression12.ts/symbol
+baseline: conformance/parserArrayLiteralExpression12.symbols
+reference: c999494e1a8dfe8077d567e6011fc89c28f046f829831f333f2bb6c79aada350
+actual: c999494e1a8dfe8077d567e6011fc89c28f046f829831f333f2bb6c79aada350
+
+PASS: TestLocal/parserArrayLiteralExpression13.ts/symbol
+baseline: conformance/parserArrayLiteralExpression13.symbols
+reference: 5f35d58d282264c5745df76e04d9acb39d95cbe03bc542eb23b5a95aa7f005f9
+actual: 5f35d58d282264c5745df76e04d9acb39d95cbe03bc542eb23b5a95aa7f005f9
+
+PASS: TestLocal/parserArrayLiteralExpression9.ts/symbol
+baseline: conformance/parserArrayLiteralExpression9.symbols
+reference: 1577f427c536fd66871c163ac82a917bf7a0bfd5ca7670382a8e9ef343445b84
+actual: 1577f427c536fd66871c163ac82a917bf7a0bfd5ca7670382a8e9ef343445b84
+
+PASS: TestLocal/parserArrowFunctionExpression5.ts/symbol
+baseline: conformance/parserArrowFunctionExpression5.symbols
+reference: a51dc98ad0fe24764021613055ad816b98b109b7a7c40856b06285dcb8e78d40
+actual: a51dc98ad0fe24764021613055ad816b98b109b7a7c40856b06285dcb8e78d40
+
+PASS: TestLocal/parserClass1.ts/symbol
+baseline: conformance/parserClass1.symbols
+reference: 3eccfe310f97346d381f8ac56caa8f88d822ec044c38724535ad0b0748025bc1
+actual: 3eccfe310f97346d381f8ac56caa8f88d822ec044c38724535ad0b0748025bc1
+
+PASS: TestLocal/parserClassDeclaration11.ts/symbol
+baseline: conformance/parserClassDeclaration11.symbols
+reference: 1c57cc97b9f4b82a72e8a297eae3b91a9da2954daeb4e0c439d827b28356cdbb
+actual: 1c57cc97b9f4b82a72e8a297eae3b91a9da2954daeb4e0c439d827b28356cdbb
+
+PASS: TestLocal/parserClassDeclaration7.d.ts/symbol
+baseline: conformance/parserClassDeclaration7.d.symbols
+reference: 8b6d94db1db789d5209ea0b24850fc8997473d887284872bd1ca7211eb494885
+actual: 8b6d94db1db789d5209ea0b24850fc8997473d887284872bd1ca7211eb494885
+
+PASS: TestLocal/parserClassDeclaration8.ts/symbol
+baseline: conformance/parserClassDeclaration8.symbols
+reference: b4ff10ec9ec43ae7e33b294d01aeecff48191b72bacb36466994671ab1ae6407
+actual: b4ff10ec9ec43ae7e33b294d01aeecff48191b72bacb36466994671ab1ae6407
+
+PASS: TestLocal/parserCommaInTypeMemberList1.ts/symbol
+baseline: conformance/parserCommaInTypeMemberList1.symbols
+reference: 32cff1e15ba25215adcef357415c3fb2276204741156c65467972eabed5c83a5
+actual: 32cff1e15ba25215adcef357415c3fb2276204741156c65467972eabed5c83a5
+
+PASS: TestLocal/parserComputedPropertyName13.ts/symbol
+baseline: conformance/parserComputedPropertyName13.symbols
+reference: a5df2571f29db94831d4b79fcc82fc474c04e71e2b0ba28b388457c256059c98
+actual: a5df2571f29db94831d4b79fcc82fc474c04e71e2b0ba28b388457c256059c98
+
+PASS: TestLocal/parserComputedPropertyName30.ts/symbol
+baseline: conformance/parserComputedPropertyName30.symbols
+reference: 4de72016d9a789b426223b75dc77d5e7742573e202527fe9d68d56fc19de7cfe
+actual: 4de72016d9a789b426223b75dc77d5e7742573e202527fe9d68d56fc19de7cfe
+
+PASS: TestLocal/parserConstructorAmbiguity1.ts/symbol
+baseline: conformance/parserConstructorAmbiguity1.symbols
+reference: 0efa2ef4c0b7c4345111dd9c4e21ce82fb074fa21b187ea26c5d5b231a97f673
+actual: 0efa2ef4c0b7c4345111dd9c4e21ce82fb074fa21b187ea26c5d5b231a97f673
+
+PASS: TestLocal/parserES5ComputedPropertyName1.ts_target=es2015/symbol
+baseline: conformance/parserES5ComputedPropertyName1(target=es2015).symbols
+reference: fe1b4c9ee4c7ab8cdf3dd32955032c99a703df14182f2193bb350231ec060206
+actual: fe1b4c9ee4c7ab8cdf3dd32955032c99a703df14182f2193bb350231ec060206
+
+PASS: TestLocal/parserES5ForOfStatement18.ts_target=es2015/symbol
+baseline: conformance/parserES5ForOfStatement18(target=es2015).symbols
+reference: 532f0836490b541dc689726f0b8718d5c01b6e05ff9fb08dbcd3b97c2aaa4afa
+actual: 532f0836490b541dc689726f0b8718d5c01b6e05ff9fb08dbcd3b97c2aaa4afa
+
+PASS: TestLocal/parserES5ForOfStatement9.ts_target=es2015/symbol
+baseline: conformance/parserES5ForOfStatement9(target=es2015).symbols
+reference: 94a175cb7b36dddd87e4e734bf18404d0802c30529284054499118ef57976122
+actual: 94a175cb7b36dddd87e4e734bf18404d0802c30529284054499118ef57976122
+
+PASS: TestLocal/parserEnum5.ts/symbol
+baseline: conformance/parserEnum5.symbols
+reference: 245b3c46dd84f4b96d15fd0816f1baa3330d6cea6c6171eca031fc0308c6dcdc
+actual: 245b3c46dd84f4b96d15fd0816f1baa3330d6cea6c6171eca031fc0308c6dcdc
+
+PASS: TestLocal/parserErrorRecoveryArrayLiteralExpression1.ts/symbol
+baseline: conformance/parserErrorRecoveryArrayLiteralExpression1.symbols
+reference: 25e9b52d67b3e7431001889e1b11bc02dabcda664a1f9d16b72dbd364971fa09
+actual: 25e9b52d67b3e7431001889e1b11bc02dabcda664a1f9d16b72dbd364971fa09
+
+PASS: TestLocal/parserErrorRecovery_ArgumentList2.ts/symbol
+baseline: conformance/parserErrorRecovery_ArgumentList2.symbols
+reference: 9a3da2e4a5ab67336188bff8f58c2617486a37a41ea27b82ace53c64bfb35768
+actual: 9a3da2e4a5ab67336188bff8f58c2617486a37a41ea27b82ace53c64bfb35768
+
+PASS: TestLocal/parserErrorRecovery_IncompleteMemberVariable2.ts/symbol
+baseline: conformance/parserErrorRecovery_IncompleteMemberVariable2.symbols
+reference: ae67f4877a5c35ff9700d6304ca76bf5c1c4dc3d043798c5907fd539be2d09c6
+actual: ae67f4877a5c35ff9700d6304ca76bf5c1c4dc3d043798c5907fd539be2d09c6
+
+PASS: TestLocal/parserErrorRecovery_ParameterList4.ts/symbol
+baseline: conformance/parserErrorRecovery_ParameterList4.symbols
+reference: a1d09d3d17e527846b65007e647df8349d048c9343c8c8a0c454157c4377678e
+actual: a1d09d3d17e527846b65007e647df8349d048c9343c8c8a0c454157c4377678e
+
+PASS: TestLocal/parserExportAsFunctionIdentifier.ts/symbol
+baseline: conformance/parserExportAsFunctionIdentifier.symbols
+reference: 278afc04cc8f2527ba23a4ae2f1e1d151ce75805d997c55296a5de4acd9f51af
+actual: 278afc04cc8f2527ba23a4ae2f1e1d151ce75805d997c55296a5de4acd9f51af
+
+PASS: TestLocal/parserExpressionStatement1.d.ts/symbol
+baseline: conformance/parserExpressionStatement1.d.symbols
+reference: 7add7c05511e6416d6371a019903891f0ae90d52d3ac86eef78e02ec9b681898
+actual: 7add7c05511e6416d6371a019903891f0ae90d52d3ac86eef78e02ec9b681898
+
+PASS: TestLocal/parserForOfStatement15.ts/symbol
+baseline: conformance/parserForOfStatement15.symbols
+reference: 0bb3a67f3d6b7380be6859f3455e469d497127abeb1dd1bb877c7aa65ddb2b1f
+actual: 0bb3a67f3d6b7380be6859f3455e469d497127abeb1dd1bb877c7aa65ddb2b1f
+
+PASS: TestLocal/parserForOfStatement8.ts/symbol
+baseline: conformance/parserForOfStatement8.symbols
+reference: c49afcde2a3d724eefef4d4f54527488c4ca46a7f36f619e86fc0327d8cd1f1c
+actual: c49afcde2a3d724eefef4d4f54527488c4ca46a7f36f619e86fc0327d8cd1f1c
+
+PASS: TestLocal/parserForStatement6.ts/symbol
+baseline: conformance/parserForStatement6.symbols
+reference: 07ef1a63c475bc0822928a05e64bc2109c7f6c8f7d859b2008e80dc00b619473
+actual: 07ef1a63c475bc0822928a05e64bc2109c7f6c8f7d859b2008e80dc00b619473
+
+PASS: TestLocal/parserFunctionDeclaration4.ts/symbol
+baseline: conformance/parserFunctionDeclaration4.symbols
+reference: 3b8aa21e0904f0cbd361835e3b376545c21ae628f08cb45dc8ef5eefa654b70e
+actual: 3b8aa21e0904f0cbd361835e3b376545c21ae628f08cb45dc8ef5eefa654b70e
+
+PASS: TestLocal/parserFunctionDeclaration7.ts/symbol
+baseline: conformance/parserFunctionDeclaration7.symbols
+reference: c31f462f5a778d38aa26399ff11b971527fb4b4a7ebb1e5ca1ba22d3951bdbcc
+actual: c31f462f5a778d38aa26399ff11b971527fb4b4a7ebb1e5ca1ba22d3951bdbcc
+
+PASS: TestLocal/parserGenericConstraint4.ts/symbol
+baseline: conformance/parserGenericConstraint4.symbols
+reference: 29ad072589abfd64c2d4ce657852f6c6c56b4daebda7a085baa2cf93ba077712
+actual: 29ad072589abfd64c2d4ce657852f6c6c56b4daebda7a085baa2cf93ba077712
+
+PASS: TestLocal/parserGenericConstraint6.ts/symbol
+baseline: conformance/parserGenericConstraint6.symbols
+reference: 9db87e8137834e73ea4ecf23b5e482534977545d39737008724d4f7d28e5532f
+actual: 9db87e8137834e73ea4ecf23b5e482534977545d39737008724d4f7d28e5532f
+
+PASS: TestLocal/parserGenericsInInterfaceDeclaration1.ts/symbol
+baseline: conformance/parserGenericsInInterfaceDeclaration1.symbols
+reference: 65492abb3836740c99d31efc1072a17037dcc5cdc11a711a56ac3e2070f9d9af
+actual: 65492abb3836740c99d31efc1072a17037dcc5cdc11a711a56ac3e2070f9d9af
+
+PASS: TestLocal/parserGreaterThanTokenAmbiguity13.ts/symbol
+baseline: conformance/parserGreaterThanTokenAmbiguity13.symbols
+reference: 1aeb5407352ceab582a0c7a48041c1db26ddbae63cf6ac8ea6cdadcc2faa5d0c
+actual: 1aeb5407352ceab582a0c7a48041c1db26ddbae63cf6ac8ea6cdadcc2faa5d0c
+
+PASS: TestLocal/parserGreaterThanTokenAmbiguity6.ts/symbol
+baseline: conformance/parserGreaterThanTokenAmbiguity6.symbols
+reference: 96abf91573c900cba1f8894eb2744fb046d09b949f5659f605c0d75b86a3447c
+actual: 96abf91573c900cba1f8894eb2744fb046d09b949f5659f605c0d75b86a3447c
+
+PASS: TestLocal/parserIndexMemberDeclaration2.ts/symbol
+baseline: conformance/parserIndexMemberDeclaration2.symbols
+reference: ac0ec5ac2f7c8e37aa2297a06d3ffc51dc0a838f19d54127e936a907476d20d1
+actual: ac0ec5ac2f7c8e37aa2297a06d3ffc51dc0a838f19d54127e936a907476d20d1
+
+PASS: TestLocal/parserIndexSignature3.ts/symbol
+baseline: conformance/parserIndexSignature3.symbols
+reference: 0a72be59a1131b9815a7fd8297b944d7c4ce69890825ae4508399ad872ba816b
+actual: 0a72be59a1131b9815a7fd8297b944d7c4ce69890825ae4508399ad872ba816b
+
+PASS: TestLocal/parserMemberAccessor1.ts_target=es2015/symbol
+baseline: conformance/parserMemberAccessor1(target=es2015).symbols
+reference: 3450888297ee9104e97c33db1926ea8201bc1398ab758ff5414ac14c42c7a89b
+actual: 3450888297ee9104e97c33db1926ea8201bc1398ab758ff5414ac14c42c7a89b
+
+PASS: TestLocal/parserMemberAccessorDeclaration11.ts_target=es2015/symbol
+baseline: conformance/parserMemberAccessorDeclaration11(target=es2015).symbols
+reference: cd5fd0b5e320a41f6ff02ed3977cd0ce1e39a59be5ab8b35e584c2cf8571817c
+actual: cd5fd0b5e320a41f6ff02ed3977cd0ce1e39a59be5ab8b35e584c2cf8571817c
+
+PASS: TestLocal/parserMemberAccessorDeclaration17.ts_target=es2015/symbol
+baseline: conformance/parserMemberAccessorDeclaration17(target=es2015).symbols
+reference: c9130a7a221ae124e3932dc058ff4ec301ad875154280690b98a63e21c620269
+actual: c9130a7a221ae124e3932dc058ff4ec301ad875154280690b98a63e21c620269
+
+PASS: TestLocal/parserMemberAccessorDeclaration3.ts_target=es2015/symbol
+baseline: conformance/parserMemberAccessorDeclaration3(target=es2015).symbols
+reference: 1745576298dadbf3585e4d6b0e2f5dd3a33a4dfe89ab04f502369ad9e22766a8
+actual: 1745576298dadbf3585e4d6b0e2f5dd3a33a4dfe89ab04f502369ad9e22766a8
+
+PASS: TestLocal/parserMemberAccessorDeclaration5.ts_target=es2015/symbol
+baseline: conformance/parserMemberAccessorDeclaration5(target=es2015).symbols
+reference: 9b0e533c6b5991377cfcceeb9ef217ad0c306ce2b6b9170b75b063a0e61c8280
+actual: 9b0e533c6b5991377cfcceeb9ef217ad0c306ce2b6b9170b75b063a0e61c8280
+
+PASS: TestLocal/parserObjectType5.ts/symbol
+baseline: conformance/parserObjectType5.symbols
+reference: ac18bce10ff66cdf087b08dddeb8ff7ab97f955b61ef555e8210392dfbd0830a
+actual: ac18bce10ff66cdf087b08dddeb8ff7ab97f955b61ef555e8210392dfbd0830a
+
+PASS: TestLocal/parserParameterList10.ts/symbol
+baseline: conformance/parserParameterList10.symbols
+reference: 14d8810b166cc3f13aeeee8dc33331bc914ad282fde783b95fd4859bad744ed7
+actual: 14d8810b166cc3f13aeeee8dc33331bc914ad282fde783b95fd4859bad744ed7
+
+PASS: TestLocal/parserParameterList16.ts/symbol
+baseline: conformance/parserParameterList16.symbols
+reference: 16bc00139e4f0625bde5a3356f76a58f7590194592183a14e3a3692af3b64eb3
+actual: 16bc00139e4f0625bde5a3356f76a58f7590194592183a14e3a3692af3b64eb3
+
+PASS: TestLocal/parserParameterList4.ts/symbol
+baseline: conformance/parserParameterList4.symbols
+reference: 5a8165e24ff121b1e570b852e5fcdf9d77f62928e3e3f3531f55d162bf4fcea8
+actual: 5a8165e24ff121b1e570b852e5fcdf9d77f62928e3e3f3531f55d162bf4fcea8
+
+PASS: TestLocal/parserParenthesizedVariableAndParenthesizedFunctionInTernary.ts/symbol
+baseline: conformance/parserParenthesizedVariableAndParenthesizedFunctionInTernary.symbols
+reference: cc76c65a619b95259947379e81a7f908349d7b979e55b0b6510d5d396bfb3bd3
+actual: cc76c65a619b95259947379e81a7f908349d7b979e55b0b6510d5d396bfb3bd3
+
+PASS: TestLocal/parserRegularExpressionDivideAmbiguity1.ts/symbol
+baseline: conformance/parserRegularExpressionDivideAmbiguity1.symbols
+reference: e1150145f2388c25ad0878b6bdf31b6a686d79cb5e56857433ba11a1c40e7fce
+actual: e1150145f2388c25ad0878b6bdf31b6a686d79cb5e56857433ba11a1c40e7fce
+
+PASS: TestLocal/parserS7.9_A5.7_T1.ts/symbol
+baseline: conformance/parserS7.9_A5.7_T1.symbols
+reference: ef046fe282458c5617f0d8e3aedd81d2cd5eba23d71b527c0c3bf81478081412
+actual: ef046fe282458c5617f0d8e3aedd81d2cd5eba23d71b527c0c3bf81478081412
+
+PASS: TestLocal/parserSkippedTokens16.ts/symbol
+baseline: conformance/parserSkippedTokens16.symbols
+reference: 6c1c9486dc87776457b7cc161b6e0596d3be03c7b6b3024af766b150ab46a8d4
+actual: 6c1c9486dc87776457b7cc161b6e0596d3be03c7b6b3024af766b150ab46a8d4
+
+PASS: TestLocal/parserStrictMode4.ts/symbol
+baseline: conformance/parserStrictMode4.symbols
+reference: 4941581bc0a50e5867f8e02847b8a2bd6f0c5969f954a1868bc7b7091b0b2f25
+actual: 4941581bc0a50e5867f8e02847b8a2bd6f0c5969f954a1868bc7b7091b0b2f25
+
+PASS: TestLocal/parserSymbolIndexer1.ts/symbol
+baseline: conformance/parserSymbolIndexer1.symbols
+reference: 8cec8bc4aa8c9f397ca0c995bbaa867bf72905f2fd425f03d60375d79aa48d10
+actual: 8cec8bc4aa8c9f397ca0c995bbaa867bf72905f2fd425f03d60375d79aa48d10
+
+PASS: TestLocal/parserSymbolProperty4.ts/symbol
+baseline: conformance/parserSymbolProperty4.symbols
+reference: ffb8e2d5fc1a6837a289931c7c11701535413157e5f2408429daa7a1494761d8
+actual: ffb8e2d5fc1a6837a289931c7c11701535413157e5f2408429daa7a1494761d8
+
+PASS: TestLocal/parserVariableDeclaration4.ts/symbol
+baseline: conformance/parserVariableDeclaration4.symbols
+reference: 2528086cf470c38c0cae7ab4d28901fd8e26480e5f31c250ac5198015fd592aa
+actual: 2528086cf470c38c0cae7ab4d28901fd8e26480e5f31c250ac5198015fd592aa
+
+PASS: TestLocal/parserX_TypeArgumentList1.ts/symbol
+baseline: conformance/parserX_TypeArgumentList1.symbols
+reference: b5807d233ddad3199c8a413ce4a472b993a7fef52a5e487534880171d613d9ee
+actual: b5807d233ddad3199c8a413ce4a472b993a7fef52a5e487534880171d613d9ee
+
+PASS: TestLocal/parser_breakTarget6.ts/symbol
+baseline: conformance/parser_breakTarget6.symbols
+reference: 620c43f0f2d5810a28c1878560a4d9cc8455f95e4a4fe11376d7f320482a9a1a
+actual: 620c43f0f2d5810a28c1878560a4d9cc8455f95e4a4fe11376d7f320482a9a1a
+
+FAIL: TestLocal/partiallyNamedTuples.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/types/tuple/named/partiallyNamedTuples.ts:
+        runtime error: slice bounds out of range [13:12]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/partiallyNamedTuples2.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/types/tuple/named/partiallyNamedTuples2.ts:
+        runtime error: slice bounds out of range [10:5]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/privateNameAndObjectRestSpread.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/classes/members/privateNames/privateNameAndObjectRestSpread.ts:
+        runtime error: slice bounds out of range [14:5]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/privateNameComputedPropertyName2.ts_target=esnext/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/privateNameComputedPropertyName2(target=esnext).symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/privateNameComputedPropertyName2(target=esnext).symbols
+reference: 42f2a3416be5153891605f50c73d0c2b899e71e4bab156b6d311b5d5f7e3cff5
+actual: ad40b9fc1f81508c89c8251e82b41fe058cac14ed94d541d4ba2d31b91967ae6
+--- expected/conformance/privateNameComputedPropertyName2(target=esnext).symbols
++++ actual/conformance/privateNameComputedPropertyName2(target=esnext).symbols
+@@ -15,10 +15,10 @@
+     [(getX = (a: A) => a.#x, "_")]() {}
+ >[(getX = (a: A) => a.#x, "_")] : Symbol(A[(getX = (a: A) => a.#x, "_")], Decl(privateNameComputedPropertyName2.ts, 3, 13))
+ >getX : Symbol(getX, Decl(privateNameComputedPropertyName2.ts, 0, 3))
++>a.#x : Symbol(A.#x, Decl(privateNameComputedPropertyName2.ts, 2, 9))
++>a : Symbol(a, Decl(privateNameComputedPropertyName2.ts, 4, 14))
+ >a : Symbol(a, Decl(privateNameComputedPropertyName2.ts, 4, 14))
+ >A : Symbol(A, Decl(privateNameComputedPropertyName2.ts, 0, 27))
+->a.#x : Symbol(A.#x, Decl(privateNameComputedPropertyName2.ts, 2, 9))
+->a : Symbol(a, Decl(privateNameComputedPropertyName2.ts, 4, 14))
+ }
+ 
+ console.log(getX(new A));
+
+FAIL: TestLocal/privateNameComputedPropertyName3.ts_target=esnext/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/classes/members/privateNames/privateNameComputedPropertyName3.ts:
+        runtime error: slice bounds out of range [5:4]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/privateNameES5Ban.ts_target=es2015/symbol
+baseline: conformance/privateNameES5Ban(target=es2015).symbols
+reference: 7033d85f364734da756b7672001c4d99f200f02d0fbef0e4f320e20a66224d0f
+actual: 7033d85f364734da756b7672001c4d99f200f02d0fbef0e4f320e20a66224d0f
+
+PASS: TestLocal/privateNameEnum.ts/symbol
+baseline: conformance/privateNameEnum.symbols
+reference: 76d4ca29b16166fd17eb7ce40073901a71021aa41d09b3e15afe231e8d944986
+actual: 76d4ca29b16166fd17eb7ce40073901a71021aa41d09b3e15afe231e8d944986
+
+PASS: TestLocal/privateNameLateSuperUseDefineForClassFields.ts_target=esnext/symbol
+baseline: conformance/privateNameLateSuperUseDefineForClassFields(target=esnext).symbols
+reference: 9ca727f9cb1642170338c1e2d4a72e3ad352d2cec18e09e90a66a286a0ffc382
+actual: 9ca727f9cb1642170338c1e2d4a72e3ad352d2cec18e09e90a66a286a0ffc382
+
+FAIL: TestLocal/privateNameMethod.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/classes/members/privateNames/privateNameMethod.ts:
+        runtime error: slice bounds out of range [8:5]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/privateNameMethodAssignment.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/classes/members/privateNames/privateNameMethodAssignment.ts:
+        runtime error: slice bounds out of range [9:3]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/privateNameNotAccessibleOutsideDefiningClass.ts/symbol
+baseline: conformance/privateNameNotAccessibleOutsideDefiningClass.symbols
+reference: 4e46405a8a873514cc049eba2d548259be03acad579e0cc30b78a54174cd794c
+actual: 4e46405a8a873514cc049eba2d548259be03acad579e0cc30b78a54174cd794c
+
+PASS: TestLocal/privateNameStaticAccessorsAccess.ts/symbol
+baseline: conformance/privateNameStaticAccessorsAccess.symbols
+reference: ca1665f3258c6488d7f2aba17eb51d69771804dc98e2ca96503c4ae1db7cafa8
+actual: ca1665f3258c6488d7f2aba17eb51d69771804dc98e2ca96503c4ae1db7cafa8
+
+FAIL: TestLocal/privateNameStaticEmitHelpers.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/privateNameStaticEmitHelpers.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/privateNameStaticEmitHelpers.symbols
+reference: b1ce36dd97101bf43452e5ec9849b9d07d2a4e47c49d3af39a28967890ae47ac
+actual: 7cf752d60e9f584ea09296fb75442319eadb489e980771ca5fe2d258de4feedf
+--- expected/conformance/privateNameStaticEmitHelpers.symbols
++++ actual/conformance/privateNameStaticEmitHelpers.symbols
+@@ -22,15 +22,16 @@
+ // these are pre-TS4.3 versions of emit helpers, which only supported private instance fields
+ export declare function __classPrivateFieldGet<T extends object, V>(receiver: T, state: any): V;
+ >__classPrivateFieldGet : Symbol(__classPrivateFieldGet, Decl(index.d.ts, 0, 0))
++>V : Symbol(V, Decl(index.d.ts, 1, 64))
+ >T : Symbol(T, Decl(index.d.ts, 1, 47))
+ >V : Symbol(V, Decl(index.d.ts, 1, 64))
+ >receiver : Symbol(receiver, Decl(index.d.ts, 1, 68))
+ >T : Symbol(T, Decl(index.d.ts, 1, 47))
+ >state : Symbol(state, Decl(index.d.ts, 1, 80))
+->V : Symbol(V, Decl(index.d.ts, 1, 64))
+ 
+ export declare function __classPrivateFieldSet<T extends object, V>(receiver: T, state: any, value: V): V;
+ >__classPrivateFieldSet : Symbol(__classPrivateFieldSet, Decl(index.d.ts, 1, 96))
++>V : Symbol(V, Decl(index.d.ts, 2, 64))
+ >T : Symbol(T, Decl(index.d.ts, 2, 47))
+ >V : Symbol(V, Decl(index.d.ts, 2, 64))
+ >receiver : Symbol(receiver, Decl(index.d.ts, 2, 68))
+@@ -38,5 +39,4 @@
+ >state : Symbol(state, Decl(index.d.ts, 2, 80))
+ >value : Symbol(value, Decl(index.d.ts, 2, 92))
+ >V : Symbol(V, Decl(index.d.ts, 2, 64))
+->V : Symbol(V, Decl(index.d.ts, 2, 64))
+ 
+
+PASS: TestLocal/privateNameStaticFieldNoInitializer.ts_target=es2022/symbol
+baseline: conformance/privateNameStaticFieldNoInitializer(target=es2022).symbols
+reference: 59f365afce6fe82bd07c12c6e5143b0c1105167d5ab324d8eae41d35b6b0d0b7
+actual: 59f365afce6fe82bd07c12c6e5143b0c1105167d5ab324d8eae41d35b6b0d0b7
+
+PASS: TestLocal/privateNameStaticFieldNoInitializer.ts_target=esnext/symbol
+baseline: conformance/privateNameStaticFieldNoInitializer(target=esnext).symbols
+reference: 59f365afce6fe82bd07c12c6e5143b0c1105167d5ab324d8eae41d35b6b0d0b7
+actual: 59f365afce6fe82bd07c12c6e5143b0c1105167d5ab324d8eae41d35b6b0d0b7
+
+FAIL: TestLocal/privateNameStaticMethodAssignment.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/classes/members/privateNames/privateNameStaticMethodAssignment.ts:
+        runtime error: slice bounds out of range [9:3]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/privateNamesAssertion.ts_target=esnext/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/classes/members/privateNames/privateNamesAssertion.ts:
+        runtime error: slice bounds out of range [4:2]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/propertyAssignmentOnUnresolvedImportedSymbol.ts/symbol
+baseline: conformance/propertyAssignmentOnUnresolvedImportedSymbol.symbols
+reference: 1c838900e09809ba697c16072d1f96bfc37295dd3f739cea2c7ebe003449f125
+actual: 1c838900e09809ba697c16072d1f96bfc37295dd3f739cea2c7ebe003449f125
+
+PASS: TestLocal/propertyAssignmentUseParentType1.ts/symbol
+baseline: conformance/propertyAssignmentUseParentType1.symbols
+reference: c770a8a28a26fd58898cca37297859b46ffdc5f73384932cddb21b44ecaab345
+actual: c770a8a28a26fd58898cca37297859b46ffdc5f73384932cddb21b44ecaab345
+
+PASS: TestLocal/propertyOverridesAccessors4.ts_target=es2015/symbol
+baseline: conformance/propertyOverridesAccessors4(target=es2015).symbols
+reference: 0085db9cee5c3b2ac8ec5a058ef8e550e8d397efb661b73ac539ee1a3b243411
+actual: 0085db9cee5c3b2ac8ec5a058ef8e550e8d397efb661b73ac539ee1a3b243411
+
+PASS: TestLocal/prototypePropertyAssignmentMergeAcrossFiles.ts/symbol
+baseline: conformance/prototypePropertyAssignmentMergeAcrossFiles.symbols
+reference: 910ceeb68d90a58451e8ab061c59d0e99cc4828496962e83aa96ced8f7627641
+actual: 910ceeb68d90a58451e8ab061c59d0e99cc4828496962e83aa96ced8f7627641
+
+FAIL: TestLocal/recursiveTypesUsedAsFunctionParameters.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/types/typeRelationships/recursiveTypes/recursiveTypesUsedAsFunctionParameters.ts:
+        runtime error: slice bounds out of range [42:21]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/stringLiteralTypesAsTypeParameterConstraint01.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/types/stringLiteral/stringLiteralTypesAsTypeParameterConstraint01.ts:
+        runtime error: slice bounds out of range [2:1]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/stringLiteralTypesTypePredicates01.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/types/stringLiteral/stringLiteralTypesTypePredicates01.ts:
+        runtime error: slice bounds out of range [6:5]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/stringLiteralsWithEqualityChecks02.ts/symbol
+baseline: conformance/stringLiteralsWithEqualityChecks02.symbols
+reference: 7c937db57d425149b6a3160839747f5e37c85e0fef6c46c8f544fe542e0eb8db
+actual: 7c937db57d425149b6a3160839747f5e37c85e0fef6c46c8f544fe542e0eb8db
+
+PASS: TestLocal/stringPropertyAccess.ts/symbol
+baseline: conformance/stringPropertyAccess.symbols
+reference: 12a5ccb5f41a0d6a442b91463ada706d0ee0e98ced486186c02b38aef242cf89
+actual: 12a5ccb5f41a0d6a442b91463ada706d0ee0e98ced486186c02b38aef242cf89
+
+PASS: TestLocal/subtypingWithObjectMembers.ts/symbol
+baseline: conformance/subtypingWithObjectMembers.symbols
+reference: de81ff463d54046bb3ff4f3177a68aa98c25761e0377deb3e8fadbf6bc79a08d
+actual: de81ff463d54046bb3ff4f3177a68aa98c25761e0377deb3e8fadbf6bc79a08d
+
+PASS: TestLocal/subtypingWithObjectMembersOptionality3.ts/symbol
+baseline: conformance/subtypingWithObjectMembersOptionality3.symbols
+reference: a31ddf1a5b553e4d73cfebdeb23c3f00f99ebb2bbe5f82b809d0f3a4570d038b
+actual: a31ddf1a5b553e4d73cfebdeb23c3f00f99ebb2bbe5f82b809d0f3a4570d038b
+
+FAIL: TestLocal/subtypingWithStringIndexer2.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/subtypingWithStringIndexer2.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/subtypingWithStringIndexer2.symbols
+reference: d159241aaa72be0ba64c71b4a1e8fbe1bc9d2942df418ef445bc6cfa49000558
+actual: 8c4dd7cc8c5cc0960be1ee4ad6e84baed9c548751d3dc98a680a5eb45b9928b7
+--- expected/conformance/subtypingWithStringIndexer2.symbols
++++ actual/conformance/subtypingWithStringIndexer2.symbols
+@@ -21,8 +21,8 @@
+ >A : Symbol(A, Decl(subtypingWithStringIndexer2.ts, 4, 51))
+ 
+     [x: string]: Derived;
++>Derived : Symbol(Derived, Decl(subtypingWithStringIndexer2.ts, 2, 31))
+ >x : Symbol(x, Decl(subtypingWithStringIndexer2.ts, 7, 5))
+->Derived : Symbol(Derived, Decl(subtypingWithStringIndexer2.ts, 2, 31))
+ }
+ 
+ interface B extends A {
+@@ -30,8 +30,8 @@
+ >A : Symbol(A, Decl(subtypingWithStringIndexer2.ts, 4, 51))
+ 
+     [x: string]: Base; // error
++>Base : Symbol(Base, Decl(subtypingWithStringIndexer2.ts, 0, 0))
+ >x : Symbol(x, Decl(subtypingWithStringIndexer2.ts, 11, 5))
+->Base : Symbol(Base, Decl(subtypingWithStringIndexer2.ts, 0, 0))
+ }
+ 
+ interface B2 extends A {
+@@ -39,8 +39,8 @@
+ >A : Symbol(A, Decl(subtypingWithStringIndexer2.ts, 4, 51))
+ 
+     [x: string]: Derived2; // ok
++>Derived2 : Symbol(Derived2, Decl(subtypingWithStringIndexer2.ts, 3, 47))
+ >x : Symbol(x, Decl(subtypingWithStringIndexer2.ts, 15, 5))
+->Derived2 : Symbol(Derived2, Decl(subtypingWithStringIndexer2.ts, 3, 47))
+ }
+ 
+ namespace Generics {
+@@ -52,8 +52,8 @@
+ >Derived : Symbol(Derived, Decl(subtypingWithStringIndexer2.ts, 2, 31))
+ 
+         [x: string]: T;
++>T : Symbol(T, Decl(subtypingWithStringIndexer2.ts, 19, 16))
+ >x : Symbol(x, Decl(subtypingWithStringIndexer2.ts, 20, 9))
+->T : Symbol(T, Decl(subtypingWithStringIndexer2.ts, 19, 16))
+     }
+ 
+     interface B extends A<Base> {
+@@ -62,8 +62,8 @@
+ >Base : Symbol(Base, Decl(subtypingWithStringIndexer2.ts, 0, 0))
+ 
+         [x: string]: Derived; // error
++>Derived : Symbol(Derived, Decl(subtypingWithStringIndexer2.ts, 2, 31))
+ >x : Symbol(x, Decl(subtypingWithStringIndexer2.ts, 24, 9))
+->Derived : Symbol(Derived, Decl(subtypingWithStringIndexer2.ts, 2, 31))
+     }
+ 
+     interface B2 extends A<Derived> {
+@@ -72,8 +72,8 @@
+ >Derived : Symbol(Derived, Decl(subtypingWithStringIndexer2.ts, 2, 31))
+ 
+         [x: string]: Derived2; // ok
++>Derived2 : Symbol(Derived2, Decl(subtypingWithStringIndexer2.ts, 3, 47))
+ >x : Symbol(x, Decl(subtypingWithStringIndexer2.ts, 28, 9))
+->Derived2 : Symbol(Derived2, Decl(subtypingWithStringIndexer2.ts, 3, 47))
+     }
+ 
+     interface B3<T extends Derived> extends A<T> {
+@@ -84,8 +84,8 @@
+ >T : Symbol(T, Decl(subtypingWithStringIndexer2.ts, 31, 17))
+ 
+         [x: string]: Base; // error
++>Base : Symbol(Base, Decl(subtypingWithStringIndexer2.ts, 0, 0))
+ >x : Symbol(x, Decl(subtypingWithStringIndexer2.ts, 32, 9))
+->Base : Symbol(Base, Decl(subtypingWithStringIndexer2.ts, 0, 0))
+     }
+ 
+     interface B4<T extends Derived> extends A<T> {
+@@ -96,8 +96,8 @@
+ >T : Symbol(T, Decl(subtypingWithStringIndexer2.ts, 35, 17))
+ 
+         [x: string]: Derived; // error
++>Derived : Symbol(Derived, Decl(subtypingWithStringIndexer2.ts, 2, 31))
+ >x : Symbol(x, Decl(subtypingWithStringIndexer2.ts, 36, 9))
+->Derived : Symbol(Derived, Decl(subtypingWithStringIndexer2.ts, 2, 31))
+     }
+ 
+     interface B5<T extends Derived2> extends A<T> {
+@@ -108,7 +108,7 @@
+ >T : Symbol(T, Decl(subtypingWithStringIndexer2.ts, 39, 17))
+ 
+         [x: string]: Derived2; // error
++>Derived2 : Symbol(Derived2, Decl(subtypingWithStringIndexer2.ts, 3, 47))
+ >x : Symbol(x, Decl(subtypingWithStringIndexer2.ts, 40, 9))
+->Derived2 : Symbol(Derived2, Decl(subtypingWithStringIndexer2.ts, 3, 47))
+     }
+ }
+
+PASS: TestLocal/superCallBeforeThisAccessing3.ts/symbol
+baseline: conformance/superCallBeforeThisAccessing3.symbols
+reference: 05d876c13c45da3a3eec004de052e0138fdc85e197f99f7c3012590c7a31e4a1
+actual: 05d876c13c45da3a3eec004de052e0138fdc85e197f99f7c3012590c7a31e4a1
+
+PASS: TestLocal/superCallBeforeThisAccessing8.ts/symbol
+baseline: conformance/superCallBeforeThisAccessing8.symbols
+reference: e87b5963492809cf1bb41a688a9c218c45f878d78c4b7dbb2aa25495c3fc13f1
+actual: e87b5963492809cf1bb41a688a9c218c45f878d78c4b7dbb2aa25495c3fc13f1
+
+FAIL: TestLocal/superCalls.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/expressions/superCalls/superCalls.ts:
+        runtime error: slice bounds out of range [16:12]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/symbolDeclarationEmit9.ts/symbol
+baseline: conformance/symbolDeclarationEmit9.symbols
+reference: 6a7318b518d77a52c97dba7a5838ac0bc4c691071e7ad4a98ba3c18de4690758
+actual: 6a7318b518d77a52c97dba7a5838ac0bc4c691071e7ad4a98ba3c18de4690758
+
+PASS: TestLocal/symbolProperty44.ts/symbol
+baseline: conformance/symbolProperty44.symbols
+reference: 2e18935e202eeaf90d34eb8e402a0cbe4f22d15a3a3b7501f1e2611e974607a7
+actual: 2e18935e202eeaf90d34eb8e402a0cbe4f22d15a3a3b7501f1e2611e974607a7
+
+PASS: TestLocal/symbolProperty57.ts/symbol
+baseline: conformance/symbolProperty57.symbols
+reference: 69c97df469fe3fce1be5d2185b10f715db11ade616796c5aa91720bfb7da7d70
+actual: 69c97df469fe3fce1be5d2185b10f715db11ade616796c5aa91720bfb7da7d70
+
+PASS: TestLocal/symbolType5.ts/symbol
+baseline: conformance/symbolType5.symbols
+reference: c5f55ba3d0f2d7b6cfec4753139f65fad621fec32a2433aeefd6513ff9ffe70d
+actual: c5f55ba3d0f2d7b6cfec4753139f65fad621fec32a2433aeefd6513ff9ffe70d
+
+FAIL: TestLocal/templateStringInFunctionParameterTypeES6.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/es6/templates/templateStringInFunctionParameterTypeES6.ts:
+        runtime error: slice bounds out of range [4:3]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/templateStringInPropertyAssignmentES6.ts/symbol
+baseline: conformance/templateStringInPropertyAssignmentES6.symbols
+reference: 97f49748825092cbd3aa3fe2601918a72eae2c03e38efbe8c6916ca91aca437e
+actual: 97f49748825092cbd3aa3fe2601918a72eae2c03e38efbe8c6916ca91aca437e
+
+PASS: TestLocal/templateStringInTypeAssertionES6.ts/symbol
+baseline: conformance/templateStringInTypeAssertionES6.symbols
+reference: 897fb297ff39abde1480c2a105a03cdd7d7208a32884ab77d4be1bed2f07c3e4
+actual: 897fb297ff39abde1480c2a105a03cdd7d7208a32884ab77d4be1bed2f07c3e4
+
+PASS: TestLocal/templateStringMultiline1_ES6.ts/symbol
+baseline: conformance/templateStringMultiline1_ES6.symbols
+reference: a2bf6eef348ed771089b75799487f4e55e072957afbfc2156ed97f1f1f83a926
+actual: a2bf6eef348ed771089b75799487f4e55e072957afbfc2156ed97f1f1f83a926
+
+PASS: TestLocal/templateStringMultiline2.ts/symbol
+baseline: conformance/templateStringMultiline2.symbols
+reference: 1655f420d0342bd2486dc1858f2ce2cdd70240261060c30070b94c6b962c2f90
+actual: 1655f420d0342bd2486dc1858f2ce2cdd70240261060c30070b94c6b962c2f90
+
+PASS: TestLocal/templateStringTermination5.ts/symbol
+baseline: conformance/templateStringTermination5.symbols
+reference: da572b488c3acb723e4dd1c545440defb2a72e1b57251ad55b33953ebbfbc02b
+actual: da572b488c3acb723e4dd1c545440defb2a72e1b57251ad55b33953ebbfbc02b
+
+PASS: TestLocal/templateStringWhitespaceEscapes1.ts/symbol
+baseline: conformance/templateStringWhitespaceEscapes1.symbols
+reference: d2624c9d813ef93bc3d2aa31dc52bda6465918670b402734dbb418700c7ffbe0
+actual: d2624c9d813ef93bc3d2aa31dc52bda6465918670b402734dbb418700c7ffbe0
+
+PASS: TestLocal/templateStringWithEmbeddedInstanceOf.ts/symbol
+baseline: conformance/templateStringWithEmbeddedInstanceOf.symbols
+reference: 04d98a7b04c92a687fd23bfbf4c03ff99de930cc6206f08a8d7c267f53498b91
+actual: 04d98a7b04c92a687fd23bfbf4c03ff99de930cc6206f08a8d7c267f53498b91
+
+PASS: TestLocal/templateStringWithEmbeddedYieldKeyword.ts/symbol
+baseline: conformance/templateStringWithEmbeddedYieldKeyword.symbols
+reference: deea971f18b4f58418a04f33ca40cbe053eea8f26e507d6375510d45b45d96ec
+actual: deea971f18b4f58418a04f33ca40cbe053eea8f26e507d6375510d45b45d96ec
+
+PASS: TestLocal/templateStringsWithTypeErrorInFunctionExpressionsInSubstitutionExpression.ts/symbol
+baseline: conformance/templateStringsWithTypeErrorInFunctionExpressionsInSubstitutionExpression.symbols
+reference: 26c2d1906ba129d416202b12964c5ae86a8f73e57a4f56cd3f59dbfda397c565
+actual: 26c2d1906ba129d416202b12964c5ae86a8f73e57a4f56cd3f59dbfda397c565
+
+PASS: TestLocal/thisPrototypeMethodCompoundAssignment.ts/symbol
+baseline: conformance/thisPrototypeMethodCompoundAssignment.symbols
+reference: 728fbc665f3ddb8e0e209f910390060de72fda23c4b4cc50750df7f64e7222db
+actual: 728fbc665f3ddb8e0e209f910390060de72fda23c4b4cc50750df7f64e7222db
+
+PASS: TestLocal/thisTypeInTuples.ts/symbol
+baseline: conformance/thisTypeInTuples.symbols
+reference: f0cb78de5ca08e19b72b6912fd6700ff23e77280585f2bd9219c8697e0527e54
+actual: f0cb78de5ca08e19b72b6912fd6700ff23e77280585f2bd9219c8697e0527e54
+
+PASS: TestLocal/topLevelAwaitNonModule.ts_module=es2022/symbol
+baseline: conformance/topLevelAwaitNonModule(module=es2022).symbols
+reference: 6d3edab46e4b2e2ed3b7e3510eb9a454f67aac41c92d7954019fa733f577f3cb
+actual: 6d3edab46e4b2e2ed3b7e3510eb9a454f67aac41c92d7954019fa733f577f3cb
+
+PASS: TestLocal/trailingCommasInGetter.ts/symbol
+baseline: conformance/trailingCommasInGetter.symbols
+reference: d61d46aa912302f155798388b8a5ea4445ae1b3a35ce6143bab8310770d53dd3
+actual: d61d46aa912302f155798388b8a5ea4445ae1b3a35ce6143bab8310770d53dd3
+
+PASS: TestLocal/transferableArrayBuffer.ts/symbol
+baseline: conformance/transferableArrayBuffer.symbols
+reference: 45bd4c36d4883f9175a5941c09dad1db7c293008a4cbc132d474124ddac06017
+actual: 45bd4c36d4883f9175a5941c09dad1db7c293008a4cbc132d474124ddac06017
+
+PASS: TestLocal/tsNoCheckForTypescriptComments1.ts/symbol
+baseline: conformance/tsNoCheckForTypescriptComments1.symbols
+reference: ae9aed90a0797479fe9e1e5ad81cadfa11a62cad74a1cd06d678a0c32a281eb0
+actual: ae9aed90a0797479fe9e1e5ad81cadfa11a62cad74a1cd06d678a0c32a281eb0
+
+PASS: TestLocal/tsxAttributeResolution7.tsx/symbol
+baseline: conformance/tsxAttributeResolution7.symbols
+reference: bae80e98470e991cbddcb47695c90c5152b49dd4d22399bdad269e096a2c185d
+actual: bae80e98470e991cbddcb47695c90c5152b49dd4d22399bdad269e096a2c185d
+
+PASS: TestLocal/tsxAttributeResolution8.tsx/symbol
+baseline: conformance/tsxAttributeResolution8.symbols
+reference: 219ab43d70c54183167c554239e0378a53a4804776273fbd6f3423bd397b3413
+actual: 219ab43d70c54183167c554239e0378a53a4804776273fbd6f3423bd397b3413
+
+PASS: TestLocal/tsxDefaultAttributesResolution2.tsx/symbol
+baseline: conformance/tsxDefaultAttributesResolution2.symbols
+reference: 77ed5a6aef1e2582f45a66fed051336876dc958db885e4b9f18d949789c80a63
+actual: 77ed5a6aef1e2582f45a66fed051336876dc958db885e4b9f18d949789c80a63
+
+PASS: TestLocal/tsxElementResolution19.tsx/symbol
+baseline: conformance/tsxElementResolution19.symbols
+reference: 25a384e309b26d692f66578e0bfef1a70e4b23ae710792800ae5656bf1af4ce4
+actual: 25a384e309b26d692f66578e0bfef1a70e4b23ae710792800ae5656bf1af4ce4
+
+FAIL: TestLocal/tsxEmit2.tsx/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/tsxEmit2.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/tsxEmit2.symbols
+reference: 2421d928d307386a2ba3a136eea678deb067f113c00e8e979585eedd4471a25b
+actual: 0a7c5e87afdf4e5e87639cc09ac84345de7a63fea8ce7dc0241cbe13d4161d34
+--- expected/conformance/tsxEmit2.symbols
++++ actual/conformance/tsxEmit2.symbols
+@@ -24,15 +24,15 @@
+ >spreads1 : Symbol(spreads1, Decl(file.tsx, 8, 3))
+ >div : Symbol(JSX.IntrinsicElements.__index, Decl(file.tsx, 2, 30))
+ >p1 : Symbol(p1, Decl(file.tsx, 7, 3))
++>div : Symbol(JSX.IntrinsicElements.__index, Decl(file.tsx, 2, 30))
+ >p2 : Symbol(p2, Decl(file.tsx, 7, 12))
+->div : Symbol(JSX.IntrinsicElements.__index, Decl(file.tsx, 2, 30))
+ 
+ var spreads2 = <div {...p1}>{p2}</div>;
+ >spreads2 : Symbol(spreads2, Decl(file.tsx, 9, 3))
+ >div : Symbol(JSX.IntrinsicElements.__index, Decl(file.tsx, 2, 30))
+ >p1 : Symbol(p1, Decl(file.tsx, 7, 3))
++>div : Symbol(JSX.IntrinsicElements.__index, Decl(file.tsx, 2, 30))
+ >p2 : Symbol(p2, Decl(file.tsx, 7, 12))
+->div : Symbol(JSX.IntrinsicElements.__index, Decl(file.tsx, 2, 30))
+ 
+ var spreads3 = <div x={p3} {...p1}>{p2}</div>;
+ >spreads3 : Symbol(spreads3, Decl(file.tsx, 10, 3))
+@@ -40,8 +40,8 @@
+ >x : Symbol(x, Decl(file.tsx, 10, 19))
+ >p3 : Symbol(p3, Decl(file.tsx, 7, 21))
+ >p1 : Symbol(p1, Decl(file.tsx, 7, 3))
++>div : Symbol(JSX.IntrinsicElements.__index, Decl(file.tsx, 2, 30))
+ >p2 : Symbol(p2, Decl(file.tsx, 7, 12))
+->div : Symbol(JSX.IntrinsicElements.__index, Decl(file.tsx, 2, 30))
+ 
+ var spreads4 = <div {...p1} x={p3} >{p2}</div>;
+ >spreads4 : Symbol(spreads4, Decl(file.tsx, 11, 3))
+@@ -49,8 +49,8 @@
+ >p1 : Symbol(p1, Decl(file.tsx, 7, 3))
+ >x : Symbol(x, Decl(file.tsx, 11, 27))
+ >p3 : Symbol(p3, Decl(file.tsx, 7, 21))
++>div : Symbol(JSX.IntrinsicElements.__index, Decl(file.tsx, 2, 30))
+ >p2 : Symbol(p2, Decl(file.tsx, 7, 12))
+->div : Symbol(JSX.IntrinsicElements.__index, Decl(file.tsx, 2, 30))
+ 
+ var spreads5 = <div x={p2} {...p1} y={p3}>{p2}</div>;
+ >spreads5 : Symbol(spreads5, Decl(file.tsx, 12, 3))
+@@ -60,6 +60,6 @@
+ >p1 : Symbol(p1, Decl(file.tsx, 7, 3))
+ >y : Symbol(y, Decl(file.tsx, 12, 34))
+ >p3 : Symbol(p3, Decl(file.tsx, 7, 21))
++>div : Symbol(JSX.IntrinsicElements.__index, Decl(file.tsx, 2, 30))
+ >p2 : Symbol(p2, Decl(file.tsx, 7, 12))
+->div : Symbol(JSX.IntrinsicElements.__index, Decl(file.tsx, 2, 30))
+ 
+
+PASS: TestLocal/tsxErrorRecovery2.tsx/symbol
+baseline: conformance/tsxErrorRecovery2.symbols
+reference: d831aa7b202774958d0cd209ff2e118763d7994a5c408f354042c4a2a668ccc8
+actual: d831aa7b202774958d0cd209ff2e118763d7994a5c408f354042c4a2a668ccc8
+
+PASS: TestLocal/tsxGenericArrowFunctionParsing.tsx/symbol
+baseline: conformance/tsxGenericArrowFunctionParsing.symbols
+reference: 0d26020f8b31d27ae4c969a1c171725800720e3deb677847c55d3aa701cd19ac
+actual: 0d26020f8b31d27ae4c969a1c171725800720e3deb677847c55d3aa701cd19ac
+
+PASS: TestLocal/tsxNamespacedTagName2.tsx/symbol
+baseline: conformance/tsxNamespacedTagName2.symbols
+reference: e03b877f40bfbc5f331184c950ac0b773d455b9c18624bdcefa667d84faa0128
+actual: e03b877f40bfbc5f331184c950ac0b773d455b9c18624bdcefa667d84faa0128
+
+PASS: TestLocal/tsxNoJsx.tsx/symbol
+baseline: conformance/tsxNoJsx.symbols
+reference: 14c575becfe484b59395cb527814c29f52855eb76d6dd138d52b1d732cc269a2
+actual: 14c575becfe484b59395cb527814c29f52855eb76d6dd138d52b1d732cc269a2
+
+FAIL: TestLocal/tsxParseTests1.tsx/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/tsxParseTests1.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/tsxParseTests1.symbols
+reference: 6842427fec1b84f87962a051ad0abcf0f5526216fa0d3a00fa7a0f81330320d9
+actual: 072c9df3b18bf99aa4b8c12603d35996d97d99241e882695dc6e09bb2c9b1c20
+--- expected/conformance/tsxParseTests1.symbols
++++ actual/conformance/tsxParseTests1.symbols
+@@ -17,9 +17,9 @@
+ >x : Symbol(x, Decl(file.tsx, 5, 3))
+ >div : Symbol(JSX.IntrinsicElements.div, Decl(file.tsx, 2, 30))
+ >div : Symbol(JSX.IntrinsicElements.div, Decl(file.tsx, 2, 30))
+->span : Symbol(JSX.IntrinsicElements.span, Decl(file.tsx, 2, 35))
+ >div : Symbol(JSX.IntrinsicElements.div, Decl(file.tsx, 2, 30))
+ >div : Symbol(JSX.IntrinsicElements.div, Decl(file.tsx, 2, 30))
++>span : Symbol(JSX.IntrinsicElements.span, Decl(file.tsx, 2, 35))
+ >span : Symbol(JSX.IntrinsicElements.span, Decl(file.tsx, 2, 35))
+ >div : Symbol(JSX.IntrinsicElements.div, Decl(file.tsx, 2, 30))
+ >div : Symbol(JSX.IntrinsicElements.div, Decl(file.tsx, 2, 30))
+
+PASS: TestLocal/tupleElementTypes2.ts/symbol
+baseline: conformance/tupleElementTypes2.symbols
+reference: 29bb76449f072ec35517916093fa47a3610ae456456035445abd638cb15f1b30
+actual: 29bb76449f072ec35517916093fa47a3610ae456456035445abd638cb15f1b30
+
+PASS: TestLocal/tupleElementTypes3.ts/symbol
+baseline: conformance/tupleElementTypes3.symbols
+reference: d56a91f2feefa11cf2b78f04866c8cdf426b6d661c074696a27c28573c60e705
+actual: d56a91f2feefa11cf2b78f04866c8cdf426b6d661c074696a27c28573c60e705
+
+PASS: TestLocal/tupleLengthCheck.ts/symbol
+baseline: conformance/tupleLengthCheck.symbols
+reference: 4405a07e9c9ca4ac85dfa555f7299a89030f9578ae45c3d687f96a4850772f3e
+actual: 4405a07e9c9ca4ac85dfa555f7299a89030f9578ae45c3d687f96a4850772f3e
+
+PASS: TestLocal/twoGenericInterfacesWithDifferentConstraints.ts/symbol
+baseline: conformance/twoGenericInterfacesWithDifferentConstraints.symbols
+reference: fce351a7f32697e9c82cef9b62a934d277f86e1982a6e04d67b4d2a2ed8ef42e
+actual: fce351a7f32697e9c82cef9b62a934d277f86e1982a6e04d67b4d2a2ed8ef42e
+
+PASS: TestLocal/twoGenericInterfacesWithTheSameNameButDifferentArity.ts/symbol
+baseline: conformance/twoGenericInterfacesWithTheSameNameButDifferentArity.symbols
+reference: 3a525b6c86d5b604b4ab87b25c6955d2730c01da3a16bbe20a3680e393d5f314
+actual: 3a525b6c86d5b604b4ab87b25c6955d2730c01da3a16bbe20a3680e393d5f314
+
+FAIL: TestLocal/typeArgumentInferenceWithConstraints.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/typeArgumentInferenceWithConstraints.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/typeArgumentInferenceWithConstraints.symbols
+reference: f73f975b1854d23e283b6cd7c46403f0900f5a7decdf7a4548aaa7ffcd59f84b
+actual: 986510a1b8b0ffa0f000f82d6783d0183890472d32809299ebb57feafa38863e
+--- expected/conformance/typeArgumentInferenceWithConstraints.symbols
++++ actual/conformance/typeArgumentInferenceWithConstraints.symbols
+@@ -72,10 +72,10 @@
+ 
+ someGenerics2a<string>((n) => n.substr(0));
+ >someGenerics2a : Symbol(someGenerics2a, Decl(typeArgumentInferenceWithConstraints.ts, 17, 36))
+->n : Symbol(n, Decl(typeArgumentInferenceWithConstraints.ts, 23, 24))
+ >n.substr : Symbol(String.substr, Decl(lib.es5.d.ts, --, --))
+ >n : Symbol(n, Decl(typeArgumentInferenceWithConstraints.ts, 23, 24))
+ >substr : Symbol(String.substr, Decl(lib.es5.d.ts, --, --))
++>n : Symbol(n, Decl(typeArgumentInferenceWithConstraints.ts, 23, 24))
+ 
+ function someGenerics2b<T extends string, U extends number>(n: (x: T, y: U) => void) { }
+ >someGenerics2b : Symbol(someGenerics2b, Decl(typeArgumentInferenceWithConstraints.ts, 23, 43))
+@@ -90,23 +90,23 @@
+ someGenerics2b((n: string, x: number) => n);
+ >someGenerics2b : Symbol(someGenerics2b, Decl(typeArgumentInferenceWithConstraints.ts, 23, 43))
+ >n : Symbol(n, Decl(typeArgumentInferenceWithConstraints.ts, 26, 16))
++>n : Symbol(n, Decl(typeArgumentInferenceWithConstraints.ts, 26, 16))
+ >x : Symbol(x, Decl(typeArgumentInferenceWithConstraints.ts, 26, 26))
+->n : Symbol(n, Decl(typeArgumentInferenceWithConstraints.ts, 26, 16))
+ 
+ someGenerics2b<string, number>((n: string, t: number) => n);
+ >someGenerics2b : Symbol(someGenerics2b, Decl(typeArgumentInferenceWithConstraints.ts, 23, 43))
+ >n : Symbol(n, Decl(typeArgumentInferenceWithConstraints.ts, 27, 32))
++>n : Symbol(n, Decl(typeArgumentInferenceWithConstraints.ts, 27, 32))
+ >t : Symbol(t, Decl(typeArgumentInferenceWithConstraints.ts, 27, 42))
+->n : Symbol(n, Decl(typeArgumentInferenceWithConstraints.ts, 27, 32))
+ 
+ someGenerics2b<string, number>((n, t) => n.substr(t * t));
+ >someGenerics2b : Symbol(someGenerics2b, Decl(typeArgumentInferenceWithConstraints.ts, 23, 43))
+->n : Symbol(n, Decl(typeArgumentInferenceWithConstraints.ts, 28, 32))
+->t : Symbol(t, Decl(typeArgumentInferenceWithConstraints.ts, 28, 34))
+ >n.substr : Symbol(String.substr, Decl(lib.es5.d.ts, --, --))
+ >n : Symbol(n, Decl(typeArgumentInferenceWithConstraints.ts, 28, 32))
+ >substr : Symbol(String.substr, Decl(lib.es5.d.ts, --, --))
+ >t : Symbol(t, Decl(typeArgumentInferenceWithConstraints.ts, 28, 34))
++>t : Symbol(t, Decl(typeArgumentInferenceWithConstraints.ts, 28, 34))
++>n : Symbol(n, Decl(typeArgumentInferenceWithConstraints.ts, 28, 32))
+ >t : Symbol(t, Decl(typeArgumentInferenceWithConstraints.ts, 28, 34))
+ 
+ // Generic call with argument of function type whose parameter is not of type parameter type but body/return type uses type parameter
+@@ -181,16 +181,16 @@
+ >someGenerics6 : Symbol(someGenerics6, Decl(typeArgumentInferenceWithConstraints.ts, 48, 42))
+ >A : Symbol(A, Decl(typeArgumentInferenceWithConstraints.ts, 51, 23))
+ >a : Symbol(a, Decl(typeArgumentInferenceWithConstraints.ts, 51, 41))
++>A : Symbol(A, Decl(typeArgumentInferenceWithConstraints.ts, 51, 23))
+ >a : Symbol(a, Decl(typeArgumentInferenceWithConstraints.ts, 51, 45))
+ >A : Symbol(A, Decl(typeArgumentInferenceWithConstraints.ts, 51, 23))
+->A : Symbol(A, Decl(typeArgumentInferenceWithConstraints.ts, 51, 23))
+ >b : Symbol(b, Decl(typeArgumentInferenceWithConstraints.ts, 51, 56))
++>A : Symbol(A, Decl(typeArgumentInferenceWithConstraints.ts, 51, 23))
+ >b : Symbol(b, Decl(typeArgumentInferenceWithConstraints.ts, 51, 61))
+ >A : Symbol(A, Decl(typeArgumentInferenceWithConstraints.ts, 51, 23))
+->A : Symbol(A, Decl(typeArgumentInferenceWithConstraints.ts, 51, 23))
+ >c : Symbol(c, Decl(typeArgumentInferenceWithConstraints.ts, 51, 72))
++>A : Symbol(A, Decl(typeArgumentInferenceWithConstraints.ts, 51, 23))
+ >c : Symbol(c, Decl(typeArgumentInferenceWithConstraints.ts, 51, 77))
+->A : Symbol(A, Decl(typeArgumentInferenceWithConstraints.ts, 51, 23))
+ >A : Symbol(A, Decl(typeArgumentInferenceWithConstraints.ts, 51, 23))
+ 
+ someGenerics6(n => n, n => n, n => n); // Valid
+@@ -236,16 +236,16 @@
+ >B : Symbol(B, Decl(typeArgumentInferenceWithConstraints.ts, 58, 25))
+ >C : Symbol(C, Decl(typeArgumentInferenceWithConstraints.ts, 58, 43))
+ >a : Symbol(a, Decl(typeArgumentInferenceWithConstraints.ts, 58, 47))
++>A : Symbol(A, Decl(typeArgumentInferenceWithConstraints.ts, 58, 23))
+ >a : Symbol(a, Decl(typeArgumentInferenceWithConstraints.ts, 58, 51))
+ >A : Symbol(A, Decl(typeArgumentInferenceWithConstraints.ts, 58, 23))
+->A : Symbol(A, Decl(typeArgumentInferenceWithConstraints.ts, 58, 23))
+ >b : Symbol(b, Decl(typeArgumentInferenceWithConstraints.ts, 58, 62))
++>B : Symbol(B, Decl(typeArgumentInferenceWithConstraints.ts, 58, 25))
+ >b : Symbol(b, Decl(typeArgumentInferenceWithConstraints.ts, 58, 67))
+ >B : Symbol(B, Decl(typeArgumentInferenceWithConstraints.ts, 58, 25))
+->B : Symbol(B, Decl(typeArgumentInferenceWithConstraints.ts, 58, 25))
+ >c : Symbol(c, Decl(typeArgumentInferenceWithConstraints.ts, 58, 78))
++>C : Symbol(C, Decl(typeArgumentInferenceWithConstraints.ts, 58, 43))
+ >c : Symbol(c, Decl(typeArgumentInferenceWithConstraints.ts, 58, 83))
+->C : Symbol(C, Decl(typeArgumentInferenceWithConstraints.ts, 58, 43))
+ >C : Symbol(C, Decl(typeArgumentInferenceWithConstraints.ts, 58, 43))
+ 
+ someGenerics7(n => n, n => n, n => n); // Valid, types of n are <any, string, any> respectively
+@@ -281,8 +281,8 @@
+ >T : Symbol(T, Decl(typeArgumentInferenceWithConstraints.ts, 64, 23))
+ >n : Symbol(n, Decl(typeArgumentInferenceWithConstraints.ts, 64, 41))
+ >T : Symbol(T, Decl(typeArgumentInferenceWithConstraints.ts, 64, 23))
++>n : Symbol(n, Decl(typeArgumentInferenceWithConstraints.ts, 64, 41))
+ >T : Symbol(T, Decl(typeArgumentInferenceWithConstraints.ts, 64, 23))
+->n : Symbol(n, Decl(typeArgumentInferenceWithConstraints.ts, 64, 41))
+ 
+ var x = someGenerics8<string>(someGenerics7); // Error
+ >x : Symbol(x, Decl(typeArgumentInferenceWithConstraints.ts, 65, 3))
+@@ -295,6 +295,7 @@
+ // Generic call with multiple parameters of generic type passed arguments with no best common type
+ function someGenerics9<T extends any>(a: T, b: T, c: T): T {
+ >someGenerics9 : Symbol(someGenerics9, Decl(typeArgumentInferenceWithConstraints.ts, 66, 44))
++>T : Symbol(T, Decl(typeArgumentInferenceWithConstraints.ts, 69, 23))
+ >T : Symbol(T, Decl(typeArgumentInferenceWithConstraints.ts, 69, 23))
+ >a : Symbol(a, Decl(typeArgumentInferenceWithConstraints.ts, 69, 38))
+ >T : Symbol(T, Decl(typeArgumentInferenceWithConstraints.ts, 69, 23))
+@@ -302,7 +303,6 @@
+ >T : Symbol(T, Decl(typeArgumentInferenceWithConstraints.ts, 69, 23))
+ >c : Symbol(c, Decl(typeArgumentInferenceWithConstraints.ts, 69, 49))
+ >T : Symbol(T, Decl(typeArgumentInferenceWithConstraints.ts, 69, 23))
+->T : Symbol(T, Decl(typeArgumentInferenceWithConstraints.ts, 69, 23))
+ 
+     return null;
+ }
+
+PASS: TestLocal/typeFromJSConstructor.ts/symbol
+baseline: conformance/typeFromJSConstructor.symbols
+reference: 3a777e2dc2af15bae2c686dd044cb723729b85cd372124ae7a58aa4c8e4f821a
+actual: 3a777e2dc2af15bae2c686dd044cb723729b85cd372124ae7a58aa4c8e4f821a
+
+FAIL: TestLocal/typeFromParamTagForFunction.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/typeFromParamTagForFunction.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/typeFromParamTagForFunction.symbols
+reference: c1c4539eb619b2c6016f23970e307eada5c0ebe8207d746f46132fd877e8e72f
+actual: 217476624a63e928056d4dcc8d65af9e038e102dd62f744fa1b9eafea1bed64c
+--- expected/conformance/typeFromParamTagForFunction.symbols
++++ actual/conformance/typeFromParamTagForFunction.symbols
+@@ -53,10 +53,10 @@
+ /** @param {B} p */
+ function b(p) { p.x; }
+ >b : Symbol(b, Decl(b.js, 0, 33))
+->p : Symbol(p, Decl(b.js, 3, 11))
+ >p.x : Symbol(B.x, Decl(b-ext.js, 1, 19))
+ >p : Symbol(p, Decl(b.js, 3, 11))
+ >x : Symbol(B.x, Decl(b-ext.js, 1, 19))
++>p : Symbol(p, Decl(b.js, 3, 11))
+ 
+ === c-ext.js ===
+ export function C() {
+@@ -117,10 +117,10 @@
+ /** @param {E} p */
+ function e(p) { p.x; }
+ >e : Symbol(e, Decl(e.js, 0, 33))
+->p : Symbol(p, Decl(e.js, 3, 11))
+ >p.x : Symbol(E.x, Decl(e-ext.js, 1, 19))
+ >p : Symbol(p, Decl(e.js, 3, 11))
+ >x : Symbol(E.x, Decl(e-ext.js, 1, 19))
++>p : Symbol(p, Decl(e.js, 3, 11))
+ 
+ === f.js ===
+ var F = function () {
+@@ -163,8 +163,8 @@
+ /** @param {H} p */
+ function h(p) { p.x; }
+ >h : Symbol(h, Decl(h.js, 4, 1))
+->p : Symbol(p, Decl(h.js, 7, 11))
+ >p.x : Symbol(H.x, Decl(h.js, 1, 19))
+ >p : Symbol(p, Decl(h.js, 7, 11))
+ >x : Symbol(H.x, Decl(h.js, 1, 19))
++>p : Symbol(p, Decl(h.js, 7, 11))
+ 
+
+PASS: TestLocal/typeFromPropertyAssignment25.ts/symbol
+baseline: conformance/typeFromPropertyAssignment25.symbols
+reference: 0e989c4042885651d79f3e7c8bd4ad305b86a5bdcfbdda06c33d9c32e5966572
+actual: 0e989c4042885651d79f3e7c8bd4ad305b86a5bdcfbdda06c33d9c32e5966572
+
+PASS: TestLocal/typeFromPropertyAssignment27.ts/symbol
+baseline: conformance/typeFromPropertyAssignment27.symbols
+reference: 50ad876294cee7bd3ad487893198116ec2fe22d2df81184609fa772a0ec7dba4
+actual: 50ad876294cee7bd3ad487893198116ec2fe22d2df81184609fa772a0ec7dba4
+
+PASS: TestLocal/typeFromPropertyAssignment4.ts/symbol
+baseline: conformance/typeFromPropertyAssignment4.symbols
+reference: ed6046b60d6b041d966fc7aabe448e86c2a787d302d8fb4650053a31f3b9ac72
+actual: ed6046b60d6b041d966fc7aabe448e86c2a787d302d8fb4650053a31f3b9ac72
+
+FAIL: TestLocal/typeGuardIntersectionTypes.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/expressions/typeGuards/typeGuardIntersectionTypes.ts:
+        runtime error: slice bounds out of range [22:17]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/typeGuardOfFormThisMember.ts_target=es2015/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/typeGuardOfFormThisMember(target=es2015).symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/typeGuardOfFormThisMember(target=es2015).symbols
+reference: 1e0aba10f2a2037e76d84a2758bd8284fe56bf9eebd38dbc56fdf407f14ef226
+actual: c2234abaf5e2898b396b3c14e524c5dcfb02704b83bc31e4e46bd69f28c18d78
+--- expected/conformance/typeGuardOfFormThisMember(target=es2015).symbols
++++ actual/conformance/typeGuardOfFormThisMember(target=es2015).symbols
+@@ -47,10 +47,10 @@
+ >FileSystemObject : Symbol(FileSystemObject, Decl(typeGuardOfFormThisMember.ts, 1, 16))
+ 
+ 		constructor(path: string, public content: string) { super(path); }
++>super : Symbol(FileSystemObject, Decl(typeGuardOfFormThisMember.ts, 1, 16))
++>path : Symbol(path, Decl(typeGuardOfFormThisMember.ts, 18, 14))
+ >path : Symbol(path, Decl(typeGuardOfFormThisMember.ts, 18, 14))
+ >content : Symbol(File.content, Decl(typeGuardOfFormThisMember.ts, 18, 27))
+->super : Symbol(FileSystemObject, Decl(typeGuardOfFormThisMember.ts, 1, 16))
+->path : Symbol(path, Decl(typeGuardOfFormThisMember.ts, 18, 14))
+ 	}
+ 	export class Directory extends FileSystemObject {
+ >Directory : Symbol(Directory, Decl(typeGuardOfFormThisMember.ts, 19, 2))
+
+PASS: TestLocal/typeGuardsWithInstanceOf.ts/symbol
+baseline: conformance/typeGuardsWithInstanceOf.symbols
+reference: 840f5bae38d320c316240ce200e414a3558bc1aea293d0ead84aef5a4f7608d9
+actual: 840f5bae38d320c316240ce200e414a3558bc1aea293d0ead84aef5a4f7608d9
+
+FAIL: TestLocal/typeGuardsWithInstanceOfByConstructorSignature.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/typeGuardsWithInstanceOfByConstructorSignature.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/typeGuardsWithInstanceOfByConstructorSignature.symbols
+reference: f915cb3b75ebfe05b9f5624fac873684b72dd4c357652336b6f33e81674a58f3
+actual: aada6be561ac2ead3a27ecd4aa7ba4c92dfac5b18aad337197d33fc2ce03be21
+--- expected/conformance/typeGuardsWithInstanceOfByConstructorSignature.symbols
++++ actual/conformance/typeGuardsWithInstanceOfByConstructorSignature.symbols
+@@ -55,8 +55,8 @@
+ >BConstructor : Symbol(BConstructor, Decl(typeGuardsWithInstanceOfByConstructorSignature.ts, 18, 1))
+ 
+     new <T>(): B<T>;
++>B : Symbol(B, Decl(typeGuardsWithInstanceOfByConstructorSignature.ts, 23, 1), Decl(typeGuardsWithInstanceOfByConstructorSignature.ts, 27, 11))
+ >T : Symbol(T, Decl(typeGuardsWithInstanceOfByConstructorSignature.ts, 22, 9))
+->B : Symbol(B, Decl(typeGuardsWithInstanceOfByConstructorSignature.ts, 23, 1), Decl(typeGuardsWithInstanceOfByConstructorSignature.ts, 27, 11))
+ >T : Symbol(T, Decl(typeGuardsWithInstanceOfByConstructorSignature.ts, 22, 9))
+ }
+ interface B<T> {
+@@ -119,12 +119,12 @@
+ >CConstructor : Symbol(CConstructor, Decl(typeGuardsWithInstanceOfByConstructorSignature.ts, 41, 1))
+ 
+     new (value: string): C1;
++>C1 : Symbol(C1, Decl(typeGuardsWithInstanceOfByConstructorSignature.ts, 47, 1))
+ >value : Symbol(value, Decl(typeGuardsWithInstanceOfByConstructorSignature.ts, 45, 9))
+->C1 : Symbol(C1, Decl(typeGuardsWithInstanceOfByConstructorSignature.ts, 47, 1))
+ 
+     new (value: number): C2;
++>C2 : Symbol(C2, Decl(typeGuardsWithInstanceOfByConstructorSignature.ts, 52, 1))
+ >value : Symbol(value, Decl(typeGuardsWithInstanceOfByConstructorSignature.ts, 46, 9))
+->C2 : Symbol(C2, Decl(typeGuardsWithInstanceOfByConstructorSignature.ts, 52, 1))
+ }
+ interface C1 {
+ >C1 : Symbol(C1, Decl(typeGuardsWithInstanceOfByConstructorSignature.ts, 47, 1))
+
+PASS: TestLocal/typeOnlyMerge2.ts/symbol
+baseline: conformance/typeOnlyMerge2.symbols
+reference: 5b5b06990f5a43fb84f7bc2afb8c57ada844f02a56f9f6d45cb7098279c5c166
+actual: 5b5b06990f5a43fb84f7bc2afb8c57ada844f02a56f9f6d45cb7098279c5c166
+
+FAIL: TestLocal/typeParameterExtendsUnionConstraintDistributed.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/typeParameterExtendsUnionConstraintDistributed.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/typeParameterExtendsUnionConstraintDistributed.symbols
+reference: 4c5bec6da08fea9a3b0947e8689326b56435f17ca8e57f42ede3fe55a39ad742
+actual: ecd79386a0568df7976894d514258bf17fff20c0c3a8f5196e349c28d20a12d2
+--- expected/conformance/typeParameterExtendsUnionConstraintDistributed.symbols
++++ actual/conformance/typeParameterExtendsUnionConstraintDistributed.symbols
+@@ -6,19 +6,24 @@
+ 
+ function f<T extends A>(a: T): A & T { return a; } // Shouldn't error
+ >f : Symbol(f, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 0, 15))
++>A : Symbol(A, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 0, 0))
++>T : Symbol(T, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 1, 11))
++>a : Symbol(a, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 1, 24))
+ >T : Symbol(T, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 1, 11))
+ >A : Symbol(A, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 0, 0))
+ >a : Symbol(a, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 1, 24))
+ >T : Symbol(T, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 1, 11))
+->A : Symbol(A, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 0, 0))
+->T : Symbol(T, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 1, 11))
+->a : Symbol(a, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 1, 24))
+ 
+ type B = 2 | 3;
+ >B : Symbol(B, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 1, 50))
+ 
+ function f2<T extends A, U extends B>(ab: T & U): (A | B) & T & U { return ab; } // Also shouldn't error
+ >f2 : Symbol(f2, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 3, 15))
++>A : Symbol(A, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 0, 0))
++>B : Symbol(B, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 1, 50))
++>T : Symbol(T, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 4, 12))
++>U : Symbol(U, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 4, 24))
++>ab : Symbol(ab, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 4, 38))
+ >T : Symbol(T, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 4, 12))
+ >A : Symbol(A, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 0, 0))
+ >U : Symbol(U, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 4, 24))
+@@ -26,9 +31,4 @@
+ >ab : Symbol(ab, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 4, 38))
+ >T : Symbol(T, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 4, 12))
+ >U : Symbol(U, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 4, 24))
+->A : Symbol(A, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 0, 0))
+->B : Symbol(B, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 1, 50))
+->T : Symbol(T, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 4, 12))
+->U : Symbol(U, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 4, 24))
+->ab : Symbol(ab, Decl(typeParameterExtendsUnionConstraintDistributed.ts, 4, 38))
+ 
+
+FAIL: TestLocal/typeParameterUsedAsTypeParameterConstraint.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/types/objectTypeLiteral/callSignatures/typeParameterUsedAsTypeParameterConstraint.ts:
+        runtime error: slice bounds out of range [5:3]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/typeParametersAvailableInNestedScope.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/types/typeParameters/typeParameterLists/typeParametersAvailableInNestedScope.ts:
+        runtime error: slice bounds out of range [6:4]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/typeQuery.ts/symbol
+baseline: conformance/typeQuery.symbols
+reference: c5bed53e7ba8e0bbcdbd52e193d2b1ac5e5016f599ea03dd15ab6e9b311e55b1
+actual: c5bed53e7ba8e0bbcdbd52e193d2b1ac5e5016f599ea03dd15ab6e9b311e55b1
+
+PASS: TestLocal/typedefCrossModule4.ts/symbol
+baseline: conformance/typedefCrossModule4.symbols
+reference: 55cb9fd0770c215056bb67eee6a972d990971ca45d7c54d8b2e3ecba85d9f942
+actual: 55cb9fd0770c215056bb67eee6a972d990971ca45d7c54d8b2e3ecba85d9f942
+
+PASS: TestLocal/typeofOperatorWithEnumType.ts/symbol
+baseline: conformance/typeofOperatorWithEnumType.symbols
+reference: c1e1fa61909c7aacd4d94f3758a692c26eb746daa7a38799812ee7de834b37d3
+actual: c1e1fa61909c7aacd4d94f3758a692c26eb746daa7a38799812ee7de834b37d3
+
+PASS: TestLocal/typesVersionsDeclarationEmit.multiFileBackReferenceToSelf.ts/symbol
+baseline: conformance/typesVersionsDeclarationEmit.multiFileBackReferenceToSelf.symbols
+reference: a4b057a0627e554ef6f8712a4008a77ee12bfe002aa779c90c26077ed8da8f35
+actual: a4b057a0627e554ef6f8712a4008a77ee12bfe002aa779c90c26077ed8da8f35
+
+PASS: TestLocal/typingsLookup3.ts/symbol
+baseline: conformance/typingsLookup3.symbols
+reference: 0893f8d41a06e08bb99b8ef889bfc68d71134f410a21fba42fe75c8030bad85d
+actual: 0893f8d41a06e08bb99b8ef889bfc68d71134f410a21fba42fe75c8030bad85d
+
+PASS: TestLocal/umd2.ts/symbol
+baseline: conformance/umd2.symbols
+reference: c73a53f76c2aea101a76bb2acc3757be4481e3b9b0978fe0459a7b8821d2f451
+actual: c73a53f76c2aea101a76bb2acc3757be4481e3b9b0978fe0459a7b8821d2f451
+
+PASS: TestLocal/unicodeExtendedEscapesInRegularExpressions11.ts_target=es6/symbol
+baseline: conformance/unicodeExtendedEscapesInRegularExpressions11(target=es6).symbols
+reference: 9d559f90eb2aa031a8bdc72dece7c0f3338405572228f5ccda3878fd8b0cc3be
+actual: 9d559f90eb2aa031a8bdc72dece7c0f3338405572228f5ccda3878fd8b0cc3be
+
+PASS: TestLocal/unicodeExtendedEscapesInRegularExpressions12.ts_target=es6/symbol
+baseline: conformance/unicodeExtendedEscapesInRegularExpressions12(target=es6).symbols
+reference: 9e5f4c918a3cf80e4b27ba5382a4e6eafb813c5c13978f68be02ffdc4e2d4a74
+actual: 9e5f4c918a3cf80e4b27ba5382a4e6eafb813c5c13978f68be02ffdc4e2d4a74
+
+PASS: TestLocal/unicodeExtendedEscapesInStrings02.ts_target=es6/symbol
+baseline: conformance/unicodeExtendedEscapesInStrings02(target=es6).symbols
+reference: 8263cdab99c7904d60c78070412bea3a46a76ef43638b58e944adf7e19c84e94
+actual: 8263cdab99c7904d60c78070412bea3a46a76ef43638b58e944adf7e19c84e94
+
+PASS: TestLocal/unicodeExtendedEscapesInStrings17.ts_target=es6/symbol
+baseline: conformance/unicodeExtendedEscapesInStrings17(target=es6).symbols
+reference: 8865dfec49e42ee9d294089c20243a7f7358a399e109608d8649f8d26efe1865
+actual: 8865dfec49e42ee9d294089c20243a7f7358a399e109608d8649f8d26efe1865
+
+PASS: TestLocal/unicodeExtendedEscapesInStrings23.ts_target=es6/symbol
+baseline: conformance/unicodeExtendedEscapesInStrings23(target=es6).symbols
+reference: a047f1af7cb224e04ac775e234aa545916dc7fa551548f0667d1c7e83524ff78
+actual: a047f1af7cb224e04ac775e234aa545916dc7fa551548f0667d1c7e83524ff78
+
+PASS: TestLocal/unicodeExtendedEscapesInTemplates06.ts_target=es6/symbol
+baseline: conformance/unicodeExtendedEscapesInTemplates06(target=es6).symbols
+reference: 6edd4c184dbcad2f28d95b8b1191f9c304f06a5edc11e5ff9db4d4f790bdc683
+actual: 6edd4c184dbcad2f28d95b8b1191f9c304f06a5edc11e5ff9db4d4f790bdc683
+
+PASS: TestLocal/unicodeExtendedEscapesInTemplates13.ts_target=es6/symbol
+baseline: conformance/unicodeExtendedEscapesInTemplates13(target=es6).symbols
+reference: 9ebe20170782c18008f496fb30b8fea104097ad45afe1e870a9fd9f0db04480a
+actual: 9ebe20170782c18008f496fb30b8fea104097ad45afe1e870a9fd9f0db04480a
+
+PASS: TestLocal/unicodeExtendedEscapesInTemplates18.ts_target=es6/symbol
+baseline: conformance/unicodeExtendedEscapesInTemplates18(target=es6).symbols
+reference: 5aa8c81ee588151144958d920c731832e462e4a82fd808f2bc1cde940a1a07d3
+actual: 5aa8c81ee588151144958d920c731832e462e4a82fd808f2bc1cde940a1a07d3
+
+FAIL: TestLocal/unionThisTypeInFunctions.ts/symbol
+    testutil.go:<line>: Panic on creating symbol baseline for test tests/cases/conformance/types/thisType/unionThisTypeInFunctions.ts:
+        runtime error: slice bounds out of range [10:9]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func2(...)
+testing.tRunner(...)
+
+PASS: TestLocal/unionTypeCallSignatures5.ts/symbol
+baseline: conformance/unionTypeCallSignatures5.symbols
+reference: 5c1802f3a980a4797c1340f119e1c6ee3bc6aa87179c27eff634fbae3e8db6e3
+actual: 5c1802f3a980a4797c1340f119e1c6ee3bc6aa87179c27eff634fbae3e8db6e3
+
+FAIL: TestLocal/unionTypeCallSignatures7.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/unionTypeCallSignatures7.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/unionTypeCallSignatures7.symbols
+reference: 67c22bf727b96a0df1c9fec5f27ae9b5947d95a909951b908ae496ef96a1ca04
+actual: 64a9dbee69a4f85e179d2abfabb151133cb486acaf902bd94d3bd0f4f507a8b5
+--- expected/conformance/unionTypeCallSignatures7.symbols
++++ actual/conformance/unionTypeCallSignatures7.symbols
+@@ -11,8 +11,8 @@
+ >Name : Symbol(Name, Decl(unionTypeCallSignatures7.ts, 2, 19))
+ 
+   (id: number): `${Name} with id`;
++>Name : Symbol(Name, Decl(unionTypeCallSignatures7.ts, 2, 19))
+ >id : Symbol(id, Decl(unionTypeCallSignatures7.ts, 4, 3))
+->Name : Symbol(Name, Decl(unionTypeCallSignatures7.ts, 2, 19))
+ }
+ 
+ declare const f: Callable<"A"> | Callable<"B">;
+
+PASS: TestLocal/unionTypeFromArrayLiteral.ts/symbol
+baseline: conformance/unionTypeFromArrayLiteral.symbols
+reference: 783c3b96cb53d4c4ffbd6a5ed153ed82b60864b8a51b5cc2619fc11796d6cdfb
+actual: 783c3b96cb53d4c4ffbd6a5ed153ed82b60864b8a51b5cc2619fc11796d6cdfb
+
+FAIL: TestLocal/unionTypeIndexSignature.ts/symbol
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/unionTypeIndexSignature.symbols has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/unionTypeIndexSignature.symbols
+reference: 93a815f19de0fa02ef7b7784555e84a52656e8d7231d292dffe205b901db8631
+actual: b3155ee57b7bf66563a9de1dfba9136671fa72d07230275df52cf87573b64bda
+--- expected/conformance/unionTypeIndexSignature.symbols
++++ actual/conformance/unionTypeIndexSignature.symbols
+@@ -14,8 +14,8 @@
+ var unionOfDifferentReturnType: { [a: string]: number; } | { [a: string]: Date; };
+ >unionOfDifferentReturnType : Symbol(unionOfDifferentReturnType, Decl(unionTypeIndexSignature.ts, 6, 3))
+ >a : Symbol(a, Decl(unionTypeIndexSignature.ts, 6, 35))
++>Date : Symbol(Date, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.scripthost.d.ts, --, --), Decl(lib.es2015.symbol.wellknown.d.ts, --, --))
+ >a : Symbol(a, Decl(unionTypeIndexSignature.ts, 6, 62))
+->Date : Symbol(Date, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.scripthost.d.ts, --, --), Decl(lib.es2015.symbol.wellknown.d.ts, --, --))
+ 
+ numOrDate = unionOfDifferentReturnType["hello"]; // number | Date
+ >numOrDate : Symbol(numOrDate, Decl(unionTypeIndexSignature.ts, 0, 3))
+@@ -42,8 +42,8 @@
+ var unionOfDifferentReturnType1: { [a: number]: number; } | { [a: number]: Date; };
+ >unionOfDifferentReturnType1 : Symbol(unionOfDifferentReturnType1, Decl(unionTypeIndexSignature.ts, 16, 3))
+ >a : Symbol(a, Decl(unionTypeIndexSignature.ts, 16, 36))
++>Date : Symbol(Date, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.scripthost.d.ts, --, --), Decl(lib.es2015.symbol.wellknown.d.ts, --, --))
+ >a : Symbol(a, Decl(unionTypeIndexSignature.ts, 16, 63))
+->Date : Symbol(Date, Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.es5.d.ts, --, --), Decl(lib.scripthost.d.ts, --, --), Decl(lib.es2015.symbol.wellknown.d.ts, --, --))
+ 
+ numOrDate = unionOfDifferentReturnType1["hello"]; // any
+ >numOrDate : Symbol(numOrDate, Decl(unionTypeIndexSignature.ts, 0, 3))
+
+PASS: TestLocal/unionTypeWithIndexSignature.ts/symbol
+baseline: conformance/unionTypeWithIndexSignature.symbols
+reference: 5d55fb3183e66bacb1880ea56131ae4ba5158356addc1fdd7b579602ff044154
+actual: 5d55fb3183e66bacb1880ea56131ae4ba5158356addc1fdd7b579602ff044154
+
+PASS: TestLocal/useRegexpGroups.ts/symbol
+baseline: conformance/useRegexpGroups.symbols
+reference: 3033c1197c2e38824ae94edc719e0d400cb30bec8e62a86a1bfa981a656998ce
+actual: 3033c1197c2e38824ae94edc719e0d400cb30bec8e62a86a1bfa981a656998ce

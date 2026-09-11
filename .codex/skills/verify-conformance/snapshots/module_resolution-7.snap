@@ -1,0 +1,19 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+PASS: TestLocal/bundlerImportTsExtensions.ts_allowimportingtsextensions=true,noemit=false/module_resolution
+baseline: conformance/bundlerImportTsExtensions(allowimportingtsextensions=true,noemit=false).trace.json
+reference: 1b303e27942c841bd0f84f0c95d13b854e8d55a96d1bde6c7e35f9da22cb7ca8
+actual: 1b303e27942c841bd0f84f0c95d13b854e8d55a96d1bde6c7e35f9da22cb7ca8
+
+PASS: TestLocal/conditionalExportsResolutionFallback.ts_moduleresolution=nodenext/module_resolution
+baseline: conformance/conditionalExportsResolutionFallback(moduleresolution=nodenext).trace.json
+reference: 63bb6b59620cd894fe3e96785c91687c18511dc4a5b999ae916bea69a3b0b0ba
+actual: 63bb6b59620cd894fe3e96785c91687c18511dc4a5b999ae916bea69a3b0b0ba
+
+PASS: TestLocal/customConditions.ts_resolvepackagejsonexports=true/module_resolution
+baseline: conformance/customConditions(resolvepackagejsonexports=true).trace.json
+reference: 6d81505334ee5ad7c4790ef0c7ad08c91032adf6092eeea18de8653611af5d51
+actual: 6d81505334ee5ad7c4790ef0c7ad08c91032adf6092eeea18de8653611af5d51

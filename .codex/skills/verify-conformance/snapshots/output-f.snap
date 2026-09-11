@@ -1,0 +1,2283 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+PASS: TestLocal/ES5For-of27.ts_target=es2015/output
+baseline: conformance/ES5For-of27(target=es2015).js
+reference: 2b5520632db9a6d06251d3f395fedb8c9c0cc7a3a628a7404112c9ff5fcebd03
+actual: 2b5520632db9a6d06251d3f395fedb8c9c0cc7a3a628a7404112c9ff5fcebd03
+
+PASS: TestLocal/ES5For-ofTypeCheck5.ts_target=es2015/output
+baseline: conformance/ES5For-ofTypeCheck5(target=es2015).js
+reference: 411f38a894ba49ec2952940998800a61e3911309cd3cf9fce9a32167155a4c86
+actual: 411f38a894ba49ec2952940998800a61e3911309cd3cf9fce9a32167155a4c86
+
+PASS: TestLocal/ExportModuleWithAccessibleTypesOnItsExportedMembers.ts/output
+baseline: conformance/ExportModuleWithAccessibleTypesOnItsExportedMembers.js
+reference: 2b2bbe24ed92bd65a3f8c697db7d0e7a4e19a4362fe9488c2caff01c1cd84318
+actual: 2b2bbe24ed92bd65a3f8c697db7d0e7a4e19a4362fe9488c2caff01c1cd84318
+
+PASS: TestLocal/FunctionDeclaration3_es6.ts/output
+baseline: conformance/FunctionDeclaration3_es6.js
+reference: 12de01411ac79d2dafbd3bce5065136ac781d6b63bfc8109e467d28dd586b961
+actual: 12de01411ac79d2dafbd3bce5065136ac781d6b63bfc8109e467d28dd586b961
+
+PASS: TestLocal/FunctionDeclaration4_es6.ts/output
+baseline: conformance/FunctionDeclaration4_es6.js
+reference: d8bbada7d7275991846d37c7cfb34a3f5a9cfc36327a224bba64f5e44a7485e0
+actual: d8bbada7d7275991846d37c7cfb34a3f5a9cfc36327a224bba64f5e44a7485e0
+
+PASS: TestLocal/FunctionDeclaration5_es6.ts/output
+baseline: conformance/FunctionDeclaration5_es6.js
+reference: 8effbea2ecf48fbf0a46c7511855480f9e5db81ccecf6b2c06f93d500be97803
+actual: 8effbea2ecf48fbf0a46c7511855480f9e5db81ccecf6b2c06f93d500be97803
+
+PASS: TestLocal/TwoInternalModulesThatMergeEachWithExportedAndNonExportedClassesOfTheSameName.ts/output
+baseline: conformance/TwoInternalModulesThatMergeEachWithExportedAndNonExportedClassesOfTheSameName.js
+reference: c05387a03aafc5a6de636c6d5c0019f84d4fcc63220ce72ee216303f4ddc17c6
+actual: c05387a03aafc5a6de636c6d5c0019f84d4fcc63220ce72ee216303f4ddc17c6
+
+PASS: TestLocal/TwoInternalModulesThatMergeEachWithExportedAndNonExportedInterfacesOfTheSameName.ts/output
+baseline: conformance/TwoInternalModulesThatMergeEachWithExportedAndNonExportedInterfacesOfTheSameName.js
+reference: da1d354e7e3d4d491b0b0824997fdf3bc4cdbc0337c31f1cf1771e33fc34dfab
+actual: da1d354e7e3d4d491b0b0824997fdf3bc4cdbc0337c31f1cf1771e33fc34dfab
+
+PASS: TestLocal/TwoInternalModulesThatMergeEachWithExportedClassesOfTheSameName.ts/output
+baseline: conformance/TwoInternalModulesThatMergeEachWithExportedClassesOfTheSameName.js
+reference: 600a16c64f9e0354615525646cb29f5a141eadbc7c77919d749b661fc3842b2c
+actual: 600a16c64f9e0354615525646cb29f5a141eadbc7c77919d749b661fc3842b2c
+
+PASS: TestLocal/VariableDeclaration13_es6.ts/output
+baseline: conformance/VariableDeclaration13_es6.js
+reference: e734ec62deb2196dace621d5e0568de0136846fd4f85e8bcb3d8f89cc641dbfb
+actual: e734ec62deb2196dace621d5e0568de0136846fd4f85e8bcb3d8f89cc641dbfb
+
+PASS: TestLocal/VariableDeclaration1_es6.ts/output
+baseline: conformance/VariableDeclaration1_es6.js
+reference: 113cbf966632436075f001659bf644bed0649af68fd8d91bd1536cd533e50b9b
+actual: 113cbf966632436075f001659bf644bed0649af68fd8d91bd1536cd533e50b9b
+
+PASS: TestLocal/YieldExpression9_es6.ts/output
+baseline: conformance/YieldExpression9_es6.js
+reference: 7d501eb6e32150efee9c4d15a0080a34d291a205007a094301da8f458eb4fe3d
+actual: 7d501eb6e32150efee9c4d15a0080a34d291a205007a094301da8f458eb4fe3d
+
+PASS: TestLocal/accessorsOverrideProperty5.ts/output
+baseline: conformance/accessorsOverrideProperty5.js
+reference: 830d2d8406d13923e65d7f24b50c7b56193b0f52720d3590bf429f565b3fbca3
+actual: 830d2d8406d13923e65d7f24b50c7b56193b0f52720d3590bf429f565b3fbca3
+
+PASS: TestLocal/accessorsOverrideProperty7.ts_target=es2015/output
+baseline: conformance/accessorsOverrideProperty7(target=es2015).js
+reference: 8092b2aaa817e01624605be727b5f81e2eb06ea1620a094626643bdd7efd3fa6
+actual: 8092b2aaa817e01624605be727b5f81e2eb06ea1620a094626643bdd7efd3fa6
+
+PASS: TestLocal/additionOperatorWithConstrainedTypeParameter.ts/output
+baseline: conformance/additionOperatorWithConstrainedTypeParameter.js
+reference: 23fd07dba771f2a9002983cc9b02d48fd837412ae9ff9c1c0e5d4954bdbae1a9
+actual: 23fd07dba771f2a9002983cc9b02d48fd837412ae9ff9c1c0e5d4954bdbae1a9
+
+PASS: TestLocal/allowsImportingTsExtension.ts/output
+baseline: conformance/allowsImportingTsExtension.js
+reference: e376bf8562e86119ef1c8ae43b1c55fe3a4f1d674e9810c3f9bbcb77613169be
+actual: e376bf8562e86119ef1c8ae43b1c55fe3a4f1d674e9810c3f9bbcb77613169be
+
+PASS: TestLocal/ambientExternalModuleInsideNonAmbientExternalModule.ts/output
+baseline: conformance/ambientExternalModuleInsideNonAmbientExternalModule.js
+reference: 4ae202b7d751434faf9141d551027b5a4ade1ed6416426beab9ee769d43d7824
+actual: 4ae202b7d751434faf9141d551027b5a4ade1ed6416426beab9ee769d43d7824
+
+PASS: TestLocal/ambientModuleDeclarationWithReservedIdentifierInDottedPath.ts/output
+baseline: conformance/ambientModuleDeclarationWithReservedIdentifierInDottedPath.js
+reference: 6c5265e2d5dcd70c287598ab612305f39a23c7ac8e4c0787c0c3a31be429cc47
+actual: 6c5265e2d5dcd70c287598ab612305f39a23c7ac8e4c0787c0c3a31be429cc47
+
+PASS: TestLocal/anyAsConstructor.ts/output
+baseline: conformance/anyAsConstructor.js
+reference: f6f9e50c7fd9dd98d46880896bd8b6368bfaa3cb0854ddaef416b87b71118c76
+actual: f6f9e50c7fd9dd98d46880896bd8b6368bfaa3cb0854ddaef416b87b71118c76
+
+PASS: TestLocal/arbitraryModuleNamespaceIdentifiers_module.ts_module=node20/output
+baseline: conformance/arbitraryModuleNamespaceIdentifiers_module(module=node20).js
+reference: ea169849cd7d3334799c75b33e47cc4308322bd4a5d5abcf2f0164e037e4b707
+actual: ea169849cd7d3334799c75b33e47cc4308322bd4a5d5abcf2f0164e037e4b707
+
+PASS: TestLocal/arithmeticOperatorWithAnyAndNumber.ts/output
+baseline: conformance/arithmeticOperatorWithAnyAndNumber.js
+reference: feaa272327211c660fc4749282026f6daefd4d7e3dc5e00a41927090063004b8
+actual: feaa272327211c660fc4749282026f6daefd4d7e3dc5e00a41927090063004b8
+
+PASS: TestLocal/arithmeticOperatorWithNullValueAndValidOperands.ts/output
+baseline: conformance/arithmeticOperatorWithNullValueAndValidOperands.js
+reference: dfd4337babd59fb1aea40faca7d30ece0f153aecee15406507cd89964ebc03fb
+actual: dfd4337babd59fb1aea40faca7d30ece0f153aecee15406507cd89964ebc03fb
+
+PASS: TestLocal/arithmeticOperatorWithOnlyNullValueOrUndefinedValue.ts/output
+baseline: conformance/arithmeticOperatorWithOnlyNullValueOrUndefinedValue.js
+reference: d9d6980e85585442b7fb9c7111ad3988e2e2fa62ae8fe9a21b184df846f37838
+actual: d9d6980e85585442b7fb9c7111ad3988e2e2fa62ae8fe9a21b184df846f37838
+
+PASS: TestLocal/arrayLiteralInference.ts/output
+baseline: conformance/arrayLiteralInference.js
+reference: d54735bd915fd089b00fdd0e44c9ec5e3350c037068aeca380cd7c35c75437bf
+actual: d54735bd915fd089b00fdd0e44c9ec5e3350c037068aeca380cd7c35c75437bf
+
+PASS: TestLocal/arraySpreadImportHelpers.ts_target=es2015/output
+baseline: conformance/arraySpreadImportHelpers(target=es2015).js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/assignmentCompatWithCallSignatures5.ts/output
+baseline: conformance/assignmentCompatWithCallSignatures5.js
+reference: ad18b233a03914ade96bde05e1fa6a9c8219379547e5e25009c91dea6d98c521
+actual: ad18b233a03914ade96bde05e1fa6a9c8219379547e5e25009c91dea6d98c521
+
+PASS: TestLocal/assignmentCompatWithNumericIndexer.ts/output
+baseline: conformance/assignmentCompatWithNumericIndexer.js
+reference: b7e23d85160eb3bb4b321eb73def9dc336a68693f1d86d09793207b64c53b323
+actual: b7e23d85160eb3bb4b321eb73def9dc336a68693f1d86d09793207b64c53b323
+
+PASS: TestLocal/assignmentCompatWithObjectMembersOptionality2.ts/output
+baseline: conformance/assignmentCompatWithObjectMembersOptionality2.js
+reference: 6e30e5a1d50b74865fe70d6b7ba605a5b6720b511ca8880076de810fcde04a27
+actual: 6e30e5a1d50b74865fe70d6b7ba605a5b6720b511ca8880076de810fcde04a27
+
+PASS: TestLocal/asyncArrowFunction4_es6.ts/output
+baseline: conformance/asyncArrowFunction4_es6.js
+reference: 70082d4f0b6c6adf382bd06e34a90fa5b0b108ea1107eb77ca92bd912e607968
+actual: 70082d4f0b6c6adf382bd06e34a90fa5b0b108ea1107eb77ca92bd912e607968
+
+PASS: TestLocal/asyncArrowFunction9_es2017.ts/output
+baseline: conformance/asyncArrowFunction9_es2017.js
+reference: 0a1f54fa3ab47d96d4abeefee4f562deaa6d056de3fa81bd5ee83be4f2543b46
+actual: 0a1f54fa3ab47d96d4abeefee4f562deaa6d056de3fa81bd5ee83be4f2543b46
+
+PASS: TestLocal/asyncAwait_es2017.ts/output
+baseline: conformance/asyncAwait_es2017.js
+reference: 3d3a3414015421fb38e11246dfeb71082aed38e77810c277db0d440cd795b553
+actual: 3d3a3414015421fb38e11246dfeb71082aed38e77810c277db0d440cd795b553
+
+PASS: TestLocal/asyncClass_es5.ts_target=es2015/output
+baseline: conformance/asyncClass_es5(target=es2015).js
+reference: 57dd07c8f4aa858cd109a494722863e2d9f557617c92e91bf8bea7995802dec5
+actual: 57dd07c8f4aa858cd109a494722863e2d9f557617c92e91bf8bea7995802dec5
+
+PASS: TestLocal/asyncFunctionDeclaration15_es5.ts_target=es2015/output
+baseline: conformance/asyncFunctionDeclaration15_es5(target=es2015).js
+reference: 3e989c04c0187245d5a2cbd8c358238f735fa7f27251bd2c3a0c938294a57662
+actual: 3e989c04c0187245d5a2cbd8c358238f735fa7f27251bd2c3a0c938294a57662
+
+PASS: TestLocal/asyncFunctionDeclaration4_es5.ts_target=es2015/output
+baseline: conformance/asyncFunctionDeclaration4_es5(target=es2015).js
+reference: 3f921364f77b245ed25945d19e96ea1e0d6ed44324cd63aca750e2b3f89aad21
+actual: 3f921364f77b245ed25945d19e96ea1e0d6ed44324cd63aca750e2b3f89aad21
+
+PASS: TestLocal/asyncFunctionDeclaration5_es2017.ts/output
+baseline: conformance/asyncFunctionDeclaration5_es2017.js
+reference: 178d9a8e0acc64d2edcccc380d5060facf2d7923a0728f516c27f21784fee87a
+actual: 178d9a8e0acc64d2edcccc380d5060facf2d7923a0728f516c27f21784fee87a
+
+PASS: TestLocal/asyncFunctionDeclarationParameterEvaluation.ts_target=es2015/output
+baseline: conformance/asyncFunctionDeclarationParameterEvaluation(target=es2015).js
+reference: 8b229ac1db0fdb8deb493e06ac28c56b77c29936ec24fa7c7d925de897680459
+actual: 8b229ac1db0fdb8deb493e06ac28c56b77c29936ec24fa7c7d925de897680459
+
+PASS: TestLocal/asyncQualifiedReturnType_es5.ts_target=es2015/output
+baseline: conformance/asyncQualifiedReturnType_es5(target=es2015).js
+reference: b20f25b90285311fb4c0d6510dfd2031b5aba14b3aa6536adbda9f86785edbad
+actual: b20f25b90285311fb4c0d6510dfd2031b5aba14b3aa6536adbda9f86785edbad
+
+PASS: TestLocal/autoAccessor5.ts_target=esnext/output
+baseline: conformance/autoAccessor5(target=esnext).js
+reference: 0ecbcbdee217a677aa5508982d10e954cac654816b148aee3adb83dcab097d97
+actual: 0ecbcbdee217a677aa5508982d10e954cac654816b148aee3adb83dcab097d97
+
+PASS: TestLocal/autoAccessor6.ts_target=es2015,usedefineforclassfields=true/output
+baseline: conformance/autoAccessor6(target=es2015,usedefineforclassfields=true).js
+reference: c56da7811d19484931b40ae08e46cf2afccfa9de32079772128996fa30733276
+actual: c56da7811d19484931b40ae08e46cf2afccfa9de32079772128996fa30733276
+
+PASS: TestLocal/awaitCallExpression4_es2017.ts/output
+baseline: conformance/awaitCallExpression4_es2017.js
+reference: 70f3cdf6598ff0fdce04f7597788e72cec9e7055d81383150b35089ca6926d7b
+actual: 70f3cdf6598ff0fdce04f7597788e72cec9e7055d81383150b35089ca6926d7b
+
+PASS: TestLocal/awaitCallExpression5_es5.ts_target=es2015/output
+baseline: conformance/awaitCallExpression5_es5(target=es2015).js
+reference: be0dceb6e4fe43cc2825cb740fa25bc1e5e1cccbdc0d86af3261a49f9f0ac41e
+actual: be0dceb6e4fe43cc2825cb740fa25bc1e5e1cccbdc0d86af3261a49f9f0ac41e
+
+PASS: TestLocal/awaitUsingDeclarations.10.ts/output
+baseline: conformance/awaitUsingDeclarations.10.js
+reference: 42f6bbb3d78a9ef632a696331cd87ab34fa7d0dfca013cf8fe455b507f43d048
+actual: 42f6bbb3d78a9ef632a696331cd87ab34fa7d0dfca013cf8fe455b507f43d048
+
+PASS: TestLocal/awaitUsingDeclarations.16.ts/output
+baseline: conformance/awaitUsingDeclarations.16.js
+reference: d7ae878182a0caa06d97add05efb9b0f6d81986531ca4ea666d06a370697c6a6
+actual: d7ae878182a0caa06d97add05efb9b0f6d81986531ca4ea666d06a370697c6a6
+
+PASS: TestLocal/awaitUsingDeclarations.17.ts/output
+baseline: conformance/awaitUsingDeclarations.17.js
+reference: e778ec1dde09bda5e71d5b97059fae400fce231735590da09feeb4d4e39d2768
+actual: e778ec1dde09bda5e71d5b97059fae400fce231735590da09feeb4d4e39d2768
+
+PASS: TestLocal/awaitUsingDeclarations.2.ts_target=es2017/output
+baseline: conformance/awaitUsingDeclarations.2(target=es2017).js
+reference: 73a37ff4adad84ff9a97ff09c41b91eb4ea14bdbd6fd167c9833907d2ca39b4e
+actual: 73a37ff4adad84ff9a97ff09c41b91eb4ea14bdbd6fd167c9833907d2ca39b4e
+
+PASS: TestLocal/awaitUsingDeclarations.2.ts_target=es2022/output
+baseline: conformance/awaitUsingDeclarations.2(target=es2022).js
+reference: 73a37ff4adad84ff9a97ff09c41b91eb4ea14bdbd6fd167c9833907d2ca39b4e
+actual: 73a37ff4adad84ff9a97ff09c41b91eb4ea14bdbd6fd167c9833907d2ca39b4e
+
+PASS: TestLocal/await_incorrectThisType.ts/output
+baseline: conformance/await_incorrectThisType.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/bigintMissingES2020.ts/output
+baseline: conformance/bigintMissingES2020.js
+reference: bf36fd634c4ff1e8857a02960bcc093e97056ce976ecd613d0b7235ac0447a7d
+actual: bf36fd634c4ff1e8857a02960bcc093e97056ce976ecd613d0b7235ac0447a7d
+
+PASS: TestLocal/bundlerConditionsExcludesNode.ts_module=preserve/output
+baseline: conformance/bundlerConditionsExcludesNode(module=preserve).js
+reference: 9e173cd97573401b6de4db021b8c1a33556f8962f8ce8bd80c59fc415780f908
+actual: 9e173cd97573401b6de4db021b8c1a33556f8962f8ce8bd80c59fc415780f908
+
+PASS: TestLocal/bundlerSyntaxRestrictions.ts_module=preserve/output
+baseline: conformance/bundlerSyntaxRestrictions(module=preserve).js
+reference: eaaad8d4d9d66ee441b1775d1a9dd3089eee0e0bf51531fc9ce717f51cf3774f
+actual: eaaad8d4d9d66ee441b1775d1a9dd3089eee0e0bf51531fc9ce717f51cf3774f
+
+PASS: TestLocal/checkJsxChildrenProperty15.tsx/output
+baseline: conformance/checkJsxChildrenProperty15.js
+reference: 69e1a8d51f439a09fb9695c2599c07959e4bcce35f9f387d9db5b9597d5cdacf
+actual: 69e1a8d51f439a09fb9695c2599c07959e4bcce35f9f387d9db5b9597d5cdacf
+
+PASS: TestLocal/checkJsxChildrenProperty6.tsx/output
+baseline: conformance/checkJsxChildrenProperty6.js
+reference: be25066a06031ab0b3268543909d3450648ca63cb85acb6871ef172c715840ed
+actual: be25066a06031ab0b3268543909d3450648ca63cb85acb6871ef172c715840ed
+
+PASS: TestLocal/checkSpecialPropertyAssignments.ts/output
+baseline: conformance/checkSpecialPropertyAssignments.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/circularMultipleAssignmentDeclaration.ts/output
+baseline: conformance/circularMultipleAssignmentDeclaration.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/classAbstractAsIdentifier.ts/output
+baseline: conformance/classAbstractAsIdentifier.js
+reference: 1625dab85e5b8e21f5840ceb100af3beb68a85f6d101768b77da53aa14d9b99e
+actual: 1625dab85e5b8e21f5840ceb100af3beb68a85f6d101768b77da53aa14d9b99e
+
+PASS: TestLocal/classAndVariableWithSameName.ts/output
+baseline: conformance/classAndVariableWithSameName.js
+reference: a83c660f4540571cb2f293d010567df06ec8003c2a98036419f9b87d58d33666
+actual: a83c660f4540571cb2f293d010567df06ec8003c2a98036419f9b87d58d33666
+
+PASS: TestLocal/classConstructorAccessibility5.ts/output
+baseline: conformance/classConstructorAccessibility5.js
+reference: 743df5fb401315c6f7efc16c4e70b20f820c122da2718f6764c70c5950b8d3f5
+actual: 743df5fb401315c6f7efc16c4e70b20f820c122da2718f6764c70c5950b8d3f5
+
+PASS: TestLocal/classExtendsEveryObjectType2.ts/output
+baseline: conformance/classExtendsEveryObjectType2.js
+reference: 047663fc01bcc2a4e531a326a33a750d9f9648ca446366a7e1cf357f576282d7
+actual: 047663fc01bcc2a4e531a326a33a750d9f9648ca446366a7e1cf357f576282d7
+
+PASS: TestLocal/classStaticBlock11.ts_target=es2015/output
+baseline: conformance/classStaticBlock11(target=es2015).js
+reference: 42bfa38624b319065aebe83aeeca0403ea70d53582074aa356d4d8482da588d1
+actual: 42bfa38624b319065aebe83aeeca0403ea70d53582074aa356d4d8482da588d1
+
+PASS: TestLocal/classStaticBlock24.ts_module=commonjs/output
+baseline: conformance/classStaticBlock24(module=commonjs).js
+reference: bb6a5c9a1a8a3d91c6849e2aca17a7cb71c67ae0326734209efead47243e1df8
+actual: bb6a5c9a1a8a3d91c6849e2aca17a7cb71c67ae0326734209efead47243e1df8
+
+PASS: TestLocal/classStaticBlock9.ts_target=es2015/output
+baseline: conformance/classStaticBlock9(target=es2015).js
+reference: ab17129ea1be4cfdde881eed5b5b9efa15c7e8a0c3973f712cb227837c27a838
+actual: ab17129ea1be4cfdde881eed5b5b9efa15c7e8a0c3973f712cb227837c27a838
+
+PASS: TestLocal/classWithSemicolonClassElement1.ts/output
+baseline: conformance/classWithSemicolonClassElement1.js
+reference: 2e849275e203610457508fd32bda80c340ea4205a6099c4b38a12c18cb3591c2
+actual: 2e849275e203610457508fd32bda80c340ea4205a6099c4b38a12c18cb3591c2
+
+PASS: TestLocal/classWithStaticFieldInParameterBindingPattern.2.ts_target=es2015/output
+baseline: conformance/classWithStaticFieldInParameterBindingPattern.2(target=es2015).js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/commaOperatorsMultipleOperators.ts/output
+baseline: conformance/commaOperatorsMultipleOperators.js
+reference: cacab59a220e9d0f45d94e19b86520acafff475b1c2a4fba56405f5816339e10
+actual: cacab59a220e9d0f45d94e19b86520acafff475b1c2a4fba56405f5816339e10
+
+FAIL: TestLocal/commonJSImportNotAsPrimaryExpression.ts/output
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/commonJSImportNotAsPrimaryExpression.js has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/commonJSImportNotAsPrimaryExpression.js
+reference: 0c2e914db677cf03b2c689c40700b9277a5a87d67f309ff52b79dba47b5f0508
+actual: 3cfe8c91b924efadd954d9bdf78f7fd5004be9e4f04ab96074c6dc74191db3d2
+--- expected/conformance/commonJSImportNotAsPrimaryExpression.js
++++ actual/conformance/commonJSImportNotAsPrimaryExpression.js
+@@ -42,7 +42,6 @@
+ }
+ exports.C1 = C1;
+ C1.s1 = true;
+-var E1;
+ (function (E1) {
+     E1[E1["A"] = 0] = "A";
+     E1[E1["B"] = 1] = "B";
+
+PASS: TestLocal/comparisonOperatorWithNoRelationshipObjectsOnCallSignature.ts/output
+baseline: conformance/comparisonOperatorWithNoRelationshipObjectsOnCallSignature.js
+reference: a8922d95e940a633402d209acba4edcf8757dda116c7f1fc593f2a0852588b7e
+actual: a8922d95e940a633402d209acba4edcf8757dda116c7f1fc593f2a0852588b7e
+
+PASS: TestLocal/comparisonOperatorWithNoRelationshipObjectsOnInstantiatedCallSignature.ts/output
+baseline: conformance/comparisonOperatorWithNoRelationshipObjectsOnInstantiatedCallSignature.js
+reference: 96f9c049869b97ef5ff77ef9fed42ef2241fe061a6ae12587412fe4283fdc219
+actual: 96f9c049869b97ef5ff77ef9fed42ef2241fe061a6ae12587412fe4283fdc219
+
+PASS: TestLocal/computedPropertyNames16_ES6.ts/output
+baseline: conformance/computedPropertyNames16_ES6.js
+reference: d17e46534fa9734fce2357c971db20740f91f6967face5608c3e3f0172af40de
+actual: d17e46534fa9734fce2357c971db20740f91f6967face5608c3e3f0172af40de
+
+PASS: TestLocal/computedPropertyNames4_ES6.ts/output
+baseline: conformance/computedPropertyNames4_ES6.js
+reference: 918deee90f95b7c77e735298d5a25cabee1dae76b599fa5b5ce734882b39c5af
+actual: 918deee90f95b7c77e735298d5a25cabee1dae76b599fa5b5ce734882b39c5af
+
+PASS: TestLocal/computedPropertyNames8_ES5.ts_target=es2015/output
+baseline: conformance/computedPropertyNames8_ES5(target=es2015).js
+reference: 13a3b17f7680792ec68da26f5eb6f57d0f4de57b12f4453341616a862591f3d8
+actual: 13a3b17f7680792ec68da26f5eb6f57d0f4de57b12f4453341616a862591f3d8
+
+PASS: TestLocal/computedPropertyNamesContextualType5_ES6.ts/output
+baseline: conformance/computedPropertyNamesContextualType5_ES6.js
+reference: d6bf8feaa3e0fa7f179f9ef670992cc6272473ed0d667c47bfd59687efb58196
+actual: d6bf8feaa3e0fa7f179f9ef670992cc6272473ed0d667c47bfd59687efb58196
+
+PASS: TestLocal/computedPropertyNamesContextualType9_ES6.ts/output
+baseline: conformance/computedPropertyNamesContextualType9_ES6.js
+reference: 26dfa14e312d5674b97031cf3dd34d3ede53516b3d4b37a657817a1193e3ab37
+actual: 26dfa14e312d5674b97031cf3dd34d3ede53516b3d4b37a657817a1193e3ab37
+
+PASS: TestLocal/computedPropertyNamesDeclarationEmit6_ES6.ts/output
+baseline: conformance/computedPropertyNamesDeclarationEmit6_ES6.js
+reference: 26aa88bb7c47956cea88c98984e2cbbe017cd038d9860785db1dd2fc3b2d67ac
+actual: 26aa88bb7c47956cea88c98984e2cbbe017cd038d9860785db1dd2fc3b2d67ac
+
+PASS: TestLocal/conditionalExportsResolutionFallback.ts_moduleresolution=node16/output
+baseline: conformance/conditionalExportsResolutionFallback(moduleresolution=node16).js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/constEnum3.ts/output
+baseline: conformance/constEnum3.js
+reference: 2a4bf58c9cc812a52040781a08c3c19739b1ed3481c3dd293c9f5cd0122f9857
+actual: 2a4bf58c9cc812a52040781a08c3c19739b1ed3481c3dd293c9f5cd0122f9857
+
+PASS: TestLocal/contextuallyTypedObjectLiteralMethodDeclaration01.ts/output
+baseline: conformance/contextuallyTypedObjectLiteralMethodDeclaration01.js
+reference: a394c978d54cfa408abfa6fb3dd61316e6e21b1a3df6d9cb51d68c0d3e586ac8
+actual: a394c978d54cfa408abfa6fb3dd61316e6e21b1a3df6d9cb51d68c0d3e586ac8
+
+FAIL: TestLocal/controlFlowOptionalChain.ts/output
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/controlFlowOptionalChain.js has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/controlFlowOptionalChain.js
+reference: 8ab7c3d16b9498f28d82f65b4aabe7726d611a9956b06de3870b47cc07aa2289
+actual: 247ba042d6f31a6f1e9b5af8c049f4def4833c0a374c58694532e404b31ebc75
+--- expected/conformance/controlFlowOptionalChain.js
++++ actual/conformance/controlFlowOptionalChain.js
+@@ -611,7 +611,7 @@
+ 
+ //// [controlFlowOptionalChain.js]
+ "use strict";
+-var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
++var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x;
+ let a;
+ o === null || o === void 0 ? void 0 : o[a = 1];
+ a.toString();
+@@ -1083,8 +1083,7 @@
+     }
+ }
+ function extractCoordinates(f) {
+-    var _a;
+-    if (((_a = f.geometry) === null || _a === void 0 ? void 0 : _a.type) !== 'test') {
++    if (((_u = f.geometry) === null || _u === void 0 ? void 0 : _u.type) !== 'test') {
+         return [];
+     }
+     return f.geometry.coordinates;
+@@ -1104,15 +1103,14 @@
+ someFunction(undefined);
+ // Repro from #35970
+ let i = 0;
+-while (((_u = arr[i]) === null || _u === void 0 ? void 0 : _u.tag) === "left") {
++while (((_v = arr[i]) === null || _v === void 0 ? void 0 : _v.tag) === "left") {
+     i += 1;
+-    if (((_v = arr[i]) === null || _v === void 0 ? void 0 : _v.tag) === "right") {
++    if (((_w = arr[i]) === null || _w === void 0 ? void 0 : _w.tag) === "right") {
+         console.log("I should ALSO be reachable");
+     }
+ }
+ function f50(obj) {
+-    var _a;
+-    for (const key in (_a = obj.main) === null || _a === void 0 ? void 0 : _a.childs) {
++    for (const key in (_x = obj.main) === null || _x === void 0 ? void 0 : _x.childs) {
+         if (obj.main.childs[key] === obj) {
+             return obj;
+         }
+
+PASS: TestLocal/declarationEmitIdentifierPredicates01.ts/output
+baseline: conformance/declarationEmitIdentifierPredicates01.js
+reference: 308de390b5698fb286cf0c96eabe663e49a08c76ee8da87338b57a6ccb12cde5
+actual: 308de390b5698fb286cf0c96eabe663e49a08c76ee8da87338b57a6ccb12cde5
+
+PASS: TestLocal/declarationFileForTsJsImport.ts_module=node20/output
+baseline: conformance/declarationFileForTsJsImport(module=node20).js
+reference: abbfd8465349d5cf36e0c27685762d1852e2f619a37f1810d86c6158a493d617
+actual: abbfd8465349d5cf36e0c27685762d1852e2f619a37f1810d86c6158a493d617
+
+PASS: TestLocal/declarationNotFoundPackageBundlesTypes.ts/output
+baseline: conformance/declarationNotFoundPackageBundlesTypes.js
+reference: 31a6f0c55c3c95022cf0942bb3d5efe64f5c93abb81be7c9467e1f0f5ab1400f
+actual: 31a6f0c55c3c95022cf0942bb3d5efe64f5c93abb81be7c9467e1f0f5ab1400f
+
+PASS: TestLocal/decoratedDefaultExportsGetExportedCommonjs.ts/output
+baseline: conformance/decoratedDefaultExportsGetExportedCommonjs.js
+reference: 29fe0bf4414b97a1cb01da34ea54a116211a2124dce6d64729c9e0a04849b460
+actual: 29fe0bf4414b97a1cb01da34ea54a116211a2124dce6d64729c9e0a04849b460
+
+PASS: TestLocal/decoratorCallGeneric.ts/output
+baseline: conformance/decoratorCallGeneric.js
+reference: 4f8b7bc28625385190d701b61a623653b3261a2e476c0624a3eb2c6c25ec75cc
+actual: 4f8b7bc28625385190d701b61a623653b3261a2e476c0624a3eb2c6c25ec75cc
+
+FAIL: TestLocal/decoratorMetadataWithTypeOnlyImport2.ts/output
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/decoratorMetadataWithTypeOnlyImport2.js has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/decoratorMetadataWithTypeOnlyImport2.js
+reference: a6037b2db022bccd22bcf06d54520b29685708365d29b0d8e0e75264a3745417
+actual: c16fbd2d28ac9e454d7ebcb4294ba32de6b61115f5884f19a810b941c6c3f24a
+--- expected/conformance/decoratorMetadataWithTypeOnlyImport2.js
++++ actual/conformance/decoratorMetadataWithTypeOnlyImport2.js
+@@ -19,7 +19,6 @@
+ "use strict";
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.Services = void 0;
+-var Services;
+ (function (Services) {
+     class Service {
+     }
+
+PASS: TestLocal/decoratorOnClass1.es6.ts/output
+baseline: conformance/decoratorOnClass1.es6.js
+reference: 23c52fe7a1614438761dd086168e4416cbdccfd2922a815e361b54c2f8ae068f
+actual: 23c52fe7a1614438761dd086168e4416cbdccfd2922a815e361b54c2f8ae068f
+
+PASS: TestLocal/decoratorOnClass3.ts_target=es2015/output
+baseline: conformance/decoratorOnClass3(target=es2015).js
+reference: 8a2771c93299b98f8322a3e01b02100ee261e6085c2ccbd42ea1d997fbd13d95
+actual: 8a2771c93299b98f8322a3e01b02100ee261e6085c2ccbd42ea1d997fbd13d95
+
+PASS: TestLocal/decoratorOnClass4.ts_target=es2015/output
+baseline: conformance/decoratorOnClass4(target=es2015).js
+reference: fe8f32f3cf4a0e4b0ec8dcd6b8df884d184ab5e511c198ff4e24bb353e608389
+actual: fe8f32f3cf4a0e4b0ec8dcd6b8df884d184ab5e511c198ff4e24bb353e608389
+
+PASS: TestLocal/decoratorOnClass5.es6.ts/output
+baseline: conformance/decoratorOnClass5.es6.js
+reference: 137f0b33366587a5b74f66bd94c667140585ff5afb7e753f9870aa292b18a511
+actual: 137f0b33366587a5b74f66bd94c667140585ff5afb7e753f9870aa292b18a511
+
+PASS: TestLocal/decoratorOnClass7.es6.ts/output
+baseline: conformance/decoratorOnClass7.es6.js
+reference: ed4dbc4652bca90131a15334e210b0721c237d4e4b9212e23ece5528bee7d7fc
+actual: ed4dbc4652bca90131a15334e210b0721c237d4e4b9212e23ece5528bee7d7fc
+
+PASS: TestLocal/decoratorOnClassMethod2.ts_target=es2015/output
+baseline: conformance/decoratorOnClassMethod2(target=es2015).js
+reference: 76a3610e9052082a659eb65cdf81a5ccc5d716d5e4fe9f57c8121a0db589d70f
+actual: 76a3610e9052082a659eb65cdf81a5ccc5d716d5e4fe9f57c8121a0db589d70f
+
+PASS: TestLocal/decoratorOnFunctionParameter.ts/output
+baseline: conformance/decoratorOnFunctionParameter.js
+reference: f76857b5ae070e57d4a31f00cc0138bedcccc7e02f1dd60da3c1341e9b25875c
+actual: f76857b5ae070e57d4a31f00cc0138bedcccc7e02f1dd60da3c1341e9b25875c
+
+PASS: TestLocal/decoratorOnInternalModule.ts/output
+baseline: conformance/decoratorOnInternalModule.js
+reference: 5ea74fd13a8f42fb5e770533544d4ab7e7abd659727fca91fb04f5d14e523319
+actual: 5ea74fd13a8f42fb5e770533544d4ab7e7abd659727fca91fb04f5d14e523319
+
+PASS: TestLocal/decrementOperatorWithEnumType.ts/output
+baseline: conformance/decrementOperatorWithEnumType.js
+reference: c286c76b05e5df1a9e336b453d43b5d2893b381d6d881a97332b274f740c31a0
+actual: c286c76b05e5df1a9e336b453d43b5d2893b381d6d881a97332b274f740c31a0
+
+PASS: TestLocal/decrementOperatorWithNumberTypeInvalidOperations.ts/output
+baseline: conformance/decrementOperatorWithNumberTypeInvalidOperations.js
+reference: 5d897772e9e61fd8067f4e545f24f5854ef5906a91f9900befbb0d97ceb41904
+actual: 5d897772e9e61fd8067f4e545f24f5854ef5906a91f9900befbb0d97ceb41904
+
+PASS: TestLocal/dependentDestructuredVariablesReferenceInDeclaration1.ts/output
+baseline: conformance/dependentDestructuredVariablesReferenceInDeclaration1.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/derivedClassSuperCallsInNonConstructorMembers.ts/output
+baseline: conformance/derivedClassSuperCallsInNonConstructorMembers.js
+reference: 8e5da18f24748b5774bedacdd2803749d9f15a3d47170ae6faa4e532450e36a7
+actual: 8e5da18f24748b5774bedacdd2803749d9f15a3d47170ae6faa4e532450e36a7
+
+PASS: TestLocal/derivedClassTransitivity2.ts/output
+baseline: conformance/derivedClassTransitivity2.js
+reference: df42d0b6579c0f47fc9a0924005d13852f90b2c3f097d0fcc27dd3a9e165284f
+actual: df42d0b6579c0f47fc9a0924005d13852f90b2c3f097d0fcc27dd3a9e165284f
+
+PASS: TestLocal/destructuringArrayBindingPatternAndAssignment1ES5iterable.ts/output
+baseline: conformance/destructuringArrayBindingPatternAndAssignment1ES5iterable.js
+reference: 7197eb5d9db0053341242cd509aabb2d9692cef54394b94decf3e8f27ad17edf
+actual: 7197eb5d9db0053341242cd509aabb2d9692cef54394b94decf3e8f27ad17edf
+
+PASS: TestLocal/destructuringArrayBindingPatternAndAssignment4.ts_target=es2015/output
+baseline: conformance/destructuringArrayBindingPatternAndAssignment4(target=es2015).js
+reference: c4799e1a70af9a90b01fd92f229560ec0e48304e05e0ee3fe504a2e4fb3f178d
+actual: c4799e1a70af9a90b01fd92f229560ec0e48304e05e0ee3fe504a2e4fb3f178d
+
+PASS: TestLocal/destructuringControlFlow.ts/output
+baseline: conformance/destructuringControlFlow.js
+reference: d6ba406015a05dc53795c9fb037d272723cc83c245003982f9af0fb968283d4f
+actual: d6ba406015a05dc53795c9fb037d272723cc83c245003982f9af0fb968283d4f
+
+PASS: TestLocal/destructuringParameterDeclaration1ES5.ts/output
+baseline: conformance/destructuringParameterDeclaration1ES5.js
+reference: 69f63a132ee6d9a5228c8c8f9f29c96fef7bbe57291055f334121b62f9da1436
+actual: 69f63a132ee6d9a5228c8c8f9f29c96fef7bbe57291055f334121b62f9da1436
+
+PASS: TestLocal/emitArrowFunctionWhenUsingArguments06.ts_alwaysstrict=true,target=es2015/output
+baseline: conformance/emitArrowFunctionWhenUsingArguments06(alwaysstrict=true,target=es2015).js
+reference: 18c85eb8dfadbcafe1fdbd2f89abe2d0ca5378bf61b45de6cdeae95960667a14
+actual: 18c85eb8dfadbcafe1fdbd2f89abe2d0ca5378bf61b45de6cdeae95960667a14
+
+PASS: TestLocal/emitArrowFunctionWhenUsingArguments07.ts_alwaysstrict=true,target=es2015/output
+baseline: conformance/emitArrowFunctionWhenUsingArguments07(alwaysstrict=true,target=es2015).js
+reference: e5fbfcc1fd08da7a82148326b7bf3798d64faf215c641843044f005c62ffaaab
+actual: e5fbfcc1fd08da7a82148326b7bf3798d64faf215c641843044f005c62ffaaab
+
+PASS: TestLocal/emitArrowFunctionWhenUsingArguments10.ts_target=es2015/output
+baseline: conformance/emitArrowFunctionWhenUsingArguments10(target=es2015).js
+reference: 19f89ca6755821b820bb91e5171e0ce9e20e3674886de010748ee894f3903f46
+actual: 19f89ca6755821b820bb91e5171e0ce9e20e3674886de010748ee894f3903f46
+
+PASS: TestLocal/emitClassDeclarationWithMethodInES6.ts/output
+baseline: conformance/emitClassDeclarationWithMethodInES6.js
+reference: 9f1ace0313593dce28dfb81f241669079ea8cf684eb638f5825a036719f9069f
+actual: 9f1ace0313593dce28dfb81f241669079ea8cf684eb638f5825a036719f9069f
+
+PASS: TestLocal/emitCompoundExponentiationOperator2.ts_target=es2015/output
+baseline: conformance/emitCompoundExponentiationOperator2(target=es2015).js
+reference: 7f42c10e2ae272835ed0263d236f8c6d2972046b8848b506ec339eb79897da88
+actual: 7f42c10e2ae272835ed0263d236f8c6d2972046b8848b506ec339eb79897da88
+
+PASS: TestLocal/emitDefaultParametersFunctionProperty.ts_target=es2015/output
+baseline: conformance/emitDefaultParametersFunctionProperty(target=es2015).js
+reference: 9f46c330c7e869e72813a91ad29564248b1e668236978133cdd3b34ff8cfe3f6
+actual: 9f46c330c7e869e72813a91ad29564248b1e668236978133cdd3b34ff8cfe3f6
+
+PASS: TestLocal/emitExponentiationOperator4.ts_target=es2015/output
+baseline: conformance/emitExponentiationOperator4(target=es2015).js
+reference: 9a7ea046d4f922c955141b2779d22b3bc48cfeb4d99ca93f25f3b32bf366745b
+actual: 9a7ea046d4f922c955141b2779d22b3bc48cfeb4d99ca93f25f3b32bf366745b
+
+PASS: TestLocal/emitExponentiationOperatorInTemplateString3ES6.ts/output
+baseline: conformance/emitExponentiationOperatorInTemplateString3ES6.js
+reference: b6d31a2039e255526774696d62568d9703872aecd7e6bd9194fb1f8e80281177
+actual: b6d31a2039e255526774696d62568d9703872aecd7e6bd9194fb1f8e80281177
+
+PASS: TestLocal/emitRestParametersFunction.ts_target=es2015/output
+baseline: conformance/emitRestParametersFunction(target=es2015).js
+reference: b974a5372a64f902c3dd98a7bee1c2f8872fb6c625df0ce16ac8040b7e1fbeb1
+actual: b974a5372a64f902c3dd98a7bee1c2f8872fb6c625df0ce16ac8040b7e1fbeb1
+
+PASS: TestLocal/emitter.asyncGenerators.functionExpressions.es5.ts_target=es2015/output
+baseline: conformance/emitter.asyncGenerators.functionExpressions.es5(target=es2015).js
+reference: f908529ff91162e3d13a40b6e1f1b1d025e3c68b0c3059562b128e222e5a7781
+actual: f908529ff91162e3d13a40b6e1f1b1d025e3c68b0c3059562b128e222e5a7781
+
+PASS: TestLocal/emitter.noCatchBinding.es2019.ts/output
+baseline: conformance/emitter.noCatchBinding.es2019.js
+reference: d0a5103f88a7582cbd00b995ae9c9b0fe690cd4c8461f9b32b25281648b01c9a
+actual: d0a5103f88a7582cbd00b995ae9c9b0fe690cd4c8461f9b32b25281648b01c9a
+
+PASS: TestLocal/emptyObjectBindingPatternParameter04.ts/output
+baseline: conformance/emptyObjectBindingPatternParameter04.js
+reference: 6d91a72214fe0253d64adda7e975cfbb9914fd7e92b71c099ca8c008378065de
+actual: 6d91a72214fe0253d64adda7e975cfbb9914fd7e92b71c099ca8c008378065de
+
+PASS: TestLocal/enumConstantMemberWithTemplateLiterals.ts/output
+baseline: conformance/enumConstantMemberWithTemplateLiterals.js
+reference: b2e8eab6ecbe65b17dfca90140baf08543302ea03dc9afb22eb7cdfa7dec8017
+actual: b2e8eab6ecbe65b17dfca90140baf08543302ea03dc9afb22eb7cdfa7dec8017
+
+PASS: TestLocal/enumMergeWithExpando.ts/output
+baseline: conformance/enumMergeWithExpando.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/es2021LocalesObjectArgument.ts/output
+baseline: conformance/es2021LocalesObjectArgument.js
+reference: a76c8313cb3b45ff8914953c7d7656fc1c68a55056e79c367dc52bdc8be3e18b
+actual: a76c8313cb3b45ff8914953c7d7656fc1c68a55056e79c367dc52bdc8be3e18b
+
+PASS: TestLocal/es2024SharedMemory.ts/output
+baseline: conformance/es2024SharedMemory.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/es5DateAPIs.ts_target=es2015/output
+baseline: conformance/es5DateAPIs(target=es2015).js
+reference: c59d4bec4b5b7305c050ee7bd48b4a87082233238c76418c7ab8acf72fb7c7aa
+actual: c59d4bec4b5b7305c050ee7bd48b4a87082233238c76418c7ab8acf72fb7c7aa
+
+PASS: TestLocal/es6modulekindWithES5Target4.ts_target=es2015/output
+baseline: conformance/es6modulekindWithES5Target4(target=es2015).js
+reference: 4012378886be988a02f55dcb902eafd55b64f0298c5d7fa55d04bdbf0c86bfc2
+actual: 4012378886be988a02f55dcb902eafd55b64f0298c5d7fa55d04bdbf0c86bfc2
+
+PASS: TestLocal/esDecorators-classDeclaration-accessors-nonStaticAbstract.ts_target=esnext/output
+baseline: conformance/esDecorators-classDeclaration-accessors-nonStaticAbstract(target=esnext).js
+reference: 72ac19f215348972e95c0fdfa49abd08b6792cfa0f73259e1dce5eb0bacc5ce4
+actual: 72ac19f215348972e95c0fdfa49abd08b6792cfa0f73259e1dce5eb0bacc5ce4
+
+FAIL: TestLocal/esDecorators-classDeclaration-commentPreservation.ts_module=commonjs,target=es2015/output
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/esDecorators-classDeclaration-commentPreservation(module=commonjs,target=es2015).js has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/esDecorators-classDeclaration-commentPreservation(module=commonjs,target=es2015).js
+reference: 5dac20ef828ccaccdad35313d8c0e6ea354489c040f2890256bb75bc01b680cf
+actual: 5f560afb3e22c7fefde60dbe32d37310e56f996ac8a465188584bffcb12392cb
+--- expected/conformance/esDecorators-classDeclaration-commentPreservation(module=commonjs,target=es2015).js
++++ actual/conformance/esDecorators-classDeclaration-commentPreservation(module=commonjs,target=es2015).js
+@@ -121,9 +121,9 @@
+ 
+ //// [file1.js]
+ "use strict";
++var _C_method_get, _C_x_get, _C_x_set, _C_y, _C_z_accessor_storage, _C_z_get, _C_z_set, _C_z_1_accessor_storage;
+ /*1*/
+ let C = (() => {
+-    var _C_method_get, _C_x_get, _C_x_set, _C_y, _C_z_accessor_storage, _C_z_get, _C_z_set, _C_z_1_accessor_storage;
+     let _classDecorators = [dec, dec];
+     let _classDescriptor;
+     let _classExtraInitializers = [];
+
+PASS: TestLocal/esDecorators-classDeclaration-commonjs.ts/output
+baseline: conformance/esDecorators-classDeclaration-commonjs.js
+reference: 06b6c1c39115b73ed087f77eb82d7ab7cc12044d7abd6aa8dd8913f52c87a04e
+actual: 06b6c1c39115b73ed087f77eb82d7ab7cc12044d7abd6aa8dd8913f52c87a04e
+
+PASS: TestLocal/esDecorators-classDeclaration-fields-nonStaticAbstract.ts_target=es2022/output
+baseline: conformance/esDecorators-classDeclaration-fields-nonStaticAbstract(target=es2022).js
+reference: ceaf26afb8b2871b580284f10bbb0f73fb50599cc0853783994039e5aec25c1c
+actual: ceaf26afb8b2871b580284f10bbb0f73fb50599cc0853783994039e5aec25c1c
+
+PASS: TestLocal/esDecorators-classDeclaration-fields-nonStaticAbstractAccessor.ts_target=esnext/output
+baseline: conformance/esDecorators-classDeclaration-fields-nonStaticAbstractAccessor(target=esnext).js
+reference: 69d3b54f82e81122d00fa7e2109a92787209bf08ddb99402778584f8017b01a2
+actual: 69d3b54f82e81122d00fa7e2109a92787209bf08ddb99402778584f8017b01a2
+
+PASS: TestLocal/esDecorators-classDeclaration-fields-nonStaticAccessor.ts_target=esnext/output
+baseline: conformance/esDecorators-classDeclaration-fields-nonStaticAccessor(target=esnext).js
+reference: 2a5c11155f954020de421e086d3db8579d2a1da3083ccc9e4adc5562b7ce97e8
+actual: 2a5c11155f954020de421e086d3db8579d2a1da3083ccc9e4adc5562b7ce97e8
+
+PASS: TestLocal/esDecorators-classDeclaration-fields-staticAccessor.ts_target=esnext/output
+baseline: conformance/esDecorators-classDeclaration-fields-staticAccessor(target=esnext).js
+reference: 8ebd6f6aca77a6655be626f7ecd7d2a7154b985ebbb6cf860615bb8bd273d062
+actual: 8ebd6f6aca77a6655be626f7ecd7d2a7154b985ebbb6cf860615bb8bd273d062
+
+PASS: TestLocal/esDecorators-classDeclaration-methods-static.ts_target=esnext/output
+baseline: conformance/esDecorators-classDeclaration-methods-static(target=esnext).js
+reference: 3c7e503916de40abd53b4eaec627a7ac1030b1c15eab4b4e47043700d00e8be2
+actual: 3c7e503916de40abd53b4eaec627a7ac1030b1c15eab4b4e47043700d00e8be2
+
+PASS: TestLocal/esDecorators-classDeclaration-parameterProperties.ts_target=es2022,usedefineforclassfields=true/output
+baseline: conformance/esDecorators-classDeclaration-parameterProperties(target=es2022,usedefineforclassfields=true).js
+reference: ccd88360fa7641ee63ed9a5feda516cdecf9a232968617f02ef946e8543b863f
+actual: ccd88360fa7641ee63ed9a5feda516cdecf9a232968617f02ef946e8543b863f
+
+FAIL: TestLocal/esDecorators-classDeclaration-sourceMap.ts_target=es2015/output
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/esDecorators-classDeclaration-sourceMap(target=es2015).js has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/esDecorators-classDeclaration-sourceMap(target=es2015).js
+reference: 0ae5a6f80583cc15fca83d362064d56f51adc703e6ed61e37f01ef1cd9a49ee2
+actual: 95bc777414ea89374c64ea04bf0441931664cddf2cc71952c45b1f735bd6edca
+--- expected/conformance/esDecorators-classDeclaration-sourceMap(target=es2015).js
++++ actual/conformance/esDecorators-classDeclaration-sourceMap(target=es2015).js
+@@ -103,8 +103,8 @@
+     if (receiver === null || (typeof receiver !== "object" && typeof receiver !== "function")) throw new TypeError("Cannot use 'in' operator on non-object");
+     return typeof state === "function" ? receiver === state : state.has(receiver);
+ };
++var _C_method_get, _C_x_get, _C_x_set, _C_y, _C_z_accessor_storage, _C_z_get, _C_z_set, _C_z_1_accessor_storage;
+ let C = (() => {
+-    var _C_method_get, _C_x_get, _C_x_set, _C_y, _C_z_accessor_storage, _C_z_get, _C_z_set, _C_z_1_accessor_storage;
+     let _classDecorators = [dec, dec];
+     let _classDescriptor;
+     let _classExtraInitializers = [];
+
+PASS: TestLocal/esDecorators-classExpression-classSuper.4.ts/output
+baseline: conformance/esDecorators-classExpression-classSuper.4.js
+reference: 728d61007b988333a715dd7830e9d01f65b7e48f4760b61990bd8c17a6031724
+actual: 728d61007b988333a715dd7830e9d01f65b7e48f4760b61990bd8c17a6031724
+
+PASS: TestLocal/esDecorators-classExpression-classSuper.6.ts/output
+baseline: conformance/esDecorators-classExpression-classSuper.6.js
+reference: ef096a8772eaadbff21d901882f0953beec3d1a96697705ce0bfc00a2744025f
+actual: ef096a8772eaadbff21d901882f0953beec3d1a96697705ce0bfc00a2744025f
+
+PASS: TestLocal/esDecorators-contextualTypes.ts/output
+baseline: conformance/esDecorators-contextualTypes.js
+reference: c41cc9a4dd59d0231e79693de2b7df6119ae1d0bc023718f7c24c95a2655e07e
+actual: c41cc9a4dd59d0231e79693de2b7df6119ae1d0bc023718f7c24c95a2655e07e
+
+PASS: TestLocal/esDecorators-decoratorExpression.2.ts_experimentaldecorators=true/output
+baseline: conformance/esDecorators-decoratorExpression.2(experimentaldecorators=true).js
+reference: 836db14b76d06e02a00ce12698d9cc9424d477e03a47d7695110ca07b5df8cd3
+actual: 836db14b76d06e02a00ce12698d9cc9424d477e03a47d7695110ca07b5df8cd3
+
+PASS: TestLocal/esDecoratorsMetadata1.ts_target=es2015/output
+baseline: conformance/esDecoratorsMetadata1(target=es2015).js
+reference: d500ec0d08227fb2c7af9cff4e605a361367b7a32233973c8214177863467218
+actual: d500ec0d08227fb2c7af9cff4e605a361367b7a32233973c8214177863467218
+
+PASS: TestLocal/esDecoratorsMetadata2.ts_target=es2022/output
+baseline: conformance/esDecoratorsMetadata2(target=es2022).js
+reference: d017d7642b5b4f5e082d43b6af874b6791a3b0f16ceeffd7afa3c3c997614266
+actual: d017d7642b5b4f5e082d43b6af874b6791a3b0f16ceeffd7afa3c3c997614266
+
+PASS: TestLocal/esnextSharedMemory.ts/output
+baseline: conformance/esnextSharedMemory.js
+reference: 216461fd1db83408830a780e71324651d62755f36473ec4adb2713b73b4d4423
+actual: 216461fd1db83408830a780e71324651d62755f36473ec4adb2713b73b4d4423
+
+PASS: TestLocal/esnextmodulekindWithES2015Target.ts/output
+baseline: conformance/esnextmodulekindWithES2015Target.js
+reference: d79d8680a2e625016e17889e0e9cb76f5ff40665887926ea6931d1ba619c8f1a
+actual: d79d8680a2e625016e17889e0e9cb76f5ff40665887926ea6931d1ba619c8f1a
+
+PASS: TestLocal/esnextmodulekindWithES5Target12.ts_target=es2015/output
+baseline: conformance/esnextmodulekindWithES5Target12(target=es2015).js
+reference: b6209890a29f2ac243d4a25f9e61ef7d14fd91dc0a58dee5403e5b9bfdddf754
+actual: b6209890a29f2ac243d4a25f9e61ef7d14fd91dc0a58dee5403e5b9bfdddf754
+
+PASS: TestLocal/esnextmodulekindWithES5Target6.ts_target=es2015/output
+baseline: conformance/esnextmodulekindWithES5Target6(target=es2015).js
+reference: a5f1208c282ea3e60da602c7193cf0e6f89cb1b873a470eaa67f9f5d885f594d
+actual: a5f1208c282ea3e60da602c7193cf0e6f89cb1b873a470eaa67f9f5d885f594d
+
+PASS: TestLocal/exponentiationOperatorWithInvalidOperands.ts/output
+baseline: conformance/exponentiationOperatorWithInvalidOperands.js
+reference: efb5ff2ca3a4b236e2be2aa30ab6966e52468be4c943ea7c9372dad49ea5777a
+actual: efb5ff2ca3a4b236e2be2aa30ab6966e52468be4c943ea7c9372dad49ea5777a
+
+PASS: TestLocal/exponentiationOperatorWithNullValueAndInvalidOperands.ts/output
+baseline: conformance/exponentiationOperatorWithNullValueAndInvalidOperands.js
+reference: 6b9844146637022dda516b4ca9aee9ded204132dc9de86f1bf3c8bbbc488f6d4
+actual: 6b9844146637022dda516b4ca9aee9ded204132dc9de86f1bf3c8bbbc488f6d4
+
+PASS: TestLocal/exponentiationOperatorWithTemplateStringInvalidES6.ts/output
+baseline: conformance/exponentiationOperatorWithTemplateStringInvalidES6.js
+reference: bf190bfeacffff10559387a76c4fb42a74b4570037a78f4ae7e966dc73b8feef
+actual: bf190bfeacffff10559387a76c4fb42a74b4570037a78f4ae7e966dc73b8feef
+
+PASS: TestLocal/exportNamespace_js.ts/output
+baseline: conformance/exportNamespace_js.js
+reference: d894529032d59e25483138b641327e06471787bcc3bb5a18a0d36f003220e16a
+actual: d894529032d59e25483138b641327e06471787bcc3bb5a18a0d36f003220e16a
+
+PASS: TestLocal/exportSpecifiers.ts/output
+baseline: conformance/exportSpecifiers.js
+reference: dae4dbab70d2dd6d67a2ce9e3bcf66bf3d9138d99c2d90a98f794a7029071ffe
+actual: dae4dbab70d2dd6d67a2ce9e3bcf66bf3d9138d99c2d90a98f794a7029071ffe
+
+PASS: TestLocal/extendsTag4.ts/output
+baseline: conformance/extendsTag4.js
+reference: e86e95e8dd011499d4046aab0929e3f4c5c27e2ac17205ec73fd55394c87560e
+actual: e86e95e8dd011499d4046aab0929e3f4c5c27e2ac17205ec73fd55394c87560e
+
+PASS: TestLocal/extendsTagEmit.ts/output
+baseline: conformance/extendsTagEmit.js
+reference: 44784d80a37c4f75abecf74446e6836e99105a9c94af8b06b667b019571be16a
+actual: 44784d80a37c4f75abecf74446e6836e99105a9c94af8b06b667b019571be16a
+
+PASS: TestLocal/for-of-excess-declarations.ts/output
+baseline: conformance/for-of-excess-declarations.js
+reference: 3729ab99674fda9dd47f436f16c10aa8a333b57eee92ccdf7594dd34b8a895bb
+actual: 3729ab99674fda9dd47f436f16c10aa8a333b57eee92ccdf7594dd34b8a895bb
+
+PASS: TestLocal/for-of10.ts/output
+baseline: conformance/for-of10.js
+reference: 92085eff3febf221821d3eb03f7fd0470fcc5297cf8d2465204b5949cdb90805
+actual: 92085eff3febf221821d3eb03f7fd0470fcc5297cf8d2465204b5949cdb90805
+
+PASS: TestLocal/for-of15.ts/output
+baseline: conformance/for-of15.js
+reference: 5aefe7dbf7c59ce31981fde6f1d39abeb1df2a43e3e6e1d2c198b00a31717079
+actual: 5aefe7dbf7c59ce31981fde6f1d39abeb1df2a43e3e6e1d2c198b00a31717079
+
+PASS: TestLocal/for-of31.ts/output
+baseline: conformance/for-of31.js
+reference: a11f621f4be61b8574206719ad6099f13209f9393340bda08dca0ec15746bc54
+actual: a11f621f4be61b8574206719ad6099f13209f9393340bda08dca0ec15746bc54
+
+PASS: TestLocal/for-of37.ts/output
+baseline: conformance/for-of37.js
+reference: edba3a3fc4750908a2b71cfa56bd58e022c32c0b4359d12d729f0d8682d509ec
+actual: edba3a3fc4750908a2b71cfa56bd58e022c32c0b4359d12d729f0d8682d509ec
+
+PASS: TestLocal/for-of8.ts/output
+baseline: conformance/for-of8.js
+reference: 33b5b0232574243495287f880abfc6aff8bf239fafae6dbb070bec3d2a12a7ec
+actual: 33b5b0232574243495287f880abfc6aff8bf239fafae6dbb070bec3d2a12a7ec
+
+PASS: TestLocal/forContinueStatements.ts/output
+baseline: conformance/forContinueStatements.js
+reference: e33a316a3b51ff33d24867e0137cc1f64f57f72c3fae3cf1cb59d5b972f3c9bb
+actual: e33a316a3b51ff33d24867e0137cc1f64f57f72c3fae3cf1cb59d5b972f3c9bb
+
+PASS: TestLocal/forStatementsMultipleInvalidDecl.ts/output
+baseline: conformance/forStatementsMultipleInvalidDecl.js
+reference: 4695d7e45dca550ece580bb60273a2a99ef95621f6dec7b45ee45512c60c1696
+actual: 4695d7e45dca550ece580bb60273a2a99ef95621f6dec7b45ee45512c60c1696
+
+PASS: TestLocal/functionConstraintSatisfaction3.ts/output
+baseline: conformance/functionConstraintSatisfaction3.js
+reference: a1def024f3ea28445a4537bde5af6583c8e58b5ca8e3c51309d31b810a06573f
+actual: a1def024f3ea28445a4537bde5af6583c8e58b5ca8e3c51309d31b810a06573f
+
+PASS: TestLocal/generatorExplicitReturnType.ts/output
+baseline: conformance/generatorExplicitReturnType.js
+reference: 3a8c5c3adce8af746d11ee8d80817f1ec07d4b897e3d569a2eb857b51a5f0093
+actual: 3a8c5c3adce8af746d11ee8d80817f1ec07d4b897e3d569a2eb857b51a5f0093
+
+PASS: TestLocal/generatorInAmbientContext2.ts/output
+baseline: conformance/generatorInAmbientContext2.js
+reference: 4c8050e0ffe31be4cd8ea39744c725e264ec4497986ba688028a9d6480cd5829
+actual: 4c8050e0ffe31be4cd8ea39744c725e264ec4497986ba688028a9d6480cd5829
+
+PASS: TestLocal/generatorOverloads2.ts/output
+baseline: conformance/generatorOverloads2.js
+reference: e4f167c634c7ff002150d3fbc0793145003fcdc3fc55e3efa1b47e5511b04cca
+actual: e4f167c634c7ff002150d3fbc0793145003fcdc3fc55e3efa1b47e5511b04cca
+
+PASS: TestLocal/generatorTypeCheck26.ts/output
+baseline: conformance/generatorTypeCheck26.js
+reference: 0ea88181bab95641cfef0a7acb84f082710b3c3a8e4965175a5d2cc7e9487966
+actual: 0ea88181bab95641cfef0a7acb84f082710b3c3a8e4965175a5d2cc7e9487966
+
+PASS: TestLocal/generatorTypeCheck32.ts/output
+baseline: conformance/generatorTypeCheck32.js
+reference: df8d199ac7393cc1ee865e2bb8b0d908d3b16ade2e69d49416564e913ab70750
+actual: df8d199ac7393cc1ee865e2bb8b0d908d3b16ade2e69d49416564e913ab70750
+
+PASS: TestLocal/generatorTypeCheck62.ts/output
+baseline: conformance/generatorTypeCheck62.js
+reference: a359bd303dd2d6d76bbc11c8443d044907642e92d1cade9107e509482522e4df
+actual: a359bd303dd2d6d76bbc11c8443d044907642e92d1cade9107e509482522e4df
+
+PASS: TestLocal/genericObjectRest.ts/output
+baseline: conformance/genericObjectRest.js
+reference: a105e86dda8465f7f9bb5d42e5405e8650bf70eff3a00b521df989bfd92245ca
+actual: a105e86dda8465f7f9bb5d42e5405e8650bf70eff3a00b521df989bfd92245ca
+
+PASS: TestLocal/globalThisUnknown.ts/output
+baseline: conformance/globalThisUnknown.js
+reference: b622b27607d566c99e100a01c9ac1f7c0e78a935deeb3e3dad18bf896eb55406
+actual: b622b27607d566c99e100a01c9ac1f7c0e78a935deeb3e3dad18bf896eb55406
+
+PASS: TestLocal/importAliasModuleExports.ts/output
+baseline: conformance/importAliasModuleExports.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/importAssertion2.ts_module=commonjs/output
+baseline: conformance/importAssertion2(module=commonjs).js
+reference: 8953dee95cc19870e7f9a2896d2f06e823aed200488885190bad8ab1a598e58a
+actual: 8953dee95cc19870e7f9a2896d2f06e823aed200488885190bad8ab1a598e58a
+
+PASS: TestLocal/importAttributes7.ts/output
+baseline: conformance/importAttributes7.js
+reference: 40f6fdfbc776e94c392f62a08177ff9375e348baf51a200c92467c925bd4b8e5
+actual: 40f6fdfbc776e94c392f62a08177ff9375e348baf51a200c92467c925bd4b8e5
+
+PASS: TestLocal/importCallExpressionNestedES20202.ts_target=es2015/output
+baseline: conformance/importCallExpressionNestedES20202(target=es2015).js
+reference: 11c4f898dcb792b370f73a1ad6f49d63c7fbb9a8d001500da09e7dd2a630d886
+actual: 11c4f898dcb792b370f73a1ad6f49d63c7fbb9a8d001500da09e7dd2a630d886
+
+PASS: TestLocal/importCallExpressionWithTypeArgument.ts/output
+baseline: conformance/importCallExpressionWithTypeArgument.js
+reference: 876871da5cf6eb534b3b95c4dc5d109ad50652677f004335a65309dd04273165
+actual: 876871da5cf6eb534b3b95c4dc5d109ad50652677f004335a65309dd04273165
+
+PASS: TestLocal/importDeferDeclaration.ts/output
+baseline: conformance/importDeferDeclaration.js
+reference: 71ef6353699659bd0dcd7c21702eafbbf2a55d4c47dba8c16b3547538db02d29
+actual: 71ef6353699659bd0dcd7c21702eafbbf2a55d4c47dba8c16b3547538db02d29
+
+PASS: TestLocal/importDeferNamespace.ts_module=es2020/output
+baseline: conformance/importDeferNamespace(module=es2020).js
+reference: 38341dd3a4b97a7aee1422f4a34ae8db805a9848ee876ff9c0c23bf4c19f38ac
+actual: 38341dd3a4b97a7aee1422f4a34ae8db805a9848ee876ff9c0c23bf4c19f38ac
+
+PASS: TestLocal/importFromDot.ts/output
+baseline: conformance/importFromDot.js
+reference: ff30e04b8021c1ca5071518f0c1c7b14143e238b4654e91831631d854e01f36c
+actual: ff30e04b8021c1ca5071518f0c1c7b14143e238b4654e91831631d854e01f36c
+
+PASS: TestLocal/importTypeInJSDoc.ts/output
+baseline: conformance/importTypeInJSDoc.js
+reference: 1b820d113dbbfa9c83eee020f6eb42b5060a2c0f468ad2ad83b8d37f6abfd247
+actual: 1b820d113dbbfa9c83eee020f6eb42b5060a2c0f468ad2ad83b8d37f6abfd247
+
+PASS: TestLocal/importTypeLocal.ts/output
+baseline: conformance/importTypeLocal.js
+reference: a1d0b4d86660b177e00a650dbb3dc241cdfc2f20aac79bf4c1635758f066431c
+actual: a1d0b4d86660b177e00a650dbb3dc241cdfc2f20aac79bf4c1635758f066431c
+
+PASS: TestLocal/importTypeNestedNoRef.ts/output
+baseline: conformance/importTypeNestedNoRef.js
+reference: 47bedbbecc448242d328457a817ef0fad0b034cbb2ec07f3cd52cb4a6bb8ff03
+actual: 47bedbbecc448242d328457a817ef0fad0b034cbb2ec07f3cd52cb4a6bb8ff03
+
+PASS: TestLocal/importsImplicitlyReadonly.ts/output
+baseline: conformance/importsImplicitlyReadonly.js
+reference: dc226ab925d1da3011a40c440cbe6cb7a9afb678ab01780b6319ba78e0e220c3
+actual: dc226ab925d1da3011a40c440cbe6cb7a9afb678ab01780b6319ba78e0e220c3
+
+PASS: TestLocal/initializationOrdering1.ts_target=es2021,usedefineforclassfields=false/output
+baseline: conformance/initializationOrdering1(target=es2021,usedefineforclassfields=false).js
+reference: f91c2dd0aedb8940ea24c6fb96ce0fd8d1b04869007effa3ee84dc4e6a02a93c
+actual: f91c2dd0aedb8940ea24c6fb96ce0fd8d1b04869007effa3ee84dc4e6a02a93c
+
+PASS: TestLocal/initializerReferencingConstructorLocals.ts/output
+baseline: conformance/initializerReferencingConstructorLocals.js
+reference: 8fd6a9578184fd262eebce6dcb9d256f8c925083674304843b1653a9cf5b9a91
+actual: 8fd6a9578184fd262eebce6dcb9d256f8c925083674304843b1653a9cf5b9a91
+
+PASS: TestLocal/initializersWidened.ts/output
+baseline: conformance/initializersWidened.js
+reference: 1bfb00f2c31a8d59d91781d04b435a488bbe504598135b6caa943d177f01a7fd
+actual: 1bfb00f2c31a8d59d91781d04b435a488bbe504598135b6caa943d177f01a7fd
+
+PASS: TestLocal/interfaceThatIndirectlyInheritsFromItself.ts/output
+baseline: conformance/interfaceThatIndirectlyInheritsFromItself.js
+reference: 414438c655ac75f8a5c08dd69345c3b59ee8f49fb7d2a4e0ae83358d7de935c4
+actual: 414438c655ac75f8a5c08dd69345c3b59ee8f49fb7d2a4e0ae83358d7de935c4
+
+PASS: TestLocal/intraExpressionInferences.ts/output
+baseline: conformance/intraExpressionInferences.js
+reference: 662a66c69eb9d54065027d7978985aedc3fe310d2ffd73f09384da63238fe146
+actual: 662a66c69eb9d54065027d7978985aedc3fe310d2ffd73f09384da63238fe146
+
+PASS: TestLocal/invalidEnumAssignments.ts/output
+baseline: conformance/invalidEnumAssignments.js
+reference: 76a85b097d0bf75455ef0d19bb339febdc08679586d85150db3cef818d80f4fc
+actual: 76a85b097d0bf75455ef0d19bb339febdc08679586d85150db3cef818d80f4fc
+
+PASS: TestLocal/iterableArrayPattern17.ts/output
+baseline: conformance/iterableArrayPattern17.js
+reference: 5815ad595faebd54c5e82ef801b317c8821721161f28f7a736076b34c73d9ef7
+actual: 5815ad595faebd54c5e82ef801b317c8821721161f28f7a736076b34c73d9ef7
+
+PASS: TestLocal/iteratorSpreadInArray.ts/output
+baseline: conformance/iteratorSpreadInArray.js
+reference: 42329bdb87037e3cc5ccd3d0f89af15cf456227b16246c7aa2d25d00c1f64fde
+actual: 42329bdb87037e3cc5ccd3d0f89af15cf456227b16246c7aa2d25d00c1f64fde
+
+PASS: TestLocal/jsContainerMergeTsDeclaration.ts/output
+baseline: conformance/jsContainerMergeTsDeclaration.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+FAIL: TestLocal/jsDeclarationsClassMethod.ts/output
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/jsDeclarationsClassMethod.js has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/jsDeclarationsClassMethod.js
+reference: 6d031d5a3109eda31baa2df56ea7aeed7cdd5b9216a946a516e03d103d2accd6
+actual: 48d18c158c6505b2aa838d7dda18fedea618491a516d437aae85d8f4069ce94d
+--- expected/conformance/jsDeclarationsClassMethod.js
++++ actual/conformance/jsDeclarationsClassMethod.js
+@@ -145,3 +145,9 @@
+ declare namespace C2 {
+     var staticProp: (x: number, y: number) => number;
+ }
++/**
++ * A comment method2
++ * @param {number} x
++ * @param {number} y
++ * @returns {number}
++ */
+
+PASS: TestLocal/jsDeclarationsCommonjsRelativePath.ts/output
+baseline: conformance/jsDeclarationsCommonjsRelativePath.js
+reference: 39c79f3add45d6c70c1c0ca3d6a5dfece57a6e6fa7d2afef851d6fd43d439eb3
+actual: 39c79f3add45d6c70c1c0ca3d6a5dfece57a6e6fa7d2afef851d6fd43d439eb3
+
+PASS: TestLocal/jsDeclarationsExportAssignedClassExpression.ts_target=es2015/output
+baseline: conformance/jsDeclarationsExportAssignedClassExpression(target=es2015).js
+reference: 4c35d7f0ca02f57f7abea7109c777f9a5933013f9d986965c4ee0a9257e18316
+actual: 4c35d7f0ca02f57f7abea7109c777f9a5933013f9d986965c4ee0a9257e18316
+
+PASS: TestLocal/jsDeclarationsFunctionJSDoc.ts_target=es2015/output
+baseline: conformance/jsDeclarationsFunctionJSDoc(target=es2015).js
+reference: 698ed4d3155bee22d3b280f15054e1f629e1bce49484ff75105650db8648f362
+actual: 698ed4d3155bee22d3b280f15054e1f629e1bce49484ff75105650db8648f362
+
+FAIL: TestLocal/jsDeclarationsTypeReferences4.ts_target=es2015/output
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/jsDeclarationsTypeReferences4(target=es2015).js has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/jsDeclarationsTypeReferences4(target=es2015).js
+reference: f526ea4976ff3e18584bd5c0e0087064ab8f3dd6d05690767d6ba47398097154
+actual: cfa2c4652e6828be96c73b728df4d4910376103c3b651ded22c7203d4dac33fd
+--- expected/conformance/jsDeclarationsTypeReferences4(target=es2015).js
++++ actual/conformance/jsDeclarationsTypeReferences4(target=es2015).js
+@@ -25,14 +25,13 @@
+ exports.A = exports.Something = void 0;
+ /// <reference types="node" />
+ exports.Something = 2; // to show conflict that can occur
+-// @ts-ignore
+-var A;
+ (function (A) {
+     // @ts-ignore
+     let B;
+     (function (B) {
+         const Something = require("fs").Something;
+         const thing = new Something();
++        // @ts-ignore
+     })(B = A.B || (A.B = {}));
+ })(A || (exports.A = A = {}));
+ 
+
+PASS: TestLocal/jsdocAugments_qualifiedName.ts/output
+baseline: conformance/jsdocAugments_qualifiedName.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/jsdocConstructorFunctionTypeReference.ts/output
+baseline: conformance/jsdocConstructorFunctionTypeReference.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/jsdocImplements_properties.ts/output
+baseline: conformance/jsdocImplements_properties.js
+reference: 98adedb3a31c7ce324ba04e53f06fe6aca5a5ed7827f03c51a711cb069fd3481
+actual: 98adedb3a31c7ce324ba04e53f06fe6aca5a5ed7827f03c51a711cb069fd3481
+
+PASS: TestLocal/jsdocLinkTag4.ts/output
+baseline: conformance/jsdocLinkTag4.js
+reference: 2e152fd94c5bf9ef21da27f80a244166ae629207cdeff15bc5d222a9e69bc56d
+actual: 2e152fd94c5bf9ef21da27f80a244166ae629207cdeff15bc5d222a9e69bc56d
+
+PASS: TestLocal/jsdocTemplateTag3.ts/output
+baseline: conformance/jsdocTemplateTag3.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/jsdocTemplateTag7.ts/output
+baseline: conformance/jsdocTemplateTag7.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/jsdocTypeFromChainedAssignment3.ts/output
+baseline: conformance/jsdocTypeFromChainedAssignment3.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/jsxEsprimaFbTestSuite.tsx/output
+baseline: conformance/jsxEsprimaFbTestSuite.js
+reference: 40121f08f0002ce7d021bff9f8de72fca1434843ca0de0706a50a9c06566316a
+actual: 40121f08f0002ce7d021bff9f8de72fca1434843ca0de0706a50a9c06566316a
+
+PASS: TestLocal/jsxJsxsCjsTransformKeyPropCustomImportPragma.tsx_jsx=react-jsxdev/output
+baseline: conformance/jsxJsxsCjsTransformKeyPropCustomImportPragma(jsx=react-jsxdev).js
+reference: 7c838c9b743a28c2387c801f02b67c1a5d3a7d7e394feab77c2bcacfa305268a
+actual: 7c838c9b743a28c2387c801f02b67c1a5d3a7d7e394feab77c2bcacfa305268a
+
+PASS: TestLocal/jsxJsxsCjsTransformSubstitutesNames.tsx_jsx=react-jsx/output
+baseline: conformance/jsxJsxsCjsTransformSubstitutesNames(jsx=react-jsx).js
+reference: bd64e34897fc6f365fdb1962320d755c6a6917dc2f4ad5969c0046893e58fe45
+actual: bd64e34897fc6f365fdb1962320d755c6a6917dc2f4ad5969c0046893e58fe45
+
+PASS: TestLocal/literals.ts_target=es2015/output
+baseline: conformance/literals(target=es2015).js
+reference: b5eaa46e588bdd35ef573d16fc060bd7fdf26190e7147350effc90e6258cffcb
+actual: b5eaa46e588bdd35ef573d16fc060bd7fdf26190e7147350effc90e6258cffcb
+
+PASS: TestLocal/localTypes5.ts/output
+baseline: conformance/localTypes5.js
+reference: 03b7b8a2594bfa8c38f5d056348a7c30c3f820f7951a2b31321ae37926297763
+actual: 03b7b8a2594bfa8c38f5d056348a7c30c3f820f7951a2b31321ae37926297763
+
+PASS: TestLocal/localesObjectArgument.ts/output
+baseline: conformance/localesObjectArgument.js
+reference: 774ae78017ceb8d58d225311e5b17ae4706b8f44faa845082996bde6896492af
+actual: 774ae78017ceb8d58d225311e5b17ae4706b8f44faa845082996bde6896492af
+
+PASS: TestLocal/logicalAssignment2.ts_target=es2015/output
+baseline: conformance/logicalAssignment2(target=es2015).js
+reference: 7fa67678996aa353050a016d06e8c3340ff20b17c788cebec549d822f877b717
+actual: 7fa67678996aa353050a016d06e8c3340ff20b17c788cebec549d822f877b717
+
+PASS: TestLocal/logicalAssignment2.ts_target=es2020/output
+baseline: conformance/logicalAssignment2(target=es2020).js
+reference: e04cd3c2f64e8ccacfcb6602adc30e618e6edf52c79ca8f6f416fa9e1f3612cb
+actual: e04cd3c2f64e8ccacfcb6602adc30e618e6edf52c79ca8f6f416fa9e1f3612cb
+
+PASS: TestLocal/logicalAssignment4.ts_target=es2021/output
+baseline: conformance/logicalAssignment4(target=es2021).js
+reference: bdf28871eb8f6e75156aea42a13c7f30ce31053d2e884c2ca927784904495158
+actual: bdf28871eb8f6e75156aea42a13c7f30ce31053d2e884c2ca927784904495158
+
+PASS: TestLocal/logicalAssignment7.ts_target=es2020/output
+baseline: conformance/logicalAssignment7(target=es2020).js
+reference: 14cc57f3346f9c4c320ed2cf7496f4b7aaa5c48fbf18cacdb8b8618a745f14ff
+actual: 14cc57f3346f9c4c320ed2cf7496f4b7aaa5c48fbf18cacdb8b8618a745f14ff
+
+PASS: TestLocal/mappedTypeConstraints2.ts/output
+baseline: conformance/mappedTypeConstraints2.js
+reference: 100bf32a103d1c7c60c073d6cf62485e6a012093cc167d0a7a455d673c9284fa
+actual: 100bf32a103d1c7c60c073d6cf62485e6a012093cc167d0a7a455d673c9284fa
+
+PASS: TestLocal/mergedInheritedClassInterface.ts/output
+baseline: conformance/mergedInheritedClassInterface.js
+reference: c5dd19252e3ef512ff5c1f3f2c9756eba8299b8adab8ead0d1aea15f9ccb8c58
+actual: c5dd19252e3ef512ff5c1f3f2c9756eba8299b8adab8ead0d1aea15f9ccb8c58
+
+PASS: TestLocal/mixinAbstractClassesReturnTypeInference.ts/output
+baseline: conformance/mixinAbstractClassesReturnTypeInference.js
+reference: b708b17ca1106216c06243529b07691b5e07d8c1c71586895d3a7e2a3fe0e7be
+actual: b708b17ca1106216c06243529b07691b5e07d8c1c71586895d3a7e2a3fe0e7be
+
+PASS: TestLocal/moduleExportAssignment6.ts/output
+baseline: conformance/moduleExportAssignment6.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/moduleResolutionWithoutExtension8.ts/output
+baseline: conformance/moduleResolutionWithoutExtension8.js
+reference: f06e955243162dae5d4e2c8636fcc1044668f2880b68d7fb4fe04acd43e8a36d
+actual: f06e955243162dae5d4e2c8636fcc1044668f2880b68d7fb4fe04acd43e8a36d
+
+PASS: TestLocal/namedTupleMembersErrors.ts/output
+baseline: conformance/namedTupleMembersErrors.js
+reference: ac2d9bd3e3980e48504a306d8e2760534b5d477f94ff4c0abca86b68088111c7
+actual: ac2d9bd3e3980e48504a306d8e2760534b5d477f94ff4c0abca86b68088111c7
+
+PASS: TestLocal/namespaceImportTypeQuery2.ts/output
+baseline: conformance/namespaceImportTypeQuery2.js
+reference: a9558fe99dc0b59f9d26ff859a076a4ab96c1c9256d30268438599275d33ccec
+actual: a9558fe99dc0b59f9d26ff859a076a4ab96c1c9256d30268438599275d33ccec
+
+PASS: TestLocal/nestedPackageJsonRedirect.ts_moduleresolution=nodenext/output
+baseline: conformance/nestedPackageJsonRedirect(moduleresolution=nodenext).js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/neverUnionIntersection.ts/output
+baseline: conformance/neverUnionIntersection.js
+reference: d628fbb79cb5a3723f38376a0874b5143b6d70e49014d2493ec1ce91f50e4f0d
+actual: d628fbb79cb5a3723f38376a0874b5143b6d70e49014d2493ec1ce91f50e4f0d
+
+PASS: TestLocal/nodeModulesAllowJs1.ts_module=node20/output
+baseline: conformance/nodeModulesAllowJs1(module=node20).js
+reference: 1bc5b5a49c7541afec85d41d74444372d263fe3739e06680efbac74f3b7e0d7f
+actual: 1bc5b5a49c7541afec85d41d74444372d263fe3739e06680efbac74f3b7e0d7f
+
+PASS: TestLocal/nodeModulesAllowJsCjsFromJs.ts_module=node16/output
+baseline: conformance/nodeModulesAllowJsCjsFromJs(module=node16).js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+FAIL: TestLocal/nodeModulesAllowJsImportHelpersCollisions2.ts_module=node16/output
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/nodeModulesAllowJsImportHelpersCollisions2(module=node16).js has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/nodeModulesAllowJsImportHelpersCollisions2(module=node16).js
+reference: 57f990d75242ccf77f57f34276f7eddabf61a0f51877f4faaa6a43eb1f3ea9d1
+actual: aad3040d8f5028d904b4a3cd65b35311479d1bc8d3c544c230bf0841504fcbcb
+--- expected/conformance/nodeModulesAllowJsImportHelpersCollisions2(module=node16).js
++++ actual/conformance/nodeModulesAllowJsImportHelpersCollisions2(module=node16).js
+@@ -27,12 +27,47 @@
+ 
+ //// [index.js]
+ "use strict";
++var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
++    if (k2 === undefined) k2 = k;
++    var desc = Object.getOwnPropertyDescriptor(m, k);
++    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
++      desc = { enumerable: true, get: function() { return m[k]; } };
++    }
++    Object.defineProperty(o, k2, desc);
++}) : (function(o, m, k, k2) {
++    if (k2 === undefined) k2 = k;
++    o[k2] = m[k];
++}));
++var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
++    Object.defineProperty(o, "default", { enumerable: true, value: v });
++}) : function(o, v) {
++    o["default"] = v;
++});
++var __exportStar = (this && this.__exportStar) || function(m, exports) {
++    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
++};
++var __importStar = (this && this.__importStar) || (function () {
++    var ownKeys = function(o) {
++        ownKeys = Object.getOwnPropertyNames || function (o) {
++            var ar = [];
++            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
++            return ar;
++        };
++        return ownKeys(o);
++    };
++    return function (mod) {
++        if (mod && mod.__esModule) return mod;
++        var result = {};
++        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
++        __setModuleDefault(result, mod);
++        return result;
++    };
++})();
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.fs = void 0;
+-const tslib_1 = require("tslib");
+ // cjs format file
+-tslib_1.__exportStar(require("fs"), exports);
+-exports.fs = tslib_1.__importStar(require("fs"));
++__exportStar(require("fs"), exports);
++exports.fs = __importStar(require("fs"));
+ //// [index.js]
+ // esm format file
+ export * from "fs";
+
+PASS: TestLocal/nodeModulesAllowJsPackageImports.ts_module=node18/output
+baseline: conformance/nodeModulesAllowJsPackageImports(module=node18).js
+reference: a49a3ff7171479beba56efecdbd43561a3f4eb0701a41c0c3a3a703fa26752b1
+actual: a49a3ff7171479beba56efecdbd43561a3f4eb0701a41c0c3a3a703fa26752b1
+
+PASS: TestLocal/nodeModulesAllowJsPackagePatternExportsTrailers.ts_module=node16/output
+baseline: conformance/nodeModulesAllowJsPackagePatternExportsTrailers(module=node16).js
+reference: 9937f0a4466b1fb403aa1a29c665ce90cdacdb986a9ee2a3142ff44f96a4a7a7
+actual: 9937f0a4466b1fb403aa1a29c665ce90cdacdb986a9ee2a3142ff44f96a4a7a7
+
+PASS: TestLocal/nodeModulesAllowJsPackagePatternExportsTrailers.ts_module=node20/output
+baseline: conformance/nodeModulesAllowJsPackagePatternExportsTrailers(module=node20).js
+reference: 9937f0a4466b1fb403aa1a29c665ce90cdacdb986a9ee2a3142ff44f96a4a7a7
+actual: 9937f0a4466b1fb403aa1a29c665ce90cdacdb986a9ee2a3142ff44f96a4a7a7
+
+PASS: TestLocal/nodeModulesCjsFormatFileAlwaysHasDefault.ts_module=node18/output
+baseline: conformance/nodeModulesCjsFormatFileAlwaysHasDefault(module=node18).js
+reference: ac8dd3193664075fa358fa5a0c9f401b38e7e9247bf06b376d5a61f361c7b7a5
+actual: ac8dd3193664075fa358fa5a0c9f401b38e7e9247bf06b376d5a61f361c7b7a5
+
+PASS: TestLocal/nodeModulesExportsBlocksSpecifierResolution.ts_module=node16/output
+baseline: conformance/nodeModulesExportsBlocksSpecifierResolution(module=node16).js
+reference: 6c3ecf0163ffc17f27fead9fea4946d27104c2569d573867cfe8ad48e06323f9
+actual: 6c3ecf0163ffc17f27fead9fea4946d27104c2569d573867cfe8ad48e06323f9
+
+PASS: TestLocal/nodeModulesExportsDoubleAsterisk.ts_module=nodenext/output
+baseline: conformance/nodeModulesExportsDoubleAsterisk(module=nodenext).js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/nodeModulesExportsSpecifierGenerationPattern.ts_module=node20/output
+baseline: conformance/nodeModulesExportsSpecifierGenerationPattern(module=node20).js
+reference: cabd92466cecdad696ad4c86bdae168cc671eb13e5e8ea1f99879c0426923925
+actual: cabd92466cecdad696ad4c86bdae168cc671eb13e5e8ea1f99879c0426923925
+
+PASS: TestLocal/nodeModulesForbidenSyntax.ts_module=nodenext/output
+baseline: conformance/nodeModulesForbidenSyntax(module=nodenext).js
+reference: 925ebaf3d15412b7e732ab03832a8de53f91ff734eb034e72f3f3c43ed969bef
+actual: 925ebaf3d15412b7e732ab03832a8de53f91ff734eb034e72f3f3c43ed969bef
+
+PASS: TestLocal/nodeModulesImportAssignments.ts_module=node16/output
+baseline: conformance/nodeModulesImportAssignments(module=node16).js
+reference: 77336a8bf0d9b709cb5337ef6db3e1a2fe56b0a367e4615fabef948db0b32571
+actual: 77336a8bf0d9b709cb5337ef6db3e1a2fe56b0a367e4615fabef948db0b32571
+
+FAIL: TestLocal/nodeModulesImportAttributesModeDeclarationEmit2.ts_module=node16/output
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/nodeModulesImportAttributesModeDeclarationEmit2(module=node16).js has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/nodeModulesImportAttributesModeDeclarationEmit2(module=node16).js
+reference: 1e32ca67fd13e58acbe59a32834dc9c3f06fb5a207e5d79839992094b20fb222
+actual: f6d0e413980dd55a702c2fda2213c3dc3b672d43ca54b912bf61f5c2affb8732
+--- expected/conformance/nodeModulesImportAttributesModeDeclarationEmit2(module=node16).js
++++ actual/conformance/nodeModulesImportAttributesModeDeclarationEmit2(module=node16).js
+@@ -37,13 +37,13 @@
+ 
+ 
+ //// [index.d.ts]
+-import type { RequireInterface } from "pkg" with { "resolution-mode": "require" };
+-import type { ImportInterface } from "pkg" with { "resolution-mode": "import" };
++import type { RequireInterface } from "pkg";
++import type { ImportInterface } from "pkg";
+ export interface LocalInterface extends RequireInterface, ImportInterface {
+ }
+-import { type RequireInterface as Req } from "pkg" with { "resolution-mode": "require" };
+-import { type ImportInterface as Imp } from "pkg" with { "resolution-mode": "import" };
++import { type RequireInterface as Req } from "pkg";
++import { type ImportInterface as Imp } from "pkg";
+ export interface Loc extends Req, Imp {
+ }
+-export type { RequireInterface } from "pkg" with { "resolution-mode": "require" };
+-export type { ImportInterface } from "pkg" with { "resolution-mode": "import" };
++export type { RequireInterface } from "pkg";
++export type { ImportInterface } from "pkg";
+
+PASS: TestLocal/nodeModulesImportAttributesTypeModeDeclarationEmit.ts_module=node18/output
+baseline: conformance/nodeModulesImportAttributesTypeModeDeclarationEmit(module=node18).js
+reference: acdf3cc42beda00cf4513db761a91afb179c40fe6ab30dc3d4db938d30d22494
+actual: acdf3cc42beda00cf4513db761a91afb179c40fe6ab30dc3d4db938d30d22494
+
+PASS: TestLocal/nodeModulesImportAttributesTypeModeDeclarationEmitErrors.ts_module=node20/output
+baseline: conformance/nodeModulesImportAttributesTypeModeDeclarationEmitErrors(module=node20).js
+reference: 4f8728f8b6c96ffa39ea3ab71e0334624b4ec23db2da913ecc67fe466cf0a2ce
+actual: 4f8728f8b6c96ffa39ea3ab71e0334624b4ec23db2da913ecc67fe466cf0a2ce
+
+PASS: TestLocal/nodeModulesImportMeta.ts_module=node20/output
+baseline: conformance/nodeModulesImportMeta(module=node20).js
+reference: 3d70d3f70688d3a91b006a51b510b2dbb2e3122ede5cf3ec0dba92e2388562fd
+actual: 3d70d3f70688d3a91b006a51b510b2dbb2e3122ede5cf3ec0dba92e2388562fd
+
+PASS: TestLocal/nodeModulesTopLevelAwait.ts_module=nodenext/output
+baseline: conformance/nodeModulesTopLevelAwait(module=nodenext).js
+reference: 28137c1e1664e043a6bca273931db1861ef464325bc1e0aa8e2263ce8eae2eee
+actual: 28137c1e1664e043a6bca273931db1861ef464325bc1e0aa8e2263ce8eae2eee
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeDeclarationEmit3.ts_module=node16/output
+baseline: conformance/nodeModulesTripleSlashReferenceModeDeclarationEmit3(module=node16).js
+reference: 9da107b80e41721084c5d2b4935b965398a3a64b7a3280ad06de02169eea19a9
+actual: 9da107b80e41721084c5d2b4935b965398a3a64b7a3280ad06de02169eea19a9
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeDeclarationEmit5.ts_module=nodenext/output
+baseline: conformance/nodeModulesTripleSlashReferenceModeDeclarationEmit5(module=nodenext).js
+reference: 51d80617672aa17f035addef8738907ade2696e0e093783104fadcfcaa34ef86
+actual: 51d80617672aa17f035addef8738907ade2696e0e093783104fadcfcaa34ef86
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeDeclarationEmit6.ts_module=node18/output
+baseline: conformance/nodeModulesTripleSlashReferenceModeDeclarationEmit6(module=node18).js
+reference: 78ea646532782470e55d4598fd72ef607b90db9a79495f26b9bde51a022de856
+actual: 78ea646532782470e55d4598fd72ef607b90db9a79495f26b9bde51a022de856
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeOverrideModeError.ts_module=node20/output
+baseline: conformance/nodeModulesTripleSlashReferenceModeOverrideModeError(module=node20).js
+reference: 393de0ebdacb72ae1907ec2a99f0e7c1db50cbb758d7944a1888161d8887da20
+actual: 393de0ebdacb72ae1907ec2a99f0e7c1db50cbb758d7944a1888161d8887da20
+
+PASS: TestLocal/nodePackageSelfName.ts_module=node20/output
+baseline: conformance/nodePackageSelfName(module=node20).js
+reference: 504ec599917d8eb3b3aeaa8db44959cf23df33d88028b7f93531380cf979b0d9
+actual: 504ec599917d8eb3b3aeaa8db44959cf23df33d88028b7f93531380cf979b0d9
+
+PASS: TestLocal/nonPrimitiveAsProperty.ts/output
+baseline: conformance/nonPrimitiveAsProperty.js
+reference: 824c4b41e0bff1e7011377c6fa37751dac758fbfe66d86093087a09a49fbf741
+actual: 824c4b41e0bff1e7011377c6fa37751dac758fbfe66d86093087a09a49fbf741
+
+PASS: TestLocal/nonPrimitiveConstraintOfIndexAccessType.ts/output
+baseline: conformance/nonPrimitiveConstraintOfIndexAccessType.js
+reference: 569d7295bc9a338d8c2a3101b170cd236b91a839092cf167ce7ee1c0c765ea68
+actual: 569d7295bc9a338d8c2a3101b170cd236b91a839092cf167ce7ee1c0c765ea68
+
+PASS: TestLocal/nonTSExtensions.ts_module=node18/output
+baseline: conformance/nonTSExtensions(module=node18).js
+reference: ed18ca7b3e1edbeb4080c2c4e63b55a2dea87d01c0aa5b11868e1e44fdf5dd0e
+actual: ed18ca7b3e1edbeb4080c2c4e63b55a2dea87d01c0aa5b11868e1e44fdf5dd0e
+
+PASS: TestLocal/nullishCoalescingOperator1.ts/output
+baseline: conformance/nullishCoalescingOperator1.js
+reference: b1d3655ebdb4abdbbb43cf7519e1b5cce14253224bbb6131f85adbaa19794a6b
+actual: b1d3655ebdb4abdbbb43cf7519e1b5cce14253224bbb6131f85adbaa19794a6b
+
+PASS: TestLocal/nullishCoalescingOperator2.ts/output
+baseline: conformance/nullishCoalescingOperator2.js
+reference: 02d204fc89aa3699441a24d4abd181421533269beea71c1e94956d4e7376f6fc
+actual: 02d204fc89aa3699441a24d4abd181421533269beea71c1e94956d4e7376f6fc
+
+PASS: TestLocal/nullishCoalescingOperator6.ts/output
+baseline: conformance/nullishCoalescingOperator6.js
+reference: 714f4983eb6fbfa4e6ff58b6de9b3676d533005c12fd2b162054bdc7f3343ce0
+actual: 714f4983eb6fbfa4e6ff58b6de9b3676d533005c12fd2b162054bdc7f3343ce0
+
+PASS: TestLocal/nullishCoalescingOperator8.ts/output
+baseline: conformance/nullishCoalescingOperator8.js
+reference: 08056fc1fe1c77c7d4b90e03d481070d16ea061fcdbaafdaf5bc07ab4b1363fd
+actual: 08056fc1fe1c77c7d4b90e03d481070d16ea061fcdbaafdaf5bc07ab4b1363fd
+
+PASS: TestLocal/objectLiteralShorthandPropertiesAssignmentError.ts/output
+baseline: conformance/objectLiteralShorthandPropertiesAssignmentError.js
+reference: b560a42a962660f60d4f1c251bc473011ca5b731e2361db7a2b5182150270998
+actual: b560a42a962660f60d4f1c251bc473011ca5b731e2361db7a2b5182150270998
+
+PASS: TestLocal/objectLiteralShorthandPropertiesErrorWithModule.ts/output
+baseline: conformance/objectLiteralShorthandPropertiesErrorWithModule.js
+reference: 68bbca7f2017775fe65eb04c2283c0f8a1b27b83592ef2669223cdd8b7df04b2
+actual: 68bbca7f2017775fe65eb04c2283c0f8a1b27b83592ef2669223cdd8b7df04b2
+
+PASS: TestLocal/objectRest2.ts/output
+baseline: conformance/objectRest2.js
+reference: b9ed2f337a984cc0f6359b74f0887042ed509e459e239d88b1b3c608ca6a855a
+actual: b9ed2f337a984cc0f6359b74f0887042ed509e459e239d88b1b3c608ca6a855a
+
+PASS: TestLocal/objectSpreadIndexSignature.ts/output
+baseline: conformance/objectSpreadIndexSignature.js
+reference: 4177ad1b488d3a09c5df137053ecd97cd2b61dae03704a79680a12b5feba7179
+actual: 4177ad1b488d3a09c5df137053ecd97cd2b61dae03704a79680a12b5feba7179
+
+PASS: TestLocal/objectTypeWithConstructSignatureHidingMembersOfFunction.ts/output
+baseline: conformance/objectTypeWithConstructSignatureHidingMembersOfFunction.js
+reference: 9c52d7e116483c5c75581eb1c554a54d0eed7b546888d73913d3c60cc1e8dbe5
+actual: 9c52d7e116483c5c75581eb1c554a54d0eed7b546888d73913d3c60cc1e8dbe5
+
+PASS: TestLocal/objectTypeWithRecursiveWrappedProperty.ts/output
+baseline: conformance/objectTypeWithRecursiveWrappedProperty.js
+reference: c597e4c3000ca4c3c10d55c4df65396eed32df3a3b4f43182355cf5365d5987f
+actual: c597e4c3000ca4c3c10d55c4df65396eed32df3a3b4f43182355cf5365d5987f
+
+PASS: TestLocal/objectTypesIdentity2.ts/output
+baseline: conformance/objectTypesIdentity2.js
+reference: 287490135afd452870ffbe6a5999f16cfc4f70134f376204ea5caef599738bcc
+actual: 287490135afd452870ffbe6a5999f16cfc4f70134f376204ea5caef599738bcc
+
+PASS: TestLocal/objectTypesIdentityWithComplexConstraints.ts/output
+baseline: conformance/objectTypesIdentityWithComplexConstraints.js
+reference: e84f12352418b936392a6a1f392d0eefa929180858c0296ca7b3e802ba8f7afe
+actual: e84f12352418b936392a6a1f392d0eefa929180858c0296ca7b3e802ba8f7afe
+
+PASS: TestLocal/objectTypesIdentityWithConstructSignatures.ts/output
+baseline: conformance/objectTypesIdentityWithConstructSignatures.js
+reference: 75fa551d64a2032e9c9554cb5d33a3cd774d3ef3e81a9eb9b86e7b68e02d833a
+actual: 75fa551d64a2032e9c9554cb5d33a3cd774d3ef3e81a9eb9b86e7b68e02d833a
+
+PASS: TestLocal/objectTypesIdentityWithGenericCallSignaturesOptionalParams2.ts/output
+baseline: conformance/objectTypesIdentityWithGenericCallSignaturesOptionalParams2.js
+reference: 5b87aa7bff47890827cb132d7391376b2ea27ab533f699af898527c061779998
+actual: 5b87aa7bff47890827cb132d7391376b2ea27ab533f699af898527c061779998
+
+PASS: TestLocal/octalIntegerLiteral.ts_target=es2015/output
+baseline: conformance/octalIntegerLiteral(target=es2015).js
+reference: 2751d49f0e6e50ebb390b380bf859319bef89cc61e373983082a3ba73f79e8b3
+actual: 2751d49f0e6e50ebb390b380bf859319bef89cc61e373983082a3ba73f79e8b3
+
+PASS: TestLocal/optionalBindingParametersInOverloads1.ts/output
+baseline: conformance/optionalBindingParametersInOverloads1.js
+reference: 8dbd8f9f040c3a6ea8b173bd974a0e443af94e43df2864ed5a55c7e04b3b47c4
+actual: 8dbd8f9f040c3a6ea8b173bd974a0e443af94e43df2864ed5a55c7e04b3b47c4
+
+PASS: TestLocal/optionalMethod.ts/output
+baseline: conformance/optionalMethod.js
+reference: 3322553c3ec6cb68c8208bd97bdc612cb568df4c89650a52eb1caa6cf3ea3d0c
+actual: 3322553c3ec6cb68c8208bd97bdc612cb568df4c89650a52eb1caa6cf3ea3d0c
+
+PASS: TestLocal/override16.ts_target=esnext/output
+baseline: conformance/override16(target=esnext).js
+reference: 485a40a0b860f0c30c153b735ff0fe2d02d74b9fba1e18c8047773c8de8089ef
+actual: 485a40a0b860f0c30c153b735ff0fe2d02d74b9fba1e18c8047773c8de8089ef
+
+PASS: TestLocal/override21.ts/output
+baseline: conformance/override21.js
+reference: 4b938cfa9926e84a6ca71fb50152cfeb06fdd6e1c940c17d7c6e1d04abb34c18
+actual: 4b938cfa9926e84a6ca71fb50152cfeb06fdd6e1c940c17d7c6e1d04abb34c18
+
+PASS: TestLocal/packageJsonImportsExportsOptionCompat.ts_moduleresolution=bundler/output
+baseline: conformance/packageJsonImportsExportsOptionCompat(moduleresolution=bundler).js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/paramTagNestedWithoutTopLevelObject4.ts/output
+baseline: conformance/paramTagNestedWithoutTopLevelObject4.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/paramTagTypeResolution2.ts/output
+baseline: conformance/paramTagTypeResolution2.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/parenthesizedContexualTyping3.ts/output
+baseline: conformance/parenthesizedContexualTyping3.js
+reference: ef250b88be9ffa7a01558e0c103e672597115a64ddd81b3bfa4bfc286f07db59
+actual: ef250b88be9ffa7a01558e0c103e672597115a64ddd81b3bfa4bfc286f07db59
+
+PASS: TestLocal/parser0_004152.ts/output
+baseline: conformance/parser0_004152.js
+reference: 1562edf48d878316fe3fb09a541b95e0cec2a47fd89a90e430ec93dfb0f5e49a
+actual: 1562edf48d878316fe3fb09a541b95e0cec2a47fd89a90e430ec93dfb0f5e49a
+
+PASS: TestLocal/parser509698.ts/output
+baseline: conformance/parser509698.js
+reference: ffdd1c017160e8ed845c7b948bcb6f429bb22d3c4a65fc79367f1a3b10fdd815
+actual: ffdd1c017160e8ed845c7b948bcb6f429bb22d3c4a65fc79367f1a3b10fdd815
+
+PASS: TestLocal/parser512084.ts/output
+baseline: conformance/parser512084.js
+reference: 73f0fceef27c41f2ece2cef34ad9e702d386aec4052a6b2a786d22ee3bd815b9
+actual: 73f0fceef27c41f2ece2cef34ad9e702d386aec4052a6b2a786d22ee3bd815b9
+
+PASS: TestLocal/parserAccessors1.ts_target=es2015/output
+baseline: conformance/parserAccessors1(target=es2015).js
+reference: 6b309c71c1967c6ff77fb6763351ea27a5c263701322ffd57a1b8aaaf057ec32
+actual: 6b309c71c1967c6ff77fb6763351ea27a5c263701322ffd57a1b8aaaf057ec32
+
+PASS: TestLocal/parserAmbiguityWithBinaryOperator2.ts/output
+baseline: conformance/parserAmbiguityWithBinaryOperator2.js
+reference: 8fbdc3f07e6c2b7e4ec864e90a38675707ad5edc8ed76722de5460ac55e02ae1
+actual: 8fbdc3f07e6c2b7e4ec864e90a38675707ad5edc8ed76722de5460ac55e02ae1
+
+PASS: TestLocal/parserClassDeclaration11.ts/output
+baseline: conformance/parserClassDeclaration11.js
+reference: b59c23f72121753a907b74ecaeda3c2e514c39d7a59a6438364114d9fa17f2ea
+actual: b59c23f72121753a907b74ecaeda3c2e514c39d7a59a6438364114d9fa17f2ea
+
+PASS: TestLocal/parserClassDeclaration19.ts/output
+baseline: conformance/parserClassDeclaration19.js
+reference: 115d7fd4529fe68d34046ca5e428e333ad1f68c91d9fef4ac8519c29c0d5e8db
+actual: 115d7fd4529fe68d34046ca5e428e333ad1f68c91d9fef4ac8519c29c0d5e8db
+
+PASS: TestLocal/parserClassDeclarationIndexSignature1.ts/output
+baseline: conformance/parserClassDeclarationIndexSignature1.js
+reference: 5415f379d9b354ae2cc3fe40b3f7dfc4291c1e780b7095f9dc549bb66daa1214
+actual: 5415f379d9b354ae2cc3fe40b3f7dfc4291c1e780b7095f9dc549bb66daa1214
+
+PASS: TestLocal/parserConstructorDeclaration7.ts/output
+baseline: conformance/parserConstructorDeclaration7.js
+reference: e3949a91fffe8cc23d4a61e1d692840689516f4aa33c25e49ca738af292b3771
+actual: e3949a91fffe8cc23d4a61e1d692840689516f4aa33c25e49ca738af292b3771
+
+PASS: TestLocal/parserConstructorDeclaration8.ts/output
+baseline: conformance/parserConstructorDeclaration8.js
+reference: ba6ea616e1cc83d6fe06b0bb246eb395b5502bdb8ff56820bf0d45bb1883fd97
+actual: ba6ea616e1cc83d6fe06b0bb246eb395b5502bdb8ff56820bf0d45bb1883fd97
+
+PASS: TestLocal/parserEnum3.ts/output
+baseline: conformance/parserEnum3.js
+reference: 87ac43907c3a01c65b19a260562de1001eaea730fac6c8e26e22db992531a4dd
+actual: 87ac43907c3a01c65b19a260562de1001eaea730fac6c8e26e22db992531a4dd
+
+PASS: TestLocal/parserErrorRecoveryArrayLiteralExpression3.ts/output
+baseline: conformance/parserErrorRecoveryArrayLiteralExpression3.js
+reference: a5bf39da0e5a81faae96f2cf43c3e3d63fc2e942a7d2f4944a6daee612eb6dce
+actual: a5bf39da0e5a81faae96f2cf43c3e3d63fc2e942a7d2f4944a6daee612eb6dce
+
+PASS: TestLocal/parserErrorRecoveryIfStatement6.ts/output
+baseline: conformance/parserErrorRecoveryIfStatement6.js
+reference: 603c9ca44f0f2bfc1c3793dbfd96ac9cd2b77f64ac2d74bc325d6fc791abdb9a
+actual: 603c9ca44f0f2bfc1c3793dbfd96ac9cd2b77f64ac2d74bc325d6fc791abdb9a
+
+PASS: TestLocal/parserErrorRecovery_ArgumentList3.ts/output
+baseline: conformance/parserErrorRecovery_ArgumentList3.js
+reference: 3e0ee1cc7637ab0c6154337ae23e82aae51595ca5c4a6b69bb2487e7be0717bc
+actual: 3e0ee1cc7637ab0c6154337ae23e82aae51595ca5c4a6b69bb2487e7be0717bc
+
+PASS: TestLocal/parserFunctionDeclaration3.ts/output
+baseline: conformance/parserFunctionDeclaration3.js
+reference: c925df9b017176082de211a54d8ae45f402765287164e00298bb1d53b27d6072
+actual: c925df9b017176082de211a54d8ae45f402765287164e00298bb1d53b27d6072
+
+PASS: TestLocal/parserGenericConstraint2.ts/output
+baseline: conformance/parserGenericConstraint2.js
+reference: c09aa27579f873916ee7967ce10e945c1a8fc44a8e1a4b42d7f737d44e2cc2eb
+actual: c09aa27579f873916ee7967ce10e945c1a8fc44a8e1a4b42d7f737d44e2cc2eb
+
+PASS: TestLocal/parserGreaterThanTokenAmbiguity8.ts/output
+baseline: conformance/parserGreaterThanTokenAmbiguity8.js
+reference: fddb583d5217e3ec7cf60320e08e8f02671813c650914058db77bd9b7d985144
+actual: fddb583d5217e3ec7cf60320e08e8f02671813c650914058db77bd9b7d985144
+
+PASS: TestLocal/parserIndexMemberDeclaration3.ts/output
+baseline: conformance/parserIndexMemberDeclaration3.js
+reference: 9487abd8528d71ddacc0a8eb3c8569316702e4fb8293322f91e7a1723a7152de
+actual: 9487abd8528d71ddacc0a8eb3c8569316702e4fb8293322f91e7a1723a7152de
+
+PASS: TestLocal/parserKeywordsAsIdentifierName1.ts/output
+baseline: conformance/parserKeywordsAsIdentifierName1.js
+reference: 1f8857feb37c816a6475c8dc1c591ab7bd5d3e80c1e67e7aee945a8f8625c7f1
+actual: 1f8857feb37c816a6475c8dc1c591ab7bd5d3e80c1e67e7aee945a8f8625c7f1
+
+PASS: TestLocal/parserMemberAccessExpression1.ts/output
+baseline: conformance/parserMemberAccessExpression1.js
+reference: 5ecf4833a2e8b78cfa7c9be8ca32992db64593416b80f1ca9b799ce7b434e4e0
+actual: 5ecf4833a2e8b78cfa7c9be8ca32992db64593416b80f1ca9b799ce7b434e4e0
+
+PASS: TestLocal/parserMemberFunctionDeclaration2.ts/output
+baseline: conformance/parserMemberFunctionDeclaration2.js
+reference: 2ad8de2993b27e5b05087f459a7e2cc01e1f06a20281a61f9cf7320082cb8a7e
+actual: 2ad8de2993b27e5b05087f459a7e2cc01e1f06a20281a61f9cf7320082cb8a7e
+
+PASS: TestLocal/parserModifierOnStatementInBlock2.ts/output
+baseline: conformance/parserModifierOnStatementInBlock2.js
+reference: 040570d07230e68d5757ef633d619f2346150193506e9ce2e4c8523dd6527427
+actual: 040570d07230e68d5757ef633d619f2346150193506e9ce2e4c8523dd6527427
+
+PASS: TestLocal/parserModuleDeclaration12.ts/output
+baseline: conformance/parserModuleDeclaration12.js
+reference: baaa8e3142d50e5cc08b341cd0923cf75efe2f453711b23c8e944612a8df2460
+actual: baaa8e3142d50e5cc08b341cd0923cf75efe2f453711b23c8e944612a8df2460
+
+PASS: TestLocal/parserModuleDeclaration7.ts/output
+baseline: conformance/parserModuleDeclaration7.js
+reference: 274732672b723cd514627b51693f547bd3360ec16a5d713310132c43d6aa19fa
+actual: 274732672b723cd514627b51693f547bd3360ec16a5d713310132c43d6aa19fa
+
+PASS: TestLocal/parserNotHexLiteral1.ts/output
+baseline: conformance/parserNotHexLiteral1.js
+reference: 464f2434ca8722e5a324aa91c813249b5080abfa6ce8842b7b2dfef3619e6cbb
+actual: 464f2434ca8722e5a324aa91c813249b5080abfa6ce8842b7b2dfef3619e6cbb
+
+PASS: TestLocal/parserObjectCreationArrayLiteral4.ts/output
+baseline: conformance/parserObjectCreationArrayLiteral4.js
+reference: 1d776188cb5e48aa77fa7a7e5e8c34ccfc8a0217b3478de8138ee92569dd6015
+actual: 1d776188cb5e48aa77fa7a7e5e8c34ccfc8a0217b3478de8138ee92569dd6015
+
+PASS: TestLocal/parserObjectType4.ts/output
+baseline: conformance/parserObjectType4.js
+reference: ce807a86eb4aef5c27c0dcf7f3cc7c409d2494611f0c6832f909d7288075bd13
+actual: ce807a86eb4aef5c27c0dcf7f3cc7c409d2494611f0c6832f909d7288075bd13
+
+PASS: TestLocal/parserRegularExpression1.ts/output
+baseline: conformance/parserRegularExpression1.js
+reference: ca97d37d46ea124cc617056376ddf9bf353ed12c930b773ff6ac414f10f32ec9
+actual: ca97d37d46ea124cc617056376ddf9bf353ed12c930b773ff6ac414f10f32ec9
+
+PASS: TestLocal/parserRegularExpressionDivideAmbiguity5.ts/output
+baseline: conformance/parserRegularExpressionDivideAmbiguity5.js
+reference: c244231617d8c7912e3e4a30d0d83a33e18fd6f96cce4129815289db6175e7b3
+actual: c244231617d8c7912e3e4a30d0d83a33e18fd6f96cce4129815289db6175e7b3
+
+PASS: TestLocal/parserShorthandPropertyAssignment2.ts/output
+baseline: conformance/parserShorthandPropertyAssignment2.js
+reference: f2b977d79f1d222da64180fa44ffe6f7ba2d6dca01fe8d70a42cb4b298ccf9e1
+actual: f2b977d79f1d222da64180fa44ffe6f7ba2d6dca01fe8d70a42cb4b298ccf9e1
+
+PASS: TestLocal/parserSymbolProperty1.ts/output
+baseline: conformance/parserSymbolProperty1.js
+reference: 4ab22ed7233bcd1be186bf64388827506b68c0ce5ab689f8415305ca1e59feb3
+actual: 4ab22ed7233bcd1be186bf64388827506b68c0ce5ab689f8415305ca1e59feb3
+
+PASS: TestLocal/parserSymbolProperty6.ts/output
+baseline: conformance/parserSymbolProperty6.js
+reference: 57648ce148f1dbcfa905fc8c81c3b8445651f1c383d0dc2bdaebb7be273d19c9
+actual: 57648ce148f1dbcfa905fc8c81c3b8445651f1c383d0dc2bdaebb7be273d19c9
+
+PASS: TestLocal/parserSymbolProperty7.ts/output
+baseline: conformance/parserSymbolProperty7.js
+reference: fbcd7a4b5d762294eefafc50afa7ba5c5aba1643266612aab66e8d90b5fc4759
+actual: fbcd7a4b5d762294eefafc50afa7ba5c5aba1643266612aab66e8d90b5fc4759
+
+PASS: TestLocal/parserTypeQuery3.ts/output
+baseline: conformance/parserTypeQuery3.js
+reference: 6fb1580f9ac81539994969cd40b44ba8c85b99dc72b1eec2c61a96e337930477
+actual: 6fb1580f9ac81539994969cd40b44ba8c85b99dc72b1eec2c61a96e337930477
+
+PASS: TestLocal/parserTypeQuery5.ts/output
+baseline: conformance/parserTypeQuery5.js
+reference: e5b50606d03cee02963ceae451c0a0119b6fab8465651024591608b5da2c58bc
+actual: e5b50606d03cee02963ceae451c0a0119b6fab8465651024591608b5da2c58bc
+
+PASS: TestLocal/parserTypeQuery7.ts/output
+baseline: conformance/parserTypeQuery7.js
+reference: be0e3820639b564ff63b3cbe1a1ff3c0ae562ac85c73d3222304e44793d28ec8
+actual: be0e3820639b564ff63b3cbe1a1ff3c0ae562ac85c73d3222304e44793d28ec8
+
+PASS: TestLocal/parserTypeQuery8.ts/output
+baseline: conformance/parserTypeQuery8.js
+reference: 6871b5016dcd917a9d3679dc1b9aaa6f232901743ac400d8b116c103516cf8b8
+actual: 6871b5016dcd917a9d3679dc1b9aaa6f232901743ac400d8b116c103516cf8b8
+
+PASS: TestLocal/parserVariableDeclaration8.ts/output
+baseline: conformance/parserVariableDeclaration8.js
+reference: ada24d2095238763cdb4023166c6331b52cedfd0da74b807c37e2fe38257a798
+actual: ada24d2095238763cdb4023166c6331b52cedfd0da74b807c37e2fe38257a798
+
+PASS: TestLocal/parser_breakInIterationOrSwitchStatement4.ts/output
+baseline: conformance/parser_breakInIterationOrSwitchStatement4.js
+reference: 02bff8110b7b1b2580b2345dcf1b7a3e5d274816883aa1973e94135fb12796b5
+actual: 02bff8110b7b1b2580b2345dcf1b7a3e5d274816883aa1973e94135fb12796b5
+
+PASS: TestLocal/parser_breakTarget3.ts/output
+baseline: conformance/parser_breakTarget3.js
+reference: cc4f3410d9bc741b3bc07559cffb7a390d023fca28ee85b13572ab4e21ee5689
+actual: cc4f3410d9bc741b3bc07559cffb7a390d023fca28ee85b13572ab4e21ee5689
+
+PASS: TestLocal/privateNameCircularReference.ts/output
+baseline: conformance/privateNameCircularReference.js
+reference: 7e92017e1592effcb0733756ee6ec78bf9dc8b162f63ef9994891ad6e8f4ecf5
+actual: 7e92017e1592effcb0733756ee6ec78bf9dc8b162f63ef9994891ad6e8f4ecf5
+
+PASS: TestLocal/privateNameComputedPropertyName1.ts_target=es2022/output
+baseline: conformance/privateNameComputedPropertyName1(target=es2022).js
+reference: bcfd03e52ddd1db39be51fb0309bcd1f60477c9ff83e396a4da3a8f197b55f08
+actual: bcfd03e52ddd1db39be51fb0309bcd1f60477c9ff83e396a4da3a8f197b55f08
+
+PASS: TestLocal/privateNameComputedPropertyName2.ts_target=esnext/output
+baseline: conformance/privateNameComputedPropertyName2(target=esnext).js
+reference: c36dd5673237332673e9018cbba6b976f191166c4d8b6796dbd6c62508546556
+actual: c36dd5673237332673e9018cbba6b976f191166c4d8b6796dbd6c62508546556
+
+PASS: TestLocal/privateNameFieldAssignment.ts/output
+baseline: conformance/privateNameFieldAssignment.js
+reference: c45763c2aae8aef62ed425f7a81f9eb7f5512562c33864369009aaf5eb4648cf
+actual: c45763c2aae8aef62ed425f7a81f9eb7f5512562c33864369009aaf5eb4648cf
+
+PASS: TestLocal/privateNameFieldDestructuredBinding.ts_target=esnext/output
+baseline: conformance/privateNameFieldDestructuredBinding(target=esnext).js
+reference: e4b77025cbb81ba026dee383a3121d8280122ff30189fc49060a4643c8000540
+actual: e4b77025cbb81ba026dee383a3121d8280122ff30189fc49060a4643c8000540
+
+PASS: TestLocal/privateNameFieldsESNext.ts_target=esnext/output
+baseline: conformance/privateNameFieldsESNext(target=esnext).js
+reference: 7ad52b31cf8176a8be2c4bb5ad88b3cdde0bbf5babeef00e922a83d806140729
+actual: 7ad52b31cf8176a8be2c4bb5ad88b3cdde0bbf5babeef00e922a83d806140729
+
+PASS: TestLocal/privateNameInInExpressionTransform.ts_target=es2022/output
+baseline: conformance/privateNameInInExpressionTransform(target=es2022).js
+reference: 90c0f8609368b19a6e2f73ebb08de7574fc8f75671edcadafefbf3614eacba2c
+actual: 90c0f8609368b19a6e2f73ebb08de7574fc8f75671edcadafefbf3614eacba2c
+
+PASS: TestLocal/privateNameInObjectLiteral-1.ts/output
+baseline: conformance/privateNameInObjectLiteral-1.js
+reference: 9d0fa29fbd0e89ef93488b9cff4586d30f8770d3d4af923eb400ba74c86f6b6f
+actual: 9d0fa29fbd0e89ef93488b9cff4586d30f8770d3d4af923eb400ba74c86f6b6f
+
+PASS: TestLocal/privateNameJsBadDeclaration.ts_target=es2015/output
+baseline: conformance/privateNameJsBadDeclaration(target=es2015).js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/privateNameReadonly.ts/output
+baseline: conformance/privateNameReadonly.js
+reference: d9695a9d39333dc2ac83f7bae7c533ed0b484602935a31a01c0834a44db8c0dd
+actual: d9695a9d39333dc2ac83f7bae7c533ed0b484602935a31a01c0834a44db8c0dd
+
+PASS: TestLocal/privateNameSetterNoGetter.ts/output
+baseline: conformance/privateNameSetterNoGetter.js
+reference: d0b1f4d82a14f34bff560a5aea1a76d1ab8e8f04b458e901c6655df018401467
+actual: d0b1f4d82a14f34bff560a5aea1a76d1ab8e8f04b458e901c6655df018401467
+
+PASS: TestLocal/privateNameStaticAndStaticInitializer.ts_target=es2022/output
+baseline: conformance/privateNameStaticAndStaticInitializer(target=es2022).js
+reference: 26da613e9d34be7fe9c0d26ba5c2eb3899edfec132496aeb5e610a6e69c3a7bd
+actual: 26da613e9d34be7fe9c0d26ba5c2eb3899edfec132496aeb5e610a6e69c3a7bd
+
+PASS: TestLocal/privateNamesAndDecorators.ts/output
+baseline: conformance/privateNamesAndDecorators.js
+reference: a61d5011379578553b18b8253a7971ffadcb859faf8948e1262f02d5835040d6
+actual: a61d5011379578553b18b8253a7971ffadcb859faf8948e1262f02d5835040d6
+
+PASS: TestLocal/privateNamesUnique-1.ts/output
+baseline: conformance/privateNamesUnique-1.js
+reference: e22283a0f957ebb9d8d36602a19702da66d4ba2f519d11a290c9db0f006c28cf
+actual: e22283a0f957ebb9d8d36602a19702da66d4ba2f519d11a290c9db0f006c28cf
+
+PASS: TestLocal/privateNamesUnique-4.ts/output
+baseline: conformance/privateNamesUnique-4.js
+reference: 10b712c833ed28f3a3f31e72b9de36b27001aeedd5d3b093b8f22d7719bdb8cd
+actual: 10b712c833ed28f3a3f31e72b9de36b27001aeedd5d3b093b8f22d7719bdb8cd
+
+PASS: TestLocal/privateStaticNameShadowing.ts/output
+baseline: conformance/privateStaticNameShadowing.js
+reference: a4bfd8618e3f9b2427bdd190d8f6e733b58c553a48d0be6826ad80fee12a1844
+actual: a4bfd8618e3f9b2427bdd190d8f6e733b58c553a48d0be6826ad80fee12a1844
+
+PASS: TestLocal/propertyAssignmentOnImportedSymbol.ts/output
+baseline: conformance/propertyAssignmentOnImportedSymbol.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/recursiveIntersectionTypes.ts/output
+baseline: conformance/recursiveIntersectionTypes.js
+reference: f156363cb3a7695e47dfe84d17020b85e06c1952b098c7229c3e0b8fb4065a9d
+actual: f156363cb3a7695e47dfe84d17020b85e06c1952b098c7229c3e0b8fb4065a9d
+
+PASS: TestLocal/reservedNamesInAliases.ts/output
+baseline: conformance/reservedNamesInAliases.js
+reference: ea797777e6f16205b420c7003371c5c27dfffe4e6666df7c5fef6d27f436c427
+actual: ea797777e6f16205b420c7003371c5c27dfffe4e6666df7c5fef6d27f436c427
+
+PASS: TestLocal/restPropertyWithBindingPattern.ts_target=es2015/output
+baseline: conformance/restPropertyWithBindingPattern(target=es2015).js
+reference: e309fe72cd749be21543479db286426a7e289ae8ae081b462cbe15a97e4d7ae6
+actual: e309fe72cd749be21543479db286426a7e289ae8ae081b462cbe15a97e4d7ae6
+
+PASS: TestLocal/scannerNumericLiteral3.ts_target=es2015/output
+baseline: conformance/scannerNumericLiteral3(target=es2015).js
+reference: 16f43870ad2976de3e771743475702517c5d93538c8cefd2fe8ab4334f730bfb
+actual: 16f43870ad2976de3e771743475702517c5d93538c8cefd2fe8ab4334f730bfb
+
+PASS: TestLocal/scannertest1.ts/output
+baseline: conformance/scannertest1.js
+reference: 6be4eddff9ab92aa47defab4f576073b78bd75ac947a88a851e71cbddd5dd775
+actual: 6be4eddff9ab92aa47defab4f576073b78bd75ac947a88a851e71cbddd5dd775
+
+PASS: TestLocal/scopeResolutionIdentifiers.ts/output
+baseline: conformance/scopeResolutionIdentifiers.js
+reference: e55d710c86bed09253d89cf5476b266f76837268a20efac89c6d7cedaa609f2f
+actual: e55d710c86bed09253d89cf5476b266f76837268a20efac89c6d7cedaa609f2f
+
+PASS: TestLocal/specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts/output
+baseline: conformance/specializedSignatureIsNotSubtypeOfNonSpecializedSignature.js
+reference: be7a65043821a6d457b2e4727483cb005881a6b355889ae7d31087e44b5a5a61
+actual: be7a65043821a6d457b2e4727483cb005881a6b355889ae7d31087e44b5a5a61
+
+PASS: TestLocal/spreadContextualTypedBindingPattern.ts/output
+baseline: conformance/spreadContextualTypedBindingPattern.js
+reference: ba315308dc74bb00040e14f9c543a0bc7bf29cd9fba70463919fee257e2206e1
+actual: ba315308dc74bb00040e14f9c543a0bc7bf29cd9fba70463919fee257e2206e1
+
+PASS: TestLocal/spreadDuplicateExact.ts/output
+baseline: conformance/spreadDuplicateExact.js
+reference: b2c782fffbbac0b04f97105d8085221b655f7c8979a3203f52b11c00b8bd0316
+actual: b2c782fffbbac0b04f97105d8085221b655f7c8979a3203f52b11c00b8bd0316
+
+PASS: TestLocal/spreadNonPrimitive.ts/output
+baseline: conformance/spreadNonPrimitive.js
+reference: 860d6ed63ab0fe8bfd6909f8c8608e9cfe92b7a7029ed9452d4d499b3687b976
+actual: 860d6ed63ab0fe8bfd6909f8c8608e9cfe92b7a7029ed9452d4d499b3687b976
+
+PASS: TestLocal/staticFactory1.ts/output
+baseline: conformance/staticFactory1.js
+reference: 0c0159ec15a8c7edd7b18b77d543a7baf5c05980be145f83c5989a352a20286e
+actual: 0c0159ec15a8c7edd7b18b77d543a7baf5c05980be145f83c5989a352a20286e
+
+PASS: TestLocal/staticPropertyNotInClassType.ts/output
+baseline: conformance/staticPropertyNotInClassType.js
+reference: cbfaf6d9135c34d06c922e7d715149014810108da0a81a7f288d3a70b441293a
+actual: cbfaf6d9135c34d06c922e7d715149014810108da0a81a7f288d3a70b441293a
+
+PASS: TestLocal/strictPropertyInitialization.ts/output
+baseline: conformance/strictPropertyInitialization.js
+reference: d6fd16dc6d3b43f12402143d233eff3aa17de76a507b6655a9d124f94d3abed9
+actual: d6fd16dc6d3b43f12402143d233eff3aa17de76a507b6655a9d124f94d3abed9
+
+PASS: TestLocal/stringLiteralTypesInUnionTypes02.ts/output
+baseline: conformance/stringLiteralTypesInUnionTypes02.js
+reference: 670f0327959ec6fda103f4a153438dfc766aeff9ee45a4079390ea1e3ad9fdf5
+actual: 670f0327959ec6fda103f4a153438dfc766aeff9ee45a4079390ea1e3ad9fdf5
+
+PASS: TestLocal/stringLiteralTypesOverloadAssignability01.ts/output
+baseline: conformance/stringLiteralTypesOverloadAssignability01.js
+reference: 34b95853351c96c8f699eae4d412c46268209caad5c64d56619f79e73103e82a
+actual: 34b95853351c96c8f699eae4d412c46268209caad5c64d56619f79e73103e82a
+
+PASS: TestLocal/stringLiteralTypesOverloadAssignability05.ts/output
+baseline: conformance/stringLiteralTypesOverloadAssignability05.js
+reference: a642d5f94af9159c4d3a660fa851d55ac1750e2db316eb7306bd68a8b8f3f0c6
+actual: a642d5f94af9159c4d3a660fa851d55ac1750e2db316eb7306bd68a8b8f3f0c6
+
+PASS: TestLocal/stringLiteralsWithSwitchStatements04.ts/output
+baseline: conformance/stringLiteralsWithSwitchStatements04.js
+reference: bf577f2a65110fdbbfa094bcc027f6e2cf0dea0d85f6b7507eb1c3c82cf36f19
+actual: bf577f2a65110fdbbfa094bcc027f6e2cf0dea0d85f6b7507eb1c3c82cf36f19
+
+PASS: TestLocal/stringMappingOverPatternLiterals.ts/output
+baseline: conformance/stringMappingOverPatternLiterals.js
+reference: 4ee064d566ecea14b94a944ca0bdd71a541dc07cbfe91d00b4b06a90aa1c6101
+actual: 4ee064d566ecea14b94a944ca0bdd71a541dc07cbfe91d00b4b06a90aa1c6101
+
+PASS: TestLocal/subtypingWithConstructSignatures2.ts/output
+baseline: conformance/subtypingWithConstructSignatures2.js
+reference: 78d5ce3dd9bc86d3c3b513c3a83ef8fc1556a997bf008dafb4d4e7ceae3f7a27
+actual: 78d5ce3dd9bc86d3c3b513c3a83ef8fc1556a997bf008dafb4d4e7ceae3f7a27
+
+PASS: TestLocal/subtypingWithNumericIndexer5.ts/output
+baseline: conformance/subtypingWithNumericIndexer5.js
+reference: 298ea3998447b08cc2205bb3b5ed3127436882d9e95fbb457da7580bb820f8c0
+actual: 298ea3998447b08cc2205bb3b5ed3127436882d9e95fbb457da7580bb820f8c0
+
+PASS: TestLocal/subtypingWithObjectMembersOptionality4.ts/output
+baseline: conformance/subtypingWithObjectMembersOptionality4.js
+reference: 97afc4d055a3952024b0ae46195e096c431254ce6243c701024be7920364b331
+actual: 97afc4d055a3952024b0ae46195e096c431254ce6243c701024be7920364b331
+
+PASS: TestLocal/superCallInConstructorWithNoBaseType.ts/output
+baseline: conformance/superCallInConstructorWithNoBaseType.js
+reference: e92327de8e80a777f5dfcbaaa9fb87a53d8a9aeec900eff27f16034d5ac291b8
+actual: e92327de8e80a777f5dfcbaaa9fb87a53d8a9aeec900eff27f16034d5ac291b8
+
+PASS: TestLocal/superSymbolIndexedAccess4.ts/output
+baseline: conformance/superSymbolIndexedAccess4.js
+reference: 824f2da4b721ddbe643a7d8a19fd4060c55a81b34aa0b8d72e605213616c4e16
+actual: 824f2da4b721ddbe643a7d8a19fd4060c55a81b34aa0b8d72e605213616c4e16
+
+PASS: TestLocal/switchWithConstrainedTypeVariable.ts/output
+baseline: conformance/switchWithConstrainedTypeVariable.js
+reference: 73776c5f0dbbffd0518956fb6f164835ac5ee1ba8000ee8cd6e1624dc0ddcc90
+actual: 73776c5f0dbbffd0518956fb6f164835ac5ee1ba8000ee8cd6e1624dc0ddcc90
+
+PASS: TestLocal/symbolDeclarationEmit11.ts/output
+baseline: conformance/symbolDeclarationEmit11.js
+reference: 5e8097fe23bf44c9c0320682dda4dab5e16e3043a5d2fb9c0f377b2fd7b7f3b3
+actual: 5e8097fe23bf44c9c0320682dda4dab5e16e3043a5d2fb9c0f377b2fd7b7f3b3
+
+PASS: TestLocal/symbolProperty22.ts/output
+baseline: conformance/symbolProperty22.js
+reference: a9f09e45e5ade9bf8d76442b649b00b7a7cae7d7825cf38748d8c850ef449ab2
+actual: a9f09e45e5ade9bf8d76442b649b00b7a7cae7d7825cf38748d8c850ef449ab2
+
+PASS: TestLocal/symbolProperty57.ts/output
+baseline: conformance/symbolProperty57.js
+reference: 71c10f6ba43eed92842fbd21489c89b6c7710535cd313b765ebc443b0c4de62d
+actual: 71c10f6ba43eed92842fbd21489c89b6c7710535cd313b765ebc443b0c4de62d
+
+PASS: TestLocal/symbolProperty59.ts/output
+baseline: conformance/symbolProperty59.js
+reference: f0521b8444eb2eb4d507321ce825a42e5e898f7c1cf5e6c098c5dc4f209d65d4
+actual: f0521b8444eb2eb4d507321ce825a42e5e898f7c1cf5e6c098c5dc4f209d65d4
+
+PASS: TestLocal/taggedTemplateContextualTyping2.ts/output
+baseline: conformance/taggedTemplateContextualTyping2.js
+reference: f27f80a460885568d5b2d5e392b3dab0fd7b4469d3aa08490622f2f73b07cdaa
+actual: f27f80a460885568d5b2d5e392b3dab0fd7b4469d3aa08490622f2f73b07cdaa
+
+PASS: TestLocal/taggedTemplateStringsWithOverloadResolution2.ts/output
+baseline: conformance/taggedTemplateStringsWithOverloadResolution2.js
+reference: 42941596f84b9888e570dedfd6aa5de5ecaa61463edae34a5c020849abfc7710
+actual: 42941596f84b9888e570dedfd6aa5de5ecaa61463edae34a5c020849abfc7710
+
+PASS: TestLocal/templateLiteralTypes6.ts/output
+baseline: conformance/templateLiteralTypes6.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/templateStringControlCharacterEscapes02.ts/output
+baseline: conformance/templateStringControlCharacterEscapes02.js
+reference: 2849211d10c7291e6d8745d91011634f1386593b5c137190fac715e0a1568b9d
+actual: 2849211d10c7291e6d8745d91011634f1386593b5c137190fac715e0a1568b9d
+
+PASS: TestLocal/templateStringControlCharacterEscapes03.ts/output
+baseline: conformance/templateStringControlCharacterEscapes03.js
+reference: 14d8b61d29dd38d03414bee77bfeabf41b807f5c402cb95391842006d28fe884
+actual: 14d8b61d29dd38d03414bee77bfeabf41b807f5c402cb95391842006d28fe884
+
+PASS: TestLocal/templateStringInDeleteExpression.ts/output
+baseline: conformance/templateStringInDeleteExpression.js
+reference: b403ba05ef112680a45e73732fa19aa64e67c14e61952f5057b5d44943c4af38
+actual: b403ba05ef112680a45e73732fa19aa64e67c14e61952f5057b5d44943c4af38
+
+PASS: TestLocal/templateStringInUnaryPlus.ts/output
+baseline: conformance/templateStringInUnaryPlus.js
+reference: 0efb29d5ec3d14a3fd78500871d685fc2411cfaff2d11e94f5408d2d8257fc1e
+actual: 0efb29d5ec3d14a3fd78500871d685fc2411cfaff2d11e94f5408d2d8257fc1e
+
+PASS: TestLocal/templateStringWithEmbeddedAddition.ts/output
+baseline: conformance/templateStringWithEmbeddedAddition.js
+reference: 95a6536b09c54ffd996f67526f3cc5b989b116f6e9e15211a8762f887f40624e
+actual: 95a6536b09c54ffd996f67526f3cc5b989b116f6e9e15211a8762f887f40624e
+
+PASS: TestLocal/templateStringWithEmbeddedAdditionES6.ts/output
+baseline: conformance/templateStringWithEmbeddedAdditionES6.js
+reference: 894b9cf4fe2907f20c5ff32ecfac7351dd1d48ebadfe13d6d67123ccc837dc31
+actual: 894b9cf4fe2907f20c5ff32ecfac7351dd1d48ebadfe13d6d67123ccc837dc31
+
+PASS: TestLocal/templateStringWithEmbeddedArrowFunction.ts/output
+baseline: conformance/templateStringWithEmbeddedArrowFunction.js
+reference: 6eb0e7425b743aeee6b21c16714565faa5b7f2bc09b5ec218ab93511640c53e1
+actual: 6eb0e7425b743aeee6b21c16714565faa5b7f2bc09b5ec218ab93511640c53e1
+
+PASS: TestLocal/templateStringWithEmbeddedFunctionExpression.ts/output
+baseline: conformance/templateStringWithEmbeddedFunctionExpression.js
+reference: 79bb4f1a8508552e7016c65aea5c6176af7763a1e5801c45233dba71e5354720
+actual: 79bb4f1a8508552e7016c65aea5c6176af7763a1e5801c45233dba71e5354720
+
+PASS: TestLocal/thisTypeInFunctionsNegative.ts/output
+baseline: conformance/thisTypeInFunctionsNegative.js
+reference: 5332b17195be120d4f7c59724563b244027e601e2ccb9b98da4269d55ebfbca2
+actual: 5332b17195be120d4f7c59724563b244027e601e2ccb9b98da4269d55ebfbca2
+
+PASS: TestLocal/thisTypeOptionalCall.ts/output
+baseline: conformance/thisTypeOptionalCall.js
+reference: 89abbaa453e5bcfa1bd766a5e26d22373a8e55022c48d46058aa41d4b1371d55
+actual: 89abbaa453e5bcfa1bd766a5e26d22373a8e55022c48d46058aa41d4b1371d55
+
+PASS: TestLocal/topLevelAwaitErrors.6.ts_module=esnext/output
+baseline: conformance/topLevelAwaitErrors.6(module=esnext).js
+reference: 9e981d5307628732ce1137a62d34bf47b7be4de0460664761495ea7704fcbe85
+actual: 9e981d5307628732ce1137a62d34bf47b7be4de0460664761495ea7704fcbe85
+
+PASS: TestLocal/trailingCommasInBindingPatterns.ts/output
+baseline: conformance/trailingCommasInBindingPatterns.js
+reference: a204f1693db83436c5c5adec97c459906759bd9e3c31b6cabfcdf1c2d69abd60
+actual: a204f1693db83436c5c5adec97c459906759bd9e3c31b6cabfcdf1c2d69abd60
+
+PASS: TestLocal/transferableArrayBuffer.ts/output
+baseline: conformance/transferableArrayBuffer.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/tsxDefaultAttributesResolution2.tsx/output
+baseline: conformance/tsxDefaultAttributesResolution2.js
+reference: d623b20d843829f54cffae745ebbf2cf8087f4aedd17ee8f72a1e9f707f3e6aa
+actual: d623b20d843829f54cffae745ebbf2cf8087f4aedd17ee8f72a1e9f707f3e6aa
+
+PASS: TestLocal/tsxIntrinsicAttributeErrors.tsx/output
+baseline: conformance/tsxIntrinsicAttributeErrors.js
+reference: 141d1d9fae8826b56acbc323e4e91261c1fad85ab5d9a5bb068f93ec9233b1fc
+actual: 141d1d9fae8826b56acbc323e4e91261c1fad85ab5d9a5bb068f93ec9233b1fc
+
+PASS: TestLocal/tsxNamespacedAttributeName1.tsx/output
+baseline: conformance/tsxNamespacedAttributeName1.js
+reference: 08e0de6ce4adcbbf4d2355275f9630daa7d5cfff86d73bf7e90294ab7aaf8477
+actual: 08e0de6ce4adcbbf4d2355275f9630daa7d5cfff86d73bf7e90294ab7aaf8477
+
+PASS: TestLocal/tsxReactEmit1.tsx/output
+baseline: conformance/tsxReactEmit1.js
+reference: 510b14f2c6bfd77ff4112e6979d28f84d21b8490e36b648666ce22e542fd141a
+actual: 510b14f2c6bfd77ff4112e6979d28f84d21b8490e36b648666ce22e542fd141a
+
+PASS: TestLocal/tsxSpreadAttributesResolution10.tsx/output
+baseline: conformance/tsxSpreadAttributesResolution10.js
+reference: 1f752aa9157d61cd1c7bd7192a91d3348bca67b407598ee43cf297c3b0152d9e
+actual: 1f752aa9157d61cd1c7bd7192a91d3348bca67b407598ee43cf297c3b0152d9e
+
+PASS: TestLocal/tsxSpreadChildrenInvalidType.tsx_jsx=react-jsx,target=es2015/output
+baseline: conformance/tsxSpreadChildrenInvalidType(jsx=react-jsx,target=es2015).js
+reference: 5d3c5c379717d3b7c4947c842536a910df691787f55ab3c7b52b256b3ed4c4d6
+actual: 5d3c5c379717d3b7c4947c842536a910df691787f55ab3c7b52b256b3ed4c4d6
+
+PASS: TestLocal/tsxStatelessFunctionComponentOverload5.tsx/output
+baseline: conformance/tsxStatelessFunctionComponentOverload5.js
+reference: 407d611a306f0bf8958c5818684247eeee0592241f93ab1c8cdec46ccb9f8cad
+actual: 407d611a306f0bf8958c5818684247eeee0592241f93ab1c8cdec46ccb9f8cad
+
+PASS: TestLocal/tsxTypeArgumentResolution.tsx/output
+baseline: conformance/tsxTypeArgumentResolution.js
+reference: 01b916b8dadfe29f54307eb65e438035abcd270b52c0555a0dc2c3b3afbfba73
+actual: 01b916b8dadfe29f54307eb65e438035abcd270b52c0555a0dc2c3b3afbfba73
+
+PASS: TestLocal/typeFromJSInitializer.ts/output
+baseline: conformance/typeFromJSInitializer.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/typeFromPropertyAssignment.ts/output
+baseline: conformance/typeFromPropertyAssignment.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/typeFromPropertyAssignment22.ts/output
+baseline: conformance/typeFromPropertyAssignment22.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/typeFromPropertyAssignment9.ts/output
+baseline: conformance/typeFromPropertyAssignment9.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/typeFromPropertyAssignmentWithExport.ts/output
+baseline: conformance/typeFromPropertyAssignmentWithExport.js
+reference: 2ae928aa03a1b23a00057efa17ead7c8ae5ea8d741bf373835bb08574b8ac969
+actual: 2ae928aa03a1b23a00057efa17ead7c8ae5ea8d741bf373835bb08574b8ac969
+
+PASS: TestLocal/typeGuardOfFormExpr1OrExpr2.ts/output
+baseline: conformance/typeGuardOfFormExpr1OrExpr2.js
+reference: 8e4e91b1cecf41f1971376f55f834f369f54b3623954059be7b681d062f899c1
+actual: 8e4e91b1cecf41f1971376f55f834f369f54b3623954059be7b681d062f899c1
+
+PASS: TestLocal/typeGuardOfFormIsTypeOnInterfaces.ts/output
+baseline: conformance/typeGuardOfFormIsTypeOnInterfaces.js
+reference: 80280eaaca3d979a4058a2f2d4a8f00c2a3d444b340bf4b84a02d024af566814
+actual: 80280eaaca3d979a4058a2f2d4a8f00c2a3d444b340bf4b84a02d024af566814
+
+PASS: TestLocal/typeGuardOfFormTypeOfFunction.ts/output
+baseline: conformance/typeGuardOfFormTypeOfFunction.js
+reference: 6b28c1db3820687559a0771aa5d7bf27a398d159aacab1c15db77c583afc807e
+actual: 6b28c1db3820687559a0771aa5d7bf27a398d159aacab1c15db77c583afc807e
+
+PASS: TestLocal/typeGuardsWithInstanceOfBySymbolHasInstance.ts/output
+baseline: conformance/typeGuardsWithInstanceOfBySymbolHasInstance.js
+reference: 537de6e2e218c14645ed1a30fd8c980fec49375b6571dad254a6c62165884b64
+actual: 537de6e2e218c14645ed1a30fd8c980fec49375b6571dad254a6c62165884b64
+
+PASS: TestLocal/typeOfThisInStaticMembers11.ts_target=es6/output
+baseline: conformance/typeOfThisInStaticMembers11(target=es6).js
+reference: 0af2d391951070dc5f6edc9acbdd138fe64e69d3ef5a0d012c3c6fed32d6acd8
+actual: 0af2d391951070dc5f6edc9acbdd138fe64e69d3ef5a0d012c3c6fed32d6acd8
+
+PASS: TestLocal/typeOfThisInStaticMembers12.ts_target=es6/output
+baseline: conformance/typeOfThisInStaticMembers12(target=es6).js
+reference: b3942ec2a7a0283d301b14293f49284f0b3ce6ca2952a10e8c3b534301edb42f
+actual: b3942ec2a7a0283d301b14293f49284f0b3ce6ca2952a10e8c3b534301edb42f
+
+PASS: TestLocal/typeOfThisInStaticMembers13.ts_target=es6/output
+baseline: conformance/typeOfThisInStaticMembers13(target=es6).js
+reference: 161d466154e4d0f7264018fa07dd0e885bd15061b4dde747fa80981bb24bebab
+actual: 161d466154e4d0f7264018fa07dd0e885bd15061b4dde747fa80981bb24bebab
+
+PASS: TestLocal/typedefInnerNamepaths.ts/output
+baseline: conformance/typedefInnerNamepaths.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/typedefModuleExportsIndirect3.ts/output
+baseline: conformance/typedefModuleExportsIndirect3.js
+reference: 58120cd5f1596b4f9d5f29b5c722689a03e5b20833642a384b468b4ab5e7bd0a
+actual: 58120cd5f1596b4f9d5f29b5c722689a03e5b20833642a384b468b4ab5e7bd0a
+
+PASS: TestLocal/types.asyncGenerators.es2018.2.ts/output
+baseline: conformance/types.asyncGenerators.es2018.2.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/typingsLookup2.ts/output
+baseline: conformance/typingsLookup2.js
+reference: d4cd898209ea2c4d17a4de4b941bedb9b1864aa1cf4cff508638250d733115eb
+actual: d4cd898209ea2c4d17a4de4b941bedb9b1864aa1cf4cff508638250d733115eb
+
+PASS: TestLocal/umd-errors.ts/output
+baseline: conformance/umd-errors.js
+reference: a49acfad7a93397395b4834caa81c28c7b4c035641302e31601249c4f4fa0d8f
+actual: a49acfad7a93397395b4834caa81c28c7b4c035641302e31601249c4f4fa0d8f
+
+PASS: TestLocal/umd6.ts/output
+baseline: conformance/umd6.js
+reference: 0d351e6a148655c74560caf98ef758b27e83f93527d46b4362e0e02f5ea89014
+actual: 0d351e6a148655c74560caf98ef758b27e83f93527d46b4362e0e02f5ea89014
+
+PASS: TestLocal/unannotatedParametersAreOptional.ts/output
+baseline: conformance/unannotatedParametersAreOptional.js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/unicodeExtendedEscapesInRegularExpressions07.ts_target=es6/output
+baseline: conformance/unicodeExtendedEscapesInRegularExpressions07(target=es6).js
+reference: 7cc6d8c542f4113bdc0933d46d5439fe7f6d9fa905e62bb621c8abceee6d8bc1
+actual: 7cc6d8c542f4113bdc0933d46d5439fe7f6d9fa905e62bb621c8abceee6d8bc1
+
+PASS: TestLocal/unicodeExtendedEscapesInRegularExpressions08.ts_target=es6/output
+baseline: conformance/unicodeExtendedEscapesInRegularExpressions08(target=es6).js
+reference: 868effafe90257f428f5d8a9bb774356287e127769a7abc86853e62268cc468d
+actual: 868effafe90257f428f5d8a9bb774356287e127769a7abc86853e62268cc468d
+
+PASS: TestLocal/unicodeExtendedEscapesInRegularExpressions18.ts_target=es6/output
+baseline: conformance/unicodeExtendedEscapesInRegularExpressions18(target=es6).js
+reference: 4ee4ae10171fc1b183a60a54d8e99bf0740e16f3c5ade201d771798774a7de9f
+actual: 4ee4ae10171fc1b183a60a54d8e99bf0740e16f3c5ade201d771798774a7de9f
+
+PASS: TestLocal/unicodeExtendedEscapesInTemplates18.ts_target=es6/output
+baseline: conformance/unicodeExtendedEscapesInTemplates18(target=es6).js
+reference: 8e592dcb0315326f2f5c6f8ae6a101ea618dfecceb4d6798caa86af75e59f766
+actual: 8e592dcb0315326f2f5c6f8ae6a101ea618dfecceb4d6798caa86af75e59f766
+
+PASS: TestLocal/unionSubtypeIfEveryConstituentTypeIsSubtype.ts/output
+baseline: conformance/unionSubtypeIfEveryConstituentTypeIsSubtype.js
+reference: 339305d4bddb76e5f6840e40ec0a4f77f9d02dfd16a66d20844443aea0d068d7
+actual: 339305d4bddb76e5f6840e40ec0a4f77f9d02dfd16a66d20844443aea0d068d7
+
+PASS: TestLocal/uniqueSymbols.ts/output
+baseline: conformance/uniqueSymbols.js
+reference: b899aa48dd5564e8e67b22e60033d4fa387ef5d1c8c3b89fbf755c9582821686
+actual: b899aa48dd5564e8e67b22e60033d4fa387ef5d1c8c3b89fbf755c9582821686
+
+PASS: TestLocal/uniqueSymbolsErrors.ts/output
+baseline: conformance/uniqueSymbolsErrors.js
+reference: 124e352f8477c2b60be1c6b0602836e3d40fd14163d0e70f75becee96eca8627
+actual: 124e352f8477c2b60be1c6b0602836e3d40fd14163d0e70f75becee96eca8627
+
+PASS: TestLocal/useObjectValuesAndEntries3.ts/output
+baseline: conformance/useObjectValuesAndEntries3.js
+reference: 5adcb96c23647391b2d6576b87de6883a9df64724920f913e78cd43a6bcb7eae
+actual: 5adcb96c23647391b2d6576b87de6883a9df64724920f913e78cd43a6bcb7eae
+
+PASS: TestLocal/useSharedArrayBuffer2.ts_target=es2015/output
+baseline: conformance/useSharedArrayBuffer2(target=es2015).js
+reference: b56a66564d73728792a375dd388137c6ac383a2b0ca8568a3b7012ac3286e29d
+actual: b56a66564d73728792a375dd388137c6ac383a2b0ca8568a3b7012ac3286e29d
+
+PASS: TestLocal/usingDeclarations.1.ts_target=es2015/output
+baseline: conformance/usingDeclarations.1(target=es2015).js
+reference: 9905cc119c285811e3d547052ff2bc4eaf2425aa41e9fb1535c208dd614c1966
+actual: 9905cc119c285811e3d547052ff2bc4eaf2425aa41e9fb1535c208dd614c1966
+
+PASS: TestLocal/usingDeclarations.7.ts/output
+baseline: conformance/usingDeclarations.7.js
+reference: dd62f300863e169384fdc4b42b96c2af4543b658e6988bda33f5911aaaef9cb0
+actual: dd62f300863e169384fdc4b42b96c2af4543b658e6988bda33f5911aaaef9cb0
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.1.ts_module=esnext,target=es2015/output
+baseline: conformance/usingDeclarationsWithESClassDecorators.1(module=esnext,target=es2015).js
+reference: c213a38f894ee07afda595994c5c95e0eb66480a069d1ae5ab4b4430601abc14
+actual: c213a38f894ee07afda595994c5c95e0eb66480a069d1ae5ab4b4430601abc14
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.10.ts_module=commonjs,target=es2015/output
+baseline: conformance/usingDeclarationsWithESClassDecorators.10(module=commonjs,target=es2015).js
+reference: cccfe2d5c5be966384000842eea9bb60a6940218ce6260a7df9127a521d3adc9
+actual: cccfe2d5c5be966384000842eea9bb60a6940218ce6260a7df9127a521d3adc9
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.10.ts_module=commonjs,target=esnext/output
+baseline: conformance/usingDeclarationsWithESClassDecorators.10(module=commonjs,target=esnext).js
+reference: 319ec1fc9626b2f7ef957417886db6aa0cb8278530876be2de23c935abb75df3
+actual: 319ec1fc9626b2f7ef957417886db6aa0cb8278530876be2de23c935abb75df3
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.11.ts_module=commonjs,target=esnext/output
+baseline: conformance/usingDeclarationsWithESClassDecorators.11(module=commonjs,target=esnext).js
+reference: 1f9afbfa296f2e55d36ac6a568afd2b70ec0c0ad8e23d4b0625db9c771d0f424
+actual: 1f9afbfa296f2e55d36ac6a568afd2b70ec0c0ad8e23d4b0625db9c771d0f424
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.3.ts_module=commonjs,target=esnext/output
+baseline: conformance/usingDeclarationsWithESClassDecorators.3(module=commonjs,target=esnext).js
+reference: 598ba517375896f7b39fb17d20999912ec5e3ddbe09b40f3ef7a18c59e662306
+actual: 598ba517375896f7b39fb17d20999912ec5e3ddbe09b40f3ef7a18c59e662306
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.10.ts_module=commonjs,target=es2015/output
+baseline: conformance/usingDeclarationsWithLegacyClassDecorators.10(module=commonjs,target=es2015).js
+reference: d2b6808302be69904a4754b61c906676230483a5eddeaa1573c2e10d5eb40b82
+actual: d2b6808302be69904a4754b61c906676230483a5eddeaa1573c2e10d5eb40b82
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.3.ts_module=esnext,target=es2015/output
+baseline: conformance/usingDeclarationsWithLegacyClassDecorators.3(module=esnext,target=es2015).js
+reference: 23aa08ed77181c21384fa7f5ca0d7a59f346f04da979af23e77e3cf3f6d85d49
+actual: 23aa08ed77181c21384fa7f5ca0d7a59f346f04da979af23e77e3cf3f6d85d49
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.7.ts_module=esnext,target=es2015/output
+baseline: conformance/usingDeclarationsWithLegacyClassDecorators.7(module=esnext,target=es2015).js
+reference: bfe51bc305974de7e4e9bd5151f70b60df5fee8777935ab2b76421cede6e7f0d
+actual: bfe51bc305974de7e4e9bd5151f70b60df5fee8777935ab2b76421cede6e7f0d
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.8.ts_module=esnext,target=es2015/output
+baseline: conformance/usingDeclarationsWithLegacyClassDecorators.8(module=esnext,target=es2015).js
+reference: a197c91a9f9dd9ad85077777e6a989f08741a31fd770f969056a04c81ce61fd6
+actual: a197c91a9f9dd9ad85077777e6a989f08741a31fd770f969056a04c81ce61fd6
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.9.ts_module=esnext,target=es2015/output
+baseline: conformance/usingDeclarationsWithLegacyClassDecorators.9(module=esnext,target=es2015).js
+reference: 9a873e66d6c9ab0752b884ad473059befe6c11affea528f3abe94b297ff566b1
+actual: 9a873e66d6c9ab0752b884ad473059befe6c11affea528f3abe94b297ff566b1
+
+PASS: TestLocal/usingDeclarationsWithObjectLiterals2.ts_noimplicitany=true/output
+baseline: conformance/usingDeclarationsWithObjectLiterals2(noimplicitany=true).js
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/variadicTuples1.ts/output
+baseline: conformance/variadicTuples1.js
+reference: 007833db653e27d2569f079e0655c9c9582297cc9d25d678ecd77f8a150eb413
+actual: 007833db653e27d2569f079e0655c9c9582297cc9d25d678ecd77f8a150eb413
+
+PASS: TestLocal/variance.ts/output
+baseline: conformance/variance.js
+reference: af5a1fcebfebf3a00a25ec0e773f7377be8f44de3574bfae2c4cba7e0c6a7271
+actual: af5a1fcebfebf3a00a25ec0e773f7377be8f44de3574bfae2c4cba7e0c6a7271
+
+PASS: TestLocal/varianceAnnotations.ts/output
+baseline: conformance/varianceAnnotations.js
+reference: 85a5be2d0c9f4e313c7f563d77d315c5b294f5d44d4cfaa550dbbe39a1527cd5
+actual: 85a5be2d0c9f4e313c7f563d77d315c5b294f5d44d4cfaa550dbbe39a1527cd5
+
+PASS: TestLocal/wideningTuples6.ts/output
+baseline: conformance/wideningTuples6.js
+reference: fb64d73a14797a70c2abacc8923eade69ab57841c348bd4f2b2991be2f8db1be
+actual: fb64d73a14797a70c2abacc8923eade69ab57841c348bd4f2b2991be2f8db1be

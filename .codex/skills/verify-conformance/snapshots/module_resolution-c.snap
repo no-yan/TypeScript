@@ -1,0 +1,39 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+PASS: TestLocal/conditionalExportsResolutionFallback.ts_moduleresolution=bundler/module_resolution
+baseline: conformance/conditionalExportsResolutionFallback(moduleresolution=bundler).trace.json
+reference: 2f40933a7ca3313c31cee2fc1d6a7418279334ee8bd33efcfb8e9b99074de307
+actual: 2f40933a7ca3313c31cee2fc1d6a7418279334ee8bd33efcfb8e9b99074de307
+
+PASS: TestLocal/globalAugmentationModuleResolution.ts/module_resolution
+baseline: conformance/globalAugmentationModuleResolution.trace.json
+reference: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+actual: 5208bcb223aee217269472c65cc67f22f7b7aad86fc42d31144d13ad94b06439
+
+PASS: TestLocal/library-reference-11.ts/module_resolution
+baseline: conformance/library-reference-11.trace.json
+reference: 04616202752650ae32f014d1cb6d1b4c965ea5c8a69fcbd93de709dbee84b548
+actual: 04616202752650ae32f014d1cb6d1b4c965ea5c8a69fcbd93de709dbee84b548
+
+PASS: TestLocal/library-reference-8.ts/module_resolution
+baseline: conformance/library-reference-8.trace.json
+reference: 1fcf0a6b570384c618f013ac1b7938886614ab8aadf2440d63eb18c9c41ab1dd
+actual: 1fcf0a6b570384c618f013ac1b7938886614ab8aadf2440d63eb18c9c41ab1dd
+
+PASS: TestLocal/nodeModulesExportsBlocksTypesVersions.ts_module=node20/module_resolution
+baseline: conformance/nodeModulesExportsBlocksTypesVersions(module=node20).trace.json
+reference: 98ab91495a2d11f449555d91b9cad9faf28bc6b1c33a2da0f31d0dafcbc66f6a
+actual: 98ab91495a2d11f449555d91b9cad9faf28bc6b1c33a2da0f31d0dafcbc66f6a
+
+PASS: TestLocal/packageJsonMain.ts/module_resolution
+baseline: conformance/packageJsonMain.trace.json
+reference: 8893aa28017c30d7890aa73cc9c497ef5b77c72a820451e9799067a515f33a7e
+actual: 8893aa28017c30d7890aa73cc9c497ef5b77c72a820451e9799067a515f33a7e
+
+PASS: TestLocal/typingsLookup3.ts/module_resolution
+baseline: conformance/typingsLookup3.trace.json
+reference: de1b4874c60856fedd3b4f9e8e88a3f8428cb559be0d370950b5a6a051bd44ab
+actual: de1b4874c60856fedd3b4f9e8e88a3f8428cb559be0d370950b5a6a051bd44ab

@@ -1,0 +1,34 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+PASS: TestLocal/bundlerDirectoryModule.ts_module=node18,moduleresolution=bundler/module_resolution
+baseline: conformance/bundlerDirectoryModule(module=node18,moduleresolution=bundler).trace.json
+reference: c6cd557ce320fea780f166cb26f3eb676cb05f8b025c2d2b413fb4869b0a790d
+actual: c6cd557ce320fea780f166cb26f3eb676cb05f8b025c2d2b413fb4869b0a790d
+
+PASS: TestLocal/bundlerImportTsExtensions.ts_allowimportingtsextensions=false,noemit=true/module_resolution
+baseline: conformance/bundlerImportTsExtensions(allowimportingtsextensions=false,noemit=true).trace.json
+reference: 1b303e27942c841bd0f84f0c95d13b854e8d55a96d1bde6c7e35f9da22cb7ca8
+actual: 1b303e27942c841bd0f84f0c95d13b854e8d55a96d1bde6c7e35f9da22cb7ca8
+
+PASS: TestLocal/conditionalExportsResolutionFallback.ts_moduleresolution=node16/module_resolution
+baseline: conformance/conditionalExportsResolutionFallback(moduleresolution=node16).trace.json
+reference: b5b1f49a79465464c480066cf6d5d544bf0ca35efe157fe1f6c7de3a60f77416
+actual: b5b1f49a79465464c480066cf6d5d544bf0ca35efe157fe1f6c7de3a60f77416
+
+PASS: TestLocal/library-reference-3.ts/module_resolution
+baseline: conformance/library-reference-3.trace.json
+reference: 90b04285490be609694b7c0a7becaaf6e4390032b76c2060b0fbfe8dde60a3b4
+actual: 90b04285490be609694b7c0a7becaaf6e4390032b76c2060b0fbfe8dde60a3b4
+
+PASS: TestLocal/nestedPackageJsonRedirect.ts_moduleresolution=nodenext/module_resolution
+baseline: conformance/nestedPackageJsonRedirect(moduleresolution=nodenext).trace.json
+reference: 19342c1e380682171035abe351f98aff9717e7c9fef591b0a1f01a34c870040f
+actual: 19342c1e380682171035abe351f98aff9717e7c9fef591b0a1f01a34c870040f
+
+PASS: TestLocal/nodeModulesPackagePatternExportsTrailers.ts_module=node18/module_resolution
+baseline: conformance/nodeModulesPackagePatternExportsTrailers(module=node18).trace.json
+reference: 306aa37595e0f4fecc9224b954fb34663fb95578b012b096ed4b9fe1243f65c0
+actual: 306aa37595e0f4fecc9224b954fb34663fb95578b012b096ed4b9fe1243f65c0

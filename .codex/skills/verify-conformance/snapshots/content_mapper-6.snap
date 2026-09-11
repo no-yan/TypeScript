@@ -1,0 +1,828 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+PASS: TestLocal/AmbientModuleAndAmbientWithSameNameAndCommonRoot.ts/content_mapper
+
+PASS: TestLocal/ArrowFunction3.ts/content_mapper
+
+PASS: TestLocal/ES3For-ofTypeCheck6.ts_target=es2015/content_mapper
+
+PASS: TestLocal/ES5For-of15.ts_target=es2015/content_mapper
+
+PASS: TestLocal/ES5For-ofTypeCheck14.ts_target=es2015/content_mapper
+
+PASS: TestLocal/ES5For-ofTypeCheck3.ts_target=es2015/content_mapper
+
+PASS: TestLocal/ES5SymbolProperty2.ts_target=es2015/content_mapper
+
+PASS: TestLocal/ES5SymbolProperty4.ts_target=es2015/content_mapper
+
+PASS: TestLocal/ExportFunctionWithAccessibleTypesInParameterAndReturnTypeAnnotation.ts/content_mapper
+
+PASS: TestLocal/MemberFunctionDeclaration1_es6.ts/content_mapper
+
+PASS: TestLocal/ModuleAndEnumWithSameNameAndCommonRoot.ts/content_mapper
+
+PASS: TestLocal/TupleType6.ts/content_mapper
+
+PASS: TestLocal/TwoInternalModulesThatMergeEachWithExportedAndNonExportedInterfacesOfTheSameName.ts/content_mapper
+
+PASS: TestLocal/VariableDeclaration10_es6.ts/content_mapper
+
+PASS: TestLocal/VariableDeclaration4_es6.ts/content_mapper
+
+PASS: TestLocal/YieldExpression6_es6.ts/content_mapper
+
+PASS: TestLocal/accessorsOverrideProperty10.ts/content_mapper
+
+PASS: TestLocal/additionOperatorWithNullValueAndValidOperator.ts/content_mapper
+
+PASS: TestLocal/allowsImportingTsExtension.ts/content_mapper
+
+PASS: TestLocal/arrowFunctionExpressions.ts/content_mapper
+
+PASS: TestLocal/asOperator3.ts/content_mapper
+
+PASS: TestLocal/asOperatorASI.ts/content_mapper
+
+PASS: TestLocal/asiPreventsParsingAsInterface01.ts/content_mapper
+
+PASS: TestLocal/asiPreventsParsingAsInterface05.ts/content_mapper
+
+PASS: TestLocal/assignParameterPropertyToPropertyDeclarationESNext.ts/content_mapper
+
+PASS: TestLocal/assignmentCompatWithGenericCallSignatures3.ts/content_mapper
+
+PASS: TestLocal/assignmentCompatWithStringIndexer.ts/content_mapper
+
+PASS: TestLocal/assignmentToVoidZero2.ts/content_mapper
+
+PASS: TestLocal/asyncArrowFunction4_es2017.ts/content_mapper
+
+PASS: TestLocal/asyncArrowFunctionCapturesArguments_es5.ts_target=es2015/content_mapper
+
+PASS: TestLocal/asyncAwait_es2017.ts/content_mapper
+
+PASS: TestLocal/asyncAwait_es6.ts/content_mapper
+
+PASS: TestLocal/asyncDeclare_es5.ts_target=es2015/content_mapper
+
+PASS: TestLocal/asyncFunctionDeclaration4_es5.ts_target=es2015/content_mapper
+
+PASS: TestLocal/asyncFunctionDeclaration9_es2017.ts/content_mapper
+
+PASS: TestLocal/asyncUseStrict_es2017.ts/content_mapper
+
+PASS: TestLocal/autoAccessor11.ts/content_mapper
+
+PASS: TestLocal/autoAccessor7.ts_target=es2022,usedefineforclassfields=true/content_mapper
+
+PASS: TestLocal/awaitBinaryExpression5_es2017.ts/content_mapper
+
+PASS: TestLocal/awaitCallExpression3_es2017.ts/content_mapper
+
+PASS: TestLocal/awaitCallExpression5_es6.ts/content_mapper
+
+PASS: TestLocal/awaitUsingDeclarations.16.ts/content_mapper
+
+PASS: TestLocal/awaitUsingDeclarations.3.ts_target=es2015/content_mapper
+
+PASS: TestLocal/awaitUsingDeclarationsWithAsyncIteratorObject.ts/content_mapper
+
+PASS: TestLocal/await_unaryExpression_es6.ts/content_mapper
+
+PASS: TestLocal/await_unaryExpression_es6_3.ts/content_mapper
+
+PASS: TestLocal/bestCommonTypeOfConditionalExpressions2.ts/content_mapper
+
+PASS: TestLocal/bitwiseNotOperatorWithNumberType.ts/content_mapper
+
+PASS: TestLocal/bundlerSyntaxRestrictions.ts_module=preserve/content_mapper
+
+PASS: TestLocal/callOverload.ts/content_mapper
+
+PASS: TestLocal/callSignatureAssignabilityInInheritance.ts/content_mapper
+
+PASS: TestLocal/callSignaturesWithOptionalParameters2.ts/content_mapper
+
+PASS: TestLocal/callWithMissingVoid.ts/content_mapper
+
+PASS: TestLocal/callbackTag2.ts/content_mapper
+
+PASS: TestLocal/callbackTagVariadicType.ts/content_mapper
+
+PASS: TestLocal/circularImportAlias.ts/content_mapper
+
+PASS: TestLocal/classAbstractCrashedOnce.ts/content_mapper
+
+PASS: TestLocal/classAbstractInstantiations2.ts/content_mapper
+
+PASS: TestLocal/classAbstractMixedWithModifiers.ts/content_mapper
+
+PASS: TestLocal/classConstructorParametersAccessibility3.ts/content_mapper
+
+PASS: TestLocal/classExpressionES61.ts/content_mapper
+
+PASS: TestLocal/classStaticBlock13.ts_target=esnext/content_mapper
+
+PASS: TestLocal/classStaticBlock22.ts_target=esnext/content_mapper
+
+PASS: TestLocal/classStaticBlock26.ts_target=esnext/content_mapper
+
+PASS: TestLocal/classWithEmptyBody.ts/content_mapper
+
+PASS: TestLocal/classWithOptionalParameter.ts/content_mapper
+
+PASS: TestLocal/classWithStaticFieldInParameterInitializer.ts_target=es2015/content_mapper
+
+PASS: TestLocal/comparisonOperatorWithSubtypeObjectOnInstantiatedConstructorSignature.ts/content_mapper
+
+PASS: TestLocal/compoundAdditionAssignmentLHSCanBeAssigned.ts/content_mapper
+
+PASS: TestLocal/computedPropertyNames28_ES6.ts/content_mapper
+
+PASS: TestLocal/computedPropertyNames31_ES6.ts/content_mapper
+
+PASS: TestLocal/computedPropertyNames33_ES6.ts/content_mapper
+
+PASS: TestLocal/computedPropertyNames39_ES6.ts/content_mapper
+
+PASS: TestLocal/computedPropertyNames44_ES6.ts/content_mapper
+
+PASS: TestLocal/computedPropertyNames49_ES5.ts/content_mapper
+
+PASS: TestLocal/computedPropertyNamesContextualType1_ES6.ts/content_mapper
+
+PASS: TestLocal/computedPropertyNamesDeclarationEmit1_ES5.ts_target=es2015/content_mapper
+
+PASS: TestLocal/computedPropertyNamesDeclarationEmit6_ES6.ts/content_mapper
+
+PASS: TestLocal/constAssertions.ts/content_mapper
+
+PASS: TestLocal/constructableDecoratorOnClass01.ts/content_mapper
+
+PASS: TestLocal/constructorFunctionMergeWithClass.ts/content_mapper
+
+PASS: TestLocal/constructorTagOnNestedBinaryExpression.ts/content_mapper
+
+PASS: TestLocal/contextuallyTypeCommaOperator01.ts/content_mapper
+
+PASS: TestLocal/controlFlowAssignmentExpression.ts/content_mapper
+
+PASS: TestLocal/controlFlowAssignmentPatternOrder.ts/content_mapper
+
+PASS: TestLocal/controlFlowBinaryAndExpression.ts/content_mapper
+
+PASS: TestLocal/controlFlowDoWhileStatement.ts/content_mapper
+
+PASS: TestLocal/controlFlowIterationErrorsAsync.ts/content_mapper
+
+PASS: TestLocal/controlFlowSuperPropertyAccess.ts/content_mapper
+
+PASS: TestLocal/declarationsAndAssignments.ts/content_mapper
+
+PASS: TestLocal/decoratedClassFromExternalModule.ts/content_mapper
+
+PASS: TestLocal/decoratorOnClass9.ts_target=es2015/content_mapper
+
+PASS: TestLocal/decoratorOnClassAccessor8.ts_target=es2015/content_mapper
+
+PASS: TestLocal/decoratorOnClassMethod16.ts/content_mapper
+
+PASS: TestLocal/decoratorOnClassMethod4.ts/content_mapper
+
+PASS: TestLocal/decoratorOnEnum.ts/content_mapper
+
+PASS: TestLocal/derivedClassParameterProperties.ts/content_mapper
+
+PASS: TestLocal/derivedClassSuperCallsInNonConstructorMembers.ts/content_mapper
+
+PASS: TestLocal/derivedClassWithPrivateInstanceShadowingPublicInstance.ts/content_mapper
+
+PASS: TestLocal/destructuringArrayBindingPatternAndAssignment1ES5iterable.ts/content_mapper
+
+PASS: TestLocal/destructuringArrayBindingPatternAndAssignment4.ts_target=es2015/content_mapper
+
+PASS: TestLocal/destructuringAssignabilityCheck.ts/content_mapper
+
+PASS: TestLocal/destructuringObjectBindingPatternAndAssignment7.ts_target=esnext/content_mapper
+
+PASS: TestLocal/destructuringParameterDeclaration5.ts/content_mapper
+
+PASS: TestLocal/destructuringVariableDeclaration2.ts/content_mapper
+
+PASS: TestLocal/destructuringWithLiteralInitializers2.ts/content_mapper
+
+PASS: TestLocal/directReferenceToNull.ts/content_mapper
+
+PASS: TestLocal/emitArrowFunctionWhenUsingArguments01.ts_target=es2015/content_mapper
+
+PASS: TestLocal/emitArrowFunctionWhenUsingArguments01_ES6.ts/content_mapper
+
+PASS: TestLocal/emitArrowFunctionWhenUsingArguments11_ES6.ts_alwaysstrict=true/content_mapper
+
+PASS: TestLocal/emitArrowFunctionWhenUsingArguments19_ES6.ts/content_mapper
+
+PASS: TestLocal/emitClassDeclarationWithTypeArgumentAndOverloadInES6.ts/content_mapper
+
+PASS: TestLocal/emitDefaultParametersFunctionES6.ts/content_mapper
+
+PASS: TestLocal/emptyAssignmentPatterns01_ES5.ts_target=es2015/content_mapper
+
+PASS: TestLocal/emptyAssignmentPatterns03_ES6.ts/content_mapper
+
+PASS: TestLocal/enumIsNotASubtypeOfAnythingButNumber.ts/content_mapper
+
+PASS: TestLocal/enumLiteralTypes1.ts/content_mapper
+
+PASS: TestLocal/es6modulekindExportClassNameWithObject.ts_target=es2015/content_mapper
+
+PASS: TestLocal/es6modulekindWithES5Target.ts_target=es2015/content_mapper
+
+PASS: TestLocal/esDecorators-classDeclaration-accessors-nonStaticAbstract.ts_target=esnext/content_mapper
+
+PASS: TestLocal/esDecorators-classDeclaration-classThisReference.es5.ts_target=es2015/content_mapper
+
+PASS: TestLocal/esDecorators-classDeclaration-commentPreservation.ts_module=commonjs,target=es2022/content_mapper
+
+PASS: TestLocal/esDecorators-classDeclaration-commentPreservation.ts_module=esnext,target=es2022/content_mapper
+
+PASS: TestLocal/esDecorators-classDeclaration-fields-nonStatic.ts_target=esnext,usedefineforclassfields=true/content_mapper
+
+PASS: TestLocal/esDecorators-classDeclaration-fields-nonStaticAccessor.ts_target=es2022/content_mapper
+
+PASS: TestLocal/esDecorators-classDeclaration-fields-nonStaticAmbient.ts_target=esnext/content_mapper
+
+PASS: TestLocal/esDecorators-classDeclaration-fields-staticAccessor.ts_target=es2015/content_mapper
+
+PASS: TestLocal/esDecorators-classDeclaration-methods-staticPrivate.ts_target=esnext/content_mapper
+
+PASS: TestLocal/esDecorators-classDeclaration-outerThisReference.ts_target=es2015/content_mapper
+
+PASS: TestLocal/esDecorators-classDeclaration-setFunctionName.ts_target=es2022/content_mapper
+
+PASS: TestLocal/esDecorators-decoratorExpression.3.ts_experimentaldecorators=true/content_mapper
+
+PASS: TestLocal/esnextmodulekindWithES5Target4.ts_target=es2015/content_mapper
+
+PASS: TestLocal/exportAssignImportedIdentifier.ts/content_mapper
+
+PASS: TestLocal/exportCodeGen.ts/content_mapper
+
+PASS: TestLocal/exportDefaultInJsFile01.ts_target=es2015/content_mapper
+
+PASS: TestLocal/exportStar.ts_target=es2015/content_mapper
+
+PASS: TestLocal/fluentClasses.ts/content_mapper
+
+PASS: TestLocal/for-of13.ts/content_mapper
+
+PASS: TestLocal/for-of26.ts/content_mapper
+
+PASS: TestLocal/for-of33.ts/content_mapper
+
+PASS: TestLocal/forInContinueStatements.ts/content_mapper
+
+PASS: TestLocal/functionConstraintSatisfaction3.ts/content_mapper
+
+PASS: TestLocal/functionOverloadCompatibilityWithVoid01.ts/content_mapper
+
+PASS: TestLocal/functionOverloadErrors.ts/content_mapper
+
+PASS: TestLocal/generatorExplicitReturnType.ts/content_mapper
+
+PASS: TestLocal/generatorOverloads4.ts/content_mapper
+
+PASS: TestLocal/generatorReturnTypeFallback.4.ts/content_mapper
+
+PASS: TestLocal/generatorTypeCheck58.ts/content_mapper
+
+PASS: TestLocal/genericCallWithGenericSignatureArguments2.ts/content_mapper
+
+PASS: TestLocal/genericCallWithObjectTypeArgsAndInitializers.ts/content_mapper
+
+PASS: TestLocal/genericInstantiationEquivalentToObjectLiteral.ts/content_mapper
+
+PASS: TestLocal/genericObjectRest.ts/content_mapper
+
+PASS: TestLocal/genericRestParameters3.ts/content_mapper
+
+PASS: TestLocal/genericSetterInClassType.ts/content_mapper
+
+PASS: TestLocal/genericTypeReferenceWithoutTypeArgument3.ts/content_mapper
+
+PASS: TestLocal/getSetAccessorContextualTyping.ts_target=es2015/content_mapper
+
+PASS: TestLocal/importAliasIdentifiers.ts/content_mapper
+
+PASS: TestLocal/importAssertion4.ts/content_mapper
+
+PASS: TestLocal/importAttributes11.ts/content_mapper
+
+PASS: TestLocal/importAttributes6.ts_module=nodenext/content_mapper
+
+PASS: TestLocal/importCallExpression3ES2020.ts/content_mapper
+
+PASS: TestLocal/importCallExpressionES5CJS.ts_target=es2015/content_mapper
+
+PASS: TestLocal/importClause_namespaceImport.ts/content_mapper
+
+PASS: TestLocal/importTag23.ts/content_mapper
+
+PASS: TestLocal/importWithTypeArguments.ts/content_mapper
+
+PASS: TestLocal/incrementOperatorWithNumberTypeInvalidOperations.ts/content_mapper
+
+PASS: TestLocal/independentPropertyVariance.ts/content_mapper
+
+PASS: TestLocal/inferTypesInvalidExtendsDeclaration.ts/content_mapper
+
+PASS: TestLocal/inferTypesWithExtends1.ts/content_mapper
+
+PASS: TestLocal/inferringClassMembersFromAssignments2.ts/content_mapper
+
+PASS: TestLocal/inferringClassMembersFromAssignments3.ts/content_mapper
+
+PASS: TestLocal/inferringClassMembersFromAssignments8.ts/content_mapper
+
+PASS: TestLocal/instanceofOperatorWithInvalidOperands.es2015.ts/content_mapper
+
+PASS: TestLocal/instanceofOperatorWithLHSIsObject.ts/content_mapper
+
+PASS: TestLocal/interfaceExtendingClassWithPrivates2.ts/content_mapper
+
+PASS: TestLocal/interfaceExtendingOptionalChain.ts/content_mapper
+
+PASS: TestLocal/interfaceWithMultipleBaseTypes2.ts/content_mapper
+
+PASS: TestLocal/invalidSyntaxNamespaceImportWithCommonjs.ts/content_mapper
+
+PASS: TestLocal/iterableArrayPattern1.ts/content_mapper
+
+PASS: TestLocal/iterableArrayPattern16.ts/content_mapper
+
+PASS: TestLocal/iteratorSpreadInArray6.ts/content_mapper
+
+PASS: TestLocal/iteratorSpreadInArray8.ts/content_mapper
+
+PASS: TestLocal/iteratorSpreadInCall7.ts/content_mapper
+
+PASS: TestLocal/iteratorSpreadInCall9.ts/content_mapper
+
+PASS: TestLocal/jsDeclarationsClassStatic.ts_target=es2015/content_mapper
+
+PASS: TestLocal/jsDeclarationsDocCommentsOnConsts.ts_target=es2015/content_mapper
+
+PASS: TestLocal/jsDeclarationsImportNamespacedType.ts/content_mapper
+
+PASS: TestLocal/jsDeclarationsReactComponents.ts_target=es2015/content_mapper
+
+PASS: TestLocal/jsdocLinkTag8.ts/content_mapper
+
+PASS: TestLocal/jsdocOuterTypeParameters2.ts/content_mapper
+
+PASS: TestLocal/jsdocParamTagTypeLiteral.ts/content_mapper
+
+PASS: TestLocal/jsdocParseDotDotDotInJSDocFunction.ts/content_mapper
+
+PASS: TestLocal/jsdocTypeReferenceToImport.ts/content_mapper
+
+PASS: TestLocal/jsdocTypeTagParameterType.ts/content_mapper
+
+PASS: TestLocal/jsxInvalidEsprimaTestSuite.tsx/content_mapper
+
+PASS: TestLocal/jsxJsxsCjsTransformCustomImportPragma.tsx_jsx=react-jsxdev/content_mapper
+
+PASS: TestLocal/leaveOptionalParameterAsWritten.ts/content_mapper
+
+PASS: TestLocal/legacyNodeModulesExportsSpecifierGenerationConditions.ts/content_mapper
+
+PASS: TestLocal/logicalAssignment3.ts_target=esnext/content_mapper
+
+PASS: TestLocal/mappedTypeModifiers.ts/content_mapper
+
+PASS: TestLocal/methodSignaturesWithOverloads.ts/content_mapper
+
+PASS: TestLocal/missingDecoratorType.ts_target=es2015/content_mapper
+
+PASS: TestLocal/mixinClassesMembers.ts/content_mapper
+
+PASS: TestLocal/moduleExportAlias5.ts/content_mapper
+
+PASS: TestLocal/moduleExportWithExportPropertyAssignment.ts/content_mapper
+
+PASS: TestLocal/moduleExportsElementAccessAssignment.ts/content_mapper
+
+PASS: TestLocal/moduleScoping.ts/content_mapper
+
+PASS: TestLocal/nameWithRelativePaths.ts/content_mapper
+
+PASS: TestLocal/narrowingConstrainedTypeVariable.ts/content_mapper
+
+PASS: TestLocal/negateOperatorWithAnyOtherType.ts/content_mapper
+
+PASS: TestLocal/noDuplicateJsdoc1.ts/content_mapper
+
+PASS: TestLocal/nodeAllowJsPackageSelfName.ts_module=node16/content_mapper
+
+PASS: TestLocal/nodeModulesAllowJs1.ts_module=node20/content_mapper
+
+PASS: TestLocal/nodeModulesAllowJsCjsFromJs.ts_module=nodenext/content_mapper
+
+PASS: TestLocal/nodeModulesAllowJsImportHelpersCollisions1.ts_module=node16/content_mapper
+
+PASS: TestLocal/nodeModulesAllowJsImportHelpersCollisions2.ts_module=node18/content_mapper
+
+PASS: TestLocal/nodeModulesAllowJsPackageImports.ts_module=nodenext/content_mapper
+
+PASS: TestLocal/nodeModulesCJSEmit1.ts_module=node18/content_mapper
+
+PASS: TestLocal/nodeModulesExportsSourceTs.ts_module=node20/content_mapper
+
+PASS: TestLocal/nodeModulesExportsSpecifierGenerationDirectory.ts_module=node16/content_mapper
+
+PASS: TestLocal/nodeModulesForbidenSyntax.ts_module=node16/content_mapper
+
+PASS: TestLocal/nodeModulesImportAssertions.ts_module=node18/content_mapper
+
+PASS: TestLocal/nodeModulesImportHelpersCollisions2.ts_module=node20/content_mapper
+
+PASS: TestLocal/nodeModulesPackageExports.ts_module=nodenext/content_mapper
+
+PASS: TestLocal/nodeModulesPackagePatternExports.ts_module=node18/content_mapper
+
+PASS: TestLocal/nodeModulesSynchronousCallErrors.ts_module=node20/content_mapper
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeDeclarationEmit3.ts_module=node18/content_mapper
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeDeclarationEmit3.ts_module=node20/content_mapper
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeOverride4.ts_module=node16/content_mapper
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeOverride4.ts_module=node20/content_mapper
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeOverrideOldResolutionError.ts/content_mapper
+
+PASS: TestLocal/nonTSExtensions.ts_module=nodenext/content_mapper
+
+PASS: TestLocal/nullishCoalescingOperator6.ts/content_mapper
+
+PASS: TestLocal/objectBindingPatternKeywordIdentifiers04.ts/content_mapper
+
+PASS: TestLocal/objectLiteralGettersAndSetters.ts/content_mapper
+
+PASS: TestLocal/objectLiteralShorthandPropertiesES6.ts/content_mapper
+
+PASS: TestLocal/objectRest2.ts/content_mapper
+
+PASS: TestLocal/objectTypeWithConstructSignatureHidingMembersOfExtendedFunction.ts/content_mapper
+
+PASS: TestLocal/objectTypeWithRecursiveWrappedProperty.ts/content_mapper
+
+PASS: TestLocal/objectTypesIdentityWithConstructSignatures2.ts/content_mapper
+
+PASS: TestLocal/objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints.ts/content_mapper
+
+PASS: TestLocal/objectTypesIdentityWithGenericConstructSignaturesOptionalParams.ts/content_mapper
+
+PASS: TestLocal/octalLiteralInStrictModeES3.ts/content_mapper
+
+PASS: TestLocal/optionalChainingInParameterInitializer.2.ts_target=es2015/content_mapper
+
+PASS: TestLocal/optionalChainingInParameterInitializer.ts_target=esnext/content_mapper
+
+PASS: TestLocal/optionalMethods.ts/content_mapper
+
+PASS: TestLocal/optionalProperties02.ts/content_mapper
+
+PASS: TestLocal/override10.ts/content_mapper
+
+PASS: TestLocal/override11.ts/content_mapper
+
+PASS: TestLocal/overrideLateBindableName1.ts_noimplicitoverride=false/content_mapper
+
+PASS: TestLocal/overrideLateBindableName1.ts_noimplicitoverride=true/content_mapper
+
+PASS: TestLocal/overrideParameterProperty.ts/content_mapper
+
+PASS: TestLocal/parameterInitializersForwardReferencing1_es6.ts/content_mapper
+
+PASS: TestLocal/parseLinkTag.ts/content_mapper
+
+PASS: TestLocal/parser.numericSeparators.binary.ts/content_mapper
+
+PASS: TestLocal/parser585151.ts/content_mapper
+
+PASS: TestLocal/parserAdditiveExpression1.ts/content_mapper
+
+PASS: TestLocal/parserBlockStatement1.d.ts/content_mapper
+
+PASS: TestLocal/parserBreakStatement1.d.ts/content_mapper
+
+PASS: TestLocal/parserClassDeclaration24.ts/content_mapper
+
+PASS: TestLocal/parserComputedPropertyName10.ts/content_mapper
+
+PASS: TestLocal/parserComputedPropertyName16.ts/content_mapper
+
+PASS: TestLocal/parserComputedPropertyName28.ts/content_mapper
+
+PASS: TestLocal/parserConstructorAmbiguity4.ts/content_mapper
+
+PASS: TestLocal/parserDoStatement1.d.ts/content_mapper
+
+PASS: TestLocal/parserES3Accessors4.ts/content_mapper
+
+PASS: TestLocal/parserES5ForOfStatement21.ts_target=es2015/content_mapper
+
+PASS: TestLocal/parserES5ForOfStatement5.ts_target=es2015/content_mapper
+
+PASS: TestLocal/parserEnum2.ts/content_mapper
+
+PASS: TestLocal/parserEnumDeclaration6.ts/content_mapper
+
+PASS: TestLocal/parserErrantEqualsGreaterThanAfterFunction1.ts/content_mapper
+
+PASS: TestLocal/parserErrorRecovery_ExtendsOrImplementsClause6.ts/content_mapper
+
+PASS: TestLocal/parserForInStatement6.ts/content_mapper
+
+PASS: TestLocal/parserForOfStatement22.ts/content_mapper
+
+PASS: TestLocal/parserForOfStatement8.ts/content_mapper
+
+PASS: TestLocal/parserFunctionDeclaration1.ts/content_mapper
+
+PASS: TestLocal/parserFunctionDeclaration2.d.ts/content_mapper
+
+PASS: TestLocal/parserGreaterThanTokenAmbiguity9.ts/content_mapper
+
+PASS: TestLocal/parserIndexMemberDeclaration5.ts/content_mapper
+
+PASS: TestLocal/parserIndexMemberDeclaration8.ts/content_mapper
+
+PASS: TestLocal/parserIndexSignature8.ts/content_mapper
+
+PASS: TestLocal/parserInterfaceDeclaration6.ts/content_mapper
+
+PASS: TestLocal/parserMemberAccessorDeclaration14.ts_target=es2015/content_mapper
+
+PASS: TestLocal/parserMemberVariableDeclaration4.ts/content_mapper
+
+PASS: TestLocal/parserMissingToken1.ts/content_mapper
+
+PASS: TestLocal/parserModuleDeclaration10.ts/content_mapper
+
+PASS: TestLocal/parserModuleDeclaration12.ts/content_mapper
+
+PASS: TestLocal/parserModuleDeclaration8.ts/content_mapper
+
+PASS: TestLocal/parserNotHexLiteral1.ts/content_mapper
+
+PASS: TestLocal/parserNotRegex2.ts/content_mapper
+
+PASS: TestLocal/parserObjectType1.ts/content_mapper
+
+PASS: TestLocal/parserObjectType2.ts/content_mapper
+
+PASS: TestLocal/parserObjectType6.ts/content_mapper
+
+PASS: TestLocal/parserParameterList11.ts/content_mapper
+
+PASS: TestLocal/parserParenthesizedVariableAndParenthesizedFunctionInTernary.ts/content_mapper
+
+PASS: TestLocal/parserPostfixUnaryExpression1.ts/content_mapper
+
+PASS: TestLocal/parserSkippedTokens5.ts/content_mapper
+
+PASS: TestLocal/parserTypeQuery2.ts/content_mapper
+
+PASS: TestLocal/parserVariableDeclaration3.ts/content_mapper
+
+PASS: TestLocal/parserVariableDeclaration8.ts/content_mapper
+
+PASS: TestLocal/parser_breakInIterationOrSwitchStatement3.ts/content_mapper
+
+PASS: TestLocal/parser_breakTarget4.ts/content_mapper
+
+PASS: TestLocal/parserindenter.ts/content_mapper
+
+PASS: TestLocal/privateClassPropertyAccessibleWithinClass.ts/content_mapper
+
+PASS: TestLocal/privateNameAccessorsCallExpression.ts/content_mapper
+
+PASS: TestLocal/privateNameBadDeclaration.ts_target=es2015/content_mapper
+
+PASS: TestLocal/privateNameCircularReference.ts/content_mapper
+
+PASS: TestLocal/privateNameClassExpressionLoop.ts/content_mapper
+
+PASS: TestLocal/privateNameComputedPropertyName3.ts_target=es2015/content_mapper
+
+PASS: TestLocal/privateNameDeclarationMerging.ts/content_mapper
+
+PASS: TestLocal/privateNameLateSuperUseDefineForClassFields.ts_target=es2022/content_mapper
+
+PASS: TestLocal/privateNameSetterNoGetter.ts/content_mapper
+
+PASS: TestLocal/privateNameStaticAccessorsAccess.ts/content_mapper
+
+PASS: TestLocal/privateNamesAssertion.ts_target=es2022/content_mapper
+
+PASS: TestLocal/privateNamesInterfaceExtendingClass.ts/content_mapper
+
+PASS: TestLocal/propertyOverridesAccessors.ts/content_mapper
+
+PASS: TestLocal/recursiveIntersectionTypes.ts/content_mapper
+
+PASS: TestLocal/scannerES3NumericLiteral1.ts/content_mapper
+
+PASS: TestLocal/scannerNumericLiteral6.ts_target=es2015/content_mapper
+
+PASS: TestLocal/scannerS7.8.3_A6.1_T1.ts/content_mapper
+
+PASS: TestLocal/scannerStringLiterals.ts/content_mapper
+
+PASS: TestLocal/selfNameModuleAugmentation.ts/content_mapper
+
+PASS: TestLocal/simpleTest.ts/content_mapper
+
+PASS: TestLocal/staticMemberAssignsToConstructorFunctionMembers.ts/content_mapper
+
+PASS: TestLocal/staticPropertyNameConflictsInAmbientContext.ts/content_mapper
+
+PASS: TestLocal/stringLiteralType.ts/content_mapper
+
+PASS: TestLocal/stringMappingReduction.ts/content_mapper
+
+PASS: TestLocal/subtypingWithCallSignatures2.ts/content_mapper
+
+PASS: TestLocal/subtypingWithCallSignaturesWithRestParameters.ts/content_mapper
+
+PASS: TestLocal/subtypingWithConstructSignatures4.ts/content_mapper
+
+PASS: TestLocal/subtypingWithStringIndexer2.ts/content_mapper
+
+PASS: TestLocal/superCallBeforeThisAccessing8.ts/content_mapper
+
+PASS: TestLocal/symbolDeclarationEmit1.ts/content_mapper
+
+PASS: TestLocal/symbolDeclarationEmit5.ts/content_mapper
+
+PASS: TestLocal/symbolProperty1.ts/content_mapper
+
+PASS: TestLocal/symbolProperty26.ts/content_mapper
+
+PASS: TestLocal/taggedTemplateStringsPlainCharactersThatArePartsOfEscapes02.ts/content_mapper
+
+PASS: TestLocal/taggedTemplateStringsTypeArgumentInference.ts/content_mapper
+
+PASS: TestLocal/taggedTemplateStringsWithOverloadResolution1_ES6.ts/content_mapper
+
+PASS: TestLocal/taggedTemplateStringsWithTypedTags.ts/content_mapper
+
+PASS: TestLocal/templateLiteralTypes3.ts/content_mapper
+
+PASS: TestLocal/templateLiteralTypes4.ts/content_mapper
+
+PASS: TestLocal/templateStringInCallExpression.ts/content_mapper
+
+PASS: TestLocal/templateStringInInOperator.ts/content_mapper
+
+PASS: TestLocal/templateStringInModulo.ts/content_mapper
+
+PASS: TestLocal/templateStringInNewOperator.ts/content_mapper
+
+PASS: TestLocal/templateStringMultiline1_ES6.ts/content_mapper
+
+PASS: TestLocal/templateStringMultiline3.ts/content_mapper
+
+PASS: TestLocal/templateStringWithEmbeddedModulo.ts/content_mapper
+
+PASS: TestLocal/templateStringWithEmbeddedNewOperatorES6.ts/content_mapper
+
+PASS: TestLocal/templateStringWithEmbeddedTemplateStringES6.ts/content_mapper
+
+PASS: TestLocal/templateStringWithEmbeddedYieldKeywordES6.ts/content_mapper
+
+PASS: TestLocal/templateStringWithPropertyAccess.ts/content_mapper
+
+PASS: TestLocal/thisTag3.ts/content_mapper
+
+PASS: TestLocal/thisTypeInFunctions3.ts/content_mapper
+
+PASS: TestLocal/thisTypeInFunctions4.ts/content_mapper
+
+PASS: TestLocal/topLevelAwait.1.ts_module=es2022,target=es2017/content_mapper
+
+PASS: TestLocal/tsxAttributeResolution9.tsx/content_mapper
+
+PASS: TestLocal/tsxElementResolution5.tsx/content_mapper
+
+PASS: TestLocal/tsxNoJsx.tsx/content_mapper
+
+PASS: TestLocal/tsxReactComponentWithDefaultTypeParameter3.tsx/content_mapper
+
+PASS: TestLocal/tsxReactEmit5.tsx/content_mapper
+
+PASS: TestLocal/tsxSpreadAttributesResolution16.tsx/content_mapper
+
+PASS: TestLocal/tsxSpreadAttributesResolution17.tsx/content_mapper
+
+PASS: TestLocal/tsxSpreadChildrenInvalidType.tsx_jsx=react-jsx,target=es2015/content_mapper
+
+PASS: TestLocal/tsxUnionElementType1.tsx/content_mapper
+
+PASS: TestLocal/twoAccessorsWithSameName2.ts/content_mapper
+
+PASS: TestLocal/typeArgumentInferenceTransitiveConstraints.ts/content_mapper
+
+PASS: TestLocal/typeAssertionsWithIntersectionTypes01.ts/content_mapper
+
+PASS: TestLocal/typeFromJSInitializer2.ts/content_mapper
+
+PASS: TestLocal/typeGuardIntersectionTypes.ts/content_mapper
+
+PASS: TestLocal/typeGuardNarrowsToLiteralTypeUnion.ts/content_mapper
+
+PASS: TestLocal/typeGuardOfFormIsTypeOnInterfaces.ts/content_mapper
+
+PASS: TestLocal/typeGuardOfFormThisMemberErrors.ts_target=es2015/content_mapper
+
+PASS: TestLocal/typeGuardOfFormTypeOfNumber.ts/content_mapper
+
+PASS: TestLocal/typeGuardsInConditionalExpression.ts/content_mapper
+
+PASS: TestLocal/typeGuardsInExternalModule.ts/content_mapper
+
+PASS: TestLocal/typeOfThisInStaticMembers8.ts_target=es6/content_mapper
+
+PASS: TestLocal/typeParameterAssignability3.ts/content_mapper
+
+PASS: TestLocal/typeParameterConstModifiers.ts/content_mapper
+
+PASS: TestLocal/typeParametersAvailableInNestedScope.ts/content_mapper
+
+PASS: TestLocal/typeQuery.ts/content_mapper
+
+PASS: TestLocal/typeSatisfaction_contextualTyping2.ts/content_mapper
+
+PASS: TestLocal/typeTagOnFunctionReferencesGeneric.ts/content_mapper
+
+PASS: TestLocal/typingsLookup3.ts/content_mapper
+
+PASS: TestLocal/umd4.ts/content_mapper
+
+PASS: TestLocal/unicodeExtendedEscapesInRegularExpressions09.ts_target=es6/content_mapper
+
+PASS: TestLocal/unicodeExtendedEscapesInStrings01.ts_target=es6/content_mapper
+
+PASS: TestLocal/unicodeExtendedEscapesInTemplates15.ts_target=es6/content_mapper
+
+PASS: TestLocal/unionTypeCallSignatures3.ts/content_mapper
+
+PASS: TestLocal/unionTypeConstructSignatures.ts/content_mapper
+
+PASS: TestLocal/unionTypeFromArrayLiteral.ts/content_mapper
+
+PASS: TestLocal/uniqueSymbolsErrors.ts/content_mapper
+
+PASS: TestLocal/untypedModuleImport_noImplicitAny_relativePath.ts/content_mapper
+
+PASS: TestLocal/usingDeclarations.12.ts_usedefineforclassfields=false/content_mapper
+
+PASS: TestLocal/usingDeclarations.12.ts_usedefineforclassfields=true/content_mapper
+
+PASS: TestLocal/usingDeclarations.13.ts/content_mapper
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.1.ts_module=esnext,target=es2015/content_mapper
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.2.ts_module=esnext,target=es2015/content_mapper
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.4.ts_module=commonjs,target=es2015/content_mapper
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.4.ts_module=esnext,target=esnext/content_mapper
+
+PASS: TestLocal/usingDeclarationsWithESClassDecorators.7.ts_module=commonjs,target=esnext/content_mapper
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.10.ts_module=commonjs,target=es2015/content_mapper
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.11.ts_module=esnext,target=es2015/content_mapper
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.7.ts_module=esnext,target=es2015/content_mapper
+
+PASS: TestLocal/usingDeclarationsWithLegacyClassDecorators.9.ts_module=commonjs,target=es2015/content_mapper
+
+PASS: TestLocal/usingDeclarationsWithObjectLiterals2.ts_noimplicitany=false/content_mapper
+
+PASS: TestLocal/verbatimModuleSyntaxConstEnum.ts/content_mapper
+
+PASS: TestLocal/verbatimModuleSyntaxRestrictionsCJS.ts/content_mapper
+
+PASS: TestLocal/voidOperatorWithEnumType.ts/content_mapper
+
+PASS: TestLocal/whileBreakStatements.ts/content_mapper
+
+PASS: TestLocal/witness.ts/content_mapper

@@ -1,0 +1,29 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+PASS: TestLocal/bundlerDirectoryModule.ts_module=node18,moduleresolution=nodenext/module_resolution
+baseline: conformance/bundlerDirectoryModule(module=node18,moduleresolution=nodenext).trace.json
+reference: ddccb92ab403dded02c0c2d66d6ff149dac5029cc73e6c1d14c9a16497d6c5e3
+actual: ddccb92ab403dded02c0c2d66d6ff149dac5029cc73e6c1d14c9a16497d6c5e3
+
+PASS: TestLocal/conditionalExportsResolutionFallbackNull.ts_moduleresolution=bundler/module_resolution
+baseline: conformance/conditionalExportsResolutionFallbackNull(moduleresolution=bundler).trace.json
+reference: dca4f21c848b9c5b9da6d155d7d9b267eb0c68c66e552d9047e85dc6a52ed783
+actual: dca4f21c848b9c5b9da6d155d7d9b267eb0c68c66e552d9047e85dc6a52ed783
+
+PASS: TestLocal/library-reference-12.ts/module_resolution
+baseline: conformance/library-reference-12.trace.json
+reference: 30d3771a0fbbcfb52155880cde45a1dd13713deb1d89b11269938bb0d05bc39c
+actual: 30d3771a0fbbcfb52155880cde45a1dd13713deb1d89b11269938bb0d05bc39c
+
+PASS: TestLocal/library-reference-13.ts/module_resolution
+baseline: conformance/library-reference-13.trace.json
+reference: b22a11b6a1a4f8ff95493e363718fe525dc383f8c606bea46fdfeda668196e88
+actual: b22a11b6a1a4f8ff95493e363718fe525dc383f8c606bea46fdfeda668196e88
+
+PASS: TestLocal/nodeModulesPackagePatternExportsTrailers.ts_module=node20/module_resolution
+baseline: conformance/nodeModulesPackagePatternExportsTrailers(module=node20).trace.json
+reference: 8ed2fd7db7cf39a75e37eaffc6c76b6fe6705e19b86cac832f37607e88ff9577
+actual: 8ed2fd7db7cf39a75e37eaffc6c76b6fe6705e19b86cac832f37607e88ff9577

@@ -1,0 +1,2396 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+PASS: TestLocal/ES5For-of2.ts_target=es2015/type
+baseline: conformance/ES5For-of2(target=es2015).types
+reference: 86fd7d3a5f9f2f051d59327706bb3c747e09996bb9cbcf771e2f9b189107a5ad
+actual: 86fd7d3a5f9f2f051d59327706bb3c747e09996bb9cbcf771e2f9b189107a5ad
+
+PASS: TestLocal/ES5For-of21.ts_target=es2015/type
+baseline: conformance/ES5For-of21(target=es2015).types
+reference: 99e9deee63f1fccb4a14fbe416b249248676f9d6bdc98d8b6dd07de6d5230b3a
+actual: 99e9deee63f1fccb4a14fbe416b249248676f9d6bdc98d8b6dd07de6d5230b3a
+
+PASS: TestLocal/ES5For-of26.ts_target=es2015/type
+baseline: conformance/ES5For-of26(target=es2015).types
+reference: 7dff983b736d822d0ee53af5bb7124c47c22073e80cdcd94cea7741ad698af99
+actual: 7dff983b736d822d0ee53af5bb7124c47c22073e80cdcd94cea7741ad698af99
+
+PASS: TestLocal/ES5For-ofTypeCheck10.ts_target=es2015/type
+baseline: conformance/ES5For-ofTypeCheck10(target=es2015).types
+reference: 1f3a2b70e00cee3134eb433630ac83c5a8996802f6634de7c8c36df1f310c65f
+actual: 1f3a2b70e00cee3134eb433630ac83c5a8996802f6634de7c8c36df1f310c65f
+
+PASS: TestLocal/ES5For-ofTypeCheck5.ts_target=es2015/type
+baseline: conformance/ES5For-ofTypeCheck5(target=es2015).types
+reference: ede9e1c092d8339fa0316ab72cc806d68dcd0f600d0abfa90a6c23eaf8b5f875
+actual: ede9e1c092d8339fa0316ab72cc806d68dcd0f600d0abfa90a6c23eaf8b5f875
+
+PASS: TestLocal/ES5for-of32.ts_target=es2015/type
+baseline: conformance/ES5for-of32(target=es2015).types
+reference: 966a5a35066ee5b9e5c494b86404e3f98eaf71d5cf991870f8cf9220e721678b
+actual: 966a5a35066ee5b9e5c494b86404e3f98eaf71d5cf991870f8cf9220e721678b
+
+PASS: TestLocal/FunctionDeclaration8_es6.ts/type
+baseline: conformance/FunctionDeclaration8_es6.types
+reference: e371eee5959d48bf6648dcfdd01514f7a98f0825e013c6e45fe632f58269d0e6
+actual: e371eee5959d48bf6648dcfdd01514f7a98f0825e013c6e45fe632f58269d0e6
+
+PASS: TestLocal/FunctionExpression2_es6.ts/type
+baseline: conformance/FunctionExpression2_es6.types
+reference: 2e76a0cc59cbb4d92f2224bcce5f07d6334763b354724b973da5f961095a0ba8
+actual: 2e76a0cc59cbb4d92f2224bcce5f07d6334763b354724b973da5f961095a0ba8
+
+PASS: TestLocal/FunctionPropertyAssignments2_es6.ts/type
+baseline: conformance/FunctionPropertyAssignments2_es6.types
+reference: 524cd42d847aa6ad8f2b8a3be551ab442e4979a0dbc1e084c24514ad69c309d4
+actual: 524cd42d847aa6ad8f2b8a3be551ab442e4979a0dbc1e084c24514ad69c309d4
+
+PASS: TestLocal/InvalidNonInstantiatedModule.ts/type
+baseline: conformance/InvalidNonInstantiatedModule.types
+reference: 0664b231859392b9d9059dea40f54d7b459f144d69462c8c4b294c8eb5f51010
+actual: 0664b231859392b9d9059dea40f54d7b459f144d69462c8c4b294c8eb5f51010
+
+PASS: TestLocal/ModuleAndFunctionWithSameNameAndCommonRoot.ts/type
+baseline: conformance/ModuleAndFunctionWithSameNameAndCommonRoot.types
+reference: 4dd2b049d6510bb1d8c0b3b0cd68599ff3f503b709ea8d423cb441ebade395f8
+actual: 4dd2b049d6510bb1d8c0b3b0cd68599ff3f503b709ea8d423cb441ebade395f8
+
+PASS: TestLocal/ModuleWithExportedAndNonExportedEnums.ts/type
+baseline: conformance/ModuleWithExportedAndNonExportedEnums.types
+reference: ec4d617c791941327f348ba05a1e063a8050ad3579fe2bf3d34015de9e603d93
+actual: ec4d617c791941327f348ba05a1e063a8050ad3579fe2bf3d34015de9e603d93
+
+PASS: TestLocal/Protected1.ts/type
+baseline: conformance/Protected1.types
+reference: f2500d25040244a1d9e46df0c51bb7b6fdac2caec966687e179d181c1cc6d193
+actual: f2500d25040244a1d9e46df0c51bb7b6fdac2caec966687e179d181c1cc6d193
+
+PASS: TestLocal/TupleType6.ts/type
+baseline: conformance/TupleType6.types
+reference: 75bd2fed126534000ee20a06bb1a21635e1f3defc05c733ef451b8bb21eba8c0
+actual: 75bd2fed126534000ee20a06bb1a21635e1f3defc05c733ef451b8bb21eba8c0
+
+FAIL: TestLocal/TwoInternalModulesThatMergeEachWithExportedLocalVarsOfTheSameName.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/internalModules/DeclarationMerging/TwoInternalModulesThatMergeEachWithExportedLocalVarsOfTheSameName.ts:
+        runtime error: slice bounds out of range [9:8]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/TypeGuardWithEnumUnion.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/expressions/typeGuards/TypeGuardWithEnumUnion.ts:
+        runtime error: slice bounds out of range [10:3]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/VariableDeclaration7_es6.ts/type
+baseline: conformance/VariableDeclaration7_es6.types
+reference: 71e7691dfa71d827c1e4bfb325a4d320d890522086fe7516b1aa141600562757
+actual: 71e7691dfa71d827c1e4bfb325a4d320d890522086fe7516b1aa141600562757
+
+PASS: TestLocal/YieldExpression13_es6.ts/type
+baseline: conformance/YieldExpression13_es6.types
+reference: c8affa4511db6c1b0ae5080f65e8db0d87b4240bbff89a26aa6860d646e92886
+actual: c8affa4511db6c1b0ae5080f65e8db0d87b4240bbff89a26aa6860d646e92886
+
+PASS: TestLocal/YieldStarExpression1_es6.ts/type
+baseline: conformance/YieldStarExpression1_es6.types
+reference: c354760dde0c0a5ce263eea1a7f71a4e283beb7494dfb973d270603cbf28b1c8
+actual: c354760dde0c0a5ce263eea1a7f71a4e283beb7494dfb973d270603cbf28b1c8
+
+PASS: TestLocal/YieldStarExpression4_es6.ts/type
+baseline: conformance/YieldStarExpression4_es6.types
+reference: 83e4f600286acb5023ebbd263415e8797ee02597f49a79232c0241c7e546bed0
+actual: 83e4f600286acb5023ebbd263415e8797ee02597f49a79232c0241c7e546bed0
+
+PASS: TestLocal/accessorWithES5.ts_target=es2015/type
+baseline: conformance/accessorWithES5(target=es2015).types
+reference: 19be697b6ba41a907852dbc73259a425afeaacde817afa189b997fbbcf125b26
+actual: 19be697b6ba41a907852dbc73259a425afeaacde817afa189b997fbbcf125b26
+
+FAIL: TestLocal/accessorsOverrideProperty4.ts/type
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/accessorsOverrideProperty4.types has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/accessorsOverrideProperty4.types
+reference: 1951b810905d5b25ef55af98781cbf2b7b46c0ead0c098d0784644877454e0de
+actual: e6723c5f55ddb2c08a6ad4a80cd9470c2e966d1fc8f085a8dbecebe1404e2679
+--- expected/conformance/accessorsOverrideProperty4.types
++++ actual/conformance/accessorsOverrideProperty4.types
+@@ -23,11 +23,11 @@
+ 
+     set sound(val: string) { this._sound = val }
+ >sound : string
+->val : string
+ >this._sound = val : string
+ >this._sound : string
+ >this : this
+ >_sound : string
+ >val : string
++>val : string
+ }
+ 
+
+PASS: TestLocal/ambientDeclarationsPatterns.ts/type
+baseline: conformance/ambientDeclarationsPatterns.types
+reference: 321c6878e749203af998446c9298a01a2cf6448cf8c9f0b112560d104ffe0f16
+actual: 321c6878e749203af998446c9298a01a2cf6448cf8c9f0b112560d104ffe0f16
+
+PASS: TestLocal/ambientDeclarationsPatterns_merging2.ts/type
+baseline: conformance/ambientDeclarationsPatterns_merging2.types
+reference: f020a0bdea142ce4965b7f9cbc9b21597915a703df6f483a62015c7a1842d14a
+actual: f020a0bdea142ce4965b7f9cbc9b21597915a703df6f483a62015c7a1842d14a
+
+PASS: TestLocal/apparentTypeSubtyping.ts/type
+baseline: conformance/apparentTypeSubtyping.types
+reference: b9ce0d6880620b41d722966092673ff754e32316f1edc38d70629bac08499557
+actual: b9ce0d6880620b41d722966092673ff754e32316f1edc38d70629bac08499557
+
+PASS: TestLocal/arbitraryModuleNamespaceIdentifiers_module.ts_module=node18/type
+baseline: conformance/arbitraryModuleNamespaceIdentifiers_module(module=node18).types
+reference: beb2a61305dc725e9a3a09b418387eaa99d480b2c2573fbea8a8577d65893435
+actual: beb2a61305dc725e9a3a09b418387eaa99d480b2c2573fbea8a8577d65893435
+
+FAIL: TestLocal/arithmeticOperatorWithTypeParameter.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/expressions/binaryOperators/arithmeticOperator/arithmeticOperatorWithTypeParameter.ts:
+        runtime error: slice bounds out of range [128:2]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/arithmeticOperatorWithUndefinedValueAndValidOperands.ts/type
+baseline: conformance/arithmeticOperatorWithUndefinedValueAndValidOperands.types
+reference: bc3bcd9242192c5869b0ae1a40ce0bfdc8336ced289f269e0f368d1883ad0d51
+actual: bc3bcd9242192c5869b0ae1a40ce0bfdc8336ced289f269e0f368d1883ad0d51
+
+PASS: TestLocal/arrayLiteral.ts/type
+baseline: conformance/arrayLiteral.types
+reference: c71162ce856106749ea1b6acc32e609a5f5b08fd5a7cb0d3227da1b66ea5c74a
+actual: c71162ce856106749ea1b6acc32e609a5f5b08fd5a7cb0d3227da1b66ea5c74a
+
+PASS: TestLocal/arrayLiterals3.ts/type
+baseline: conformance/arrayLiterals3.types
+reference: d285ec0e537ca38093a60408b48c57bfe103f1b756994f4b452fe24a652598aa
+actual: d285ec0e537ca38093a60408b48c57bfe103f1b756994f4b452fe24a652598aa
+
+PASS: TestLocal/arrowFunctionWithParameterNameAsync_es5.ts_target=es2015/type
+baseline: conformance/arrowFunctionWithParameterNameAsync_es5(target=es2015).types
+reference: f7a5afd0db30c822cdbb5da0a5417c85927e9d4dfcfab59ca8ba4320b14cfcc7
+actual: f7a5afd0db30c822cdbb5da0a5417c85927e9d4dfcfab59ca8ba4320b14cfcc7
+
+PASS: TestLocal/asOpEmitParens.ts/type
+baseline: conformance/asOpEmitParens.types
+reference: 94041d46da5ddd2d658558bf27eac7bbae8d1f9c9ca9de623a88a45bea81d889
+actual: 94041d46da5ddd2d658558bf27eac7bbae8d1f9c9ca9de623a88a45bea81d889
+
+PASS: TestLocal/asiPreventsParsingAsNamespace02.ts/type
+baseline: conformance/asiPreventsParsingAsNamespace02.types
+reference: 1bdb161f2da20bf2a48b47e9d63a1429e265f2f0460f0ee91e77f7e6cef033ad
+actual: 1bdb161f2da20bf2a48b47e9d63a1429e265f2f0460f0ee91e77f7e6cef033ad
+
+FAIL: TestLocal/assertionsAndNonReturningFunctions.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/jsdoc/assertionsAndNonReturningFunctions.ts:
+        runtime error: slice bounds out of range [5:4]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/assignFromNumberInterface2.ts/type
+baseline: conformance/assignFromNumberInterface2.types
+reference: 4fc0ea64215a8b0012badff5765e8b06676702c0dab1bb666c329f327f74d90a
+actual: 4fc0ea64215a8b0012badff5765e8b06676702c0dab1bb666c329f327f74d90a
+
+PASS: TestLocal/assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts/type
+baseline: conformance/assignmentCompatWithGenericCallSignaturesWithOptionalParameters.types
+reference: 6acba269d0d5f1c7ec445c683330007c11c0609ddefd5580cb79658b6e7dbded
+actual: 6acba269d0d5f1c7ec445c683330007c11c0609ddefd5580cb79658b6e7dbded
+
+PASS: TestLocal/asyncArrowFunction2_es2017.ts/type
+baseline: conformance/asyncArrowFunction2_es2017.types
+reference: d4800d1d2c707dd1c790fb5a1db03085a0747a9ddb6676980757b3d2a2e7a071
+actual: d4800d1d2c707dd1c790fb5a1db03085a0747a9ddb6676980757b3d2a2e7a071
+
+PASS: TestLocal/asyncArrowFunction2_es5.ts_target=es2015/type
+baseline: conformance/asyncArrowFunction2_es5(target=es2015).types
+reference: b824cfb357da79bf5ab8821306cc3861fc269b57b0cea1d7664996cb80ae61af
+actual: b824cfb357da79bf5ab8821306cc3861fc269b57b0cea1d7664996cb80ae61af
+
+PASS: TestLocal/asyncArrowFunctionCapturesThis_es2017.ts/type
+baseline: conformance/asyncArrowFunctionCapturesThis_es2017.types
+reference: 8010cb5bbabda06d6db4c534e1a58a18794336be59d2b1921aa42c6c042c7c50
+actual: 8010cb5bbabda06d6db4c534e1a58a18794336be59d2b1921aa42c6c042c7c50
+
+PASS: TestLocal/asyncAwaitIsolatedModules_es5.ts_target=es2015/type
+baseline: conformance/asyncAwaitIsolatedModules_es5(target=es2015).types
+reference: 79eccbcec57f4f84d1fdbaee67bbfd883a9ea7ec25f8b1cb748f8b3d3d10d919
+actual: 79eccbcec57f4f84d1fdbaee67bbfd883a9ea7ec25f8b1cb748f8b3d3d10d919
+
+PASS: TestLocal/asyncFunctionDeclaration11_es6.ts/type
+baseline: conformance/asyncFunctionDeclaration11_es6.types
+reference: 3a5156f01916802595d489a441bb1b8261719643ecd51445ba8d1c6157200c24
+actual: 3a5156f01916802595d489a441bb1b8261719643ecd51445ba8d1c6157200c24
+
+PASS: TestLocal/asyncFunctionDeclaration4_es2017.ts/type
+baseline: conformance/asyncFunctionDeclaration4_es2017.types
+reference: c65ab5f0d7f6ac4178d30077c41bbe974a820dbbed9369641c149f52592310f0
+actual: c65ab5f0d7f6ac4178d30077c41bbe974a820dbbed9369641c149f52592310f0
+
+PASS: TestLocal/autoAccessor2.ts_target=es2015/type
+baseline: conformance/autoAccessor2(target=es2015).types
+reference: d1cc40b5eecd1b85c980693095d086ec286cc7f853d95faf34c334a26936e1e2
+actual: d1cc40b5eecd1b85c980693095d086ec286cc7f853d95faf34c334a26936e1e2
+
+PASS: TestLocal/autoAccessor5.ts_target=es2022/type
+baseline: conformance/autoAccessor5(target=es2022).types
+reference: 227604208219e37e271d5133be59a812a27a2b0fd0fb590873707ed9d45579c8
+actual: 227604208219e37e271d5133be59a812a27a2b0fd0fb590873707ed9d45579c8
+
+PASS: TestLocal/autoAccessor6.ts_target=es2015,usedefineforclassfields=true/type
+baseline: conformance/autoAccessor6(target=es2015,usedefineforclassfields=true).types
+reference: 5beb701ed9e1177098cdaa1761ee5f0a80bdeae17048c83d62775058ed7c493a
+actual: 5beb701ed9e1177098cdaa1761ee5f0a80bdeae17048c83d62775058ed7c493a
+
+PASS: TestLocal/autoAccessor6.ts_target=es2022,usedefineforclassfields=false/type
+baseline: conformance/autoAccessor6(target=es2022,usedefineforclassfields=false).types
+reference: 5beb701ed9e1177098cdaa1761ee5f0a80bdeae17048c83d62775058ed7c493a
+actual: 5beb701ed9e1177098cdaa1761ee5f0a80bdeae17048c83d62775058ed7c493a
+
+PASS: TestLocal/awaitBinaryExpression2_es2017.ts/type
+baseline: conformance/awaitBinaryExpression2_es2017.types
+reference: 29376d1d42ddd9da6d694f220f5073de39e6766423bb0cdcee8384207dc86a76
+actual: 29376d1d42ddd9da6d694f220f5073de39e6766423bb0cdcee8384207dc86a76
+
+PASS: TestLocal/awaitBinaryExpression2_es6.ts/type
+baseline: conformance/awaitBinaryExpression2_es6.types
+reference: fcc034fbef78109a6703fcca076beed6030a6600ee4827fcc16d86dd286bf87f
+actual: fcc034fbef78109a6703fcca076beed6030a6600ee4827fcc16d86dd286bf87f
+
+PASS: TestLocal/awaitCallExpression7_es6.ts/type
+baseline: conformance/awaitCallExpression7_es6.types
+reference: 0accdb59aa5ea4a0247aab863334b18431ab45ee55b002034b01c0605bd9e428
+actual: 0accdb59aa5ea4a0247aab863334b18431ab45ee55b002034b01c0605bd9e428
+
+PASS: TestLocal/bigintMissingES2019.ts/type
+baseline: conformance/bigintMissingES2019.types
+reference: 6669b65f7981d0f9a93eb89d976f44973018bc099c9b78f8b17c438fd22fb1a8
+actual: 6669b65f7981d0f9a93eb89d976f44973018bc099c9b78f8b17c438fd22fb1a8
+
+PASS: TestLocal/bundlerImportTsExtensions.ts_allowimportingtsextensions=false,noemit=true/type
+baseline: conformance/bundlerImportTsExtensions(allowimportingtsextensions=false,noemit=true).types
+reference: 498c9871a25dd7e601be95537b765ddcc15b983d947db85c89a1a6121dd0713f
+actual: 498c9871a25dd7e601be95537b765ddcc15b983d947db85c89a1a6121dd0713f
+
+FAIL: TestLocal/callChain.ts/type
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/callChain.types has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/callChain.types
+reference: 0c87d534ca71b0f464050155be588514ace7308169978c2033648aefd46a1596
+actual: 64befc6df9ca3aeac60c49d3f396351079462cd2f54a4557f6b2740ea59d243b
+--- expected/conformance/callChain.types
++++ actual/conformance/callChain.types
+@@ -110,8 +110,8 @@
+ declare const o3: { b: ((...args: any[]) => { c: string }) | undefined };
+ >o3 : { b: ((...args: any[]) => { c: string; }) | undefined; }
+ >b : ((...args: any[]) => { c: string; }) | undefined
++>c : string
+ >args : any[]
+->c : string
+ 
+ o3.b?.().c;
+ >o3.b?.().c : string | undefined
+
+PASS: TestLocal/callOverload.ts/type
+baseline: conformance/callOverload.types
+reference: 8346e6d8662e8c90f5fcee59c7c2d33134372fbcca355cd2b22a72784f27197c
+actual: 8346e6d8662e8c90f5fcee59c7c2d33134372fbcca355cd2b22a72784f27197c
+
+FAIL: TestLocal/callbackTag4.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/jsdoc/callbackTag4.ts:
+        runtime error: slice bounds out of range [12:10]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/checkJsdocSatisfiesTag2.ts/type
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/checkJsdocSatisfiesTag2.types has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/checkJsdocSatisfiesTag2.types
+reference: 8f9584f1f511a50c9a282c9376458034a841f3d86cdd0589f6d98db4fa906ebb
+actual: 6fad2a703dbe8efd717c0e8e7c77d41157f5b373c3c418f7c85384b0643ae256
+--- expected/conformance/checkJsdocSatisfiesTag2.types
++++ actual/conformance/checkJsdocSatisfiesTag2.types
+@@ -11,22 +11,22 @@
+     isEven: n => n % 2 === 0,
+ >isEven : (n: number) => boolean
+ >n => n % 2 === 0 : (n: number) => boolean
+->n : number
+ >n % 2 === 0 : boolean
+ >n % 2 : number
+ >n : number
+ >2 : 2
+ >0 : 0
++>n : number
+ 
+     isOdd: n => n % 2 === 1
+ >isOdd : (n: number) => boolean
+ >n => n % 2 === 1 : (n: number) => boolean
+->n : number
+ >n % 2 === 1 : boolean
+ >n % 2 : number
+ >n : number
+ >2 : 2
+ >1 : 1
++>n : number
+ 
+ });
+ 
+
+PASS: TestLocal/checkJsdocSatisfiesTag8.ts/type
+baseline: conformance/checkJsdocSatisfiesTag8.types
+reference: 9c785dcbd6f0af5e2e740d27fcd1981a07f73c673d0fd25aa818eed793dc8198
+actual: 9c785dcbd6f0af5e2e740d27fcd1981a07f73c673d0fd25aa818eed793dc8198
+
+PASS: TestLocal/classConstructorAccessibility5.ts/type
+baseline: conformance/classConstructorAccessibility5.types
+reference: 570b04625d46e54c77418c238da51f82d65a1e6b0638e6dc8705fc7852fa959e
+actual: 570b04625d46e54c77418c238da51f82d65a1e6b0638e6dc8705fc7852fa959e
+
+PASS: TestLocal/classInsideBlock.ts/type
+baseline: conformance/classInsideBlock.types
+reference: 4d1c1ca8ac2e474e498cbab71a4670f2fc9bc1ee293ca36c39b4af1135501f07
+actual: 4d1c1ca8ac2e474e498cbab71a4670f2fc9bc1ee293ca36c39b4af1135501f07
+
+PASS: TestLocal/classStaticBlock3.ts_target=es2022/type
+baseline: conformance/classStaticBlock3(target=es2022).types
+reference: 6f631cf4406f01fb860f434b7a90492e3fcca6a1fd0255fc3cb02713ec78f090
+actual: 6f631cf4406f01fb860f434b7a90492e3fcca6a1fd0255fc3cb02713ec78f090
+
+FAIL: TestLocal/commonJSAliasedExport.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/salsa/commonJSAliasedExport.ts:
+        runtime error: slice bounds out of range [4:3]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/comparisonOperatorWithNoRelationshipObjectsOnConstructorSignature.ts/type
+baseline: conformance/comparisonOperatorWithNoRelationshipObjectsOnConstructorSignature.types
+reference: 66e60986a48bf666b973b4b4123b7a0a7b6bf7e1ea4d5e26016a223dce120173
+actual: 66e60986a48bf666b973b4b4123b7a0a7b6bf7e1ea4d5e26016a223dce120173
+
+FAIL: TestLocal/comparisonOperatorWithOneOperandIsUndefined.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/expressions/binaryOperators/comparisonOperator/comparisonOperatorWithOneOperandIsUndefined.ts:
+        runtime error: slice bounds out of range [22:5]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/comparisonOperatorWithSubtypeObjectOnCallSignature.ts/type
+baseline: conformance/comparisonOperatorWithSubtypeObjectOnCallSignature.types
+reference: 3db456a5cf77d150a77153863c294f2c01acd581a2bbe1ab975ce57249e1da89
+actual: 3db456a5cf77d150a77153863c294f2c01acd581a2bbe1ab975ce57249e1da89
+
+PASS: TestLocal/comparisonOperatorWithSubtypeObjectOnIndexSignature.ts/type
+baseline: conformance/comparisonOperatorWithSubtypeObjectOnIndexSignature.types
+reference: 6195809e9332d05460d61b4d9a79b3ddcc0a4469e84bc95edf697e317b1fee09
+actual: 6195809e9332d05460d61b4d9a79b3ddcc0a4469e84bc95edf697e317b1fee09
+
+PASS: TestLocal/comparisonOperatorWithSubtypeObjectOnProperty.ts/type
+baseline: conformance/comparisonOperatorWithSubtypeObjectOnProperty.types
+reference: 3220e7b4f712708772c457697814582ad6821ed479644793a88571845fecb869
+actual: 3220e7b4f712708772c457697814582ad6821ed479644793a88571845fecb869
+
+PASS: TestLocal/compoundAssignmentLHSIsValue.ts/type
+baseline: conformance/compoundAssignmentLHSIsValue.types
+reference: 91d791e16f76207fe018bc9ab3768a7e8b11b8ef539e9555ad522ce94a5b07b8
+actual: 91d791e16f76207fe018bc9ab3768a7e8b11b8ef539e9555ad522ce94a5b07b8
+
+PASS: TestLocal/computedPropertyNames28_ES6.ts/type
+baseline: conformance/computedPropertyNames28_ES6.types
+reference: cff1aa3cb56171d6ec29b29b1ab610df873d012a9ebb56701b6eab97abcc92e1
+actual: cff1aa3cb56171d6ec29b29b1ab610df873d012a9ebb56701b6eab97abcc92e1
+
+PASS: TestLocal/computedPropertyNames3_ES6.ts/type
+baseline: conformance/computedPropertyNames3_ES6.types
+reference: cc5922d7eef41ccbe7f22937332904d6a462d23301fa23f2d4fe1e62ba02c3fc
+actual: cc5922d7eef41ccbe7f22937332904d6a462d23301fa23f2d4fe1e62ba02c3fc
+
+PASS: TestLocal/computedPropertyNames6_ES6.ts/type
+baseline: conformance/computedPropertyNames6_ES6.types
+reference: 4547ee190da36ea6c78690e933ebe2d3ccf307fd864b1d296e5dd976bf00ff35
+actual: 4547ee190da36ea6c78690e933ebe2d3ccf307fd864b1d296e5dd976bf00ff35
+
+PASS: TestLocal/computedPropertyNamesDeclarationEmit3_ES6.ts/type
+baseline: conformance/computedPropertyNamesDeclarationEmit3_ES6.types
+reference: 57b8c0cede82356b134bacc87714df49b3d89a1d4b494180de4d43958f000a06
+actual: 57b8c0cede82356b134bacc87714df49b3d89a1d4b494180de4d43958f000a06
+
+PASS: TestLocal/computedPropertyNamesSourceMap2_ES5.ts_target=es2015/type
+baseline: conformance/computedPropertyNamesSourceMap2_ES5(target=es2015).types
+reference: 754b9a1f2d5aed20a58c6f09fbfecb26c1b63420bca1066682cbecdc3012434b
+actual: 754b9a1f2d5aed20a58c6f09fbfecb26c1b63420bca1066682cbecdc3012434b
+
+PASS: TestLocal/constEnum3.ts/type
+baseline: conformance/constEnum3.types
+reference: 831994fddf699a393c1278d036a4a28ca5a99b4bd4fd3599d4edcee225481887
+actual: 831994fddf699a393c1278d036a4a28ca5a99b4bd4fd3599d4edcee225481887
+
+PASS: TestLocal/constEnumInNamespace.ts_preserveconstenums=false/type
+baseline: conformance/constEnumInNamespace(preserveconstenums=false).types
+reference: d3751d20e79bb38bb77d2a0495f1060d127fd37fe9fdf6e0893af957899ac893
+actual: d3751d20e79bb38bb77d2a0495f1060d127fd37fe9fdf6e0893af957899ac893
+
+FAIL: TestLocal/constructorParameterShadowsOuterScopes.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/classes/propertyMemberDeclarations/constructorParameterShadowsOuterScopes.ts:
+        runtime error: slice bounds out of range [10:9]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/contextualTypedSpecialAssignment.ts/type
+baseline: conformance/contextualTypedSpecialAssignment.types
+reference: 5d84c13a4f0f4cf41cb4e17c9f912b1cfca872c58f0614d54d51c9e855e71ffd
+actual: 5d84c13a4f0f4cf41cb4e17c9f912b1cfca872c58f0614d54d51c9e855e71ffd
+
+PASS: TestLocal/controlFlowDeleteOperator.ts/type
+baseline: conformance/controlFlowDeleteOperator.types
+reference: 0776e3c4fc87de66f2bba55f0e5a8e79b9e046cb5b6ec3eed4630aa81936cece
+actual: 0776e3c4fc87de66f2bba55f0e5a8e79b9e046cb5b6ec3eed4630aa81936cece
+
+FAIL: TestLocal/correctlyMarkAliasAsReferences3.tsx/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/jsx/correctlyMarkAliasAsReferences3.tsx:
+        runtime error: slice bounds out of range [9:8]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/declarationEmitThisPredicatesWithPrivateName02.ts/type
+baseline: conformance/declarationEmitThisPredicatesWithPrivateName02.types
+reference: 8d7ffe0cb8b9b6e73e107cbaf7145d7921702ca78098a8a5532c230ae3428e92
+actual: 8d7ffe0cb8b9b6e73e107cbaf7145d7921702ca78098a8a5532c230ae3428e92
+
+PASS: TestLocal/declarationFileForJsonImport.ts_resolvejsonmodule=true/type
+baseline: conformance/declarationFileForJsonImport(resolvejsonmodule=true).types
+reference: 1a6a1c616a6d97362d6bf329742a81ff31e40dc38aa936d1ef732107cf6be07c
+actual: 1a6a1c616a6d97362d6bf329742a81ff31e40dc38aa936d1ef732107cf6be07c
+
+FAIL: TestLocal/decoratorOnClass2.es6.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/es6/decorators/class/decoratorOnClass2.es6.ts:
+        runtime error: slice bounds out of range [4:3]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/decoratorOnClassAccessor2.ts_target=es2015/type
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/decoratorOnClassAccessor2(target=es2015).types has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/decoratorOnClassAccessor2(target=es2015).types
+reference: 99da153cbe1c09f75f81076cc796016a788daa422a23ab40f108147837c6ca70
+actual: 175cd7b5f7c8a4ce27d9420f7016fb7fef04491cfc66dc1392cce22ca31be5ac
+--- expected/conformance/decoratorOnClassAccessor2(target=es2015).types
++++ actual/conformance/decoratorOnClassAccessor2(target=es2015).types
+@@ -11,7 +11,7 @@
+ >C : C
+ 
+     @dec public get accessor() { return 1; }
+->dec : <T>(target: any, propertyKey: string, descriptor: TypedPropertyDescriptor<T>) => TypedPropertyDescriptor<T>
+ >accessor : number
+ >1 : 1
++>dec : <T>(target: any, propertyKey: string, descriptor: TypedPropertyDescriptor<T>) => TypedPropertyDescriptor<T>
+ }
+
+PASS: TestLocal/decoratorOnClassConstructor1.ts_target=es2015/type
+baseline: conformance/decoratorOnClassConstructor1(target=es2015).types
+reference: fab350973a6bc03cb569dfc08782be90816dc8e05e97512187c14e0c944242de
+actual: fab350973a6bc03cb569dfc08782be90816dc8e05e97512187c14e0c944242de
+
+FAIL: TestLocal/decoratorOnClassMethod1.es6.ts/type
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/decoratorOnClassMethod1.es6.types has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/decoratorOnClassMethod1.es6.types
+reference: 7af9de43698cfbff09ad72cae3ef53ebe2af875f14e770356fcda5a1fb5c1d96
+actual: a181af1a9b7e658b2b82d87b247cfb586a1c6fcf49626da2d6546e83f3382dc1
+--- expected/conformance/decoratorOnClassMethod1.es6.types
++++ actual/conformance/decoratorOnClassMethod1.es6.types
+@@ -9,6 +9,6 @@
+ 
+ export default class {
+     @dec method() {}
++>method : () => void
+ >dec : <T>(target: any, propertyKey: string, descriptor: TypedPropertyDescriptor<T>) => TypedPropertyDescriptor<T>
+->method : () => void
+ }
+
+FAIL: TestLocal/decoratorOnClassMethod13.ts/type
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/decoratorOnClassMethod13.types has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/decoratorOnClassMethod13.types
+reference: 29efba23081bdbd73f9627b69296be9e0ac772fca6399d7bcc12b008411280fb
+actual: 40c459201ef9ffce8749a2299062a485d3f40d5aa794231fca094c6d6879277f
+--- expected/conformance/decoratorOnClassMethod13.types
++++ actual/conformance/decoratorOnClassMethod13.types
+@@ -11,12 +11,12 @@
+ >C : C
+ 
+     @dec ["1"]() { }
+->dec : <T>(target: any, propertyKey: string, descriptor: TypedPropertyDescriptor<T>) => TypedPropertyDescriptor<T>
+ >["1"] : () => void
+ >"1" : "1"
++>dec : <T>(target: any, propertyKey: string, descriptor: TypedPropertyDescriptor<T>) => TypedPropertyDescriptor<T>
+ 
+     @dec ["b"]() { }
+->dec : <T>(target: any, propertyKey: string, descriptor: TypedPropertyDescriptor<T>) => TypedPropertyDescriptor<T>
+ >["b"] : () => void
+ >"b" : "b"
++>dec : <T>(target: any, propertyKey: string, descriptor: TypedPropertyDescriptor<T>) => TypedPropertyDescriptor<T>
+ }
+
+FAIL: TestLocal/decoratorOnClassMethodParameter3.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/decorators/class/method/parameter/decoratorOnClassMethodParameter3.ts:
+        runtime error: slice bounds out of range [7:3]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/decoratorOnClassProperty7.ts_target=es2015/type
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/decoratorOnClassProperty7(target=es2015).types has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/decoratorOnClassProperty7(target=es2015).types
+reference: 476f2a2a78acc5e94b00972f4d7e4382a45810b953143e25675643bb53707854
+actual: e39133672cd11beea6ca54ff41e02d1016ef975e7fa8396f5446a823ccce0306
+--- expected/conformance/decoratorOnClassProperty7(target=es2015).types
++++ actual/conformance/decoratorOnClassProperty7(target=es2015).types
+@@ -11,6 +11,6 @@
+ >C : C
+ 
+     @dec prop;
++>prop : any
+ >dec : (target: Function, propertyKey: string | symbol, paramIndex: number) => void
+->prop : any
+ }
+
+FAIL: TestLocal/deepElementAccessExpressionInJS.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/salsa/deepElementAccessExpressionInJS.ts:
+        runtime error: slice bounds out of range [5:3]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/deleteOperatorWithStringType.ts/type
+baseline: conformance/deleteOperatorWithStringType.types
+reference: 8a1b3e0079c90691b4989c0ae2b1e9e97dab0e8a8ef9395b198b4466fab58b0d
+actual: 8a1b3e0079c90691b4989c0ae2b1e9e97dab0e8a8ef9395b198b4466fab58b0d
+
+FAIL: TestLocal/derivedClassSuperCallsWithThisArg.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/classes/constructorDeclarations/superCalls/derivedClassSuperCallsWithThisArg.ts:
+        runtime error: slice bounds out of range [14:13]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/derivedClassTransitivity.ts/type
+baseline: conformance/derivedClassTransitivity.types
+reference: c032ccc0600f0c4056a7589c6a54b5fa91d2e5c078adfb6161ce37f83e73a4bf
+actual: c032ccc0600f0c4056a7589c6a54b5fa91d2e5c078adfb6161ce37f83e73a4bf
+
+PASS: TestLocal/derivedClassTransitivity2.ts/type
+baseline: conformance/derivedClassTransitivity2.types
+reference: 6b432eebdbb7b4d2ebd9c596b6ceccda6225aac7bdc19ca10ccc09ea746d0c11
+actual: 6b432eebdbb7b4d2ebd9c596b6ceccda6225aac7bdc19ca10ccc09ea746d0c11
+
+PASS: TestLocal/destructuringVariableDeclaration1ES6.ts/type
+baseline: conformance/destructuringVariableDeclaration1ES6.types
+reference: f8e8bb612757a62693ac4880c35b821feefb328c65c6f0e142df31ae857d659e
+actual: f8e8bb612757a62693ac4880c35b821feefb328c65c6f0e142df31ae857d659e
+
+PASS: TestLocal/dynamicImportDeferInvalidStandalone.ts/type
+baseline: conformance/dynamicImportDeferInvalidStandalone.types
+reference: e50245c4adda68fb2271b464a0c2fc3ba35b141adb6c1afc98eb77c033d5d35d
+actual: e50245c4adda68fb2271b464a0c2fc3ba35b141adb6c1afc98eb77c033d5d35d
+
+PASS: TestLocal/emitArrowFunctionWhenUsingArguments03_ES6.ts_alwaysstrict=true/type
+baseline: conformance/emitArrowFunctionWhenUsingArguments03_ES6(alwaysstrict=true).types
+reference: b929a1a75fad41ce1a16834096341ee02f84349c7aacc45cf35e54616d6e9b70
+actual: b929a1a75fad41ce1a16834096341ee02f84349c7aacc45cf35e54616d6e9b70
+
+FAIL: TestLocal/emitArrowFunctionWhenUsingArguments09.ts_target=es2015/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/es6/arrowFunction/emitArrowFunctionWhenUsingArguments09.ts:
+        runtime error: slice bounds out of range [2:1]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/emitClassDeclarationWithStaticPropertyAssignmentInES6.ts/type
+baseline: conformance/emitClassDeclarationWithStaticPropertyAssignmentInES6.types
+reference: 6a912658fc412b3f34cdfbc5ef205d56b9343c3ef3f7e84a29521d98432e0414
+actual: 6a912658fc412b3f34cdfbc5ef205d56b9343c3ef3f7e84a29521d98432e0414
+
+PASS: TestLocal/emitCompoundExponentiationOperator1.ts_target=es2015/type
+baseline: conformance/emitCompoundExponentiationOperator1(target=es2015).types
+reference: 1957a3fac51e3da0dc4571fe64b54165846819928dce124d8a8f3498c525ec1a
+actual: 1957a3fac51e3da0dc4571fe64b54165846819928dce124d8a8f3498c525ec1a
+
+PASS: TestLocal/emitRestParametersFunctionProperty.ts_target=es2015/type
+baseline: conformance/emitRestParametersFunctionProperty(target=es2015).types
+reference: f06cdc100fec98bfda628e22ceebe1a787ac68ce5cd89cf72666942c652bd51b
+actual: f06cdc100fec98bfda628e22ceebe1a787ac68ce5cd89cf72666942c652bd51b
+
+FAIL: TestLocal/emptyObjectBindingPatternParameter02.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/es6/destructuring/emptyObjectBindingPatternParameter02.ts:
+        runtime error: slice bounds out of range [2:1]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/emptyVariableDeclarationBindingPatterns01_ES5iterable.ts_target=es2015/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/es6/destructuring/emptyVariableDeclarationBindingPatterns01_ES5iterable.ts:
+        runtime error: slice bounds out of range [24:23]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/everyTypeAssignableToAny.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/types/typeRelationships/assignmentCompatibility/everyTypeAssignableToAny.ts:
+        runtime error: slice bounds out of range [54:51]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/exponentiationOperatorSyntaxError2.ts_target=es2015/type
+baseline: conformance/exponentiationOperatorSyntaxError2(target=es2015).types
+reference: 113f04262f03025e88c7ec9f0be5f8db26de284513aa497c6f549a1ccd0a5c0d
+actual: 113f04262f03025e88c7ec9f0be5f8db26de284513aa497c6f549a1ccd0a5c0d
+
+PASS: TestLocal/exportAsNamespace1.ts_module=esnext/type
+baseline: conformance/exportAsNamespace1(module=esnext).types
+reference: 8cb5f78f303a4e0bf8d1f94a87cace6b873a25c1008b02432bd69f414983a1c7
+actual: 8cb5f78f303a4e0bf8d1f94a87cace6b873a25c1008b02432bd69f414983a1c7
+
+PASS: TestLocal/exportNamespace4.ts/type
+baseline: conformance/exportNamespace4.types
+reference: 715c60fb947551500c272908a60099c01d4b8036b22c62b1b63e254d4d2c8534
+actual: 715c60fb947551500c272908a60099c01d4b8036b22c62b1b63e254d4d2c8534
+
+PASS: TestLocal/exportSpecifiers.ts/type
+baseline: conformance/exportSpecifiers.types
+reference: f2328cd94af27fd2c474ae2009d26dce2d84d732dc0fae76f6acf06b9604c5fc
+actual: f2328cd94af27fd2c474ae2009d26dce2d84d732dc0fae76f6acf06b9604c5fc
+
+PASS: TestLocal/exportsAndImportsWithUnderscores4.ts_target=es2015/type
+baseline: conformance/exportsAndImportsWithUnderscores4(target=es2015).types
+reference: d73fc0259871fb777aed605867a6e77bad8a9a7c9b2d30d188b71650f905801f
+actual: d73fc0259871fb777aed605867a6e77bad8a9a7c9b2d30d188b71650f905801f
+
+PASS: TestLocal/extendNumberInterface.ts/type
+baseline: conformance/extendNumberInterface.types
+reference: 7abf05f7cf56fa6a8c876fc12f9f888e376ca10c9ada853176693954425c8340
+actual: 7abf05f7cf56fa6a8c876fc12f9f888e376ca10c9ada853176693954425c8340
+
+PASS: TestLocal/extendsTag1.ts/type
+baseline: conformance/extendsTag1.types
+reference: 0bf7d205819f139ebcc27dd662d2ef4566e74688bcd9c0fa93e28ffc41107907
+actual: 0bf7d205819f139ebcc27dd662d2ef4566e74688bcd9c0fa93e28ffc41107907
+
+FAIL: TestLocal/extendsTag5.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/jsdoc/extendsTag5.ts:
+        runtime error: slice bounds out of range [16:15]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/for-of31.ts/type
+baseline: conformance/for-of31.types
+reference: 585f0fcfdc0d7da94059bb0ddd2a62edcb071fc3239806ce00eb3bb9e65439ab
+actual: 585f0fcfdc0d7da94059bb0ddd2a62edcb071fc3239806ce00eb3bb9e65439ab
+
+PASS: TestLocal/for-of43.ts/type
+baseline: conformance/for-of43.types
+reference: 9c564bb07ee90f73d2792c057704a8f58317a15ebcf84abed2e314e776fa0096
+actual: 9c564bb07ee90f73d2792c057704a8f58317a15ebcf84abed2e314e776fa0096
+
+PASS: TestLocal/functionLiterals.ts/type
+baseline: conformance/functionLiterals.types
+reference: ca436d3755a3d256ab3a1a5fbc93a31686803cbb6a8dad3a40844f8efaa0db8f
+actual: ca436d3755a3d256ab3a1a5fbc93a31686803cbb6a8dad3a40844f8efaa0db8f
+
+PASS: TestLocal/generatorInAmbientContext1.ts/type
+baseline: conformance/generatorInAmbientContext1.types
+reference: edba3ea23b7942b8a70000f5c48f1372c61b58cde02a328b3210c86fcd335f45
+actual: edba3ea23b7942b8a70000f5c48f1372c61b58cde02a328b3210c86fcd335f45
+
+PASS: TestLocal/generatorInAmbientContext3.d.ts/type
+baseline: conformance/generatorInAmbientContext3.d.types
+reference: 5d1b2ddd83e3b954b23f696d0f88bc54a8a3623a95b78aa2126d1bb2eb80591a
+actual: 5d1b2ddd83e3b954b23f696d0f88bc54a8a3623a95b78aa2126d1bb2eb80591a
+
+PASS: TestLocal/generatorTypeCheck11.ts/type
+baseline: conformance/generatorTypeCheck11.types
+reference: b27985128c9d7bb208e5cd5b0f4e2c49e5e6097f159f255f4ca9dca6712e539a
+actual: b27985128c9d7bb208e5cd5b0f4e2c49e5e6097f159f255f4ca9dca6712e539a
+
+PASS: TestLocal/generatorTypeCheck17.ts/type
+baseline: conformance/generatorTypeCheck17.types
+reference: ef4233457ec56a4d2524de53ff6af4fdbf51802bdbae13cd60ddba0ab9b5ae33
+actual: ef4233457ec56a4d2524de53ff6af4fdbf51802bdbae13cd60ddba0ab9b5ae33
+
+FAIL: TestLocal/generatorTypeCheck63.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/es6/yieldExpressions/generatorTypeCheck63.ts:
+        runtime error: slice bounds out of range [11:6]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/genericTypeReferenceWithoutTypeArgument2.ts/type
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/genericTypeReferenceWithoutTypeArgument2.types has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/genericTypeReferenceWithoutTypeArgument2.types
+reference: 8fe4eff472d24d9c77c7d44257e56bfadf652a4015a15ec1b7acb62926b263f7
+actual: ce8112298e429fb6f59c6144bd2c75febf5435149b5ebb9d865e5a9c5f7d8ac0
+--- expected/conformance/genericTypeReferenceWithoutTypeArgument2.types
++++ actual/conformance/genericTypeReferenceWithoutTypeArgument2.types
+@@ -27,23 +27,23 @@
+ var e = (x: I) => { var y: I; return y; }
+ >e : (x: I) => any
+ >(x: I) => { var y: I; return y; } : (x: I) => any
+->x : any
+ >y : any
+ >y : any
++>x : any
+ 
+ function f(x: I): I { var y: I; return y; }
+ >f : (x: I) => I
+->x : any
+ >y : any
+ >y : any
++>x : any
+ 
+ var g = function f(x: I): I { var y: I; return y; }
+ >g : (x: I) => I
+ >function f(x: I): I { var y: I; return y; } : (x: I) => I
+ >f : (x: I) => I
+->x : any
+ >y : any
+ >y : any
++>x : any
+ 
+ class D extends I {
+ >D : D
+
+PASS: TestLocal/globalMergeWithCommonJSAssignmentDeclaration.ts/type
+baseline: conformance/globalMergeWithCommonJSAssignmentDeclaration.types
+reference: 24dd48c9ac79d9c8581ea7922fe13727e2d80654cc4388fe31370d51a4238fe2
+actual: 24dd48c9ac79d9c8581ea7922fe13727e2d80654cc4388fe31370d51a4238fe2
+
+PASS: TestLocal/implementingAnInterfaceExtendingClassWithProtecteds.ts/type
+baseline: conformance/implementingAnInterfaceExtendingClassWithProtecteds.types
+reference: de0dcfa74add317832409d60d125d07906e9727832ef9ddf821de4956b4b8a9f
+actual: de0dcfa74add317832409d60d125d07906e9727832ef9ddf821de4956b4b8a9f
+
+PASS: TestLocal/importAttributes1.ts_module=commonjs/type
+baseline: conformance/importAttributes1(module=commonjs).types
+reference: 7bdccd4e3936c3d262936dbb2343092e032eef502aa84cc317206651ceb5c96e
+actual: 7bdccd4e3936c3d262936dbb2343092e032eef502aa84cc317206651ceb5c96e
+
+PASS: TestLocal/importDeferTypeConflict2.ts/type
+baseline: conformance/importDeferTypeConflict2.types
+reference: acda76b398e96f47c91286e6f9f993ef8c0f904d2f8a4b8d597aefed8dfd05f4
+actual: acda76b398e96f47c91286e6f9f993ef8c0f904d2f8a4b8d597aefed8dfd05f4
+
+PASS: TestLocal/importTag14.ts/type
+baseline: conformance/importTag14.types
+reference: 70842b267b08e8c5c157b70418daac3f5568297cba03579fc23e7f4ffd00f8c7
+actual: 70842b267b08e8c5c157b70418daac3f5568297cba03579fc23e7f4ffd00f8c7
+
+PASS: TestLocal/importTag25.ts/type
+baseline: conformance/importTag25.types
+reference: 26066fd2544d8ad5a0f9e26ab910e28a0887270ff43ded200bd7a2ef248112c9
+actual: 26066fd2544d8ad5a0f9e26ab910e28a0887270ff43ded200bd7a2ef248112c9
+
+PASS: TestLocal/importTag9.ts/type
+baseline: conformance/importTag9.types
+reference: 3d4a972d6d08115a31dc536e19e2a22d9423824d664b8df21f6c081077bce1f6
+actual: 3d4a972d6d08115a31dc536e19e2a22d9423824d664b8df21f6c081077bce1f6
+
+PASS: TestLocal/inferThis.ts/type
+baseline: conformance/inferThis.types
+reference: 5d7f7d10ec57f1088998c493ca01007b9e9e3e8b7b30ddd722a34db248d0454c
+actual: 5d7f7d10ec57f1088998c493ca01007b9e9e3e8b7b30ddd722a34db248d0454c
+
+FAIL: TestLocal/inferTypesWithExtends1.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/types/conditional/inferTypesWithExtends1.ts:
+        runtime error: slice bounds out of range [14:12]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/initializationOrdering1.ts_target=esnext,usedefineforclassfields=false/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/classes/propertyMemberDeclarations/initializationOrdering1.ts:
+        runtime error: slice bounds out of range [9:8]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/initializationOrdering1.ts_target=esnext,usedefineforclassfields=true/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/classes/propertyMemberDeclarations/initializationOrdering1.ts:
+        runtime error: slice bounds out of range [9:8]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/innerTypeParameterShadowingOuterOne.ts/type
+baseline: conformance/innerTypeParameterShadowingOuterOne.types
+reference: cd1d6a1bb19fb643c082add2da148319dcffee62ce95b1c5ddd5365c65083344
+actual: cd1d6a1bb19fb643c082add2da148319dcffee62ce95b1c5ddd5365c65083344
+
+PASS: TestLocal/instanceMemberWithComputedPropertyName.ts/type
+baseline: conformance/instanceMemberWithComputedPropertyName.types
+reference: 1869a5f1350259cfb11c1613c13247b2a65ce104963e746ce8cef55434311944
+actual: 1869a5f1350259cfb11c1613c13247b2a65ce104963e746ce8cef55434311944
+
+PASS: TestLocal/interfaceWithCallSignaturesThatHidesBaseSignature.ts/type
+baseline: conformance/interfaceWithCallSignaturesThatHidesBaseSignature.types
+reference: 462c112b763df36d7de1a5769659cd3a6801e7a1f5435ab9dd32abaed7952605
+actual: 462c112b763df36d7de1a5769659cd3a6801e7a1f5435ab9dd32abaed7952605
+
+PASS: TestLocal/intersectionTypeOverloading.ts/type
+baseline: conformance/intersectionTypeOverloading.types
+reference: 0e98a992e6a2b8de4bc2583c413bd36c80a1557c8703c31432e6a11cd3142776
+actual: 0e98a992e6a2b8de4bc2583c413bd36c80a1557c8703c31432e6a11cd3142776
+
+PASS: TestLocal/invalidModuleWithStatementsOfEveryKind.ts/type
+baseline: conformance/invalidModuleWithStatementsOfEveryKind.types
+reference: 063095b66698177f94e0d5da89171101e0fbd6503e3bf66566dc298bfb835614
+actual: 063095b66698177f94e0d5da89171101e0fbd6503e3bf66566dc298bfb835614
+
+PASS: TestLocal/iterableArrayPattern17.ts/type
+baseline: conformance/iterableArrayPattern17.types
+reference: 83d50e3ca4991df3ef9e96869e545746f7b8bec443e30d0e780779372289f5ab
+actual: 83d50e3ca4991df3ef9e96869e545746f7b8bec443e30d0e780779372289f5ab
+
+PASS: TestLocal/iterableArrayPattern26.ts/type
+baseline: conformance/iterableArrayPattern26.types
+reference: 915e06c1321c3eb157c519f3690829f401c0e389da215f93861e9b94a2b18ea0
+actual: 915e06c1321c3eb157c519f3690829f401c0e389da215f93861e9b94a2b18ea0
+
+PASS: TestLocal/iterableArrayPattern4.ts/type
+baseline: conformance/iterableArrayPattern4.types
+reference: 4dc5c6e37ae7a287a4fbde94fe8e9a50b6330d897e6dfd94322372b2cddee740
+actual: 4dc5c6e37ae7a287a4fbde94fe8e9a50b6330d897e6dfd94322372b2cddee740
+
+PASS: TestLocal/jsContainerMergeTsDeclaration2.ts/type
+baseline: conformance/jsContainerMergeTsDeclaration2.types
+reference: 093f836bfd058e2f01bcb1b9c45d043dde4c0d557a358fba33ee6edf0495479b
+actual: 093f836bfd058e2f01bcb1b9c45d043dde4c0d557a358fba33ee6edf0495479b
+
+PASS: TestLocal/jsDeclarationsClassExtendsVisibility.ts_target=es2015/type
+baseline: conformance/jsDeclarationsClassExtendsVisibility(target=es2015).types
+reference: 6b4dae6f80d26995d0ca23a24e5faadffcb8eaa6abc865dd3f2558beff3027a7
+actual: 6b4dae6f80d26995d0ca23a24e5faadffcb8eaa6abc865dd3f2558beff3027a7
+
+FAIL: TestLocal/jsDeclarationsClassLeadingOptional.ts_target=es2015/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/jsdoc/declarations/jsDeclarationsClassLeadingOptional.ts:
+        runtime error: slice bounds out of range [3:2]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/jsDeclarationsExportAssignedClassExpressionAnonymous.ts_target=es2015/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/jsdoc/declarations/jsDeclarationsExportAssignedClassExpressionAnonymous.ts:
+        runtime error: slice bounds out of range [6:5]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/jsDeclarationsFunctionsCjs.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/jsdoc/declarations/jsDeclarationsFunctionsCjs.ts:
+        runtime error: slice bounds out of range [29:28]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/jsDeclarationsReexportAliasesEsModuleInterop.ts_target=es2015/type
+baseline: conformance/jsDeclarationsReexportAliasesEsModuleInterop(target=es2015).types
+reference: ff2f4ac35bc70f3dde53fc2b6d2e5641946b6653009ee39c0655e4ce1460bd91
+actual: ff2f4ac35bc70f3dde53fc2b6d2e5641946b6653009ee39c0655e4ce1460bd91
+
+FAIL: TestLocal/jsdocTypeFromChainedAssignment.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/jsdoc/jsdocTypeFromChainedAssignment.ts:
+        runtime error: slice bounds out of range [8:7]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/jsdocTypeTag.ts/type
+baseline: conformance/jsdocTypeTag.types
+reference: 245d102fcad2d49f836596085c1cde8307e93e1a4bbe88a9074384fbde183df6
+actual: 245d102fcad2d49f836596085c1cde8307e93e1a4bbe88a9074384fbde183df6
+
+FAIL: TestLocal/jsxAttributeInitializer.ts_jsx=preserve/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/jsx/jsxAttributeInitializer.ts:
+        runtime error: slice bounds out of range [8:4]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/jsxJsxsCjsTransformNestedSelfClosingChild.tsx_jsx=react-jsxdev/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/jsx/jsxs/jsxJsxsCjsTransformNestedSelfClosingChild.tsx:
+        runtime error: slice bounds out of range [7:6]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/jsxJsxsCjsTransformSubstitutesNames.tsx_jsx=react-jsxdev/type
+baseline: conformance/jsxJsxsCjsTransformSubstitutesNames(jsx=react-jsxdev).types
+reference: 8986374fcfbdcce0df49cf8308970021105978bb6076647ec914e29f97f0cada
+actual: 8986374fcfbdcce0df49cf8308970021105978bb6076647ec914e29f97f0cada
+
+PASS: TestLocal/jsxJsxsCjsTransformSubstitutesNamesFragment.tsx_jsx=react-jsxdev/type
+baseline: conformance/jsxJsxsCjsTransformSubstitutesNamesFragment(jsx=react-jsxdev).types
+reference: 3fe4ee821e84c66999fb8b0efeb4dc709407822641388ea1533bfe789962e5b7
+actual: 3fe4ee821e84c66999fb8b0efeb4dc709407822641388ea1533bfe789962e5b7
+
+FAIL: TestLocal/keyofAndIndexedAccess2.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/types/keyof/keyofAndIndexedAccess2.ts:
+        runtime error: slice bounds out of range [10:1]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/logicalOrOperatorWithEveryType.ts/type
+baseline: conformance/logicalOrOperatorWithEveryType.types
+reference: 8ec8b2c5fed78917a6f009362f913ad50e5401cdb755b9f69c6e3b370e6c4225
+actual: 8ec8b2c5fed78917a6f009362f913ad50e5401cdb755b9f69c6e3b370e6c4225
+
+FAIL: TestLocal/mappedTypes4.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/types/mapped/mappedTypes4.ts:
+        runtime error: slice bounds out of range [16:8]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/mergedClassInterface.ts/type
+baseline: conformance/mergedClassInterface.types
+reference: 1cab4387be040b3272128d87f26e56186ef6c59bd573a70d853125eae59b835a
+actual: 1cab4387be040b3272128d87f26e56186ef6c59bd573a70d853125eae59b835a
+
+PASS: TestLocal/methodSignaturesWithOverloads.ts/type
+baseline: conformance/methodSignaturesWithOverloads.types
+reference: 9d4dc6079ffd6d77b89f476c00732a4b7997833071779b86436f0bb0119b607e
+actual: 9d4dc6079ffd6d77b89f476c00732a4b7997833071779b86436f0bb0119b607e
+
+FAIL: TestLocal/mixinAccessors1.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/classes/mixinAccessors1.ts:
+        runtime error: slice bounds out of range [6:3]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/mixinAccessors5.ts/type
+baseline: conformance/mixinAccessors5.types
+reference: cf8fcb14e88280f14260ea3e05b625ba9d1e562b6afb653f7228290b1a146c2a
+actual: cf8fcb14e88280f14260ea3e05b625ba9d1e562b6afb653f7228290b1a146c2a
+
+PASS: TestLocal/moduleExportAssignment.ts/type
+baseline: conformance/moduleExportAssignment.types
+reference: fc396e5e8eb43815231f31bbd76eeca300e863a4efd7607079af6db092f5d38e
+actual: fc396e5e8eb43815231f31bbd76eeca300e863a4efd7607079af6db092f5d38e
+
+PASS: TestLocal/moduleExportPropertyAssignmentDefault.ts/type
+baseline: conformance/moduleExportPropertyAssignmentDefault.types
+reference: 65a0222e6d834215c7928ecaa13c4644e6232a8d21cac7601d690327979171f8
+actual: 65a0222e6d834215c7928ecaa13c4644e6232a8d21cac7601d690327979171f8
+
+PASS: TestLocal/moduleResolutionWithoutExtension5.ts/type
+baseline: conformance/moduleResolutionWithoutExtension5.types
+reference: f1f3c9f70a95a87878f379389aeee809e30c284748007f2a2a4c4b7d978e1725
+actual: f1f3c9f70a95a87878f379389aeee809e30c284748007f2a2a4c4b7d978e1725
+
+FAIL: TestLocal/multiline.tsx/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/directives/multiline.tsx:
+        runtime error: slice bounds out of range [5:4]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/multipleExportDefault4.ts/type
+baseline: conformance/multipleExportDefault4.types
+reference: 0ff68bf3d04aa43960cc5b88f021111aab83d7abeb7a6dbb96fc6922aef023f7
+actual: 0ff68bf3d04aa43960cc5b88f021111aab83d7abeb7a6dbb96fc6922aef023f7
+
+PASS: TestLocal/multipleExportDefault6.ts/type
+baseline: conformance/multipleExportDefault6.types
+reference: dfce5a01a197f2e365e37ba2a6d784d7efdc207661ffe60b360e116f8c74386f
+actual: dfce5a01a197f2e365e37ba2a6d784d7efdc207661ffe60b360e116f8c74386f
+
+FAIL: TestLocal/noUncheckedIndexedAccess.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/pedantic/noUncheckedIndexedAccess.ts:
+        runtime error: slice bounds out of range [55:53]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/nodeModulesAllowJsConditionalPackageExports.ts_module=node16/type
+baseline: conformance/nodeModulesAllowJsConditionalPackageExports(module=node16).types
+reference: eb0ad0e0ef42cf35753ba8c7d775463be7f6158d547961118a12a4fbfc374441
+actual: eb0ad0e0ef42cf35753ba8c7d775463be7f6158d547961118a12a4fbfc374441
+
+PASS: TestLocal/nodeModulesAllowJsExportlessJsModuleDetectionAuto.ts_module=node16/type
+baseline: conformance/nodeModulesAllowJsExportlessJsModuleDetectionAuto(module=node16).types
+reference: abc5ade76e09132ba3a235215d26c04b0d842c8345764d6e27e42b5f4e21fc58
+actual: abc5ade76e09132ba3a235215d26c04b0d842c8345764d6e27e42b5f4e21fc58
+
+PASS: TestLocal/nodeModulesAllowJsImportHelpersCollisions3.ts_module=node20,target=es2015/type
+baseline: conformance/nodeModulesAllowJsImportHelpersCollisions3(module=node20,target=es2015).types
+reference: 96d6973f5903caa837e00dacf907d8309733bf58a09aff3f604dd74d908af746
+actual: 96d6973f5903caa837e00dacf907d8309733bf58a09aff3f604dd74d908af746
+
+PASS: TestLocal/nodeModulesAllowJsPackageExports.ts_module=node18/type
+baseline: conformance/nodeModulesAllowJsPackageExports(module=node18).types
+reference: 11f31af5748c1e33c74177b9a0c3bf375313a552a3227f67b163205e627b85ba
+actual: 11f31af5748c1e33c74177b9a0c3bf375313a552a3227f67b163205e627b85ba
+
+PASS: TestLocal/nodeModulesAllowJsPackagePatternExports.ts_module=node16/type
+baseline: conformance/nodeModulesAllowJsPackagePatternExports(module=node16).types
+reference: 6e31c23416f221f5990423cefececc643bc1e429db48565d177dfeb58c6aaef4
+actual: 6e31c23416f221f5990423cefececc643bc1e429db48565d177dfeb58c6aaef4
+
+PASS: TestLocal/nodeModulesAllowJsPackagePatternExportsExclude.ts_module=node18/type
+baseline: conformance/nodeModulesAllowJsPackagePatternExportsExclude(module=node18).types
+reference: 0d93612e9e433daadc0042faedc3071bc0fd444222242befd97803a19a0def40
+actual: 0d93612e9e433daadc0042faedc3071bc0fd444222242befd97803a19a0def40
+
+PASS: TestLocal/nodeModulesExportsSpecifierGenerationDirectory.ts_module=node16/type
+baseline: conformance/nodeModulesExportsSpecifierGenerationDirectory(module=node16).types
+reference: 6a406a4c61ff8659e512e8ca395f0d23e692a1ecdbd350e51814e9dae21cb3ac
+actual: 6a406a4c61ff8659e512e8ca395f0d23e692a1ecdbd350e51814e9dae21cb3ac
+
+PASS: TestLocal/nodeModulesGeneratedNameCollisions.ts_module=node18/type
+baseline: conformance/nodeModulesGeneratedNameCollisions(module=node18).types
+reference: b4e416ebb9001d4cf79e9608642659b494f2295d78714e247bd28ff235343405
+actual: b4e416ebb9001d4cf79e9608642659b494f2295d78714e247bd28ff235343405
+
+PASS: TestLocal/nodeModulesImportAssignments.ts_module=node16/type
+baseline: conformance/nodeModulesImportAssignments(module=node16).types
+reference: df95e33e08dff1d13a71e4935059c2d6a7281efa025b67797bb404ad73e285bc
+actual: df95e33e08dff1d13a71e4935059c2d6a7281efa025b67797bb404ad73e285bc
+
+PASS: TestLocal/nodeModulesImportAttributesModeDeclarationEmit1.ts_module=node18/type
+baseline: conformance/nodeModulesImportAttributesModeDeclarationEmit1(module=node18).types
+reference: 84112a1c3f4e6043cbc8ef2c4c237b214557ffab740ad9a1df70eb6687ed6e96
+actual: 84112a1c3f4e6043cbc8ef2c4c237b214557ffab740ad9a1df70eb6687ed6e96
+
+PASS: TestLocal/nodeModulesImportHelpersCollisions.ts_module=nodenext/type
+baseline: conformance/nodeModulesImportHelpersCollisions(module=nodenext).types
+reference: 56b2326a0911335b984c0b939441df2ede2bd22dd581c208d1768e58e6414330
+actual: 56b2326a0911335b984c0b939441df2ede2bd22dd581c208d1768e58e6414330
+
+PASS: TestLocal/nodeModulesImportHelpersCollisions3.ts_module=node20,target=es2015/type
+baseline: conformance/nodeModulesImportHelpersCollisions3(module=node20,target=es2015).types
+reference: 484d69abe189047f85d1904c467d36f2ad3bf24af0cc08a25c0d2498bbb4c64f
+actual: 484d69abe189047f85d1904c467d36f2ad3bf24af0cc08a25c0d2498bbb4c64f
+
+PASS: TestLocal/nodeModulesImportModeDeclarationEmit2.ts_module=node16/type
+baseline: conformance/nodeModulesImportModeDeclarationEmit2(module=node16).types
+reference: dd2a3c8af01c26c98764ea0f071c7a69990f4a839270ea4aeb3a0d6b1fb449ee
+actual: dd2a3c8af01c26c98764ea0f071c7a69990f4a839270ea4aeb3a0d6b1fb449ee
+
+PASS: TestLocal/nodeModulesPackagePatternExports.ts_module=node16/type
+baseline: conformance/nodeModulesPackagePatternExports(module=node16).types
+reference: 25d7a1e43b457bc3b4b09cb51a41acd3ffb75f38cddfdfa36d0628cbcb64ecd0
+actual: 25d7a1e43b457bc3b4b09cb51a41acd3ffb75f38cddfdfa36d0628cbcb64ecd0
+
+PASS: TestLocal/nodeModulesPackagePatternExports.ts_module=node18/type
+baseline: conformance/nodeModulesPackagePatternExports(module=node18).types
+reference: 25d7a1e43b457bc3b4b09cb51a41acd3ffb75f38cddfdfa36d0628cbcb64ecd0
+actual: 25d7a1e43b457bc3b4b09cb51a41acd3ffb75f38cddfdfa36d0628cbcb64ecd0
+
+PASS: TestLocal/nodeModulesResolveJsonModule.ts_module=node20/type
+baseline: conformance/nodeModulesResolveJsonModule(module=node20).types
+reference: c8830fc5e429826831354dfb514d4c203a3919d458767ecfb472fcf3a72302fd
+actual: c8830fc5e429826831354dfb514d4c203a3919d458767ecfb472fcf3a72302fd
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeDeclarationEmit4.ts_module=nodenext/type
+baseline: conformance/nodeModulesTripleSlashReferenceModeDeclarationEmit4(module=nodenext).types
+reference: 590ee449b55e9f9c861c9e08a73524e346ad1ecbf6b10d829a9dfee45a0207cf
+actual: 590ee449b55e9f9c861c9e08a73524e346ad1ecbf6b10d829a9dfee45a0207cf
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeDeclarationEmit5.ts_module=nodenext/type
+baseline: conformance/nodeModulesTripleSlashReferenceModeDeclarationEmit5(module=nodenext).types
+reference: c2261648559030e88b71d1c29bcaeea3e4abaaf94669f23cda8b5f8338c99d90
+actual: c2261648559030e88b71d1c29bcaeea3e4abaaf94669f23cda8b5f8338c99d90
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeDeclarationEmit6.ts_module=node18/type
+baseline: conformance/nodeModulesTripleSlashReferenceModeDeclarationEmit6(module=node18).types
+reference: 5eb9574a109a3b535252308a5cd94c41464f88ca6742e0c499aa3d25316eae17
+actual: 5eb9574a109a3b535252308a5cd94c41464f88ca6742e0c499aa3d25316eae17
+
+PASS: TestLocal/nodeModulesTripleSlashReferenceModeOverrideModeError.ts_module=node20/type
+baseline: conformance/nodeModulesTripleSlashReferenceModeOverrideModeError(module=node20).types
+reference: 406f88b71a057b38a4d48ccf3670b1a7732d42e67cdb9d8972c850aaa0f97cfc
+actual: 406f88b71a057b38a4d48ccf3670b1a7732d42e67cdb9d8972c850aaa0f97cfc
+
+PASS: TestLocal/nonPrimitiveAsProperty.ts/type
+baseline: conformance/nonPrimitiveAsProperty.types
+reference: ad838ecc78b95005fc9993777923ac1c322811744d534c182e4fde2bcb430bf6
+actual: ad838ecc78b95005fc9993777923ac1c322811744d534c182e4fde2bcb430bf6
+
+FAIL: TestLocal/nonPrimitiveInGeneric.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/types/nonPrimitive/nonPrimitiveInGeneric.ts:
+        runtime error: slice bounds out of range [2:1]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/nonPrimitiveIndexingWithForInNoImplicitAny.ts/type
+baseline: conformance/nonPrimitiveIndexingWithForInNoImplicitAny.types
+reference: cdbc89e35e06752c69fff8de37ffc99a73d2735b39742c9fb5a0a8f5098d2660
+actual: cdbc89e35e06752c69fff8de37ffc99a73d2735b39742c9fb5a0a8f5098d2660
+
+PASS: TestLocal/nullishCoalescingOperator10.ts/type
+baseline: conformance/nullishCoalescingOperator10.types
+reference: 3680c5fd61f669e898ce331d35bc36e5b40babbec3f3d6d71a2c6158d02f83f0
+actual: 3680c5fd61f669e898ce331d35bc36e5b40babbec3f3d6d71a2c6158d02f83f0
+
+PASS: TestLocal/nullishCoalescingOperator3.ts/type
+baseline: conformance/nullishCoalescingOperator3.types
+reference: 80ae031de98dd8401e9b2e99c53a545022dce70a68fcd787d1502ffd0b1a5935
+actual: 80ae031de98dd8401e9b2e99c53a545022dce70a68fcd787d1502ffd0b1a5935
+
+PASS: TestLocal/numberPropertyAccess.ts/type
+baseline: conformance/numberPropertyAccess.types
+reference: 5b81855e51a0e7e81236b77a5e3eb2a3619f77432a0828ab6c99f71a5d2794e3
+actual: 5b81855e51a0e7e81236b77a5e3eb2a3619f77432a0828ab6c99f71a5d2794e3
+
+FAIL: TestLocal/numericStringLiteralTypes.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/types/literal/numericStringLiteralTypes.ts:
+        runtime error: slice bounds out of range [8:7]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/objectLiteralErrors.ts_target=es2015/type
+baseline: conformance/objectLiteralErrors(target=es2015).types
+reference: b84e743fe9464bd4d4d01162e3903373018f6baf81a9739261b7865901256ef9
+actual: b84e743fe9464bd4d4d01162e3903373018f6baf81a9739261b7865901256ef9
+
+FAIL: TestLocal/objectRest.ts/type
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/objectRest.types has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/objectRest.types
+reference: c8fd0283dc91e7f444e608b310b5919357339a6ec812f61389ae0716f56557f0
+actual: ab3d820b7b0f9152dd8918987137d27496f491c3e78da51d4a0a09e8c01e5c15
+--- expected/conformance/objectRest.types
++++ actual/conformance/objectRest.types
+@@ -221,12 +221,12 @@
+ var noContextualType = ({ aNumber = 12, ...notEmptyObject }) => aNumber + notEmptyObject.anythingGoes;
+ >noContextualType : ({ aNumber, ...notEmptyObject }: { [x: string]: any; aNumber?: number; }) => any
+ >({ aNumber = 12, ...notEmptyObject }) => aNumber + notEmptyObject.anythingGoes : ({ aNumber, ...notEmptyObject }: { [x: string]: any; aNumber?: number; }) => any
+->aNumber : number
+->12 : 12
+->notEmptyObject : { [x: string]: any; }
+ >aNumber + notEmptyObject.anythingGoes : any
+ >aNumber : number
+ >notEmptyObject.anythingGoes : any
+ >notEmptyObject : { [x: string]: any; }
+ >anythingGoes : any
+-
++>aNumber : number
++>12 : 12
++>notEmptyObject : { [x: string]: any; }
++
+
+FAIL: TestLocal/objectRestForOf.ts/type
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/objectRestForOf.types has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/objectRestForOf.types
+reference: add0c2b6e3cd730511820df03a343487ac41ccf1276ae49ccdaee05f959dec89
+actual: fceb375771bcb5fd3524653471a182d9707903521b3dbfa991dd4a610f999a5c
+--- expected/conformance/objectRestForOf.types
++++ actual/conformance/objectRestForOf.types
+@@ -42,12 +42,12 @@
+ >array : { x: number; y: string; }[]
+ >map : <U>(callbackfn: (value: { x: number; y: string; }, index: number, array: { x: number; y: string; }[]) => U, thisArg?: any) => U[]
+ >a => ({ ...a, x: 'a string' }) : (a: { x: number; y: string; }) => { y: string; x: string; }
+->a : { x: number; y: string; }
+ >({ ...a, x: 'a string' }) : { y: string; x: string; }
+ >{ ...a, x: 'a string' } : { y: string; x: string; }
+ >a : { x: number; y: string; }
+ >x : string
+ >'a string' : "a string"
++>a : { x: number; y: string; }
+ 
+     [norest.x, norest.y];
+ >[norest.x, norest.y] : string[]
+
+FAIL: TestLocal/objectRestParameterES5.ts_target=es2015/type
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/objectRestParameterES5(target=es2015).types has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/objectRestParameterES5(target=es2015).types
+reference: ab7df4f58901ba6d57a3d6c064f99318002840ed2fc0c8a4f57ab724c2365537
+actual: b999b7163d3e531deaca2045ae309a5bb92b8ceed4f9b8b5ebd5131441f9d8b8
+--- expected/conformance/objectRestParameterES5(target=es2015).types
++++ actual/conformance/objectRestParameterES5(target=es2015).types
+@@ -22,17 +22,24 @@
+ >suddenly(({ x: a, ...rest }) => rest.y) : any
+ >suddenly : (f: (a: { x: { z: any; ka: any; }; y: string; }) => void) => any
+ >({ x: a, ...rest }) => rest.y : ({ x: a, ...rest }: { x: { z: any; ka: any; }; y: string; }) => string
++>rest.y : string
++>rest : { y: string; }
++>y : string
+ >x : any
+ >a : { z: any; ka: any; }
+ >rest : { y: string; }
+->rest.y : string
+->rest : { y: string; }
+->y : string
+ 
+ suddenly(({ x: { z = 12, ...nested }, ...rest } = { x: { z: 1, ka: 1 }, y: 'noo' }) => rest.y + nested.ka);
+ >suddenly(({ x: { z = 12, ...nested }, ...rest } = { x: { z: 1, ka: 1 }, y: 'noo' }) => rest.y + nested.ka) : any
+ >suddenly : (f: (a: { x: { z: any; ka: any; }; y: string; }) => void) => any
+ >({ x: { z = 12, ...nested }, ...rest } = { x: { z: 1, ka: 1 }, y: 'noo' }) => rest.y + nested.ka : ({ x: { z, ...nested }, ...rest }?: { x: { z: any; ka: any; }; y: string; }) => string
++>rest.y + nested.ka : string
++>rest.y : string
++>rest : { y: string; }
++>y : string
++>nested.ka : any
++>nested : { ka: any; }
++>ka : any
+ >x : any
+ >z : any
+ >12 : 12
+@@ -47,13 +54,6 @@
+ >1 : 1
+ >y : string
+ >'noo' : "noo"
+->rest.y + nested.ka : string
+->rest.y : string
+->rest : { y: string; }
+->y : string
+->nested.ka : any
+->nested : { ka: any; }
+->ka : any
+ 
+ class C {
+ >C : C
+
+FAIL: TestLocal/objectTypesIdentityWithGenericCallSignaturesOptionalParams2.ts/type
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/objectTypesIdentityWithGenericCallSignaturesOptionalParams2.types has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/objectTypesIdentityWithGenericCallSignaturesOptionalParams2.types
+reference: cf12ecd94b637a407722a1d88c6689c223390a20fab214e29cf6933758504c71
+actual: 9f4afa7764555df7ccb9a8e0404c49adedba67500780d74b82c7a354e6430a92
+--- expected/conformance/objectTypesIdentityWithGenericCallSignaturesOptionalParams2.types
++++ actual/conformance/objectTypesIdentityWithGenericCallSignaturesOptionalParams2.types
+@@ -57,8 +57,8 @@
+ >{ foo<T, U>(x: T, y?: U) { return x; } } : { foo<T, U>(x: T, y?: U): T; }
+ >foo : <T, U>(x: T, y?: U) => T
+ >x : T
+->y : U
+->x : T
++>x : T
++>y : U
+ 
+ function foo1(x: A);
+ >foo1 : { (x: A): any; (x: A): any; }
+
+PASS: TestLocal/octalIntegerLiteral.ts_target=es2015/type
+baseline: conformance/octalIntegerLiteral(target=es2015).types
+reference: d36112855f11d330d56865ded0238b050bc9d87b530493be3045291c320510d0
+actual: d36112855f11d330d56865ded0238b050bc9d87b530493be3045291c320510d0
+
+FAIL: TestLocal/overloadTag1.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/jsdoc/overloadTag1.ts:
+        runtime error: slice bounds out of range [22:16]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/overloadTag3.ts/type
+baseline: conformance/overloadTag3.types
+reference: 57bf01509d64ed915826bdae44e93cf744eb658467d186263b23a3e43e9967c2
+actual: 57bf01509d64ed915826bdae44e93cf744eb658467d186263b23a3e43e9967c2
+
+PASS: TestLocal/override12.ts_target=es2015/type
+baseline: conformance/override12(target=es2015).types
+reference: 841741f9f632809e6b9e4d3e7b7f447ca38e3626beecae243370e3c265794616
+actual: 841741f9f632809e6b9e4d3e7b7f447ca38e3626beecae243370e3c265794616
+
+PASS: TestLocal/override_js2.ts/type
+baseline: conformance/override_js2.types
+reference: e4fce505f1e305bddf5967cfce8e77a587477cc5afe7f0aec73aa17d2da63979
+actual: e4fce505f1e305bddf5967cfce8e77a587477cc5afe7f0aec73aa17d2da63979
+
+FAIL: TestLocal/paramTagNestedWithoutTopLevelObject3.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/jsdoc/paramTagNestedWithoutTopLevelObject3.ts:
+        runtime error: slice bounds out of range [6:5]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/parseLinkTag.ts/type
+baseline: conformance/parseLinkTag.types
+reference: 7df66f58e8292eee6b9b6a6cf17d297e0516f6120ab4022f8511f75ffb0cc41e
+actual: 7df66f58e8292eee6b9b6a6cf17d297e0516f6120ab4022f8511f75ffb0cc41e
+
+PASS: TestLocal/parseRegularExpressionMixedWithComments.ts/type
+baseline: conformance/parseRegularExpressionMixedWithComments.types
+reference: 4efa65e323b506cb424a61b3e4e6a5947a8e132eea603cd27fccc0329bf71aaa
+actual: 4efa65e323b506cb424a61b3e4e6a5947a8e132eea603cd27fccc0329bf71aaa
+
+PASS: TestLocal/parser.asyncGenerators.functionExpressions.es2018.ts_alwaysstrict=true/type
+baseline: conformance/parser.asyncGenerators.functionExpressions.es2018(alwaysstrict=true).types
+reference: 12708f113d9a636d34cc5d76e7cdad3b032d342c1d093401ffb9704e3269788c
+actual: 12708f113d9a636d34cc5d76e7cdad3b032d342c1d093401ffb9704e3269788c
+
+PASS: TestLocal/parser.numericSeparators.hex.ts/type
+baseline: conformance/parser.numericSeparators.hex.types
+reference: da45b364174e45707a86c8e0d2943d00ad0c03f302744bbbeae0c16b1967da07
+actual: da45b364174e45707a86c8e0d2943d00ad0c03f302744bbbeae0c16b1967da07
+
+PASS: TestLocal/parser0_004152.ts/type
+baseline: conformance/parser0_004152.types
+reference: 990bdb1339a4bdbd6bd03192c8f1c0ebb6b5567975c7dfa80ae82ef26cb61dcb
+actual: 990bdb1339a4bdbd6bd03192c8f1c0ebb6b5567975c7dfa80ae82ef26cb61dcb
+
+PASS: TestLocal/parserAccessibilityAfterStatic1.ts/type
+baseline: conformance/parserAccessibilityAfterStatic1.types
+reference: 9ea49a77de4f0fbeacf6dd11bac1f5ed325effc57b245e0680cd993b427cf506
+actual: 9ea49a77de4f0fbeacf6dd11bac1f5ed325effc57b245e0680cd993b427cf506
+
+PASS: TestLocal/parserAccessors8.ts_target=es2015/type
+baseline: conformance/parserAccessors8(target=es2015).types
+reference: 6b5188949b1d645c431247f3682f288620bc1fa54c07172fecf05f80dce28754
+actual: 6b5188949b1d645c431247f3682f288620bc1fa54c07172fecf05f80dce28754
+
+FAIL: TestLocal/parserArrowFunctionExpression11.ts/type
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/parserArrowFunctionExpression11.types has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/parserArrowFunctionExpression11.types
+reference: 7c3a2f93cff17fa46962862c7bec7a75217690ec21dc5c2e74c6ddbe067ce32e
+actual: c8c7a9067cebe0cf022c3fbcf3f6e285541bb94b73bbf4d4cf82b111b9ab7641
+--- expected/conformance/parserArrowFunctionExpression11.types
++++ actual/conformance/parserArrowFunctionExpression11.types
+@@ -10,8 +10,8 @@
+ >(d) : any
+ >d : any
+ >e => f : (e: any) => any
++>f : any
+ >e : any
+->f : any
+ 
+ === fileTs.ts ===
+ a ? b ? c : (d) : e => f
+@@ -23,6 +23,6 @@
+ >(d) : any
+ >d : any
+ >e => f : (e: any) => any
++>f : any
+ >e : any
+->f : any
+ 
+
+PASS: TestLocal/parserBreakStatement1.d.ts/type
+baseline: conformance/parserBreakStatement1.d.types
+reference: a40f514c57814a391ff5765d5e2755c082e4547cd5374fe509f4b7f0c53eb54f
+actual: a40f514c57814a391ff5765d5e2755c082e4547cd5374fe509f4b7f0c53eb54f
+
+PASS: TestLocal/parserClassDeclaration11.ts/type
+baseline: conformance/parserClassDeclaration11.types
+reference: cab350ad6cd82e11a111eab2f32cf0f73e295eb56182c530653dbbffe9adc4c0
+actual: cab350ad6cd82e11a111eab2f32cf0f73e295eb56182c530653dbbffe9adc4c0
+
+PASS: TestLocal/parserComputedPropertyName10.ts/type
+baseline: conformance/parserComputedPropertyName10.types
+reference: f8af8b6119b16e1a950fee3031ef403107715fbd84ede547c6b59eb519d559cd
+actual: f8af8b6119b16e1a950fee3031ef403107715fbd84ede547c6b59eb519d559cd
+
+PASS: TestLocal/parserComputedPropertyName14.ts/type
+baseline: conformance/parserComputedPropertyName14.types
+reference: 52dd69ec2a0e5df194e3f24a9dae3f34ad8da8430c239270644e1392c79f9281
+actual: 52dd69ec2a0e5df194e3f24a9dae3f34ad8da8430c239270644e1392c79f9281
+
+PASS: TestLocal/parserComputedPropertyName18.ts/type
+baseline: conformance/parserComputedPropertyName18.types
+reference: 5775a1b69f8a6ebdf2433fad0dbae10e85c2902b31e01a05a52b76be02479c75
+actual: 5775a1b69f8a6ebdf2433fad0dbae10e85c2902b31e01a05a52b76be02479c75
+
+PASS: TestLocal/parserComputedPropertyName19.ts/type
+baseline: conformance/parserComputedPropertyName19.types
+reference: 58bd8d254ae55311cddbadaf4ff372e61e692dfd5bf134eb339f01a85bebc914
+actual: 58bd8d254ae55311cddbadaf4ff372e61e692dfd5bf134eb339f01a85bebc914
+
+PASS: TestLocal/parserComputedPropertyName24.ts/type
+baseline: conformance/parserComputedPropertyName24.types
+reference: ba5dbe4a3e4ab602a7ec253335c252cb18ddc138f9d552d1857d4f81ab53631f
+actual: ba5dbe4a3e4ab602a7ec253335c252cb18ddc138f9d552d1857d4f81ab53631f
+
+PASS: TestLocal/parserComputedPropertyName25.ts/type
+baseline: conformance/parserComputedPropertyName25.types
+reference: 34173839a9de9c5d2c0dd1bdd48e6101c9917112311c0bd3a721b351fffc7fd1
+actual: 34173839a9de9c5d2c0dd1bdd48e6101c9917112311c0bd3a721b351fffc7fd1
+
+PASS: TestLocal/parserComputedPropertyName32.ts/type
+baseline: conformance/parserComputedPropertyName32.types
+reference: 7d9223f6145a65e99b651cea51df95fbbc9936eff7a00d9489771a5aaca62e23
+actual: 7d9223f6145a65e99b651cea51df95fbbc9936eff7a00d9489771a5aaca62e23
+
+PASS: TestLocal/parserConstructorAmbiguity3.ts/type
+baseline: conformance/parserConstructorAmbiguity3.types
+reference: 54cdbe3270d959dc39f87c48e985454eba9449ac418c9518c7eb6f3d77b183b8
+actual: 54cdbe3270d959dc39f87c48e985454eba9449ac418c9518c7eb6f3d77b183b8
+
+PASS: TestLocal/parserConstructorDeclaration2.ts/type
+baseline: conformance/parserConstructorDeclaration2.types
+reference: 374cdb5d174ed0917d46e791da1bc963a71de39a74de39b077c06da6b638acbf
+actual: 374cdb5d174ed0917d46e791da1bc963a71de39a74de39b077c06da6b638acbf
+
+PASS: TestLocal/parserConstructorDeclaration8.ts/type
+baseline: conformance/parserConstructorDeclaration8.types
+reference: 9f7744ee21767917fa336b1fd851d6eee748efba79490ec8d405cbab7fa1a7f6
+actual: 9f7744ee21767917fa336b1fd851d6eee748efba79490ec8d405cbab7fa1a7f6
+
+PASS: TestLocal/parserES5ForOfStatement19.ts_target=es2015/type
+baseline: conformance/parserES5ForOfStatement19(target=es2015).types
+reference: 248639f4d15dfdd41b9eb37192e6ea5f65619c8693c8bba45e69bdacabf097ae
+actual: 248639f4d15dfdd41b9eb37192e6ea5f65619c8693c8bba45e69bdacabf097ae
+
+PASS: TestLocal/parserES5SymbolProperty4.ts_target=es2015/type
+baseline: conformance/parserES5SymbolProperty4(target=es2015).types
+reference: 545496aa1af3fcbbb1f8c4cd6ca5c2af468098ce4f583a3ce6f00e11a4079435
+actual: 545496aa1af3fcbbb1f8c4cd6ca5c2af468098ce4f583a3ce6f00e11a4079435
+
+PASS: TestLocal/parserErrorRecovery_ClassElement2.ts/type
+baseline: conformance/parserErrorRecovery_ClassElement2.types
+reference: 7628d728c7b0ce6abbcd5d79427510e423ede761299ba31acea62e58dfd0ab27
+actual: 7628d728c7b0ce6abbcd5d79427510e423ede761299ba31acea62e58dfd0ab27
+
+PASS: TestLocal/parserErrorRecovery_ModuleElement1.ts/type
+baseline: conformance/parserErrorRecovery_ModuleElement1.types
+reference: 03ff7586fff35831d4d7d6a3b9fde8b7a2894b77885262b22f358dcc61ee76a7
+actual: 03ff7586fff35831d4d7d6a3b9fde8b7a2894b77885262b22f358dcc61ee76a7
+
+PASS: TestLocal/parserExportAssignment7.ts/type
+baseline: conformance/parserExportAssignment7.types
+reference: bcbe326944d8734df21165c258712fda7de1afac77dd1d228f604877d08617fe
+actual: bcbe326944d8734df21165c258712fda7de1afac77dd1d228f604877d08617fe
+
+PASS: TestLocal/parserForInStatement3.ts/type
+baseline: conformance/parserForInStatement3.types
+reference: d2865c7e4a96085c07d05206988c468d09dade57ab351e66ad1e16671cb91630
+actual: d2865c7e4a96085c07d05206988c468d09dade57ab351e66ad1e16671cb91630
+
+PASS: TestLocal/parserForOfStatement10.ts/type
+baseline: conformance/parserForOfStatement10.types
+reference: 46b2a93d3c5d54bb0c36857a10c882efc0c31224b2875d7153216fed8069e343
+actual: 46b2a93d3c5d54bb0c36857a10c882efc0c31224b2875d7153216fed8069e343
+
+PASS: TestLocal/parserForOfStatement18.ts/type
+baseline: conformance/parserForOfStatement18.types
+reference: 7dc3a37bb4aef44bc724b84e95490d8903bec8ecb0497e185213c7e0bb9b938c
+actual: 7dc3a37bb4aef44bc724b84e95490d8903bec8ecb0497e185213c7e0bb9b938c
+
+PASS: TestLocal/parserForOfStatement19.ts/type
+baseline: conformance/parserForOfStatement19.types
+reference: 39c363aacc8d0dacd4a8c3eabb58e697c8ac639a71269d90c41fc506649a9f18
+actual: 39c363aacc8d0dacd4a8c3eabb58e697c8ac639a71269d90c41fc506649a9f18
+
+PASS: TestLocal/parserGreaterThanTokenAmbiguity18.ts/type
+baseline: conformance/parserGreaterThanTokenAmbiguity18.types
+reference: fba6323c4da7524f450167fd68cb093949ffa6f5484b80549e8ad03f6b3991ed
+actual: fba6323c4da7524f450167fd68cb093949ffa6f5484b80549e8ad03f6b3991ed
+
+PASS: TestLocal/parserIndexMemberDeclaration3.ts/type
+baseline: conformance/parserIndexMemberDeclaration3.types
+reference: 936bd6e967d179f55fd437d08ebe3efe94fb7edba8ca2c512a986b87a2025d73
+actual: 936bd6e967d179f55fd437d08ebe3efe94fb7edba8ca2c512a986b87a2025d73
+
+PASS: TestLocal/parserIndexMemberDeclaration5.ts/type
+baseline: conformance/parserIndexMemberDeclaration5.types
+reference: b80762b6c7b9e2f446a696f5c1139de7f5428d64afd977796f5adf0e1ef182dd
+actual: b80762b6c7b9e2f446a696f5c1139de7f5428d64afd977796f5adf0e1ef182dd
+
+PASS: TestLocal/parserIndexSignature1.ts/type
+baseline: conformance/parserIndexSignature1.types
+reference: ea176609047bed294484151f650b46c9fb24267111549d7c54d05e0692ad1756
+actual: ea176609047bed294484151f650b46c9fb24267111549d7c54d05e0692ad1756
+
+PASS: TestLocal/parserIndexSignature10.ts/type
+baseline: conformance/parserIndexSignature10.types
+reference: ed13a4e3c0f92b7fcf5844e1a4f60ff3863c1bd55cd62e2c1478740c70046040
+actual: ed13a4e3c0f92b7fcf5844e1a4f60ff3863c1bd55cd62e2c1478740c70046040
+
+PASS: TestLocal/parserIndexSignature3.ts/type
+baseline: conformance/parserIndexSignature3.types
+reference: 986fb4066119949392c566b14580844ae0949b92034476bd45614c0b50592566
+actual: 986fb4066119949392c566b14580844ae0949b92034476bd45614c0b50592566
+
+PASS: TestLocal/parserIndexSignature6.ts/type
+baseline: conformance/parserIndexSignature6.types
+reference: 7dda4d3221df58d4bcdbd7d261b3d7e9959d08c7095ea641948ddc17850ecc57
+actual: 7dda4d3221df58d4bcdbd7d261b3d7e9959d08c7095ea641948ddc17850ecc57
+
+PASS: TestLocal/parserIndexSignature8.ts/type
+baseline: conformance/parserIndexSignature8.types
+reference: 162ab6680313dfe13dd26efe871e4794950bd8628d79e8cf8e5b7b40b60bcd4a
+actual: 162ab6680313dfe13dd26efe871e4794950bd8628d79e8cf8e5b7b40b60bcd4a
+
+PASS: TestLocal/parserInvocationOfMemberAccessOffOfObjectCreationExpression1.ts/type
+baseline: conformance/parserInvocationOfMemberAccessOffOfObjectCreationExpression1.types
+reference: f678d23f2b66fd9b15ac12efd8eefc7fcabf7c568d7b7e4e4b7b9aa2d5073def
+actual: f678d23f2b66fd9b15ac12efd8eefc7fcabf7c568d7b7e4e4b7b9aa2d5073def
+
+PASS: TestLocal/parserMemberAccessor1.ts_target=es2015/type
+baseline: conformance/parserMemberAccessor1(target=es2015).types
+reference: f84fce9bf32bf7b0a0ed0eb5edf0038792bbc7c82cfde8e414af293201f140ca
+actual: f84fce9bf32bf7b0a0ed0eb5edf0038792bbc7c82cfde8e414af293201f140ca
+
+PASS: TestLocal/parserMemberAccessorDeclaration1.ts_target=es2015/type
+baseline: conformance/parserMemberAccessorDeclaration1(target=es2015).types
+reference: b77c2d209f70f5424be961fb0a93572bfe78ec4335c43450dac31b7cc71ba953
+actual: b77c2d209f70f5424be961fb0a93572bfe78ec4335c43450dac31b7cc71ba953
+
+PASS: TestLocal/parserMemberAccessorDeclaration4.ts_target=es2015/type
+baseline: conformance/parserMemberAccessorDeclaration4(target=es2015).types
+reference: 333fde972293dd11349122c46e37cbc0af9f28d1a617ce1dd61e841093941693
+actual: 333fde972293dd11349122c46e37cbc0af9f28d1a617ce1dd61e841093941693
+
+PASS: TestLocal/parserMemberAccessorDeclaration5.ts_target=es2015/type
+baseline: conformance/parserMemberAccessorDeclaration5(target=es2015).types
+reference: d337ff6ec7806b0d84338bae3c192371d25fe9ccc1390dfdd019ef6b459ebbbc
+actual: d337ff6ec7806b0d84338bae3c192371d25fe9ccc1390dfdd019ef6b459ebbbc
+
+PASS: TestLocal/parserModuleDeclaration1.ts/type
+baseline: conformance/parserModuleDeclaration1.types
+reference: 5bbb53622fda8cc8a03d9d7e600b0687ead6a62acb874c851c41a24b75c0c456
+actual: 5bbb53622fda8cc8a03d9d7e600b0687ead6a62acb874c851c41a24b75c0c456
+
+PASS: TestLocal/parserModuleDeclaration6.ts/type
+baseline: conformance/parserModuleDeclaration6.types
+reference: ebda178acf5fb26125555340e81e3e0ac58b58e9ac27a5cda06259204b4eeff9
+actual: ebda178acf5fb26125555340e81e3e0ac58b58e9ac27a5cda06259204b4eeff9
+
+PASS: TestLocal/parserParameterList4.ts/type
+baseline: conformance/parserParameterList4.types
+reference: cd7d9d6e1c3e054581e1a6ce686b0d557e28b6ab419753c28b54fc103b8afced
+actual: cd7d9d6e1c3e054581e1a6ce686b0d557e28b6ab419753c28b54fc103b8afced
+
+PASS: TestLocal/parserReturnStatement3.ts/type
+baseline: conformance/parserReturnStatement3.types
+reference: 328c00310c52dae9350f52cb225416c1fc361e67f9e0e1487a16f650cdf56253
+actual: 328c00310c52dae9350f52cb225416c1fc361e67f9e0e1487a16f650cdf56253
+
+PASS: TestLocal/parserShorthandPropertyAssignment4.ts/type
+baseline: conformance/parserShorthandPropertyAssignment4.types
+reference: c2d16e878256af1cb586758af8824be438f26e88683a9286ad38fd7ab3ae5d13
+actual: c2d16e878256af1cb586758af8824be438f26e88683a9286ad38fd7ab3ae5d13
+
+PASS: TestLocal/parserSkippedTokens7.ts/type
+baseline: conformance/parserSkippedTokens7.types
+reference: 5002bd1e0b43cba9365d9e0ea8e798962dbab508a4f2594b0871bb0c20a3b5c4
+actual: 5002bd1e0b43cba9365d9e0ea8e798962dbab508a4f2594b0871bb0c20a3b5c4
+
+PASS: TestLocal/parserStrictMode16.ts/type
+baseline: conformance/parserStrictMode16.types
+reference: ef2d6c911d91c30daaf7d1969304ae87ec8332c9c6494b1621584c4712c6ed89
+actual: ef2d6c911d91c30daaf7d1969304ae87ec8332c9c6494b1621584c4712c6ed89
+
+PASS: TestLocal/parserStrictMode6.ts/type
+baseline: conformance/parserStrictMode6.types
+reference: 16edf4533d367e81b76eb6db6a0ee163a62073217db34c78c7070b5f1563d769
+actual: 16edf4533d367e81b76eb6db6a0ee163a62073217db34c78c7070b5f1563d769
+
+PASS: TestLocal/parserSymbolIndexer2.ts/type
+baseline: conformance/parserSymbolIndexer2.types
+reference: b4ef0e16e619495343d1d5b3e961559f460a9a03dad9a3f40d4bff9eef3b5454
+actual: b4ef0e16e619495343d1d5b3e961559f460a9a03dad9a3f40d4bff9eef3b5454
+
+PASS: TestLocal/parserSyntaxWalker.generated.ts/type
+baseline: conformance/parserSyntaxWalker.generated.types
+reference: 172f0276cb2f62ea358c67caeeffae83e351a618f9eabc9332780652e766d8b2
+actual: 172f0276cb2f62ea358c67caeeffae83e351a618f9eabc9332780652e766d8b2
+
+PASS: TestLocal/parserUnaryExpression7.ts/type
+baseline: conformance/parserUnaryExpression7.types
+reference: 7db37c3550494a7bde11e2bd8d9ba5b0b03c012e4d48126828f3cad44594d71f
+actual: 7db37c3550494a7bde11e2bd8d9ba5b0b03c012e4d48126828f3cad44594d71f
+
+PASS: TestLocal/parserUnicodeWhitespaceCharacter1.ts/type
+baseline: conformance/parserUnicodeWhitespaceCharacter1.types
+reference: 14ca32d7fec010c8669f8d087b730c83af3d8e2278f4632e2efc3d18fcf5b561
+actual: 14ca32d7fec010c8669f8d087b730c83af3d8e2278f4632e2efc3d18fcf5b561
+
+PASS: TestLocal/parserVariableDeclaration8.ts/type
+baseline: conformance/parserVariableDeclaration8.types
+reference: 1059657e064d4b3121272090c9800eed483cbe88ca428cea5ce711f0a83de82c
+actual: 1059657e064d4b3121272090c9800eed483cbe88ca428cea5ce711f0a83de82c
+
+PASS: TestLocal/parser_continueTarget3.ts/type
+baseline: conformance/parser_continueTarget3.types
+reference: f76ac258096704cc23e6185f238cf95ce16c95a4c999554d2d3cb4c8f81c2120
+actual: f76ac258096704cc23e6185f238cf95ce16c95a4c999554d2d3cb4c8f81c2120
+
+PASS: TestLocal/plusOperatorWithAnyOtherType.ts/type
+baseline: conformance/plusOperatorWithAnyOtherType.types
+reference: 0fb298998aed0c94bd568c61c412f9aae5e348928cebd5420fe3551a4bd6e651
+actual: 0fb298998aed0c94bd568c61c412f9aae5e348928cebd5420fe3551a4bd6e651
+
+PASS: TestLocal/privateNameComputedPropertyName1.ts_target=es2015/type
+baseline: conformance/privateNameComputedPropertyName1(target=es2015).types
+reference: 75cebe9a6c9d3ac673ddefdd11661e3e1da7a967d1c830cf231c4d3372472f7c
+actual: 75cebe9a6c9d3ac673ddefdd11661e3e1da7a967d1c830cf231c4d3372472f7c
+
+FAIL: TestLocal/privateNameInInExpression.ts_target=esnext/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/classes/members/privateNames/privateNameInInExpression.ts:
+        runtime error: slice bounds out of range [18:7]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/privateNameMethodAssignment.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/classes/members/privateNames/privateNameMethodAssignment.ts:
+        runtime error: slice bounds out of range [9:3]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/privateNameSetterExprReturnValue.ts/type
+baseline: conformance/privateNameSetterExprReturnValue.types
+reference: 29bf1887505996c6c78d4e62c71474f5f98b5d9ae721ff46eb55e1b406dfdd22
+actual: 29bf1887505996c6c78d4e62c71474f5f98b5d9ae721ff46eb55e1b406dfdd22
+
+PASS: TestLocal/privateNameStaticAccessorsCallExpression.ts/type
+baseline: conformance/privateNameStaticAccessorsCallExpression.types
+reference: ca6adcd2fbfb1823613ecf83ddb4ef8a7225d730c3530e8680a5fa4336a93c74
+actual: ca6adcd2fbfb1823613ecf83ddb4ef8a7225d730c3530e8680a5fa4336a93c74
+
+PASS: TestLocal/privateNameStaticFieldNoInitializer.ts_target=es2022/type
+baseline: conformance/privateNameStaticFieldNoInitializer(target=es2022).types
+reference: f6e43ef5d2161658044586f73787aa719b5857483222b141eee04cab11b07654
+actual: f6e43ef5d2161658044586f73787aa719b5857483222b141eee04cab11b07654
+
+FAIL: TestLocal/privateNameStaticMethod.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/classes/members/privateNames/privateNameStaticMethod.ts:
+        runtime error: slice bounds out of range [3:2]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/privateNameWhenNotUseDefineForClassFieldsInEsNext.ts_target=es2020/type
+baseline: conformance/privateNameWhenNotUseDefineForClassFieldsInEsNext(target=es2020).types
+reference: 759aef2496cd9a618c8c92aa2714ae6a51b1ef4f64b01a9870717623abca8e1a
+actual: 759aef2496cd9a618c8c92aa2714ae6a51b1ef4f64b01a9870717623abca8e1a
+
+PASS: TestLocal/privateNameWhenNotUseDefineForClassFieldsInEsNext.ts_target=esnext/type
+baseline: conformance/privateNameWhenNotUseDefineForClassFieldsInEsNext(target=esnext).types
+reference: 759aef2496cd9a618c8c92aa2714ae6a51b1ef4f64b01a9870717623abca8e1a
+actual: 759aef2496cd9a618c8c92aa2714ae6a51b1ef4f64b01a9870717623abca8e1a
+
+FAIL: TestLocal/privateNamesAndGenericClasses-2.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/classes/members/privateNames/privateNamesAndGenericClasses-2.ts:
+        runtime error: slice bounds out of range [8:6]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/privateNamesAndStaticMethods.ts_target=esnext/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/classes/members/privateNames/privateNamesAndStaticMethods.ts:
+        runtime error: slice bounds out of range [5:4]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/privateNamesInNestedClasses-2.ts/type
+baseline: conformance/privateNamesInNestedClasses-2.types
+reference: 50eb0b87d66c44a62ed38b9fcbbc305d72487d73b681445816b0ba71607cfc8f
+actual: 50eb0b87d66c44a62ed38b9fcbbc305d72487d73b681445816b0ba71607cfc8f
+
+PASS: TestLocal/privateWriteOnlyAccessorRead.ts/type
+baseline: conformance/privateWriteOnlyAccessorRead.types
+reference: 30810b8c70ccf258852b7341e72ea4db50fe06efb4b3b8cf1b1fa09732263422
+actual: 30810b8c70ccf258852b7341e72ea4db50fe06efb4b3b8cf1b1fa09732263422
+
+PASS: TestLocal/propertyAccess.ts/type
+baseline: conformance/propertyAccess.types
+reference: 0399d631cd03a45cd3cb2dc5a09ab6a2a921d7e22b36b2fc8762aae4d573241c
+actual: 0399d631cd03a45cd3cb2dc5a09ab6a2a921d7e22b36b2fc8762aae4d573241c
+
+PASS: TestLocal/propertyAssignmentUseParentType3.ts/type
+baseline: conformance/propertyAssignmentUseParentType3.types
+reference: 9be8d9826559003e67806563b2aa36596a447909ece9f31e1d9cb49de368ca2a
+actual: 9be8d9826559003e67806563b2aa36596a447909ece9f31e1d9cb49de368ca2a
+
+PASS: TestLocal/restElementWithAssignmentPattern2.ts/type
+baseline: conformance/restElementWithAssignmentPattern2.types
+reference: 24f8a50d57a5f366c339cd45fd238cbf2e6540843e3518d1128da094ed36674a
+actual: 24f8a50d57a5f366c339cd45fd238cbf2e6540843e3518d1128da094ed36674a
+
+PASS: TestLocal/restPropertyWithBindingPattern.ts_target=es2015/type
+baseline: conformance/restPropertyWithBindingPattern(target=es2015).types
+reference: 7f052e1fd2264a4c2f83126cb98d909e158c5742380dc9b01f48874e2ca507c9
+actual: 7f052e1fd2264a4c2f83126cb98d909e158c5742380dc9b01f48874e2ca507c9
+
+PASS: TestLocal/scannerS7.2_A1.5_T2.ts/type
+baseline: conformance/scannerS7.2_A1.5_T2.types
+reference: ce0ee835544eac343dd9fb07265f2c316f0f4992ef646155ab36b1041af1fea5
+actual: ce0ee835544eac343dd9fb07265f2c316f0f4992ef646155ab36b1041af1fea5
+
+FAIL: TestLocal/spreadObjectOrFalsy.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/types/spread/spreadObjectOrFalsy.ts:
+        runtime error: slice bounds out of range [2:1]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/staticIndexSignature1.ts/type
+baseline: conformance/staticIndexSignature1.types
+reference: 462ab396bdafe67c8df05ab84215b30e05f017e47328245559b225e0cc86f2b7
+actual: 462ab396bdafe67c8df05ab84215b30e05f017e47328245559b225e0cc86f2b7
+
+PASS: TestLocal/staticIndexSignature6.ts/type
+baseline: conformance/staticIndexSignature6.types
+reference: eb7735b8bebc9d2246251bdad3c961316ccb1899a4895c58602029e50ea92442
+actual: eb7735b8bebc9d2246251bdad3c961316ccb1899a4895c58602029e50ea92442
+
+PASS: TestLocal/staticPropertyNameConflicts.ts_target=es2015,usedefineforclassfields=true/type
+baseline: conformance/staticPropertyNameConflicts(target=es2015,usedefineforclassfields=true).types
+reference: f7721e8d579289e371241d5e4dbad9325172e9f35787bf532f0913a31fb44f46
+actual: f7721e8d579289e371241d5e4dbad9325172e9f35787bf532f0913a31fb44f46
+
+FAIL: TestLocal/stringLiteralCheckedInIf02.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/types/stringLiteral/stringLiteralCheckedInIf02.ts:
+        runtime error: slice bounds out of range [5:4]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/stringLiteralMatchedInSwitch01.ts/type
+baseline: conformance/stringLiteralMatchedInSwitch01.types
+reference: 2ae3ea95f1afc7f1cb5e4ace6e289294af397c3f3c14d23fa3322d7fd31ab2ef
+actual: 2ae3ea95f1afc7f1cb5e4ace6e289294af397c3f3c14d23fa3322d7fd31ab2ef
+
+PASS: TestLocal/stringLiteralTypesInUnionTypes03.ts/type
+baseline: conformance/stringLiteralTypesInUnionTypes03.types
+reference: 0d80499ed453d9b051d70bff1528c822b13f263d08aa014d00cbca6560f86d58
+actual: 0d80499ed453d9b051d70bff1528c822b13f263d08aa014d00cbca6560f86d58
+
+FAIL: TestLocal/subtypingWithConstructSignatures.ts/type
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/subtypingWithConstructSignatures.types has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/subtypingWithConstructSignatures.types
+reference: 4ec6c01f820f135a9a532ce13f062d83228e9e424390607934eac32ad61863b9
+actual: 34e2deb6de2ba5b46539d422ede4edea422705ad83def1408a00ed849756f381
+--- expected/conformance/subtypingWithConstructSignatures.types
++++ actual/conformance/subtypingWithConstructSignatures.types
+@@ -7,8 +7,8 @@
+     declare function foo1(cb: new (x: number) => void): typeof cb;
+ >foo1 : { (cb: new (x: number) => void): typeof cb; (cb: any): any; }
+ >cb : new (x: number) => void
++>cb : new (x: number) => void
+ >x : number
+->cb : new (x: number) => void
+ 
+     declare function foo1(cb: any): any;
+ >foo1 : { (cb: new (x: number) => void): typeof cb; (cb: any): any; }
+@@ -37,9 +37,9 @@
+     declare function foo2(cb: new (x: number, y: number) => void): typeof cb;
+ >foo2 : { (cb: new (x: number, y: number) => void): typeof cb; (cb: any): any; }
+ >cb : new (x: number, y: number) => void
++>cb : new (x: number, y: number) => void
+ >x : number
+ >y : number
+->cb : new (x: number, y: number) => void
+ 
+     declare function foo2(cb: any): any;
+ >foo2 : { (cb: new (x: number, y: number) => void): typeof cb; (cb: any): any; }
+
+PASS: TestLocal/subtypingWithConstructSignaturesWithOptionalParameters.ts/type
+baseline: conformance/subtypingWithConstructSignaturesWithOptionalParameters.types
+reference: 412bed53b5f2044ecf3542f2ec5fee9794e7d1b6298d08c32a4545e5adfd007d
+actual: 412bed53b5f2044ecf3542f2ec5fee9794e7d1b6298d08c32a4545e5adfd007d
+
+PASS: TestLocal/superSymbolIndexedAccess2.ts/type
+baseline: conformance/superSymbolIndexedAccess2.types
+reference: 56c157a9789e4e902d1c5d9ea53c3a6f93526da84f8d962f62d8edfcdf1c24ab
+actual: 56c157a9789e4e902d1c5d9ea53c3a6f93526da84f8d962f62d8edfcdf1c24ab
+
+PASS: TestLocal/switchCaseWithUnionTypes01.ts/type
+baseline: conformance/switchCaseWithUnionTypes01.types
+reference: 5f236d784aa8c5705d6eac1033e6fdf653bb47385bf5bf51e1b8d4aff67b0e5c
+actual: 5f236d784aa8c5705d6eac1033e6fdf653bb47385bf5bf51e1b8d4aff67b0e5c
+
+PASS: TestLocal/symbolProperty2.ts/type
+baseline: conformance/symbolProperty2.types
+reference: 0e8678e3c1069b6b1a485299e0f90d8de57997b9995a753c154a8f64488f7fd4
+actual: 0e8678e3c1069b6b1a485299e0f90d8de57997b9995a753c154a8f64488f7fd4
+
+FAIL: TestLocal/symbolProperty22.ts/type
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/symbolProperty22.types has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/symbolProperty22.types
+reference: 0c786cd2f689d064cb2081f194783c74b9549b6297a9b066a9487b0be365d52b
+actual: 86d90049442debc998761f312139377097ac83e0834ac3d0b8d7e9bc5f1001d5
+--- expected/conformance/symbolProperty22.types
++++ actual/conformance/symbolProperty22.types
+@@ -25,8 +25,8 @@
+ >Symbol : SymbolConstructor
+ >unscopables : unique symbol
+ >s => s.length : (s: string) => number
+->s : string
+ >s.length : number
+ >s : string
+ >length : number
++>s : string
+ 
+
+FAIL: TestLocal/symbolProperty39.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/es6/Symbols/symbolProperty39.ts:
+        runtime error: slice bounds out of range [5:4]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/taggedTemplateStringsWithTagsTypedAsAnyES6.ts/type
+baseline: conformance/taggedTemplateStringsWithTagsTypedAsAnyES6.types
+reference: 59a1f3ab73f1518d126a4952985009d15946ecce315b3a5635bfae7d2c9a0210
+actual: 59a1f3ab73f1518d126a4952985009d15946ecce315b3a5635bfae7d2c9a0210
+
+PASS: TestLocal/templateStringInDivision.ts/type
+baseline: conformance/templateStringInDivision.types
+reference: 96a3bb422dea9f4641bec7a2d6f5799527a26916797578dc415f1ff4991be889
+actual: 96a3bb422dea9f4641bec7a2d6f5799527a26916797578dc415f1ff4991be889
+
+PASS: TestLocal/templateStringInModuleNameES6.ts/type
+baseline: conformance/templateStringInModuleNameES6.types
+reference: afd19223d48d5dae8158c2342dacbf2ea7c0ab6a1e27df0d71a7d8ef48b6b5f8
+actual: afd19223d48d5dae8158c2342dacbf2ea7c0ab6a1e27df0d71a7d8ef48b6b5f8
+
+PASS: TestLocal/templateStringInModuloES6.ts/type
+baseline: conformance/templateStringInModuloES6.types
+reference: b6dea2b5345aa361d57769a3530b7c8a3548f67b8de46b62ed2e2c67da7b4b67
+actual: b6dea2b5345aa361d57769a3530b7c8a3548f67b8de46b62ed2e2c67da7b4b67
+
+PASS: TestLocal/templateStringInWhileES6.ts/type
+baseline: conformance/templateStringInWhileES6.types
+reference: 6616ce171d062f1ca5440c6651fd3febcb1b72e2c58a16e2b83e2cb5829b0f2e
+actual: 6616ce171d062f1ca5440c6651fd3febcb1b72e2c58a16e2b83e2cb5829b0f2e
+
+PASS: TestLocal/templateStringWithEmbeddedDivision.ts/type
+baseline: conformance/templateStringWithEmbeddedDivision.types
+reference: b835f4d49c6475db4a0f84ea24028db14edef931fc3a29705361299fecc69854
+actual: b835f4d49c6475db4a0f84ea24028db14edef931fc3a29705361299fecc69854
+
+PASS: TestLocal/templateStringWithEmbeddedObjectLiteralES6.ts/type
+baseline: conformance/templateStringWithEmbeddedObjectLiteralES6.types
+reference: b01e696a7d46888654fda8dd6573de26f3f2b7d562f9f2eca629451abfa739fd
+actual: b01e696a7d46888654fda8dd6573de26f3f2b7d562f9f2eca629451abfa739fd
+
+FAIL: TestLocal/templateStringsWithTypeErrorInFunctionExpressionsInSubstitutionExpressionES6.ts/type
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/templateStringsWithTypeErrorInFunctionExpressionsInSubstitutionExpressionES6.types has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/templateStringsWithTypeErrorInFunctionExpressionsInSubstitutionExpressionES6.types
+reference: 9030fe6af3e1773108be734ae75dd68299886206dd332f9480b3a31f4eafd0fc
+actual: 7bb64226060b595851a7e1405f3435c1a0c9bb7ad078a6b6b5529464069df010
+--- expected/conformance/templateStringsWithTypeErrorInFunctionExpressionsInSubstitutionExpressionES6.types
++++ actual/conformance/templateStringsWithTypeErrorInFunctionExpressionsInSubstitutionExpressionES6.types
+@@ -4,8 +4,8 @@
+ `${function (x: number) { x = "bad"; } }`;
+ >`${function (x: number) { x = "bad"; } }` : string
+ >function (x: number) { x = "bad"; } : (x: number) => void
+->x : number
+ >x = "bad" : "bad"
+ >x : number
+ >"bad" : "bad"
++>x : number
+ 
+
+PASS: TestLocal/thisTag2.ts/type
+baseline: conformance/thisTag2.types
+reference: 6f999d804bba01bee64f12a660f5af7406593f1aab211d425d885764625fd70b
+actual: 6f999d804bba01bee64f12a660f5af7406593f1aab211d425d885764625fd70b
+
+FAIL: TestLocal/thisTypeOfConstructorFunctions.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/salsa/thisTypeOfConstructorFunctions.ts:
+        runtime error: slice bounds out of range [11:6]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/topLevelAwait.1.ts_module=esnext,target=es2015/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/externalModules/topLevelAwait.1.ts:
+        runtime error: slice bounds out of range [47:46]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/trailingCommasInFunctionParametersAndArguments.ts_target=es2015/type
+baseline: conformance/trailingCommasInFunctionParametersAndArguments(target=es2015).types
+reference: 14348ae51fcc1e15ada0f22ab8f0ce6b73d7dcd478cc2df9b9e528bf07b06405
+actual: 14348ae51fcc1e15ada0f22ab8f0ce6b73d7dcd478cc2df9b9e528bf07b06405
+
+PASS: TestLocal/tryStatements.ts/type
+baseline: conformance/tryStatements.types
+reference: 22db9cb8608b6723754f831ee45b216e5634b52bda6a8a0107b9367df2c05e9c
+actual: 22db9cb8608b6723754f831ee45b216e5634b52bda6a8a0107b9367df2c05e9c
+
+PASS: TestLocal/tsxAttributeResolution7.tsx/type
+baseline: conformance/tsxAttributeResolution7.types
+reference: d6447a22d738df7d519cba6778d6a4eac0110c0f6e35ae2704166b60322bef4b
+actual: d6447a22d738df7d519cba6778d6a4eac0110c0f6e35ae2704166b60322bef4b
+
+PASS: TestLocal/tsxDynamicTagName7.tsx/type
+baseline: conformance/tsxDynamicTagName7.types
+reference: b02759237fe01b0b349859b7fdfb0f685e4f9ca1709e16dc40c0ce2c7b0c3898
+actual: b02759237fe01b0b349859b7fdfb0f685e4f9ca1709e16dc40c0ce2c7b0c3898
+
+PASS: TestLocal/tsxDynamicTagName8.tsx/type
+baseline: conformance/tsxDynamicTagName8.types
+reference: 6e0678ccb34f91044c21a38cd9aa5debdafbfef3a59acdbe35d12391b475d7ab
+actual: 6e0678ccb34f91044c21a38cd9aa5debdafbfef3a59acdbe35d12391b475d7ab
+
+PASS: TestLocal/tsxElementResolution1.tsx/type
+baseline: conformance/tsxElementResolution1.types
+reference: 722475b940d9fdee6e394c1e305140f3a657099076020bdb57db4049b32b80f6
+actual: 722475b940d9fdee6e394c1e305140f3a657099076020bdb57db4049b32b80f6
+
+PASS: TestLocal/tsxFragmentErrors.tsx/type
+baseline: conformance/tsxFragmentErrors.types
+reference: 1dec1bdcf616d048a402e9248fcc66ac78e78374c34d750aff9ad4a03e6f6ec8
+actual: 1dec1bdcf616d048a402e9248fcc66ac78e78374c34d750aff9ad4a03e6f6ec8
+
+FAIL: TestLocal/tsxGenericAttributesType1.tsx/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/jsx/tsxGenericAttributesType1.tsx:
+        runtime error: slice bounds out of range [6:5]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/tsxReactEmit7.tsx/type
+baseline: conformance/tsxReactEmit7.types
+reference: 148b54e6590e412f6658e7984a222309a97446eccb8dbd2826dcfdb4ebf0b845
+actual: 148b54e6590e412f6658e7984a222309a97446eccb8dbd2826dcfdb4ebf0b845
+
+PASS: TestLocal/tsxSpreadAttributesResolution2.tsx/type
+baseline: conformance/tsxSpreadAttributesResolution2.types
+reference: 736b271f42096fd83e693d08d53d30dd20642431a00aa4af6809053591625368
+actual: 736b271f42096fd83e693d08d53d30dd20642431a00aa4af6809053591625368
+
+PASS: TestLocal/typeFromPrivatePropertyAssignment.ts/type
+baseline: conformance/typeFromPrivatePropertyAssignment.types
+reference: 909273efe8848cff3f432b342dd18c935a3d879f162fc6e58bfca04d3d2b77b3
+actual: 909273efe8848cff3f432b342dd18c935a3d879f162fc6e58bfca04d3d2b77b3
+
+PASS: TestLocal/typeFromPropertyAssignment11.ts/type
+baseline: conformance/typeFromPropertyAssignment11.types
+reference: 694ea09df1aedc2f2d747c813c2dac6f94605a870585564638dc331e02627881
+actual: 694ea09df1aedc2f2d747c813c2dac6f94605a870585564638dc331e02627881
+
+PASS: TestLocal/typeFromPropertyAssignment23.ts/type
+baseline: conformance/typeFromPropertyAssignment23.types
+reference: 66d602067d2096bd59160f7d1c5d06db746557ffd3934ea2f91b5c6e7f0b765c
+actual: 66d602067d2096bd59160f7d1c5d06db746557ffd3934ea2f91b5c6e7f0b765c
+
+PASS: TestLocal/typeFromPropertyAssignment40.ts/type
+baseline: conformance/typeFromPropertyAssignment40.types
+reference: 7b5895309cf2ce03b6d43b05c9b345576623ad31c29645a5e79f69381e00452d
+actual: 7b5895309cf2ce03b6d43b05c9b345576623ad31c29645a5e79f69381e00452d
+
+PASS: TestLocal/typeFromPropertyAssignment8.ts/type
+baseline: conformance/typeFromPropertyAssignment8.types
+reference: c7d33dd14440ca77409345f412141e2b434e65fb366f4d2cf0df1609bb7cc7fc
+actual: c7d33dd14440ca77409345f412141e2b434e65fb366f4d2cf0df1609bb7cc7fc
+
+PASS: TestLocal/typeGuardRedundancy.ts/type
+baseline: conformance/typeGuardRedundancy.types
+reference: bea2368308d662f7efa92b6c5bb52ace8a16f66cfc583105174b4d07f328c6ca
+actual: bea2368308d662f7efa92b6c5bb52ace8a16f66cfc583105174b4d07f328c6ca
+
+PASS: TestLocal/typeGuardTautologicalConsistiency.ts/type
+baseline: conformance/typeGuardTautologicalConsistiency.types
+reference: 931a483cf80ca035d2d63501b8430800c38940d6031fe73c16c26ac1c91c9651
+actual: 931a483cf80ca035d2d63501b8430800c38940d6031fe73c16c26ac1c91c9651
+
+FAIL: TestLocal/typeGuardsAsAssertions.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/controlFlow/typeGuardsAsAssertions.ts:
+        runtime error: slice bounds out of range [13:12]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/typeOfThisGeneral.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/expressions/thisKeyword/typeOfThisGeneral.ts:
+        runtime error: slice bounds out of range [18:13]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+FAIL: TestLocal/typeOfThisInStaticMembers11.ts_target=es2022/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/classes/members/instanceAndStaticMembers/typeOfThisInStaticMembers11.ts:
+        runtime error: slice bounds out of range [4:3]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/typeOfThisInStaticMembers7.ts_target=es6/type
+baseline: conformance/typeOfThisInStaticMembers7(target=es6).types
+reference: 283375aa2525fedb9a0b56b959fe4676ab9b8d4efe4b4981a927d68d39794fd6
+actual: 283375aa2525fedb9a0b56b959fe4676ab9b8d4efe4b4981a927d68d39794fd6
+
+PASS: TestLocal/typeOfThisInStaticMembers8.ts_target=es6/type
+baseline: conformance/typeOfThisInStaticMembers8(target=es6).types
+reference: bebdf84b4bcf0051503f4af50dd32f88c49b7ea422382ca825a579eedd63fde0
+actual: bebdf84b4bcf0051503f4af50dd32f88c49b7ea422382ca825a579eedd63fde0
+
+FAIL: TestLocal/typeParameterAsTypeParameterConstraintTransitively.ts/type
+    baseline.go:<line>: the baseline file <REPO>/tsc/testdata/baselines/reference/conformance/typeParameterAsTypeParameterConstraintTransitively.types has changed. (Run `hereby baseline-accept` if the new baseline is correct.)
+baseline: conformance/typeParameterAsTypeParameterConstraintTransitively.types
+reference: 75088ad7539c37b10b465c916c3b013f3fc373af1cefbd1988b5625b5fb3a672
+actual: 45093befbe73704052f416b3c3db671381efeaa542012523d4e4199327b6a5d9
+--- expected/conformance/typeParameterAsTypeParameterConstraintTransitively.types
++++ actual/conformance/typeParameterAsTypeParameterConstraintTransitively.types
+@@ -24,9 +24,9 @@
+ 
+ function foo<T, U, V>(x: T, y: U, z: V): V { return z; }
+ >foo : <T, U, V>(x: T, y: U, z: V) => V
++>z : V
+ >x : T
+ >y : U
+->z : V
+ >z : V
+ 
+ //function foo<T, U extends T, V extends U>(x: T, y: U, z: V): V { return z; }
+@@ -89,9 +89,9 @@
+ 
+ function foo2<T extends A, U, V>(x: T, y: U, z: V): V { return z; }
+ >foo2 : <T extends A, U, V>(x: T, y: U, z: V) => V
++>z : V
+ >x : T
+ >y : U
+->z : V
+ >z : V
+ 
+ //function foo2<T extends A, U extends T, V extends U>(x: T, y: U, z: V): V { return z; }
+
+PASS: TestLocal/typeParameterUsedAsTypeParameterConstraint3.ts/type
+baseline: conformance/typeParameterUsedAsTypeParameterConstraint3.types
+reference: 028a9dd38b32935590782455546bcc6330d73349ba138ba43a48c12939ec0732
+actual: 028a9dd38b32935590782455546bcc6330d73349ba138ba43a48c12939ec0732
+
+PASS: TestLocal/typeSatisfaction_optionalMemberConformance.ts/type
+baseline: conformance/typeSatisfaction_optionalMemberConformance.types
+reference: 902dfba6c1040a9190f26440b623358312aa87eb3843de8bd41cb517d80d274c
+actual: 902dfba6c1040a9190f26440b623358312aa87eb3843de8bd41cb517d80d274c
+
+PASS: TestLocal/typeofOperatorWithEnumType.ts/type
+baseline: conformance/typeofOperatorWithEnumType.types
+reference: fae2b723f1bc0b47f82f8a0eaecfe626d20b0770f6137fb6cfdf697fbd70a6e4
+actual: fae2b723f1bc0b47f82f8a0eaecfe626d20b0770f6137fb6cfdf697fbd70a6e4
+
+PASS: TestLocal/types.asyncGenerators.es2018.1.ts/type
+baseline: conformance/types.asyncGenerators.es2018.1.types
+reference: 3fe98e909115ba95067b46e01e14a312ef26aeb42260f951969d0337d961217d
+actual: 3fe98e909115ba95067b46e01e14a312ef26aeb42260f951969d0337d961217d
+
+PASS: TestLocal/umd6.ts/type
+baseline: conformance/umd6.types
+reference: 1d7a13f437b0153bcd0d39ea6bd9a9d55907c68f16aaf9c496c0f76eb26d27c5
+actual: 1d7a13f437b0153bcd0d39ea6bd9a9d55907c68f16aaf9c496c0f76eb26d27c5
+
+PASS: TestLocal/unicodeExtendedEscapesInStrings02.ts_target=es6/type
+baseline: conformance/unicodeExtendedEscapesInStrings02(target=es6).types
+reference: bcd5e816baae03561e3fde199ba7e871d08d5f8fc0b49f50a7e4af00ae79f803
+actual: bcd5e816baae03561e3fde199ba7e871d08d5f8fc0b49f50a7e4af00ae79f803
+
+PASS: TestLocal/unicodeExtendedEscapesInTemplates16.ts_target=es6/type
+baseline: conformance/unicodeExtendedEscapesInTemplates16(target=es6).types
+reference: 20bc86a9476bb59fa039014e0b89b305cf72899985ced6401d01fc864319fba8
+actual: 20bc86a9476bb59fa039014e0b89b305cf72899985ced6401d01fc864319fba8
+
+FAIL: TestLocal/validUndefinedAssignments.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/types/primitives/undefined/validUndefinedAssignments.ts:
+        runtime error: slice bounds out of range [22:21]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/validVoidAssignments.ts/type
+baseline: conformance/validVoidAssignments.types
+reference: 0a15df4727ef2b8246422dc8ab8e399423504bd2da51cd32793e2fd1881e48ba
+actual: 0a15df4727ef2b8246422dc8ab8e399423504bd2da51cd32793e2fd1881e48ba
+
+FAIL: TestLocal/varRequireFromTypescript.ts/type
+    testutil.go:<line>: Panic on creating type baseline for test tests/cases/conformance/salsa/varRequireFromTypescript.ts:
+        runtime error: slice bounds out of range [15:13]
+        runtime/debug.Stack()
+github.com/microsoft/TypeScript/tsc/internal/testutil.RecoverAndFail(...)
+panic(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.iterateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.generateBaseline(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.checkBaselines(...)
+github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline.DoTypeAndSymbolBaseline.func1(...)
+testing.tRunner(...)
+
+PASS: TestLocal/verbatimModuleSyntaxNoElisionESM.ts/type
+baseline: conformance/verbatimModuleSyntaxNoElisionESM.types
+reference: a54ee56005fac4b493e7da3ee92ea4b21e78fa3a464d6bbe4227d3b77d0c3603
+actual: a54ee56005fac4b493e7da3ee92ea4b21e78fa3a464d6bbe4227d3b77d0c3603
+
+PASS: TestLocal/voidOperatorWithNumberType.ts/type
+baseline: conformance/voidOperatorWithNumberType.types
+reference: 770ef566ddc4c0c22eef79ad294440372d6c8fe308c6c92ff5d37b0e495ba530
+actual: 770ef566ddc4c0c22eef79ad294440372d6c8fe308c6c92ff5d37b0e495ba530
+
+PASS: TestLocal/whileContinueStatements.ts/type
+baseline: conformance/whileContinueStatements.types
+reference: a72cd1fc3174ca62d320214ddda54f645234aa2f08d36ab4bb4d5e154104be14
+actual: a72cd1fc3174ca62d320214ddda54f645234aa2f08d36ab4bb4d5e154104be14
+
+PASS: TestLocal/wideningTuples6.ts/type
+baseline: conformance/wideningTuples6.types
+reference: e97c7eb164b32b5a1ee7568bf2bf61caf08aef94cb4b4c58377847b96929f425
+actual: e97c7eb164b32b5a1ee7568bf2bf61caf08aef94cb4b4c58377847b96929f425

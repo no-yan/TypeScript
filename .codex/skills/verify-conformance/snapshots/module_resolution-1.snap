@@ -1,0 +1,34 @@
+---
+source: tsc/internal/testrunner/compiler_runner_test.go
+format: conformance-text-v1
+---
+
+PASS: TestLocal/bundlerCommonJS.ts/module_resolution
+baseline: conformance/bundlerCommonJS.trace.json
+reference: b5003ef4fae8f7142d4e4ee292e7c95fb2dc3f44515f1ea295feb88e3cf2cccd
+actual: b5003ef4fae8f7142d4e4ee292e7c95fb2dc3f44515f1ea295feb88e3cf2cccd
+
+PASS: TestLocal/bundlerConditionsExcludesNode.ts_module=preserve/module_resolution
+baseline: conformance/bundlerConditionsExcludesNode(module=preserve).trace.json
+reference: 19f4e0bb0f9279bb290ea63fb6570564fee92308a0f57117b1563dcc51082ed7
+actual: 19f4e0bb0f9279bb290ea63fb6570564fee92308a0f57117b1563dcc51082ed7
+
+PASS: TestLocal/bundlerDirectoryModule.ts_module=node20,moduleresolution=bundler/module_resolution
+baseline: conformance/bundlerDirectoryModule(module=node20,moduleresolution=bundler).trace.json
+reference: c6cd557ce320fea780f166cb26f3eb676cb05f8b025c2d2b413fb4869b0a790d
+actual: c6cd557ce320fea780f166cb26f3eb676cb05f8b025c2d2b413fb4869b0a790d
+
+PASS: TestLocal/bundlerImportTsExtensions.ts_allowimportingtsextensions=true,noemit=true/module_resolution
+baseline: conformance/bundlerImportTsExtensions(allowimportingtsextensions=true,noemit=true).trace.json
+reference: 1b303e27942c841bd0f84f0c95d13b854e8d55a96d1bde6c7e35f9da22cb7ca8
+actual: 1b303e27942c841bd0f84f0c95d13b854e8d55a96d1bde6c7e35f9da22cb7ca8
+
+PASS: TestLocal/library-reference-2.ts/module_resolution
+baseline: conformance/library-reference-2.trace.json
+reference: 0a0826d4f01109efbe125ac0051abcb750b2267c6a9d584990501e98375e2b16
+actual: 0a0826d4f01109efbe125ac0051abcb750b2267c6a9d584990501e98375e2b16
+
+PASS: TestLocal/nodeModulesPackageImports.ts_module=node18/module_resolution
+baseline: conformance/nodeModulesPackageImports(module=node18).trace.json
+reference: de77a1772dd3ee855762c1550dcff2339f112224121ea3293e9433837cbc4a0b
+actual: de77a1772dd3ee855762c1550dcff2339f112224121ea3293e9433837cbc4a0b
