@@ -119,7 +119,15 @@ Doctor must print `tsc-embed` pass for the Store binary. Parent `go version -m /
 
 ## Run kpc
 
-Needs root. Do not run `xctrace` in the same window. Export `KPERF_TESTDATA=/tmp/kperf-testdata` and `GOGC=off`.
+Needs root. Do not run `xctrace` in the same window. Export `KPERF_TESTDATA=/tmp/kperf-testdata` and `GOGC=off`. How to get root from a Cursor agent is `tsc/internal/binder/docs/kperf-bind-measurement.md` (section エージェントから root を取る). Do not treat `sudo -n` failure as unreachable when a macOS admin dialog can still run the driver.
+
+Build the test binaries as the user, copy them and a driver to `/tmp` (osascript cannot execute a script on SanDisk), then:
+
+```sh
+osascript -e 'do shell script "/tmp/run-kpc.sh" with administrator privileges with prompt "kperf kpc を root で実行します"'
+```
+
+That dialog is Authorization Services, not Cursor's shell approval card. The driver must export `GOGC=off` and `KPERF_TESTDATA` itself.
 
 Interleave parent then Store, `count 1` per round, 3 rounds. Benchtime `30x`. Names:
 
@@ -132,7 +140,7 @@ Interleave parent then Store, `count 1` per round, 3 rounds. Benchtime `30x`. Na
 
 Both binaries live in `./internal/binder` for these names.
 
-If sudo is missing, write `kpc=unreachable` in the report and continue wall plus CLI e2e. Do not invent inst/op from `/usr/bin/time -l`. Do not fill kpc IPC.
+If the admin dialog is refused, write `kpc=unreachable` in the report and continue wall plus CLI e2e. Do not invent inst/op from `/usr/bin/time -l`. Do not fill kpc IPC. Do not stop at `sudo -n` failure.
 
 ## Run wall microbenches
 

@@ -1,0 +1,104 @@
+//go:build binderinvestigation && binderaudit
+
+package binder
+
+import (
+ "bytes"
+ "crypto/sha256"
+ "encoding/json"
+ "fmt"
+ "hash"
+ "os"
+ "path/filepath"
+ "sort"
+ "testing"
+ "unsafe"
+ "github.com/microsoft/TypeScript/tsc/internal/ast"
+)
+
+type investigationNode = @NODE@
+var investigationCounts map[string]int
+var investigationKinds map[string]int
+var investigationParents map[string]int
+var investigationTrace hash.Hash
+var investigationVisited []investigationNode
+var investigationCreatedFlows []*ast.FlowNode
+
+type investigationRecorder struct { hash.Hash; data bytes.Buffer }
+func (h *investigationRecorder) Write(p []byte)(int,error) { h.Hash.Write(p);return h.data.Write(p) }
+
+func investigationNil(n investigationNode) bool { return @NIL@ }
+func investigationKey(n investigationNode) string {
+ if investigationNil(n) { return "nil" }
+ return fmt.Sprintf("%d:%d:%d",n.Kind,n.Pos(),n.End())
+}
+func investigationParent(n investigationNode) investigationNode { return @PARENT@ }
+func investigationVisit(n investigationNode) {
+ if investigationCounts == nil || investigationNil(n) { return }
+ saved:=ast.InvestigationCounts; ast.InvestigationCounts=nil
+ investigationCounts["node_visits"]++
+ investigationKinds[n.Kind.String()]++
+ investigationVisited=append(investigationVisited,n)
+ fmt.Fprintln(investigationTrace,investigationKey(n))
+ ast.InvestigationCounts=saved
+}
+func investigationIdentifierName(n investigationNode) {
+ if investigationCounts==nil { return }
+ saved:=ast.InvestigationCounts; ast.InvestigationCounts=nil
+ investigationCounts["identifier_name_tests"]++
+ p:=investigationParent(n)
+ if !investigationNil(p) { investigationParents[p.Kind.String()]++ }
+ ast.InvestigationCounts=saved
+}
+func investigationCount(name string) { if investigationCounts!=nil { investigationCounts[name]++ } }
+
+func TestInvestigationAudit(t *testing.T) {
+ for _,f:=range investigationFixtures(t) { t.Run(f.Name,func(t *testing.T) {
+  sf:=f.parse(f.source(t)); root:=@ROOT@
+  layoutBefore:=@LAYOUT@
+  var walk func(investigationNode,func(investigationNode))
+  walk=func(n investigationNode,v func(investigationNode)) {
+   if investigationNil(n) { return }; v(n)
+   n.ForEachChild(func(c investigationNode) bool { walk(c,v);return false })
+  }
+  syntax:=sha256.New(); nodes,edges:=0,0; syntaxRows:=[]string{}
+  walk(root,func(n investigationNode){ nodes++;children:=[]string{};n.ForEachChild(func(c investigationNode)bool{if !investigationNil(c){edges++;children=append(children,investigationKey(c))};return false});sort.Strings(children);syntaxRows=append(syntaxRows,fmt.Sprintf("%s:%v",investigationKey(n),children)) })
+  sort.Strings(syntaxRows);for _,row:=range syntaxRows{fmt.Fprintln(syntax,row)}
+  investigationCounts=map[string]int{}; investigationKinds=map[string]int{}; investigationParents=map[string]int{}; investigationTrace=sha256.New()
+  investigationVisited=nil;investigationCreatedFlows=nil
+  ast.InvestigationCounts=map[string]int{}
+  BindSourceFile(sf)
+  counts,kinds,parents,trace:=investigationCounts,investigationKinds,investigationParents,fmt.Sprintf("%x",investigationTrace.Sum(nil))
+  accesses:=ast.InvestigationCounts
+  investigationCounts=nil;ast.InvestigationCounts=nil
+  layoutAfter:=@LAYOUT@
+  // Stable symbol identity follows source traversal and sorted table entries.
+  symbols:=&investigationRecorder{Hash:sha256.New()}; nodeSymbols:=sha256.New(); sm:=map[*ast.Symbol]int{}; sq:=[]*ast.Symbol{}
+  sid:=func(s *ast.Symbol)int{if s==nil{return 0};if id:=sm[s];id!=0{return id};id:=len(sq)+1;sm[s]=id;sq=append(sq,s);return id}
+  table:=func(h hash.Hash,tab ast.SymbolTable){keys:=make([]string,0,len(tab));for k:=range tab{keys=append(keys,k)};sort.Strings(keys);for _,k:=range keys{fmt.Fprintf(h,"%q:%d,",k,sid(tab[k]))}}
+  for _,n:=range investigationVisited{fmt.Fprintf(nodeSymbols,"%s:%d:%d|",investigationKey(n),sid(n.Symbol()),sid(n.LocalSymbol()));table(nodeSymbols,n.Locals())}
+  for i:=0;i<len(sq);i++ {s:=sq[i];fmt.Fprintf(symbols,"%d:%q:%d:%d:%s:%d:%d|",i+1,s.Name,s.Flags,s.CheckFlags,investigationKey(s.ValueDeclaration),sid(s.Parent),sid(s.ExportSymbol));for _,d:=range s.Declarations{fmt.Fprintf(symbols,"d%s,",investigationKey(d))};table(symbols,s.Members);table(symbols,s.Exports);fmt.Fprintln(symbols)}
+  flows:=sha256.New();fm:=map[*ast.FlowNode]int{}
+  for i,f:=range investigationCreatedFlows{fm[f]=i+1}
+  fid:=func(f *ast.FlowNode)int{if f==nil{return 0};id:=fm[f];if id==0{t.Fatal("flow outside creation census")};return id}
+  for i,f:=range investigationCreatedFlows{
+   fmt.Fprintf(flows,"%d:%d:%d|",i+1,f.Flags,fid(f.Antecedent));for l:=f.Antecedents;l!=nil;l=l.Next{fmt.Fprintf(flows,"a%d,",fid(l.Flow))}
+   switch {
+   case f.Flags&ast.FlowFlagsSwitchClause!=0:d:=@DATA@.AsFlowSwitchClauseData();fmt.Fprintf(flows,"switch:%s:%d:%d",investigationKey(d.SwitchStatement),d.ClauseStart,d.ClauseEnd)
+   case f.Flags&ast.FlowFlagsReduceLabel!=0:d:=@DATA@.AsFlowReduceLabelData();fmt.Fprintf(flows,"reduce:%d",fid(d.Target));for l:=d.Antecedents;l!=nil;l=l.Next{fmt.Fprintf(flows,"a%d,",fid(l.Flow))}
+   default:fmt.Fprintf(flows,"node:%s",investigationKey(f.Node))
+   }
+  }
+  diagnostics:=sha256.New()
+  var diag func(*ast.Diagnostic)
+  diag=func(d *ast.Diagnostic){fmt.Fprintf(diagnostics,"%d:%d:%d:%d:%q:%q|",d.Code(),d.Category(),d.Loc().Pos(),d.Loc().End(),d.MessageText(),d.MessageArgs());for _,c:=range d.MessageChain(){diag(c)};fmt.Fprint(diagnostics,"related:");for _,r:=range d.RelatedInformation(){diag(r)}}
+  for _,d:=range sf.BindDiagnostics(){diag(d)}
+  result:=map[string]any{"fixture":f.Name,"counts":counts,"accessors":accesses,"kinds":kinds,"identifier_parents":parents,"syntax_nodes":nodes,"syntax_edges":edges,"syntax_sha256":fmt.Sprintf("%x",syntax.Sum(nil)),"visit_trace_sha256":trace,"symbols_sha256":fmt.Sprintf("%x",symbols.Sum(nil)),"node_symbols_sha256":fmt.Sprintf("%x",nodeSymbols.Sum(nil)),"diagnostics_sha256":fmt.Sprintf("%x",diagnostics.Sum(nil)),"bind_diagnostics":len(sf.BindDiagnostics()),"reachable_symbols":len(sq),"flow_node_size":unsafe.Sizeof(ast.FlowNode{}),"symbol_size":unsafe.Sizeof(ast.Symbol{}),"declaration_ref_size":unsafe.Sizeof(sq[0].ValueDeclaration)}
+  result["flows_sha256"]=fmt.Sprintf("%x",flows.Sum(nil))
+  result["layout_before_bind"]=layoutBefore;result["layout_after_bind"]=layoutAfter
+  data,err:=json.MarshalIndent(result,"","  ");if err!=nil{t.Fatal(err)}
+  dest:=os.Getenv("BINDER_AUDIT_OUT");if dest==""{t.Fatal("BINDER_AUDIT_OUT required")};if err:=os.MkdirAll(dest,0755);err!=nil{t.Fatal(err)}
+  if err:=os.WriteFile(filepath.Join(dest,f.Name+".symbols.txt"),symbols.data.Bytes(),0644);err!=nil{t.Fatal(err)}
+  file,err:=os.OpenFile(filepath.Join(dest,f.Name+".json"),os.O_WRONLY|os.O_CREATE|os.O_EXCL,0644);if err!=nil{t.Fatal(err)};defer file.Close();if _,err:=file.Write(data);err!=nil{t.Fatal(err)}
+ }) }
+}

@@ -1,6 +1,6 @@
 # Parse, bind, and GC vs 8ac035a. Report
 
-Filled from `.cursor/skills/verify-tsc/artifacts/eval-8ac035a-20260909`. How to collect the numbers is `parse-bind-vs-8ac035a.md`.
+Filled from `.cursor/skills/verify-tsc/artifacts/eval-8ac035a-20260909`. How to collect the numbers is `parse-bind-vs-8ac035a.md`. Why Store Bind is slower than pointer Bind is `why-store-bind-is-slower.md` (Instruments CPU Profiler ranking is in that page, artifacts `20260909T1849-cpu-profiler`).
 
 The decision this sheet supports. Continue Store layout into Check only if parse or bind is not a disaster and vscode-scale GC scan work improves. Check time itself is not the gate.
 
