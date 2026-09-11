@@ -313,3 +313,13 @@ P0/P1の完了履歴とartifactは保持する。struct返却・未使用list解
 ### 修正済み寿命ハーネスによるPMU計測（2026-09-11）
 
 [PMU結果](bind-batch-pmu-20260911.md)。両版の実counter自己検証4 process成功、通常GC／GC無効で固定96行を取得。GC無効の命令/cycles A/Aは全8条件合格。主比較でchecker命令+50.64%・cycles+33.18%、dom命令+42.22%・cycles+29.18%（各benchstat p=.002）。L1D load missは約13%減少するため、miss増加だけでは遅さを説明できない。両版のidentity・全Goソース・binary・overlay一致。通常GC Store/domの命令/cyclesと一部wallはA/A不合格。PMU下の絶対wallは非PMUより大きく、通常wallと混合しない。次はLocals/NextContainer表現とpointer同等のModifierFlags保持を独立対照する。本体変更・追加round・commitはなし。
+
+
+### メンテナレビュー向けの局所化（2026-09-11）
+
+[変更と検証](local-accessor-cleanup-20260911.md)。小さなBinary判定とOptionalChain後半を呼び出し側へ展開し、取得専用の中継関数を削減。長い宣言/Flow処理は取得済み値を引数とする既存Ref名の共有関数に統合した。Resolvedメソッド18→0、全体20メソッド減。3パッケージtest/vet成功、20入力の意味digest・監査対象Accessor回数は変更前と一致。生成コードや2passは変更なし。新規wall/PMU・性能維持の証明はmissing。
+
+
+### 局所化前後の再計測（2026-09-11）
+
+[前後比較](local-accessor-measurement-20260911.md)。checkpoint e38ef0b8093と局所化後を同一ハーネスで比較し、wall96行・GC無効PMU48行を取得。GC無効wallはA/A全4条件合格、主比較checker +0.30%、dom −0.84%で非有意。PMU命令数は+0.14%／−0.02%で非有意、命令A/Aも全4条件合格。通常GC wallは1/4、PMU cyclesは0/4の精度合格に留まるため、通常GC dom −2.44%やchecker cycles −3.04%を改善として採用しない。両版のソース・binary・overlay一致、意味監査20/20一致を確認。明確な退行は観測されないが、厳密な同等性の証明とは区別する。追加round・本体変更・commitなし。

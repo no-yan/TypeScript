@@ -233,13 +233,15 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 	case ast.KindEnumMember:
 		b.bindPropertyOrMethodOrAccessorRef(id, kind, ast.SymbolFlagsEnumMember, ast.SymbolFlagsEnumMemberExcludes)
 	case ast.KindCallSignature, ast.KindConstructSignature, ast.KindIndexSignature:
-		b.declareSymbolAndAddToSymbolTableRef(id, kind, ast.SymbolFlagsSignature, ast.SymbolFlagsNone)
+		nameRef, nameKind := b.nameOfDeclarationRef(id, kind)
+		b.declareSymbolAndAddToSymbolTableRef(id, kind, ast.SymbolFlagsSignature, ast.SymbolFlagsNone, bindNode{ref: nameRef, kind: nameKind})
 	case ast.KindMethodDeclaration, ast.KindMethodSignature:
 		b.bindPropertyOrMethodOrAccessorRef(id, kind, ast.SymbolFlagsMethod|b.getOptionalSymbolFlagForRef(id, kind), core.IfElse(b.isObjectLiteralMethodRef(id, kind), ast.SymbolFlagsValue, ast.SymbolFlagsMethodExcludes))
 	case ast.KindFunctionDeclaration:
 		b.bindFunctionDeclarationRef(id, kind)
 	case ast.KindConstructor:
-		b.declareSymbolAndAddToSymbolTableRef(id, kind, ast.SymbolFlagsConstructor, ast.SymbolFlagsNone)
+		nameRef, nameKind := b.nameOfDeclarationRef(id, kind)
+		b.declareSymbolAndAddToSymbolTableRef(id, kind, ast.SymbolFlagsConstructor, ast.SymbolFlagsNone, bindNode{ref: nameRef, kind: nameKind})
 	case ast.KindGetAccessor:
 		b.bindPropertyOrMethodOrAccessorRef(id, kind, ast.SymbolFlagsGetAccessor, ast.SymbolFlagsGetAccessorExcludes)
 	case ast.KindSetAccessor:
@@ -255,7 +257,8 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 	case ast.KindClassExpression, ast.KindClassDeclaration:
 		b.bindClassLikeDeclarationRef(id, kind)
 	case ast.KindInterfaceDeclaration:
-		b.bindBlockScopedDeclarationRef(id, kind, ast.SymbolFlagsInterface, ast.SymbolFlagsInterfaceExcludes)
+		nameRef, nameKind := b.nameOfDeclarationRef(id, kind)
+		b.bindBlockScopedDeclarationRef(id, kind, ast.SymbolFlagsInterface, ast.SymbolFlagsInterfaceExcludes, bindNode{ref: nameRef, kind: nameKind})
 	case ast.KindCallExpression:
 		if b.store.FlagsAt(id)&ast.NodeFlagsJavaScriptFile != 0 {
 			node = ast.HandleOf(b.store, id, kind)
@@ -268,17 +271,20 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 			b.bindCallExpression(node)
 		}
 	case ast.KindTypeAliasDeclaration:
-		b.bindBlockScopedDeclarationRef(id, kind, ast.SymbolFlagsTypeAlias, ast.SymbolFlagsTypeAliasExcludes)
+		nameRef, nameKind := b.nameOfDeclarationRef(id, kind)
+		b.bindBlockScopedDeclarationRef(id, kind, ast.SymbolFlagsTypeAlias, ast.SymbolFlagsTypeAliasExcludes, bindNode{ref: nameRef, kind: nameKind})
 	case ast.KindJSTypeAliasDeclaration:
 		if b.blockScopeContainerKind != ast.KindSourceFile {
-			b.bindBlockScopedDeclarationRef(id, kind, ast.SymbolFlagsTypeAlias, ast.SymbolFlagsTypeAliasExcludes)
+			nameRef, nameKind := b.nameOfDeclarationRef(id, kind)
+			b.bindBlockScopedDeclarationRef(id, kind, ast.SymbolFlagsTypeAlias, ast.SymbolFlagsTypeAliasExcludes, bindNode{ref: nameRef, kind: nameKind})
 		}
 	case ast.KindEnumDeclaration:
 		b.bindEnumDeclarationRef(id, kind)
 	case ast.KindModuleDeclaration:
 		b.bindModuleDeclaration(ast.HandleOf(b.store, id, kind))
 	case ast.KindImportEqualsDeclaration, ast.KindNamespaceImport, ast.KindImportSpecifier, ast.KindExportSpecifier:
-		b.declareSymbolAndAddToSymbolTableRef(id, kind, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes)
+		nameRef, nameKind := b.nameOfDeclarationRef(id, kind)
+		b.declareSymbolAndAddToSymbolTableRef(id, kind, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes, bindNode{ref: nameRef, kind: nameKind})
 	case ast.KindNamespaceExportDeclaration:
 		b.bindNamespaceExportDeclarationRef(id, kind)
 	case ast.KindImportClause:
@@ -292,7 +298,8 @@ func (b *Binder) bindKind(id ast.NodeRef, kind ast.Kind, parentKind ast.Kind) bo
 	case ast.KindJsxAttributes:
 		b.bindAnonymousDeclarationRef(id, kind, ast.SymbolFlagsObjectLiteral, ast.InternalSymbolNameJSXAttributes)
 	case ast.KindJsxAttribute:
-		b.declareSymbolAndAddToSymbolTableRef(id, kind, ast.SymbolFlagsProperty, ast.SymbolFlagsPropertyExcludes)
+		nameRef, nameKind := b.nameOfDeclarationRef(id, kind)
+		b.declareSymbolAndAddToSymbolTableRef(id, kind, ast.SymbolFlagsProperty, ast.SymbolFlagsPropertyExcludes, bindNode{ref: nameRef, kind: nameKind})
 	}
 	flags := b.store.FlagsAt(id)
 	thisNodeOrAnySubnodesHasError := flags&ast.NodeFlagsThisNodeHasError != 0
@@ -329,24 +336,21 @@ func (b *Binder) declareSymbol(symbolTable ast.SymbolTable, parent *ast.Symbol, 
 	// TODO: Evaluate any unique-declaration specialization separately from the
 	// DoD representation port; this path intentionally keeps the full merge and
 	// diagnostic algorithm shared by all declarations.
-	return b.declareSymbolRef(symbolTable, parent, node.Ref(), node.Kind, includes, excludes, false, false)
+	nameRef, nameKind := b.nameOfDeclarationRef(node.Ref(), node.Kind)
+	return b.declareSymbolRef(symbolTable, parent, node.Ref(), node.Kind, includes, excludes, false, false, bindNode{ref: nameRef, kind: nameKind})
 }
 
 func (b *Binder) declareSymbolEx(symbolTable ast.SymbolTable, parent *ast.Symbol, node ast.Handle, includes ast.SymbolFlags, excludes ast.SymbolFlags, isReplaceableByMethod bool, isComputedName bool) *ast.Symbol {
-	return b.declareSymbolRef(symbolTable, parent, node.Ref(), node.Kind, includes, excludes, isReplaceableByMethod, isComputedName)
-}
-
-func (b *Binder) declareSymbolRef(symbolTable ast.SymbolTable, parent *ast.Symbol, ref ast.NodeRef, kind ast.Kind, includes ast.SymbolFlags, excludes ast.SymbolFlags, isReplaceableByMethod bool, isComputedName bool) *ast.Symbol {
 	var name bindNode
 	if !isComputedName {
-		nameRef, nameKind := b.nameOfDeclarationRef(ref, kind)
+		nameRef, nameKind := b.nameOfDeclarationRef(node.Ref(), node.Kind)
 		name = bindNode{ref: nameRef, kind: nameKind}
 	}
-	return b.declareSymbolResolved(symbolTable, parent, ref, kind, includes, excludes, isReplaceableByMethod, isComputedName, name)
+	return b.declareSymbolRef(symbolTable, parent, node.Ref(), node.Kind, includes, excludes, isReplaceableByMethod, isComputedName, name)
 }
 
-func (b *Binder) declareSymbolResolved(symbolTable ast.SymbolTable, parent *ast.Symbol, ref ast.NodeRef, kind ast.Kind, includes ast.SymbolFlags, excludes ast.SymbolFlags, isReplaceableByMethod bool, isComputedName bool, nameNode bindNode) *ast.Symbol {
-	debug.Assert(isComputedName || !b.hasDynamicNameResolved(nameNode))
+func (b *Binder) declareSymbolRef(symbolTable ast.SymbolTable, parent *ast.Symbol, ref ast.NodeRef, kind ast.Kind, includes ast.SymbolFlags, excludes ast.SymbolFlags, isReplaceableByMethod bool, isComputedName bool, nameNode bindNode) *ast.Symbol {
+	debug.Assert(isComputedName || !b.hasDynamicNameRef(nameNode))
 	isDefaultExport := b.hasSyntacticModifierRef(ref, kind, ast.ModifierFlagsDefault) || kind == ast.KindExportSpecifier && b.store.TextAt(b.nameRefGenerated(ref, kind)) == ast.InternalSymbolNameDefault
 	var name string
 	switch {
@@ -355,7 +359,7 @@ func (b *Binder) declareSymbolResolved(symbolTable ast.SymbolTable, parent *ast.
 	case isDefaultExport && parent != nil:
 		name = ast.InternalSymbolNameDefault
 	default:
-		name = b.getDeclarationNameResolved(ref, kind, nameNode)
+		name = b.getDeclarationNameRef(ref, kind, nameNode)
 	}
 	var symbol *ast.Symbol
 	if name == ast.InternalSymbolNameMissing {
@@ -452,20 +456,16 @@ func (b *Binder) declareSymbolResolved(symbolTable ast.SymbolTable, parent *ast.
 }
 
 func (b *Binder) getDeclarationName(node ast.Handle) string {
-	return b.getDeclarationNameRef(node.Ref(), node.Kind)
+	nameRef, nameKind := b.nameOfDeclarationRef(node.Ref(), node.Kind)
+	return b.getDeclarationNameRef(node.Ref(), node.Kind, bindNode{ref: nameRef, kind: nameKind})
 }
 
-func (b *Binder) getDeclarationNameRef(ref ast.NodeRef, kind ast.Kind) string {
-	nameRef, nameKind := b.nameOfDeclarationRef(ref, kind)
-	return b.getDeclarationNameResolved(ref, kind, bindNode{ref: nameRef, kind: nameKind})
-}
-
-func (b *Binder) getDeclarationNameResolved(ref ast.NodeRef, kind ast.Kind, name bindNode) string {
+func (b *Binder) getDeclarationNameRef(ref ast.NodeRef, kind ast.Kind, name bindNode) string {
 	if kind == ast.KindExportAssignment {
 		node := ast.HandleOf(b.store, ref, kind)
 		return core.IfElse(node.ExportAssignmentIsExportEquals(), ast.InternalSymbolNameExportEquals, ast.InternalSymbolNameDefault)
 	}
-	// name.ref == 0 is a resolved missing name. Do not re-resolve.
+	// A zero name.ref means the caller found no name; do not look it up again.
 	if name.ref != 0 {
 		if b.isAmbientModuleRef(ref, kind) {
 			node := ast.HandleOf(b.store, ref, kind)
@@ -545,12 +545,7 @@ func (b *Binder) hasSyntacticModifierRef(ref ast.NodeRef, kind ast.Kind, flags a
 	return b.modifierFlagsRef(ref, kind)&flags != 0
 }
 
-func (b *Binder) combinedModifierFlagsRef(ref ast.NodeRef, kind ast.Kind) ast.ModifierFlags {
-	root, rootKind := b.rootDeclarationRef(ref, kind)
-	return b.combinedModifierFlagsResolved(root, rootKind)
-}
-
-func (b *Binder) combinedModifierFlagsResolved(root ast.NodeRef, rootKind ast.Kind) ast.ModifierFlags {
+func (b *Binder) combinedModifierFlagsRef(root ast.NodeRef, rootKind ast.Kind) ast.ModifierFlags {
 	ref, kind := root, rootKind
 	flags := b.modifierFlagsRef(ref, kind)
 	if kind == ast.KindVariableDeclaration {
@@ -577,12 +572,7 @@ func (b *Binder) rootDeclarationRef(ref ast.NodeRef, kind ast.Kind) (ast.NodeRef
 	return ref, kind
 }
 
-func (b *Binder) combinedNodeFlagsRef(ref ast.NodeRef, kind ast.Kind) ast.NodeFlags {
-	root, rootKind := b.rootDeclarationRef(ref, kind)
-	return b.combinedNodeFlagsResolved(root, rootKind)
-}
-
-func (b *Binder) combinedNodeFlagsResolved(root ast.NodeRef, rootKind ast.Kind) ast.NodeFlags {
+func (b *Binder) combinedNodeFlagsRef(root ast.NodeRef, rootKind ast.Kind) ast.NodeFlags {
 	ref, kind := root, rootKind
 	flags := b.store.FlagsAt(ref)
 	if kind == ast.KindVariableDeclaration {
@@ -639,12 +629,7 @@ func (b *Binder) nameOfDeclarationRef(ref ast.NodeRef, kind ast.Kind) (ast.NodeR
 	return 0, ast.KindUnknown
 }
 
-func (b *Binder) hasDynamicNameRef(ref ast.NodeRef, kind ast.Kind) bool {
-	nameRef, nameKind := b.nameOfDeclarationRef(ref, kind)
-	return b.hasDynamicNameResolved(bindNode{ref: nameRef, kind: nameKind})
-}
-
-func (b *Binder) hasDynamicNameResolved(name bindNode) bool {
+func (b *Binder) hasDynamicNameRef(name bindNode) bool {
 	if name.ref == 0 {
 		return false
 	}
@@ -680,97 +665,82 @@ func GetSymbolNameForPrivateIdentifier(containingClassSymbol *ast.Symbol, descri
 }
 
 func (b *Binder) declareModuleMember(node ast.Handle, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags) *ast.Symbol {
-	return b.declareModuleMemberRef(node.Ref(), node.Kind, symbolFlags, symbolExcludes)
+	nameRef, nameKind := b.nameOfDeclarationRef(node.Ref(), node.Kind)
+	return b.declareModuleMemberRef(node.Ref(), node.Kind, symbolFlags, symbolExcludes, bindNode{ref: nameRef, kind: nameKind})
 }
 
-func (b *Binder) declareModuleMemberRef(ref ast.NodeRef, kind ast.Kind, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags) *ast.Symbol {
-	nameRef, nameKind := b.nameOfDeclarationRef(ref, kind)
-	return b.declareModuleMemberResolved(ref, kind, symbolFlags, symbolExcludes, bindNode{ref: nameRef, kind: nameKind})
-}
-
-func (b *Binder) declareModuleMemberResolved(ref ast.NodeRef, kind ast.Kind, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags, name bindNode) *ast.Symbol {
+func (b *Binder) declareModuleMemberRef(ref ast.NodeRef, kind ast.Kind, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags, name bindNode) *ast.Symbol {
 	container := b.container
 	containerSymbol := b.symbol(container)
-	hasExportModifier := b.combinedModifierFlagsRef(ref, kind)&ast.ModifierFlagsExport != 0 || b.isImplicitlyExportedJSDocDeclarationRef(ref, kind)
+	root, rootKind := b.rootDeclarationRef(ref, kind)
+	hasExportModifier := b.combinedModifierFlagsRef(root, rootKind)&ast.ModifierFlagsExport != 0 || b.isImplicitlyExportedJSDocDeclarationRef(ref, kind)
 	if symbolFlags&ast.SymbolFlagsAlias != 0 {
 		if kind == ast.KindExportSpecifier || (kind == ast.KindImportEqualsDeclaration && hasExportModifier) {
-			return b.declareSymbolResolved(ast.GetExports(containerSymbol), containerSymbol, ref, kind, symbolFlags, symbolExcludes, false, false, name)
+			return b.declareSymbolRef(ast.GetExports(containerSymbol), containerSymbol, ref, kind, symbolFlags, symbolExcludes, false, false, name)
 		}
-		return b.declareSymbolResolved(b.getLocals(container), nil, ref, kind, symbolFlags, symbolExcludes, false, false, name)
+		return b.declareSymbolRef(b.getLocals(container), nil, ref, kind, symbolFlags, symbolExcludes, false, false, name)
 	}
 	if !b.isAmbientModuleRef(ref, kind) && (hasExportModifier || b.store.FlagsAt(container)&ast.NodeFlagsExportContext != 0) {
-		if !ast.IsLocalsContainerKind(b.containerKind) || (b.hasSyntacticModifierRef(ref, kind, ast.ModifierFlagsDefault) && b.getDeclarationNameResolved(ref, kind, name) == ast.InternalSymbolNameMissing) {
-			return b.declareSymbolResolved(ast.GetExports(containerSymbol), containerSymbol, ref, kind, symbolFlags, symbolExcludes, false, false, name)
+		if !ast.IsLocalsContainerKind(b.containerKind) || (b.hasSyntacticModifierRef(ref, kind, ast.ModifierFlagsDefault) && b.getDeclarationNameRef(ref, kind, name) == ast.InternalSymbolNameMissing) {
+			return b.declareSymbolRef(ast.GetExports(containerSymbol), containerSymbol, ref, kind, symbolFlags, symbolExcludes, false, false, name)
 		}
 		exportKind := ast.SymbolFlagsNone
 		if symbolFlags&ast.SymbolFlagsValue != 0 {
 			exportKind = ast.SymbolFlagsExportValue
 		}
-		local := b.declareSymbolResolved(b.getLocals(container), nil, ref, kind, exportKind, symbolExcludes, false, false, name)
-		local.ExportSymbol = b.declareSymbolResolved(ast.GetExports(containerSymbol), containerSymbol, ref, kind, symbolFlags, symbolExcludes, false, false, name)
+		local := b.declareSymbolRef(b.getLocals(container), nil, ref, kind, exportKind, symbolExcludes, false, false, name)
+		local.ExportSymbol = b.declareSymbolRef(ast.GetExports(containerSymbol), containerSymbol, ref, kind, symbolFlags, symbolExcludes, false, false, name)
 		b.store.SetLocalSymbol(ref, local)
 		return local
 	}
-	return b.declareSymbolResolved(b.getLocals(container), nil, ref, kind, symbolFlags, symbolExcludes, false, false, name)
+	return b.declareSymbolRef(b.getLocals(container), nil, ref, kind, symbolFlags, symbolExcludes, false, false, name)
 }
 
 func (b *Binder) declareClassMember(node ast.Handle, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags) *ast.Symbol {
-	return b.declareClassMemberRef(node.Ref(), node.Kind, symbolFlags, symbolExcludes)
+	nameRef, nameKind := b.nameOfDeclarationRef(node.Ref(), node.Kind)
+	return b.declareClassMemberRef(node.Ref(), node.Kind, symbolFlags, symbolExcludes, bindNode{ref: nameRef, kind: nameKind})
 }
 
-func (b *Binder) declareClassMemberRef(ref ast.NodeRef, kind ast.Kind, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags) *ast.Symbol {
-	nameRef, nameKind := b.nameOfDeclarationRef(ref, kind)
-	return b.declareClassMemberResolved(ref, kind, symbolFlags, symbolExcludes, bindNode{ref: nameRef, kind: nameKind})
-}
-
-func (b *Binder) declareClassMemberResolved(ref ast.NodeRef, kind ast.Kind, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags, name bindNode) *ast.Symbol {
+func (b *Binder) declareClassMemberRef(ref ast.NodeRef, kind ast.Kind, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags, name bindNode) *ast.Symbol {
 	containerSymbol := b.symbol(b.container)
 	if b.isStaticRef(ref, kind) {
-		return b.declareSymbolResolved(ast.GetExports(containerSymbol), containerSymbol, ref, kind, symbolFlags, symbolExcludes, false, false, name)
+		return b.declareSymbolRef(ast.GetExports(containerSymbol), containerSymbol, ref, kind, symbolFlags, symbolExcludes, false, false, name)
 	}
-	return b.declareSymbolResolved(ast.GetMembers(containerSymbol), containerSymbol, ref, kind, symbolFlags, symbolExcludes, false, false, name)
+	return b.declareSymbolRef(ast.GetMembers(containerSymbol), containerSymbol, ref, kind, symbolFlags, symbolExcludes, false, false, name)
 }
 
 func (b *Binder) declareSourceFileMember(node ast.Handle, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags) *ast.Symbol {
-	return b.declareSourceFileMemberRef(node.Ref(), node.Kind, symbolFlags, symbolExcludes)
+	nameRef, nameKind := b.nameOfDeclarationRef(node.Ref(), node.Kind)
+	return b.declareSourceFileMemberRef(node.Ref(), node.Kind, symbolFlags, symbolExcludes, bindNode{ref: nameRef, kind: nameKind})
 }
 
-func (b *Binder) declareSourceFileMemberRef(ref ast.NodeRef, kind ast.Kind, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags) *ast.Symbol {
-	nameRef, nameKind := b.nameOfDeclarationRef(ref, kind)
-	return b.declareSourceFileMemberResolved(ref, kind, symbolFlags, symbolExcludes, bindNode{ref: nameRef, kind: nameKind})
-}
-
-func (b *Binder) declareSourceFileMemberResolved(ref ast.NodeRef, kind ast.Kind, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags, name bindNode) *ast.Symbol {
+func (b *Binder) declareSourceFileMemberRef(ref ast.NodeRef, kind ast.Kind, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags, name bindNode) *ast.Symbol {
 	if ast.IsExternalModule(b.file) {
-		return b.declareModuleMemberResolved(ref, kind, symbolFlags, symbolExcludes, name)
+		return b.declareModuleMemberRef(ref, kind, symbolFlags, symbolExcludes, name)
 	}
-	return b.declareSymbolResolved(b.getLocals(b.container), nil, ref, kind, symbolFlags, symbolExcludes, false, false, name)
+	return b.declareSymbolRef(b.getLocals(b.container), nil, ref, kind, symbolFlags, symbolExcludes, false, false, name)
 }
 
 func (b *Binder) declareSymbolAndAddToSymbolTable(node ast.Handle, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags) *ast.Symbol {
-	return b.declareSymbolAndAddToSymbolTableRef(node.Ref(), node.Kind, symbolFlags, symbolExcludes)
+	nameRef, nameKind := b.nameOfDeclarationRef(node.Ref(), node.Kind)
+	return b.declareSymbolAndAddToSymbolTableRef(node.Ref(), node.Kind, symbolFlags, symbolExcludes, bindNode{ref: nameRef, kind: nameKind})
 }
 
-func (b *Binder) declareSymbolAndAddToSymbolTableRef(ref ast.NodeRef, kind ast.Kind, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags) *ast.Symbol {
-	nameRef, nameKind := b.nameOfDeclarationRef(ref, kind)
-	return b.declareSymbolAndAddToSymbolTableResolved(ref, kind, symbolFlags, symbolExcludes, bindNode{ref: nameRef, kind: nameKind})
-}
-
-func (b *Binder) declareSymbolAndAddToSymbolTableResolved(ref ast.NodeRef, kind ast.Kind, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags, name bindNode) *ast.Symbol {
+func (b *Binder) declareSymbolAndAddToSymbolTableRef(ref ast.NodeRef, kind ast.Kind, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags, name bindNode) *ast.Symbol {
 	containerSymbol := b.symbol(b.container)
 	switch b.containerKind {
 	case ast.KindModuleDeclaration:
-		return b.declareModuleMemberResolved(ref, kind, symbolFlags, symbolExcludes, name)
+		return b.declareModuleMemberRef(ref, kind, symbolFlags, symbolExcludes, name)
 	case ast.KindSourceFile:
-		return b.declareSourceFileMemberResolved(ref, kind, symbolFlags, symbolExcludes, name)
+		return b.declareSourceFileMemberRef(ref, kind, symbolFlags, symbolExcludes, name)
 	case ast.KindClassExpression, ast.KindClassDeclaration:
-		return b.declareClassMemberResolved(ref, kind, symbolFlags, symbolExcludes, name)
+		return b.declareClassMemberRef(ref, kind, symbolFlags, symbolExcludes, name)
 	case ast.KindEnumDeclaration:
-		return b.declareSymbolResolved(ast.GetExports(containerSymbol), containerSymbol, ref, kind, symbolFlags, symbolExcludes, false, false, name)
+		return b.declareSymbolRef(ast.GetExports(containerSymbol), containerSymbol, ref, kind, symbolFlags, symbolExcludes, false, false, name)
 	case ast.KindTypeLiteral, ast.KindObjectLiteralExpression, ast.KindInterfaceDeclaration, ast.KindJsxAttributes:
-		return b.declareSymbolResolved(ast.GetMembers(containerSymbol), containerSymbol, ref, kind, symbolFlags, symbolExcludes, false, false, name)
+		return b.declareSymbolRef(ast.GetMembers(containerSymbol), containerSymbol, ref, kind, symbolFlags, symbolExcludes, false, false, name)
 	case ast.KindFunctionType, ast.KindConstructorType, ast.KindCallSignature, ast.KindConstructSignature, ast.KindIndexSignature, ast.KindMethodDeclaration, ast.KindMethodSignature, ast.KindConstructor, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindFunctionDeclaration, ast.KindFunctionExpression, ast.KindArrowFunction, ast.KindClassStaticBlockDeclaration, ast.KindTypeAliasDeclaration, ast.KindJSTypeAliasDeclaration, ast.KindMappedType:
-		return b.declareSymbolResolved(b.getLocals(b.container), nil, ref, kind, symbolFlags, symbolExcludes, false, false, name)
+		return b.declareSymbolRef(b.getLocals(b.container), nil, ref, kind, symbolFlags, symbolExcludes, false, false, name)
 	}
 	panic("Unhandled case in declareSymbolAndAddToSymbolTable")
 }
@@ -927,7 +897,10 @@ func (b *Binder) bindSourceFileIfExternalModuleRef(ref ast.NodeRef, kind ast.Kin
 	} else if ast.IsJsonSourceFile(b.file) {
 		b.bindSourceFileAsExternalModuleRef(ref, kind)
 		originalSymbol := b.file.Symbol
-		b.declareSymbolRef(ast.GetSymbolTable(&b.file.Symbol.Exports), b.file.Symbol, ref, kind, ast.SymbolFlagsProperty, ast.SymbolFlagsAll, false, false)
+		symbolTable := ast.GetSymbolTable(&b.file.Symbol.Exports)
+		parentSymbol := b.file.Symbol
+		nameRef, nameKind := b.nameOfDeclarationRef(ref, kind)
+		b.declareSymbolRef(symbolTable, parentSymbol, ref, kind, ast.SymbolFlagsProperty, ast.SymbolFlagsAll, false, false, bindNode{ref: nameRef, kind: nameKind})
 		b.file.Symbol = originalSymbol
 	}
 }
@@ -1000,7 +973,10 @@ func (b *Binder) bindNamespaceExportDeclarationRef(ref ast.NodeRef, kind ast.Kin
 	case !b.file.IsDeclarationFile:
 		b.errorOnNode(ast.HandleOf(b.store, ref, kind), diagnostics.Global_module_exports_may_only_appear_in_declaration_files)
 	default:
-		b.declareSymbolRef(ast.GetSymbolTable(&b.file.GlobalExports), b.file.Symbol, ref, kind, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes, false, false)
+		symbolTable := ast.GetSymbolTable(&b.file.GlobalExports)
+		parentSymbol := b.file.Symbol
+		nameRef, nameKind := b.nameOfDeclarationRef(ref, kind)
+		b.declareSymbolRef(symbolTable, parentSymbol, ref, kind, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes, false, false, bindNode{ref: nameRef, kind: nameKind})
 	}
 }
 
@@ -1010,7 +986,8 @@ func (b *Binder) bindImportClause(node ast.Handle) {
 
 func (b *Binder) bindImportClauseRef(ref ast.NodeRef, kind ast.Kind) {
 	if b.nameRefGenerated(ref, kind) != 0 {
-		b.declareSymbolAndAddToSymbolTableRef(ref, kind, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes)
+		nameRef, nameKind := b.nameOfDeclarationRef(ref, kind)
+		b.declareSymbolAndAddToSymbolTableRef(ref, kind, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes, bindNode{ref: nameRef, kind: nameKind})
 	}
 }
 
@@ -1023,13 +1000,13 @@ func (b *Binder) bindExportDeclarationRef(ref ast.NodeRef, kind ast.Kind) {
 	nameRef, nameKind := b.nameOfDeclarationRef(ref, kind)
 	name := bindNode{ref: nameRef, kind: nameKind}
 	if containerSymbol == nil {
-		b.bindAnonymousDeclarationRef(ref, kind, ast.SymbolFlagsExportStar, b.getDeclarationNameResolved(ref, kind, name))
+		b.bindAnonymousDeclarationRef(ref, kind, ast.SymbolFlagsExportStar, b.getDeclarationNameRef(ref, kind, name))
 	} else if b.exportClauseRefGenerated(ref, kind) == 0 {
-		b.declareSymbolResolved(ast.GetExports(containerSymbol), containerSymbol, ref, kind, ast.SymbolFlagsExportStar, ast.SymbolFlagsNone, false, false, name)
+		b.declareSymbolRef(ast.GetExports(containerSymbol), containerSymbol, ref, kind, ast.SymbolFlagsExportStar, ast.SymbolFlagsNone, false, false, name)
 	} else if b.store.KindAt(b.exportClauseRefGenerated(ref, kind)) == ast.KindNamespaceExport {
 		clause := b.exportClauseRefGenerated(ref, kind)
 		clauseNameRef, clauseNameKind := b.nameOfDeclarationRef(clause, ast.KindNamespaceExport)
-		b.declareSymbolResolved(ast.GetExports(containerSymbol), containerSymbol, clause, ast.KindNamespaceExport, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes, false, false, bindNode{ref: clauseNameRef, kind: clauseNameKind})
+		b.declareSymbolRef(ast.GetExports(containerSymbol), containerSymbol, clause, ast.KindNamespaceExport, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes, false, false, bindNode{ref: clauseNameRef, kind: clauseNameKind})
 	}
 }
 
@@ -1043,11 +1020,11 @@ func (b *Binder) bindExportAssignmentRef(ref ast.NodeRef, kind ast.Kind) {
 	nameRef, nameKind := b.nameOfDeclarationRef(ref, kind)
 	name := bindNode{ref: nameRef, kind: nameKind}
 	if containerSymbol == nil {
-		b.bindAnonymousDeclarationRef(ref, kind, ast.SymbolFlagsValue, b.getDeclarationNameResolved(ref, kind, name))
+		b.bindAnonymousDeclarationRef(ref, kind, ast.SymbolFlagsValue, b.getDeclarationNameRef(ref, kind, name))
 	} else {
 		expression := b.expressionRefGenerated(ref, kind)
 		flags := core.IfElse(b.expressionIsAliasRef(expression, b.store.KindAt(expression)), ast.SymbolFlagsAlias, ast.SymbolFlagsProperty)
-		symbol := b.declareSymbolResolved(ast.GetExports(containerSymbol), containerSymbol, ref, kind, flags, ast.SymbolFlagsAll, false, false, name)
+		symbol := b.declareSymbolRef(ast.GetExports(containerSymbol), containerSymbol, ref, kind, flags, ast.SymbolFlagsAll, false, false, name)
 		if b.isExportEqualsRefGenerated(ref, kind) {
 			b.setValueDeclarationRef(symbol, ref, kind, ast.HandleOf(b.store, ref, kind))
 		}
@@ -1180,7 +1157,7 @@ func (b *Binder) bindClassLikeDeclarationRef(ref ast.NodeRef, kind ast.Kind) {
 	name := bindNode{ref: nameRef, kind: nameKind}
 	switch kind {
 	case ast.KindClassDeclaration:
-		b.bindBlockScopedDeclarationResolved(ref, kind, ast.SymbolFlagsClass, ast.SymbolFlagsClassExcludes, name)
+		b.bindBlockScopedDeclarationRef(ref, kind, ast.SymbolFlagsClass, ast.SymbolFlagsClassExcludes, name)
 	case ast.KindClassExpression:
 		nameText := ast.InternalSymbolNameClass
 		if name.ref != 0 {
@@ -1211,10 +1188,10 @@ func (b *Binder) bindPropertyOrMethodOrAccessorRef(ref ast.NodeRef, kind ast.Kin
 	}
 	nameRef, nameKind := b.nameOfDeclarationRef(ref, kind)
 	name := bindNode{ref: nameRef, kind: nameKind}
-	if b.hasDynamicNameResolved(name) {
+	if b.hasDynamicNameRef(name) {
 		b.bindAnonymousDeclarationRef(ref, kind, symbolFlags, ast.InternalSymbolNameComputed)
 	} else {
-		b.declareSymbolAndAddToSymbolTableResolved(ref, kind, symbolFlags, symbolExcludes, name)
+		b.declareSymbolAndAddToSymbolTableRef(ref, kind, symbolFlags, symbolExcludes, name)
 	}
 }
 
@@ -1249,7 +1226,7 @@ func (b *Binder) bindFunctionOrConstructorType(node ast.Handle) {
 
 func (b *Binder) bindFunctionOrConstructorTypeRef(ref ast.NodeRef, kind ast.Kind) {
 	nameRef, nameKind := b.nameOfDeclarationRef(ref, kind)
-	symbol := b.newSymbol(ast.SymbolFlagsSignature, b.getDeclarationNameResolved(ref, kind, bindNode{ref: nameRef, kind: nameKind}))
+	symbol := b.newSymbol(ast.SymbolFlagsSignature, b.getDeclarationNameRef(ref, kind, bindNode{ref: nameRef, kind: nameKind}))
 	b.addDeclarationToSymbolRef(symbol, ref, kind, ast.SymbolFlagsSignature)
 	typeLiteralSymbol := b.newSymbol(ast.SymbolFlagsTypeLiteral, ast.InternalSymbolNameType)
 	b.addDeclarationToSymbolRef(typeLiteralSymbol, ref, kind, ast.SymbolFlagsTypeLiteral)
@@ -1413,10 +1390,13 @@ func (b *Binder) bindEnumDeclaration(node ast.Handle) {
 }
 
 func (b *Binder) bindEnumDeclarationRef(ref ast.NodeRef, kind ast.Kind) {
-	if b.combinedModifierFlagsRef(ref, kind)&ast.ModifierFlagsConst != 0 {
-		b.bindBlockScopedDeclarationRef(ref, kind, ast.SymbolFlagsConstEnum, ast.SymbolFlagsConstEnumExcludes)
+	root, rootKind := b.rootDeclarationRef(ref, kind)
+	if b.combinedModifierFlagsRef(root, rootKind)&ast.ModifierFlagsConst != 0 {
+		nameRef, nameKind := b.nameOfDeclarationRef(ref, kind)
+		b.bindBlockScopedDeclarationRef(ref, kind, ast.SymbolFlagsConstEnum, ast.SymbolFlagsConstEnumExcludes, bindNode{ref: nameRef, kind: nameKind})
 	} else {
-		b.bindBlockScopedDeclarationRef(ref, kind, ast.SymbolFlagsRegularEnum, ast.SymbolFlagsRegularEnumExcludes)
+		nameRef, nameKind := b.nameOfDeclarationRef(ref, kind)
+		b.bindBlockScopedDeclarationRef(ref, kind, ast.SymbolFlagsRegularEnum, ast.SymbolFlagsRegularEnumExcludes, bindNode{ref: nameRef, kind: nameKind})
 	}
 }
 
@@ -1431,14 +1411,14 @@ func (b *Binder) bindVariableDeclarationOrBindingElementRef(ref ast.NodeRef, kin
 	if name.ref != 0 && !isBindingPatternKind(name.kind) {
 		root, rootKind := b.rootDeclarationRef(ref, kind)
 		switch {
-		case b.isVariableDeclarationInitializedToRequireResolved(root, rootKind):
-			b.declareSymbolAndAddToSymbolTableResolved(ref, kind, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes, name)
-		case b.isBlockOrCatchScopedResolved(root, rootKind):
-			b.bindBlockScopedDeclarationResolved(ref, kind, ast.SymbolFlagsBlockScopedVariable, ast.SymbolFlagsBlockScopedVariableExcludes, name)
+		case b.isVariableDeclarationInitializedToRequireRef(root, rootKind):
+			b.declareSymbolAndAddToSymbolTableRef(ref, kind, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes, name)
+		case b.isBlockOrCatchScopedRef(root, rootKind):
+			b.bindBlockScopedDeclarationRef(ref, kind, ast.SymbolFlagsBlockScopedVariable, ast.SymbolFlagsBlockScopedVariableExcludes, name)
 		case rootKind == ast.KindParameter:
-			b.declareSymbolAndAddToSymbolTableResolved(ref, kind, ast.SymbolFlagsFunctionScopedVariable, ast.SymbolFlagsParameterExcludes, name)
+			b.declareSymbolAndAddToSymbolTableRef(ref, kind, ast.SymbolFlagsFunctionScopedVariable, ast.SymbolFlagsParameterExcludes, name)
 		default:
-			b.declareSymbolAndAddToSymbolTableResolved(ref, kind, ast.SymbolFlagsFunctionScopedVariable, ast.SymbolFlagsFunctionScopedVariableExcludes, name)
+			b.declareSymbolAndAddToSymbolTableRef(ref, kind, ast.SymbolFlagsFunctionScopedVariable, ast.SymbolFlagsFunctionScopedVariableExcludes, name)
 		}
 	}
 }
@@ -1447,12 +1427,7 @@ func isBindingPatternKind(kind ast.Kind) bool {
 	return kind == ast.KindObjectBindingPattern || kind == ast.KindArrayBindingPattern
 }
 
-func (b *Binder) isVariableDeclarationInitializedToRequireRef(ref ast.NodeRef, kind ast.Kind) bool {
-	root, rootKind := b.rootDeclarationRef(ref, kind)
-	return b.isVariableDeclarationInitializedToRequireResolved(root, rootKind)
-}
-
-func (b *Binder) isVariableDeclarationInitializedToRequireResolved(root ast.NodeRef, rootKind ast.Kind) bool {
+func (b *Binder) isVariableDeclarationInitializedToRequireRef(root ast.NodeRef, rootKind ast.Kind) bool {
 	if b.store.FlagsAt(root)&ast.NodeFlagsJavaScriptFile == 0 || rootKind != ast.KindVariableDeclaration {
 		return false
 	}
@@ -1487,13 +1462,8 @@ func (b *Binder) isRequireCallRef(ref ast.NodeRef, kind ast.Kind, requireStringL
 	return argumentKind == ast.KindStringLiteral || argumentKind == ast.KindNoSubstitutionTemplateLiteral
 }
 
-func (b *Binder) isBlockOrCatchScopedRef(ref ast.NodeRef, kind ast.Kind) bool {
-	root, rootKind := b.rootDeclarationRef(ref, kind)
-	return b.isBlockOrCatchScopedResolved(root, rootKind)
-}
-
-func (b *Binder) isBlockOrCatchScopedResolved(root ast.NodeRef, rootKind ast.Kind) bool {
-	if b.combinedNodeFlagsResolved(root, rootKind)&ast.NodeFlagsBlockScoped != 0 {
+func (b *Binder) isBlockOrCatchScopedRef(root ast.NodeRef, rootKind ast.Kind) bool {
+	if b.combinedNodeFlagsRef(root, rootKind)&ast.NodeFlagsBlockScoped != 0 {
 		return true
 	}
 	return rootKind == ast.KindVariableDeclaration && b.store.KindAt(b.store.ParentRef(root)) == ast.KindCatchClause
@@ -1520,13 +1490,13 @@ func (b *Binder) bindParameterRef(ref ast.NodeRef, kind ast.Kind) {
 		index := listIndexRef(b.store, b.parametersRefGenerated(parent, parentKind), ref)
 		b.bindAnonymousDeclarationRef(ref, kind, ast.SymbolFlagsFunctionScopedVariable, "__"+strconv.Itoa(index))
 	} else {
-		b.declareSymbolAndAddToSymbolTableResolved(ref, kind, ast.SymbolFlagsFunctionScopedVariable, ast.SymbolFlagsParameterExcludes, name)
+		b.declareSymbolAndAddToSymbolTableRef(ref, kind, ast.SymbolFlagsFunctionScopedVariable, ast.SymbolFlagsParameterExcludes, name)
 	}
 	if b.hasSyntacticModifierRef(ref, kind, ast.ModifierFlagsParameterPropertyModifier) && parentKind == ast.KindConstructor {
 		classDeclaration := b.store.ParentRef(parent)
 		classSymbol := b.symbol(classDeclaration)
 		flags := ast.SymbolFlagsProperty | core.IfElse(b.questionTokenRefGenerated(ref, kind) != 0, ast.SymbolFlagsOptional, ast.SymbolFlagsNone)
-		b.declareSymbolResolved(ast.GetMembers(classSymbol), classSymbol, ref, kind, flags, ast.SymbolFlagsPropertyExcludes, false, false, name)
+		b.declareSymbolRef(ast.GetMembers(classSymbol), classSymbol, ref, kind, flags, ast.SymbolFlagsPropertyExcludes, false, false, name)
 	}
 }
 
@@ -1543,7 +1513,7 @@ func (b *Binder) bindFunctionDeclarationRef(ref ast.NodeRef, kind ast.Kind) {
 	if b.store.FlagsAt(ref)&ast.NodeFlagsAmbient == 0 {
 		b.checkStrictModeEvalOrArgumentsRef(ref, kind, nameRef, nameKind)
 	}
-	b.bindBlockScopedDeclarationResolved(ref, kind, ast.SymbolFlagsFunction, ast.SymbolFlagsFunctionExcludes, name)
+	b.bindBlockScopedDeclarationRef(ref, kind, ast.SymbolFlagsFunction, ast.SymbolFlagsFunctionExcludes, name)
 }
 
 func (b *Binder) isAsyncFunctionRef(ref ast.NodeRef, kind ast.Kind) bool {
@@ -1578,26 +1548,22 @@ func (b *Binder) bindAnonymousDeclarationRef(ref ast.NodeRef, kind ast.Kind, sym
 }
 
 func (b *Binder) bindBlockScopedDeclaration(node ast.Handle, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags) {
-	b.bindBlockScopedDeclarationRef(node.Ref(), node.Kind, symbolFlags, symbolExcludes)
+	nameRef, nameKind := b.nameOfDeclarationRef(node.Ref(), node.Kind)
+	b.bindBlockScopedDeclarationRef(node.Ref(), node.Kind, symbolFlags, symbolExcludes, bindNode{ref: nameRef, kind: nameKind})
 }
 
-func (b *Binder) bindBlockScopedDeclarationRef(ref ast.NodeRef, kind ast.Kind, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags) {
-	nameRef, nameKind := b.nameOfDeclarationRef(ref, kind)
-	b.bindBlockScopedDeclarationResolved(ref, kind, symbolFlags, symbolExcludes, bindNode{ref: nameRef, kind: nameKind})
-}
-
-func (b *Binder) bindBlockScopedDeclarationResolved(ref ast.NodeRef, kind ast.Kind, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags, name bindNode) {
+func (b *Binder) bindBlockScopedDeclarationRef(ref ast.NodeRef, kind ast.Kind, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags, name bindNode) {
 	switch b.blockScopeContainerKind {
 	case ast.KindModuleDeclaration:
-		b.declareModuleMemberResolved(ref, kind, symbolFlags, symbolExcludes, name)
+		b.declareModuleMemberRef(ref, kind, symbolFlags, symbolExcludes, name)
 	case ast.KindSourceFile:
 		if ast.IsExternalOrCommonJSModule(b.file) {
-			b.declareModuleMemberResolved(ref, kind, symbolFlags, symbolExcludes, name)
+			b.declareModuleMemberRef(ref, kind, symbolFlags, symbolExcludes, name)
 			break
 		}
 		fallthrough
 	default:
-		b.declareSymbolResolved(b.getLocals(b.blockScopeContainer), nil, ref, kind, symbolFlags, symbolExcludes, false, false, name)
+		b.declareSymbolRef(b.getLocals(b.blockScopeContainer), nil, ref, kind, symbolFlags, symbolExcludes, false, false, name)
 	}
 }
 
@@ -2135,12 +2101,16 @@ func (b *Binder) bindChildrenRef(id ast.NodeRef, kind ast.Kind) {
 	case ast.KindBinaryExpression:
 		a := b.store.AccessBinaryExpressionChildren(id)
 		operatorKind := b.binaryOperatorKindFromAccessor(a)
-		if b.isDestructuringAssignmentResolved(a, operatorKind) {
+		leftKind := ast.KindUnknown
+		if operatorKind == ast.KindEqualsToken && a.Left != 0 {
+			leftKind = b.store.KindAt(a.Left)
+		}
+		if leftKind == ast.KindObjectLiteralExpression || leftKind == ast.KindArrayLiteralExpression {
 			b.inAssignmentPattern = saveInAssignmentPattern
-			b.bindDestructuringAssignmentFlowResolved(id, kind, a)
+			b.bindDestructuringAssignmentFlowRef(id, kind, a)
 			return
 		}
-		b.bindBinaryExpressionFlowResolved(id, kind, a, operatorKind)
+		b.bindBinaryExpressionFlowRef(id, kind, a, operatorKind)
 	case ast.KindDeleteExpression:
 		b.bindDeleteExpressionFlowRef(id, kind)
 	case ast.KindConditionalExpression:
@@ -2904,22 +2874,6 @@ func (b *Binder) binaryOperatorKindAt(ref ast.NodeRef) ast.Kind {
 	return b.binaryOperatorKindFromAccessor(b.store.AccessBinaryExpressionChildren(ref))
 }
 
-func (b *Binder) isDestructuringAssignmentResolved(a ast.BinaryExpressionChildrenAccessor, operatorKind ast.Kind) bool {
-	if operatorKind != ast.KindEqualsToken {
-		return false
-	}
-	if a.Left == 0 {
-		return false
-	}
-	leftKind := b.store.KindAt(a.Left)
-	return leftKind == ast.KindObjectLiteralExpression || leftKind == ast.KindArrayLiteralExpression
-}
-
-func (b *Binder) isDestructuringAssignmentRef(ref ast.NodeRef) bool {
-	a := b.store.AccessBinaryExpressionChildren(ref)
-	return b.isDestructuringAssignmentResolved(a, b.binaryOperatorKindFromAccessor(a))
-}
-
 func (b *Binder) isOptionalChainRef(ref ast.NodeRef, kind ast.Kind) bool {
 	if b.store.FlagsAt(ref)&ast.NodeFlagsOptionalChain == 0 {
 		return false
@@ -3010,14 +2964,11 @@ func (b *Binder) bindPostfixUnaryExpressionFlowRef(ref ast.NodeRef, kind ast.Kin
 }
 
 func (b *Binder) bindDestructuringAssignmentFlow(node ast.Handle) {
-	b.bindDestructuringAssignmentFlowRef(node.Ref(), node.Kind)
+	children := b.store.AccessBinaryExpressionChildren(node.Ref())
+	b.bindDestructuringAssignmentFlowRef(node.Ref(), node.Kind, children)
 }
 
-func (b *Binder) bindDestructuringAssignmentFlowRef(ref ast.NodeRef, kind ast.Kind) {
-	b.bindDestructuringAssignmentFlowResolved(ref, kind, b.store.AccessBinaryExpressionChildren(ref))
-}
-
-func (b *Binder) bindDestructuringAssignmentFlowResolved(ref ast.NodeRef, kind ast.Kind, a ast.BinaryExpressionChildrenAccessor) {
+func (b *Binder) bindDestructuringAssignmentFlowRef(ref ast.NodeRef, kind ast.Kind, a ast.BinaryExpressionChildrenAccessor) {
 	left := b.at(a.Left)
 	typeNode := b.at(a.Type)
 	operator := b.at(a.Operator)
@@ -3041,15 +2992,11 @@ func (b *Binder) bindDestructuringAssignmentFlowResolved(ref ast.NodeRef, kind a
 }
 
 func (b *Binder) bindBinaryExpressionFlow(node ast.Handle) {
-	b.bindBinaryExpressionFlowRef(node.Ref(), node.Kind)
+	children := b.store.AccessBinaryExpressionChildren(node.Ref())
+	b.bindBinaryExpressionFlowRef(node.Ref(), node.Kind, children, b.binaryOperatorKindFromAccessor(children))
 }
 
-func (b *Binder) bindBinaryExpressionFlowRef(ref ast.NodeRef, kind ast.Kind) {
-	a := b.store.AccessBinaryExpressionChildren(ref)
-	b.bindBinaryExpressionFlowResolved(ref, kind, a, b.binaryOperatorKindFromAccessor(a))
-}
-
-func (b *Binder) bindBinaryExpressionFlowResolved(ref ast.NodeRef, kind ast.Kind, a ast.BinaryExpressionChildrenAccessor, operator ast.Kind) {
+func (b *Binder) bindBinaryExpressionFlowRef(ref ast.NodeRef, kind ast.Kind, a ast.BinaryExpressionChildrenAccessor, operator ast.Kind) {
 	if ast.IsLogicalOrCoalescingBinaryOperator(operator) || ast.IsLogicalOrCoalescingAssignmentOperator(operator) {
 		node := b.payload(bindNode{ref: ref, kind: kind})
 		if isTopLevelLogicalExpression(node) {
@@ -3057,7 +3004,7 @@ func (b *Binder) bindBinaryExpressionFlowResolved(ref ast.NodeRef, kind ast.Kind
 			saveCurrentFlow := b.currentFlow
 			saveHasFlowEffects := b.hasFlowEffects
 			b.hasFlowEffects = false
-			b.bindLogicalLikeExpressionResolved(ref, kind, a, postExpressionLabel, postExpressionLabel)
+			b.bindLogicalLikeExpressionRef(ref, kind, a, postExpressionLabel, postExpressionLabel)
 			if b.hasFlowEffects {
 				b.currentFlow = b.finishFlowLabel(postExpressionLabel)
 			} else {
@@ -3065,7 +3012,7 @@ func (b *Binder) bindBinaryExpressionFlowResolved(ref ast.NodeRef, kind ast.Kind
 			}
 			b.hasFlowEffects = b.hasFlowEffects || saveHasFlowEffects
 		} else {
-			b.bindLogicalLikeExpressionResolved(ref, kind, a, b.currentTrueTarget, b.currentFalseTarget)
+			b.bindLogicalLikeExpressionRef(ref, kind, a, b.currentTrueTarget, b.currentFalseTarget)
 		}
 	} else {
 		left := b.at(a.Left)
@@ -3091,11 +3038,7 @@ func (b *Binder) bindBinaryExpressionFlowResolved(ref ast.NodeRef, kind ast.Kind
 	}
 }
 
-func (b *Binder) bindLogicalLikeExpressionRef(ref ast.NodeRef, kind ast.Kind, trueTarget *ast.FlowLabel, falseTarget *ast.FlowLabel) {
-	b.bindLogicalLikeExpressionResolved(ref, kind, b.store.AccessBinaryExpressionChildren(ref), trueTarget, falseTarget)
-}
-
-func (b *Binder) bindLogicalLikeExpressionResolved(ref ast.NodeRef, kind ast.Kind, a ast.BinaryExpressionChildrenAccessor, trueTarget *ast.FlowLabel, falseTarget *ast.FlowLabel) {
+func (b *Binder) bindLogicalLikeExpressionRef(ref ast.NodeRef, kind ast.Kind, a ast.BinaryExpressionChildrenAccessor, trueTarget *ast.FlowLabel, falseTarget *ast.FlowLabel) {
 	left := b.at(a.Left)
 	operator := b.at(a.Operator)
 	right := b.at(a.Right)
@@ -3182,19 +3125,15 @@ func (b *Binder) bindVariableDeclarationFlowRef(ref ast.NodeRef, kind ast.Kind) 
 		grandparentKind = b.store.KindAt(grandparent)
 	}
 	if a.Initializer != 0 || grandparentKind == ast.KindForInStatement || grandparentKind == ast.KindForOfStatement {
-		b.bindInitializedVariableFlowResolved(ref, kind, name)
+		b.bindInitializedVariableFlowRef(ref, kind, name)
 	}
 }
 
 func (b *Binder) bindInitializedVariableFlow(node ast.Handle) {
-	b.bindInitializedVariableFlowRef(node.Ref(), node.Kind)
+	b.bindInitializedVariableFlowRef(node.Ref(), node.Kind, b.at(b.nameRefGenerated(node.Ref(), node.Kind)))
 }
 
-func (b *Binder) bindInitializedVariableFlowRef(ref ast.NodeRef, kind ast.Kind) {
-	b.bindInitializedVariableFlowResolved(ref, kind, b.at(b.nameRefGenerated(ref, kind)))
-}
-
-func (b *Binder) bindInitializedVariableFlowResolved(ref ast.NodeRef, kind ast.Kind, name bindNode) {
+func (b *Binder) bindInitializedVariableFlowRef(ref ast.NodeRef, kind ast.Kind, name bindNode) {
 	if name.ref != 0 && isBindingPatternKind(name.kind) {
 		elems := b.store.ListSlotAt(name.ref, 0)
 		s := b.store
@@ -3202,7 +3141,8 @@ func (b *Binder) bindInitializedVariableFlowResolved(ref ast.NodeRef, kind ast.K
 			for i, n := 0, span.Len(); i < n; i++ {
 				child := s.BindListSpanElem(span, i)
 				if child != 0 {
-					b.bindInitializedVariableFlowRef(child, s.KindAt(child))
+					childKind := s.KindAt(child)
+					b.bindInitializedVariableFlowRef(child, childKind, b.at(b.nameRefGenerated(child, childKind)))
 				}
 			}
 			return
@@ -3211,7 +3151,8 @@ func (b *Binder) bindInitializedVariableFlowResolved(ref ast.NodeRef, kind ast.K
 		for i := 0; i < n; i++ {
 			child := s.ListElem(elems, i)
 			if child != 0 {
-				b.bindInitializedVariableFlowRef(child, s.KindAt(child))
+				childKind := s.KindAt(child)
+				b.bindInitializedVariableFlowRef(child, childKind, b.at(b.nameRefGenerated(child, childKind)))
 			}
 		}
 	} else {
@@ -3275,7 +3216,15 @@ func (b *Binder) bindOptionalChainRef(ref ast.NodeRef, kind ast.Kind, trueTarget
 	savedFalseTarget := b.currentFalseTarget
 	b.currentTrueTarget = trueTarget
 	b.currentFalseTarget = falseTarget
-	b.bindOptionalChainRestResolved(kind, syntax)
+	switch kind {
+	case ast.KindPropertyAccessExpression, ast.KindElementAccessExpression:
+		b.bindN(b.at(syntax.questionDot), kind)
+		b.bindN(b.at(syntax.rest), kind)
+	case ast.KindCallExpression:
+		b.bindN(b.at(syntax.questionDot), kind)
+		b.bindListRef(syntax.typeArguments, kind)
+		b.bindListRef(syntax.arguments, kind)
+	}
 	b.currentTrueTarget = savedTrueTarget
 	b.currentFalseTarget = savedFalseTarget
 	if b.isOutermostOptionalChainRef(ref, kind) {
@@ -3324,22 +3273,6 @@ func (b *Binder) resolveOptionalChainSyntax(ref ast.NodeRef, kind ast.Kind) opti
 		return optionalChainSyntax{expression: b.store.AccessNonNullExpression(ref).Expression}
 	default:
 		return optionalChainSyntax{}
-	}
-}
-
-func (b *Binder) bindOptionalChainRestRef(ref ast.NodeRef, kind ast.Kind) {
-	b.bindOptionalChainRestResolved(kind, b.resolveOptionalChainSyntax(ref, kind))
-}
-
-func (b *Binder) bindOptionalChainRestResolved(kind ast.Kind, syntax optionalChainSyntax) {
-	switch kind {
-	case ast.KindPropertyAccessExpression, ast.KindElementAccessExpression:
-		b.bindN(b.at(syntax.questionDot), kind)
-		b.bindN(b.at(syntax.rest), kind)
-	case ast.KindCallExpression:
-		b.bindN(b.at(syntax.questionDot), kind)
-		b.bindListRef(syntax.typeArguments, kind)
-		b.bindListRef(syntax.arguments, kind)
 	}
 }
 
