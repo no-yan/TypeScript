@@ -126,3 +126,101 @@ func TestPrimaryStringValueUsesCanonicalTextColumn(t *testing.T) {
 	assert.Equal(t, "", identifier.StringValue(valueSlotIdentifierText))
 	assert.Equal(t, "", identifier.Ident())
 }
+
+func TestStoreForEachChildUsesSchemaOrder(t *testing.T) {
+	t.Parallel()
+	f := NewFactory(FactoryHooks{})
+	modifier := f.NewIdentifier("modifier")
+	parameter := f.NewIdentifier("parameter")
+	typeNode := f.NewIdentifier("type")
+	node := f.NewIndexSignatureDeclaration(
+		f.List(core.UndefinedTextRange(), modifier),
+		f.List(core.UndefinedTextRange(), parameter),
+		typeNode,
+	)
+
+	assertForEachChildOrder(t, node, modifier, parameter, typeNode)
+}
+
+func TestStoreForEachChildIncludesSourceFileInSchemaOrder(t *testing.T) {
+	t.Parallel()
+	f := NewFactory(FactoryHooks{})
+	statement := f.NewIdentifier("statement")
+	eof := f.NewToken(KindEndOfFile)
+	node := f.NewSourceFile(f.List(core.UndefinedTextRange(), statement), eof)
+
+	assertForEachChildOrder(t, node, statement, eof)
+}
+
+func TestStoreForEachChildUsesJSDocRuntimeOrder(t *testing.T) {
+	t.Parallel()
+	f := NewFactory(FactoryHooks{})
+	tagName := f.NewIdentifier("tag")
+	name := f.NewIdentifier("name")
+	typeExpression := f.NewIdentifier("type")
+	comment := f.NewIdentifier("comment")
+	comments := f.List(core.UndefinedTextRange(), comment)
+
+	nameFirst := f.NewJSDocParameterOrPropertyTag(KindJSDocParameterTag, tagName, name, false, typeExpression, true, comments)
+	typeFirst := f.NewJSDocParameterOrPropertyTag(KindJSDocPropertyTag, tagName, name, false, typeExpression, false, comments)
+
+	assertForEachChildOrder(t, nameFirst, tagName, name, typeExpression, comment)
+	assertForEachChildOrder(t, typeFirst, tagName, typeExpression, name, comment)
+}
+
+func TestStoreForEachChildStopsEarly(t *testing.T) {
+	t.Parallel()
+	f := NewFactory(FactoryHooks{})
+	first := f.NewIdentifier("first")
+	second := f.NewIdentifier("second")
+	third := f.NewIdentifier("third")
+	node := f.NewIndexSignatureDeclaration(
+		f.List(core.UndefinedTextRange(), first),
+		f.List(core.UndefinedTextRange(), second),
+		third,
+	)
+	visited := make([]Handle, 0, 2)
+	stopped := node.ForEachChild(func(child Handle) bool {
+		visited = append(visited, child)
+		return child == second
+	})
+
+	assert.Assert(t, stopped)
+	assert.Equal(t, len(visited), 2)
+	assert.Equal(t, visited[0].Ref(), first.Ref())
+	assert.Equal(t, visited[1].Ref(), second.Ref())
+}
+
+func TestStoreForEachChildResolvesForeignLists(t *testing.T) {
+	owner := NewStore(4)
+	foreign := NewStore(4)
+	RegisterStore(owner)
+	RegisterStore(foreign)
+	defer UnregisterStore(owner)
+	defer UnregisterStore(foreign)
+
+	loc := core.UndefinedTextRange()
+	foreignChild := foreign.Alloc(KindIdentifier, 0, loc, 0)
+	foreignList := foreign.AllocList(loc, 1)
+	foreign.SetListAt(foreignList, 0, foreignChild)
+	typeNode := owner.Alloc(KindIdentifier, 0, loc, 0)
+	node := owner.AllocSlots(KindIndexSignature, 0, loc, slotIndexSignatureDeclarationCount, listSlotIndexSignatureDeclarationCount)
+	node.SetListSlot(listSlotIndexSignatureDeclarationModifiers, foreignList)
+	node.SetChild(slotIndexSignatureDeclarationType, typeNode)
+
+	assertForEachChildOrder(t, node, foreignChild, typeNode)
+}
+
+func assertForEachChildOrder(t *testing.T, node Handle, want ...Handle) {
+	t.Helper()
+	got := make([]Handle, 0, len(want))
+	stopped := node.ForEachChild(func(child Handle) bool {
+		got = append(got, child)
+		return false
+	})
+	assert.Assert(t, !stopped)
+	assert.Equal(t, len(got), len(want))
+	for i := range want {
+		assert.Assert(t, got[i] == want[i], "child %d: got %v want %v", i, got[i], want[i])
+	}
+}

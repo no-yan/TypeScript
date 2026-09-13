@@ -1537,37 +1537,49 @@ func (h Handle) attachList(list ListRef) {
 	}
 }
 
-// ForEachChild visits non-zero named children, then each list slot. true stops.
+func (h Handle) forEachChildList(list ListRef, v StoreVisitor) bool {
+	if list == 0 {
+		return false
+	}
+	for i := range h.s.ListLen(list) {
+		child := h.s.ListAt(list, i)
+		if !child.IsNil() && v(child) {
+			return true
+		}
+	}
+	return false
+}
+
+func (h Handle) forEachChildJSDocParameterOrPropertyTag(v StoreVisitor) bool {
+	if child := h.JSDocParameterOrPropertyTagTagName(); !child.IsNil() && v(child) {
+		return true
+	}
+	name := h.JSDocParameterOrPropertyTagName()
+	typeExpression := h.JSDocParameterOrPropertyTagTypeExpression()
+	if h.JSDocParameterOrPropertyTagIsNameFirst() {
+		if !name.IsNil() && v(name) {
+			return true
+		}
+		if !typeExpression.IsNil() && v(typeExpression) {
+			return true
+		}
+	} else {
+		if !typeExpression.IsNil() && v(typeExpression) {
+			return true
+		}
+		if !name.IsNil() && v(name) {
+			return true
+		}
+	}
+	return h.forEachChildList(h.JSDocParameterOrPropertyTagComment(), v)
+}
+
+// ForEachChild visits children in syntax schema order. true stops.
 func (h Handle) ForEachChild(v StoreVisitor) bool {
 	if h.id == 0 || h.s == nil {
 		return false
 	}
-	n := &h.s.nodes[h.id]
-	for i := range int(n.childLen) {
-		c := h.Child(i)
-		if c.IsNil() {
-			continue
-		}
-		if v(c) {
-			return true
-		}
-	}
-	for slot := range int(n.listLen) {
-		list := h.s.listSlot(n.listBase() + uint32(slot))
-		if list == 0 {
-			continue
-		}
-		for i := range h.s.ListLen(list) {
-			c := h.s.ListAt(list, i)
-			if c.IsNil() {
-				continue
-			}
-			if v(c) {
-				return true
-			}
-		}
-	}
-	return false
+	return h.forEachChildSchema(v)
 }
 
 // Walk pre-order visits h then descendants. true stops.
