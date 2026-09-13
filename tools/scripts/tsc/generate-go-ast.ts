@@ -685,6 +685,11 @@ function storeVisitArg(node: NodeType, m: MemberInfo): string {
     if (!m.isChild()) {
         return getter;
     }
+
+    if (m.visit) {
+        return `v.Visit${api.capitalize(m.visit)}(${getter})`;
+    }
+
     if (m.listKind !== undefined) {
         return `v.VisitNodes(${getter})`;
     }
