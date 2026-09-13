@@ -8,8 +8,10 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
 
-var _ = core.Same[string] // prevent unused import
-var _ atomic.Uint32       // prevent unused import
+var (
+	_ = core.Same[string] // prevent unused import
+	_ atomic.Uint32       // prevent unused import
+)
 
 // ──────────────────────────────────────────────────────────────────────
 // NodeFactory
@@ -150,8 +152,7 @@ type CompositeBase struct {
 	facts atomic.Uint32
 }
 
-type TypeSyntaxBase struct {
-}
+type TypeSyntaxBase struct{}
 
 type FunctionLikeBase struct {
 	LocalsContainerBase
@@ -199,11 +200,9 @@ type TemplateLiteralLikeNodeBase struct {
 	TemplateFlags TokenFlags
 }
 
-type TypeElementBase struct {
-}
+type TypeElementBase struct{}
 
-type ClassElementBase struct {
-}
+type ClassElementBase struct{}
 
 type NamedMemberBase struct {
 	ModifiersBase
@@ -211,8 +210,7 @@ type NamedMemberBase struct {
 	PostfixToken *Node // Optional
 }
 
-type ObjectLiteralElementBase struct {
-}
+type ObjectLiteralElementBase struct{}
 
 type AccessorDeclarationBase struct {
 	TypeElementBase

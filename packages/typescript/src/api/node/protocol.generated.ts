@@ -241,4 +241,3 @@ export const singleChildNodePropertyNames: Readonly<Partial<Record<SyntaxKind, s
     [SyntaxKind.JSDocLinkCode]: "name",
     [SyntaxKind.JSDocTypeLiteral]: "jsdocPropertyTags",
 };
-

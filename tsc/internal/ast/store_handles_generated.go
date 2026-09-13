@@ -44,6 +44,7 @@ func (f *Factory) NewPrivateIdentifier(text string) Handle {
 }
 
 func (h Handle) PrivateIdentifierText() string { return h.StringValue(valueSlotPrivateIdentifierText) }
+
 func (h Handle) SetPrivateIdentifierText(value string) {
 	h.SetStringValue(valueSlotPrivateIdentifierText, value)
 }
@@ -97,6 +98,7 @@ func (f Factory) UpdateComputedPropertyName(node Handle, expression Handle) Hand
 func (h Handle) ComputedPropertyNameExpression() Handle {
 	return h.childAt(slotComputedPropertyNameExpression)
 }
+
 func (h Handle) SetComputedPropertyNameExpression(value Handle) {
 	h.SetChild(slotComputedPropertyNameExpression, value)
 }
@@ -155,7 +157,8 @@ func (f Factory) UpdateIfStatement(node Handle, expression Handle, thenStatement
 	return node
 }
 
-func (h Handle) IfStatementExpression() Handle         { return h.childAt(slotIfStatementExpression) }
+func (h Handle) IfStatementExpression() Handle { return h.childAt(slotIfStatementExpression) }
+
 func (h Handle) SetIfStatementExpression(value Handle) { h.SetChild(slotIfStatementExpression, value) }
 
 func (h Handle) IfStatementThenStatement() Handle { return h.childAt(slotIfStatementThenStatement) }
@@ -192,7 +195,8 @@ func (f Factory) UpdateDoStatement(node Handle, statement Handle, expression Han
 func (h Handle) DoStatementStatement() Handle         { return h.childAt(slotDoStatementStatement) }
 func (h Handle) SetDoStatementStatement(value Handle) { h.SetChild(slotDoStatementStatement, value) }
 
-func (h Handle) DoStatementExpression() Handle         { return h.childAt(slotDoStatementExpression) }
+func (h Handle) DoStatementExpression() Handle { return h.childAt(slotDoStatementExpression) }
+
 func (h Handle) SetDoStatementExpression(value Handle) { h.SetChild(slotDoStatementExpression, value) }
 
 func (f *Factory) ParseWhileStatement(expression NodeRef, statement NodeRef) NodeRef {
@@ -256,7 +260,8 @@ func (h Handle) SetForStatementInitializer(value Handle) {
 	h.SetChild(slotForStatementInitializer, value)
 }
 
-func (h Handle) ForStatementCondition() Handle         { return h.childAt(slotForStatementCondition) }
+func (h Handle) ForStatementCondition() Handle { return h.childAt(slotForStatementCondition) }
+
 func (h Handle) SetForStatementCondition(value Handle) { h.SetChild(slotForStatementCondition, value) }
 
 func (h Handle) ForStatementIncrementor() Handle { return h.childAt(slotForStatementIncrementor) }
@@ -264,7 +269,8 @@ func (h Handle) SetForStatementIncrementor(value Handle) {
 	h.SetChild(slotForStatementIncrementor, value)
 }
 
-func (h Handle) ForStatementStatement() Handle         { return h.childAt(slotForStatementStatement) }
+func (h Handle) ForStatementStatement() Handle { return h.childAt(slotForStatementStatement) }
+
 func (h Handle) SetForStatementStatement(value Handle) { h.SetChild(slotForStatementStatement, value) }
 
 func (f *Factory) ParseForInOrOfStatement(kind Kind, awaitModifier NodeRef, initializer NodeRef, expression NodeRef, statement NodeRef) NodeRef {
@@ -295,6 +301,7 @@ func (f Factory) UpdateForInOrOfStatement(node Handle, awaitModifier Handle, ini
 func (h Handle) ForInOrOfStatementAwaitModifier() Handle {
 	return h.childAt(slotForInOrOfStatementAwaitModifier)
 }
+
 func (h Handle) SetForInOrOfStatementAwaitModifier(value Handle) {
 	h.SetChild(slotForInOrOfStatementAwaitModifier, value)
 }
@@ -302,6 +309,7 @@ func (h Handle) SetForInOrOfStatementAwaitModifier(value Handle) {
 func (h Handle) ForInOrOfStatementInitializer() Handle {
 	return h.childAt(slotForInOrOfStatementInitializer)
 }
+
 func (h Handle) SetForInOrOfStatementInitializer(value Handle) {
 	h.SetChild(slotForInOrOfStatementInitializer, value)
 }
@@ -309,6 +317,7 @@ func (h Handle) SetForInOrOfStatementInitializer(value Handle) {
 func (h Handle) ForInOrOfStatementExpression() Handle {
 	return h.childAt(slotForInOrOfStatementExpression)
 }
+
 func (h Handle) SetForInOrOfStatementExpression(value Handle) {
 	h.SetChild(slotForInOrOfStatementExpression, value)
 }
@@ -316,6 +325,7 @@ func (h Handle) SetForInOrOfStatementExpression(value Handle) {
 func (h Handle) ForInOrOfStatementStatement() Handle {
 	return h.childAt(slotForInOrOfStatementStatement)
 }
+
 func (h Handle) SetForInOrOfStatementStatement(value Handle) {
 	h.SetChild(slotForInOrOfStatementStatement, value)
 }
@@ -386,6 +396,7 @@ func (f Factory) UpdateReturnStatement(node Handle, expression Handle) Handle {
 }
 
 func (h Handle) ReturnStatementExpression() Handle { return h.childAt(slotReturnStatementExpression) }
+
 func (h Handle) SetReturnStatementExpression(value Handle) {
 	h.SetChild(slotReturnStatementExpression, value)
 }
@@ -443,6 +454,7 @@ func (f Factory) UpdateSwitchStatement(node Handle, expression Handle, caseBlock
 }
 
 func (h Handle) SwitchStatementExpression() Handle { return h.childAt(slotSwitchStatementExpression) }
+
 func (h Handle) SetSwitchStatementExpression(value Handle) {
 	h.SetChild(slotSwitchStatementExpression, value)
 }
@@ -496,6 +508,7 @@ func (f Factory) UpdateCaseOrDefaultClause(node Handle, expression Handle, state
 func (h Handle) CaseOrDefaultClauseExpression() Handle {
 	return h.childAt(slotCaseOrDefaultClauseExpression)
 }
+
 func (h Handle) SetCaseOrDefaultClauseExpression(value Handle) {
 	h.SetChild(slotCaseOrDefaultClauseExpression, value)
 }
@@ -503,6 +516,7 @@ func (h Handle) SetCaseOrDefaultClauseExpression(value Handle) {
 func (h Handle) CaseOrDefaultClauseStatements() ListRef {
 	return h.ListSlot(listSlotCaseOrDefaultClauseStatements)
 }
+
 func (h Handle) SetCaseOrDefaultClauseStatements(value ListRef) {
 	h.SetListSlot(listSlotCaseOrDefaultClauseStatements, value)
 }
@@ -591,6 +605,7 @@ func (f Factory) UpdateCatchClause(node Handle, variableDeclaration Handle, bloc
 func (h Handle) CatchClauseVariableDeclaration() Handle {
 	return h.childAt(slotCatchClauseVariableDeclaration)
 }
+
 func (h Handle) SetCatchClauseVariableDeclaration(value Handle) {
 	h.SetChild(slotCatchClauseVariableDeclaration, value)
 }
@@ -628,10 +643,12 @@ func (f Factory) UpdateLabeledStatement(node Handle, label Handle, statement Han
 	return node
 }
 
-func (h Handle) LabeledStatementLabel() Handle         { return h.childAt(slotLabeledStatementLabel) }
+func (h Handle) LabeledStatementLabel() Handle { return h.childAt(slotLabeledStatementLabel) }
+
 func (h Handle) SetLabeledStatementLabel(value Handle) { h.SetChild(slotLabeledStatementLabel, value) }
 
 func (h Handle) LabeledStatementStatement() Handle { return h.childAt(slotLabeledStatementStatement) }
+
 func (h Handle) SetLabeledStatementStatement(value Handle) {
 	h.SetChild(slotLabeledStatementStatement, value)
 }
@@ -658,6 +675,7 @@ func (f Factory) UpdateExpressionStatement(node Handle, expression Handle) Handl
 func (h Handle) ExpressionStatementExpression() Handle {
 	return h.childAt(slotExpressionStatementExpression)
 }
+
 func (h Handle) SetExpressionStatementExpression(value Handle) {
 	h.SetChild(slotExpressionStatementExpression, value)
 }
@@ -719,6 +737,7 @@ func (f Factory) UpdateVariableStatement(node Handle, modifiers ListRef, declara
 func (h Handle) VariableStatementDeclarationList() Handle {
 	return h.childAt(slotVariableStatementDeclarationList)
 }
+
 func (h Handle) SetVariableStatementDeclarationList(value Handle) {
 	h.SetChild(slotVariableStatementDeclarationList, value)
 }
@@ -726,6 +745,7 @@ func (h Handle) SetVariableStatementDeclarationList(value Handle) {
 func (h Handle) VariableStatementModifiers() ListRef {
 	return h.ListSlot(listSlotVariableStatementModifiers)
 }
+
 func (h Handle) SetVariableStatementModifiers(value ListRef) {
 	h.SetListSlot(listSlotVariableStatementModifiers, value)
 }
@@ -763,6 +783,7 @@ func (h Handle) SetVariableDeclarationName(value Handle) {
 func (h Handle) VariableDeclarationExclamationToken() Handle {
 	return h.childAt(slotVariableDeclarationExclamationToken)
 }
+
 func (h Handle) SetVariableDeclarationExclamationToken(value Handle) {
 	h.SetChild(slotVariableDeclarationExclamationToken, value)
 }
@@ -775,6 +796,7 @@ func (h Handle) SetVariableDeclarationType(value Handle) {
 func (h Handle) VariableDeclarationInitializer() Handle {
 	return h.childAt(slotVariableDeclarationInitializer)
 }
+
 func (h Handle) SetVariableDeclarationInitializer(value Handle) {
 	h.SetChild(slotVariableDeclarationInitializer, value)
 }
@@ -799,6 +821,7 @@ func (f Factory) UpdateVariableDeclarationList(node Handle, declarations ListRef
 func (h Handle) VariableDeclarationListDeclarations() ListRef {
 	return h.ListSlot(listSlotVariableDeclarationListDeclarations)
 }
+
 func (h Handle) SetVariableDeclarationListDeclarations(value ListRef) {
 	h.SetListSlot(listSlotVariableDeclarationListDeclarations, value)
 }
@@ -821,6 +844,7 @@ func (f Factory) UpdateBindingPattern(node Handle, elements ListRef) Handle {
 }
 
 func (h Handle) BindingPatternElements() ListRef { return h.ListSlot(listSlotBindingPatternElements) }
+
 func (h Handle) SetBindingPatternElements(value ListRef) {
 	h.SetListSlot(listSlotBindingPatternElements, value)
 }
@@ -857,6 +881,7 @@ func (f Factory) UpdateParameterDeclaration(node Handle, modifiers ListRef, dotD
 func (h Handle) ParameterDeclarationDotDotDotToken() Handle {
 	return h.childAt(slotParameterDeclarationDotDotDotToken)
 }
+
 func (h Handle) SetParameterDeclarationDotDotDotToken(value Handle) {
 	h.SetChild(slotParameterDeclarationDotDotDotToken, value)
 }
@@ -869,6 +894,7 @@ func (h Handle) SetParameterDeclarationName(value Handle) {
 func (h Handle) ParameterDeclarationQuestionToken() Handle {
 	return h.childAt(slotParameterDeclarationQuestionToken)
 }
+
 func (h Handle) SetParameterDeclarationQuestionToken(value Handle) {
 	h.SetChild(slotParameterDeclarationQuestionToken, value)
 }
@@ -881,6 +907,7 @@ func (h Handle) SetParameterDeclarationType(value Handle) {
 func (h Handle) ParameterDeclarationInitializer() Handle {
 	return h.childAt(slotParameterDeclarationInitializer)
 }
+
 func (h Handle) SetParameterDeclarationInitializer(value Handle) {
 	h.SetChild(slotParameterDeclarationInitializer, value)
 }
@@ -888,6 +915,7 @@ func (h Handle) SetParameterDeclarationInitializer(value Handle) {
 func (h Handle) ParameterDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotParameterDeclarationModifiers)
 }
+
 func (h Handle) SetParameterDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotParameterDeclarationModifiers, value)
 }
@@ -920,11 +948,13 @@ func (f Factory) UpdateBindingElement(node Handle, dotDotDotToken Handle, proper
 func (h Handle) BindingElementDotDotDotToken() Handle {
 	return h.childAt(slotBindingElementDotDotDotToken)
 }
+
 func (h Handle) SetBindingElementDotDotDotToken(value Handle) {
 	h.SetChild(slotBindingElementDotDotDotToken, value)
 }
 
 func (h Handle) BindingElementPropertyName() Handle { return h.childAt(slotBindingElementPropertyName) }
+
 func (h Handle) SetBindingElementPropertyName(value Handle) {
 	h.SetChild(slotBindingElementPropertyName, value)
 }
@@ -933,6 +963,7 @@ func (h Handle) BindingElementName() Handle         { return h.childAt(slotBindi
 func (h Handle) SetBindingElementName(value Handle) { h.SetChild(slotBindingElementName, value) }
 
 func (h Handle) BindingElementInitializer() Handle { return h.childAt(slotBindingElementInitializer) }
+
 func (h Handle) SetBindingElementInitializer(value Handle) {
 	h.SetChild(slotBindingElementInitializer, value)
 }
@@ -957,6 +988,7 @@ func (f Factory) UpdateMissingDeclaration(node Handle, modifiers ListRef) Handle
 func (h Handle) MissingDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotMissingDeclarationModifiers)
 }
+
 func (h Handle) SetMissingDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotMissingDeclarationModifiers, value)
 }
@@ -997,6 +1029,7 @@ func (f Factory) UpdateFunctionDeclaration(node Handle, modifiers ListRef, aster
 func (h Handle) FunctionDeclarationAsteriskToken() Handle {
 	return h.childAt(slotFunctionDeclarationAsteriskToken)
 }
+
 func (h Handle) SetFunctionDeclarationAsteriskToken(value Handle) {
 	h.SetChild(slotFunctionDeclarationAsteriskToken, value)
 }
@@ -1014,6 +1047,7 @@ func (h Handle) SetFunctionDeclarationType(value Handle) {
 func (h Handle) FunctionDeclarationFullSignature() Handle {
 	return h.childAt(slotFunctionDeclarationFullSignature)
 }
+
 func (h Handle) SetFunctionDeclarationFullSignature(value Handle) {
 	h.SetChild(slotFunctionDeclarationFullSignature, value)
 }
@@ -1026,6 +1060,7 @@ func (h Handle) SetFunctionDeclarationBody(value Handle) {
 func (h Handle) FunctionDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotFunctionDeclarationModifiers)
 }
+
 func (h Handle) SetFunctionDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotFunctionDeclarationModifiers, value)
 }
@@ -1033,6 +1068,7 @@ func (h Handle) SetFunctionDeclarationModifiers(value ListRef) {
 func (h Handle) FunctionDeclarationTypeParameters() ListRef {
 	return h.ListSlot(listSlotFunctionDeclarationTypeParameters)
 }
+
 func (h Handle) SetFunctionDeclarationTypeParameters(value ListRef) {
 	h.SetListSlot(listSlotFunctionDeclarationTypeParameters, value)
 }
@@ -1040,6 +1076,7 @@ func (h Handle) SetFunctionDeclarationTypeParameters(value ListRef) {
 func (h Handle) FunctionDeclarationParameters() ListRef {
 	return h.ListSlot(listSlotFunctionDeclarationParameters)
 }
+
 func (h Handle) SetFunctionDeclarationParameters(value ListRef) {
 	h.SetListSlot(listSlotFunctionDeclarationParameters, value)
 }
@@ -1077,6 +1114,7 @@ func (h Handle) SetClassDeclarationName(value Handle) { h.SetChild(slotClassDecl
 func (h Handle) ClassDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotClassDeclarationModifiers)
 }
+
 func (h Handle) SetClassDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotClassDeclarationModifiers, value)
 }
@@ -1084,6 +1122,7 @@ func (h Handle) SetClassDeclarationModifiers(value ListRef) {
 func (h Handle) ClassDeclarationTypeParameters() ListRef {
 	return h.ListSlot(listSlotClassDeclarationTypeParameters)
 }
+
 func (h Handle) SetClassDeclarationTypeParameters(value ListRef) {
 	h.SetListSlot(listSlotClassDeclarationTypeParameters, value)
 }
@@ -1091,11 +1130,13 @@ func (h Handle) SetClassDeclarationTypeParameters(value ListRef) {
 func (h Handle) ClassDeclarationHeritageClauses() ListRef {
 	return h.ListSlot(listSlotClassDeclarationHeritageClauses)
 }
+
 func (h Handle) SetClassDeclarationHeritageClauses(value ListRef) {
 	h.SetListSlot(listSlotClassDeclarationHeritageClauses, value)
 }
 
 func (h Handle) ClassDeclarationMembers() ListRef { return h.ListSlot(listSlotClassDeclarationMembers) }
+
 func (h Handle) SetClassDeclarationMembers(value ListRef) {
 	h.SetListSlot(listSlotClassDeclarationMembers, value)
 }
@@ -1133,6 +1174,7 @@ func (h Handle) SetClassExpressionName(value Handle) { h.SetChild(slotClassExpre
 func (h Handle) ClassExpressionModifiers() ListRef {
 	return h.ListSlot(listSlotClassExpressionModifiers)
 }
+
 func (h Handle) SetClassExpressionModifiers(value ListRef) {
 	h.SetListSlot(listSlotClassExpressionModifiers, value)
 }
@@ -1140,6 +1182,7 @@ func (h Handle) SetClassExpressionModifiers(value ListRef) {
 func (h Handle) ClassExpressionTypeParameters() ListRef {
 	return h.ListSlot(listSlotClassExpressionTypeParameters)
 }
+
 func (h Handle) SetClassExpressionTypeParameters(value ListRef) {
 	h.SetListSlot(listSlotClassExpressionTypeParameters, value)
 }
@@ -1147,11 +1190,13 @@ func (h Handle) SetClassExpressionTypeParameters(value ListRef) {
 func (h Handle) ClassExpressionHeritageClauses() ListRef {
 	return h.ListSlot(listSlotClassExpressionHeritageClauses)
 }
+
 func (h Handle) SetClassExpressionHeritageClauses(value ListRef) {
 	h.SetListSlot(listSlotClassExpressionHeritageClauses, value)
 }
 
 func (h Handle) ClassExpressionMembers() ListRef { return h.ListSlot(listSlotClassExpressionMembers) }
+
 func (h Handle) SetClassExpressionMembers(value ListRef) {
 	h.SetListSlot(listSlotClassExpressionMembers, value)
 }
@@ -1181,6 +1226,7 @@ func (h Handle) SetHeritageClauseTypes(value ListRef) {
 }
 
 func (h Handle) HeritageClauseToken() Kind { return Kind(h.UintValue(valueSlotHeritageClauseToken)) }
+
 func (h Handle) SetHeritageClauseToken(value Kind) {
 	h.SetUintValue(valueSlotHeritageClauseToken, uint64(value))
 }
@@ -1220,6 +1266,7 @@ func (h Handle) SetInterfaceDeclarationName(value Handle) {
 func (h Handle) InterfaceDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotInterfaceDeclarationModifiers)
 }
+
 func (h Handle) SetInterfaceDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotInterfaceDeclarationModifiers, value)
 }
@@ -1227,6 +1274,7 @@ func (h Handle) SetInterfaceDeclarationModifiers(value ListRef) {
 func (h Handle) InterfaceDeclarationTypeParameters() ListRef {
 	return h.ListSlot(listSlotInterfaceDeclarationTypeParameters)
 }
+
 func (h Handle) SetInterfaceDeclarationTypeParameters(value ListRef) {
 	h.SetListSlot(listSlotInterfaceDeclarationTypeParameters, value)
 }
@@ -1234,6 +1282,7 @@ func (h Handle) SetInterfaceDeclarationTypeParameters(value ListRef) {
 func (h Handle) InterfaceDeclarationHeritageClauses() ListRef {
 	return h.ListSlot(listSlotInterfaceDeclarationHeritageClauses)
 }
+
 func (h Handle) SetInterfaceDeclarationHeritageClauses(value ListRef) {
 	h.SetListSlot(listSlotInterfaceDeclarationHeritageClauses, value)
 }
@@ -1241,6 +1290,7 @@ func (h Handle) SetInterfaceDeclarationHeritageClauses(value ListRef) {
 func (h Handle) InterfaceDeclarationMembers() ListRef {
 	return h.ListSlot(listSlotInterfaceDeclarationMembers)
 }
+
 func (h Handle) SetInterfaceDeclarationMembers(value ListRef) {
 	h.SetListSlot(listSlotInterfaceDeclarationMembers, value)
 }
@@ -1308,6 +1358,7 @@ func (h Handle) SetTypeAliasDeclarationType(value Handle) {
 func (h Handle) TypeAliasDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotTypeAliasDeclarationModifiers)
 }
+
 func (h Handle) SetTypeAliasDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotTypeAliasDeclarationModifiers, value)
 }
@@ -1315,6 +1366,7 @@ func (h Handle) SetTypeAliasDeclarationModifiers(value ListRef) {
 func (h Handle) TypeAliasDeclarationTypeParameters() ListRef {
 	return h.ListSlot(listSlotTypeAliasDeclarationTypeParameters)
 }
+
 func (h Handle) SetTypeAliasDeclarationTypeParameters(value ListRef) {
 	h.SetListSlot(listSlotTypeAliasDeclarationTypeParameters, value)
 }
@@ -1343,7 +1395,8 @@ func (f Factory) UpdateEnumMember(node Handle, name Handle, initializer Handle) 
 func (h Handle) EnumMemberName() Handle         { return h.childAt(slotEnumMemberName) }
 func (h Handle) SetEnumMemberName(value Handle) { h.SetChild(slotEnumMemberName, value) }
 
-func (h Handle) EnumMemberInitializer() Handle         { return h.childAt(slotEnumMemberInitializer) }
+func (h Handle) EnumMemberInitializer() Handle { return h.childAt(slotEnumMemberInitializer) }
+
 func (h Handle) SetEnumMemberInitializer(value Handle) { h.SetChild(slotEnumMemberInitializer, value) }
 
 func (f *Factory) ParseEnumDeclaration(modifiers ListRef, name NodeRef, members ListRef) NodeRef {
@@ -1375,11 +1428,13 @@ func (h Handle) SetEnumDeclarationName(value Handle) { h.SetChild(slotEnumDeclar
 func (h Handle) EnumDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotEnumDeclarationModifiers)
 }
+
 func (h Handle) SetEnumDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotEnumDeclarationModifiers, value)
 }
 
 func (h Handle) EnumDeclarationMembers() ListRef { return h.ListSlot(listSlotEnumDeclarationMembers) }
+
 func (h Handle) SetEnumDeclarationMembers(value ListRef) {
 	h.SetListSlot(listSlotEnumDeclarationMembers, value)
 }
@@ -1477,6 +1532,7 @@ func (f Factory) UpdateImportDeclaration(node Handle, modifiers ListRef, importC
 func (h Handle) ImportDeclarationImportClause() Handle {
 	return h.childAt(slotImportDeclarationImportClause)
 }
+
 func (h Handle) SetImportDeclarationImportClause(value Handle) {
 	h.SetChild(slotImportDeclarationImportClause, value)
 }
@@ -1484,6 +1540,7 @@ func (h Handle) SetImportDeclarationImportClause(value Handle) {
 func (h Handle) ImportDeclarationModuleSpecifier() Handle {
 	return h.childAt(slotImportDeclarationModuleSpecifier)
 }
+
 func (h Handle) SetImportDeclarationModuleSpecifier(value Handle) {
 	h.SetChild(slotImportDeclarationModuleSpecifier, value)
 }
@@ -1491,6 +1548,7 @@ func (h Handle) SetImportDeclarationModuleSpecifier(value Handle) {
 func (h Handle) ImportDeclarationAttributes() Handle {
 	return h.childAt(slotImportDeclarationAttributes)
 }
+
 func (h Handle) SetImportDeclarationAttributes(value Handle) {
 	h.SetChild(slotImportDeclarationAttributes, value)
 }
@@ -1498,6 +1556,7 @@ func (h Handle) SetImportDeclarationAttributes(value Handle) {
 func (h Handle) ImportDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotImportDeclarationModifiers)
 }
+
 func (h Handle) SetImportDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotImportDeclarationModifiers, value)
 }
@@ -1524,6 +1583,7 @@ func (f Factory) UpdateExternalModuleReference(node Handle, expression Handle) H
 func (h Handle) ExternalModuleReferenceExpression() Handle {
 	return h.childAt(slotExternalModuleReferenceExpression)
 }
+
 func (h Handle) SetExternalModuleReferenceExpression(value Handle) {
 	h.SetChild(slotExternalModuleReferenceExpression, value)
 }
@@ -1607,6 +1667,7 @@ func (h Handle) ExportAssignmentType() Handle         { return h.childAt(slotExp
 func (h Handle) SetExportAssignmentType(value Handle) { h.SetChild(slotExportAssignmentType, value) }
 
 func (h Handle) ExportAssignmentExpression() Handle { return h.childAt(slotExportAssignmentExpression) }
+
 func (h Handle) SetExportAssignmentExpression(value Handle) {
 	h.SetChild(slotExportAssignmentExpression, value)
 }
@@ -1614,6 +1675,7 @@ func (h Handle) SetExportAssignmentExpression(value Handle) {
 func (h Handle) ExportAssignmentModifiers() ListRef {
 	return h.ListSlot(listSlotExportAssignmentModifiers)
 }
+
 func (h Handle) SetExportAssignmentModifiers(value ListRef) {
 	h.SetListSlot(listSlotExportAssignmentModifiers, value)
 }
@@ -1621,6 +1683,7 @@ func (h Handle) SetExportAssignmentModifiers(value ListRef) {
 func (h Handle) ExportAssignmentIsExportEquals() bool {
 	return h.UintValue(valueSlotExportAssignmentIsExportEquals) != 0
 }
+
 func (h Handle) SetExportAssignmentIsExportEquals(value bool) {
 	if value {
 		h.SetUintValue(valueSlotExportAssignmentIsExportEquals, 1)
@@ -1653,6 +1716,7 @@ func (f Factory) UpdateNamespaceExportDeclaration(node Handle, modifiers ListRef
 func (h Handle) NamespaceExportDeclarationName() Handle {
 	return h.childAt(slotNamespaceExportDeclarationName)
 }
+
 func (h Handle) SetNamespaceExportDeclarationName(value Handle) {
 	h.SetChild(slotNamespaceExportDeclarationName, value)
 }
@@ -1660,6 +1724,7 @@ func (h Handle) SetNamespaceExportDeclarationName(value Handle) {
 func (h Handle) NamespaceExportDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotNamespaceExportDeclarationModifiers)
 }
+
 func (h Handle) SetNamespaceExportDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotNamespaceExportDeclarationModifiers, value)
 }
@@ -1740,6 +1805,7 @@ func (f Factory) UpdateExportSpecifier(node Handle, isTypeOnly bool, propertyNam
 func (h Handle) ExportSpecifierPropertyName() Handle {
 	return h.childAt(slotExportSpecifierPropertyName)
 }
+
 func (h Handle) SetExportSpecifierPropertyName(value Handle) {
 	h.SetChild(slotExportSpecifierPropertyName, value)
 }
@@ -1750,6 +1816,7 @@ func (h Handle) SetExportSpecifierName(value Handle) { h.SetChild(slotExportSpec
 func (h Handle) ExportSpecifierIsTypeOnly() bool {
 	return h.UintValue(valueSlotExportSpecifierIsTypeOnly) != 0
 }
+
 func (h Handle) SetExportSpecifierIsTypeOnly(value bool) {
 	if value {
 		h.SetUintValue(valueSlotExportSpecifierIsTypeOnly, 1)
@@ -1784,6 +1851,7 @@ func (f Factory) UpdateCallSignatureDeclaration(node Handle, typeParameters List
 func (h Handle) CallSignatureDeclarationType() Handle {
 	return h.childAt(slotCallSignatureDeclarationType)
 }
+
 func (h Handle) SetCallSignatureDeclarationType(value Handle) {
 	h.SetChild(slotCallSignatureDeclarationType, value)
 }
@@ -1791,6 +1859,7 @@ func (h Handle) SetCallSignatureDeclarationType(value Handle) {
 func (h Handle) CallSignatureDeclarationTypeParameters() ListRef {
 	return h.ListSlot(listSlotCallSignatureDeclarationTypeParameters)
 }
+
 func (h Handle) SetCallSignatureDeclarationTypeParameters(value ListRef) {
 	h.SetListSlot(listSlotCallSignatureDeclarationTypeParameters, value)
 }
@@ -1798,6 +1867,7 @@ func (h Handle) SetCallSignatureDeclarationTypeParameters(value ListRef) {
 func (h Handle) CallSignatureDeclarationParameters() ListRef {
 	return h.ListSlot(listSlotCallSignatureDeclarationParameters)
 }
+
 func (h Handle) SetCallSignatureDeclarationParameters(value ListRef) {
 	h.SetListSlot(listSlotCallSignatureDeclarationParameters, value)
 }
@@ -1828,6 +1898,7 @@ func (f Factory) UpdateConstructSignatureDeclaration(node Handle, typeParameters
 func (h Handle) ConstructSignatureDeclarationType() Handle {
 	return h.childAt(slotConstructSignatureDeclarationType)
 }
+
 func (h Handle) SetConstructSignatureDeclarationType(value Handle) {
 	h.SetChild(slotConstructSignatureDeclarationType, value)
 }
@@ -1835,6 +1906,7 @@ func (h Handle) SetConstructSignatureDeclarationType(value Handle) {
 func (h Handle) ConstructSignatureDeclarationTypeParameters() ListRef {
 	return h.ListSlot(listSlotConstructSignatureDeclarationTypeParameters)
 }
+
 func (h Handle) SetConstructSignatureDeclarationTypeParameters(value ListRef) {
 	h.SetListSlot(listSlotConstructSignatureDeclarationTypeParameters, value)
 }
@@ -1842,6 +1914,7 @@ func (h Handle) SetConstructSignatureDeclarationTypeParameters(value ListRef) {
 func (h Handle) ConstructSignatureDeclarationParameters() ListRef {
 	return h.ListSlot(listSlotConstructSignatureDeclarationParameters)
 }
+
 func (h Handle) SetConstructSignatureDeclarationParameters(value ListRef) {
 	h.SetListSlot(listSlotConstructSignatureDeclarationParameters, value)
 }
@@ -1876,6 +1949,7 @@ func (f Factory) UpdateConstructorDeclaration(node Handle, modifiers ListRef, ty
 }
 
 func (h Handle) ConstructorDeclarationType() Handle { return h.childAt(slotConstructorDeclarationType) }
+
 func (h Handle) SetConstructorDeclarationType(value Handle) {
 	h.SetChild(slotConstructorDeclarationType, value)
 }
@@ -1883,11 +1957,13 @@ func (h Handle) SetConstructorDeclarationType(value Handle) {
 func (h Handle) ConstructorDeclarationFullSignature() Handle {
 	return h.childAt(slotConstructorDeclarationFullSignature)
 }
+
 func (h Handle) SetConstructorDeclarationFullSignature(value Handle) {
 	h.SetChild(slotConstructorDeclarationFullSignature, value)
 }
 
 func (h Handle) ConstructorDeclarationBody() Handle { return h.childAt(slotConstructorDeclarationBody) }
+
 func (h Handle) SetConstructorDeclarationBody(value Handle) {
 	h.SetChild(slotConstructorDeclarationBody, value)
 }
@@ -1895,6 +1971,7 @@ func (h Handle) SetConstructorDeclarationBody(value Handle) {
 func (h Handle) ConstructorDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotConstructorDeclarationModifiers)
 }
+
 func (h Handle) SetConstructorDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotConstructorDeclarationModifiers, value)
 }
@@ -1902,6 +1979,7 @@ func (h Handle) SetConstructorDeclarationModifiers(value ListRef) {
 func (h Handle) ConstructorDeclarationTypeParameters() ListRef {
 	return h.ListSlot(listSlotConstructorDeclarationTypeParameters)
 }
+
 func (h Handle) SetConstructorDeclarationTypeParameters(value ListRef) {
 	h.SetListSlot(listSlotConstructorDeclarationTypeParameters, value)
 }
@@ -1909,6 +1987,7 @@ func (h Handle) SetConstructorDeclarationTypeParameters(value ListRef) {
 func (h Handle) ConstructorDeclarationParameters() ListRef {
 	return h.ListSlot(listSlotConstructorDeclarationParameters)
 }
+
 func (h Handle) SetConstructorDeclarationParameters(value ListRef) {
 	h.SetListSlot(listSlotConstructorDeclarationParameters, value)
 }
@@ -1945,11 +2024,13 @@ func (f Factory) UpdateGetAccessorDeclaration(node Handle, modifiers ListRef, na
 }
 
 func (h Handle) GetAccessorDeclarationName() Handle { return h.childAt(slotGetAccessorDeclarationName) }
+
 func (h Handle) SetGetAccessorDeclarationName(value Handle) {
 	h.SetChild(slotGetAccessorDeclarationName, value)
 }
 
 func (h Handle) GetAccessorDeclarationType() Handle { return h.childAt(slotGetAccessorDeclarationType) }
+
 func (h Handle) SetGetAccessorDeclarationType(value Handle) {
 	h.SetChild(slotGetAccessorDeclarationType, value)
 }
@@ -1957,11 +2038,13 @@ func (h Handle) SetGetAccessorDeclarationType(value Handle) {
 func (h Handle) GetAccessorDeclarationFullSignature() Handle {
 	return h.childAt(slotGetAccessorDeclarationFullSignature)
 }
+
 func (h Handle) SetGetAccessorDeclarationFullSignature(value Handle) {
 	h.SetChild(slotGetAccessorDeclarationFullSignature, value)
 }
 
 func (h Handle) GetAccessorDeclarationBody() Handle { return h.childAt(slotGetAccessorDeclarationBody) }
+
 func (h Handle) SetGetAccessorDeclarationBody(value Handle) {
 	h.SetChild(slotGetAccessorDeclarationBody, value)
 }
@@ -1969,6 +2052,7 @@ func (h Handle) SetGetAccessorDeclarationBody(value Handle) {
 func (h Handle) GetAccessorDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotGetAccessorDeclarationModifiers)
 }
+
 func (h Handle) SetGetAccessorDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotGetAccessorDeclarationModifiers, value)
 }
@@ -1976,6 +2060,7 @@ func (h Handle) SetGetAccessorDeclarationModifiers(value ListRef) {
 func (h Handle) GetAccessorDeclarationTypeParameters() ListRef {
 	return h.ListSlot(listSlotGetAccessorDeclarationTypeParameters)
 }
+
 func (h Handle) SetGetAccessorDeclarationTypeParameters(value ListRef) {
 	h.SetListSlot(listSlotGetAccessorDeclarationTypeParameters, value)
 }
@@ -1983,6 +2068,7 @@ func (h Handle) SetGetAccessorDeclarationTypeParameters(value ListRef) {
 func (h Handle) GetAccessorDeclarationParameters() ListRef {
 	return h.ListSlot(listSlotGetAccessorDeclarationParameters)
 }
+
 func (h Handle) SetGetAccessorDeclarationParameters(value ListRef) {
 	h.SetListSlot(listSlotGetAccessorDeclarationParameters, value)
 }
@@ -2019,11 +2105,13 @@ func (f Factory) UpdateSetAccessorDeclaration(node Handle, modifiers ListRef, na
 }
 
 func (h Handle) SetAccessorDeclarationName() Handle { return h.childAt(slotSetAccessorDeclarationName) }
+
 func (h Handle) SetSetAccessorDeclarationName(value Handle) {
 	h.SetChild(slotSetAccessorDeclarationName, value)
 }
 
 func (h Handle) SetAccessorDeclarationType() Handle { return h.childAt(slotSetAccessorDeclarationType) }
+
 func (h Handle) SetSetAccessorDeclarationType(value Handle) {
 	h.SetChild(slotSetAccessorDeclarationType, value)
 }
@@ -2031,11 +2119,13 @@ func (h Handle) SetSetAccessorDeclarationType(value Handle) {
 func (h Handle) SetAccessorDeclarationFullSignature() Handle {
 	return h.childAt(slotSetAccessorDeclarationFullSignature)
 }
+
 func (h Handle) SetSetAccessorDeclarationFullSignature(value Handle) {
 	h.SetChild(slotSetAccessorDeclarationFullSignature, value)
 }
 
 func (h Handle) SetAccessorDeclarationBody() Handle { return h.childAt(slotSetAccessorDeclarationBody) }
+
 func (h Handle) SetSetAccessorDeclarationBody(value Handle) {
 	h.SetChild(slotSetAccessorDeclarationBody, value)
 }
@@ -2043,6 +2133,7 @@ func (h Handle) SetSetAccessorDeclarationBody(value Handle) {
 func (h Handle) SetAccessorDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotSetAccessorDeclarationModifiers)
 }
+
 func (h Handle) SetSetAccessorDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotSetAccessorDeclarationModifiers, value)
 }
@@ -2050,6 +2141,7 @@ func (h Handle) SetSetAccessorDeclarationModifiers(value ListRef) {
 func (h Handle) SetAccessorDeclarationTypeParameters() ListRef {
 	return h.ListSlot(listSlotSetAccessorDeclarationTypeParameters)
 }
+
 func (h Handle) SetSetAccessorDeclarationTypeParameters(value ListRef) {
 	h.SetListSlot(listSlotSetAccessorDeclarationTypeParameters, value)
 }
@@ -2057,6 +2149,7 @@ func (h Handle) SetSetAccessorDeclarationTypeParameters(value ListRef) {
 func (h Handle) SetAccessorDeclarationParameters() ListRef {
 	return h.ListSlot(listSlotSetAccessorDeclarationParameters)
 }
+
 func (h Handle) SetSetAccessorDeclarationParameters(value ListRef) {
 	h.SetListSlot(listSlotSetAccessorDeclarationParameters, value)
 }
@@ -2087,6 +2180,7 @@ func (f Factory) UpdateIndexSignatureDeclaration(node Handle, modifiers ListRef,
 func (h Handle) IndexSignatureDeclarationType() Handle {
 	return h.childAt(slotIndexSignatureDeclarationType)
 }
+
 func (h Handle) SetIndexSignatureDeclarationType(value Handle) {
 	h.SetChild(slotIndexSignatureDeclarationType, value)
 }
@@ -2094,6 +2188,7 @@ func (h Handle) SetIndexSignatureDeclarationType(value Handle) {
 func (h Handle) IndexSignatureDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotIndexSignatureDeclarationModifiers)
 }
+
 func (h Handle) SetIndexSignatureDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotIndexSignatureDeclarationModifiers, value)
 }
@@ -2101,6 +2196,7 @@ func (h Handle) SetIndexSignatureDeclarationModifiers(value ListRef) {
 func (h Handle) IndexSignatureDeclarationParameters() ListRef {
 	return h.ListSlot(listSlotIndexSignatureDeclarationParameters)
 }
+
 func (h Handle) SetIndexSignatureDeclarationParameters(value ListRef) {
 	h.SetListSlot(listSlotIndexSignatureDeclarationParameters, value)
 }
@@ -2137,6 +2233,7 @@ func (f Factory) UpdateMethodSignatureDeclaration(node Handle, modifiers ListRef
 func (h Handle) MethodSignatureDeclarationName() Handle {
 	return h.childAt(slotMethodSignatureDeclarationName)
 }
+
 func (h Handle) SetMethodSignatureDeclarationName(value Handle) {
 	h.SetChild(slotMethodSignatureDeclarationName, value)
 }
@@ -2144,6 +2241,7 @@ func (h Handle) SetMethodSignatureDeclarationName(value Handle) {
 func (h Handle) MethodSignatureDeclarationPostfixToken() Handle {
 	return h.childAt(slotMethodSignatureDeclarationPostfixToken)
 }
+
 func (h Handle) SetMethodSignatureDeclarationPostfixToken(value Handle) {
 	h.SetChild(slotMethodSignatureDeclarationPostfixToken, value)
 }
@@ -2151,6 +2249,7 @@ func (h Handle) SetMethodSignatureDeclarationPostfixToken(value Handle) {
 func (h Handle) MethodSignatureDeclarationType() Handle {
 	return h.childAt(slotMethodSignatureDeclarationType)
 }
+
 func (h Handle) SetMethodSignatureDeclarationType(value Handle) {
 	h.SetChild(slotMethodSignatureDeclarationType, value)
 }
@@ -2158,6 +2257,7 @@ func (h Handle) SetMethodSignatureDeclarationType(value Handle) {
 func (h Handle) MethodSignatureDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotMethodSignatureDeclarationModifiers)
 }
+
 func (h Handle) SetMethodSignatureDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotMethodSignatureDeclarationModifiers, value)
 }
@@ -2165,6 +2265,7 @@ func (h Handle) SetMethodSignatureDeclarationModifiers(value ListRef) {
 func (h Handle) MethodSignatureDeclarationTypeParameters() ListRef {
 	return h.ListSlot(listSlotMethodSignatureDeclarationTypeParameters)
 }
+
 func (h Handle) SetMethodSignatureDeclarationTypeParameters(value ListRef) {
 	h.SetListSlot(listSlotMethodSignatureDeclarationTypeParameters, value)
 }
@@ -2172,6 +2273,7 @@ func (h Handle) SetMethodSignatureDeclarationTypeParameters(value ListRef) {
 func (h Handle) MethodSignatureDeclarationParameters() ListRef {
 	return h.ListSlot(listSlotMethodSignatureDeclarationParameters)
 }
+
 func (h Handle) SetMethodSignatureDeclarationParameters(value ListRef) {
 	h.SetListSlot(listSlotMethodSignatureDeclarationParameters, value)
 }
@@ -2214,36 +2316,43 @@ func (f Factory) UpdateMethodDeclaration(node Handle, modifiers ListRef, asteris
 func (h Handle) MethodDeclarationAsteriskToken() Handle {
 	return h.childAt(slotMethodDeclarationAsteriskToken)
 }
+
 func (h Handle) SetMethodDeclarationAsteriskToken(value Handle) {
 	h.SetChild(slotMethodDeclarationAsteriskToken, value)
 }
 
-func (h Handle) MethodDeclarationName() Handle         { return h.childAt(slotMethodDeclarationName) }
+func (h Handle) MethodDeclarationName() Handle { return h.childAt(slotMethodDeclarationName) }
+
 func (h Handle) SetMethodDeclarationName(value Handle) { h.SetChild(slotMethodDeclarationName, value) }
 
 func (h Handle) MethodDeclarationPostfixToken() Handle {
 	return h.childAt(slotMethodDeclarationPostfixToken)
 }
+
 func (h Handle) SetMethodDeclarationPostfixToken(value Handle) {
 	h.SetChild(slotMethodDeclarationPostfixToken, value)
 }
 
-func (h Handle) MethodDeclarationType() Handle         { return h.childAt(slotMethodDeclarationType) }
+func (h Handle) MethodDeclarationType() Handle { return h.childAt(slotMethodDeclarationType) }
+
 func (h Handle) SetMethodDeclarationType(value Handle) { h.SetChild(slotMethodDeclarationType, value) }
 
 func (h Handle) MethodDeclarationFullSignature() Handle {
 	return h.childAt(slotMethodDeclarationFullSignature)
 }
+
 func (h Handle) SetMethodDeclarationFullSignature(value Handle) {
 	h.SetChild(slotMethodDeclarationFullSignature, value)
 }
 
-func (h Handle) MethodDeclarationBody() Handle         { return h.childAt(slotMethodDeclarationBody) }
+func (h Handle) MethodDeclarationBody() Handle { return h.childAt(slotMethodDeclarationBody) }
+
 func (h Handle) SetMethodDeclarationBody(value Handle) { h.SetChild(slotMethodDeclarationBody, value) }
 
 func (h Handle) MethodDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotMethodDeclarationModifiers)
 }
+
 func (h Handle) SetMethodDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotMethodDeclarationModifiers, value)
 }
@@ -2251,6 +2360,7 @@ func (h Handle) SetMethodDeclarationModifiers(value ListRef) {
 func (h Handle) MethodDeclarationTypeParameters() ListRef {
 	return h.ListSlot(listSlotMethodDeclarationTypeParameters)
 }
+
 func (h Handle) SetMethodDeclarationTypeParameters(value ListRef) {
 	h.SetListSlot(listSlotMethodDeclarationTypeParameters, value)
 }
@@ -2258,6 +2368,7 @@ func (h Handle) SetMethodDeclarationTypeParameters(value ListRef) {
 func (h Handle) MethodDeclarationParameters() ListRef {
 	return h.ListSlot(listSlotMethodDeclarationParameters)
 }
+
 func (h Handle) SetMethodDeclarationParameters(value ListRef) {
 	h.SetListSlot(listSlotMethodDeclarationParameters, value)
 }
@@ -2292,6 +2403,7 @@ func (f Factory) UpdatePropertySignatureDeclaration(node Handle, modifiers ListR
 func (h Handle) PropertySignatureDeclarationName() Handle {
 	return h.childAt(slotPropertySignatureDeclarationName)
 }
+
 func (h Handle) SetPropertySignatureDeclarationName(value Handle) {
 	h.SetChild(slotPropertySignatureDeclarationName, value)
 }
@@ -2299,6 +2411,7 @@ func (h Handle) SetPropertySignatureDeclarationName(value Handle) {
 func (h Handle) PropertySignatureDeclarationPostfixToken() Handle {
 	return h.childAt(slotPropertySignatureDeclarationPostfixToken)
 }
+
 func (h Handle) SetPropertySignatureDeclarationPostfixToken(value Handle) {
 	h.SetChild(slotPropertySignatureDeclarationPostfixToken, value)
 }
@@ -2306,6 +2419,7 @@ func (h Handle) SetPropertySignatureDeclarationPostfixToken(value Handle) {
 func (h Handle) PropertySignatureDeclarationType() Handle {
 	return h.childAt(slotPropertySignatureDeclarationType)
 }
+
 func (h Handle) SetPropertySignatureDeclarationType(value Handle) {
 	h.SetChild(slotPropertySignatureDeclarationType, value)
 }
@@ -2313,6 +2427,7 @@ func (h Handle) SetPropertySignatureDeclarationType(value Handle) {
 func (h Handle) PropertySignatureDeclarationInitializer() Handle {
 	return h.childAt(slotPropertySignatureDeclarationInitializer)
 }
+
 func (h Handle) SetPropertySignatureDeclarationInitializer(value Handle) {
 	h.SetChild(slotPropertySignatureDeclarationInitializer, value)
 }
@@ -2320,6 +2435,7 @@ func (h Handle) SetPropertySignatureDeclarationInitializer(value Handle) {
 func (h Handle) PropertySignatureDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotPropertySignatureDeclarationModifiers)
 }
+
 func (h Handle) SetPropertySignatureDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotPropertySignatureDeclarationModifiers, value)
 }
@@ -2359,6 +2475,7 @@ func (h Handle) SetPropertyDeclarationName(value Handle) {
 func (h Handle) PropertyDeclarationPostfixToken() Handle {
 	return h.childAt(slotPropertyDeclarationPostfixToken)
 }
+
 func (h Handle) SetPropertyDeclarationPostfixToken(value Handle) {
 	h.SetChild(slotPropertyDeclarationPostfixToken, value)
 }
@@ -2371,6 +2488,7 @@ func (h Handle) SetPropertyDeclarationType(value Handle) {
 func (h Handle) PropertyDeclarationInitializer() Handle {
 	return h.childAt(slotPropertyDeclarationInitializer)
 }
+
 func (h Handle) SetPropertyDeclarationInitializer(value Handle) {
 	h.SetChild(slotPropertyDeclarationInitializer, value)
 }
@@ -2378,6 +2496,7 @@ func (h Handle) SetPropertyDeclarationInitializer(value Handle) {
 func (h Handle) PropertyDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotPropertyDeclarationModifiers)
 }
+
 func (h Handle) SetPropertyDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotPropertyDeclarationModifiers, value)
 }
@@ -2415,6 +2534,7 @@ func (f Factory) UpdateClassStaticBlockDeclaration(node Handle, modifiers ListRe
 func (h Handle) ClassStaticBlockDeclarationBody() Handle {
 	return h.childAt(slotClassStaticBlockDeclarationBody)
 }
+
 func (h Handle) SetClassStaticBlockDeclarationBody(value Handle) {
 	h.SetChild(slotClassStaticBlockDeclarationBody, value)
 }
@@ -2422,6 +2542,7 @@ func (h Handle) SetClassStaticBlockDeclarationBody(value Handle) {
 func (h Handle) ClassStaticBlockDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotClassStaticBlockDeclarationModifiers)
 }
+
 func (h Handle) SetClassStaticBlockDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotClassStaticBlockDeclarationModifiers, value)
 }
@@ -2527,6 +2648,7 @@ func (f *Factory) NewRegularExpressionLiteral(text string, tokenFlags TokenFlags
 func (h Handle) RegularExpressionLiteralText() string {
 	return h.StringValue(valueSlotRegularExpressionLiteralText)
 }
+
 func (h Handle) SetRegularExpressionLiteralText(value string) {
 	h.SetStringValue(valueSlotRegularExpressionLiteralText, value)
 }
@@ -2551,6 +2673,7 @@ func (f *Factory) NewNoSubstitutionTemplateLiteral(text string, templateFlags To
 func (h Handle) NoSubstitutionTemplateLiteralText() string {
 	return h.StringValue(valueSlotNoSubstitutionTemplateLiteralText)
 }
+
 func (h Handle) SetNoSubstitutionTemplateLiteralText(value string) {
 	h.SetStringValue(valueSlotNoSubstitutionTemplateLiteralText, value)
 }
@@ -2596,16 +2719,19 @@ func (h Handle) SetBinaryExpressionType(value Handle) { h.SetChild(slotBinaryExp
 func (h Handle) BinaryExpressionOperatorToken() Handle {
 	return h.childAt(slotBinaryExpressionOperatorToken)
 }
+
 func (h Handle) SetBinaryExpressionOperatorToken(value Handle) {
 	h.SetChild(slotBinaryExpressionOperatorToken, value)
 }
 
-func (h Handle) BinaryExpressionRight() Handle         { return h.childAt(slotBinaryExpressionRight) }
+func (h Handle) BinaryExpressionRight() Handle { return h.childAt(slotBinaryExpressionRight) }
+
 func (h Handle) SetBinaryExpressionRight(value Handle) { h.SetChild(slotBinaryExpressionRight, value) }
 
 func (h Handle) BinaryExpressionModifiers() ListRef {
 	return h.ListSlot(listSlotBinaryExpressionModifiers)
 }
+
 func (h Handle) SetBinaryExpressionModifiers(value ListRef) {
 	h.SetListSlot(listSlotBinaryExpressionModifiers, value)
 }
@@ -2636,6 +2762,7 @@ func (f Factory) UpdatePrefixUnaryExpression(node Handle, operator Kind, operand
 func (h Handle) PrefixUnaryExpressionOperand() Handle {
 	return h.childAt(slotPrefixUnaryExpressionOperand)
 }
+
 func (h Handle) SetPrefixUnaryExpressionOperand(value Handle) {
 	h.SetChild(slotPrefixUnaryExpressionOperand, value)
 }
@@ -2643,6 +2770,7 @@ func (h Handle) SetPrefixUnaryExpressionOperand(value Handle) {
 func (h Handle) PrefixUnaryExpressionOperator() Kind {
 	return Kind(h.UintValue(valueSlotPrefixUnaryExpressionOperator))
 }
+
 func (h Handle) SetPrefixUnaryExpressionOperator(value Kind) {
 	h.SetUintValue(valueSlotPrefixUnaryExpressionOperator, uint64(value))
 }
@@ -2673,6 +2801,7 @@ func (f Factory) UpdatePostfixUnaryExpression(node Handle, operand Handle, opera
 func (h Handle) PostfixUnaryExpressionOperand() Handle {
 	return h.childAt(slotPostfixUnaryExpressionOperand)
 }
+
 func (h Handle) SetPostfixUnaryExpressionOperand(value Handle) {
 	h.SetChild(slotPostfixUnaryExpressionOperand, value)
 }
@@ -2680,6 +2809,7 @@ func (h Handle) SetPostfixUnaryExpressionOperand(value Handle) {
 func (h Handle) PostfixUnaryExpressionOperator() Kind {
 	return Kind(h.UintValue(valueSlotPostfixUnaryExpressionOperator))
 }
+
 func (h Handle) SetPostfixUnaryExpressionOperator(value Kind) {
 	h.SetUintValue(valueSlotPostfixUnaryExpressionOperator, uint64(value))
 }
@@ -2708,11 +2838,13 @@ func (f Factory) UpdateYieldExpression(node Handle, asteriskToken Handle, expres
 func (h Handle) YieldExpressionAsteriskToken() Handle {
 	return h.childAt(slotYieldExpressionAsteriskToken)
 }
+
 func (h Handle) SetYieldExpressionAsteriskToken(value Handle) {
 	h.SetChild(slotYieldExpressionAsteriskToken, value)
 }
 
 func (h Handle) YieldExpressionExpression() Handle { return h.childAt(slotYieldExpressionExpression) }
+
 func (h Handle) SetYieldExpressionExpression(value Handle) {
 	h.SetChild(slotYieldExpressionExpression, value)
 }
@@ -2752,6 +2884,7 @@ func (h Handle) ArrowFunctionType() Handle         { return h.childAt(slotArrowF
 func (h Handle) SetArrowFunctionType(value Handle) { h.SetChild(slotArrowFunctionType, value) }
 
 func (h Handle) ArrowFunctionFullSignature() Handle { return h.childAt(slotArrowFunctionFullSignature) }
+
 func (h Handle) SetArrowFunctionFullSignature(value Handle) {
 	h.SetChild(slotArrowFunctionFullSignature, value)
 }
@@ -2759,6 +2892,7 @@ func (h Handle) SetArrowFunctionFullSignature(value Handle) {
 func (h Handle) ArrowFunctionEqualsGreaterThanToken() Handle {
 	return h.childAt(slotArrowFunctionEqualsGreaterThanToken)
 }
+
 func (h Handle) SetArrowFunctionEqualsGreaterThanToken(value Handle) {
 	h.SetChild(slotArrowFunctionEqualsGreaterThanToken, value)
 }
@@ -2767,6 +2901,7 @@ func (h Handle) ArrowFunctionBody() Handle         { return h.childAt(slotArrowF
 func (h Handle) SetArrowFunctionBody(value Handle) { h.SetChild(slotArrowFunctionBody, value) }
 
 func (h Handle) ArrowFunctionModifiers() ListRef { return h.ListSlot(listSlotArrowFunctionModifiers) }
+
 func (h Handle) SetArrowFunctionModifiers(value ListRef) {
 	h.SetListSlot(listSlotArrowFunctionModifiers, value)
 }
@@ -2774,11 +2909,13 @@ func (h Handle) SetArrowFunctionModifiers(value ListRef) {
 func (h Handle) ArrowFunctionTypeParameters() ListRef {
 	return h.ListSlot(listSlotArrowFunctionTypeParameters)
 }
+
 func (h Handle) SetArrowFunctionTypeParameters(value ListRef) {
 	h.SetListSlot(listSlotArrowFunctionTypeParameters, value)
 }
 
 func (h Handle) ArrowFunctionParameters() ListRef { return h.ListSlot(listSlotArrowFunctionParameters) }
+
 func (h Handle) SetArrowFunctionParameters(value ListRef) {
 	h.SetListSlot(listSlotArrowFunctionParameters, value)
 }
@@ -2819,6 +2956,7 @@ func (f Factory) UpdateFunctionExpression(node Handle, modifiers ListRef, asteri
 func (h Handle) FunctionExpressionAsteriskToken() Handle {
 	return h.childAt(slotFunctionExpressionAsteriskToken)
 }
+
 func (h Handle) SetFunctionExpressionAsteriskToken(value Handle) {
 	h.SetChild(slotFunctionExpressionAsteriskToken, value)
 }
@@ -2836,6 +2974,7 @@ func (h Handle) SetFunctionExpressionType(value Handle) {
 func (h Handle) FunctionExpressionFullSignature() Handle {
 	return h.childAt(slotFunctionExpressionFullSignature)
 }
+
 func (h Handle) SetFunctionExpressionFullSignature(value Handle) {
 	h.SetChild(slotFunctionExpressionFullSignature, value)
 }
@@ -2848,6 +2987,7 @@ func (h Handle) SetFunctionExpressionBody(value Handle) {
 func (h Handle) FunctionExpressionModifiers() ListRef {
 	return h.ListSlot(listSlotFunctionExpressionModifiers)
 }
+
 func (h Handle) SetFunctionExpressionModifiers(value ListRef) {
 	h.SetListSlot(listSlotFunctionExpressionModifiers, value)
 }
@@ -2855,6 +2995,7 @@ func (h Handle) SetFunctionExpressionModifiers(value ListRef) {
 func (h Handle) FunctionExpressionTypeParameters() ListRef {
 	return h.ListSlot(listSlotFunctionExpressionTypeParameters)
 }
+
 func (h Handle) SetFunctionExpressionTypeParameters(value ListRef) {
 	h.SetListSlot(listSlotFunctionExpressionTypeParameters, value)
 }
@@ -2862,6 +3003,7 @@ func (h Handle) SetFunctionExpressionTypeParameters(value ListRef) {
 func (h Handle) FunctionExpressionParameters() ListRef {
 	return h.ListSlot(listSlotFunctionExpressionParameters)
 }
+
 func (h Handle) SetFunctionExpressionParameters(value ListRef) {
 	h.SetListSlot(listSlotFunctionExpressionParameters, value)
 }
@@ -2919,6 +3061,7 @@ func (f Factory) UpdateSatisfiesExpression(node Handle, expression Handle, typeN
 func (h Handle) SatisfiesExpressionExpression() Handle {
 	return h.childAt(slotSatisfiesExpressionExpression)
 }
+
 func (h Handle) SetSatisfiesExpressionExpression(value Handle) {
 	h.SetChild(slotSatisfiesExpressionExpression, value)
 }
@@ -2958,6 +3101,7 @@ func (f Factory) UpdateConditionalExpression(node Handle, condition Handle, ques
 func (h Handle) ConditionalExpressionCondition() Handle {
 	return h.childAt(slotConditionalExpressionCondition)
 }
+
 func (h Handle) SetConditionalExpressionCondition(value Handle) {
 	h.SetChild(slotConditionalExpressionCondition, value)
 }
@@ -2965,6 +3109,7 @@ func (h Handle) SetConditionalExpressionCondition(value Handle) {
 func (h Handle) ConditionalExpressionQuestionToken() Handle {
 	return h.childAt(slotConditionalExpressionQuestionToken)
 }
+
 func (h Handle) SetConditionalExpressionQuestionToken(value Handle) {
 	h.SetChild(slotConditionalExpressionQuestionToken, value)
 }
@@ -2972,6 +3117,7 @@ func (h Handle) SetConditionalExpressionQuestionToken(value Handle) {
 func (h Handle) ConditionalExpressionWhenTrue() Handle {
 	return h.childAt(slotConditionalExpressionWhenTrue)
 }
+
 func (h Handle) SetConditionalExpressionWhenTrue(value Handle) {
 	h.SetChild(slotConditionalExpressionWhenTrue, value)
 }
@@ -2979,6 +3125,7 @@ func (h Handle) SetConditionalExpressionWhenTrue(value Handle) {
 func (h Handle) ConditionalExpressionColonToken() Handle {
 	return h.childAt(slotConditionalExpressionColonToken)
 }
+
 func (h Handle) SetConditionalExpressionColonToken(value Handle) {
 	h.SetChild(slotConditionalExpressionColonToken, value)
 }
@@ -2986,6 +3133,7 @@ func (h Handle) SetConditionalExpressionColonToken(value Handle) {
 func (h Handle) ConditionalExpressionWhenFalse() Handle {
 	return h.childAt(slotConditionalExpressionWhenFalse)
 }
+
 func (h Handle) SetConditionalExpressionWhenFalse(value Handle) {
 	h.SetChild(slotConditionalExpressionWhenFalse, value)
 }
@@ -3016,6 +3164,7 @@ func (f Factory) UpdatePropertyAccessExpression(node Handle, expression Handle, 
 func (h Handle) PropertyAccessExpressionExpression() Handle {
 	return h.childAt(slotPropertyAccessExpressionExpression)
 }
+
 func (h Handle) SetPropertyAccessExpressionExpression(value Handle) {
 	h.SetChild(slotPropertyAccessExpressionExpression, value)
 }
@@ -3023,6 +3172,7 @@ func (h Handle) SetPropertyAccessExpressionExpression(value Handle) {
 func (h Handle) PropertyAccessExpressionQuestionDotToken() Handle {
 	return h.childAt(slotPropertyAccessExpressionQuestionDotToken)
 }
+
 func (h Handle) SetPropertyAccessExpressionQuestionDotToken(value Handle) {
 	h.SetChild(slotPropertyAccessExpressionQuestionDotToken, value)
 }
@@ -3030,6 +3180,7 @@ func (h Handle) SetPropertyAccessExpressionQuestionDotToken(value Handle) {
 func (h Handle) PropertyAccessExpressionName() Handle {
 	return h.childAt(slotPropertyAccessExpressionName)
 }
+
 func (h Handle) SetPropertyAccessExpressionName(value Handle) {
 	h.SetChild(slotPropertyAccessExpressionName, value)
 }
@@ -3060,6 +3211,7 @@ func (f Factory) UpdateElementAccessExpression(node Handle, expression Handle, q
 func (h Handle) ElementAccessExpressionExpression() Handle {
 	return h.childAt(slotElementAccessExpressionExpression)
 }
+
 func (h Handle) SetElementAccessExpressionExpression(value Handle) {
 	h.SetChild(slotElementAccessExpressionExpression, value)
 }
@@ -3067,6 +3219,7 @@ func (h Handle) SetElementAccessExpressionExpression(value Handle) {
 func (h Handle) ElementAccessExpressionQuestionDotToken() Handle {
 	return h.childAt(slotElementAccessExpressionQuestionDotToken)
 }
+
 func (h Handle) SetElementAccessExpressionQuestionDotToken(value Handle) {
 	h.SetChild(slotElementAccessExpressionQuestionDotToken, value)
 }
@@ -3074,6 +3227,7 @@ func (h Handle) SetElementAccessExpressionQuestionDotToken(value Handle) {
 func (h Handle) ElementAccessExpressionArgumentExpression() Handle {
 	return h.childAt(slotElementAccessExpressionArgumentExpression)
 }
+
 func (h Handle) SetElementAccessExpressionArgumentExpression(value Handle) {
 	h.SetChild(slotElementAccessExpressionArgumentExpression, value)
 }
@@ -3111,6 +3265,7 @@ func (h Handle) SetCallExpressionExpression(value Handle) {
 func (h Handle) CallExpressionQuestionDotToken() Handle {
 	return h.childAt(slotCallExpressionQuestionDotToken)
 }
+
 func (h Handle) SetCallExpressionQuestionDotToken(value Handle) {
 	h.SetChild(slotCallExpressionQuestionDotToken, value)
 }
@@ -3118,11 +3273,13 @@ func (h Handle) SetCallExpressionQuestionDotToken(value Handle) {
 func (h Handle) CallExpressionTypeArguments() ListRef {
 	return h.ListSlot(listSlotCallExpressionTypeArguments)
 }
+
 func (h Handle) SetCallExpressionTypeArguments(value ListRef) {
 	h.SetListSlot(listSlotCallExpressionTypeArguments, value)
 }
 
 func (h Handle) CallExpressionArguments() ListRef { return h.ListSlot(listSlotCallExpressionArguments) }
+
 func (h Handle) SetCallExpressionArguments(value ListRef) {
 	h.SetListSlot(listSlotCallExpressionArguments, value)
 }
@@ -3158,11 +3315,13 @@ func (h Handle) SetNewExpressionExpression(value Handle) {
 func (h Handle) NewExpressionTypeArguments() ListRef {
 	return h.ListSlot(listSlotNewExpressionTypeArguments)
 }
+
 func (h Handle) SetNewExpressionTypeArguments(value ListRef) {
 	h.SetListSlot(listSlotNewExpressionTypeArguments, value)
 }
 
 func (h Handle) NewExpressionArguments() ListRef { return h.ListSlot(listSlotNewExpressionArguments) }
+
 func (h Handle) SetNewExpressionArguments(value ListRef) {
 	h.SetListSlot(listSlotNewExpressionArguments, value)
 }
@@ -3196,6 +3355,7 @@ func (h Handle) SetMetaPropertyName(value Handle) { h.SetChild(slotMetaPropertyN
 func (h Handle) MetaPropertyKeywordToken() Kind {
 	return Kind(h.UintValue(valueSlotMetaPropertyKeywordToken))
 }
+
 func (h Handle) SetMetaPropertyKeywordToken(value Kind) {
 	h.SetUintValue(valueSlotMetaPropertyKeywordToken, uint64(value))
 }
@@ -3222,6 +3382,7 @@ func (f Factory) UpdateNonNullExpression(node Handle, expression Handle, flags N
 func (h Handle) NonNullExpressionExpression() Handle {
 	return h.childAt(slotNonNullExpressionExpression)
 }
+
 func (h Handle) SetNonNullExpressionExpression(value Handle) {
 	h.SetChild(slotNonNullExpressionExpression, value)
 }
@@ -3279,6 +3440,7 @@ func (h Handle) SetTemplateExpressionHead(value Handle) {
 func (h Handle) TemplateExpressionTemplateSpans() ListRef {
 	return h.ListSlot(listSlotTemplateExpressionTemplateSpans)
 }
+
 func (h Handle) SetTemplateExpressionTemplateSpans(value ListRef) {
 	h.SetListSlot(listSlotTemplateExpressionTemplateSpans, value)
 }
@@ -3340,6 +3502,7 @@ func (f Factory) UpdateTaggedTemplateExpression(node Handle, tag Handle, questio
 func (h Handle) TaggedTemplateExpressionTag() Handle {
 	return h.childAt(slotTaggedTemplateExpressionTag)
 }
+
 func (h Handle) SetTaggedTemplateExpressionTag(value Handle) {
 	h.SetChild(slotTaggedTemplateExpressionTag, value)
 }
@@ -3347,6 +3510,7 @@ func (h Handle) SetTaggedTemplateExpressionTag(value Handle) {
 func (h Handle) TaggedTemplateExpressionQuestionDotToken() Handle {
 	return h.childAt(slotTaggedTemplateExpressionQuestionDotToken)
 }
+
 func (h Handle) SetTaggedTemplateExpressionQuestionDotToken(value Handle) {
 	h.SetChild(slotTaggedTemplateExpressionQuestionDotToken, value)
 }
@@ -3354,6 +3518,7 @@ func (h Handle) SetTaggedTemplateExpressionQuestionDotToken(value Handle) {
 func (h Handle) TaggedTemplateExpressionTemplate() Handle {
 	return h.childAt(slotTaggedTemplateExpressionTemplate)
 }
+
 func (h Handle) SetTaggedTemplateExpressionTemplate(value Handle) {
 	h.SetChild(slotTaggedTemplateExpressionTemplate, value)
 }
@@ -3361,6 +3526,7 @@ func (h Handle) SetTaggedTemplateExpressionTemplate(value Handle) {
 func (h Handle) TaggedTemplateExpressionTypeArguments() ListRef {
 	return h.ListSlot(listSlotTaggedTemplateExpressionTypeArguments)
 }
+
 func (h Handle) SetTaggedTemplateExpressionTypeArguments(value ListRef) {
 	h.SetListSlot(listSlotTaggedTemplateExpressionTypeArguments, value)
 }
@@ -3387,6 +3553,7 @@ func (f Factory) UpdateParenthesizedExpression(node Handle, expression Handle) H
 func (h Handle) ParenthesizedExpressionExpression() Handle {
 	return h.childAt(slotParenthesizedExpressionExpression)
 }
+
 func (h Handle) SetParenthesizedExpressionExpression(value Handle) {
 	h.SetChild(slotParenthesizedExpressionExpression, value)
 }
@@ -3415,6 +3582,7 @@ func (f Factory) UpdateArrayLiteralExpression(node Handle, elements ListRef, mul
 func (h Handle) ArrayLiteralExpressionElements() ListRef {
 	return h.ListSlot(listSlotArrayLiteralExpressionElements)
 }
+
 func (h Handle) SetArrayLiteralExpressionElements(value ListRef) {
 	h.SetListSlot(listSlotArrayLiteralExpressionElements, value)
 }
@@ -3422,6 +3590,7 @@ func (h Handle) SetArrayLiteralExpressionElements(value ListRef) {
 func (h Handle) ArrayLiteralExpressionMultiLine() bool {
 	return h.UintValue(valueSlotArrayLiteralExpressionMultiLine) != 0
 }
+
 func (h Handle) SetArrayLiteralExpressionMultiLine(value bool) {
 	if value {
 		h.SetUintValue(valueSlotArrayLiteralExpressionMultiLine, 1)
@@ -3454,6 +3623,7 @@ func (f Factory) UpdateObjectLiteralExpression(node Handle, properties ListRef, 
 func (h Handle) ObjectLiteralExpressionProperties() ListRef {
 	return h.ListSlot(listSlotObjectLiteralExpressionProperties)
 }
+
 func (h Handle) SetObjectLiteralExpressionProperties(value ListRef) {
 	h.SetListSlot(listSlotObjectLiteralExpressionProperties, value)
 }
@@ -3461,6 +3631,7 @@ func (h Handle) SetObjectLiteralExpressionProperties(value ListRef) {
 func (h Handle) ObjectLiteralExpressionMultiLine() bool {
 	return h.UintValue(valueSlotObjectLiteralExpressionMultiLine) != 0
 }
+
 func (h Handle) SetObjectLiteralExpressionMultiLine(value bool) {
 	if value {
 		h.SetUintValue(valueSlotObjectLiteralExpressionMultiLine, 1)
@@ -3489,6 +3660,7 @@ func (f Factory) UpdateSpreadAssignment(node Handle, expression Handle) Handle {
 }
 
 func (h Handle) SpreadAssignmentExpression() Handle { return h.childAt(slotSpreadAssignmentExpression) }
+
 func (h Handle) SetSpreadAssignmentExpression(value Handle) {
 	h.SetChild(slotSpreadAssignmentExpression, value)
 }
@@ -3528,6 +3700,7 @@ func (h Handle) SetPropertyAssignmentName(value Handle) {
 func (h Handle) PropertyAssignmentPostfixToken() Handle {
 	return h.childAt(slotPropertyAssignmentPostfixToken)
 }
+
 func (h Handle) SetPropertyAssignmentPostfixToken(value Handle) {
 	h.SetChild(slotPropertyAssignmentPostfixToken, value)
 }
@@ -3540,6 +3713,7 @@ func (h Handle) SetPropertyAssignmentType(value Handle) {
 func (h Handle) PropertyAssignmentInitializer() Handle {
 	return h.childAt(slotPropertyAssignmentInitializer)
 }
+
 func (h Handle) SetPropertyAssignmentInitializer(value Handle) {
 	h.SetChild(slotPropertyAssignmentInitializer, value)
 }
@@ -3547,6 +3721,7 @@ func (h Handle) SetPropertyAssignmentInitializer(value Handle) {
 func (h Handle) PropertyAssignmentModifiers() ListRef {
 	return h.ListSlot(listSlotPropertyAssignmentModifiers)
 }
+
 func (h Handle) SetPropertyAssignmentModifiers(value ListRef) {
 	h.SetListSlot(listSlotPropertyAssignmentModifiers, value)
 }
@@ -3583,6 +3758,7 @@ func (f Factory) UpdateShorthandPropertyAssignment(node Handle, modifiers ListRe
 func (h Handle) ShorthandPropertyAssignmentName() Handle {
 	return h.childAt(slotShorthandPropertyAssignmentName)
 }
+
 func (h Handle) SetShorthandPropertyAssignmentName(value Handle) {
 	h.SetChild(slotShorthandPropertyAssignmentName, value)
 }
@@ -3590,6 +3766,7 @@ func (h Handle) SetShorthandPropertyAssignmentName(value Handle) {
 func (h Handle) ShorthandPropertyAssignmentPostfixToken() Handle {
 	return h.childAt(slotShorthandPropertyAssignmentPostfixToken)
 }
+
 func (h Handle) SetShorthandPropertyAssignmentPostfixToken(value Handle) {
 	h.SetChild(slotShorthandPropertyAssignmentPostfixToken, value)
 }
@@ -3597,6 +3774,7 @@ func (h Handle) SetShorthandPropertyAssignmentPostfixToken(value Handle) {
 func (h Handle) ShorthandPropertyAssignmentType() Handle {
 	return h.childAt(slotShorthandPropertyAssignmentType)
 }
+
 func (h Handle) SetShorthandPropertyAssignmentType(value Handle) {
 	h.SetChild(slotShorthandPropertyAssignmentType, value)
 }
@@ -3604,6 +3782,7 @@ func (h Handle) SetShorthandPropertyAssignmentType(value Handle) {
 func (h Handle) ShorthandPropertyAssignmentEqualsToken() Handle {
 	return h.childAt(slotShorthandPropertyAssignmentEqualsToken)
 }
+
 func (h Handle) SetShorthandPropertyAssignmentEqualsToken(value Handle) {
 	h.SetChild(slotShorthandPropertyAssignmentEqualsToken, value)
 }
@@ -3611,6 +3790,7 @@ func (h Handle) SetShorthandPropertyAssignmentEqualsToken(value Handle) {
 func (h Handle) ShorthandPropertyAssignmentObjectAssignmentInitializer() Handle {
 	return h.childAt(slotShorthandPropertyAssignmentObjectAssignmentInitializer)
 }
+
 func (h Handle) SetShorthandPropertyAssignmentObjectAssignmentInitializer(value Handle) {
 	h.SetChild(slotShorthandPropertyAssignmentObjectAssignmentInitializer, value)
 }
@@ -3618,6 +3798,7 @@ func (h Handle) SetShorthandPropertyAssignmentObjectAssignmentInitializer(value 
 func (h Handle) ShorthandPropertyAssignmentModifiers() ListRef {
 	return h.ListSlot(listSlotShorthandPropertyAssignmentModifiers)
 }
+
 func (h Handle) SetShorthandPropertyAssignmentModifiers(value ListRef) {
 	h.SetListSlot(listSlotShorthandPropertyAssignmentModifiers, value)
 }
@@ -3642,6 +3823,7 @@ func (f Factory) UpdateDeleteExpression(node Handle, expression Handle) Handle {
 }
 
 func (h Handle) DeleteExpressionExpression() Handle { return h.childAt(slotDeleteExpressionExpression) }
+
 func (h Handle) SetDeleteExpressionExpression(value Handle) {
 	h.SetChild(slotDeleteExpressionExpression, value)
 }
@@ -3666,6 +3848,7 @@ func (f Factory) UpdateTypeOfExpression(node Handle, expression Handle) Handle {
 }
 
 func (h Handle) TypeOfExpressionExpression() Handle { return h.childAt(slotTypeOfExpressionExpression) }
+
 func (h Handle) SetTypeOfExpressionExpression(value Handle) {
 	h.SetChild(slotTypeOfExpressionExpression, value)
 }
@@ -3714,6 +3897,7 @@ func (f Factory) UpdateAwaitExpression(node Handle, expression Handle) Handle {
 }
 
 func (h Handle) AwaitExpressionExpression() Handle { return h.childAt(slotAwaitExpressionExpression) }
+
 func (h Handle) SetAwaitExpressionExpression(value Handle) {
 	h.SetChild(slotAwaitExpressionExpression, value)
 }
@@ -3798,6 +3982,7 @@ func (f Factory) UpdateIntersectionTypeNode(node Handle, types ListRef) Handle {
 func (h Handle) IntersectionTypeNodeTypes() ListRef {
 	return h.ListSlot(listSlotIntersectionTypeNodeTypes)
 }
+
 func (h Handle) SetIntersectionTypeNodeTypes(value ListRef) {
 	h.SetListSlot(listSlotIntersectionTypeNodeTypes, value)
 }
@@ -3830,6 +4015,7 @@ func (f Factory) UpdateConditionalTypeNode(node Handle, checkType Handle, extend
 func (h Handle) ConditionalTypeNodeCheckType() Handle {
 	return h.childAt(slotConditionalTypeNodeCheckType)
 }
+
 func (h Handle) SetConditionalTypeNodeCheckType(value Handle) {
 	h.SetChild(slotConditionalTypeNodeCheckType, value)
 }
@@ -3837,6 +4023,7 @@ func (h Handle) SetConditionalTypeNodeCheckType(value Handle) {
 func (h Handle) ConditionalTypeNodeExtendsType() Handle {
 	return h.childAt(slotConditionalTypeNodeExtendsType)
 }
+
 func (h Handle) SetConditionalTypeNodeExtendsType(value Handle) {
 	h.SetChild(slotConditionalTypeNodeExtendsType, value)
 }
@@ -3844,6 +4031,7 @@ func (h Handle) SetConditionalTypeNodeExtendsType(value Handle) {
 func (h Handle) ConditionalTypeNodeTrueType() Handle {
 	return h.childAt(slotConditionalTypeNodeTrueType)
 }
+
 func (h Handle) SetConditionalTypeNodeTrueType(value Handle) {
 	h.SetChild(slotConditionalTypeNodeTrueType, value)
 }
@@ -3851,6 +4039,7 @@ func (h Handle) SetConditionalTypeNodeTrueType(value Handle) {
 func (h Handle) ConditionalTypeNodeFalseType() Handle {
 	return h.childAt(slotConditionalTypeNodeFalseType)
 }
+
 func (h Handle) SetConditionalTypeNodeFalseType(value Handle) {
 	h.SetChild(slotConditionalTypeNodeFalseType, value)
 }
@@ -3884,6 +4073,7 @@ func (h Handle) SetTypeOperatorNodeType(value Handle) { h.SetChild(slotTypeOpera
 func (h Handle) TypeOperatorNodeOperator() Kind {
 	return Kind(h.UintValue(valueSlotTypeOperatorNodeOperator))
 }
+
 func (h Handle) SetTypeOperatorNodeOperator(value Kind) {
 	h.SetUintValue(valueSlotTypeOperatorNodeOperator, uint64(value))
 }
@@ -3908,6 +4098,7 @@ func (f Factory) UpdateInferTypeNode(node Handle, typeParameter Handle) Handle {
 }
 
 func (h Handle) InferTypeNodeTypeParameter() Handle { return h.childAt(slotInferTypeNodeTypeParameter) }
+
 func (h Handle) SetInferTypeNodeTypeParameter(value Handle) {
 	h.SetChild(slotInferTypeNodeTypeParameter, value)
 }
@@ -3960,6 +4151,7 @@ func (f Factory) UpdateIndexedAccessTypeNode(node Handle, objectType Handle, ind
 func (h Handle) IndexedAccessTypeNodeObjectType() Handle {
 	return h.childAt(slotIndexedAccessTypeNodeObjectType)
 }
+
 func (h Handle) SetIndexedAccessTypeNodeObjectType(value Handle) {
 	h.SetChild(slotIndexedAccessTypeNodeObjectType, value)
 }
@@ -3967,6 +4159,7 @@ func (h Handle) SetIndexedAccessTypeNodeObjectType(value Handle) {
 func (h Handle) IndexedAccessTypeNodeIndexType() Handle {
 	return h.childAt(slotIndexedAccessTypeNodeIndexType)
 }
+
 func (h Handle) SetIndexedAccessTypeNodeIndexType(value Handle) {
 	h.SetChild(slotIndexedAccessTypeNodeIndexType, value)
 }
@@ -3993,6 +4186,7 @@ func (f Factory) UpdateTypeReferenceNode(node Handle, typeName Handle, typeArgum
 }
 
 func (h Handle) TypeReferenceNodeTypeName() Handle { return h.childAt(slotTypeReferenceNodeTypeName) }
+
 func (h Handle) SetTypeReferenceNodeTypeName(value Handle) {
 	h.SetChild(slotTypeReferenceNodeTypeName, value)
 }
@@ -4000,6 +4194,7 @@ func (h Handle) SetTypeReferenceNodeTypeName(value Handle) {
 func (h Handle) TypeReferenceNodeTypeArguments() ListRef {
 	return h.ListSlot(listSlotTypeReferenceNodeTypeArguments)
 }
+
 func (h Handle) SetTypeReferenceNodeTypeArguments(value ListRef) {
 	h.SetListSlot(listSlotTypeReferenceNodeTypeArguments, value)
 }
@@ -4028,6 +4223,7 @@ func (f Factory) UpdateExpressionWithTypeArguments(node Handle, expression Handl
 func (h Handle) ExpressionWithTypeArgumentsExpression() Handle {
 	return h.childAt(slotExpressionWithTypeArgumentsExpression)
 }
+
 func (h Handle) SetExpressionWithTypeArgumentsExpression(value Handle) {
 	h.SetChild(slotExpressionWithTypeArgumentsExpression, value)
 }
@@ -4035,6 +4231,7 @@ func (h Handle) SetExpressionWithTypeArgumentsExpression(value Handle) {
 func (h Handle) ExpressionWithTypeArgumentsTypeArguments() ListRef {
 	return h.ListSlot(listSlotExpressionWithTypeArgumentsTypeArguments)
 }
+
 func (h Handle) SetExpressionWithTypeArgumentsTypeArguments(value ListRef) {
 	h.SetListSlot(listSlotExpressionWithTypeArgumentsTypeArguments, value)
 }
@@ -4098,6 +4295,7 @@ func (f Factory) UpdateTypePredicateNode(node Handle, assertsModifier Handle, pa
 func (h Handle) TypePredicateNodeAssertsModifier() Handle {
 	return h.childAt(slotTypePredicateNodeAssertsModifier)
 }
+
 func (h Handle) SetTypePredicateNodeAssertsModifier(value Handle) {
 	h.SetChild(slotTypePredicateNodeAssertsModifier, value)
 }
@@ -4105,11 +4303,13 @@ func (h Handle) SetTypePredicateNodeAssertsModifier(value Handle) {
 func (h Handle) TypePredicateNodeParameterName() Handle {
 	return h.childAt(slotTypePredicateNodeParameterName)
 }
+
 func (h Handle) SetTypePredicateNodeParameterName(value Handle) {
 	h.SetChild(slotTypePredicateNodeParameterName, value)
 }
 
-func (h Handle) TypePredicateNodeType() Handle         { return h.childAt(slotTypePredicateNodeType) }
+func (h Handle) TypePredicateNodeType() Handle { return h.childAt(slotTypePredicateNodeType) }
+
 func (h Handle) SetTypePredicateNodeType(value Handle) { h.SetChild(slotTypePredicateNodeType, value) }
 
 func (f *Factory) ParseImportAttribute(name NodeRef, value NodeRef) NodeRef {
@@ -4164,6 +4364,7 @@ func (f Factory) UpdateImportAttributes(node Handle, token Kind, attributes List
 func (h Handle) ImportAttributesAttributes() ListRef {
 	return h.ListSlot(listSlotImportAttributesAttributes)
 }
+
 func (h Handle) SetImportAttributesAttributes(value ListRef) {
 	h.SetListSlot(listSlotImportAttributesAttributes, value)
 }
@@ -4171,6 +4372,7 @@ func (h Handle) SetImportAttributesAttributes(value ListRef) {
 func (h Handle) ImportAttributesToken() Kind {
 	return Kind(h.UintValue(valueSlotImportAttributesToken))
 }
+
 func (h Handle) SetImportAttributesToken(value Kind) {
 	h.SetUintValue(valueSlotImportAttributesToken, uint64(value))
 }
@@ -4178,6 +4380,7 @@ func (h Handle) SetImportAttributesToken(value Kind) {
 func (h Handle) ImportAttributesMultiLine() bool {
 	return h.UintValue(valueSlotImportAttributesMultiLine) != 0
 }
+
 func (h Handle) SetImportAttributesMultiLine(value bool) {
 	if value {
 		h.SetUintValue(valueSlotImportAttributesMultiLine, 1)
@@ -4207,12 +4410,14 @@ func (f Factory) UpdateTypeQueryNode(node Handle, exprName Handle, typeArguments
 	return node
 }
 
-func (h Handle) TypeQueryNodeExprName() Handle         { return h.childAt(slotTypeQueryNodeExprName) }
+func (h Handle) TypeQueryNodeExprName() Handle { return h.childAt(slotTypeQueryNodeExprName) }
+
 func (h Handle) SetTypeQueryNodeExprName(value Handle) { h.SetChild(slotTypeQueryNodeExprName, value) }
 
 func (h Handle) TypeQueryNodeTypeArguments() ListRef {
 	return h.ListSlot(listSlotTypeQueryNodeTypeArguments)
 }
+
 func (h Handle) SetTypeQueryNodeTypeArguments(value ListRef) {
 	h.SetListSlot(listSlotTypeQueryNodeTypeArguments, value)
 }
@@ -4249,6 +4454,7 @@ func (f Factory) UpdateMappedTypeNode(node Handle, readonlyToken Handle, typePar
 func (h Handle) MappedTypeNodeReadonlyToken() Handle {
 	return h.childAt(slotMappedTypeNodeReadonlyToken)
 }
+
 func (h Handle) SetMappedTypeNodeReadonlyToken(value Handle) {
 	h.SetChild(slotMappedTypeNodeReadonlyToken, value)
 }
@@ -4256,6 +4462,7 @@ func (h Handle) SetMappedTypeNodeReadonlyToken(value Handle) {
 func (h Handle) MappedTypeNodeTypeParameter() Handle {
 	return h.childAt(slotMappedTypeNodeTypeParameter)
 }
+
 func (h Handle) SetMappedTypeNodeTypeParameter(value Handle) {
 	h.SetChild(slotMappedTypeNodeTypeParameter, value)
 }
@@ -4268,6 +4475,7 @@ func (h Handle) SetMappedTypeNodeNameType(value Handle) {
 func (h Handle) MappedTypeNodeQuestionToken() Handle {
 	return h.childAt(slotMappedTypeNodeQuestionToken)
 }
+
 func (h Handle) SetMappedTypeNodeQuestionToken(value Handle) {
 	h.SetChild(slotMappedTypeNodeQuestionToken, value)
 }
@@ -4298,6 +4506,7 @@ func (f Factory) UpdateTypeLiteralNode(node Handle, members ListRef) Handle {
 }
 
 func (h Handle) TypeLiteralNodeMembers() ListRef { return h.ListSlot(listSlotTypeLiteralNodeMembers) }
+
 func (h Handle) SetTypeLiteralNodeMembers(value ListRef) {
 	h.SetListSlot(listSlotTypeLiteralNodeMembers, value)
 }
@@ -4352,6 +4561,7 @@ func (f Factory) UpdateNamedTupleMember(node Handle, dotDotDotToken Handle, name
 func (h Handle) NamedTupleMemberDotDotDotToken() Handle {
 	return h.childAt(slotNamedTupleMemberDotDotDotToken)
 }
+
 func (h Handle) SetNamedTupleMemberDotDotDotToken(value Handle) {
 	h.SetChild(slotNamedTupleMemberDotDotDotToken, value)
 }
@@ -4362,6 +4572,7 @@ func (h Handle) SetNamedTupleMemberName(value Handle) { h.SetChild(slotNamedTupl
 func (h Handle) NamedTupleMemberQuestionToken() Handle {
 	return h.childAt(slotNamedTupleMemberQuestionToken)
 }
+
 func (h Handle) SetNamedTupleMemberQuestionToken(value Handle) {
 	h.SetChild(slotNamedTupleMemberQuestionToken, value)
 }
@@ -4433,6 +4644,7 @@ func (f Factory) UpdateParenthesizedTypeNode(node Handle, typeNode Handle) Handl
 }
 
 func (h Handle) ParenthesizedTypeNodeType() Handle { return h.childAt(slotParenthesizedTypeNodeType) }
+
 func (h Handle) SetParenthesizedTypeNodeType(value Handle) {
 	h.SetChild(slotParenthesizedTypeNodeType, value)
 }
@@ -4466,6 +4678,7 @@ func (h Handle) SetFunctionTypeNodeType(value Handle) { h.SetChild(slotFunctionT
 func (h Handle) FunctionTypeNodeTypeParameters() ListRef {
 	return h.ListSlot(listSlotFunctionTypeNodeTypeParameters)
 }
+
 func (h Handle) SetFunctionTypeNodeTypeParameters(value ListRef) {
 	h.SetListSlot(listSlotFunctionTypeNodeTypeParameters, value)
 }
@@ -4473,6 +4686,7 @@ func (h Handle) SetFunctionTypeNodeTypeParameters(value ListRef) {
 func (h Handle) FunctionTypeNodeParameters() ListRef {
 	return h.ListSlot(listSlotFunctionTypeNodeParameters)
 }
+
 func (h Handle) SetFunctionTypeNodeParameters(value ListRef) {
 	h.SetListSlot(listSlotFunctionTypeNodeParameters, value)
 }
@@ -4510,6 +4724,7 @@ func (h Handle) SetConstructorTypeNodeType(value Handle) {
 func (h Handle) ConstructorTypeNodeModifiers() ListRef {
 	return h.ListSlot(listSlotConstructorTypeNodeModifiers)
 }
+
 func (h Handle) SetConstructorTypeNodeModifiers(value ListRef) {
 	h.SetListSlot(listSlotConstructorTypeNodeModifiers, value)
 }
@@ -4517,6 +4732,7 @@ func (h Handle) SetConstructorTypeNodeModifiers(value ListRef) {
 func (h Handle) ConstructorTypeNodeTypeParameters() ListRef {
 	return h.ListSlot(listSlotConstructorTypeNodeTypeParameters)
 }
+
 func (h Handle) SetConstructorTypeNodeTypeParameters(value ListRef) {
 	h.SetListSlot(listSlotConstructorTypeNodeTypeParameters, value)
 }
@@ -4524,6 +4740,7 @@ func (h Handle) SetConstructorTypeNodeTypeParameters(value ListRef) {
 func (h Handle) ConstructorTypeNodeParameters() ListRef {
 	return h.ListSlot(listSlotConstructorTypeNodeParameters)
 }
+
 func (h Handle) SetConstructorTypeNodeParameters(value ListRef) {
 	h.SetListSlot(listSlotConstructorTypeNodeParameters, value)
 }
@@ -4543,7 +4760,8 @@ func (f *Factory) NewTemplateHead(text string, rawText string, templateFlags Tok
 	return f.handleFromParse(f.ParseTemplateHead(text, rawText, templateFlags), KindTemplateHead)
 }
 
-func (h Handle) TemplateHeadText() string         { return h.StringValue(valueSlotTemplateHeadText) }
+func (h Handle) TemplateHeadText() string { return h.StringValue(valueSlotTemplateHeadText) }
+
 func (h Handle) SetTemplateHeadText(value string) { h.SetStringValue(valueSlotTemplateHeadText, value) }
 
 func (h Handle) TemplateHeadRawText() string { return h.StringValue(valueSlotTemplateHeadRawText) }
@@ -4575,6 +4793,7 @@ func (h Handle) SetTemplateMiddleText(value string) {
 }
 
 func (h Handle) TemplateMiddleRawText() string { return h.StringValue(valueSlotTemplateMiddleRawText) }
+
 func (h Handle) SetTemplateMiddleRawText(value string) {
 	h.SetStringValue(valueSlotTemplateMiddleRawText, value)
 }
@@ -4597,7 +4816,8 @@ func (f *Factory) NewTemplateTail(text string, rawText string, templateFlags Tok
 	return f.handleFromParse(f.ParseTemplateTail(text, rawText, templateFlags), KindTemplateTail)
 }
 
-func (h Handle) TemplateTailText() string         { return h.StringValue(valueSlotTemplateTailText) }
+func (h Handle) TemplateTailText() string { return h.StringValue(valueSlotTemplateTailText) }
+
 func (h Handle) SetTemplateTailText(value string) { h.SetStringValue(valueSlotTemplateTailText, value) }
 
 func (h Handle) TemplateTailRawText() string { return h.StringValue(valueSlotTemplateTailRawText) }
@@ -4632,6 +4852,7 @@ func (f Factory) UpdateTemplateLiteralTypeNode(node Handle, head Handle, templat
 func (h Handle) TemplateLiteralTypeNodeHead() Handle {
 	return h.childAt(slotTemplateLiteralTypeNodeHead)
 }
+
 func (h Handle) SetTemplateLiteralTypeNodeHead(value Handle) {
 	h.SetChild(slotTemplateLiteralTypeNodeHead, value)
 }
@@ -4639,6 +4860,7 @@ func (h Handle) SetTemplateLiteralTypeNodeHead(value Handle) {
 func (h Handle) TemplateLiteralTypeNodeTemplateSpans() ListRef {
 	return h.ListSlot(listSlotTemplateLiteralTypeNodeTemplateSpans)
 }
+
 func (h Handle) SetTemplateLiteralTypeNodeTemplateSpans(value ListRef) {
 	h.SetListSlot(listSlotTemplateLiteralTypeNodeTemplateSpans, value)
 }
@@ -4667,6 +4889,7 @@ func (f Factory) UpdateTemplateLiteralTypeSpan(node Handle, typeNode Handle, lit
 func (h Handle) TemplateLiteralTypeSpanType() Handle {
 	return h.childAt(slotTemplateLiteralTypeSpanType)
 }
+
 func (h Handle) SetTemplateLiteralTypeSpanType(value Handle) {
 	h.SetChild(slotTemplateLiteralTypeSpanType, value)
 }
@@ -4674,6 +4897,7 @@ func (h Handle) SetTemplateLiteralTypeSpanType(value Handle) {
 func (h Handle) TemplateLiteralTypeSpanLiteral() Handle {
 	return h.childAt(slotTemplateLiteralTypeSpanLiteral)
 }
+
 func (h Handle) SetTemplateLiteralTypeSpanLiteral(value Handle) {
 	h.SetChild(slotTemplateLiteralTypeSpanLiteral, value)
 }
@@ -4710,6 +4934,7 @@ func (f Factory) UpdateSyntheticExpression(node Handle, typeNode any, isSpread b
 func (h Handle) SyntheticExpressionTupleNameSource() Handle {
 	return h.childAt(slotSyntheticExpressionTupleNameSource)
 }
+
 func (h Handle) SetSyntheticExpressionTupleNameSource(value Handle) {
 	h.SetChild(slotSyntheticExpressionTupleNameSource, value)
 }
@@ -4717,6 +4942,7 @@ func (h Handle) SetSyntheticExpressionTupleNameSource(value Handle) {
 func (h Handle) SyntheticExpressionType() any {
 	return storeObjectValue[any](h, valueSlotSyntheticExpressionType)
 }
+
 func (h Handle) SetSyntheticExpressionType(value any) {
 	h.SetObjectValue(valueSlotSyntheticExpressionType, value)
 }
@@ -4724,6 +4950,7 @@ func (h Handle) SetSyntheticExpressionType(value any) {
 func (h Handle) SyntheticExpressionIsSpread() bool {
 	return h.UintValue(valueSlotSyntheticExpressionIsSpread) != 0
 }
+
 func (h Handle) SetSyntheticExpressionIsSpread(value bool) {
 	if value {
 		h.SetUintValue(valueSlotSyntheticExpressionIsSpread, 1)
@@ -4754,6 +4981,7 @@ func (f Factory) UpdatePartiallyEmittedExpression(node Handle, expression Handle
 func (h Handle) PartiallyEmittedExpressionExpression() Handle {
 	return h.childAt(slotPartiallyEmittedExpressionExpression)
 }
+
 func (h Handle) SetPartiallyEmittedExpressionExpression(value Handle) {
 	h.SetChild(slotPartiallyEmittedExpressionExpression, value)
 }
@@ -4814,6 +5042,7 @@ func (f Factory) UpdateJsxAttributes(node Handle, properties ListRef) Handle {
 }
 
 func (h Handle) JsxAttributesProperties() ListRef { return h.ListSlot(listSlotJsxAttributesProperties) }
+
 func (h Handle) SetJsxAttributesProperties(value ListRef) {
 	h.SetListSlot(listSlotJsxAttributesProperties, value)
 }
@@ -4840,11 +5069,13 @@ func (f Factory) UpdateJsxNamespacedName(node Handle, namespace Handle, name Han
 }
 
 func (h Handle) JsxNamespacedNameNamespace() Handle { return h.childAt(slotJsxNamespacedNameNamespace) }
+
 func (h Handle) SetJsxNamespacedNameNamespace(value Handle) {
 	h.SetChild(slotJsxNamespacedNameNamespace, value)
 }
 
-func (h Handle) JsxNamespacedNameName() Handle         { return h.childAt(slotJsxNamespacedNameName) }
+func (h Handle) JsxNamespacedNameName() Handle { return h.childAt(slotJsxNamespacedNameName) }
+
 func (h Handle) SetJsxNamespacedNameName(value Handle) { h.SetChild(slotJsxNamespacedNameName, value) }
 
 func (f *Factory) ParseJsxOpeningElement(tagName NodeRef, typeArguments ListRef, attributes NodeRef) NodeRef {
@@ -4878,6 +5109,7 @@ func (h Handle) SetJsxOpeningElementTagName(value Handle) {
 func (h Handle) JsxOpeningElementAttributes() Handle {
 	return h.childAt(slotJsxOpeningElementAttributes)
 }
+
 func (h Handle) SetJsxOpeningElementAttributes(value Handle) {
 	h.SetChild(slotJsxOpeningElementAttributes, value)
 }
@@ -4885,6 +5117,7 @@ func (h Handle) SetJsxOpeningElementAttributes(value Handle) {
 func (h Handle) JsxOpeningElementTypeArguments() ListRef {
 	return h.ListSlot(listSlotJsxOpeningElementTypeArguments)
 }
+
 func (h Handle) SetJsxOpeningElementTypeArguments(value ListRef) {
 	h.SetListSlot(listSlotJsxOpeningElementTypeArguments, value)
 }
@@ -4915,6 +5148,7 @@ func (f Factory) UpdateJsxSelfClosingElement(node Handle, tagName Handle, typeAr
 func (h Handle) JsxSelfClosingElementTagName() Handle {
 	return h.childAt(slotJsxSelfClosingElementTagName)
 }
+
 func (h Handle) SetJsxSelfClosingElementTagName(value Handle) {
 	h.SetChild(slotJsxSelfClosingElementTagName, value)
 }
@@ -4922,6 +5156,7 @@ func (h Handle) SetJsxSelfClosingElementTagName(value Handle) {
 func (h Handle) JsxSelfClosingElementAttributes() Handle {
 	return h.childAt(slotJsxSelfClosingElementAttributes)
 }
+
 func (h Handle) SetJsxSelfClosingElementAttributes(value Handle) {
 	h.SetChild(slotJsxSelfClosingElementAttributes, value)
 }
@@ -4929,6 +5164,7 @@ func (h Handle) SetJsxSelfClosingElementAttributes(value Handle) {
 func (h Handle) JsxSelfClosingElementTypeArguments() ListRef {
 	return h.ListSlot(listSlotJsxSelfClosingElementTypeArguments)
 }
+
 func (h Handle) SetJsxSelfClosingElementTypeArguments(value ListRef) {
 	h.SetListSlot(listSlotJsxSelfClosingElementTypeArguments, value)
 }
@@ -4957,11 +5193,13 @@ func (f Factory) UpdateJsxFragment(node Handle, openingFragment Handle, children
 }
 
 func (h Handle) JsxFragmentOpeningFragment() Handle { return h.childAt(slotJsxFragmentOpeningFragment) }
+
 func (h Handle) SetJsxFragmentOpeningFragment(value Handle) {
 	h.SetChild(slotJsxFragmentOpeningFragment, value)
 }
 
 func (h Handle) JsxFragmentClosingFragment() Handle { return h.childAt(slotJsxFragmentClosingFragment) }
+
 func (h Handle) SetJsxFragmentClosingFragment(value Handle) {
 	h.SetChild(slotJsxFragmentClosingFragment, value)
 }
@@ -5040,6 +5278,7 @@ func (f Factory) UpdateJsxSpreadAttribute(node Handle, expression Handle) Handle
 func (h Handle) JsxSpreadAttributeExpression() Handle {
 	return h.childAt(slotJsxSpreadAttributeExpression)
 }
+
 func (h Handle) SetJsxSpreadAttributeExpression(value Handle) {
 	h.SetChild(slotJsxSpreadAttributeExpression, value)
 }
@@ -5092,6 +5331,7 @@ func (f Factory) UpdateJsxExpression(node Handle, dotDotDotToken Handle, express
 func (h Handle) JsxExpressionDotDotDotToken() Handle {
 	return h.childAt(slotJsxExpressionDotDotDotToken)
 }
+
 func (h Handle) SetJsxExpressionDotDotDotToken(value Handle) {
 	h.SetChild(slotJsxExpressionDotDotDotToken, value)
 }
@@ -5123,6 +5363,7 @@ func (h Handle) SetJsxTextText(value string) { h.SetStringValue(valueSlotJsxText
 func (h Handle) JsxTextContainsOnlyTriviaWhiteSpaces() bool {
 	return h.UintValue(valueSlotJsxTextContainsOnlyTriviaWhiteSpaces) != 0
 }
+
 func (h Handle) SetJsxTextContainsOnlyTriviaWhiteSpaces(value bool) {
 	if value {
 		h.SetUintValue(valueSlotJsxTextContainsOnlyTriviaWhiteSpaces, 1)
@@ -5244,7 +5485,8 @@ func (f Factory) UpdateJSDocNullableType(node Handle, typeNode Handle) Handle {
 	return node
 }
 
-func (h Handle) JSDocNullableTypeType() Handle         { return h.childAt(slotJSDocNullableTypeType) }
+func (h Handle) JSDocNullableTypeType() Handle { return h.childAt(slotJSDocNullableTypeType) }
+
 func (h Handle) SetJSDocNullableTypeType(value Handle) { h.SetChild(slotJSDocNullableTypeType, value) }
 
 func (f *Factory) ParseJSDocAllType() NodeRef {
@@ -5275,7 +5517,8 @@ func (f Factory) UpdateJSDocVariadicType(node Handle, typeNode Handle) Handle {
 	return node
 }
 
-func (h Handle) JSDocVariadicTypeType() Handle         { return h.childAt(slotJSDocVariadicTypeType) }
+func (h Handle) JSDocVariadicTypeType() Handle { return h.childAt(slotJSDocVariadicTypeType) }
+
 func (h Handle) SetJSDocVariadicTypeType(value Handle) { h.SetChild(slotJSDocVariadicTypeType, value) }
 
 func (f *Factory) ParseJSDocOptionalType(typeNode NodeRef) NodeRef {
@@ -5297,7 +5540,8 @@ func (f Factory) UpdateJSDocOptionalType(node Handle, typeNode Handle) Handle {
 	return node
 }
 
-func (h Handle) JSDocOptionalTypeType() Handle         { return h.childAt(slotJSDocOptionalTypeType) }
+func (h Handle) JSDocOptionalTypeType() Handle { return h.childAt(slotJSDocOptionalTypeType) }
+
 func (h Handle) SetJSDocOptionalTypeType(value Handle) { h.SetChild(slotJSDocOptionalTypeType, value) }
 
 func (f *Factory) ParseJSDocTypeTag(tagName NodeRef, typeExpression NodeRef, comment ListRef) NodeRef {
@@ -5327,6 +5571,7 @@ func (h Handle) JSDocTypeTagTagName() Handle         { return h.childAt(slotJSDo
 func (h Handle) SetJSDocTypeTagTagName(value Handle) { h.SetChild(slotJSDocTypeTagTagName, value) }
 
 func (h Handle) JSDocTypeTagTypeExpression() Handle { return h.childAt(slotJSDocTypeTagTypeExpression) }
+
 func (h Handle) SetJSDocTypeTagTypeExpression(value Handle) {
 	h.SetChild(slotJSDocTypeTagTypeExpression, value)
 }
@@ -5363,6 +5608,7 @@ func (h Handle) SetJSDocUnknownTagTagName(value Handle) {
 }
 
 func (h Handle) JSDocUnknownTagComment() ListRef { return h.ListSlot(listSlotJSDocUnknownTagComment) }
+
 func (h Handle) SetJSDocUnknownTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocUnknownTagComment, value)
 }
@@ -5398,6 +5644,7 @@ func (h Handle) SetJSDocTemplateTagTagName(value Handle) {
 }
 
 func (h Handle) JSDocTemplateTagConstraint() Handle { return h.childAt(slotJSDocTemplateTagConstraint) }
+
 func (h Handle) SetJSDocTemplateTagConstraint(value Handle) {
 	h.SetChild(slotJSDocTemplateTagConstraint, value)
 }
@@ -5405,11 +5652,13 @@ func (h Handle) SetJSDocTemplateTagConstraint(value Handle) {
 func (h Handle) JSDocTemplateTagTypeParameters() ListRef {
 	return h.ListSlot(listSlotJSDocTemplateTagTypeParameters)
 }
+
 func (h Handle) SetJSDocTemplateTagTypeParameters(value ListRef) {
 	h.SetListSlot(listSlotJSDocTemplateTagTypeParameters, value)
 }
 
 func (h Handle) JSDocTemplateTagComment() ListRef { return h.ListSlot(listSlotJSDocTemplateTagComment) }
+
 func (h Handle) SetJSDocTemplateTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocTemplateTagComment, value)
 }
@@ -5437,12 +5686,14 @@ func (f Factory) UpdateJSDocReturnTag(node Handle, tagName Handle, typeExpressio
 	return node
 }
 
-func (h Handle) JSDocReturnTagTagName() Handle         { return h.childAt(slotJSDocReturnTagTagName) }
+func (h Handle) JSDocReturnTagTagName() Handle { return h.childAt(slotJSDocReturnTagTagName) }
+
 func (h Handle) SetJSDocReturnTagTagName(value Handle) { h.SetChild(slotJSDocReturnTagTagName, value) }
 
 func (h Handle) JSDocReturnTagTypeExpression() Handle {
 	return h.childAt(slotJSDocReturnTagTypeExpression)
 }
+
 func (h Handle) SetJSDocReturnTagTypeExpression(value Handle) {
 	h.SetChild(slotJSDocReturnTagTypeExpression, value)
 }
@@ -5473,7 +5724,8 @@ func (f Factory) UpdateJSDocPublicTag(node Handle, tagName Handle, comment ListR
 	return node
 }
 
-func (h Handle) JSDocPublicTagTagName() Handle         { return h.childAt(slotJSDocPublicTagTagName) }
+func (h Handle) JSDocPublicTagTagName() Handle { return h.childAt(slotJSDocPublicTagTagName) }
+
 func (h Handle) SetJSDocPublicTagTagName(value Handle) { h.SetChild(slotJSDocPublicTagTagName, value) }
 
 func (h Handle) JSDocPublicTagComment() ListRef { return h.ListSlot(listSlotJSDocPublicTagComment) }
@@ -5508,6 +5760,7 @@ func (h Handle) SetJSDocPrivateTagTagName(value Handle) {
 }
 
 func (h Handle) JSDocPrivateTagComment() ListRef { return h.ListSlot(listSlotJSDocPrivateTagComment) }
+
 func (h Handle) SetJSDocPrivateTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocPrivateTagComment, value)
 }
@@ -5541,6 +5794,7 @@ func (h Handle) SetJSDocProtectedTagTagName(value Handle) {
 func (h Handle) JSDocProtectedTagComment() ListRef {
 	return h.ListSlot(listSlotJSDocProtectedTagComment)
 }
+
 func (h Handle) SetJSDocProtectedTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocProtectedTagComment, value)
 }
@@ -5572,6 +5826,7 @@ func (h Handle) SetJSDocReadonlyTagTagName(value Handle) {
 }
 
 func (h Handle) JSDocReadonlyTagComment() ListRef { return h.ListSlot(listSlotJSDocReadonlyTagComment) }
+
 func (h Handle) SetJSDocReadonlyTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocReadonlyTagComment, value)
 }
@@ -5603,6 +5858,7 @@ func (h Handle) SetJSDocOverrideTagTagName(value Handle) {
 }
 
 func (h Handle) JSDocOverrideTagComment() ListRef { return h.ListSlot(listSlotJSDocOverrideTagComment) }
+
 func (h Handle) SetJSDocOverrideTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocOverrideTagComment, value)
 }
@@ -5629,6 +5885,7 @@ func (f Factory) UpdateJSDocDeprecatedTag(node Handle, tagName Handle, comment L
 }
 
 func (h Handle) JSDocDeprecatedTagTagName() Handle { return h.childAt(slotJSDocDeprecatedTagTagName) }
+
 func (h Handle) SetJSDocDeprecatedTagTagName(value Handle) {
 	h.SetChild(slotJSDocDeprecatedTagTagName, value)
 }
@@ -5636,6 +5893,7 @@ func (h Handle) SetJSDocDeprecatedTagTagName(value Handle) {
 func (h Handle) JSDocDeprecatedTagComment() ListRef {
 	return h.ListSlot(listSlotJSDocDeprecatedTagComment)
 }
+
 func (h Handle) SetJSDocDeprecatedTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocDeprecatedTagComment, value)
 }
@@ -5667,6 +5925,7 @@ func (h Handle) JSDocSeeTagTagName() Handle         { return h.childAt(slotJSDoc
 func (h Handle) SetJSDocSeeTagTagName(value Handle) { h.SetChild(slotJSDocSeeTagTagName, value) }
 
 func (h Handle) JSDocSeeTagNameExpression() Handle { return h.childAt(slotJSDocSeeTagNameExpression) }
+
 func (h Handle) SetJSDocSeeTagNameExpression(value Handle) {
 	h.SetChild(slotJSDocSeeTagNameExpression, value)
 }
@@ -5700,6 +5959,7 @@ func (f Factory) UpdateJSDocImplementsTag(node Handle, tagName Handle, className
 }
 
 func (h Handle) JSDocImplementsTagTagName() Handle { return h.childAt(slotJSDocImplementsTagTagName) }
+
 func (h Handle) SetJSDocImplementsTagTagName(value Handle) {
 	h.SetChild(slotJSDocImplementsTagTagName, value)
 }
@@ -5707,6 +5967,7 @@ func (h Handle) SetJSDocImplementsTagTagName(value Handle) {
 func (h Handle) JSDocImplementsTagClassName() Handle {
 	return h.childAt(slotJSDocImplementsTagClassName)
 }
+
 func (h Handle) SetJSDocImplementsTagClassName(value Handle) {
 	h.SetChild(slotJSDocImplementsTagClassName, value)
 }
@@ -5714,6 +5975,7 @@ func (h Handle) SetJSDocImplementsTagClassName(value Handle) {
 func (h Handle) JSDocImplementsTagComment() ListRef {
 	return h.ListSlot(listSlotJSDocImplementsTagComment)
 }
+
 func (h Handle) SetJSDocImplementsTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocImplementsTagComment, value)
 }
@@ -5747,11 +6009,13 @@ func (h Handle) SetJSDocAugmentsTagTagName(value Handle) {
 }
 
 func (h Handle) JSDocAugmentsTagClassName() Handle { return h.childAt(slotJSDocAugmentsTagClassName) }
+
 func (h Handle) SetJSDocAugmentsTagClassName(value Handle) {
 	h.SetChild(slotJSDocAugmentsTagClassName, value)
 }
 
 func (h Handle) JSDocAugmentsTagComment() ListRef { return h.ListSlot(listSlotJSDocAugmentsTagComment) }
+
 func (h Handle) SetJSDocAugmentsTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocAugmentsTagComment, value)
 }
@@ -5787,6 +6051,7 @@ func (h Handle) SetJSDocSatisfiesTagTagName(value Handle) {
 func (h Handle) JSDocSatisfiesTagTypeExpression() Handle {
 	return h.childAt(slotJSDocSatisfiesTagTypeExpression)
 }
+
 func (h Handle) SetJSDocSatisfiesTagTypeExpression(value Handle) {
 	h.SetChild(slotJSDocSatisfiesTagTypeExpression, value)
 }
@@ -5794,6 +6059,7 @@ func (h Handle) SetJSDocSatisfiesTagTypeExpression(value Handle) {
 func (h Handle) JSDocSatisfiesTagComment() ListRef {
 	return h.ListSlot(listSlotJSDocSatisfiesTagComment)
 }
+
 func (h Handle) SetJSDocSatisfiesTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocSatisfiesTagComment, value)
 }
@@ -5821,12 +6087,14 @@ func (f Factory) UpdateJSDocThrowsTag(node Handle, tagName Handle, typeExpressio
 	return node
 }
 
-func (h Handle) JSDocThrowsTagTagName() Handle         { return h.childAt(slotJSDocThrowsTagTagName) }
+func (h Handle) JSDocThrowsTagTagName() Handle { return h.childAt(slotJSDocThrowsTagTagName) }
+
 func (h Handle) SetJSDocThrowsTagTagName(value Handle) { h.SetChild(slotJSDocThrowsTagTagName, value) }
 
 func (h Handle) JSDocThrowsTagTypeExpression() Handle {
 	return h.childAt(slotJSDocThrowsTagTypeExpression)
 }
+
 func (h Handle) SetJSDocThrowsTagTypeExpression(value Handle) {
 	h.SetChild(slotJSDocThrowsTagTypeExpression, value)
 }
@@ -5863,6 +6131,7 @@ func (h Handle) JSDocThisTagTagName() Handle         { return h.childAt(slotJSDo
 func (h Handle) SetJSDocThisTagTagName(value Handle) { h.SetChild(slotJSDocThisTagTagName, value) }
 
 func (h Handle) JSDocThisTagTypeExpression() Handle { return h.childAt(slotJSDocThisTagTypeExpression) }
+
 func (h Handle) SetJSDocThisTagTypeExpression(value Handle) {
 	h.SetChild(slotJSDocThisTagTypeExpression, value)
 }
@@ -5899,10 +6168,12 @@ func (f Factory) UpdateJSDocImportTag(node Handle, tagName Handle, importClause 
 	return node
 }
 
-func (h Handle) JSDocImportTagTagName() Handle         { return h.childAt(slotJSDocImportTagTagName) }
+func (h Handle) JSDocImportTagTagName() Handle { return h.childAt(slotJSDocImportTagTagName) }
+
 func (h Handle) SetJSDocImportTagTagName(value Handle) { h.SetChild(slotJSDocImportTagTagName, value) }
 
 func (h Handle) JSDocImportTagImportClause() Handle { return h.childAt(slotJSDocImportTagImportClause) }
+
 func (h Handle) SetJSDocImportTagImportClause(value Handle) {
 	h.SetChild(slotJSDocImportTagImportClause, value)
 }
@@ -5910,6 +6181,7 @@ func (h Handle) SetJSDocImportTagImportClause(value Handle) {
 func (h Handle) JSDocImportTagModuleSpecifier() Handle {
 	return h.childAt(slotJSDocImportTagModuleSpecifier)
 }
+
 func (h Handle) SetJSDocImportTagModuleSpecifier(value Handle) {
 	h.SetChild(slotJSDocImportTagModuleSpecifier, value)
 }
@@ -5957,6 +6229,7 @@ func (h Handle) SetJSDocCallbackTagTagName(value Handle) {
 func (h Handle) JSDocCallbackTagTypeExpression() Handle {
 	return h.childAt(slotJSDocCallbackTagTypeExpression)
 }
+
 func (h Handle) SetJSDocCallbackTagTypeExpression(value Handle) {
 	h.SetChild(slotJSDocCallbackTagTypeExpression, value)
 }
@@ -5965,6 +6238,7 @@ func (h Handle) JSDocCallbackTagName() Handle         { return h.childAt(slotJSD
 func (h Handle) SetJSDocCallbackTagName(value Handle) { h.SetChild(slotJSDocCallbackTagName, value) }
 
 func (h Handle) JSDocCallbackTagComment() ListRef { return h.ListSlot(listSlotJSDocCallbackTagComment) }
+
 func (h Handle) SetJSDocCallbackTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocCallbackTagComment, value)
 }
@@ -6000,11 +6274,13 @@ func (h Handle) SetJSDocOverloadTagTagName(value Handle) {
 func (h Handle) JSDocOverloadTagTypeExpression() Handle {
 	return h.childAt(slotJSDocOverloadTagTypeExpression)
 }
+
 func (h Handle) SetJSDocOverloadTagTypeExpression(value Handle) {
 	h.SetChild(slotJSDocOverloadTagTypeExpression, value)
 }
 
 func (h Handle) JSDocOverloadTagComment() ListRef { return h.ListSlot(listSlotJSDocOverloadTagComment) }
+
 func (h Handle) SetJSDocOverloadTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocOverloadTagComment, value)
 }
@@ -6042,6 +6318,7 @@ func (h Handle) SetJSDocTypedefTagTagName(value Handle) {
 func (h Handle) JSDocTypedefTagTypeExpression() Handle {
 	return h.childAt(slotJSDocTypedefTagTypeExpression)
 }
+
 func (h Handle) SetJSDocTypedefTagTypeExpression(value Handle) {
 	h.SetChild(slotJSDocTypedefTagTypeExpression, value)
 }
@@ -6050,6 +6327,7 @@ func (h Handle) JSDocTypedefTagName() Handle         { return h.childAt(slotJSDo
 func (h Handle) SetJSDocTypedefTagName(value Handle) { h.SetChild(slotJSDocTypedefTagName, value) }
 
 func (h Handle) JSDocTypedefTagComment() ListRef { return h.ListSlot(listSlotJSDocTypedefTagComment) }
+
 func (h Handle) SetJSDocTypedefTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocTypedefTagComment, value)
 }
@@ -6083,6 +6361,7 @@ func (h Handle) SetJSDocSignatureType(value Handle) { h.SetChild(slotJSDocSignat
 func (h Handle) JSDocSignatureTypeParameters() ListRef {
 	return h.ListSlot(listSlotJSDocSignatureTypeParameters)
 }
+
 func (h Handle) SetJSDocSignatureTypeParameters(value ListRef) {
 	h.SetListSlot(listSlotJSDocSignatureTypeParameters, value)
 }
@@ -6090,6 +6369,7 @@ func (h Handle) SetJSDocSignatureTypeParameters(value ListRef) {
 func (h Handle) JSDocSignatureParameters() ListRef {
 	return h.ListSlot(listSlotJSDocSignatureParameters)
 }
+
 func (h Handle) SetJSDocSignatureParameters(value ListRef) {
 	h.SetListSlot(listSlotJSDocSignatureParameters, value)
 }
@@ -6155,15 +6435,18 @@ func (f Factory) UpdateModuleDeclaration(node Handle, modifiers ListRef, keyword
 	return node
 }
 
-func (h Handle) ModuleDeclarationName() Handle         { return h.childAt(slotModuleDeclarationName) }
+func (h Handle) ModuleDeclarationName() Handle { return h.childAt(slotModuleDeclarationName) }
+
 func (h Handle) SetModuleDeclarationName(value Handle) { h.SetChild(slotModuleDeclarationName, value) }
 
-func (h Handle) ModuleDeclarationBody() Handle         { return h.childAt(slotModuleDeclarationBody) }
+func (h Handle) ModuleDeclarationBody() Handle { return h.childAt(slotModuleDeclarationBody) }
+
 func (h Handle) SetModuleDeclarationBody(value Handle) { h.SetChild(slotModuleDeclarationBody, value) }
 
 func (h Handle) ModuleDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotModuleDeclarationModifiers)
 }
+
 func (h Handle) SetModuleDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotModuleDeclarationModifiers, value)
 }
@@ -6171,6 +6454,7 @@ func (h Handle) SetModuleDeclarationModifiers(value ListRef) {
 func (h Handle) ModuleDeclarationKeyword() Kind {
 	return Kind(h.UintValue(valueSlotModuleDeclarationKeyword))
 }
+
 func (h Handle) SetModuleDeclarationKeyword(value Kind) {
 	h.SetUintValue(valueSlotModuleDeclarationKeyword, uint64(value))
 }
@@ -6209,6 +6493,7 @@ func (f Factory) UpdateImportEqualsDeclaration(node Handle, modifiers ListRef, i
 func (h Handle) ImportEqualsDeclarationName() Handle {
 	return h.childAt(slotImportEqualsDeclarationName)
 }
+
 func (h Handle) SetImportEqualsDeclarationName(value Handle) {
 	h.SetChild(slotImportEqualsDeclarationName, value)
 }
@@ -6216,6 +6501,7 @@ func (h Handle) SetImportEqualsDeclarationName(value Handle) {
 func (h Handle) ImportEqualsDeclarationModuleReference() Handle {
 	return h.childAt(slotImportEqualsDeclarationModuleReference)
 }
+
 func (h Handle) SetImportEqualsDeclarationModuleReference(value Handle) {
 	h.SetChild(slotImportEqualsDeclarationModuleReference, value)
 }
@@ -6223,6 +6509,7 @@ func (h Handle) SetImportEqualsDeclarationModuleReference(value Handle) {
 func (h Handle) ImportEqualsDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotImportEqualsDeclarationModifiers)
 }
+
 func (h Handle) SetImportEqualsDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotImportEqualsDeclarationModifiers, value)
 }
@@ -6230,6 +6517,7 @@ func (h Handle) SetImportEqualsDeclarationModifiers(value ListRef) {
 func (h Handle) ImportEqualsDeclarationIsTypeOnly() bool {
 	return h.UintValue(valueSlotImportEqualsDeclarationIsTypeOnly) != 0
 }
+
 func (h Handle) SetImportEqualsDeclarationIsTypeOnly(value bool) {
 	if value {
 		h.SetUintValue(valueSlotImportEqualsDeclarationIsTypeOnly, 1)
@@ -6274,6 +6562,7 @@ func (f Factory) UpdateExportDeclaration(node Handle, modifiers ListRef, isTypeO
 func (h Handle) ExportDeclarationExportClause() Handle {
 	return h.childAt(slotExportDeclarationExportClause)
 }
+
 func (h Handle) SetExportDeclarationExportClause(value Handle) {
 	h.SetChild(slotExportDeclarationExportClause, value)
 }
@@ -6281,6 +6570,7 @@ func (h Handle) SetExportDeclarationExportClause(value Handle) {
 func (h Handle) ExportDeclarationModuleSpecifier() Handle {
 	return h.childAt(slotExportDeclarationModuleSpecifier)
 }
+
 func (h Handle) SetExportDeclarationModuleSpecifier(value Handle) {
 	h.SetChild(slotExportDeclarationModuleSpecifier, value)
 }
@@ -6288,6 +6578,7 @@ func (h Handle) SetExportDeclarationModuleSpecifier(value Handle) {
 func (h Handle) ExportDeclarationAttributes() Handle {
 	return h.childAt(slotExportDeclarationAttributes)
 }
+
 func (h Handle) SetExportDeclarationAttributes(value Handle) {
 	h.SetChild(slotExportDeclarationAttributes, value)
 }
@@ -6295,6 +6586,7 @@ func (h Handle) SetExportDeclarationAttributes(value Handle) {
 func (h Handle) ExportDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotExportDeclarationModifiers)
 }
+
 func (h Handle) SetExportDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotExportDeclarationModifiers, value)
 }
@@ -6302,6 +6594,7 @@ func (h Handle) SetExportDeclarationModifiers(value ListRef) {
 func (h Handle) ExportDeclarationIsTypeOnly() bool {
 	return h.UintValue(valueSlotExportDeclarationIsTypeOnly) != 0
 }
+
 func (h Handle) SetExportDeclarationIsTypeOnly(value bool) {
 	if value {
 		h.SetUintValue(valueSlotExportDeclarationIsTypeOnly, 1)
@@ -6361,6 +6654,7 @@ func (h Handle) SetImportTypeNodeQualifier(value Handle) {
 func (h Handle) ImportTypeNodeTypeArguments() ListRef {
 	return h.ListSlot(listSlotImportTypeNodeTypeArguments)
 }
+
 func (h Handle) SetImportTypeNodeTypeArguments(value ListRef) {
 	h.SetListSlot(listSlotImportTypeNodeTypeArguments, value)
 }
@@ -6368,6 +6662,7 @@ func (h Handle) SetImportTypeNodeTypeArguments(value ListRef) {
 func (h Handle) ImportTypeNodeIsTypeOf() bool {
 	return h.UintValue(valueSlotImportTypeNodeIsTypeOf) != 0
 }
+
 func (h Handle) SetImportTypeNodeIsTypeOf(value bool) {
 	if value {
 		h.SetUintValue(valueSlotImportTypeNodeIsTypeOf, 1)
@@ -6405,6 +6700,7 @@ func (h Handle) ImportClauseName() Handle         { return h.childAt(slotImportC
 func (h Handle) SetImportClauseName(value Handle) { h.SetChild(slotImportClauseName, value) }
 
 func (h Handle) ImportClauseNamedBindings() Handle { return h.childAt(slotImportClauseNamedBindings) }
+
 func (h Handle) SetImportClauseNamedBindings(value Handle) {
 	h.SetChild(slotImportClauseNamedBindings, value)
 }
@@ -6412,6 +6708,7 @@ func (h Handle) SetImportClauseNamedBindings(value Handle) {
 func (h Handle) ImportClausePhaseModifier() ImportPhaseModifierSyntaxKind {
 	return ImportPhaseModifierSyntaxKind(h.UintValue(valueSlotImportClausePhaseModifier))
 }
+
 func (h Handle) SetImportClausePhaseModifier(value ImportPhaseModifierSyntaxKind) {
 	h.SetUintValue(valueSlotImportClausePhaseModifier, uint64(value))
 }
@@ -6448,6 +6745,7 @@ func (f Factory) UpdateImportSpecifier(node Handle, isTypeOnly bool, propertyNam
 func (h Handle) ImportSpecifierPropertyName() Handle {
 	return h.childAt(slotImportSpecifierPropertyName)
 }
+
 func (h Handle) SetImportSpecifierPropertyName(value Handle) {
 	h.SetChild(slotImportSpecifierPropertyName, value)
 }
@@ -6458,6 +6756,7 @@ func (h Handle) SetImportSpecifierName(value Handle) { h.SetChild(slotImportSpec
 func (h Handle) ImportSpecifierIsTypeOnly() bool {
 	return h.UintValue(valueSlotImportSpecifierIsTypeOnly) != 0
 }
+
 func (h Handle) SetImportSpecifierIsTypeOnly(value bool) {
 	if value {
 		h.SetUintValue(valueSlotImportSpecifierIsTypeOnly, 1)
@@ -6542,6 +6841,7 @@ func (h Handle) SetJSDocLinkPlainName(value Handle) { h.SetChild(slotJSDocLinkPl
 func (h Handle) JSDocLinkPlainText() []string {
 	return storeObjectValue[[]string](h, valueSlotJSDocLinkPlainText)
 }
+
 func (h Handle) SetJSDocLinkPlainText(value []string) {
 	h.SetObjectValue(valueSlotJSDocLinkPlainText, value)
 }
@@ -6575,6 +6875,7 @@ func (h Handle) SetJSDocLinkCodeName(value Handle) { h.SetChild(slotJSDocLinkCod
 func (h Handle) JSDocLinkCodeText() []string {
 	return storeObjectValue[[]string](h, valueSlotJSDocLinkCodeText)
 }
+
 func (h Handle) SetJSDocLinkCodeText(value []string) {
 	h.SetObjectValue(valueSlotJSDocLinkCodeText, value)
 }
@@ -6609,6 +6910,7 @@ func (f Factory) UpdateTypeParameterDeclaration(node Handle, modifiers ListRef, 
 func (h Handle) TypeParameterDeclarationName() Handle {
 	return h.childAt(slotTypeParameterDeclarationName)
 }
+
 func (h Handle) SetTypeParameterDeclarationName(value Handle) {
 	h.SetChild(slotTypeParameterDeclarationName, value)
 }
@@ -6616,6 +6918,7 @@ func (h Handle) SetTypeParameterDeclarationName(value Handle) {
 func (h Handle) TypeParameterDeclarationConstraint() Handle {
 	return h.childAt(slotTypeParameterDeclarationConstraint)
 }
+
 func (h Handle) SetTypeParameterDeclarationConstraint(value Handle) {
 	h.SetChild(slotTypeParameterDeclarationConstraint, value)
 }
@@ -6623,6 +6926,7 @@ func (h Handle) SetTypeParameterDeclarationConstraint(value Handle) {
 func (h Handle) TypeParameterDeclarationExpression() Handle {
 	return h.childAt(slotTypeParameterDeclarationExpression)
 }
+
 func (h Handle) SetTypeParameterDeclarationExpression(value Handle) {
 	h.SetChild(slotTypeParameterDeclarationExpression, value)
 }
@@ -6630,6 +6934,7 @@ func (h Handle) SetTypeParameterDeclarationExpression(value Handle) {
 func (h Handle) TypeParameterDeclarationDefaultType() Handle {
 	return h.childAt(slotTypeParameterDeclarationDefaultType)
 }
+
 func (h Handle) SetTypeParameterDeclarationDefaultType(value Handle) {
 	h.SetChild(slotTypeParameterDeclarationDefaultType, value)
 }
@@ -6637,6 +6942,7 @@ func (h Handle) SetTypeParameterDeclarationDefaultType(value Handle) {
 func (h Handle) TypeParameterDeclarationModifiers() ListRef {
 	return h.ListSlot(listSlotTypeParameterDeclarationModifiers)
 }
+
 func (h Handle) SetTypeParameterDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotTypeParameterDeclarationModifiers, value)
 }
@@ -6665,6 +6971,7 @@ func (f Factory) UpdateSyntheticReferenceExpression(node Handle, expression Hand
 func (h Handle) SyntheticReferenceExpressionExpression() Handle {
 	return h.childAt(slotSyntheticReferenceExpressionExpression)
 }
+
 func (h Handle) SetSyntheticReferenceExpressionExpression(value Handle) {
 	h.SetChild(slotSyntheticReferenceExpressionExpression, value)
 }
@@ -6672,6 +6979,7 @@ func (h Handle) SetSyntheticReferenceExpressionExpression(value Handle) {
 func (h Handle) SyntheticReferenceExpressionThisArg() Handle {
 	return h.childAt(slotSyntheticReferenceExpressionThisArg)
 }
+
 func (h Handle) SetSyntheticReferenceExpressionThisArg(value Handle) {
 	h.SetChild(slotSyntheticReferenceExpressionThisArg, value)
 }
@@ -6700,6 +7008,7 @@ func (f Factory) UpdateJSDocTypeLiteral(node Handle, jsdocPropertyTags ListRef, 
 func (h Handle) JSDocTypeLiteralJSDocPropertyTags() ListRef {
 	return h.ListSlot(listSlotJSDocTypeLiteralJSDocPropertyTags)
 }
+
 func (h Handle) SetJSDocTypeLiteralJSDocPropertyTags(value ListRef) {
 	h.SetListSlot(listSlotJSDocTypeLiteralJSDocPropertyTags, value)
 }
@@ -6707,6 +7016,7 @@ func (h Handle) SetJSDocTypeLiteralJSDocPropertyTags(value ListRef) {
 func (h Handle) JSDocTypeLiteralIsArrayType() bool {
 	return h.UintValue(valueSlotJSDocTypeLiteralIsArrayType) != 0
 }
+
 func (h Handle) SetJSDocTypeLiteralIsArrayType(value bool) {
 	if value {
 		h.SetUintValue(valueSlotJSDocTypeLiteralIsArrayType, 1)
@@ -6757,6 +7067,7 @@ func (f Factory) UpdateJSDocParameterOrPropertyTag(node Handle, tagName Handle, 
 func (h Handle) JSDocParameterOrPropertyTagTagName() Handle {
 	return h.childAt(slotJSDocParameterOrPropertyTagTagName)
 }
+
 func (h Handle) SetJSDocParameterOrPropertyTagTagName(value Handle) {
 	h.SetChild(slotJSDocParameterOrPropertyTagTagName, value)
 }
@@ -6764,6 +7075,7 @@ func (h Handle) SetJSDocParameterOrPropertyTagTagName(value Handle) {
 func (h Handle) JSDocParameterOrPropertyTagName() Handle {
 	return h.childAt(slotJSDocParameterOrPropertyTagName)
 }
+
 func (h Handle) SetJSDocParameterOrPropertyTagName(value Handle) {
 	h.SetChild(slotJSDocParameterOrPropertyTagName, value)
 }
@@ -6771,6 +7083,7 @@ func (h Handle) SetJSDocParameterOrPropertyTagName(value Handle) {
 func (h Handle) JSDocParameterOrPropertyTagTypeExpression() Handle {
 	return h.childAt(slotJSDocParameterOrPropertyTagTypeExpression)
 }
+
 func (h Handle) SetJSDocParameterOrPropertyTagTypeExpression(value Handle) {
 	h.SetChild(slotJSDocParameterOrPropertyTagTypeExpression, value)
 }
@@ -6778,6 +7091,7 @@ func (h Handle) SetJSDocParameterOrPropertyTagTypeExpression(value Handle) {
 func (h Handle) JSDocParameterOrPropertyTagComment() ListRef {
 	return h.ListSlot(listSlotJSDocParameterOrPropertyTagComment)
 }
+
 func (h Handle) SetJSDocParameterOrPropertyTagComment(value ListRef) {
 	h.SetListSlot(listSlotJSDocParameterOrPropertyTagComment, value)
 }
@@ -6785,6 +7099,7 @@ func (h Handle) SetJSDocParameterOrPropertyTagComment(value ListRef) {
 func (h Handle) JSDocParameterOrPropertyTagIsBracketed() bool {
 	return h.UintValue(valueSlotJSDocParameterOrPropertyTagIsBracketed) != 0
 }
+
 func (h Handle) SetJSDocParameterOrPropertyTagIsBracketed(value bool) {
 	if value {
 		h.SetUintValue(valueSlotJSDocParameterOrPropertyTagIsBracketed, 1)
@@ -6796,6 +7111,7 @@ func (h Handle) SetJSDocParameterOrPropertyTagIsBracketed(value bool) {
 func (h Handle) JSDocParameterOrPropertyTagIsNameFirst() bool {
 	return h.UintValue(valueSlotJSDocParameterOrPropertyTagIsNameFirst) != 0
 }
+
 func (h Handle) SetJSDocParameterOrPropertyTagIsNameFirst(value bool) {
 	if value {
 		h.SetUintValue(valueSlotJSDocParameterOrPropertyTagIsNameFirst, 1)

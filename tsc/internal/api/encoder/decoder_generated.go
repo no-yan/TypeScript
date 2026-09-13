@@ -6,7 +6,6 @@ import (
 	"fmt"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
-	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
 
 func (d *astDecoder) createStringNode(kind ast.Kind, data uint32, commonData uint8) (ast.Handle, error) {
@@ -24,11 +23,11 @@ func (d *astDecoder) createStringNode(kind ast.Kind, data uint32, commonData uin
 	case ast.KindJSDocText:
 		return d.factory.NewJSDocText([]string{text}), nil
 	case ast.KindJSDocLink:
-		return d.factory.NewJSDocLink(ast.Handle{}, []string{text}), nil
+		return d.factory.NewJSDocLink(nil, []string{text}), nil
 	case ast.KindJSDocLinkPlain:
-		return d.factory.NewJSDocLinkPlain(ast.Handle{}, []string{text}), nil
+		return d.factory.NewJSDocLinkPlain(nil, []string{text}), nil
 	case ast.KindJSDocLinkCode:
-		return d.factory.NewJSDocLinkCode(ast.Handle{}, []string{text}), nil
+		return d.factory.NewJSDocLinkCode(nil, []string{text}), nil
 	default:
 		return ast.Handle{}, fmt.Errorf("unknown string node kind %v", kind)
 	}
@@ -911,7 +910,7 @@ func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices
 		for i, ci := range childIndices {
 			nodes[i] = d.nodes[ci]
 		}
-		return d.factory.NewSyntaxList(d.factory.List(core.UndefinedTextRange(), nodes...)), nil
+		return d.factory.NewSyntaxList(nodes), nil
 	case ast.KindJSDoc:
 		it := newChildIter(childIndices)
 		comment := d.nodeListAt(it.nextIf(mask, 0))
@@ -1125,7 +1124,7 @@ func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices
 		for i, ci := range childIndices {
 			nodes[i] = d.nodes[ci]
 		}
-		return d.factory.NewJSDocTypeLiteral(d.factory.List(core.UndefinedTextRange(), nodes...), isArrayType), nil
+		return d.factory.NewJSDocTypeLiteral(nodes, isArrayType), nil
 	case ast.KindJSDocParameterTag, ast.KindJSDocPropertyTag:
 		isBracketed := commonData&1 != 0
 		isNameFirst := commonData&2 != 0

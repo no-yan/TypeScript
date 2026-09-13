@@ -9,7 +9,7 @@ import (
 )
 
 func getNodeDataType(node ast.Handle) uint32 {
-	switch node.Kind {
+	switch node.Kind() {
 	case ast.KindIdentifier,
 		ast.KindPrivateIdentifier,
 		ast.KindJsxText,
@@ -34,7 +34,7 @@ func getNodeDataType(node ast.Handle) uint32 {
 }
 
 func getChildrenPropertyMask(node ast.Handle) uint8 {
-	switch node.Kind {
+	switch node.Kind() {
 	case ast.KindQualifiedName:
 		n := node
 		return (boolToByte(!n.QualifiedNameLeft().IsNil()) << 0) | (boolToByte(!n.QualifiedNameRight().IsNil()) << 1)
@@ -409,7 +409,7 @@ func getChildrenPropertyMask(node ast.Handle) uint8 {
 		return (boolToByte(!n.JsxExpressionDotDotDotToken().IsNil()) << 0) | (boolToByte(!n.JsxExpressionExpression().IsNil()) << 1)
 	case ast.KindSyntaxList:
 		n := node
-		return (boolToByte(n.Store().ListLen(n.SyntaxListChildren()) > 0) << 0)
+		return (boolToByte(len(n.SyntaxListChildren()) > 0) << 0)
 	case ast.KindJSDoc:
 		n := node
 		return (boolToByte(n.JSDocComment() != 0) << 0) | (boolToByte(n.JSDocTags() != 0) << 1)
@@ -529,7 +529,7 @@ func getChildrenPropertyMask(node ast.Handle) uint8 {
 		return (boolToByte(!n.SyntheticReferenceExpressionExpression().IsNil()) << 0) | (boolToByte(!n.SyntheticReferenceExpressionThisArg().IsNil()) << 1)
 	case ast.KindJSDocTypeLiteral:
 		n := node
-		return (boolToByte(n.Store().ListLen(n.JSDocTypeLiteralJSDocPropertyTags()) > 0) << 0)
+		return (boolToByte(len(n.JSDocTypeLiteralJSDocPropertyTags()) > 0) << 0)
 	case ast.KindJSDocParameterTag, ast.KindJSDocPropertyTag:
 		n := node
 		return (boolToByte(!n.JSDocParameterOrPropertyTagTagName().IsNil()) << 0) | (boolToByte(!n.JSDocParameterOrPropertyTagName().IsNil()) << 1) | (boolToByte(!n.JSDocParameterOrPropertyTagTypeExpression().IsNil()) << 2) | (boolToByte(n.JSDocParameterOrPropertyTagComment() != 0) << 3)
@@ -539,7 +539,7 @@ func getChildrenPropertyMask(node ast.Handle) uint8 {
 }
 
 func getNodeCommonData(node ast.Handle) uint32 {
-	switch node.Kind {
+	switch node.Kind() {
 	case ast.KindBlock:
 		n := node
 		return uint32(boolToByte(n.BlockMultiLine())) << 24
@@ -659,29 +659,29 @@ func getNodeCommonData(node ast.Handle) uint32 {
 }
 
 func recordNodeStrings(node ast.Handle, strs *stringTable) uint32 {
-	switch node.Kind {
+	switch node.Kind() {
 	case ast.KindIdentifier:
-		return strs.add(node.Text(), node.Kind, node.Pos(), node.End())
+		return strs.add(node.Text(), node.Kind(), node.Pos(), node.End())
 	case ast.KindPrivateIdentifier:
-		return strs.add(node.Text(), node.Kind, node.Pos(), node.End())
+		return strs.add(node.Text(), node.Kind(), node.Pos(), node.End())
 	case ast.KindJsxText:
-		return strs.add(node.Text(), node.Kind, node.Pos(), node.End())
+		return strs.add(node.Text(), node.Kind(), node.Pos(), node.End())
 	case ast.KindJSDocText:
-		return strs.add(node.Text(), node.Kind, node.Pos(), node.End())
+		return strs.add(node.Text(), node.Kind(), node.Pos(), node.End())
 	case ast.KindJSDocLink:
-		return strs.add(node.Text(), node.Kind, node.Pos(), node.End())
+		return strs.add(node.Text(), node.Kind(), node.Pos(), node.End())
 	case ast.KindJSDocLinkPlain:
-		return strs.add(node.Text(), node.Kind, node.Pos(), node.End())
+		return strs.add(node.Text(), node.Kind(), node.Pos(), node.End())
 	case ast.KindJSDocLinkCode:
-		return strs.add(node.Text(), node.Kind, node.Pos(), node.End())
+		return strs.add(node.Text(), node.Kind(), node.Pos(), node.End())
 	default:
-		panic(fmt.Sprintf("Unexpected node kind %v", node.Kind))
+		panic(fmt.Sprintf("Unexpected node kind %v", node.Kind()))
 	}
 }
 
 func recordExtendedData(node ast.Handle, strs *stringTable, positionMap *ast.PositionMap, extendedData *[]byte, structuredData *[]byte) uint32 {
 	offset := uint32(len(*extendedData))
-	switch node.Kind {
+	switch node.Kind() {
 	case ast.KindStringLiteral:
 		recordExtendedData_StringLiteral(node, strs, positionMap, extendedData, structuredData)
 	case ast.KindNumericLiteral:
@@ -701,7 +701,7 @@ func recordExtendedData(node ast.Handle, strs *stringTable, positionMap *ast.Pos
 	case ast.KindSourceFile:
 		recordExtendedData_SourceFile(node, strs, positionMap, extendedData, structuredData)
 	default:
-		panic(fmt.Sprintf("unknown extended data node kind %v", node.Kind))
+		panic(fmt.Sprintf("unknown extended data node kind %v", node.Kind()))
 	}
 	return offset
 }
