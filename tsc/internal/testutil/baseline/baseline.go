@@ -76,7 +76,8 @@ func writeComparison(t *testing.T, actualContent string, local, reference string
 		t.Errorf("new baseline created at %s.", local)
 		return
 	}
-	t.Errorf("the baseline file %s has changed. (Run `hereby baseline-accept` if the new baseline is correct.)", reference)
+	diff := DiffText(reference, local, expected, actualContent)
+	t.Errorf("the baseline file %s has changed:\n\n%s", reference, diff)
 }
 
 var (
