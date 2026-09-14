@@ -2934,7 +2934,7 @@ func (c *Checker) checkImportType(node ast.Handle) {
 	c.checkTypeReferenceOrImport(node)
 }
 func (c *Checker) getResolutionModeOverride(node ast.Handle, reportErrors bool) core.ResolutionMode {
-	list := node.PropertyList()
+	list := node.AttributeList()
 	store := node.Store()
 	if store.ListLen(list) != 1 {
 		if reportErrors {
