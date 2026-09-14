@@ -1386,8 +1386,11 @@ func (h Handle) Ident() string {
 
 // Text is the identifier/literal text when present.
 func (h Handle) Text() string {
-	if h.Kind == KindMetaProperty {
+	switch h.Kind {
+	case KindMetaProperty:
 		return h.MetaPropertyName().Text()
+	case KindJsxNamespacedName:
+		return h.JsxNamespacedNameNamespace().Text() + ":" + h.JsxNamespacedNameName().Text()
 	}
 	return h.Ident()
 }
