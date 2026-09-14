@@ -5832,7 +5832,7 @@ func (c *Checker) checkAliasSymbol(node ast.Handle) {
 		debug.Assert(node.Kind != ast.KindNamespaceExport)
 		if ast.IsExportSpecifier(node) {
 			diag := c.error(errorNode, diagnostics.Types_cannot_appear_in_export_declarations_in_JavaScript_files)
-			if sourceSymbol := ast.GetSourceFileOfNode(node).AsNode().Symbol(); sourceSymbol != nil {
+			if sourceSymbol := ast.GetSourceFileOfNode(node).Symbol; sourceSymbol != nil {
 				if alreadyExportedSymbol := sourceSymbol.Exports[node.PropertyNameOrName().Text()]; alreadyExportedSymbol == target {
 					if exportingDeclaration := ast.FindSymbolDeclaration(alreadyExportedSymbol, ast.IsJSTypeAliasDeclaration); !exportingDeclaration.IsNil() {
 						diag.AddRelatedInfo(NewDiagnosticForNode(exportingDeclaration, diagnostics.X_0_is_automatically_exported_here, alreadyExportedSymbol.Name))
