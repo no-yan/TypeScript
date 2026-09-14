@@ -1385,7 +1385,12 @@ func (h Handle) Ident() string {
 }
 
 // Text is the identifier/literal text when present.
-func (h Handle) Text() string { return h.Ident() }
+func (h Handle) Text() string {
+	if h.Kind == KindMetaProperty {
+		return h.MetaPropertyName().Text()
+	}
+	return h.Ident()
+}
 
 func (h Handle) Symbol() *Symbol {
 	if h.id == 0 || h.s == nil {
