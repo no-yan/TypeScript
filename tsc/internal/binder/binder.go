@@ -1411,7 +1411,7 @@ func (b *Binder) bindVariableDeclarationOrBindingElementRef(ref ast.NodeRef, kin
 	if name.ref != 0 && !isBindingPatternKind(name.kind) {
 		root, rootKind := b.rootDeclarationRef(ref, kind)
 		switch {
-		case b.isVariableDeclarationInitializedToRequireRef(root, rootKind):
+		case b.isVariableDeclarationInitializedToRequireRef(ref, kind):
 			b.declareSymbolAndAddToSymbolTableRef(ref, kind, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes, name)
 		case b.isBlockOrCatchScopedRef(root, rootKind):
 			b.bindBlockScopedDeclarationRef(ref, kind, ast.SymbolFlagsBlockScopedVariable, ast.SymbolFlagsBlockScopedVariableExcludes, name)
@@ -1427,18 +1427,26 @@ func isBindingPatternKind(kind ast.Kind) bool {
 	return kind == ast.KindObjectBindingPattern || kind == ast.KindArrayBindingPattern
 }
 
-func (b *Binder) isVariableDeclarationInitializedToRequireRef(root ast.NodeRef, rootKind ast.Kind) bool {
-	if b.store.FlagsAt(root)&ast.NodeFlagsJavaScriptFile == 0 || rootKind != ast.KindVariableDeclaration {
+func (b *Binder) isVariableDeclarationInitializedToRequireRef(ref ast.NodeRef, kind ast.Kind) bool {
+	if kind == ast.KindBindingElement {
+		parent := b.store.ParentRef(ref)
+		ref = b.store.ParentRef(parent)
+		kind = b.store.KindAt(ref)
+	}
+	if kind != ast.KindVariableDeclaration {
 		return false
 	}
-	initializer := b.initializerRefGenerated(root, rootKind)
+	if b.store.FlagsAt(ref)&ast.NodeFlagsJavaScriptFile == 0 {
+		return false
+	}
+	initializer := b.initializerRefGenerated(ref, kind)
 	if initializer == 0 {
 		return false
 	}
-	declarationList := b.store.ParentRef(root)
+	declarationList := b.store.ParentRef(ref)
 	variableStatement := b.store.ParentRef(declarationList)
 	return b.modifierFlagsRef(variableStatement, b.store.KindAt(variableStatement))&ast.ModifierFlagsExport == 0 &&
-		b.typeRefGenerated(root, rootKind) == 0 &&
+		b.typeRefGenerated(ref, kind) == 0 &&
 		b.isRequireCallRef(initializer, b.store.KindAt(initializer), true)
 }
 
