@@ -1434,7 +1434,7 @@ func (p *Parser) parseBlock(ignoreMissingOpenBrace bool, diagnosticMessage *diag
 		}
 		return result
 	}
-	result := p.finishParse(p.factory.ParseBlock(p.createMissingList(), multiline), pos)
+	result := p.finishParse(p.factory.ParseBlock(p.parseEmptyList(), multiline), pos)
 	p.withJSDoc(result, jsdoc)
 	return result
 }
