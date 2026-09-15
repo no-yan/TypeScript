@@ -327,3 +327,7 @@ P0/P1の完了履歴とartifactは保持する。struct返却・未使用list解
 ### Binder 基盤移行の前後比較（2026-09-15）
 
 [測定結果](foundation-migration-performance-20260915.md)。選択repoはbinder-rewrite、前はStore HEAD `85506e8b7d`、後は未commit移行コードと全Goソースが一致する固定コピー `d7505ce592`。同一寿命ハーネスでwall96行・GC無効KPC48行を取得。命令数はchecker +23.31%、dom +20.90%（各p=.002）、命令A/Aは全4条件合格、確認用比較でも再現。checkerは14,163→24,065 allocs/op、B/op +1.53%。別のallocation stack診断で `hasNarrowableArgument → Handle.Arguments → NodeSeq.Slice` に新規9,900 allocs/opを帰属した。wall A/Aは0/8、cyclesは2/4合格なので厳密な時間倍率は保留。ソース・binary・overlay一致、KPC自己検証成功。次は引数列の直接走査を最小候補として比較し、その後に `bind(ref, kind)` とhelper境界を独立評価する。今回production codeの追加修正・追加round・commitなし。
+
+### hasNarrowableArgument の直接走査（2026-09-15）
+
+[候補評価](narrowable-argument-performance-20260915.md)。HEAD `6f6f3ae597` に対し `Arguments()` を `ArgumentsSeq().All()` に替える1行だけを比較。wall96行・KPC48行、12入力の意味監査差0、4 package test成功。checkerは9,900 allocs/op減、B/op −1.67%、命令 −1.78%（確認用−1.99%、命令A/A全4条件合格）。通常GC wallは主比較−2.01%だが確認用−1.20%は非有意で、候補側のwall A/Aも未達。時間の3%基準では一度保留したが、ユーザー指示により明確な割り当て・命令数削減を採用根拠として1行を取り込んだ。wallの精度不足は留保し、測定値・計画は変更していない。候補patch・固定source・全rawを保存。追加round、全conformance、parse+bind、live/scanは未実施。次は広いwalk/helper境界の独立比較とする。

@@ -2712,7 +2712,7 @@ func isNarrowableReference(node ast.Handle) bool {
 }
 
 func hasNarrowableArgument(expr ast.Handle) bool {
-	for _, argument := range expr.Arguments() { //nolint:modernize
+	for _, argument := range expr.ArgumentsSeq().All() {
 		if containsNarrowableReference(argument) {
 			return true
 		}
