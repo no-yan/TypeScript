@@ -1,0 +1,68 @@
+[
+  {
+    "Name": "flow",
+    "File": "/flow.ts",
+    "Script": "TS",
+    "Source": "export function first(x: string | number) { if (typeof x === \"string\") return x.length; let y = 0; for (let i=0;i<3;i++) { if (i===1) continue; y += i; } return y; }\nexport function second(x?: { value: number }) { x?.value; return; x!.value; }\nexport class C<T> { value: T; constructor(v: T) { this.value=v; if(v) return; } static { let x=1; x++; } method(x:boolean) { if(x) return 1; } }\nlet n=1; switch(n) { case 0:n++; case 1:n+=2;break; default:n=3; }\ntry { if(n) throw n; } catch(e) { n=4; } finally { n++; }\n"
+  },
+  {
+    "Name": "exports",
+    "File": "/exports.ts",
+    "Script": "TS",
+    "Source": "export const a=1; export function f() {} export namespace N { export class C<T>{ value!:T; } export const x=2; } export { a as default }; export interface I { (x:number):string; new(x:number):I; [key:string]:any; method<T>(x:T):T; } type F=<T>(x:T)=>T; type K=new<T>(x:T)=>I;"
+  },
+  {
+    "Name": "json",
+    "File": "/data.json",
+    "Script": "JSON",
+    "Source": "{\"answer\":42,\"items\":[1,2]}"
+  },
+  {
+    "Name": "commonjs",
+    "File": "/common.js",
+    "Script": "JS",
+    "Source": "function C(x) { this.value = x; } C.prototype.method = function() { return this.value; }; C.extra=1; exports.C=C; Object.defineProperty(exports,\"alias\",{value:C}); module.exports = C;"
+  },
+  {
+    "Name": "iife",
+    "File": "/iife.ts",
+    "Script": "TS",
+    "Source": "let x: number|string=0; (()=>{ x=\"yes\"; if(x) return; x=1; })(); const f=function*(){yield 1;}; async function g(){await f();} const a={ get x(){return 1;},set x(v){},m(){return this.x;} };"
+  },
+  {
+    "Name": "binding",
+    "File": "/binding.ts",
+    "Script": "TS",
+    "Source": "function f({a=1,b:a2=a,...rest}:{a?:number,b?:number},[x=2,...xs]=[]) { let {p:q=1,...r}={p:2}; ({p:q}={p:3}); return [a,a2,x,q]; } for(const [x,y] of [[1,2]]) { if(x) break; }"
+  },
+  {
+    "Name": "jsx",
+    "File": "/view.tsx",
+    "Script": "TSX",
+    "Source": "declare const Comp:any; const v=<Comp key=\"x\" {...{a:1}}><span>{1}</span></Comp>;"
+  },
+  {
+    "Name": "jsdoc",
+    "File": "/docs.js",
+    "Script": "JS",
+    "Source": "/** @template T\n * @param {T} value description\n * @returns {T} */\nexport function id(value) { return value; }\n/** @typedef {{name:string}} Named */\n/** @type {Named} */\nexport const n={name:\"n\"};"
+  },
+  {
+    "Name": "errors",
+    "File": "/errors.ts",
+    "Script": "TS",
+    "Source": "\"use strict\"; let eval=1; function f(arguments) { with(arguments) {} return; let x=; } export default function(){} export default class{}"
+  },
+  {
+    "Name": "logical",
+    "File": "/logical.ts",
+    "Script": "TS",
+    "Source": "let a:any,b:any,c:any; a &&= b; a ||= c; a ??= b; if((a && b) || !c) { a.x++; } delete a?.x; while(a) { a=a.next; } do { if(b) break; } while(c); outer:for(;;){ if(a) continue outer;break; }"
+  },
+  {
+    "Name": "strict-spelling",
+    "File": "/strict-spelling.ts",
+    "Script": "TS",
+    "Source": "export {};\nlet \\u0069mplements = 1;\nfunction \\u0065val(\\u0061rguments: number) { \\u0065val++; }\nclass C { #constructor; method() { let \\u0070ackage = 1; } }\nlabel: var value = 1;\nfunctionLabel: function f() {}\n"
+  }
+]

@@ -323,3 +323,7 @@ P0/P1の完了履歴とartifactは保持する。struct返却・未使用list解
 ### 局所化前後の再計測（2026-09-11）
 
 [前後比較](local-accessor-measurement-20260911.md)。checkpoint e38ef0b8093と局所化後を同一ハーネスで比較し、wall96行・GC無効PMU48行を取得。GC無効wallはA/A全4条件合格、主比較checker +0.30%、dom −0.84%で非有意。PMU命令数は+0.14%／−0.02%で非有意、命令A/Aも全4条件合格。通常GC wallは1/4、PMU cyclesは0/4の精度合格に留まるため、通常GC dom −2.44%やchecker cycles −3.04%を改善として採用しない。両版のソース・binary・overlay一致、意味監査20/20一致を確認。明確な退行は観測されないが、厳密な同等性の証明とは区別する。追加round・本体変更・commitなし。
+
+### Binder 基盤移行の前後比較（2026-09-15）
+
+[測定結果](foundation-migration-performance-20260915.md)。選択repoはbinder-rewrite、前はStore HEAD `85506e8b7d`、後は未commit移行コードと全Goソースが一致する固定コピー `d7505ce592`。同一寿命ハーネスでwall96行・GC無効KPC48行を取得。命令数はchecker +23.31%、dom +20.90%（各p=.002）、命令A/Aは全4条件合格、確認用比較でも再現。checkerは14,163→24,065 allocs/op、B/op +1.53%。別のallocation stack診断で `hasNarrowableArgument → Handle.Arguments → NodeSeq.Slice` に新規9,900 allocs/opを帰属した。wall A/Aは0/8、cyclesは2/4合格なので厳密な時間倍率は保留。ソース・binary・overlay一致、KPC自己検証成功。次は引数列の直接走査を最小候補として比較し、その後に `bind(ref, kind)` とhelper境界を独立評価する。今回production codeの追加修正・追加round・commitなし。

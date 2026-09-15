@@ -1,104 +1,193 @@
-//go:build binderinvestigation && binderaudit
-
+// Rendered by binder_semantic_audit.py into a Go overlay. Never compiled into production.
 package binder
 
 import (
- "bytes"
- "crypto/sha256"
- "encoding/json"
- "fmt"
- "hash"
- "os"
- "path/filepath"
- "sort"
- "testing"
- "unsafe"
- "github.com/microsoft/TypeScript/tsc/internal/ast"
+    "encoding/json"
+    "fmt"
+    "os"
+    "path/filepath"
+    "reflect"
+    "sort"
+    "testing"
+
+    "github.com/microsoft/TypeScript/tsc/internal/ast"
+    "github.com/microsoft/TypeScript/tsc/internal/core"
+    "github.com/microsoft/TypeScript/tsc/internal/parser"
+    "github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
-type investigationNode = @NODE@
-var investigationCounts map[string]int
-var investigationKinds map[string]int
-var investigationParents map[string]int
-var investigationTrace hash.Hash
-var investigationVisited []investigationNode
-var investigationCreatedFlows []*ast.FlowNode
+@ADAPTER@
 
-type investigationRecorder struct { hash.Hash; data bytes.Buffer }
-func (h *investigationRecorder) Write(p []byte)(int,error) { h.Hash.Write(p);return h.data.Write(p) }
+var foundationAudit *auditRecorder
 
-func investigationNil(n investigationNode) bool { return @NIL@ }
-func investigationKey(n investigationNode) string {
- if investigationNil(n) { return "nil" }
- return fmt.Sprintf("%d:%d:%d",n.Kind,n.Pos(),n.End())
+type auditFixture struct { Name, File, Source, Script string }
+type auditRecorder struct {
+    t *testing.T
+    file *ast.SourceFile
+    nodes []auditNode
+    keys map[auditNode]string
+    before map[auditNode]ast.NodeFlags
+    children map[auditNode][]auditNode
+    visits []string
+    flows []*ast.FlowNode
 }
-func investigationParent(n investigationNode) investigationNode { return @PARENT@ }
-func investigationVisit(n investigationNode) {
- if investigationCounts == nil || investigationNil(n) { return }
- saved:=ast.InvestigationCounts; ast.InvestigationCounts=nil
- investigationCounts["node_visits"]++
- investigationKinds[n.Kind.String()]++
- investigationVisited=append(investigationVisited,n)
- fmt.Fprintln(investigationTrace,investigationKey(n))
- ast.InvestigationCounts=saved
+func (r *auditRecorder) key(n auditNode) string {
+    if auditNil(n) { return "" }
+    if key, ok := r.keys[n]; ok { return key }
+    r.t.Fatalf("AST reference outside syntax census: kind=%v span=%d:%d", auditKind(n), auditPos(n), auditEnd(n))
+    return ""
 }
-func investigationIdentifierName(n investigationNode) {
- if investigationCounts==nil { return }
- saved:=ast.InvestigationCounts; ast.InvestigationCounts=nil
- investigationCounts["identifier_name_tests"]++
- p:=investigationParent(n)
- if !investigationNil(p) { investigationParents[p.Kind.String()]++ }
- ast.InvestigationCounts=saved
+func (r *auditRecorder) census(n auditNode, key string) {
+    if auditNil(n) { return }
+    if _, ok := r.keys[n]; ok { return }
+    r.keys[n] = key
+    r.nodes = append(r.nodes, n)
+    r.before[n] = auditFlags(n)
+    n.ForEachChild(func(child auditNode) bool {
+        if !auditNil(child) {
+            i := len(r.children[n])
+            r.children[n] = append(r.children[n], child)
+            r.census(child, fmt.Sprintf("%s/c%d", key, i))
+        }
+        return false
+    })
+    // Inspect only parse-time JSDoc; do not trigger lazy parsing for observation.
+    for i, doc := range n.EagerJSDoc(r.file) { r.census(doc, fmt.Sprintf("%s/j%d", key, i)) }
 }
-func investigationCount(name string) { if investigationCounts!=nil { investigationCounts[name]++ } }
+func (r *auditRecorder) visit(n auditNode) {
+    if !auditNil(n) { r.visits = append(r.visits, r.key(n)) }
+}
 
-func TestInvestigationAudit(t *testing.T) {
- for _,f:=range investigationFixtures(t) { t.Run(f.Name,func(t *testing.T) {
-  sf:=f.parse(f.source(t)); root:=@ROOT@
-  layoutBefore:=@LAYOUT@
-  var walk func(investigationNode,func(investigationNode))
-  walk=func(n investigationNode,v func(investigationNode)) {
-   if investigationNil(n) { return }; v(n)
-   n.ForEachChild(func(c investigationNode) bool { walk(c,v);return false })
-  }
-  syntax:=sha256.New(); nodes,edges:=0,0; syntaxRows:=[]string{}
-  walk(root,func(n investigationNode){ nodes++;children:=[]string{};n.ForEachChild(func(c investigationNode)bool{if !investigationNil(c){edges++;children=append(children,investigationKey(c))};return false});sort.Strings(children);syntaxRows=append(syntaxRows,fmt.Sprintf("%s:%v",investigationKey(n),children)) })
-  sort.Strings(syntaxRows);for _,row:=range syntaxRows{fmt.Fprintln(syntax,row)}
-  investigationCounts=map[string]int{}; investigationKinds=map[string]int{}; investigationParents=map[string]int{}; investigationTrace=sha256.New()
-  investigationVisited=nil;investigationCreatedFlows=nil
-  ast.InvestigationCounts=map[string]int{}
-  BindSourceFile(sf)
-  counts,kinds,parents,trace:=investigationCounts,investigationKinds,investigationParents,fmt.Sprintf("%x",investigationTrace.Sum(nil))
-  accesses:=ast.InvestigationCounts
-  investigationCounts=nil;ast.InvestigationCounts=nil
-  layoutAfter:=@LAYOUT@
-  // Stable symbol identity follows source traversal and sorted table entries.
-  symbols:=&investigationRecorder{Hash:sha256.New()}; nodeSymbols:=sha256.New(); sm:=map[*ast.Symbol]int{}; sq:=[]*ast.Symbol{}
-  sid:=func(s *ast.Symbol)int{if s==nil{return 0};if id:=sm[s];id!=0{return id};id:=len(sq)+1;sm[s]=id;sq=append(sq,s);return id}
-  table:=func(h hash.Hash,tab ast.SymbolTable){keys:=make([]string,0,len(tab));for k:=range tab{keys=append(keys,k)};sort.Strings(keys);for _,k:=range keys{fmt.Fprintf(h,"%q:%d,",k,sid(tab[k]))}}
-  for _,n:=range investigationVisited{fmt.Fprintf(nodeSymbols,"%s:%d:%d|",investigationKey(n),sid(n.Symbol()),sid(n.LocalSymbol()));table(nodeSymbols,n.Locals())}
-  for i:=0;i<len(sq);i++ {s:=sq[i];fmt.Fprintf(symbols,"%d:%q:%d:%d:%s:%d:%d|",i+1,s.Name,s.Flags,s.CheckFlags,investigationKey(s.ValueDeclaration),sid(s.Parent),sid(s.ExportSymbol));for _,d:=range s.Declarations{fmt.Fprintf(symbols,"d%s,",investigationKey(d))};table(symbols,s.Members);table(symbols,s.Exports);fmt.Fprintln(symbols)}
-  flows:=sha256.New();fm:=map[*ast.FlowNode]int{}
-  for i,f:=range investigationCreatedFlows{fm[f]=i+1}
-  fid:=func(f *ast.FlowNode)int{if f==nil{return 0};id:=fm[f];if id==0{t.Fatal("flow outside creation census")};return id}
-  for i,f:=range investigationCreatedFlows{
-   fmt.Fprintf(flows,"%d:%d:%d|",i+1,f.Flags,fid(f.Antecedent));for l:=f.Antecedents;l!=nil;l=l.Next{fmt.Fprintf(flows,"a%d,",fid(l.Flow))}
-   switch {
-   case f.Flags&ast.FlowFlagsSwitchClause!=0:d:=@DATA@.AsFlowSwitchClauseData();fmt.Fprintf(flows,"switch:%s:%d:%d",investigationKey(d.SwitchStatement),d.ClauseStart,d.ClauseEnd)
-   case f.Flags&ast.FlowFlagsReduceLabel!=0:d:=@DATA@.AsFlowReduceLabelData();fmt.Fprintf(flows,"reduce:%d",fid(d.Target));for l:=d.Antecedents;l!=nil;l=l.Next{fmt.Fprintf(flows,"a%d,",fid(l.Flow))}
-   default:fmt.Fprintf(flows,"node:%s",investigationKey(f.Node))
-   }
-  }
-  diagnostics:=sha256.New()
-  var diag func(*ast.Diagnostic)
-  diag=func(d *ast.Diagnostic){fmt.Fprintf(diagnostics,"%d:%d:%d:%d:%q:%q|",d.Code(),d.Category(),d.Loc().Pos(),d.Loc().End(),d.MessageText(),d.MessageArgs());for _,c:=range d.MessageChain(){diag(c)};fmt.Fprint(diagnostics,"related:");for _,r:=range d.RelatedInformation(){diag(r)}}
-  for _,d:=range sf.BindDiagnostics(){diag(d)}
-  result:=map[string]any{"fixture":f.Name,"counts":counts,"accessors":accesses,"kinds":kinds,"identifier_parents":parents,"syntax_nodes":nodes,"syntax_edges":edges,"syntax_sha256":fmt.Sprintf("%x",syntax.Sum(nil)),"visit_trace_sha256":trace,"symbols_sha256":fmt.Sprintf("%x",symbols.Sum(nil)),"node_symbols_sha256":fmt.Sprintf("%x",nodeSymbols.Sum(nil)),"diagnostics_sha256":fmt.Sprintf("%x",diagnostics.Sum(nil)),"bind_diagnostics":len(sf.BindDiagnostics()),"reachable_symbols":len(sq),"flow_node_size":unsafe.Sizeof(ast.FlowNode{}),"symbol_size":unsafe.Sizeof(ast.Symbol{}),"declaration_ref_size":unsafe.Sizeof(sq[0].ValueDeclaration)}
-  result["flows_sha256"]=fmt.Sprintf("%x",flows.Sum(nil))
-  result["layout_before_bind"]=layoutBefore;result["layout_after_bind"]=layoutAfter
-  data,err:=json.MarshalIndent(result,"","  ");if err!=nil{t.Fatal(err)}
-  dest:=os.Getenv("BINDER_AUDIT_OUT");if dest==""{t.Fatal("BINDER_AUDIT_OUT required")};if err:=os.MkdirAll(dest,0755);err!=nil{t.Fatal(err)}
-  if err:=os.WriteFile(filepath.Join(dest,f.Name+".symbols.txt"),symbols.data.Bytes(),0644);err!=nil{t.Fatal(err)}
-  file,err:=os.OpenFile(filepath.Join(dest,f.Name+".json"),os.O_WRONLY|os.O_CREATE|os.O_EXCL,0644);if err!=nil{t.Fatal(err)};defer file.Close();if _,err:=file.Write(data);err!=nil{t.Fatal(err)}
- }) }
+type auditEntry struct { Name string; Symbol int }
+type auditNodeRow struct {
+    Key, Kind string
+    Pos, End int
+    BeforeFlags, Flags ast.NodeFlags
+    Children []string
+    Parent string
+    Symbol, LocalSymbol int
+    Locals []auditEntry
+    Flow, EndFlow, ReturnFlow, FallthroughFlow int
+    NextContainer string
 }
+type auditSymbolRow struct {
+    ID int
+    Name string
+    Flags ast.SymbolFlags
+    CheckFlags ast.CheckFlags
+    Parent, ExportSymbol int
+    ValueDeclaration string
+    Declarations []string
+    Members, Exports []auditEntry
+}
+type auditFlowRow struct {
+    ID int
+    Flags ast.FlowFlags
+    Antecedent int
+    Antecedents []int
+    Node, SwitchStatement string
+    ClauseStart, ClauseEnd int32
+    Target int
+    ReduceAntecedents []int
+}
+type auditSnapshot struct {
+    Schema int
+    Fixture string
+    Nodes []auditNodeRow
+    Symbols []auditSymbolRow
+    Flows []auditFlowRow
+    Visits []string
+    Diagnostics []string
+    FileSymbol, SymbolCount int
+}
+func (r *auditRecorder) snapshot(name string) auditSnapshot {
+    result := auditSnapshot{Schema: 2, Fixture: name, Visits: append([]string{}, r.visits...), SymbolCount: int(r.file.SymbolCount)}
+    symbols := []*ast.Symbol{}
+    symbolIDs := map[*ast.Symbol]int{}
+    sid := func(s *ast.Symbol) int {
+        if s == nil { return 0 }
+        if id := symbolIDs[s]; id != 0 { return id }
+        id := len(symbols)+1; symbolIDs[s] = id; symbols = append(symbols, s); return id
+    }
+    table := func(tab ast.SymbolTable) []auditEntry {
+        keys := make([]string, 0, len(tab)); for key := range tab { keys = append(keys, key) }; sort.Strings(keys)
+        rows := make([]auditEntry, 0, len(keys))
+        for _, key := range keys { rows = append(rows, auditEntry{key, sid(tab[key])}) }; return rows
+    }
+    flowIDs := map[*ast.FlowNode]int{}
+    for i, flow := range r.flows {
+        if flowIDs[flow] != 0 { r.t.Fatal("duplicate flow allocation identity") }
+        flowIDs[flow] = i+1
+    }
+    fid := func(flow *ast.FlowNode) int {
+        if flow == nil { return 0 }
+        id := flowIDs[flow]; if id == 0 { r.t.Fatal("Flow reference outside allocation census") }; return id
+    }
+    flowList := func(list *ast.FlowList) []int {
+        rows := []int{}; seen := map[*ast.FlowList]bool{}
+        for ; list != nil; list = list.Next {
+            if seen[list] { r.t.Fatal("cycle in FlowList") }; seen[list] = true
+            rows = append(rows, fid(list.Flow))
+        }; return rows
+    }
+    for _, n := range r.nodes {
+        children := []string{}; for _, child := range r.children[n] { children = append(children, r.key(child)) }
+        row := auditNodeRow{Key:r.key(n), Kind:auditKind(n).String(), Pos:auditPos(n), End:auditEnd(n), BeforeFlags:r.before[n], Flags:auditFlags(n), Children:children, Parent:r.key(auditParent(n)), Symbol:sid(n.Symbol()), LocalSymbol:sid(n.LocalSymbol()), Locals:table(n.Locals()), Flow:fid(auditFlow(n)), EndFlow:fid(auditEndFlow(n)), ReturnFlow:fid(auditReturnFlow(n)), FallthroughFlow:fid(auditFallthroughFlow(n)), NextContainer:r.key(auditNextContainer(n))}
+        result.Nodes = append(result.Nodes, row)
+    }
+    result.FileSymbol = sid(r.file.Symbol)
+    for i:=0; i<len(symbols); i++ {
+        s:=symbols[i]; declarations:=[]string{}; for _, d:=range s.Declarations { declarations=append(declarations,r.key(d)) }
+        result.Symbols=append(result.Symbols,auditSymbolRow{ID:i+1,Name:s.Name,Flags:s.Flags,CheckFlags:s.CheckFlags,Parent:sid(s.Parent),ExportSymbol:sid(s.ExportSymbol),ValueDeclaration:r.key(s.ValueDeclaration),Declarations:declarations,Members:table(s.Members),Exports:table(s.Exports)})
+    }
+    for i, f := range r.flows {
+        row:=auditFlowRow{ID:i+1,Flags:f.Flags,Antecedent:fid(f.Antecedent),Antecedents:flowList(f.Antecedents)}
+        switch {
+        case f.Flags&ast.FlowFlagsSwitchClause!=0:
+            d:=auditFlowData(f).AsFlowSwitchClauseData();row.SwitchStatement=r.key(d.SwitchStatement);row.ClauseStart=d.ClauseStart;row.ClauseEnd=d.ClauseEnd
+        case f.Flags&ast.FlowFlagsReduceLabel!=0:
+            d:=auditFlowData(f).AsFlowReduceLabelData();row.Target=fid(d.Target);row.ReduceAntecedents=flowList(d.Antecedents)
+        default:row.Node=r.key(f.Node)
+        }
+        result.Flows=append(result.Flows,row)
+    }
+    var diagnostic func(*ast.Diagnostic)
+    diagnostic=func(d *ast.Diagnostic) {
+        result.Diagnostics=append(result.Diagnostics,fmt.Sprintf("%d:%d:%d:%d:%q:%q:%q",d.Code(),d.Category(),d.Loc().Pos(),d.Loc().End(),d.MessageKey(),d.MessageText(),d.MessageArgs()))
+        for _, c:=range d.MessageChain() { diagnostic(c) }
+        result.Diagnostics=append(result.Diagnostics,"related")
+        for _, related:=range d.RelatedInformation() { diagnostic(related) }
+        result.Diagnostics=append(result.Diagnostics,"end")
+    }
+    for _, d:=range r.file.BindDiagnostics() { diagnostic(d) }
+    return result
+}
+func TestFoundationSemanticAudit(t *testing.T) {
+    input,err:=os.ReadFile(os.Getenv("BINDER_AUDIT_FIXTURES"));if err!=nil {t.Fatal(err)}
+    var fixtures []auditFixture;if err:=json.Unmarshal(input,&fixtures);err!=nil {t.Fatal(err)}
+    if len(fixtures)==0 {t.Fatal("no audit fixtures")}
+    for _,fixture:=range fixtures { t.Run(fixture.Name,func(t *testing.T) {
+        script:=core.ScriptKindTS
+        switch fixture.Script { case "JS":script=core.ScriptKindJS;case "TSX":script=core.ScriptKindTSX;case "JSON":script=core.ScriptKindJSON }
+        sf:=parser.ParseSourceFile(ast.SourceFileParseOptions{FileName:fixture.File,Path:tspath.Path(fixture.File)},fixture.Source,script)
+        defer auditRelease(sf)
+        if !auditLocal(sf) {t.Fatal("parse Store contains foreign child/list references")}
+        r:=&auditRecorder{t:t,file:sf,keys:map[auditNode]string{},before:map[auditNode]ast.NodeFlags{},children:map[auditNode][]auditNode{}}
+        r.census(auditRoot(sf),fixture.File)
+        foundationAudit=r
+        defer func(){foundationAudit=nil}()
+        BindSourceFile(sf)
+        foundationAudit=nil
+        actual:=r.snapshot(fixture.Name)
+        // Binding again must be a no-op, including all attachment and symbol identities.
+        BindSourceFile(sf)
+        if again:=r.snapshot(fixture.Name);!reflect.DeepEqual(actual,again) {t.Fatal("second BindSourceFile changed semantic snapshot")}
+        data,err:=json.MarshalIndent(actual,"","  ");if err!=nil {t.Fatal(err)}
+        dest:=os.Getenv("BINDER_AUDIT_OUT");if dest=="" {t.Fatal("BINDER_AUDIT_OUT required")}
+        if err:=os.MkdirAll(dest,0755);err!=nil {t.Fatal(err)}
+        if err:=os.WriteFile(filepath.Join(dest,fixture.Name+".json"),append(data,'\n'),0644);err!=nil {t.Fatal(err)}
+        auditMutationChecks(t,r,actual)
+    }) }
+}
+
+@MUTATION_CHECKS@
