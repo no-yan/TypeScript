@@ -84,7 +84,11 @@ func (f *Factory) Token(kind Kind) Handle {
 
 func (f Factory) updateHandle(updated, original Handle) Handle {
 	if updated != original {
-		updated.SetFlags(original.Flags())
+		flags := original.Flags()
+		if original.Kind == KindParameter {
+			flags = flags&^NodeFlagsHasParameterPropertyModifier | updated.Flags()&NodeFlagsHasParameterPropertyModifier
+		}
+		updated.SetFlags(flags)
 		updated.SetLoc(original.Loc())
 		if f.hooks.OnUpdate != nil {
 			f.hooks.OnUpdate(updated, original)

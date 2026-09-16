@@ -850,7 +850,7 @@ func (h Handle) SetBindingPatternElements(value ListRef) {
 }
 
 func (f *Factory) ParseParameterDeclaration(modifiers ListRef, dotDotDotToken NodeRef, name NodeRef, questionToken NodeRef, typeNode NodeRef, initializer NodeRef) NodeRef {
-	id := f.store.appendSlots(KindParameter, 0, core.UndefinedTextRange(), 5, 1)
+	id := f.store.appendSlots(KindParameter, f.store.parameterModifierNodeFlags(modifiers), core.UndefinedTextRange(), 5, 1)
 	f.store.linkChildRef(id, slotParameterDeclarationDotDotDotToken, dotDotDotToken)
 	f.store.linkChildRef(id, slotParameterDeclarationName, name)
 	f.store.linkChildRef(id, slotParameterDeclarationQuestionToken, questionToken)
@@ -861,7 +861,7 @@ func (f *Factory) ParseParameterDeclaration(modifiers ListRef, dotDotDotToken No
 }
 
 func (f *Factory) NewParameterDeclaration(modifiers ListRef, dotDotDotToken Handle, name Handle, questionToken Handle, typeNode Handle, initializer Handle) Handle {
-	id := f.store.appendSlots(KindParameter, 0, core.UndefinedTextRange(), 5, 1)
+	id := f.store.appendSlots(KindParameter, f.store.parameterModifierNodeFlags(modifiers), core.UndefinedTextRange(), 5, 1)
 	f.store.linkChild(id, slotParameterDeclarationDotDotDotToken, dotDotDotToken)
 	f.store.linkChild(id, slotParameterDeclarationName, name)
 	f.store.linkChild(id, slotParameterDeclarationQuestionToken, questionToken)
@@ -918,6 +918,7 @@ func (h Handle) ParameterDeclarationModifiers() ListRef {
 
 func (h Handle) SetParameterDeclarationModifiers(value ListRef) {
 	h.SetListSlot(listSlotParameterDeclarationModifiers, value)
+	h.SetFlags(h.Flags()&^NodeFlagsHasParameterPropertyModifier | h.s.parameterModifierNodeFlags(value))
 }
 
 func (f *Factory) ParseBindingElement(dotDotDotToken NodeRef, propertyName NodeRef, name NodeRef, initializer NodeRef) NodeRef {

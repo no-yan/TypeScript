@@ -173,7 +173,13 @@ func (d *astDecoder) decode() (ast.Handle, error) {
 			return ast.Handle{}, fmt.Errorf("at node %d (kind %v): %w", i, ast.Kind(kind), err)
 		}
 		node.SetLoc(core.NewTextRange(int(pos), int(end)))
-		node.SetFlags(ast.NodeFlags(d.nodeField(i, NodeOffsetFlags)))
+		flags := ast.NodeFlags(d.nodeField(i, NodeOffsetFlags))
+		if node.Kind == ast.KindParameter {
+			// Preserve the value derived from the decoded modifier list, including
+			// when reading an older encoding without this derived bit.
+			flags = flags&^ast.NodeFlagsHasParameterPropertyModifier | node.Flags()&ast.NodeFlagsHasParameterPropertyModifier
+		}
+		node.SetFlags(flags)
 		d.nodes[i] = node
 	}
 

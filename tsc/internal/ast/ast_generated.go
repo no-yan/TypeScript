@@ -1886,6 +1886,9 @@ func (f *NodeFactory) NewParameterDeclaration(modifiers *ModifierList, dotDotDot
 	data.Type = typeNode
 	data.Initializer = initializer
 	node := f.newNode(KindParameter, data)
+	if modifiers != nil && modifiers.ModifierFlags&ModifierFlagsParameterPropertyModifier != 0 {
+		node.Flags |= NodeFlagsHasParameterPropertyModifier
+	}
 	return node
 }
 

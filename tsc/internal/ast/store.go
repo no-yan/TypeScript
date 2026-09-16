@@ -694,6 +694,18 @@ func (s *Store) ListAt(list ListRef, i int) Handle {
 	return Handle{}
 }
 
+// parameterModifierNodeFlags derives the immutable syntactic fact stored on a
+// Parameter node. Modifier lists may be owned by another Store, so read via
+// ListAt rather than assuming their elements are local NodeRefs.
+func (s *Store) parameterModifierNodeFlags(list ListRef) NodeFlags {
+	for i, n := 0, s.ListLen(list); i < n; i++ {
+		if ModifierToFlag(s.ListAt(list, i).Kind)&ModifierFlagsParameterPropertyModifier != 0 {
+			return NodeFlagsHasParameterPropertyModifier
+		}
+	}
+	return NodeFlagsNone
+}
+
 // ListRefAt returns the same-store NodeRef stored in list slot i, or 0 when
 // the slot is empty or holds an external (cross-store) child. Callers that may
 // see external children must use ListAt.

@@ -106,7 +106,11 @@ func (f *NodeFactory) AsNodeFactory() *NodeFactory {
 
 func updateNode(updated *Node, original *Node, hooks NodeFactoryHooks) *Node {
 	if updated != original {
-		updated.Flags = original.Flags
+		flags := original.Flags
+		if original.Kind == KindParameter {
+			flags = flags&^NodeFlagsHasParameterPropertyModifier | updated.Flags&NodeFlagsHasParameterPropertyModifier
+		}
+		updated.Flags = flags
 		updated.Loc = original.Loc
 		if hooks.OnUpdate != nil {
 			hooks.OnUpdate(updated, original)
@@ -246,8 +250,16 @@ func (n *Node) Decorators() []*Node {
 
 type MutableNode Node
 
-func (n *Node) AsMutable() *Node                     { return (*Node)(n) }
-func (n *Node) SetModifiers(modifiers *ModifierList) { n.data.setModifiers(modifiers) }
+func (n *Node) AsMutable() *Node { return (*Node)(n) }
+func (n *Node) SetModifiers(modifiers *ModifierList) {
+	n.data.setModifiers(modifiers)
+	if n.Kind == KindParameter {
+		n.Flags &^= NodeFlagsHasParameterPropertyModifier
+		if modifiers != nil && modifiers.ModifierFlags&ModifierFlagsParameterPropertyModifier != 0 {
+			n.Flags |= NodeFlagsHasParameterPropertyModifier
+		}
+	}
+}
 
 func (n *Node) Symbol() *Symbol {
 	data := n.DeclarationData()

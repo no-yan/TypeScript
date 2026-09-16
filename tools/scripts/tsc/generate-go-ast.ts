@@ -352,6 +352,30 @@ function generateAsCast(w: CodeWriter, name: string) {
 
 // ── Generate New*() factory methods ────────────────────────────────────────
 
+// Node flags derived from a list member. The factories set the flag at
+// construction and the list setter keeps it in sync, so readers can test one
+// bit instead of rescanning the list.
+interface DerivedListFlag {
+    member: string;
+    flag: string;
+    pointerExpr: (list: string) => string;
+    storeExpr: (store: string, list: string) => string;
+}
+const derivedListFlags = new Map<string, DerivedListFlag>([
+    ["ParameterDeclaration", {
+        member: "modifiers",
+        flag: "NodeFlagsHasParameterPropertyModifier",
+        pointerExpr: list => `${list} != nil && ${list}.ModifierFlags&ModifierFlagsParameterPropertyModifier != 0`,
+        storeExpr: (store, list) => `${store}.parameterModifierNodeFlags(${list})`,
+    }],
+]);
+
+function derivedListFlag(node: NodeType, m?: MemberInfo): DerivedListFlag | undefined {
+    const d = derivedListFlags.get(node.name);
+    if (!d || (m && m.goParamName() !== d.member)) return undefined;
+    return d;
+}
+
 function isNodeFlagsMember(m: MemberInfo): boolean {
     const type = m.type;
     return type.kind === "primitive" && type.name === "NodeFlags";
@@ -401,6 +425,14 @@ function emitNewFactory(
         else {
             w.write(`node.Flags = ${param}`);
         }
+    }
+    const derived = derivedListFlag(node);
+    if (derived) {
+        w.write(`if ${derived.pointerExpr(derived.member)} {`);
+        w.push();
+        w.write(`node.Flags |= ${derived.flag}`);
+        w.pop();
+        w.write("}");
     }
     w.write("return node");
 
@@ -533,9 +565,10 @@ function emitStoreFactory(
     const layout = storeLayout(node);
     const params = members.map(m => `${m.goParamName()} ${storeParamType(m)}`).join(", ");
     const kindArg = kindMember ? kindMember.goParamName() : `Kind${kindName}`;
-    const flags = nodeFlagsMembers.length === 0
-        ? "0"
-        : nodeFlagsMembers.map(m => m.bitmask ? `${m.goParamName()} & ${m.bitmask}` : m.goParamName()).join(" | ");
+    const flagTerms = nodeFlagsMembers.map(m => m.bitmask ? `${m.goParamName()} & ${m.bitmask}` : m.goParamName());
+    const derived = derivedListFlag(node);
+    if (derived) flagTerms.push(derived.storeExpr("f.store", derived.member));
+    const flags = flagTerms.length === 0 ? "0" : flagTerms.join(" | ");
 
     const parseName = `Parse${funcName.slice(3)}`;
     const parseParams = members.map(m => `${m.goParamName()} ${storeParseParamType(m)}`).join(", ");
@@ -789,7 +822,18 @@ function emitStoreAccessor(w: CodeWriter, node: NodeType, m: MemberInfo) {
         else {
             const slot = listSlotConst(node.name, memberSuffix(m));
             w.write(`func (h Handle) ${method}() ListRef { return h.ListSlot(${slot}) }`);
-            w.write(`func (h Handle) Set${method}(value ListRef) { h.SetListSlot(${slot}, value) }`);
+            const derived = derivedListFlag(node, m);
+            if (derived) {
+                w.write(`func (h Handle) Set${method}(value ListRef) {`);
+                w.push();
+                w.write(`h.SetListSlot(${slot}, value)`);
+                w.write(`h.SetFlags(h.Flags()&^${derived.flag} | ${derived.storeExpr("h.s", "value")})`);
+                w.pop();
+                w.write("}");
+            }
+            else {
+                w.write(`func (h Handle) Set${method}(value ListRef) { h.SetListSlot(${slot}, value) }`);
+            }
         }
         w.write("");
         return;
