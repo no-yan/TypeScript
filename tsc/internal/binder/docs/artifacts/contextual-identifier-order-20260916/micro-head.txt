@@ -1,0 +1,70 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkScratchContextualIdentifier/checker.ts-8         	     200	   3015959 ns/op
+BenchmarkScratchContextualIdentifier/dom.generated.d.ts-8 	     200	         2.295 ns/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkScratchContextualIdentifier/checker.ts-8         	     200	   3124470 ns/op
+BenchmarkScratchContextualIdentifier/dom.generated.d.ts-8 	     200	         2.085 ns/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkScratchContextualIdentifier/checker.ts-8         	     200	   3816231 ns/op
+BenchmarkScratchContextualIdentifier/dom.generated.d.ts-8 	     200	         2.080 ns/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkScratchContextualIdentifier/checker.ts-8         	     200	   3031999 ns/op
+BenchmarkScratchContextualIdentifier/dom.generated.d.ts-8 	     200	         2.085 ns/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkScratchContextualIdentifier/checker.ts-8         	     200	   5518020 ns/op
+BenchmarkScratchContextualIdentifier/dom.generated.d.ts-8 	     200	         2.085 ns/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkScratchContextualIdentifier/checker.ts-8         	     200	   3278956 ns/op
+BenchmarkScratchContextualIdentifier/dom.generated.d.ts-8 	     200	         2.710 ns/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkScratchContextualIdentifier/checker.ts-8         	     200	   3014769 ns/op
+BenchmarkScratchContextualIdentifier/dom.generated.d.ts-8 	     200	         2.080 ns/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkScratchContextualIdentifier/checker.ts-8         	     200	   3203740 ns/op
+BenchmarkScratchContextualIdentifier/dom.generated.d.ts-8 	     200	         1.250 ns/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkScratchContextualIdentifier/checker.ts-8         	     200	   3194145 ns/op
+BenchmarkScratchContextualIdentifier/dom.generated.d.ts-8 	     200	         1.250 ns/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkScratchContextualIdentifier/checker.ts-8         	     200	   3020340 ns/op
+BenchmarkScratchContextualIdentifier/dom.generated.d.ts-8 	     200	         2.085 ns/op
+PASS

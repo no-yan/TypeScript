@@ -1,0 +1,22 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+                                       │ base-natural.txt │            head-natural.txt            │
+                                       │      sec/op      │     sec/op      vs base                │
+BindInvestigation/checker.ts-8              20.03m ± 214%    30.19m ± 225%        ~ (p=0.436 n=10)
+BindInvestigation/dom.generated.d.ts-8      9.997m ±  47%   11.317m ± 112%        ~ (p=0.912 n=10)
+geomean                                     14.15m           18.48m         +30.63%
+
+                                       │ base-natural.txt │          head-natural.txt           │
+                                       │       B/op       │     B/op      vs base               │
+BindInvestigation/checker.ts-8               12.19Mi ± 0%   12.19Mi ± 0%       ~ (p=1.000 n=10)
+BindInvestigation/dom.generated.d.ts-8       7.503Mi ± 0%   7.501Mi ± 0%       ~ (p=0.726 n=10)
+geomean                                      9.562Mi        9.561Mi       -0.01%
+
+                                       │ base-natural.txt │           head-natural.txt           │
+                                       │    allocs/op     │  allocs/op   vs base                 │
+BindInvestigation/checker.ts-8                14.16k ± 0%   14.16k ± 0%       ~ (p=1.000 n=10) ¹
+BindInvestigation/dom.generated.d.ts-8        16.68k ± 0%   16.68k ± 0%       ~ (p=1.000 n=10)
+geomean                                       15.37k        15.37k       +0.00%
+¹ all samples are equal

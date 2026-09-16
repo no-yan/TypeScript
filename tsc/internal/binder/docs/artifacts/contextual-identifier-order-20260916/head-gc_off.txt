@@ -1,0 +1,70 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkBindInvestigation/checker.ts-8         	      10	  21784908 ns/op	12777597 B/op	   14165 allocs/op
+BenchmarkBindInvestigation/dom.generated.d.ts-8 	      10	   7034062 ns/op	 7865479 B/op	   16681 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkBindInvestigation/checker.ts-8         	      10	  19596450 ns/op	12777596 B/op	   14165 allocs/op
+BenchmarkBindInvestigation/dom.generated.d.ts-8 	      10	   6814354 ns/op	 7865479 B/op	   16681 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkBindInvestigation/checker.ts-8         	      10	  18609571 ns/op	12777596 B/op	   14165 allocs/op
+BenchmarkBindInvestigation/dom.generated.d.ts-8 	      10	   6858262 ns/op	 7865479 B/op	   16681 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkBindInvestigation/checker.ts-8         	      10	  18638783 ns/op	12777597 B/op	   14165 allocs/op
+BenchmarkBindInvestigation/dom.generated.d.ts-8 	      10	   6659508 ns/op	 7869172 B/op	   16682 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkBindInvestigation/checker.ts-8         	      10	  21921671 ns/op	12777596 B/op	   14165 allocs/op
+BenchmarkBindInvestigation/dom.generated.d.ts-8 	      10	   7143579 ns/op	 7865479 B/op	   16681 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkBindInvestigation/checker.ts-8         	      10	  23530042 ns/op	12777596 B/op	   14165 allocs/op
+BenchmarkBindInvestigation/dom.generated.d.ts-8 	      10	  11079842 ns/op	 7865479 B/op	   16681 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkBindInvestigation/checker.ts-8         	      10	  16479462 ns/op	12777596 B/op	   14165 allocs/op
+BenchmarkBindInvestigation/dom.generated.d.ts-8 	      10	   6712046 ns/op	 7869172 B/op	   16682 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkBindInvestigation/checker.ts-8         	      10	  20440712 ns/op	12777596 B/op	   14165 allocs/op
+BenchmarkBindInvestigation/dom.generated.d.ts-8 	      10	   9139925 ns/op	 7865479 B/op	   16681 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkBindInvestigation/checker.ts-8         	      10	  19174012 ns/op	12777596 B/op	   14165 allocs/op
+BenchmarkBindInvestigation/dom.generated.d.ts-8 	      10	   8346217 ns/op	 7861786 B/op	   16681 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkBindInvestigation/checker.ts-8         	      10	  21966467 ns/op	12777596 B/op	   14165 allocs/op
+BenchmarkBindInvestigation/dom.generated.d.ts-8 	      10	   6490217 ns/op	 7869172 B/op	   16682 allocs/op
+PASS

@@ -882,22 +882,22 @@ function emitBinderChild(w: CodeWriter, node: NodeType, m: MemberInfo) {
     if (m.listKind === undefined) {
         const slot = layout.children.indexOf(m);
         if (slot < 0) throw new Error(`missing Store child slot for ${node.name}.${m.name}`);
-        w.write(`b.bindChildRef(child${slot}, kind)`);
+        w.write(`b.bind(child${slot})`);
     }
     else {
         const slot = layout.lists.indexOf(m);
         if (slot < 0) throw new Error(`missing Store list slot for ${node.name}.${m.name}`);
-        w.write(`b.bindListRef(s.ListSlotAt(ref, ${slot}), kind)`);
+        w.write(`b.bindEach(s.ListSlotAt(ref, ${slot}))`);
     }
 }
 
 function emitBinderChildFromAccessor(w: CodeWriter, node: NodeType, m: MemberInfo) {
     const field = accessorFieldName(node, m);
     if (m.listKind === undefined) {
-        w.write(`b.bindChildRef(a.${field}, kind)`);
+        w.write(`b.bind(a.${field})`);
     }
     else {
-        w.write(`b.bindListRef(a.${field}, kind)`);
+        w.write(`b.bindEach(a.${field})`);
     }
 }
 
@@ -1066,12 +1066,33 @@ export function generateBinderWalk(): string {
     w.write("switch kind {");
     w.push();
     const emitted = new Set<string>();
+    const childKinds = new Set<string>();
+    const leafKinds = new Set<string>();
     for (const node of api.nodes()) {
         const childMembers = schemaMembers(node).filter(m => m.isChild());
-        if (childMembers.length === 0) {
+        const allKinds = node.allKinds().map(k => k.formatGoConstant());
+        if (allKinds.length === 0) {
+            if (childMembers.length > 0) {
+                throw new Error(`missing Binder child visitor kind for ${node.name}`);
+            }
             continue;
         }
-        const kinds = node.allKinds().map(k => k.formatGoConstant()).filter(k => !emitted.has(k));
+        if (childMembers.length === 0) {
+            for (const kind of allKinds) {
+                if (childKinds.has(kind)) {
+                    throw new Error(`Binder child-bearing and leaf schemas overlap for ${kind}`);
+                }
+                leafKinds.add(kind);
+            }
+            continue;
+        }
+        const kinds = allKinds.filter(k => !emitted.has(k));
+        for (const kind of allKinds) {
+            if (leafKinds.has(kind)) {
+                throw new Error(`Binder child-bearing and leaf schemas overlap for ${kind}`);
+            }
+            childKinds.add(kind);
+        }
         if (kinds.length === 0) {
             continue;
         }
@@ -1082,14 +1103,49 @@ export function generateBinderWalk(): string {
         w.push();
         const typeName = accessorTypeName(node);
         w.write(`a := s.Access${typeName}(ref)`);
-        for (const m of childMembers) {
-            emitBinderChildFromAccessor(w, node, m);
+        if (node.name === "JSDocParameterOrPropertyTag") {
+            const tagName = childMembers.find(m => memberSuffix(m) === "TagName");
+            const name = childMembers.find(m => memberSuffix(m) === "Name");
+            const typeExpression = childMembers.find(m => memberSuffix(m) === "TypeExpression");
+            const comment = childMembers.find(m => memberSuffix(m) === "Comment");
+            if (tagName === undefined || name === undefined || typeExpression === undefined || comment === undefined) {
+                throw new Error("missing JSDocParameterOrPropertyTag Binder child visitor field");
+            }
+            emitBinderChildFromAccessor(w, node, tagName);
+            w.write("if s.At(ref).JSDocParameterOrPropertyTagIsNameFirst() {");
+            w.push();
+            emitBinderChildFromAccessor(w, node, name);
+            emitBinderChildFromAccessor(w, node, typeExpression);
+            w.pop();
+            w.write("} else {");
+            w.push();
+            emitBinderChildFromAccessor(w, node, typeExpression);
+            emitBinderChildFromAccessor(w, node, name);
+            w.pop();
+            w.write("}");
+            emitBinderChildFromAccessor(w, node, comment);
         }
+        else {
+            for (const m of childMembers) {
+                emitBinderChildFromAccessor(w, node, m);
+            }
+        }
+        w.pop();
+    }
+    const childKindsMissingVisitor = [...childKinds].filter(kind => !emitted.has(kind));
+    if (childKindsMissingVisitor.length > 0) {
+        throw new Error(`missing Binder child visitor cases: ${childKindsMissingVisitor.join(", ")}`);
+    }
+    const childlessKinds = [...leafKinds].filter(kind => !childKinds.has(kind));
+    if (childlessKinds.length > 0) {
+        w.write(`case ${childlessKinds.map(k => `ast.${k}`).join(", ")}:`);
+        w.push();
+        w.write("// This kind has no syntax children.");
         w.pop();
     }
     w.write("default:");
     w.push();
-    w.write("b.bindChildrenOf(ref, kind)");
+    w.write('panic("binder: missing generated child visitor for kind")');
     w.pop();
     w.pop();
     w.write("}");
@@ -1134,11 +1190,11 @@ export function generateBinderWalk(): string {
         w.write(`case ${kinds.map(k => `ast.${k}`).join(", ")}:`);
         w.push();
         const listSlot = storeLayout(node).lists.indexOf(statements);
-        w.write(`b.bindEachStatementFunctionsFirstRef(s.ListSlotAt(ref, ${listSlot}), kind)`);
+        w.write(`b.bindEachStatementFunctionsFirst(s.ListSlotAt(ref, ${listSlot}))`);
         const eof = schemaMembers(node).find(m => m.isChild() && m.listKind === undefined && memberSuffix(m) === "EndOfFileToken");
         if (eof !== undefined) {
             const childSlot = storeLayout(node).children.indexOf(eof);
-            w.write(`b.bindChildRef(s.ChildRef(ref, ${childSlot}), kind)`);
+            w.write(`b.bind(s.ChildRef(ref, ${childSlot}))`);
         }
         w.pop();
     }

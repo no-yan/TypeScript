@@ -1,5 +1,9 @@
 # kperf (kpc) による bind の命令数計測
 
+> 現在の準備手順と共通スクリプト化の設計は [KPC計測の共通化](kpc-measurement-workflow.md) を参照。
+> 以下は初期調査の記録を含む。「前後各1回で足りる」という判断や反復ごとのGCを、新しい前後比較へ適用しない。
+> 現行の検証では、寿命を管理したbatch、PMU設定後のfresh pthread、実counter自己検証、同じ計画内のA/Aを使う。
+
 目的: bind 1 回あたりの instructions / cycles を **サンプリングなしで正確に** 数え、
 数 % の命令数削減を 1 run で判定できるようにする。
 

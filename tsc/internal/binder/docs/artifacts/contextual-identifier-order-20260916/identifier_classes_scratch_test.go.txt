@@ -1,0 +1,93 @@
+//go:build binderinvestigation
+
+package binder
+
+// Throwaway measurement helper. Not to be committed.
+
+import (
+	"testing"
+
+	"github.com/microsoft/TypeScript/tsc/internal/ast"
+	"github.com/microsoft/TypeScript/tsc/internal/scanner"
+)
+
+func TestScratchIdentifierClasses(t *testing.T) {
+	for _, f := range investigationFixtures(t) {
+		text := f.source(t)
+		files, release := investigationBatch(t, f, text, 1)
+		file := files[0]
+		store, root := file.ParseTreeRef()
+		n := store.Len()
+		var total, ambientOrJSDoc, identName, hashGuard, hashGuardAfterIdentName, keyword int
+		for id := 1; id <= n; id++ {
+			ref := ast.NodeRef(id)
+			if store.KindAt(ref) != ast.KindIdentifier {
+				continue
+			}
+			total++
+			if store.FlagsAt(ref)&(ast.NodeFlagsAmbient|ast.NodeFlagsJSDoc) != 0 {
+				ambientOrJSDoc++
+				continue
+			}
+			isName := ast.IsIdentifierName(store.At(ref))
+			if isName {
+				identName++
+			}
+			s := store.TextAt(ref)
+			guard := len(s) >= 2 && len(s) <= 12 && s[0] >= 'a' && s[0] <= 'z'
+			if guard {
+				hashGuard++
+				if !isName {
+					hashGuardAfterIdentName++
+				}
+				if scanner.GetIdentifierToken(s) != ast.KindIdentifier {
+					keyword++
+				}
+			}
+		}
+		_ = root
+		t.Logf("%s: identifiers=%d ambient|jsdoc=%d isIdentifierName=%d hashGuard(base hashes)=%d hashGuard&&!isIdentifierName(head hashes)=%d keywordHits=%d",
+			f.Name, total, ambientOrJSDoc, identName, hashGuard, hashGuardAfterIdentName, keyword)
+		release()
+	}
+}
+
+// BenchmarkScratchContextualIdentifier runs only checkContextualIdentifier over
+// every non-ambient Identifier of the fixture. Bind is not timed. The fixture must
+// stay diagnostic-free, otherwise the len(Diagnostics)==0 guard short-circuits.
+func BenchmarkScratchContextualIdentifier(b *testing.B) {
+	for _, f := range investigationFixtures(b) {
+		b.Run(f.Name, func(b *testing.B) {
+			b.StopTimer()
+			text := f.source(b)
+			files, release := investigationBatch(b, f, text, 1)
+			file := files[0]
+			store, _ := file.ParseTreeRef()
+			var idents []ast.NodeRef
+			for id := 1; id <= store.Len(); id++ {
+				ref := ast.NodeRef(id)
+				if store.KindAt(ref) == ast.KindIdentifier && store.FlagsAt(ref)&(ast.NodeFlagsAmbient|ast.NodeFlagsJSDoc) == 0 {
+					idents = append(idents, ref)
+				}
+			}
+			bd := getBinder()
+			bd.file = file
+			bd.store = store
+			before := len(file.BindDiagnostics())
+			b.ReportMetric(float64(len(idents)), "idents")
+			b.ResetTimer()
+			b.StartTimer()
+			for i := 0; i < b.N; i++ {
+				for _, ref := range idents {
+					bd.checkContextualIdentifier(ref)
+				}
+			}
+			b.StopTimer()
+			if len(file.BindDiagnostics()) != before || len(file.Diagnostics()) != 0 {
+				b.Fatalf("fixture produced diagnostics: bind=%d parse=%d", len(file.BindDiagnostics())-before, len(file.Diagnostics()))
+			}
+			putBinder(bd)
+			release()
+		})
+	}
+}
