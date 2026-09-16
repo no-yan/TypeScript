@@ -1767,6 +1767,12 @@ func (b *Binder) bindEachChild(node ast.NodeRef, kind ast.Kind) {
 }
 
 func (b *Binder) bindEach(nodes ast.ListRef) {
+	if span, ok := b.store.TryBindListSpan(nodes); ok {
+		for i, n := 0, span.Len(); i < n; i++ {
+			b.bind(b.store.BindListSpanElem(span, i))
+		}
+		return
+	}
 	for i, n := 0, b.store.ListLen(nodes); i < n; i++ {
 		b.bind(b.store.ListElem(nodes, i))
 	}
@@ -1781,6 +1787,21 @@ func (b *Binder) bindModifiers(modifiers ast.ListRef) {
 }
 
 func (b *Binder) bindEachStatementFunctionsFirst(statements ast.ListRef) {
+	if span, ok := b.store.TryBindListSpan(statements); ok {
+		for i, n := 0, span.Len(); i < n; i++ {
+			node := b.store.BindListSpanElem(span, i)
+			if b.store.KindAt(node) == ast.KindFunctionDeclaration {
+				b.bind(node)
+			}
+		}
+		for i, n := 0, span.Len(); i < n; i++ {
+			node := b.store.BindListSpanElem(span, i)
+			if b.store.KindAt(node) != ast.KindFunctionDeclaration {
+				b.bind(node)
+			}
+		}
+		return
+	}
 	for i, n := 0, b.store.ListLen(statements); i < n; i++ {
 		node := b.store.ListElem(statements, i)
 		if b.store.KindAt(node) == ast.KindFunctionDeclaration {
