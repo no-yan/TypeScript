@@ -1258,7 +1258,7 @@ func (b *Binder) bindParameter(node ast.NodeRef) {
 	}
 	// If this is a property-parameter, also declare the property symbol in the containing class.
 	parent := b.store.ParentRef(node)
-	if b.store.KindAt(parent) == ast.KindConstructor && b.store.FlagsAt(node)&ast.NodeFlagsHasParameterPropertyModifier != 0 {
+	if ast.IsParameterPropertyDeclaration(b.store.At(node), b.store.At(parent)) {
 		classDeclaration := b.store.ParentRef(parent)
 		flags := ast.SymbolFlagsProperty | core.IfElse(parameter.Question != ast.NoNodeRef, ast.SymbolFlagsOptional, ast.SymbolFlagsNone)
 		classSymbol := b.store.Symbol(classDeclaration)

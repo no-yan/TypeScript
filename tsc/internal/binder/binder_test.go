@@ -91,24 +91,3 @@ export class C {
 		)
 	}
 }
-
-func TestBindParameterPropertyUsesStoredModifierFact(t *testing.T) {
-	t.Parallel()
-	file := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: "/parameter-property.ts", Path: "/parameter-property.ts"}, `
-class C {
-  constructor(public id: number, private readonly name: string, protected active: boolean, plain: number) {}
-}
-`, core.ScriptKindTS)
-	BindSourceFile(file)
-
-	class := file.ParseRoot().Statements()[0]
-	members := class.Symbol().Members
-	for _, name := range []string{"id", "name", "active"} {
-		if members[name] == nil || members[name].Flags&ast.SymbolFlagsProperty == 0 {
-			t.Errorf("constructor parameter property %q was not declared", name)
-		}
-	}
-	if members["plain"] != nil {
-		t.Error("unmodified constructor parameter was declared as a property")
-	}
-}

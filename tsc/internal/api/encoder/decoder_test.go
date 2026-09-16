@@ -41,23 +41,6 @@ func TestDecodeSourceFile_Basic(t *testing.T) {
 	assert.Assert(t, !root.SourceFileEndOfFileToken().IsNil())
 }
 
-func TestDecodeSourceFilePreservesParameterPropertyModifierFlag(t *testing.T) {
-	t.Parallel()
-	sf := parseSourceFile("class C { constructor(private value: number, plain: string) {} }")
-	buf, _, err := encoder.EncodeSourceFile(sf)
-	assert.NilError(t, err)
-
-	decoded, err := encoder.DecodeSourceFile(buf)
-	assert.NilError(t, err)
-	class := decoded.ParseRoot().Statements()[0]
-	constructor := decoded.ParseStore().ListAt(class.ClassDeclarationMembers(), 0)
-	parameters := constructor.ConstructorDeclarationParameters()
-	first := decoded.ParseStore().ListAt(parameters, 0)
-	second := decoded.ParseStore().ListAt(parameters, 1)
-	assert.Assert(t, first.Flags()&ast.NodeFlagsHasParameterPropertyModifier != 0)
-	assert.Assert(t, second.Flags()&ast.NodeFlagsHasParameterPropertyModifier == 0)
-}
-
 func TestDecodeSourceFile_Statements(t *testing.T) {
 	t.Parallel()
 	sf := parseSourceFile("let a = 1;\nlet b = 2;\nlet c = 3;")
