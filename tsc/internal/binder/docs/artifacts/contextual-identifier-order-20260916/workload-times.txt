@@ -1,0 +1,96 @@
+== wl-base-parallel-1.time
+        3.42 real         6.43 user         2.78 sys
+          1365983232  maximum resident set size
+exit 0
+== wl-base-parallel-2.time
+        1.60 real         6.18 user         1.66 sys
+          1642414080  maximum resident set size
+exit 0
+== wl-base-parallel-3.time
+        1.69 real         6.49 user         1.50 sys
+          1644314624  maximum resident set size
+exit 0
+== wl-base-parallel-4.time
+        1.23 real         5.65 user         1.06 sys
+          1695825920  maximum resident set size
+exit 0
+== wl-base-parallel-5.time
+        1.42 real         6.37 user         1.45 sys
+          1605550080  maximum resident set size
+exit 0
+== wl-base-parallel-6.time
+        1.52 real         6.39 user         1.47 sys
+          1490731008  maximum resident set size
+exit 0
+== wl-base-single-1.time
+        3.82 real         3.30 user         0.76 sys
+          1367752704  maximum resident set size
+exit 0
+== wl-base-single-2.time
+        3.36 real         3.16 user         0.67 sys
+          1366278144  maximum resident set size
+exit 0
+== wl-base-single-3.time
+        3.30 real         3.01 user         0.53 sys
+          1303969792  maximum resident set size
+exit 0
+== wl-base-single-4.time
+        4.44 real         3.78 user         1.23 sys
+          1232142336  maximum resident set size
+exit 0
+== wl-base-single-5.time
+        4.05 real         3.41 user         1.05 sys
+          1243496448  maximum resident set size
+exit 0
+== wl-base-single-6.time
+        4.23 real         3.49 user         1.00 sys
+          1323712512  maximum resident set size
+exit 0
+== wl-head-parallel-1.time
+        3.04 real         6.22 user         2.11 sys
+          1539719168  maximum resident set size
+exit 0
+== wl-head-parallel-2.time
+        1.99 real         6.70 user         2.04 sys
+          1466351616  maximum resident set size
+exit 0
+== wl-head-parallel-3.time
+        1.47 real         5.69 user         1.27 sys
+          1338900480  maximum resident set size
+exit 0
+== wl-head-parallel-4.time
+        1.50 real         6.30 user         1.56 sys
+          1451704320  maximum resident set size
+exit 0
+== wl-head-parallel-5.time
+        2.37 real         6.73 user         2.05 sys
+          1202356224  maximum resident set size
+exit 0
+== wl-head-parallel-6.time
+        1.91 real         6.50 user         2.08 sys
+          1419788288  maximum resident set size
+exit 0
+== wl-head-single-1.time
+        3.90 real         3.28 user         1.09 sys
+          1096482816  maximum resident set size
+exit 0
+== wl-head-single-2.time
+        3.59 real         3.17 user         0.80 sys
+          1458651136  maximum resident set size
+exit 0
+== wl-head-single-3.time
+        3.54 real         3.15 user         0.77 sys
+          1344274432  maximum resident set size
+exit 0
+== wl-head-single-4.time
+        3.49 real         3.08 user         0.71 sys
+          1357086720  maximum resident set size
+exit 0
+== wl-head-single-5.time
+        4.40 real         3.57 user         1.09 sys
+          1040285696  maximum resident set size
+exit 0
+== wl-head-single-6.time
+        3.66 real         3.16 user         0.88 sys
+          1274085376  maximum resident set size
+exit 0

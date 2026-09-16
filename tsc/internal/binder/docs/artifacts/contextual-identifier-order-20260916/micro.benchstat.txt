@@ -1,0 +1,9 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+                                                 │ micro-base.txt │            micro-head.txt            │
+                                                 │     sec/op     │    sec/op     vs base                │
+ScratchContextualIdentifier/checker.ts-8             2.512m ± 28%   3.159m ± 21%  +25.78% (p=0.007 n=10)
+ScratchContextualIdentifier/dom.generated.d.ts-8     1.980n ± 37%   2.085n ± 40%        ~ (p=0.897 n=10)
+geomean                                              2.230µ         2.567µ        +15.09%

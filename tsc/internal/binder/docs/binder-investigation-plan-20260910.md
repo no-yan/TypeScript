@@ -1,5 +1,29 @@
 # Binder 性能調査の進め方（2026-09-10）
 
+## 2026-09-16 提供 trace の読み取り調査
+
+[12800f 名の trace 分析](trace-12800f-20260916.md)を保存した。noEmit/noCheck の
+`Program.BindSourceFiles` 配下を cycle weight で集計し、contextual identifier の
+keyword lookup/hash が各3.48% / 4.33%を占めることを確認した。次の狭い候補は
+診断対象10語だけの局所 switch。改善効果は未計測であり、この構成比を短縮率とは扱わない。
+binary UUID は照合できたが build info は7369b118＋dirtyで、HEAD12800fとの完全一致は未証明。
+直近kind伝搬にはlabelの子statement、callのcalleeに関する正確性問題も2件確認した。
+production codeの変更・benchmark再実行は行っていない。
+
+## 2026-09-15のコミット直接比較と停止時点
+
+[85506e8→80d8b41の結果](commit-performance-results-20260915.md)を保存した。
+同一条件の144行で命令数はchecker +20.97%、dom +20.80%、cyclesは+16.12% / +14.09%。
+命令・cyclesのA/Aは前後両版・両入力で合格、主・確認用ともbenchstat p=.002。
+通常wallの約13.5%増は精度未達のため観測値に留める。
+操作数では同じnode訪問数に対してKindAt増加、At経由アクセス増加、list span経路の消失を確認した。
+4件の現行Instruments、11入力の意味監査、A/M・M/B・9入力拡張のwallも保存した。
+最小span候補の意味監査は差0だが、改善のKPC・全体検証は未実施。
+ユーザーの「改善は計測しなくてよい、ここまでをまとめる」という指示により追加計測を終了した。
+production codeの変更・採用はない。再開時は保存済み候補の命令数対照から判断する。
+
+続く[改善計画](binder-improvement-plan-20260915.md)に、ユーザー提示の11候補と現行source・既存証拠の照合、改善単位、実施順、受入条件をまとめた。計画文書のみ作成し、追加計測・実装は開始していない。
+
 ユーザーから「進める順序を覚えておいて」と指定された調査計画。
 目的は、index-based AST の binder 退行を切り分け、メモリアクセス高速化と
 noscan による GC 改善の両立を検証すること。
