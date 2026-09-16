@@ -1361,9 +1361,9 @@ func (b *Binder) lookupName(name string, container ast.NodeRef) *ast.Symbol {
 	return nil
 }
 func (b *Binder) checkContextualIdentifier(node ast.NodeRef) {
-	if len(b.file.Diagnostics()) == 0 && b.store.FlagsAt(node)&(ast.NodeFlagsAmbient|ast.NodeFlagsJSDoc) == 0 && !ast.IsIdentifierName(b.store.At(node)) {
+	if len(b.file.Diagnostics()) == 0 && b.store.FlagsAt(node)&(ast.NodeFlagsAmbient|ast.NodeFlagsJSDoc) == 0 {
 		originalKeywordKind := scanner.GetIdentifierToken(b.store.TextAt(node))
-		if originalKeywordKind == ast.KindIdentifier {
+		if originalKeywordKind == ast.KindIdentifier || ast.IsIdentifierName(b.store.At(node)) {
 			return
 		}
 		if originalKeywordKind >= ast.KindFirstFutureReservedWord && originalKeywordKind <= ast.KindLastFutureReservedWord {
