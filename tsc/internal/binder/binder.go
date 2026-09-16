@@ -502,24 +502,33 @@ func (b *Binder) createReduceLabel(target *ast.FlowLabel, antecedents *ast.FlowL
 	return b.newFlowData(ast.FlowFlagsReduceLabel, ast.NewFlowReduceLabelData(target, antecedents), antecedent)
 }
 
-func (b *Binder) createFlowCondition(flags ast.FlowFlags, antecedent *ast.FlowNode, expression ast.NodeRef) *ast.FlowNode {
+func (b *Binder) addConditionAntecedents(trueTarget, falseTarget *ast.FlowLabel, antecedent *ast.FlowNode, expression ast.NodeRef) {
 	if antecedent.Flags&ast.FlowFlagsUnreachable != 0 {
-		return antecedent
+		return
 	}
 	if expression == ast.NoNodeRef {
-		if flags&ast.FlowFlagsTrueCondition != 0 {
-			return antecedent
-		}
-		return b.unreachableFlow
+		b.addAntecedent(trueTarget, antecedent)
+		return
 	}
-	if (b.store.KindAt(expression) == ast.KindTrueKeyword && flags&ast.FlowFlagsFalseCondition != 0 || b.store.KindAt(expression) == ast.KindFalseKeyword && flags&ast.FlowFlagsTrueCondition != 0) && !ast.IsExpressionOfOptionalChainRoot(b.store.At(expression)) && !ast.IsNullishCoalesce(b.store.At(b.store.ParentRef(expression))) {
-		return b.unreachableFlow
+	kind := b.store.KindAt(expression)
+	isBooleanLiteral := kind == ast.KindTrueKeyword || kind == ast.KindFalseKeyword
+	if isBooleanLiteral && !ast.IsExpressionOfOptionalChainRoot(b.store.At(expression)) && !ast.IsNullishCoalesce(b.store.At(b.store.ParentRef(expression))) {
+		if kind == ast.KindTrueKeyword {
+			b.addAntecedent(trueTarget, antecedent)
+		} else {
+			b.addAntecedent(falseTarget, antecedent)
+		}
+		return
 	}
 	if !isNarrowingExpression(b.store.At(expression)) {
-		return antecedent
+		b.addAntecedent(trueTarget, antecedent)
+		b.addAntecedent(falseTarget, antecedent)
+		return
 	}
 	setFlowNodeReferenced(antecedent)
-	return b.newFlowNodeEx(flags, expression, antecedent)
+	b.addAntecedent(trueTarget, b.newFlowNodeEx(ast.FlowFlagsTrueCondition, expression, antecedent))
+	setFlowNodeReferenced(antecedent)
+	b.addAntecedent(falseTarget, b.newFlowNodeEx(ast.FlowFlagsFalseCondition, expression, antecedent))
 }
 
 func (b *Binder) createFlowMutation(flags ast.FlowFlags, antecedent *ast.FlowNode, node ast.NodeRef) *ast.FlowNode {
@@ -1809,15 +1818,13 @@ func (b *Binder) doWithConditionalBranches(action func(b *Binder, value ast.Node
 func (b *Binder) bindCondition(node ast.NodeRef, trueTarget *ast.FlowLabel, falseTarget *ast.FlowLabel) {
 	b.doWithConditionalBranches((*Binder).bind, node, trueTarget, falseTarget)
 	if node == ast.NoNodeRef {
-		b.addAntecedent(trueTarget, b.createFlowCondition(ast.FlowFlagsTrueCondition, b.currentFlow, node))
-		b.addAntecedent(falseTarget, b.createFlowCondition(ast.FlowFlagsFalseCondition, b.currentFlow, node))
+		b.addConditionAntecedents(trueTarget, falseTarget, b.currentFlow, node)
 		return
 	}
 	kind := b.store.KindAt(node)
 	isOptionalChain := b.store.FlagsAt(node)&ast.NodeFlagsOptionalChain != 0 && (kind == ast.KindPropertyAccessExpression || kind == ast.KindElementAccessExpression || kind == ast.KindCallExpression || kind == ast.KindNonNullExpression)
 	if !isLogicalAssignmentExpression(b.store.At(node)) && !ast.IsLogicalExpression(b.store.At(node)) && !(isOptionalChain && ast.IsOutermostOptionalChain(b.store.At(node))) {
-		b.addAntecedent(trueTarget, b.createFlowCondition(ast.FlowFlagsTrueCondition, b.currentFlow, node))
-		b.addAntecedent(falseTarget, b.createFlowCondition(ast.FlowFlagsFalseCondition, b.currentFlow, node))
+		b.addConditionAntecedents(trueTarget, falseTarget, b.currentFlow, node)
 	}
 }
 
@@ -2330,8 +2337,7 @@ func (b *Binder) bindLogicalLikeExpression(node ast.NodeRef, trueTarget *ast.Flo
 	if ast.IsLogicalOrCoalescingAssignmentOperator(operator) {
 		b.doWithConditionalBranches((*Binder).bind, expr.Right, trueTarget, falseTarget)
 		b.bindAssignmentTargetFlow(expr.Left)
-		b.addAntecedent(trueTarget, b.createFlowCondition(ast.FlowFlagsTrueCondition, b.currentFlow, node))
-		b.addAntecedent(falseTarget, b.createFlowCondition(ast.FlowFlagsFalseCondition, b.currentFlow, node))
+		b.addConditionAntecedents(trueTarget, falseTarget, b.currentFlow, node)
 	} else {
 		b.bindCondition(expr.Right, trueTarget, falseTarget)
 	}
@@ -2450,8 +2456,7 @@ func (b *Binder) bindOptionalChain(node ast.NodeRef, trueTarget *ast.FlowLabel, 
 	}
 	b.doWithConditionalBranches((*Binder).bindOptionalChainRest, node, trueTarget, falseTarget)
 	if ast.IsOutermostOptionalChain(b.store.At(node)) {
-		b.addAntecedent(trueTarget, b.createFlowCondition(ast.FlowFlagsTrueCondition, b.currentFlow, node))
-		b.addAntecedent(falseTarget, b.createFlowCondition(ast.FlowFlagsFalseCondition, b.currentFlow, node))
+		b.addConditionAntecedents(trueTarget, falseTarget, b.currentFlow, node)
 	}
 }
 
@@ -2461,8 +2466,7 @@ func (b *Binder) bindOptionalExpression(node ast.NodeRef, trueTarget *ast.FlowLa
 	isOptionalChain := b.store.FlagsAt(node)&ast.NodeFlagsOptionalChain != 0 &&
 		(kind == ast.KindPropertyAccessExpression || kind == ast.KindElementAccessExpression || kind == ast.KindCallExpression || kind == ast.KindNonNullExpression)
 	if !isOptionalChain || ast.IsOutermostOptionalChain(b.store.At(node)) {
-		b.addAntecedent(trueTarget, b.createFlowCondition(ast.FlowFlagsTrueCondition, b.currentFlow, node))
-		b.addAntecedent(falseTarget, b.createFlowCondition(ast.FlowFlagsFalseCondition, b.currentFlow, node))
+		b.addConditionAntecedents(trueTarget, falseTarget, b.currentFlow, node)
 	}
 }
 
