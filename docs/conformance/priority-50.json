@@ -1,0 +1,259 @@
+{
+  "basis_commit": "dcbf75cb38a0ede46a02999d42c355ae970dd5fe",
+  "source_log": "tsc/conformance.log",
+  "source_sha256": "27a63ae3806f6807654c2e63c6e6e3274e939acf55ed678cbfae92006a10237b",
+  "unit": "file_configuration",
+  "count": 50,
+  "cases": [
+    {
+      "id": 1,
+      "name": "nestedDestructuringOfRequire.ts",
+      "group": "C"
+    },
+    {
+      "id": 2,
+      "name": "dynamicImportDefer.ts_module=es2020",
+      "group": "A"
+    },
+    {
+      "id": 3,
+      "name": "dynamicImportDefer.ts_module=nodenext",
+      "group": "A"
+    },
+    {
+      "id": 4,
+      "name": "dynamicImportDefer.ts_module=esnext",
+      "group": "A"
+    },
+    {
+      "id": 5,
+      "name": "dynamicImportDefer.ts_module=preserve",
+      "group": "A"
+    },
+    {
+      "id": 6,
+      "name": "dynamicImportDefer.ts_module=commonjs",
+      "group": "A"
+    },
+    {
+      "id": 7,
+      "name": "dynamicImportDefer.ts_module=es2015",
+      "group": "A"
+    },
+    {
+      "id": 8,
+      "name": "importDeferCallCommonJS.ts",
+      "group": "A"
+    },
+    {
+      "id": 9,
+      "name": "tsxUnionTypeComponent1.tsx",
+      "group": "B"
+    },
+    {
+      "id": 10,
+      "name": "inlineJsxFactoryDeclarationsLocalTypes.tsx",
+      "group": "B"
+    },
+    {
+      "id": 11,
+      "name": "reactHOCSpreadprops.tsx",
+      "group": "B"
+    },
+    {
+      "id": 12,
+      "name": "reactDefaultPropsInferenceSuccess.tsx",
+      "group": "B"
+    },
+    {
+      "id": 13,
+      "name": "jsxFactoryQualifiedNameWithEs5.ts_target=es2015",
+      "group": "B"
+    },
+    {
+      "id": 14,
+      "name": "jsxFactoryQualifiedNameWithEs5.ts_target=es5",
+      "group": "B"
+    },
+    {
+      "id": 15,
+      "name": "jsxFactoryQualifiedNameResolutionError.ts",
+      "group": "B"
+    },
+    {
+      "id": 16,
+      "name": "jsxFactoryQualifiedName.ts",
+      "group": "B"
+    },
+    {
+      "id": 17,
+      "name": "jsxFactoryNotIdentifierOrQualifiedName2.ts",
+      "group": "B"
+    },
+    {
+      "id": 18,
+      "name": "jsxFactoryNotIdentifierOrQualifiedName.ts",
+      "group": "B"
+    },
+    {
+      "id": 19,
+      "name": "jsxFactoryMissingErrorInsideAClass.ts",
+      "group": "B"
+    },
+    {
+      "id": 20,
+      "name": "jsxFactoryIdentifierWithAbsentParameter.ts",
+      "group": "B"
+    },
+    {
+      "id": 21,
+      "name": "jsxFactoryIdentifierAsParameter.ts",
+      "group": "B"
+    },
+    {
+      "id": 22,
+      "name": "jsxFactoryIdentifier.ts",
+      "group": "B"
+    },
+    {
+      "id": 23,
+      "name": "jsxFactoryAndReactNamespace.ts",
+      "group": "B"
+    },
+    {
+      "id": 24,
+      "name": "jsxEmitWithAttributes.ts",
+      "group": "B"
+    },
+    {
+      "id": 25,
+      "name": "jsxChildrenSingleChildConfusableWithMultipleChildrenNoError.tsx",
+      "group": "B"
+    },
+    {
+      "id": 26,
+      "name": "commentsOnJSXExpressionsArePreserved.tsx_jsx=react,module=commonjs,moduledetection=force",
+      "group": "B"
+    },
+    {
+      "id": 27,
+      "name": "commentsOnJSXExpressionsArePreserved.tsx_jsx=react,module=system,moduledetection=force",
+      "group": "B"
+    },
+    {
+      "id": 28,
+      "name": "awaitUsingDeclarationsInForAwaitOf.3.ts_target=esnext",
+      "group": "D"
+    },
+    {
+      "id": 29,
+      "name": "awaitUsingDeclarationsInForOf.5.ts_target=esnext",
+      "group": "D"
+    },
+    {
+      "id": 30,
+      "name": "parserForOfStatement21.ts",
+      "group": "D"
+    },
+    {
+      "id": 31,
+      "name": "parserForOfStatement2.ts",
+      "group": "D"
+    },
+    {
+      "id": 32,
+      "name": "parserES5ForOfStatement21.ts_target=es2015",
+      "group": "D"
+    },
+    {
+      "id": 33,
+      "name": "parserES5ForOfStatement2.ts_target=es2015",
+      "group": "D"
+    },
+    {
+      "id": 34,
+      "name": "checkJsxNamespaceNamesQuestionableForms.tsx",
+      "group": "E"
+    },
+    {
+      "id": 35,
+      "name": "jsxNamespacePrefixIntrinsics.tsx",
+      "group": "E"
+    },
+    {
+      "id": 36,
+      "name": "jsxNamespacedNameNotComparedToNonMatchingIndexSignature.tsx",
+      "group": "E"
+    },
+    {
+      "id": 37,
+      "name": "importTag5.ts",
+      "group": "F"
+    },
+    {
+      "id": 38,
+      "name": "importTag20.ts",
+      "group": "F"
+    },
+    {
+      "id": 39,
+      "name": "importTag19.ts",
+      "group": "F"
+    },
+    {
+      "id": 40,
+      "name": "importTag16.ts",
+      "group": "F"
+    },
+    {
+      "id": 41,
+      "name": "importTag15.ts_module=es2015",
+      "group": "F"
+    },
+    {
+      "id": 42,
+      "name": "importTag18.ts",
+      "group": "F"
+    },
+    {
+      "id": 43,
+      "name": "importTag15.ts_module=esnext",
+      "group": "F"
+    },
+    {
+      "id": 44,
+      "name": "typedefHoisting.ts",
+      "group": "F"
+    },
+    {
+      "id": 45,
+      "name": "jsDeclarationEmitDoesNotReuseUnrelatedJSDocImport.ts",
+      "group": "F"
+    },
+    {
+      "id": 46,
+      "name": "esDecorators-classExpression-namedEvaluation.2.ts",
+      "group": "G"
+    },
+    {
+      "id": 47,
+      "name": "esDecorators-classExpression-missingEmitHelpers-classDecorator.14.ts",
+      "group": "G"
+    },
+    {
+      "id": 48,
+      "name": "usingDeclarationsWithESClassDecorators.4.ts_module=commonjs,target=es2015",
+      "group": "H"
+    },
+    {
+      "id": 49,
+      "name": "enumKeysQuotedAsObjectPropertiesInDeclarationEmit.ts",
+      "group": "I"
+    },
+    {
+      "id": 50,
+      "name": "chainedImportAlias.ts",
+      "group": "I"
+    }
+  ]
+}
