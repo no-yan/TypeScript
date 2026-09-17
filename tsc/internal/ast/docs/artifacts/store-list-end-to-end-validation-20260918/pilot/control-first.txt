@@ -1,0 +1,16 @@
+goos: darwin
+goarch: arm64
+pkg: endtoend/monaco
+cpu: Apple M1
+BenchmarkMonaco	1	594119208 ns/op	509446000 user-ns/op	81847000 system-ns/op	314163200 max-rss-bytes
+BenchmarkMonaco	1	559146792 ns/op	475844000 user-ns/op	79645000 system-ns/op	299712512 max-rss-bytes
+BenchmarkMonaco	1	586422958 ns/op	508650000 user-ns/op	73598000 system-ns/op	310804480 max-rss-bytes
+BenchmarkMonaco	1	586842875 ns/op	509135000 user-ns/op	73462000 system-ns/op	312934400 max-rss-bytes
+BenchmarkMonaco	1	573579250 ns/op	496468000 user-ns/op	72877000 system-ns/op	312377344 max-rss-bytes
+BenchmarkMonaco	1	582531500 ns/op	504807000 user-ns/op	73455000 system-ns/op	313491456 max-rss-bytes
+BenchmarkMonaco	1	561010542 ns/op	482722000 user-ns/op	74023000 system-ns/op	312098816 max-rss-bytes
+BenchmarkMonaco	1	581653584 ns/op	503919000 user-ns/op	73646000 system-ns/op	300466176 max-rss-bytes
+BenchmarkMonaco	1	580232250 ns/op	503712000 user-ns/op	72879000 system-ns/op	312983552 max-rss-bytes
+BenchmarkMonaco	1	596589417 ns/op	512905000 user-ns/op	78568000 system-ns/op	313229312 max-rss-bytes
+BenchmarkMonaco	1	571619583 ns/op	494245000 user-ns/op	73461000 system-ns/op	312295424 max-rss-bytes
+BenchmarkMonaco	1	600734625 ns/op	520272000 user-ns/op	75583000 system-ns/op	311115776 max-rss-bytes

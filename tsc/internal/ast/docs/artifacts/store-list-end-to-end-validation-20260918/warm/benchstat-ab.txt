@@ -1,0 +1,19 @@
+goos: darwin
+goarch: arm64
+pkg: endtoend/monaco
+cpu: Apple M1
+       │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/monaco-balanced-warm/before-ab.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/monaco-balanced-warm/after-ab.txt │
+       │                                                        sec/op                                                        │                                               sec/op                                                vs base         │
+Monaco                                                                                                            597.4m ± 5%                                                                                          607.8m ± 5%  ~ (p=0.485 n=6)
+
+       │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/monaco-balanced-warm/before-ab.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/monaco-balanced-warm/after-ab.txt │
+       │                                                     user-sec/op                                                      │                                            user-sec/op                                              vs base         │
+Monaco                                                                                                            508.8m ± 4%                                                                                          514.3m ± 3%  ~ (p=0.699 n=6)
+
+       │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/monaco-balanced-warm/before-ab.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/monaco-balanced-warm/after-ab.txt │
+       │                                                    system-sec/op                                                     │                                           system-sec/op                                             vs base         │
+Monaco                                                                                                           84.32m ± 14%                                                                                         82.80m ± 11%  ~ (p=0.699 n=6)
+
+       │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/monaco-balanced-warm/before-ab.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/monaco-balanced-warm/after-ab.txt │
+       │                                                    max-rss-bytes                                                     │                                           max-rss-bytes                                             vs base         │
+Monaco                                                                                                           285.9Mi ± 5%                                                                                         299.0Mi ± 5%  ~ (p=0.310 n=6)

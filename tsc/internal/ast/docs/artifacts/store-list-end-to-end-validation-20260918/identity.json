@@ -1,0 +1,19 @@
+{
+  "repo_root": "/Volumes/SanDisk1TB/worktree/ast-traversal-bench-design",
+  "typescript_go_baseline_rev": "3b1ea86b74135c691e5d7025df326b439f680868",
+  "typescript_go_candidate_rev": "613a54b22f8fe8276beea6ee10f085620158b230",
+  "tsgolint_git_rev": null,
+  "baseline_binary_sha256": "289f6dc55c586728de3ffe79c6d67b2615df26c2054a66b596adc19dd1fbbfe8",
+  "candidate_binary_sha256": "ffa14d796c2b2f0c1140cd9190c1d823ff08e9ac4ac826da759da1816fa5eb62",
+  "workload_repo_root": "/Volumes/SanDisk1TB/ghq/github.com/microsoft/vscode",
+  "workload_git_rev": "22f76d2e5fbf22b786986e2f7debf7446af7b4ad",
+  "workload_untracked": ["pnpm-lock.yaml", "pnpm-workspace.yaml", "profile/", "trace.out/"],
+  "monaco_config": "src/tsconfig.monaco.json",
+  "monaco_config_sha256": "c8d3026d5ee9293e017b1eecb295db2beed3d24bc67e85ac28a1e0dc7c0bf5f8",
+  "argv": ["-p", "src/tsconfig.monaco.json", "--noEmit", "--noCheck", "--declaration", "false", "--checkers", "1"],
+  "environment": {"GOMAXPROCS": "1", "GOMEMLIMIT": "2GiB"},
+  "host": "macOS 26.6.2 (25G83), arm64, Apple M1",
+  "go_version": "go1.25.0 darwin/arm64",
+  "protocol": "one warmup per binary, then 12 independent process pairs alternating AB/BA, followed by 12 candidate/candidate control pairs",
+  "pprof_used": false
+}

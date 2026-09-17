@@ -1,0 +1,4 @@
+real 73.52
+user 42.04
+sys 23.19
+time: sysctl kern.clockrate: Operation not permitted

@@ -1,0 +1,10 @@
+goos: darwin
+goarch: arm64
+pkg: endtoend/monaco
+cpu: Apple M1
+BenchmarkMonaco	1	589369042 ns/op	506189000 user-ns/op	78594000 system-ns/op	298516480 max-rss-bytes
+BenchmarkMonaco	1	573293875 ns/op	488756000 user-ns/op	80870000 system-ns/op	313966592 max-rss-bytes
+BenchmarkMonaco	1	583480916 ns/op	498970000 user-ns/op	78590000 system-ns/op	313753600 max-rss-bytes
+BenchmarkMonaco	1	629224167 ns/op	533563000 user-ns/op	87959000 system-ns/op	314064896 max-rss-bytes
+BenchmarkMonaco	1	605164083 ns/op	513057000 user-ns/op	83549000 system-ns/op	314032128 max-rss-bytes
+BenchmarkMonaco	1	599407667 ns/op	516399000 user-ns/op	77258000 system-ns/op	313851904 max-rss-bytes

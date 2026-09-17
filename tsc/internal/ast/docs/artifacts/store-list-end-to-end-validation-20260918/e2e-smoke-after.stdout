@@ -1,0 +1,1 @@
+../../../ghq/github.com/microsoft/vscode/src/vs/workbench/contrib/mcp/test/common/mcpSamplingLog.test.ts(39,38): error TS2724: 'Sinon' has no exported member named 'SinonFakeTimersConfig'. Did you mean 'SinonFakeTimers'?
