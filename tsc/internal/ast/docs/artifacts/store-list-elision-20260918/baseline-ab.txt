@@ -1,0 +1,66 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Apple M1
+BenchmarkTraversalSizeScaling/expression/subtrees-32/store         	  340396	      1724 ns/op	       225.0 logical-nodes	         8.931 ns/visit	       193.0 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/expression/subtrees-256/store        	   43441	     13529 ns/op	      1793 logical-nodes	         8.802 ns/visit	      1537 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/expression/subtrees-4096/store       	    2620	    216660 ns/op	     28673 logical-nodes	         8.816 ns/visit	     24577 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-32/store          	  212653	      2582 ns/op	       225.0 logical-nodes	        11.47 ns/visit	       225.0 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-256/store         	   28839	     20615 ns/op	      1793 logical-nodes	        11.50 ns/visit	      1793 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-4096/store        	    1215	    408183 ns/op	     28673 logical-nodes	        14.24 ns/visit	     28673 visits/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Apple M1
+BenchmarkTraversalSizeScaling/expression/subtrees-32/store         	  310400	      1716 ns/op	       225.0 logical-nodes	         8.892 ns/visit	       193.0 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/expression/subtrees-256/store        	   43212	     13528 ns/op	      1793 logical-nodes	         8.802 ns/visit	      1537 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/expression/subtrees-4096/store       	    2630	    217429 ns/op	     28673 logical-nodes	         8.847 ns/visit	     24577 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-32/store          	  212839	      2601 ns/op	       225.0 logical-nodes	        11.56 ns/visit	       225.0 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-256/store         	   23318	     25352 ns/op	      1793 logical-nodes	        14.14 ns/visit	      1793 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-4096/store        	    1718	    407797 ns/op	     28673 logical-nodes	        14.22 ns/visit	     28673 visits/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Apple M1
+BenchmarkTraversalSizeScaling/expression/subtrees-32/store         	  308466	      1717 ns/op	       225.0 logical-nodes	         8.898 ns/visit	       193.0 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/expression/subtrees-256/store        	   43440	     13541 ns/op	      1793 logical-nodes	         8.810 ns/visit	      1537 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/expression/subtrees-4096/store       	    2624	    216512 ns/op	     28673 logical-nodes	         8.810 ns/visit	     24577 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-32/store          	  230632	      2603 ns/op	       225.0 logical-nodes	        11.57 ns/visit	       225.0 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-256/store         	   28622	     20507 ns/op	      1793 logical-nodes	        11.44 ns/visit	      1793 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-4096/store        	    1531	    327809 ns/op	     28673 logical-nodes	        11.43 ns/visit	     28673 visits/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Apple M1
+BenchmarkTraversalSizeScaling/expression/subtrees-32/store         	  307570	      1723 ns/op	       225.0 logical-nodes	         8.928 ns/visit	       193.0 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/expression/subtrees-256/store        	   43371	     13546 ns/op	      1793 logical-nodes	         8.813 ns/visit	      1537 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/expression/subtrees-4096/store       	    2626	    216680 ns/op	     28673 logical-nodes	         8.816 ns/visit	     24577 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-32/store          	  231002	      2593 ns/op	       225.0 logical-nodes	        11.52 ns/visit	       225.0 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-256/store         	   23224	     25501 ns/op	      1793 logical-nodes	        14.22 ns/visit	      1793 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-4096/store        	    1483	    328166 ns/op	     28673 logical-nodes	        11.45 ns/visit	     28673 visits/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Apple M1
+BenchmarkTraversalSizeScaling/expression/subtrees-32/store         	  307861	      1723 ns/op	       225.0 logical-nodes	         8.928 ns/visit	       193.0 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/expression/subtrees-256/store        	   43303	     13544 ns/op	      1793 logical-nodes	         8.812 ns/visit	      1537 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/expression/subtrees-4096/store       	    2623	    216588 ns/op	     28673 logical-nodes	         8.813 ns/visit	     24577 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-32/store          	  212440	      2581 ns/op	       225.0 logical-nodes	        11.47 ns/visit	       225.0 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-256/store         	   28804	     20615 ns/op	      1793 logical-nodes	        11.50 ns/visit	      1793 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-4096/store        	    1710	    328156 ns/op	     28673 logical-nodes	        11.44 ns/visit	     28673 visits/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Apple M1
+BenchmarkTraversalSizeScaling/expression/subtrees-32/store         	  303463	      1721 ns/op	       225.0 logical-nodes	         8.915 ns/visit	       193.0 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/expression/subtrees-256/store        	   43190	     13601 ns/op	      1793 logical-nodes	         8.849 ns/visit	      1537 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/expression/subtrees-4096/store       	    2630	    216446 ns/op	     28673 logical-nodes	         8.807 ns/visit	     24577 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-32/store          	  214676	      2580 ns/op	       225.0 logical-nodes	        11.47 ns/visit	       225.0 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-256/store         	   28831	     25467 ns/op	      1793 logical-nodes	        14.20 ns/visit	      1793 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-4096/store        	    1536	    414791 ns/op	     28673 logical-nodes	        14.47 ns/visit	     28673 visits/op	       0 B/op	       0 allocs/op
+PASS

@@ -1,0 +1,44 @@
+--- FAIL: TestTryBindListSpanBoundaries (0.00s)
+    store_bind_span_test.go:62: n=0 i=-1: old={ref:0 panicText:runtime error: index out of range [-1]} span={ref:0 panicText:ast: list index out of range}
+--- FAIL: TestIdentDoesNotAliasChildSlots (0.00s)
+    store_layout_test.go:35: SetIdent on a slotted node should panic
+--- FAIL: TestFreezeRejectsEveryStructuralMutation (0.00s)
+    --- FAIL: TestFreezeRejectsEveryStructuralMutation/allocate (0.00s)
+        store_test.go:321: write to frozen Store accepted
+    --- FAIL: TestFreezeRejectsEveryStructuralMutation/scalar (0.00s)
+        store_test.go:321: write to frozen Store accepted
+    --- FAIL: TestFreezeRejectsEveryStructuralMutation/restore (0.00s)
+        store_test.go:321: write to frozen Store accepted
+    --- FAIL: TestFreezeRejectsEveryStructuralMutation/seal (0.00s)
+        store_test.go:321: write to frozen Store accepted
+    --- FAIL: TestFreezeRejectsEveryStructuralMutation/metadata (0.00s)
+        store_test.go:321: write to frozen Store accepted
+--- FAIL: TestFreezeConcurrent (0.00s)
+    store_test.go:297: expected panic on write after concurrent Freeze
+--- FAIL: TestFreezeRejectsAlloc (0.00s)
+    store_test.go:241: expected panic on AllocSlots of frozen Store
+--- FAIL: TestGlobalPanicsOnUnregisteredStore (0.00s)
+    store_identity_test.go:62: expected panic
+--- FAIL: TestFreezeRejectsWrites (0.00s)
+    store_test.go:229: expected panic on frozen Store write
+--- FAIL: TestZeroHandleGlobalIsZero (0.00s)
+panic: runtime error: invalid memory address or nil pointer dereference [recovered, repanicked]
+[signal SIGSEGV: segmentation violation code=0x2 addr=0x0 pc=0x100e336e4]
+
+goroutine 188 [running]:
+testing.tRunner.func1.2({0x101ff19c0, 0x1021cf980})
+	/Users/noyan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.0.darwin-arm64/src/testing/testing.go:1974 +0x1a0
+testing.tRunner.func1()
+	/Users/noyan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.0.darwin-arm64/src/testing/testing.go:1977 +0x318
+panic({0x101ff19c0?, 0x1021cf980?})
+	/Users/noyan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.0.darwin-arm64/src/runtime/panic.go:860 +0x12c
+github.com/microsoft/TypeScript/tsc/internal/ast.Handle.Global(...)
+	/Volumes/SanDisk1TB/worktree/ast-traversal-bench-design/tsc/internal/ast/store_identity.go:234
+github.com/microsoft/TypeScript/tsc/internal/ast_test.TestZeroHandleGlobalIsZero(0xf5295c458c8)
+	/Volumes/SanDisk1TB/worktree/ast-traversal-bench-design/tsc/internal/ast/store_identity_test.go:84 +0x24
+testing.tRunner(0xf5295c458c8, 0x102176a40)
+	/Users/noyan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.0.darwin-arm64/src/testing/testing.go:2036 +0xc4
+created by testing.(*T).Run in goroutine 1
+	/Users/noyan/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.26.0.darwin-arm64/src/testing/testing.go:2101 +0x3a8
+FAIL	github.com/microsoft/TypeScript/tsc/internal/ast	0.502s
+FAIL

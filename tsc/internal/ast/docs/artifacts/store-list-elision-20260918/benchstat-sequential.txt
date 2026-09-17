@@ -1,0 +1,69 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Apple M1
+                                                      │ internal/ast/docs/artifacts/store-list-elision-20260918/before.txt │ internal/ast/docs/artifacts/store-list-elision-20260918/after.txt │
+                                                      │                               sec/op                               │                  sec/op                    vs base                │
+TraversalSizeScaling/expression/subtrees-32/store-8                                                            1.722µ ± 0%                                 1.719µ ± 0%        ~ (p=0.989 n=12)
+TraversalSizeScaling/expression/subtrees-256/store-8                                                           13.56µ ± 0%                                 13.54µ ± 0%        ~ (p=0.832 n=12)
+TraversalSizeScaling/expression/subtrees-4096/store-8                                                          217.1µ ± 0%                                 216.6µ ± 1%        ~ (p=0.178 n=12)
+TraversalSizeScaling/full-tree/subtrees-32/store-8                                                             2.589µ ± 1%                                 2.533µ ± 1%   -2.16% (p=0.000 n=12)
+TraversalSizeScaling/full-tree/subtrees-256/store-8                                                            25.43µ ± 0%                                 20.09µ ± 0%  -20.99% (p=0.000 n=12)
+TraversalSizeScaling/full-tree/subtrees-4096/store-8                                                           409.5µ ± 1%                                 321.2µ ± 0%  -21.55% (p=0.000 n=12)
+geomean                                                                                                        22.69µ                                      20.86µ        -8.08%
+
+                                                      │ internal/ast/docs/artifacts/store-list-elision-20260918/before.txt │ internal/ast/docs/artifacts/store-list-elision-20260918/after.txt │
+                                                      │                           logical-nodes                            │              logical-nodes                vs base                 │
+TraversalSizeScaling/expression/subtrees-32/store-8                                                             225.0 ± 0%                                 225.0 ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/expression/subtrees-256/store-8                                                           1.793k ± 0%                                1.793k ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/expression/subtrees-4096/store-8                                                          28.67k ± 0%                                28.67k ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/full-tree/subtrees-32/store-8                                                              225.0 ± 0%                                 225.0 ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/full-tree/subtrees-256/store-8                                                            1.793k ± 0%                                1.793k ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/full-tree/subtrees-4096/store-8                                                           28.67k ± 0%                                28.67k ± 0%       ~ (p=1.000 n=12) ¹
+geomean                                                                                                        2.262k                                     2.262k       +0.00%
+¹ all samples are equal
+
+                                                      │ internal/ast/docs/artifacts/store-list-elision-20260918/before.txt │ internal/ast/docs/artifacts/store-list-elision-20260918/after.txt │
+                                                      │                             sec/visit                              │                 sec/visit                  vs base                │
+TraversalSizeScaling/expression/subtrees-32/store-8                                                            8.918n ± 0%                                 8.906n ± 0%        ~ (p=0.876 n=12)
+TraversalSizeScaling/expression/subtrees-256/store-8                                                           8.821n ± 0%                                 8.811n ± 0%        ~ (p=0.810 n=12)
+TraversalSizeScaling/expression/subtrees-4096/store-8                                                          8.835n ± 0%                                 8.814n ± 1%        ~ (p=0.155 n=12)
+TraversalSizeScaling/full-tree/subtrees-32/store-8                                                             11.51n ± 1%                                 11.26n ± 1%   -2.17% (p=0.000 n=12)
+TraversalSizeScaling/full-tree/subtrees-256/store-8                                                            14.19n ± 0%                                 11.21n ± 0%  -21.01% (p=0.000 n=12)
+TraversalSizeScaling/full-tree/subtrees-4096/store-8                                                           14.28n ± 0%                                 11.21n ± 0%  -21.53% (p=0.000 n=12)
+geomean                                                                                                        10.84n                                      9.963n        -8.07%
+
+                                                      │ internal/ast/docs/artifacts/store-list-elision-20260918/before.txt │ internal/ast/docs/artifacts/store-list-elision-20260918/after.txt │
+                                                      │                             visits/op                              │                visits/op                  vs base                 │
+TraversalSizeScaling/expression/subtrees-32/store-8                                                             193.0 ± 0%                                 193.0 ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/expression/subtrees-256/store-8                                                           1.537k ± 0%                                1.537k ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/expression/subtrees-4096/store-8                                                          24.58k ± 0%                                24.58k ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/full-tree/subtrees-32/store-8                                                              225.0 ± 0%                                 225.0 ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/full-tree/subtrees-256/store-8                                                            1.793k ± 0%                                1.793k ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/full-tree/subtrees-4096/store-8                                                           28.67k ± 0%                                28.67k ± 0%       ~ (p=1.000 n=12) ¹
+geomean                                                                                                        2.094k                                     2.094k       +0.00%
+¹ all samples are equal
+
+                                                      │ internal/ast/docs/artifacts/store-list-elision-20260918/before.txt │ internal/ast/docs/artifacts/store-list-elision-20260918/after.txt │
+                                                      │                                B/op                                │                   B/op                    vs base                 │
+TraversalSizeScaling/expression/subtrees-32/store-8                                                           0.000 ± 0%                                   0.000 ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/expression/subtrees-256/store-8                                                          0.000 ± 0%                                   0.000 ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/expression/subtrees-4096/store-8                                                         0.000 ± 0%                                   0.000 ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/full-tree/subtrees-32/store-8                                                            0.000 ± 0%                                   0.000 ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/full-tree/subtrees-256/store-8                                                           0.000 ± 0%                                   0.000 ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/full-tree/subtrees-4096/store-8                                                          0.000 ± 0%                                   0.000 ± 0%       ~ (p=1.000 n=12) ¹
+geomean                                                                                                                  ²                                             +0.00%                ²
+¹ all samples are equal
+² summaries must be >0 to compute geomean
+
+                                                      │ internal/ast/docs/artifacts/store-list-elision-20260918/before.txt │ internal/ast/docs/artifacts/store-list-elision-20260918/after.txt │
+                                                      │                             allocs/op                              │                allocs/op                  vs base                 │
+TraversalSizeScaling/expression/subtrees-32/store-8                                                           0.000 ± 0%                                   0.000 ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/expression/subtrees-256/store-8                                                          0.000 ± 0%                                   0.000 ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/expression/subtrees-4096/store-8                                                         0.000 ± 0%                                   0.000 ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/full-tree/subtrees-32/store-8                                                            0.000 ± 0%                                   0.000 ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/full-tree/subtrees-256/store-8                                                           0.000 ± 0%                                   0.000 ± 0%       ~ (p=1.000 n=12) ¹
+TraversalSizeScaling/full-tree/subtrees-4096/store-8                                                          0.000 ± 0%                                   0.000 ± 0%       ~ (p=1.000 n=12) ¹
+geomean                                                                                                                  ²                                             +0.00%                ²
+¹ all samples are equal
+² summaries must be >0 to compute geomean

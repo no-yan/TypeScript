@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "repo_root": "/Volumes/SanDisk1TB/worktree/ast-traversal-bench-design",
+  "typescript_go_git_rev": "e6820c555897786acd17a15be84a19855a396629",
+  "tsgolint_git_rev": null,
+  "go_version": "go1.26.0 darwin/arm64",
+  "dirty_baseline": true,
+  "measured_baseline_store_go_sha256": "96e9ce8bec205a5303aec0d465a1a0999e8a7d92d6d8c4181cb7c31a2bd0bc2e",
+  "measured_candidate_store_go_sha256": "e09b9a485766bba6502784110e664454ff015d8853a3c04098006ff6fe10eb52",
+  "isolated_commit_store_go_sha256": "7a10ba0851f6b10d1b9e8abff49f2f6341ca8042edbf62cb5ff790f242c42675",
+  "baseline_binary_sha256": "1002c6c7d0b728971956a0c1dcf9bf8318756341d0c28dd11a7b7f57439f95b9",
+  "candidate_binary_sha256": "453d30fdba8fe109d50ddbeb69e4442d82b4b94a03ecf99abde9d53184c49029",
+  "measurement_order": "12 balanced pairs: AB x6 and BA x6; one process per attempt",
+  "pprof_used": false
+}

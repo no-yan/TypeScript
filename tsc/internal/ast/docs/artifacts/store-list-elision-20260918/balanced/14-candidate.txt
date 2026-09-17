@@ -1,0 +1,11 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Apple M1
+BenchmarkTraversalSizeScaling/expression/subtrees-32/store         	  308736	      1718 ns/op	       225.0 logical-nodes	         8.900 ns/visit	       193.0 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/expression/subtrees-256/store        	   43210	     13530 ns/op	      1793 logical-nodes	         8.803 ns/visit	      1537 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/expression/subtrees-4096/store       	    2610	    218398 ns/op	     28673 logical-nodes	         8.886 ns/visit	     24577 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-32/store          	  215366	      2542 ns/op	       225.0 logical-nodes	        11.30 ns/visit	       225.0 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-256/store         	   29444	     20057 ns/op	      1793 logical-nodes	        11.19 ns/visit	      1793 visits/op	       0 B/op	       0 allocs/op
+BenchmarkTraversalSizeScaling/full-tree/subtrees-4096/store        	    1546	    320686 ns/op	     28673 logical-nodes	        11.18 ns/visit	     28673 visits/op	       0 B/op	       0 allocs/op
+PASS
