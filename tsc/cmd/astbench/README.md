@@ -1,11 +1,11 @@
 # astbench の使い方
 
-`astbench` は、Go 製 TypeScript AST の**同じ木を辿るコスト**を比較するための CLI です。
+`astbench` は、Go 製 TypeScript AST で同じ木を辿るコストを比較する CLI です。
 実際の legacy pointer AST と store AST、または異なる revision の同じ表現を比較します。
 木の構築・検証を計測区間から外し、root から child edge を辿る走査について、時間・訪問数・allocation・GC を記録します。
 parser/checker 全体の性能測定や、型チェック結果の検証には使いません。
 
-主な用途は次の3つです。
+用途に応じて、次の操作を行います。
 
 - AST の表現や accessor を変更した際に、同じ仕事の走査コストを比較する。
 - 入力サイズを変え、`ns/visit` のサイズ依存性を調べる。
@@ -25,7 +25,7 @@ parser/checker 全体の性能測定や、型チェック結果の検証には�
 | 保存済み結果を検証・再集計する | `collect` | JSON 検証結果、または解析ファイルを出力する |
 | 保存済み結果を読む | `report` | Markdown レポートを標準出力へ出す |
 
-比較を行う基本の流れは **plan → prepare → run → report** です。
+比較には plan を用意し、`prepare`、`run`、`report` の順に実行します。
 `sample` 1回だけでは A/B 比較や性能改善の証拠になりません。
 
 ## ビルドと共通の変数
@@ -42,7 +42,9 @@ ARTIFACTS="/tmp/astbench-runs"
 ```
 
 以下の例はこの3変数を使います。長期保存する場合は `ARTIFACTS` を永続ディレクトリへ変更してください。
-`ARTIFACTS` は選択したリポジトリの外に置いてください。`prepare` はリポジトリ内（symlink 経由を含む）の出力先を、ファイル作成前に拒否します。生成済み snapshot が次の source snapshot に混入するのを防ぐためです。
+`ARTIFACTS` は選択したリポジトリの外に置いてください。
+`prepare` はリポジトリ内の出力先を、symlink 経由も含めてファイル作成前に拒否します。
+生成済み snapshot が次の source snapshot に混入するのを防ぐためです。
 `prepare` は worker も別途ビルドします。ビルドと別 campaign の測定を並行して実行しないでください。
 
 各コマンドのフラグは `"$ASTBENCH" <command> -h` で確認できます。
@@ -52,7 +54,7 @@ ARTIFACTS="/tmp/astbench-runs"
 
 `verify` と `sample` は、同じ形式の JSON を `--config` に渡します。
 ファイルの path と inline JSON の両方を受け付けます。
-これは **worker 設定**であり、`prepare --plan` に渡す campaign plan とは別形式です。
+これは worker 設定であり、`prepare --plan` に渡す campaign plan とは別形式です。
 
 ```sh
 mkdir -p "$ARTIFACTS"
@@ -131,7 +133,7 @@ JSON
 
 同じ7-node subtree を root の子として増やします。subtree 内の形は一定ですが、root の list 長は増えます。
 既定値では225〜57,345 nodeの9点になり、10点目はメモリ計画予算で止まります。
-この plan は **before=pointer、after=store** です。source の revision は次の `prepare` で指定します。
+この plan は before=pointer、after=store です。source の revision は次の `prepare` で指定します。
 
 ### 2. `prepare`: 比較する source を固定してビルドする
 
@@ -153,7 +155,7 @@ JSON
 | `--run-id ID` | 新しい run 名。省略時はUTC日時から生成 |
 
 成功すると `ARTIFACTS/run-id` を標準出力に出します。
-両 revision に、起動元 checkout の**同じハーネス**を overlay してビルドし、snapshot・hash・build log を保存します。
+両 revision に、起動元 checkout の同じハーネスを overlay してビルドし、snapshot・hash・build log を保存します。
 `--after HEAD` は dirty な変更を含みません。未コミットの変更を比較する場合は明示的に
 `--after-working-tree` に置き換えてください。比較表現は ref ではなく plan で決まります。
 
@@ -175,7 +177,7 @@ RUN="$ARTIFACTS/sweep-1"
 ```
 
 `--run` は準備済み run ディレクトリです。`--lane daily` も指定できますが、現在の対応 lane は daily のみです。
-**sweep は daily lane 内の mode** であり、`--lane sweep` はありません。
+sweep は daily lane 内の mode であり、`--lane sweep` はありません。
 
 各 cell で trace 同値性を確認し、AB順2ペア・BA順2ペアと A/A control を保存 seed で並べ替えて実行します。
 生成 preset は A/A も4ペアなので、1 cell 当たり16 process samples です。
@@ -183,7 +185,12 @@ RUN="$ARTIFACTS/sweep-1"
 
 失敗や中断の attempt も残ります。同じ `run --run` を再実行すると完了済み slot を飛ばして続行します。
 再開時も source/binary hash と trace を検証します。途中で frozen plan を編集しないでください。
-同時 campaign は macOS / Linux の OS advisory lock で直列化されます。所有 process が終了・SIGKILL された場合も OS が lock を解放します。lock ファイルは同じ inode を共有するため残し、手動削除しないでください。旧 PID ファイルだけが残っている場合も取得できます。その他の OS の `run` は unsupported として失敗します。他アプリのCPU負荷やthermal状態までは隔離しません。
+macOS / Linux では OS advisory lock で campaign を直列に実行します。
+所有 process が終了すると、SIGKILL の場合も OS が lock を解放します。
+旧 PID ファイルだけが残っている場合も lock を取得できます。
+全 process が同じ inode を使う必要があるため、lock ファイルは手動削除しないでください。
+その他の OS の `run` は unsupported として失敗します。
+この lock では他アプリの CPU 負荷や thermal 状態を制御できません。
 
 ### 4. `select-daily`: 探索から2点を固定する
 
@@ -205,7 +212,7 @@ RUN="$ARTIFACTS/sweep-1"
 `--preset-version` は既定1で、CPU・生成規則・visitor を変更して選び直す際は増やします。
 `--out` は新規ファイル、未指定なら標準出力です。
 
-選択は自動で「勝ち幅の大きい2点」を探す処理ではありません。
+指定した2点が容量と実行時間の条件を満たすか検査します。
 欠測や失敗、未知の L1D / footprint、過大な時計 overhead、時間予算超過等を拒否します。
 現在の条件は small の field-footprint 下限が L1D 以下、large が両表現とも L1D の4倍以上、
 時計校正値が batch 時間の1%以下、選択 cell の worker・trace検証時間合計が90秒以下です。
@@ -244,7 +251,7 @@ host 情報を取得できない環境では選択できません。現在、mac
 "$ASTBENCH" collect --run "$RUN" --out "$ARTIFACTS/reanalysis"
 ```
 
-`--out` なしでは**解析ファイルを生成しません**。JSON の `complete`、`valid`、`reason` を確認してください。
+`--out` なしでは解析ファイルを生成しません。JSON の `complete`、`valid`、`reason` を確認してください。
 結果が不完全でも JSON を返して終了コード0になる場合があります。
 `--out` ありでは完全・有効な campaign が必要です。
 出力先は元 run の `analysis/` または run の外部に置きます。派生ファイルは再生成されますが、raw attempts は変更しません。

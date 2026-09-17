@@ -137,8 +137,7 @@ func copyWorktreeSnapshot(repo, dst string) error {
 }
 
 // copyHarnessOverlay places the same harness/workload sources in both frozen
-// source snapshots. The production AST implementation is deliberately not in
-// this allow-list: the ref being measured must remain the ref being measured.
+// source snapshots. It preserves the production AST implementation from each ref.
 func copyHarnessOverlay(repo, dst string) error {
 	paths := []string{"tsc/internal/astbench", "tsc/cmd/astbench", "tsc/internal/ast/testdata/traversal", "tools/scripts/tsc/astbench.sh"}
 	for _, rel := range paths {

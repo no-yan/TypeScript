@@ -22,8 +22,8 @@ type pairEstimate struct {
 	Status           string  `json:"status"`
 }
 
-// WriteAnalysis materializes derived files only after validation. Collect and
-// Report remain read-only; neither can run a measurement or silently repair it.
+// WriteAnalysis writes derived files after validating the saved samples.
+// Collect and Report read saved results without modifying them or running workers.
 func WriteAnalysis(runDir string) error {
 	return WriteAnalysisTo(runDir, filepath.Join(runDir, "analysis"))
 }

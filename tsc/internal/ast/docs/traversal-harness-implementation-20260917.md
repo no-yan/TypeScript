@@ -4,7 +4,7 @@
 
 This implements the first reusable measurement loop from
 [the measurement design](traversal-measurement-design-20260917.md). Its purpose is
-to compare a fixed amount of AST edge traversal, not to establish a speedup.
+to compare the cost of traversing the same AST edges.
 Construction, type inference, symbol graphs, and checker links are outside the
 synthetic timed region.
 
@@ -67,8 +67,8 @@ Production AST fields are not extended for measurement IDs.
 
 Acceptance requires matching trace order and attributes, nonzero work, no
 allocation or GC in the synthetic measured interval, preserved failed attempts,
-and refusal to compare incomplete or incompatible pairs. Timing uncertainty
-must survive into the report. Raw Go benchmark output and `benchstat` are the
+and refusal to compare incomplete or incompatible pairs. Reports must include
+timing uncertainty. Raw Go benchmark output and `benchstat` are the
 comparison interface; four daily pairs are direction checks, not an adoption
 threshold.
 
@@ -93,8 +93,7 @@ That requires the host-specific M2 capability probe and measured calibration.
 
 The next action after harness verification is to capture current checker access
 evidence and select a representative expression visitor before judging a layout
-change. The goal remains a reusable measurement loop rather than a favorable
-store result.
+change.
 
 ## Running the implementation
 
@@ -111,7 +110,10 @@ From the repository root, build the driver once outside the measured interval:
   --bench BenchmarkTraversal
 ```
 
-`--out` is the artifact parent and must be outside the selected repository, including through symlinks; nested outputs are rejected before file creation so generated snapshots cannot enter source inputs. `--run-id` names a new directory. Explicit
+`--out` is the artifact parent and must be outside the selected repository,
+including through symlinks. `prepare` rejects nested outputs before creating
+files to keep generated snapshots out of source inputs.
+`--run-id` names a new directory. Explicit
 `--before REF --after REF` compares committed snapshots, even with unrelated
 working-tree changes. Only `--after-working-tree` includes working-tree production
 source. Both snapshots receive the same recorded harness overlay. A failed build
@@ -134,8 +136,8 @@ requires `nodes: 0`, and is store-only. Full-tree follows schema child edges;
 expression uses direct operand/callee/argument/property access and excludes
 binary operator tokens and call type/optional-chain tokens. Other node kinds use
 schema edges to discover nested expressions. Exact traces use the same walker,
-including complete selected text payload. Timed checksums are deliberately cheap
-and are not an equivalence proof. Kind, flags, location and selected text are
+including complete selected text payload. Timed checksums only detect changes;
+the full traces establish equivalence. Kind, flags, location and selected text are
 read; type inference and checker link work are omitted.
 
 Only `construction` layout is implemented. Input `seed` changes the recipe;
@@ -157,14 +159,9 @@ the current user's temporary directory, with a bounded wait. Other operating
 systems report unsupported. SIGINT stops the current child and saves its attempt.
 The OS releases lock ownership when its process exits, including after SIGKILL.
 The lock file remains so all contenders share the same inode; do not delete it.
-An unowned legacy PID file does not block acquisition. External profilers and unrelated machine load
-are not excluded by this lock. Thermal/pressure/swap telemetry remains missing,
+An unowned legacy PID file does not block acquisition. The lock cannot exclude
+external profilers or unrelated machine load. Thermal/pressure/swap telemetry remains missing,
 so results are daily direction checks only.
-
-The feature work was split into workload, snapshot/runner, and read-only analysis
-units with explicit ownership, then independently reviewed. The existing design
-file was left unchanged. Publishing a PR and selecting/adopting a layout change
-are outside this implementation's delivery scope.
 
 ## Verification on 2026-09-17
 

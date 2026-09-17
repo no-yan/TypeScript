@@ -79,9 +79,8 @@ func hashFile(path string) (string, error) {
 	return hashReader(f)
 }
 
-// hashTree is a stable Merkle-like digest of regular files. File names and
-// mode bits are included, so a renamed or executable source cannot collide
-// with the old snapshot. The run directory itself is never passed here.
+// hashTree hashes regular-file contents, relative paths, and mode bits in a
+// stable order. Callers pass source snapshots, not the run directory.
 func hashTree(root string) (string, error) {
 	type entry struct {
 		name string

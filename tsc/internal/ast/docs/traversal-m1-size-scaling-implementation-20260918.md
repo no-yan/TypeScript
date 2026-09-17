@@ -5,14 +5,13 @@
 The fixed two-size traversal campaign could not preserve subtree shape while
 scaling input or regenerate a size curve. This extension adds a repeated-subtree
 workload, bounded sweep plans, saved daily selection evidence, and per-size
-analysis. The goal is detecting size-dependent traversal cost, not obtaining a
-store win or proving cache causality.
+analysis to detect size-dependent traversal costs. Cache causality requires
+separate measurements.
 
 Selected repository: `/Volumes/SanDisk1TB/worktree/ast-traversal-bench-design`.
 The initial revision was `e9beda12c346a78aca06e332898129b926868b62`; during this
 implementation an external commit advanced HEAD to `69179f4efb`. Measurement
-identity and source snapshot hashes, rather than this abbreviated history,
-define each run. Existing production edits were preserved.
+identity and source snapshot hashes identify the inputs to each run.
 
 ## Existing evidence inspected before measurement
 
@@ -40,8 +39,8 @@ Historical benchstat medians (ns/op), before the repeated generator:
 | full-tree / 16384 | 190400 | 279500 | 0 | 0 |
 | expression / 16384 | 99240 | 137910 | 0 | 0 |
 
-These are historical integration results, not an old/new comparison against the
-new generator. Such a comparison is incompatible and was not performed.
+These historical integration results use a different generator, so they cannot
+serve as the baseline for an old/new comparison with the repeated generator.
 
 Current real-input hot-path ranks remain `missing`. Historical candidates are
 `Handle.Parent`, `Expression`, `Name`, `Text`, and `Store.listOwner`. Broader
@@ -102,7 +101,7 @@ Use new output paths/run IDs on each invocation; existing plans are not
 silently overwritten. The example L1D value belongs to the recorded M1 host,
 not a portable assumption. `select-daily` requires saved host capacity evidence;
 unavailable host information prevents that selection. Use `--visitor full-tree`
-for a separate control sweep. Small is intentionally labeled provisional:
+for a separate control sweep. The small preset is provisional because
 field-byte lower bounds cannot prove that all accesses fit L1D.
 
 The default 256 MiB planning budget admits nine points (225 through 57,345
@@ -148,30 +147,25 @@ calibrates 31 batches of 1,024 clock brackets, records the conservative
 loop-inclusive estimate, and does not subtract it from measured time. The pilot
 remains saved as `m1-expression-sweep-20260918`; it is not used for daily selection.
 
-Full `go test ./internal/ast` is **not green** on the supplied working tree.
+Full `go test ./internal/ast` failed on the supplied working tree.
 Existing changes in `store.go`, `store_factory.go`, and `store_identity.go` remove
 checks exercised by `TestTryBindListSpanBoundaries`, `TestIdentDoesNotAliasChildSlots`,
 Freeze tests, and Global tests; `TestZeroHandleGlobalIsZero` panics. This task did
 not modify those production files. The benchmark-only command and harness tests
-pass independently; this does not waive those existing AST failures.
-
-Implementation ownership was divided into workload, analysis, and serialized
-plan/CLI integration after choosing shared typed metadata. The supplied design
-made competing architecture exploration unnecessary. Changes were reviewed and
-validated in this task; no commit or PR was created.
+passed independently.
 
 ## Final sweep evidence
 
 The final sweep at
 `/Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/m1-expression-final-20260918`
-completed 144 valid process samples in **50.32 seconds** (prepare/build excluded).
+completed 144 valid process samples in 50.32 seconds (prepare/build excluded).
 `inspect` reports identity/stage `current` against revision
 `69179f4efb7f04f41d6a4b96a2f6d1cbd95ff125` and null TSGolint.
 Both source snapshots and hashes are saved. Every successful sample has
-**0 B/op, 0 allocs/op, and 0 GC cycles**. Nine points span 225–57,345 logical nodes.
+0 B/op, 0 allocs/op, and 0 GC cycles. Nine points span 225 to 57,345 logical nodes.
 
-Selected points from the sweep, using **benchstat medians**, not the curve's
-bootstrap geometric means:
+Selected points from the sweep use benchstat medians. The curve uses bootstrap
+geometric means.
 
 | Actual nodes | Visits/op | Pointer ns/op | Store ns/op | Pointer ns/visit | Store ns/visit |
 | ---: | ---: | ---: | ---: | ---: | ---: |
@@ -199,21 +193,20 @@ manual old/new comparison was used.
 [benchstat](/Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/m1-expression-final-20260918/analysis/benchstat.txt),
 and [saved report](/Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/m1-expression-final-20260918/report.md).
 
-Diagnosis: the measurement system now exposes size-dependent cost and noise;
-this run does not establish monotonic cache-driven degradation or a store win.
-Next action for performance work is current real-input top-ten evidence and M2
-counter/core calibration, followed by representative workloads. It is not
-changing the generator until store wins.
+The sweep records size-dependent costs and noise. It does not establish
+monotonic cache-driven degradation or a store win. The next measurements are
+current real-input top-ten profiles and M2 counter/core calibration, followed
+by representative workloads.
 
 ## Daily completion and remaining boundaries
 
 `m1-daily-final-20260918` ran the saved 225/28,673-node preset with 32 valid
 process samples: four balanced A/B pairs plus four A/A pairs per size.
-Elapsed driver time was **29.63 seconds**, excluding prepare/build; allocation
+Elapsed driver time was 29.63 seconds, excluding prepare/build; allocation
 and GC remained zero. Its source sweep ID, input digest, preset version 1,
 CPU/cache observations and selection rationale are in
 [plan.json](/Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/m1-daily-final-20260918/plan.json).
-The preset remains provisional rather than claiming L1D residency.
+L1D residency remains unproven, so the preset is provisional.
 
 The final report formatting and benchmark-zero-display fixes were validated
 after the measurement snapshots were frozen; they do not change the measured
