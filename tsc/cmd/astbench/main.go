@@ -1,3 +1,6 @@
+// Command astbench compares fixed-work AST traversals using frozen source
+// snapshots, trace verification, and separate-process samples.
+// See README.md in this directory for workflows, flags, and artifact formats.
 package main
 
 import (
@@ -54,7 +57,22 @@ func mainExit() int {
 	return 0
 }
 
-func usage() { fmt.Fprintln(os.Stderr, "usage: astbench inspect|prepare|run|collect|report|sample") }
+func usage() {
+	fmt.Fprintln(os.Stderr, `usage: astbench <command> [flags]
+
+  inspect       Check saved artifact identity and benchmark availability
+  verify        Compare exact pointer/store traversal traces
+  sample        Measure one representation in one process
+  sweep-plan    Create a bounded size-sweep plan without measuring
+  prepare       Freeze before/after sources and build measurement workers
+  run           Verify, measure A/B and A/A pairs, and generate analysis
+  select-daily  Select two justified sizes from a completed sweep
+  collect       Validate saved results; with --out, regenerate analysis
+  report        Print a Markdown report from saved results
+
+Use astbench <command> -h for flags.
+Workflows and examples: tsc/cmd/astbench/README.md`)
+}
 
 func prepare(ctx context.Context, args []string) error {
 	f := flag.NewFlagSet("prepare", flag.ContinueOnError)
