@@ -1,0 +1,95 @@
+#!/bin/sh
+set -eu
+
+repo=$(CDPATH= cd -- "$(dirname -- "$0")/../../../.." && pwd -P)
+action=${1:?usage: control-ast-walk launch|doctor|drive|cleanup OUT [LABEL COMMAND...]}
+out=${2:?absolute evidence directory required}
+case "$out" in /*) ;; *) echo 'OUT must be absolute' >&2; exit 2;; esac
+shift 2
+
+source_id() {
+    (
+        cd "$repo"
+        git rev-parse HEAD
+        git diff --binary HEAD -- tsc
+        git ls-files --others --exclude-standard -- tsc |
+            LC_ALL=C sort | while IFS= read -r path; do shasum -a 256 "$path"; done
+    ) | shasum -a 256 | cut -d ' ' -f 1
+}
+
+doctor() {
+    test "$(cat "$out/repo.txt")" = "$repo"
+    test -x "$out/runtime/astbench"
+    test "$(source_id)" = "$(cat "$out/source.sha256")" || {
+        echo 'Source changed since launch; use a new OUT and rebuild.' >&2; return 1;
+    }
+    (cd "$out" && shasum -a 256 -c binary.sha256)
+    test "$(shasum -a 256 "$0" | cut -d ' ' -f 1)" = "$(cat "$out/helper.sha256")"
+    echo 'ready: source, helper and binary match'
+}
+
+case "$action" in
+launch)
+    mkdir "$out"
+    mkdir "$out/runtime" "$out/drives"
+    printf '%s\n' "$repo" > "$out/repo.txt"
+    source_id > "$out/source.sha256"
+    shasum -a 256 "$0" | cut -d ' ' -f 1 > "$out/helper.sha256"
+    (cd "$repo" && git status --short) > "$out/worktree-status.txt"
+    go version > "$out/go-version.txt"
+    printf '%s\n' 'go build -o OUT/runtime/astbench ./cmd/astbench (cwd: REPO/tsc)' > "$out/build-command.txt"
+    if (cd "$repo/tsc" && go build -o "$out/runtime/astbench" ./cmd/astbench) > "$out/build.stdout" 2> "$out/build.stderr"; then
+        echo 0 > "$out/build.exit"
+    else
+        rc=$?; echo "$rc" > "$out/build.exit"; exit "$rc"
+    fi
+    test "$(source_id)" = "$(cat "$out/source.sha256")" || {
+        echo 'Source changed during build; evidence retained, relaunch in new OUT.' >&2; exit 1;
+    }
+    (cd "$out" && shasum -a 256 runtime/astbench) > "$out/binary.sha256"
+    go version -m "$out/runtime/astbench" > "$out/build-info.txt"
+    doctor
+    ;;
+doctor) doctor ;;
+drive)
+    label=${1:?drive label required}; shift
+    case "$label" in ''|*[!a-zA-Z0-9_-]*) echo 'invalid label' >&2; exit 2;; esac
+    test "$#" -gt 0
+    doctor
+    mkdir "$out/drives/$label"
+    evidence="$out/drives/$label"
+    printf '%s\n' "$out/runtime/astbench" "$@" > "$evidence/argv.txt"
+    printf '%s\n' "$repo" > "$evidence/cwd.txt"
+    printf '%s\n' 'GOGC=off' 'GOMEMLIMIT=off' 'GOMAXPROCS=1' > "$evidence/env.txt"
+    date -u '+%Y-%m-%dT%H:%M:%SZ' > "$evidence/start.txt"
+    (cd "$repo" && exec env GOGC=off GOMEMLIMIT=off GOMAXPROCS=1 "$out/runtime/astbench" "$@") > "$evidence/stdout.txt" 2> "$evidence/stderr.txt" &
+    child=$!
+    printf '%s\n' "$child" > "$evidence/active.pid"
+    stop() { kill -TERM "$child" 2>/dev/null || :; }
+    trap stop INT TERM HUP
+    rc=0
+    wait "$child" || rc=$?
+    # An interrupted wait may return before the child has completed cleanup.
+    if kill -0 "$child" 2>/dev/null; then stop; wait "$child" 2>/dev/null || :; fi
+    trap - INT TERM HUP
+    rm "$evidence/active.pid"
+    printf '%s\n' "$rc" > "$evidence/exit.txt"
+    date -u '+%Y-%m-%dT%H:%M:%SZ' > "$evidence/end.txt"
+    cat "$evidence/stdout.txt"
+    cat "$evidence/stderr.txt" >&2
+    exit "$rc"
+    ;;
+cleanup)
+    test "$(cat "$out/repo.txt")" = "$repo"
+    for pidfile in "$out"/drives/*/active.pid; do
+        test ! -f "$pidfile" || {
+            echo "Unfinished drive: $pidfile; resolve it before cleanup." >&2; exit 1;
+        }
+    done
+    rm -f "$out/runtime/astbench"
+    rmdir "$out/runtime" 2>/dev/null || :
+    date -u '+%Y-%m-%dT%H:%M:%SZ' > "$out/cleanup.txt"
+    echo 'runtime removed; logs, campaign sources/binaries and evidence retained'
+    ;;
+*) echo 'unknown action' >&2; exit 2;;
+esac
