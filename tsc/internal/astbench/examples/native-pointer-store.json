@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "seed": 20260917,
+  "timeout_ns": 60000000000,
+  "lanes": {
+    "daily": {
+      "name": "daily", "kind": "daily", "backend": "wall",
+      "batches": 1, "warmup": 2, "repeat": 1,
+      "directions": ["AB", "AB", "BA", "BA", "AA", "AA", "AA", "AA"]
+    }
+  },
+  "cells": [
+    {"id":"full-small","case":"full-tree","shape":"mixed","nodes":256,"seed":1,"layout_seed":1,"layout":"construction","representation":"pointer","after_representation":"store","gc":"off","p":1,"backend":"wall","batch":256},
+    {"id":"expression-small","case":"expression","shape":"mixed","nodes":256,"seed":1,"layout_seed":1,"layout":"construction","representation":"pointer","after_representation":"store","gc":"off","p":1,"backend":"wall","batch":256},
+    {"id":"full-large","case":"full-tree","shape":"mixed","nodes":16384,"seed":1,"layout_seed":1,"layout":"construction","representation":"pointer","after_representation":"store","gc":"off","p":1,"backend":"wall","batch":256},
+    {"id":"expression-large","case":"expression","shape":"mixed","nodes":16384,"seed":1,"layout_seed":1,"layout":"construction","representation":"pointer","after_representation":"store","gc":"off","p":1,"backend":"wall","batch":256}
+  ],
+  "metrics": ["ns/op", "B/op", "allocs/op", "visits", "checksum"]
+}
