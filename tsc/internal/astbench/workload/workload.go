@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"runtime"
 	"runtime/debug"
+	"sort"
 	"strconv"
 	"time"
 
@@ -24,6 +25,7 @@ const (
 	ShapeWide                  = "wide"
 	ShapeDeep                  = "deep"
 	ShapeMixed                 = "mixed"
+	ShapeRepeated              = "repeated"
 	ShapeFixture               = "fixture"
 	LayoutConstruction         = "construction"
 	RepresentationStore        = "store"
@@ -34,6 +36,7 @@ const (
 type Config struct {
 	Case, Shape            string
 	Nodes                  int
+	Subtrees               int
 	Seed, LayoutSeed       int64
 	Layout, Representation string
 }
@@ -45,7 +48,7 @@ func Validate(c Config) error {
 	if c.Case != CaseFullTree && c.Case != CaseExpression {
 		return fmt.Errorf("workload: unsupported case %q", c.Case)
 	}
-	if c.Shape != ShapeWide && c.Shape != ShapeDeep && c.Shape != ShapeMixed && c.Shape != ShapeFixture {
+	if c.Shape != ShapeWide && c.Shape != ShapeDeep && c.Shape != ShapeMixed && c.Shape != ShapeRepeated && c.Shape != ShapeFixture {
 		return fmt.Errorf("workload: unsupported shape %q", c.Shape)
 	}
 	if c.Layout != LayoutConstruction {
@@ -56,6 +59,13 @@ func Validate(c Config) error {
 	}
 	if c.Representation != RepresentationStore && c.Representation != RepresentationPointer {
 		return fmt.Errorf("workload: unsupported representation %q", c.Representation)
+	}
+	if c.Subtrees < 0 || (c.Shape != ShapeRepeated && c.Subtrees != 0) {
+		return errors.New("workload: Subtrees requires repeated shape and must be nonnegative")
+	}
+	if c.Shape == ShapeRepeated {
+		_, err := resolveSubtrees(c)
+		return err
 	}
 	if c.Shape == ShapeFixture {
 		if c.Nodes != 0 {
@@ -76,6 +86,10 @@ func Validate(c Config) error {
 }
 
 type Sample struct {
+	MeasurementOverheadNS                                                                                      float64
+	MeasurementOverheadMethod                                                                                  string
+	Generation                                                                                                 Generation
+	Memory                                                                                                     Memory
 	NsPerOp, BytesPerOp, AllocsPerOp                                                                           float64
 	Visits, Checksum, LogicalNodes, EdgeReads, AttributeReads, Revisits, GCCycles, AllocatedBytes, Allocations uint64
 	Valid                                                                                                      bool
@@ -94,6 +108,7 @@ type logical struct {
 	id   uint32
 	kind ast.Kind
 	kids []*logical
+	text string
 }
 type tree struct {
 	store   ast.Handle
@@ -143,14 +158,44 @@ func recipe(c Config) (*logical, uint64) {
 			return x
 		}
 	}
+	if c.Shape == ShapeRepeated {
+		n, _ := resolveSubtrees(c)
+		root := new(ast.KindArrayLiteralExpression)
+		root.kids = make([]*logical, n)
+		state := uint64(c.Seed)
+		leaf := func() *logical {
+			x := new(ast.KindNumericLiteral)
+			// SplitMix64 gives stable, varying payloads independent of final size.
+			state += 0x9e3779b97f4a7c15
+			v := state
+			v = (v ^ (v >> 30)) * 0xbf58476d1ce4e5b9
+			v = (v ^ (v >> 27)) * 0x94d049bb133111eb
+			x.text = strconv.FormatUint(v^(v>>31), 10)
+			return x
+		}
+		for i := range root.kids {
+			outer := new(ast.KindParenthesizedExpression)
+			binary := new(ast.KindBinaryExpression)
+			left := new(ast.KindParenthesizedExpression)
+			left.kids = []*logical{leaf()}
+			op := new(ast.KindPlusToken)
+			right := new(ast.KindParenthesizedExpression)
+			right.kids = []*logical{leaf()}
+			binary.kids = []*logical{left, op, right}
+			outer.kids = []*logical{binary}
+			root.kids[i] = outer
+		}
+		return root, uint64(id)
+	}
 	r := makeNode(c.Nodes)
+
 	return r, uint64(id)
 }
 func renderStore(n *logical, f *ast.Factory) ast.Handle {
 	var h ast.Handle
 	switch n.kind {
 	case ast.KindNumericLiteral:
-		h = f.NewNumericLiteral(strconv.FormatUint(uint64(n.id), 10), 0)
+		h = f.NewNumericLiteral(logicalText(n), 0)
 	case ast.KindPlusToken:
 		h = f.NewToken(ast.TokenSyntaxKind(ast.KindPlusToken))
 	case ast.KindParenthesizedExpression:
@@ -174,7 +219,7 @@ func renderPointer(n *logical, f *ast.NodeFactory) *ast.Node {
 	var h *ast.Node
 	switch n.kind {
 	case ast.KindNumericLiteral:
-		h = f.NewNumericLiteral(strconv.FormatUint(uint64(n.id), 10), 0)
+		h = f.NewNumericLiteral(logicalText(n), 0)
 	case ast.KindPlusToken:
 		h = f.NewToken(ast.TokenSyntaxKind(ast.KindPlusToken))
 	case ast.KindParenthesizedExpression:
@@ -434,6 +479,12 @@ func Measure(c Config, batch int) (Sample, error) {
 		return s, e
 	}
 	defer release(t)
+	generation, e := Describe(c)
+	if e != nil {
+		return s, e
+	}
+	memory := describeMemory(c, t)
+	measurementOverhead := timerOverhead()
 	runtime.GC()
 	oldGC := debug.SetGCPercent(-1)
 	oldLimit := debug.SetMemoryLimit(math.MaxInt64)
@@ -457,7 +508,7 @@ func Measure(c Config, batch int) (Sample, error) {
 	elapsed := time.Since(start)
 	runtime.ReadMemStats(&after)
 	runtime.KeepAlive(t)
-	s = Sample{NsPerOp: float64(elapsed.Nanoseconds()) / float64(batch), BytesPerOp: float64(after.TotalAlloc-before.TotalAlloc) / float64(batch), AllocsPerOp: float64(after.Mallocs-before.Mallocs) / float64(batch), Visits: want.Visits, Checksum: want.Checksum, LogicalNodes: want.LogicalNodes, EdgeReads: want.EdgeReads, AttributeReads: want.AttributeReads, Revisits: want.Revisits, GCCycles: uint64(after.NumGC - before.NumGC), AllocatedBytes: after.TotalAlloc - before.TotalAlloc, Allocations: after.Mallocs - before.Mallocs, Valid: true}
+	s = Sample{MeasurementOverheadNS: measurementOverhead, MeasurementOverheadMethod: "median per-bracket elapsed time across 31 batches of 1024 warmed time.Now/time.Since brackets; includes calibration loop/sink overhead, excludes traversal comparison and ReadMemStats; not subtracted", Generation: generation, Memory: memory, NsPerOp: float64(elapsed.Nanoseconds()) / float64(batch), BytesPerOp: float64(after.TotalAlloc-before.TotalAlloc) / float64(batch), AllocsPerOp: float64(after.Mallocs-before.Mallocs) / float64(batch), Visits: want.Visits, Checksum: want.Checksum, LogicalNodes: want.LogicalNodes, EdgeReads: want.EdgeReads, AttributeReads: want.AttributeReads, Revisits: want.Revisits, GCCycles: uint64(after.NumGC - before.NumGC), AllocatedBytes: after.TotalAlloc - before.TotalAlloc, Allocations: after.Mallocs - before.Mallocs, Valid: true}
 	if after.StackInuse > before.StackInuse {
 		s.Valid = false
 		s.Reason = fmt.Sprintf("stack memory grew in measurement: %d bytes", after.StackInuse-before.StackInuse)
@@ -469,4 +520,25 @@ func Measure(c Config, batch int) (Sample, error) {
 		return s, errors.New("workload: timed traversal violated zero-allocation/GC contract")
 	}
 	return s, nil
+}
+
+// timerOverhead calibrates the clock bracket only. It is not subtracted from
+// samples and does not claim to calibrate traversal-loop or counter overhead.
+func timerOverhead() float64 {
+	var samples [31]float64
+	const repeats = 1024
+	var sink time.Duration
+	start := time.Now()
+	_ = time.Since(start)
+	for i := range samples {
+		start = time.Now()
+		for range repeats {
+			inner := time.Now()
+			sink += time.Since(inner)
+		}
+		samples[i] = float64(time.Since(start).Nanoseconds()) / repeats
+	}
+	runtime.KeepAlive(sink)
+	sort.Float64s(samples[:])
+	return samples[len(samples)/2]
 }

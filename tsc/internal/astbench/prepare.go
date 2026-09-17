@@ -63,6 +63,11 @@ func Prepare(ctx context.Context, opts PrepareOptions) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if plan.Mode == "daily-selected" {
+		if err := validatePresetHost(plan, ReadHostInfo()); err != nil {
+			return "", err
+		}
+	}
 	if len(plan.Binaries) != 0 {
 		return "", errors.New("prepare does not accept supplied binaries")
 	}

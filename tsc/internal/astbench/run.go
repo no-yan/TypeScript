@@ -398,6 +398,7 @@ func binaryPath(identity Identity, variant string) (string, error) {
 }
 
 func verifyCellTrace(parent context.Context, runDir string, identity Identity, c Cell) error {
+	started := time.Now()
 	configBytes, err := json.Marshal(configFromCell(c, 1))
 	if err != nil {
 		return err
@@ -432,5 +433,5 @@ func verifyCellTrace(parent context.Context, runDir string, identity Identity, c
 	if !bytes.Equal(a, b) {
 		return errors.New("cross-binary store trace mismatch")
 	}
-	return writeJSON(filepath.Join(runDir, "control", "verification-"+c.ID+".json"), VerificationRecord{CellID: c.ID, Status: "verified", Config: configFromCell(c, 1), BeforeSHA256: identity.Binary["before"].SHA256, AfterSHA256: identity.Binary["after"].SHA256, Before: verified["before"], After: verified["after"]})
+	return writeJSON(filepath.Join(runDir, "control", "verification-"+c.ID+".json"), VerificationRecord{ElapsedNS: time.Since(started).Nanoseconds(), CellID: c.ID, Status: "verified", Config: configFromCell(c, 1), BeforeSHA256: identity.Binary["before"].SHA256, AfterSHA256: identity.Binary["after"].SHA256, Before: verified["before"], After: verified["after"]})
 }

@@ -9,6 +9,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/microsoft/TypeScript/tsc/internal/astbench"
 )
@@ -24,6 +25,10 @@ func mainExit() int {
 	defer stop()
 	var err error
 	switch os.Args[1] {
+	case "sweep-plan":
+		err = sweepPlan(os.Args[2:])
+	case "select-daily":
+		err = selectDaily(os.Args[2:])
 	case "inspect":
 		err = inspect(ctx, os.Args[2:])
 	case "prepare":
@@ -200,4 +205,69 @@ func inspect(ctx context.Context, args []string) error {
 	enc := json.NewEncoder(os.Stdout)
 	enc.SetIndent("", "  ")
 	return enc.Encode(result)
+}
+
+func writePlan(path string, p astbench.Plan) error {
+	b, e := json.MarshalIndent(p, "", "  ")
+	if e != nil {
+		return e
+	}
+	if path == "" {
+		fmt.Println(string(b))
+		return nil
+	}
+	f, e := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
+	if e != nil {
+		return e
+	}
+	_, e = f.Write(append(b, '\n'))
+	ce := f.Close()
+	if e != nil {
+		return e
+	}
+	return ce
+}
+func sweepPlan(args []string) error {
+	f := flag.NewFlagSet("sweep-plan", flag.ContinueOnError)
+	o := astbench.SweepOptions{}
+	out := ""
+	f.StringVar(&out, "out", "", "new plan file (stdout if omitted)")
+	f.StringVar(&o.Repo, "repo", "", "selected repository")
+	f.StringVar(&o.RunID, "run-id", "", "sweep identifier")
+	f.StringVar(&o.Visitor, "visitor", "expression", "expression or full-tree")
+	f.IntVar(&o.StartSubtrees, "start-subtrees", 32, "first repeated subtree count")
+	f.IntVar(&o.MaxCases, "max-cases", 10, "maximum points (2 to 10)")
+	f.IntVar(&o.Batch, "batch", 256, "root traversals per process sample")
+	f.Uint64Var(&o.MemoryBudgetBytes, "memory-budget-bytes", 256<<20, "conservative planning memory ceiling")
+	f.DurationVar(&o.Timeout, "sample-timeout", time.Minute, "timeout per process")
+	f.Int64Var(&o.Seed, "seed", 1, "shape and schedule seed")
+	if e := f.Parse(args); e != nil {
+		return e
+	}
+	p, e := astbench.NewSweep(o)
+	if e != nil {
+		return e
+	}
+	return writePlan(out, p)
+}
+func selectDaily(args []string) error {
+	f := flag.NewFlagSet("select-daily", flag.ContinueOnError)
+	run, small, large, reason, out := "", "", "", "", ""
+	var l1 uint64
+	version := 1
+	f.StringVar(&run, "run", "", "completed sweep run")
+	f.StringVar(&small, "small", "", "small cell ID")
+	f.StringVar(&large, "large", "", "large cell ID")
+	f.StringVar(&reason, "reason", "", "selection justification (capacity, time, contamination)")
+	f.StringVar(&out, "out", "", "new plan file")
+	f.Uint64Var(&l1, "l1d-target-bytes", 0, "explicit conservative L1D capacity from host evidence")
+	f.IntVar(&version, "preset-version", 1, "increment after CPU/generator/visitor changes")
+	if e := f.Parse(args); e != nil {
+		return e
+	}
+	p, e := astbench.SelectDaily(run, small, large, reason, l1, version)
+	if e != nil {
+		return e
+	}
+	return writePlan(out, p)
 }

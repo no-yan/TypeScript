@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"reflect"
 	"regexp"
 	"sort"
 	"strings"
@@ -15,7 +16,7 @@ import (
 var safeCellID = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_-]*$`)
 
 func defaultPlan(runID, repo, before, after, beforeHash, afterHash string) Plan {
-	p := Plan{SchemaVersion: SchemaVersion, RunID: runID, Seed: 1, RepoRoot: repo, Identity: IdentityRef{BeforeRevision: before, AfterRevision: after, SourceHash: afterHash, FixtureHash: beforeHash}, Lanes: map[string]Lane{"daily": {Name: "daily", Kind: "daily", Backend: "wall", Batches: 1, Warmup: 2, Directions: []string{"AB", "AB", "BA", "BA", "AA", "AA", "AA", "AA"}, Repeat: 1}}, Metrics: []string{"ns/op", "B/op", "allocs/op", "visits", "checksum"}, Timeout: time.Minute, CreatedAt: time.Now().UTC()}
+	p := Plan{SchemaVersion: SchemaVersion, RunID: runID, Seed: 1, RepoRoot: repo, Identity: IdentityRef{BeforeRevision: before, AfterRevision: after, SourceHash: afterHash, FixtureHash: beforeHash}, Lanes: map[string]Lane{"daily": {Name: "daily", Kind: "daily", Backend: "wall", Batches: 1, Warmup: 2, Directions: []string{"AB", "AB", "BA", "BA", "AA", "AA", "AA", "AA"}, Repeat: 1}}, Metrics: []string{"ns/op", "B/op", "allocs/op", "ns/visit", "visits", "checksum"}, Timeout: time.Minute, CreatedAt: time.Now().UTC()}
 	for _, visitor := range []string{"full-tree", "expression"} {
 		for _, size := range []struct {
 			name  string
@@ -63,6 +64,18 @@ func validatePlan(p Plan) error {
 			return fmt.Errorf("invalid or duplicate cell ID %q", c.ID)
 		}
 		seen[c.ID] = true
+		if c.Shape == workload.ShapeRepeated {
+			g, err := workload.Describe(configFromCell(c, c.Batch).workload())
+			if err != nil {
+				return err
+			}
+			if c.Generation == nil || !reflect.DeepEqual(*c.Generation, g) {
+				return fmt.Errorf("cell %s: generation metadata mismatch", c.ID)
+			}
+			if c.Comparison != comparisonKind(c) || c.VisitorStatus == "" {
+				return fmt.Errorf("cell %s: comparison and visitor status required", c.ID)
+			}
+		}
 		if c.GC != "off" || c.P != 1 || c.Backend != "wall" {
 			return fmt.Errorf("cell %s: synthetic requires GC off, P=1, wall backend", c.ID)
 		}
@@ -72,16 +85,16 @@ func validatePlan(p Plan) error {
 		if len(c.Metadata) > 0 {
 			return fmt.Errorf("cell %s: arbitrary metadata is unsupported", c.ID)
 		}
-		if err := workload.Validate(workload.Config{Case: c.Case, Shape: c.Shape, Nodes: c.Nodes, Seed: c.Seed, LayoutSeed: c.LayoutSeed, Layout: c.Layout, Representation: c.Representation}); err != nil {
+		if err := workload.Validate(workload.Config{Subtrees: c.Subtrees, Case: c.Case, Shape: c.Shape, Nodes: c.Nodes, Seed: c.Seed, LayoutSeed: c.LayoutSeed, Layout: c.Layout, Representation: c.Representation}); err != nil {
 			return fmt.Errorf("cell %s: %w", c.ID, err)
 		}
 		if c.AfterRepresentation != "" {
-			if err := workload.Validate(workload.Config{Case: c.Case, Shape: c.Shape, Nodes: c.Nodes, Seed: c.Seed, LayoutSeed: c.LayoutSeed, Layout: c.Layout, Representation: c.AfterRepresentation}); err != nil {
+			if err := workload.Validate(workload.Config{Subtrees: c.Subtrees, Case: c.Case, Shape: c.Shape, Nodes: c.Nodes, Seed: c.Seed, LayoutSeed: c.LayoutSeed, Layout: c.Layout, Representation: c.AfterRepresentation}); err != nil {
 				return fmt.Errorf("cell %s after: %w", c.ID, err)
 			}
 		}
 	}
-	return nil
+	return validateScalingPlan(p)
 }
 
 func generatedOrder(p Plan) []Slot {

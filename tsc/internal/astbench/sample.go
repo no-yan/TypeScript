@@ -15,6 +15,7 @@ import (
 )
 
 type SampleConfig struct {
+	Subtrees       int    `json:"subtrees,omitempty"`
 	Case           string `json:"case"`
 	Shape          string `json:"shape"`
 	Nodes          int    `json:"nodes"`
@@ -35,6 +36,7 @@ type TraceVerification struct {
 }
 
 type VerificationRecord struct {
+	ElapsedNS    int64             `json:"elapsed_ns"`
 	CellID       string            `json:"cell_id"`
 	Status       string            `json:"status"`
 	Config       SampleConfig      `json:"config"`
@@ -62,7 +64,7 @@ func traceWork(trace []workload.TraceEntry) Sample {
 }
 
 func configFromCell(c Cell, batch int) SampleConfig {
-	return SampleConfig{Case: c.Case, Shape: c.Shape, Nodes: c.Nodes, Seed: c.Seed, LayoutSeed: c.LayoutSeed, Layout: c.Layout, Representation: c.Representation, Batch: batch}
+	return SampleConfig{Subtrees: c.Subtrees, Case: c.Case, Shape: c.Shape, Nodes: c.Nodes, Seed: c.Seed, LayoutSeed: c.LayoutSeed, Layout: c.Layout, Representation: c.Representation, Batch: batch}
 }
 
 func (c SampleConfig) workload() workload.Config {
@@ -76,6 +78,7 @@ func (c SampleConfig) workload() workload.Config {
 	if c.Nodes != 0 || c.Shape == "fixture" {
 		d.Nodes = c.Nodes
 	}
+	d.Subtrees = c.Subtrees
 	d.Seed = c.Seed
 	d.LayoutSeed = c.LayoutSeed
 	if c.Layout != "" {
@@ -88,7 +91,7 @@ func (c SampleConfig) workload() workload.Config {
 }
 
 func convertSample(s workload.Sample) Sample {
-	return Sample{NSPerOp: s.NsPerOp, BytesPerOp: s.BytesPerOp, AllocsPerOp: s.AllocsPerOp, Visits: s.Visits, Checksum: s.Checksum, LogicalNodes: s.LogicalNodes, EdgeReads: s.EdgeReads, AttributeReads: s.AttributeReads, Revisits: s.Revisits, GCCycles: s.GCCycles, AllocatedBytes: s.AllocatedBytes, Allocations: s.Allocations, Valid: s.Valid, Reason: s.Reason}
+	return Sample{MeasurementOverheadNS: s.MeasurementOverheadNS, MeasurementOverheadMethod: s.MeasurementOverheadMethod, Generation: s.Generation, Memory: s.Memory, NSPerOp: s.NsPerOp, BytesPerOp: s.BytesPerOp, AllocsPerOp: s.AllocsPerOp, Visits: s.Visits, Checksum: s.Checksum, LogicalNodes: s.LogicalNodes, EdgeReads: s.EdgeReads, AttributeReads: s.AttributeReads, Revisits: s.Revisits, GCCycles: s.GCCycles, AllocatedBytes: s.AllocatedBytes, Allocations: s.Allocations, Valid: s.Valid, Reason: s.Reason}
 }
 
 func SampleJSON(in io.Reader, out io.Writer) error {
@@ -193,7 +196,7 @@ func parseSampleConfig(raw []byte) (SampleConfig, error) {
 	if c.Case == "" || c.Shape == "" || c.Layout == "" || c.Representation == "" {
 		return c, errors.New("sample config requires case, shape, layout, and representation")
 	}
-	if c.Nodes == 0 && c.Shape != "fixture" {
+	if c.Nodes == 0 && c.Shape != "fixture" && !(c.Shape == workload.ShapeRepeated && c.Subtrees > 0) {
 		return c, errors.New("sample config requires positive nodes for synthetic workloads")
 	}
 	return c, nil

@@ -146,6 +146,9 @@ func Collect(runDir string) (Collection, error) {
 }
 
 func validateAttemptBinding(m AttemptMetadata, slot Slot, cell Cell, id Identity) error {
+	if !m.FinishedAt.IsZero() && (m.StartedAt.IsZero() || !m.FinishedAt.After(m.StartedAt)) {
+		return errors.New("nonpositive attempt duration")
+	}
 	config := configFromCell(cell, cell.Batch)
 	if slot.Variant == "after" && cell.AfterRepresentation != "" {
 		config.Representation = cell.AfterRepresentation
@@ -212,6 +215,9 @@ func validTraceVerification(v TraceVerification, fixture bool) bool {
 }
 
 func validateMeasuredWork(sample Sample, cell Cell, proof VerificationRecord) error {
+	if cell.Generation != nil && !reflect.DeepEqual(sample.Generation, *cell.Generation) {
+		return errors.New("generation metadata differs from plan")
+	}
 	want := traceWork(proof.Before.Store)
 	if sample.Visits != want.Visits || sample.Checksum != want.Checksum || sample.EdgeReads != want.EdgeReads || sample.AttributeReads != want.AttributeReads {
 		return errors.New("visits, checksum, edge reads, or attribute reads")
@@ -220,7 +226,7 @@ func validateMeasuredWork(sample Sample, cell Cell, proof VerificationRecord) er
 		if sample.LogicalNodes < sample.Visits {
 			return errors.New("fixture logical node count is below visits")
 		}
-	} else if sample.LogicalNodes != uint64(cell.Nodes) {
+	} else if sample.LogicalNodes != uint64(expectedNodes(cell)) {
 		return errors.New("synthetic logical node count")
 	}
 	return nil
@@ -253,18 +259,43 @@ func Report(runDir string) (string, error) {
 	}
 	var b strings.Builder
 	fmt.Fprintf(&b, "# AST traversal measurement\n\nSelected repo: `%s`\n\nArtifact set: `%s`\n\nBefore revision: `%s`; after revision: `%s`; TSGolint: null.\n\n", id.RepoRoot, runDir, id.BeforeRevision, id.AfterRevision)
+	mode := p.Mode
+	if mode == "" {
+		mode = "legacy daily (fixed sizes, no sweep selection)"
+	}
+	fmt.Fprintf(&b, "Mode: %s.\n\n", mode)
+	if p.Preset != nil {
+		fmt.Fprintf(&b, "Preset version: %d; source sweep: `%s`; source input hash: `%s`; status: %s.\n\nSelection reason: %s. Estimated runtime: %.3f seconds (%s).\n\n", p.Preset.Version, p.Preset.SourceSweepID, p.Preset.SourceInputHash, p.Preset.Status, p.Preset.Reason, p.Preset.EstimatedSeconds, p.Preset.RuntimeMethod)
+	}
+	b.WriteString("| Cell | Comparison | Before | After | Visitor status |\n| --- | --- | --- | --- | --- |\n")
+	for _, cell := range p.Cells {
+		comparison := cell.Comparison
+		if comparison == "" {
+			comparison = comparisonKind(cell)
+		}
+		visitor := cell.VisitorStatus
+		if visitor == "" {
+			visitor = "provisional: current real-workload top 10 not established"
+		}
+		fmt.Fprintf(&b, "| %s | %s | %s | %s | %s |\n", cell.ID, comparison, cell.Representation, afterRepresentation(cell), visitor)
+	}
+	b.WriteString("\n")
 	fmt.Fprintf(&b, "Completeness: %t; validity: %t. %s\n\n", c.Complete, c.Valid, c.Reason)
 	b.WriteString("Identity status requires `inspect --repo` against the selected checkout; saved artifacts alone do not establish currentness.\n\nCandidate clones: cursor-ast-store-tests, binder-rewrite, profile, flownode, lock-design-inv, lock-profile, store-pr-*, store-redesign, store-schema-foreach-child, main checkout.\n\n")
-	b.WriteString("| Attempt | Cell | Label | ns/op | B/op | allocs/op | visits/op | status |\n| --- | --- | --- | ---: | ---: | ---: | ---: | --- |\n")
+	b.WriteString("| Attempt | Cell | Label | ns/op | B/op | allocs/op | visits/op | ns/visit | status |\n| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |\n")
 	for _, a := range c.Attempts {
 		s := a.Result.Sample
 		status := "invalid"
 		if a.Result.Complete && validateSample(s) == nil {
 			status = "valid"
 		}
-		fmt.Fprintf(&b, "| %s | %s | %s | %.3f | %.3f | %.3f | %d | %s |\n", a.Metadata.AttemptID, a.Metadata.CellID, a.Metadata.Label, s.NSPerOp, s.BytesPerOp, s.AllocsPerOp, s.Visits, status)
+		normalized := "missing"
+		if s.Visits > 0 {
+			normalized = fmt.Sprintf("%.6f", s.NSPerOp/float64(s.Visits))
+		}
+		fmt.Fprintf(&b, "| %s | %s | %s | %.3f | %.3f | %.3f | %d | %s | %s |\n", a.Metadata.AttemptID, a.Metadata.CellID, a.Metadata.Label, s.NSPerOp, s.BytesPerOp, s.AllocsPerOp, s.Visits, normalized, status)
 	}
-	b.WriteString("\nOne op is one root traversal; ns/node uses actual visits, not logical node count. One process is one statistical sample regardless of batch size.\n\n")
+	b.WriteString("\nOne op is one root traversal; ns/visit = ns/op divided by visits/op; its denominator is actual visits, not logical node count. One process is one statistical sample regardless of batch size.\n\n")
 	if !c.Valid || !c.Complete {
 		b.WriteString("Diagnosis: invalid/incomplete; comparison is not available.\n\n")
 	} else {
@@ -283,6 +314,12 @@ func Report(runDir string) (string, error) {
 		}
 		b.WriteString("Diagnosis: daily direction check only. Wall-time uncertainty and A/A control must be considered; no optimization adoption is established.\n\n")
 	}
-	b.WriteString("Hot paths: current check-phase top ten is missing. Old profile candidates are Handle.Parent, Expression, Name, Text and Store.listOwner; these are stale evidence. Broader checker/map/link work may dominate end-to-end execution; AST edges are the narrower actionable target.\n\nAllocation drivers: AST construction, list materialization and checker type/inference are outside the synthetic interval; their allocation cost is missing. Synthetic interval allocation and GC are required to be zero. Working-set size and LLC residency are missing.\n\nTelemetry: thermal state, pressure, swap, frequency and core placement are missing; absence of contamination is not established. KPC calibration and decision lane are unsupported.\n\nNext action: select representative accesses from a current check profile, then compare a specific layout change and validate representative end-to-end workloads.\n")
+	analysis := filepath.Join(runDir, "analysis")
+	fmt.Fprintf(&b, "Derived outputs (when collected): [size estimates and uncertainty](%s), [size curve](%s), [attempt order and validity](%s), [separate memory metrics](%s).\n\n", filepath.Join(analysis, "scaling.tsv"), filepath.Join(analysis, "scaling.svg"), filepath.Join(analysis, "samples.tsv"), filepath.Join(analysis, "memory.tsv"))
+	for _, cell := range p.Cells {
+		fmt.Fprintf(&b, "- %s: [per-size raw A/B, A/A and benchstat](%s)\n", cell.ID, filepath.Join(analysis, "cells", cell.ID, "benchstat.txt"))
+	}
+	b.WriteString("\n")
+	b.WriteString("Hot paths: current check-phase top ten is missing. Old profile candidates are Handle.Parent, Expression, Name, Text and Store.listOwner; these are stale evidence. Broader checker/map/link work may dominate end-to-end execution; AST edges are the narrower actionable target.\n\nAllocation drivers: AST construction, list materialization and checker type/inference are outside the synthetic interval; their allocation cost is missing. Synthetic interval allocation and GC are required to be zero. Memory metrics remain separate: representation_used_bytes, representation_capacity_bytes, reachable_heap_bytes_estimate, process_peak_rss, and access_footprint_estimate. The memory table preserves unavailable values as null with reasons and calculation methods. Process RSS is not AST storage; footprint estimates are not cache residency. LLC residency is unconfirmed.\n\nTelemetry: thermal state, pressure, swap, frequency and core placement are missing; absence of contamination is not established. KPC calibration and decision lane are unsupported.\n\nNext action: select representative accesses from a current check profile, then compare a specific layout change and validate representative end-to-end workloads.\n")
 	return b.String(), nil
 }

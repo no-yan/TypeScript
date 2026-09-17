@@ -61,10 +61,11 @@ func WriteAnalysisTo(runDir, outDir string) error {
 	}
 	bySlot := map[string]Collected{}
 	for _, a := range c.Attempts {
-		if a.Result.Complete && a.Result.Sample.Valid {
+		if a.Result.Complete && a.Result.Sample.Valid && a.Result.Error == "" && a.Metadata.ExitCode == 0 && !a.Metadata.Timeout && !a.Metadata.Cancelled && !a.Metadata.FinishedAt.IsZero() && validateSample(a.Result.Sample) == nil {
 			bySlot[a.Metadata.SlotID] = a
 		}
 	}
+	cellRaw := map[string]map[string]*bytes.Buffer{}
 	raw := map[string]*bytes.Buffer{"before": {}, "after": {}, "control-before": {}, "control-after": {}}
 	type pair struct{ before, after float64 }
 	pairs := map[string]map[string]*pair{}
@@ -88,7 +89,14 @@ func WriteAnalysisTo(runDir, outDir string) error {
 		if cell.Batch < 1 {
 			return errors.New("analysis requires explicit fixed batch")
 		}
-		fmt.Fprintf(raw[label], "BenchmarkTraversal/%s\t%d\t%.9f ns/op\t%.9f B/op\t%.9f allocs/op\t%.9f ns/node\n", cell.ID, cell.Batch, s.NSPerOp, s.BytesPerOp, s.AllocsPerOp, s.NSPerOp/float64(s.Visits))
+		fmt.Fprintf(raw[label], "BenchmarkTraversal/%s\t%d\t%.9f ns/op\t%.9f B/op\t%.9f allocs/op\t%.9f ns/visit\n", cell.ID, cell.Batch, s.NSPerOp, s.BytesPerOp, s.AllocsPerOp, s.NSPerOp/float64(s.Visits))
+		if cellRaw[cell.ID] == nil {
+			cellRaw[cell.ID] = map[string]*bytes.Buffer{}
+		}
+		if cellRaw[cell.ID][label] == nil {
+			cellRaw[cell.ID][label] = &bytes.Buffer{}
+		}
+		fmt.Fprintf(cellRaw[cell.ID][label], "BenchmarkTraversal/%s\t%d\t%.9f ns/op\t%.9f B/op\t%.9f allocs/op\t%.9f ns/visit\n", cell.ID, cell.Batch, s.NSPerOp, s.BytesPerOp, s.AllocsPerOp, s.NSPerOp/float64(s.Visits))
 		if label == "before" || label == "after" {
 			if pairs[cell.ID] == nil {
 				pairs[cell.ID] = map[string]*pair{}
@@ -140,35 +148,63 @@ func WriteAnalysisTo(runDir, outDir string) error {
 			ratios = append(ratios, math.Log(v.after/v.before))
 		}
 		point, lo, hi := bootstrapLogRatios(ratios, p.Seed)
-		estimates = append(estimates, pairEstimate{Cell: cell, Pairs: len(ratios), AfterBeforeRatio: point, Low: lo, High: hi, Status: "unresolved: daily only; A/A tolerances not calibrated"})
+		estimates = append(estimates, pairEstimate{Cell: cell, Pairs: len(ratios), AfterBeforeRatio: point, Low: lo, High: hi, Status: ratioStatus(lo, hi)})
 	}
 	sort.Slice(estimates, func(i, j int) bool { return estimates[i].Cell < estimates[j].Cell })
 	if err := writeJSON(filepath.Join(outDir, "paired.json"), estimates); err != nil {
 		return err
 	}
-	tool, err := exec.LookPath("benchstat")
-	if err != nil {
-		return os.WriteFile(filepath.Join(outDir, "benchstat.txt"), []byte("missing: benchstat unavailable; raw files preserved; comparison not performed\n"), 0644)
-	}
-	hash, err := hashFile(tool)
-	if err != nil {
+	if err := writeScalingAnalysis(outDir, p, c, bySlot, estimates); err != nil {
 		return err
 	}
-	info, _ := exec.Command("go", "version", "-m", tool).CombinedOutput()
-	if err := writeJSON(filepath.Join(outDir, "benchstat-tool.json"), struct{ Path, SHA256, BuildInfo string }{tool, hash, string(info)}); err != nil {
-		return err
-	}
-	var output strings.Builder
-	for _, labels := range [][2]string{{"control-before", "control-after"}, {"before", "after"}} {
-		cmd := exec.Command(tool, filepath.Join(outDir, labels[0]+".txt"), filepath.Join(outDir, labels[1]+".txt"))
-		data, err := cmd.CombinedOutput()
-		fmt.Fprintf(&output, "%s vs %s\n%s\n", labels[0], labels[1], data)
+	tool, toolErr := exec.LookPath("benchstat")
+	if toolErr == nil {
+		hash, err := hashFile(tool)
 		if err != nil {
-			output.WriteString("benchstat failed: " + err.Error() + "\n")
-			_ = os.WriteFile(filepath.Join(outDir, "benchstat.txt"), []byte(output.String()), 0644)
+			return err
+		}
+		info, _ := exec.Command("go", "version", "-m", tool).CombinedOutput()
+		if err := writeJSON(filepath.Join(outDir, "benchstat-tool.json"), struct{ Path, SHA256, BuildInfo string }{tool, hash, string(info)}); err != nil {
+			return err
+		}
+	} else {
+		if err := os.Remove(filepath.Join(outDir, "benchstat-tool.json")); err != nil && !os.IsNotExist(err) {
 			return err
 		}
 	}
+	var output strings.Builder
+	var benchstatErrors []error
+	for _, cell := range p.Cells {
+		dir := filepath.Join(outDir, "cells", cell.ID)
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			return err
+		}
+		for label, data := range cellRaw[cell.ID] {
+			if err := os.WriteFile(filepath.Join(dir, label+".txt"), data.Bytes(), 0644); err != nil {
+				return err
+			}
+		}
+		var local strings.Builder
+		for _, labels := range [][2]string{{"control-before", "control-after"}, {"before", "after"}} {
+			fmt.Fprintf(&local, "%s vs %s\n", labels[0], labels[1])
+			if toolErr != nil {
+				local.WriteString("missing: benchstat unavailable; raw files preserved; comparison not performed\n")
+				continue
+			}
+			data, err := exec.Command(tool, filepath.Join(dir, labels[0]+".txt"), filepath.Join(dir, labels[1]+".txt")).CombinedOutput()
+			local.Write(data)
+			if err != nil {
+				local.WriteString("benchstat failed: " + err.Error() + "\n")
+				benchstatErrors = append(benchstatErrors, fmt.Errorf("cell %s benchstat: %w", cell.ID, err))
+			}
+			local.WriteByte('\n')
+		}
+		if err := os.WriteFile(filepath.Join(dir, "benchstat.txt"), []byte(local.String()), 0644); err != nil {
+			return err
+		}
+		fmt.Fprintf(&output, "Cell %s (independent size; no pooled comparison)\n%s\n", cell.ID, local.String())
+	}
+
 	finalHash, err := analysisInputHash(runDir)
 	if err != nil {
 		return err
@@ -176,7 +212,10 @@ func WriteAnalysisTo(runDir, outDir string) error {
 	if finalHash != inputHash {
 		return errors.New("analysis inputs changed during collection")
 	}
-	return os.WriteFile(filepath.Join(outDir, "benchstat.txt"), []byte(output.String()), 0644)
+	if err := os.WriteFile(filepath.Join(outDir, "benchstat.txt"), []byte(output.String()), 0644); err != nil {
+		return err
+	}
+	return errors.Join(benchstatErrors...)
 }
 
 func analysisInputHash(runDir string) (string, error) {

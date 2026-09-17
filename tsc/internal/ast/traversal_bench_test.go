@@ -1,6 +1,7 @@
 package ast_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/microsoft/TypeScript/tsc/internal/astbench/workload"
@@ -41,6 +42,39 @@ func BenchmarkTraversalWorkload(b *testing.B) {
 					b.Fatalf("invalid sample: %+v", sample)
 				}
 			})
+		}
+	}
+}
+
+// BenchmarkTraversalSizeScaling uses independent repeated subtrees. This Go
+// entry point is for targeted reproduction; balanced process pairs use astbench.
+func BenchmarkTraversalSizeScaling(b *testing.B) {
+	for _, visitor := range []string{workload.CaseExpression, workload.CaseFullTree} {
+		for _, subtrees := range []int{32, 64, 128, 256, 512, 1024, 2048, 4096} {
+			for _, representation := range []string{workload.RepresentationPointer, workload.RepresentationStore} {
+				b.Run(fmt.Sprintf("%s/subtrees-%d/%s", visitor, subtrees, representation), func(b *testing.B) {
+					b.ReportAllocs()
+					c := workload.DefaultConfig()
+					c.Case = visitor
+					c.Shape = workload.ShapeRepeated
+					c.Subtrees = subtrees
+					c.Nodes = 1 + subtrees*workload.RepeatedSubtreeNodes
+					c.Representation = representation
+					if err := workload.Verify(c); err != nil {
+						b.Fatal(err)
+					}
+					sample, err := workload.Measure(c, b.N)
+					if err != nil {
+						b.Fatal(err)
+					}
+					b.ReportMetric(sample.NsPerOp, "ns/op")
+					b.ReportMetric(sample.BytesPerOp, "B/op")
+					b.ReportMetric(sample.AllocsPerOp, "allocs/op")
+					b.ReportMetric(sample.NsPerOp/float64(sample.Visits), "ns/visit")
+					b.ReportMetric(float64(sample.Visits), "visits/op")
+					b.ReportMetric(float64(sample.LogicalNodes), "logical-nodes")
+				})
+			}
 		}
 	}
 }

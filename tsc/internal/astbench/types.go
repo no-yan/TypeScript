@@ -1,8 +1,12 @@
 package astbench
 
-import "time"
+import (
+	"time"
 
-const SchemaVersion = 1
+	"github.com/microsoft/TypeScript/tsc/internal/astbench/workload"
+)
+
+const SchemaVersion = 2
 
 // Identity records the inputs which make a run comparable. Hashes are SHA-256
 // hex strings. A nil TSGolint revision is intentional for this campaign.
@@ -35,19 +39,22 @@ type Binary struct {
 }
 
 type Plan struct {
-	SchemaVersion int             `json:"schema_version"`
-	RunID         string          `json:"run_id"`
-	Seed          int64           `json:"seed"`
-	RepoRoot      string          `json:"repo_root"`
-	Identity      IdentityRef     `json:"identity"`
-	Lanes         map[string]Lane `json:"lanes"`
-	Cells         []Cell          `json:"cells"`
-	Order         []Slot          `json:"order"`
-	Binaries      []BinarySpec    `json:"binaries,omitempty"`
-	Exclude       []string        `json:"exclude,omitempty"`
-	Metrics       []string        `json:"metrics"`
-	Timeout       time.Duration   `json:"timeout_ns"`
-	CreatedAt     time.Time       `json:"created_at"`
+	Mode          string           `json:"mode,omitempty"`
+	Sweep         *SweepSpec       `json:"sweep,omitempty"`
+	Preset        *PresetSelection `json:"preset,omitempty"`
+	SchemaVersion int              `json:"schema_version"`
+	RunID         string           `json:"run_id"`
+	Seed          int64            `json:"seed"`
+	RepoRoot      string           `json:"repo_root"`
+	Identity      IdentityRef      `json:"identity"`
+	Lanes         map[string]Lane  `json:"lanes"`
+	Cells         []Cell           `json:"cells"`
+	Order         []Slot           `json:"order"`
+	Binaries      []BinarySpec     `json:"binaries,omitempty"`
+	Exclude       []string         `json:"exclude,omitempty"`
+	Metrics       []string         `json:"metrics"`
+	Timeout       time.Duration    `json:"timeout_ns"`
+	CreatedAt     time.Time        `json:"created_at"`
 }
 
 type BinarySpec struct {
@@ -73,20 +80,24 @@ type Lane struct {
 }
 
 type Cell struct {
-	ID                  string         `json:"id"`
-	Case                string         `json:"case"`
-	Shape               string         `json:"shape,omitempty"`
-	Nodes               int            `json:"nodes"`
-	Seed                int64          `json:"seed"`
-	LayoutSeed          int64          `json:"layout_seed"`
-	Layout              string         `json:"layout,omitempty"`
-	Representation      string         `json:"representation,omitempty"`
-	AfterRepresentation string         `json:"after_representation,omitempty"`
-	GC                  string         `json:"gc,omitempty"`
-	P                   int            `json:"p,omitempty"`
-	Backend             string         `json:"backend,omitempty"`
-	Batch               int            `json:"batch,omitempty"`
-	Metadata            map[string]any `json:"metadata,omitempty"`
+	Subtrees            int                  `json:"subtrees,omitempty"`
+	Generation          *workload.Generation `json:"generation,omitempty"`
+	Comparison          string               `json:"comparison,omitempty"`
+	VisitorStatus       string               `json:"visitor_status,omitempty"`
+	ID                  string               `json:"id"`
+	Case                string               `json:"case"`
+	Shape               string               `json:"shape,omitempty"`
+	Nodes               int                  `json:"nodes"`
+	Seed                int64                `json:"seed"`
+	LayoutSeed          int64                `json:"layout_seed"`
+	Layout              string               `json:"layout,omitempty"`
+	Representation      string               `json:"representation,omitempty"`
+	AfterRepresentation string               `json:"after_representation,omitempty"`
+	GC                  string               `json:"gc,omitempty"`
+	P                   int                  `json:"p,omitempty"`
+	Backend             string               `json:"backend,omitempty"`
+	Batch               int                  `json:"batch,omitempty"`
+	Metadata            map[string]any       `json:"metadata,omitempty"`
 }
 
 type Slot struct {
@@ -123,20 +134,24 @@ type AttemptMetadata struct {
 }
 
 type Sample struct {
-	NSPerOp        float64 `json:"ns_per_op"`
-	BytesPerOp     float64 `json:"bytes_per_op"`
-	AllocsPerOp    float64 `json:"allocs_per_op"`
-	Visits         uint64  `json:"visits"`
-	Checksum       uint64  `json:"checksum"`
-	LogicalNodes   uint64  `json:"logical_nodes"`
-	EdgeReads      uint64  `json:"edge_reads"`
-	AttributeReads uint64  `json:"attribute_reads"`
-	Revisits       uint64  `json:"revisits"`
-	GCCycles       uint64  `json:"gc_cycles"`
-	AllocatedBytes uint64  `json:"allocated_bytes"`
-	Allocations    uint64  `json:"allocations"`
-	Valid          bool    `json:"valid"`
-	Reason         string  `json:"reason,omitempty"`
+	MeasurementOverheadNS     float64             `json:"measurement_overhead_ns"`
+	MeasurementOverheadMethod string              `json:"measurement_overhead_method"`
+	Generation                workload.Generation `json:"generation"`
+	Memory                    workload.Memory     `json:"memory"`
+	NSPerOp                   float64             `json:"ns_per_op"`
+	BytesPerOp                float64             `json:"bytes_per_op"`
+	AllocsPerOp               float64             `json:"allocs_per_op"`
+	Visits                    uint64              `json:"visits"`
+	Checksum                  uint64              `json:"checksum"`
+	LogicalNodes              uint64              `json:"logical_nodes"`
+	EdgeReads                 uint64              `json:"edge_reads"`
+	AttributeReads            uint64              `json:"attribute_reads"`
+	Revisits                  uint64              `json:"revisits"`
+	GCCycles                  uint64              `json:"gc_cycles"`
+	AllocatedBytes            uint64              `json:"allocated_bytes"`
+	Allocations               uint64              `json:"allocations"`
+	Valid                     bool                `json:"valid"`
+	Reason                    string              `json:"reason,omitempty"`
 }
 
 type AttemptResult struct {
