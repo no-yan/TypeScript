@@ -42,6 +42,7 @@ ARTIFACTS="/tmp/astbench-runs"
 ```
 
 以下の例はこの3変数を使います。長期保存する場合は `ARTIFACTS` を永続ディレクトリへ変更してください。
+`ARTIFACTS` は選択したリポジトリの外に置いてください。`prepare` はリポジトリ内（symlink 経由を含む）の出力先を、ファイル作成前に拒否します。生成済み snapshot が次の source snapshot に混入するのを防ぐためです。
 `prepare` は worker も別途ビルドします。ビルドと別 campaign の測定を並行して実行しないでください。
 
 各コマンドのフラグは `"$ASTBENCH" <command> -h` で確認できます。
@@ -182,7 +183,7 @@ RUN="$ARTIFACTS/sweep-1"
 
 失敗や中断の attempt も残ります。同じ `run --run` を再実行すると完了済み slot を飛ばして続行します。
 再開時も source/binary hash と trace を検証します。途中で frozen plan を編集しないでください。
-同時 campaign は協調 lock で直列化されますが、他アプリのCPU負荷やthermal状態までは隔離しません。
+同時 campaign は macOS / Linux の OS advisory lock で直列化されます。所有 process が終了・SIGKILL された場合も OS が lock を解放します。lock ファイルは同じ inode を共有するため残し、手動削除しないでください。旧 PID ファイルだけが残っている場合も取得できます。その他の OS の `run` は unsupported として失敗します。他アプリのCPU負荷やthermal状態までは隔離しません。
 
 ### 4. `select-daily`: 探索から2点を固定する
 

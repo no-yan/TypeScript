@@ -119,41 +119,6 @@ func Run(ctx context.Context, opts RunOptions) error {
 	return nil
 }
 
-type fileLock struct {
-	path string
-	f    *os.File
-}
-
-func acquireLock(ctx context.Context, path string) (*fileLock, error) {
-	if _, ok := ctx.Deadline(); !ok {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
-		defer cancel()
-	}
-	for {
-		f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o644)
-		if err == nil {
-			_, _ = f.WriteString(strconv.Itoa(os.Getpid()) + "\n")
-			return &fileLock{path: path, f: f}, nil
-		}
-		if !errors.Is(err, os.ErrExist) {
-			return nil, err
-		}
-		select {
-		case <-ctx.Done():
-			return nil, fmt.Errorf("campaign lock timeout: %w", ctx.Err())
-		case <-time.After(100 * time.Millisecond):
-		}
-	}
-}
-func (l *fileLock) release() {
-	if l == nil {
-		return
-	}
-	_ = l.f.Close()
-	_ = os.Remove(l.path)
-}
-
 func completedSlots(runDir string) (map[string]bool, error) {
 	result := map[string]bool{}
 	var plan Plan
@@ -348,7 +313,7 @@ func runSlot(ctx context.Context, runDir string, plan Plan, identity Identity, s
 		}
 		return fmt.Errorf("slot %s produced invalid sample: %s", slot.ID, sample.Reason)
 	}
-	bench := fmt.Sprintf("BenchmarkTraversal/%s\t%d\t%.9f ns/op\t%.9f B/op\t%.9f allocs/op\t%.9f ns/node\n", cell.ID, batch, sample.NSPerOp, sample.BytesPerOp, sample.AllocsPerOp, sample.NSPerOp/float64(sample.Visits))
+	bench := fmt.Sprintf("BenchmarkTraversal/%s\t%d\t%.9f ns/op\t%.9f B/op\t%.9f allocs/op\t%.9f ns/visit\n", cell.ID, batch, sample.NSPerOp, sample.BytesPerOp, sample.AllocsPerOp, sample.NSPerOp/float64(sample.Visits))
 	if err := os.WriteFile(filepath.Join(dir, "bench.txt"), []byte(bench), 0o644); err != nil {
 		return err
 	}

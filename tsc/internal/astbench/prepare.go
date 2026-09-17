@@ -53,6 +53,9 @@ func Prepare(ctx context.Context, opts PrepareOptions) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	if err := validateArtifactRoot(repo, artifacts); err != nil {
+		return "", err
+	}
 	if err := validateRunID(opts.RunID); err != nil {
 		return "", err
 	}
@@ -286,6 +289,50 @@ func buildSnapshot(ctx context.Context, snapshot, label, buildDir string, identi
 	}
 	if err := writeJSON(filepath.Join(buildDir, label+"-build.json"), map[string]any{"argv": []string{"go", "build", "-trimpath", "-pgo=off", "-o", path, "./cmd/astbench"}, "env": env, "go_version": strings.TrimSpace(string(version)), "binary_sha256": h}); err != nil {
 		return err
+	}
+	return nil
+}
+
+// Resolve the existing ancestor before appending nonexistent path components so
+// a symlink to the selected checkout cannot hide a nested output directory.
+func resolveFuturePath(path string) (string, error) {
+	var suffix []string
+	for {
+		if _, err := os.Lstat(path); err == nil {
+			root, err := filepath.EvalSymlinks(path)
+			if err != nil {
+				return "", err
+			}
+			for i := len(suffix) - 1; i >= 0; i-- {
+				root = filepath.Join(root, suffix[i])
+			}
+			return root, nil
+		} else if !errors.Is(err, os.ErrNotExist) {
+			return "", err
+		}
+		parent := filepath.Dir(path)
+		if parent == path {
+			return "", fmt.Errorf("no existing ancestor for %s", path)
+		}
+		suffix = append(suffix, filepath.Base(path))
+		path = parent
+	}
+}
+func validateArtifactRoot(repo, artifacts string) error {
+	selected, err := filepath.EvalSymlinks(repo)
+	if err != nil {
+		return err
+	}
+	output, err := resolveFuturePath(artifacts)
+	if err != nil {
+		return err
+	}
+	rel, err := filepath.Rel(selected, output)
+	if err != nil {
+		return err
+	}
+	if rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+		return errors.New("artifact root must be outside the selected repository to keep generated snapshots out of source inputs")
 	}
 	return nil
 }

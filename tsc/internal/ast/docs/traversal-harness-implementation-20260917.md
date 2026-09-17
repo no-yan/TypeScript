@@ -111,7 +111,7 @@ From the repository root, build the driver once outside the measured interval:
   --bench BenchmarkTraversal
 ```
 
-`--out` is the artifact parent; `--run-id` names a new directory. Explicit
+`--out` is the artifact parent and must be outside the selected repository, including through symlinks; nested outputs are rejected before file creation so generated snapshots cannot enter source inputs. `--run-id` names a new directory. Explicit
 `--before REF --after REF` compares committed snapshots, even with unrelated
 working-tree changes. Only `--after-working-tree` includes working-tree production
 source. Both snapshots receive the same recorded harness overlay. A failed build
@@ -152,10 +152,12 @@ output directory. It requires `benchstat` on PATH; otherwise it records missing
 comparison support and retains raw files. The exact executable hash and Go build
 information are saved. Four A/B pairs do not establish equivalence or adoption.
 
-The cooperative campaign lock is in the current user's temporary directory and
-has a bounded wait. SIGINT stops the current child and saves its attempt. A
-SIGKILL can leave a lock file; remove it only after confirming its recorded PID
-is no longer a running campaign. External profilers and unrelated machine load
+The cooperative campaign lock uses an OS advisory lock on macOS and Linux in
+the current user's temporary directory, with a bounded wait. Other operating
+systems report unsupported. SIGINT stops the current child and saves its attempt.
+The OS releases lock ownership when its process exits, including after SIGKILL.
+The lock file remains so all contenders share the same inode; do not delete it.
+An unowned legacy PID file does not block acquisition. External profilers and unrelated machine load
 are not excluded by this lock. Thermal/pressure/swap telemetry remains missing,
 so results are daily direction checks only.
 

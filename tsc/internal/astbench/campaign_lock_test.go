@@ -1,3 +1,5 @@
+//go:build darwin || linux
+
 package astbench
 
 import (
@@ -122,5 +124,45 @@ func TestCampaignLockRejectsCanceledContext(t *testing.T) {
 	}
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("expected context cancellation, got %v", err)
+	}
+}
+
+func TestCampaignLockRetainsInodeAcrossOwners(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "campaign.lock")
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	first, err := acquireLock(ctx, path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	before, err := os.Stat(path)
+	if err != nil {
+		first.release()
+		t.Fatal(err)
+	}
+	first.release()
+	after, err := os.Stat(path)
+	if err != nil {
+		t.Fatalf("release removed persistent lock inode: %v", err)
+	}
+	if !os.SameFile(before, after) {
+		t.Fatal("release replaced lock inode")
+	}
+	second, err := acquireLock(ctx, path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer second.release()
+	// Releasing the previous owner again must not affect its successor.
+	first.release()
+	contenderCtx, contenderCancel := context.WithTimeout(context.Background(), 150*time.Millisecond)
+	defer contenderCancel()
+	third, err := acquireLock(contenderCtx, path)
+	if third != nil {
+		third.release()
+		t.Fatal("successor lost mutual exclusion")
+	}
+	if !errors.Is(err, context.DeadlineExceeded) {
+		t.Fatalf("expected successor exclusion, got %v", err)
 	}
 }
