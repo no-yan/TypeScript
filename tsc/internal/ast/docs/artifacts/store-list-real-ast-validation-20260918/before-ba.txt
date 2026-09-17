@@ -1,0 +1,36 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Apple M1
+BenchmarkE2EWalkStore 	     126	   4711973 ns/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Apple M1
+BenchmarkE2EWalkStore 	     123	   4830467 ns/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Apple M1
+BenchmarkE2EWalkStore 	     126	   4750167 ns/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Apple M1
+BenchmarkE2EWalkStore 	     124	   4768361 ns/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Apple M1
+BenchmarkE2EWalkStore 	     126	   4757424 ns/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Apple M1
+BenchmarkE2EWalkStore 	     124	   4800135 ns/op	       0 B/op	       0 allocs/op
+PASS

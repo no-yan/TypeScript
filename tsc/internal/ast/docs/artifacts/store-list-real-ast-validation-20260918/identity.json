@@ -1,0 +1,20 @@
+{
+  "repo_root": "/Volumes/SanDisk1TB/worktree/ast-traversal-bench-design",
+  "typescript_go_baseline_rev": "3b1ea86b74135c691e5d7025df326b439f680868",
+  "typescript_go_candidate_rev": "613a54b22f8fe8276beea6ee10f085620158b230",
+  "tsgolint_git_rev": null,
+  "baseline_worktree": "/private/tmp/ast-list-real-before",
+  "candidate_worktree": "/private/tmp/ast-list-real-after",
+  "fixture": "tsc/testdata/fixtures/compiler/checker.ts",
+  "fixture_sha256": "4fb2f7e7d898a1729a24b9ad2507b697b747bc8c1315f27cd7e72861115a83e9",
+  "benchmark_source": "tsc/internal/ast/store_e2e_bench_test.go",
+  "benchmark_source_sha256": "cf59e48517f051b88da257f40b32b11fe2439f3f2ac38927fbf435e0b720061b",
+  "baseline_binary_sha256": "496edde966b862a8db77db26f68c995b4a7596a614a0eefeabd6be6701d22c5e",
+  "candidate_binary_sha256": "23f50dbaeec832b69d7747a1bbcbf3dc200ca4dac89146a447f065e1013e51fb",
+  "go_version": "go1.25.0 darwin/arm64",
+  "host": "macOS 26.6.2 (25G83), arm64, Apple M1",
+  "benchmark": "BenchmarkE2EWalkStore",
+  "protocol": "12 independent process pairs, alternating AB/BA, GOMAXPROCS=1, test.cpu=1, 500ms per sample",
+  "control": "12 independent after/after process pairs with first/second positions",
+  "pprof_used": false
+}

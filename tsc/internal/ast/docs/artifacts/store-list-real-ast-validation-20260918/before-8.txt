@@ -1,0 +1,6 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Apple M1
+BenchmarkE2EWalkStore 	     124	   4768361 ns/op	       0 B/op	       0 allocs/op
+PASS
