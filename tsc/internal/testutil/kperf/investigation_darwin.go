@@ -127,12 +127,26 @@ func OnFreshThread(fn func() error) error {
 	return call.err
 }
 
-// ReadEvents fails explicitly: a failed read must never look like zero work.
-// The caller must hold runtime.LockOSThread throughout the measured interval.
+// ReadEventsInto writes a snapshot into caller-owned storage. Callers that
+// include the counter reads in a measured interval must allocate separate
+// before/after buffers during setup, then reuse them for every batch. A failed
+// read is an invalid sample, never zero work. The caller must hold
+// runtime.LockOSThread throughout the measured interval.
+func ReadEventsInto(dst *[10]uint64) error {
+	if dst == nil {
+		return fmt.Errorf("kperf configurable read destination is nil")
+	}
+	if rc := C.inv_snapshot((*C.uint64_t)(unsafe.Pointer(&dst[0]))); rc != 0 {
+		return fmt.Errorf("kperf configurable read failed: %d", int(rc))
+	}
+	return nil
+}
+
+// ReadEvents is retained for existing callers. Its result array may escape at
+// the cgo boundary; measured code should use ReadEventsInto with setup-owned
+// buffers instead.
 func ReadEvents() ([10]uint64, error) {
 	var counters [10]uint64
-	if rc := C.inv_snapshot((*C.uint64_t)(unsafe.Pointer(&counters[0]))); rc != 0 {
-		return counters, fmt.Errorf("kperf configurable read failed: %d", int(rc))
-	}
-	return counters, nil
+	err := ReadEventsInto(&counters)
+	return counters, err
 }
