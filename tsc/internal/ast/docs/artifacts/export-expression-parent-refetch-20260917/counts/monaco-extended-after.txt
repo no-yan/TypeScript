@@ -1,0 +1,8 @@
+Files:             1629
+Identifiers:     784626
+Symbols:         823467
+Types:           297782
+Parse time:      0.327s
+Bind time:       0.131s
+Check time:      2.107s
+Total time:      3.348s
