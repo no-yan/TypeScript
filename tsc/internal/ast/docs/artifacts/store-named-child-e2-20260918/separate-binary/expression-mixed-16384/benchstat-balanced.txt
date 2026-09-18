@@ -1,0 +1,22 @@
+goos: darwin
+goarch: arm64
+pkg: ast/e2
+cpu: Apple M1
+                                  │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/expression-mixed-16384/before.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/expression-mixed-16384/after.txt │
+                                  │                                                      sec/op                                                      │                                          sec/op                                           vs base               │
+NamedChild/expression-mixed-16384                                                                                                        135.0µ ± 0%                                                                                133.3µ ± 0%  -1.27% (p=0.000 n=12)
+
+                                  │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/expression-mixed-16384/before.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/expression-mixed-16384/after.txt │
+                                  │                                                       B/op                                                       │                                            B/op                                              vs base            │
+NamedChild/expression-mixed-16384                                                                                                         0.000 ± 0%                                                                                    0.000 ± 0%  ~ (p=1.000 n=12) ¹
+¹ all samples are equal
+
+                                  │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/expression-mixed-16384/before.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/expression-mixed-16384/after.txt │
+                                  │                                                    allocs/op                                                     │                                          allocs/op                                           vs base            │
+NamedChild/expression-mixed-16384                                                                                                         0.000 ± 0%                                                                                    0.000 ± 0%  ~ (p=1.000 n=12) ¹
+¹ all samples are equal
+
+                                  │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/expression-mixed-16384/before.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/expression-mixed-16384/after.txt │
+                                  │                                                    visits/op                                                     │                                          visits/op                                           vs base            │
+NamedChild/expression-mixed-16384                                                                                                        12.29k ± 0%                                                                                   12.29k ± 0%  ~ (p=1.000 n=12) ¹
+¹ all samples are equal
