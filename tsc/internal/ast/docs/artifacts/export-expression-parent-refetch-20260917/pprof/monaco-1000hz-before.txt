@@ -1,0 +1,10 @@
+Duration: 20s, Total samples = 19063ms (95.30%)
+Showing nodes accounting for 11036ms, 57.89% of 19063ms total
+      43ms  0.23% 41.70%       55ms  0.29%  github.com/microsoft/TypeScript/tsc/internal/ast.Handle.Parent
+       9ms 0.047% 49.85%       45ms  0.24%  github.com/microsoft/TypeScript/tsc/internal/ast.FindAncestor
+       4ms 0.021% 53.05%        9ms 0.047%  github.com/microsoft/TypeScript/tsc/internal/checker.isExportOrExportExpression.func1
+       1ms 0.0052% 56.77%        7ms 0.037%  github.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).markAliasReferenced
+       1ms 0.0052% 56.79%       25ms  0.13%  github.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).markPropertyAliasReferenced
+         0     0% 57.89%     3874ms 20.32%  github.com/microsoft/TypeScript/tsc/internal/checker.(*Checker).checkSourceFile
+         0     0% 57.89%       11ms 0.058%  github.com/microsoft/TypeScript/tsc/internal/checker.isExportOrExportExpression
+         0     0% 57.89%     2654ms 13.92%  runtime.gcBgMarkWorker

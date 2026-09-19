@@ -1,0 +1,6 @@
+before run1 {"export_expr_calls":163361,"export_expr_nanos":24348000,"null_pair_nanos":6830000}
+after run1 {"export_expr_calls":163361,"export_expr_nanos":17850000,"null_pair_nanos":6531000}
+before run2 {"export_expr_calls":163361,"export_expr_nanos":22741000,"null_pair_nanos":6335000}
+after run2 {"export_expr_calls":163361,"export_expr_nanos":17704000,"null_pair_nanos":6750000}
+before run3 {"export_expr_calls":163361,"export_expr_nanos":24647000,"null_pair_nanos":6515000}
+after run3 {"export_expr_calls":163361,"export_expr_nanos":16786000,"null_pair_nanos":6524000}

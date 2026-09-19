@@ -24230,13 +24230,13 @@ func (c *Checker) markLinkedReferences(location ast.Handle, hint ReferenceHint, 
 }
 func isExportOrExportExpression(location ast.Handle) bool {
 	return !ast.FindAncestor(location, func(n ast.Handle) bool {
-		parent := n.Parent
-		if parent != nil {
-			if ast.IsAnyExportAssignment(parent()) {
-				return parent().Expression() == n && ast.IsEntityNameExpression(n)
+		parent := n.Parent()
+		if !parent.IsNil() {
+			if ast.IsAnyExportAssignment(parent) {
+				return parent.Expression() == n && ast.IsEntityNameExpression(n)
 			}
-			if ast.IsExportSpecifier(parent()) {
-				return parent().ExportSpecifierName() == n || parent().PropertyName() == n
+			if ast.IsExportSpecifier(parent) {
+				return parent.ExportSpecifierName() == n || parent.PropertyName() == n
 			}
 		}
 		return false

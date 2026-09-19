@@ -1,0 +1,16 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/checker
+cpu: Apple M1
+BenchmarkIsExportOrExportExpression-8   	     134	   8890345 ns/op	    123554 idents/op	   1578597 visits/op	       0 B/op	       0 allocs/op
+BenchmarkIsExportOrExportExpression-8   	     135	   8835477 ns/op	    123554 idents/op	   1578597 visits/op	       0 B/op	       0 allocs/op
+BenchmarkIsExportOrExportExpression-8   	     134	   8849379 ns/op	    123554 idents/op	   1578597 visits/op	       0 B/op	       0 allocs/op
+BenchmarkIsExportOrExportExpression-8   	     135	   8826230 ns/op	    123554 idents/op	   1578597 visits/op	       0 B/op	       0 allocs/op
+BenchmarkIsExportOrExportExpression-8   	     133	   8932685 ns/op	    123554 idents/op	   1578597 visits/op	       0 B/op	       0 allocs/op
+BenchmarkIsExportOrExportExpression-8   	     135	   8838338 ns/op	    123554 idents/op	   1578597 visits/op	       0 B/op	       0 allocs/op
+BenchmarkIsExportOrExportExpression-8   	     133	   8939308 ns/op	    123554 idents/op	   1578597 visits/op	       0 B/op	       0 allocs/op
+BenchmarkIsExportOrExportExpression-8   	     134	   8867982 ns/op	    123554 idents/op	   1578597 visits/op	       0 B/op	       0 allocs/op
+BenchmarkIsExportOrExportExpression-8   	     135	   8842628 ns/op	    123554 idents/op	   1578597 visits/op	       0 B/op	       0 allocs/op
+BenchmarkIsExportOrExportExpression-8   	     132	   9056945 ns/op	    123554 idents/op	   1578597 visits/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/checker	13.287s
