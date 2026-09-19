@@ -1,0 +1,22 @@
+goos: darwin
+goarch: arm64
+pkg: ast/e2-same-binary
+cpu: Apple M1
+                          │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/same-binary/full-mixed-256/before.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/same-binary/full-mixed-256/after.txt │
+                          │                                                        sec/op                                                        │                                            sec/op                                             vs base               │
+NamedChild/full-mixed-256                                                                                                            4.213µ ± 1%                                                                                    3.941µ ± 1%  -6.45% (p=0.000 n=12)
+
+                          │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/same-binary/full-mixed-256/before.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/same-binary/full-mixed-256/after.txt │
+                          │                                                         B/op                                                         │                                              B/op                                                vs base            │
+NamedChild/full-mixed-256                                                                                                             0.000 ± 0%                                                                                        0.000 ± 0%  ~ (p=1.000 n=12) ¹
+¹ all samples are equal
+
+                          │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/same-binary/full-mixed-256/before.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/same-binary/full-mixed-256/after.txt │
+                          │                                                      allocs/op                                                       │                                            allocs/op                                             vs base            │
+NamedChild/full-mixed-256                                                                                                             0.000 ± 0%                                                                                        0.000 ± 0%  ~ (p=1.000 n=12) ¹
+¹ all samples are equal
+
+                          │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/same-binary/full-mixed-256/before.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/same-binary/full-mixed-256/after.txt │
+                          │                                                      visits/op                                                       │                                            visits/op                                             vs base            │
+NamedChild/full-mixed-256                                                                                                             256.0 ± 0%                                                                                        256.0 ± 0%  ~ (p=1.000 n=12) ¹
+¹ all samples are equal

@@ -1549,6 +1549,21 @@ func (h Handle) forEachChildList(list ListRef, v StoreVisitor) bool {
 	if list == 0 {
 		return false
 	}
+	if span, ok := h.s.TryBindListSpan(list); ok {
+		for i := range span.Len() {
+			id := h.s.BindListSpanElem(span, i)
+			child := Handle{}
+			if id != NoNodeRef {
+				child = h.s.handleOf(id)
+			} else {
+				child = h.s.ListAt(list, i)
+			}
+			if !child.IsNil() && v(child) {
+				return true
+			}
+		}
+		return false
+	}
 	for i := range h.s.ListLen(list) {
 		child := h.s.ListAt(list, i)
 		if !child.IsNil() && v(child) {

@@ -1,0 +1,10 @@
+goos: darwin
+goarch: arm64
+pkg: ast/e2-same-binary
+cpu: Apple M1
+BenchmarkNamedChild/full-mixed-16384	1	281342.041 ns/op	0.000 B/op	0.000 allocs/op	16384 visits/op
+BenchmarkNamedChild/full-mixed-16384	1	279299.521 ns/op	0.000 B/op	0.000 allocs/op	16384 visits/op
+BenchmarkNamedChild/full-mixed-16384	1	274088.216 ns/op	0.000 B/op	0.000 allocs/op	16384 visits/op
+BenchmarkNamedChild/full-mixed-16384	1	280592.854 ns/op	0.000 B/op	0.000 allocs/op	16384 visits/op
+BenchmarkNamedChild/full-mixed-16384	1	279959.147 ns/op	0.000 B/op	0.000 allocs/op	16384 visits/op
+BenchmarkNamedChild/full-mixed-16384	1	267926.107 ns/op	0.000 B/op	0.000 allocs/op	16384 visits/op

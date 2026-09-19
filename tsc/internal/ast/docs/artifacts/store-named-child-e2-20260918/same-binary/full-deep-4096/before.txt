@@ -1,0 +1,16 @@
+goos: darwin
+goarch: arm64
+pkg: ast/e2-same-binary
+cpu: Apple M1
+BenchmarkNamedChild/full-deep-4096	1	138081.360 ns/op	0.000 B/op	0.000 allocs/op	4096 visits/op
+BenchmarkNamedChild/full-deep-4096	1	137912.028 ns/op	0.000 B/op	0.000 allocs/op	4096 visits/op
+BenchmarkNamedChild/full-deep-4096	1	138382.914 ns/op	0.000 B/op	0.000 allocs/op	4096 visits/op
+BenchmarkNamedChild/full-deep-4096	1	139675.964 ns/op	0.000 B/op	0.000 allocs/op	4096 visits/op
+BenchmarkNamedChild/full-deep-4096	1	138019.206 ns/op	0.000 B/op	0.000 allocs/op	4096 visits/op
+BenchmarkNamedChild/full-deep-4096	1	138137.217 ns/op	0.000 B/op	0.000 allocs/op	4096 visits/op
+BenchmarkNamedChild/full-deep-4096	1	139554.901 ns/op	0.000 B/op	0.000 allocs/op	4096 visits/op
+BenchmarkNamedChild/full-deep-4096	1	138058.604 ns/op	0.000 B/op	0.000 allocs/op	4096 visits/op
+BenchmarkNamedChild/full-deep-4096	1	137844.564 ns/op	0.000 B/op	0.000 allocs/op	4096 visits/op
+BenchmarkNamedChild/full-deep-4096	1	138160.787 ns/op	0.000 B/op	0.000 allocs/op	4096 visits/op
+BenchmarkNamedChild/full-deep-4096	1	139755.280 ns/op	0.000 B/op	0.000 allocs/op	4096 visits/op
+BenchmarkNamedChild/full-deep-4096	1	139589.915 ns/op	0.000 B/op	0.000 allocs/op	4096 visits/op

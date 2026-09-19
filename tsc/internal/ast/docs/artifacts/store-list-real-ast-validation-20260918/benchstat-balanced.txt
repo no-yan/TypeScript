@@ -1,0 +1,17 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Apple M1
+             │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/before-balanced.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/after-balanced.txt │
+             │                                                sec/op                                                 │                                    sec/op                                      vs base               │
+E2EWalkStore                                                                                             4.794m ± 1%                                                                     4.560m ± 1%  -4.88% (p=0.000 n=12)
+
+             │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/before-balanced.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/after-balanced.txt │
+             │                                                 B/op                                                  │                                       B/op                                        vs base            │
+E2EWalkStore                                                                                              0.000 ± 0%                                                                         0.000 ± 0%  ~ (p=1.000 n=12) ¹
+¹ all samples are equal
+
+             │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/before-balanced.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/after-balanced.txt │
+             │                                               allocs/op                                               │                                    allocs/op                                      vs base            │
+E2EWalkStore                                                                                              0.000 ± 0%                                                                         0.000 ± 0%  ~ (p=1.000 n=12) ¹
+¹ all samples are equal

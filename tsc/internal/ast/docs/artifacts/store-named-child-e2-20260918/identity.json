@@ -1,0 +1,17 @@
+{
+  "repo_root": "/Volumes/SanDisk1TB/worktree/ast-traversal-bench-design",
+  "typescript_go_git_rev": "6843f9b8e26",
+  "tsgolint_git_rev": null,
+  "experiment_worktree": "/private/tmp/ast-named-child-exp",
+  "diagnostic_patch_sha256": "51bff1679ba7df8c0175241b82fdce520d0ec5ac39dc663bf07461b1930fc1dc",
+  "diagnostic_binary_sha256": "5ea9e65c92cf56eda530a34ae97e8d49e83b52b7bd9e33722326c925c5b7d166",
+  "separate_binary_before_sha256": "399a8b1c795e6a3636231c9b056c62b522a4ec324df20a6ba543ec6c8df445c4",
+  "separate_binary_after_sha256": "b2500c77ac3ba061149af384bf06572d1a3d8137c29372fa224ec5bb6080cc83",
+  "store_go_sha256": "e79b70d7254986e5c483ccbb1cec434552b8e11e3b51c3ed078749e276b1ef01",
+  "store_foreach_child_generated_go_sha256": "e525667bf93c999e086b38357e34486051b6a79ef6cd02ae72ff95873b647f77",
+  "store_named_child_experiment_go_sha256": "e57b91d21610aa44689731b4236be76fdaa4508429c69afb52c8982ce748f473",
+  "host": "macOS 26.6.2 (25G83), arm64, Apple M1",
+  "go_version": "go1.25.0 darwin/arm64",
+  "primary_protocol": "one diagnostic binary; environment selects legacy or bound BinaryExpression child path; 12 independent process pairs alternating AB/BA plus 12 bound/bound controls per cell",
+  "pprof_used": false
+}

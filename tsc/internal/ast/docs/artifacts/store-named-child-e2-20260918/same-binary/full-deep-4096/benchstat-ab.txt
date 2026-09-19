@@ -1,0 +1,22 @@
+goos: darwin
+goarch: arm64
+pkg: ast/e2-same-binary
+cpu: Apple M1
+                          │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/same-binary/full-deep-4096/before-ab.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/same-binary/full-deep-4096/after-ab.txt │
+                          │                                                         sec/op                                                          │                                                sec/op                                                  vs base         │
+NamedChild/full-deep-4096                                                                                                               138.2µ ± 1%                                                                                             139.1µ ± 1%  ~ (p=0.394 n=6)
+
+                          │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/same-binary/full-deep-4096/before-ab.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/same-binary/full-deep-4096/after-ab.txt │
+                          │                                                          B/op                                                           │                                                B/op                                                  vs base           │
+NamedChild/full-deep-4096                                                                                                                0.000 ± 0%                                                                                            0.000 ± 0%  ~ (p=1.000 n=6) ¹
+¹ all samples are equal
+
+                          │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/same-binary/full-deep-4096/before-ab.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/same-binary/full-deep-4096/after-ab.txt │
+                          │                                                        allocs/op                                                        │                                              allocs/op                                               vs base           │
+NamedChild/full-deep-4096                                                                                                                0.000 ± 0%                                                                                            0.000 ± 0%  ~ (p=1.000 n=6) ¹
+¹ all samples are equal
+
+                          │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/same-binary/full-deep-4096/before-ab.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/same-binary/full-deep-4096/after-ab.txt │
+                          │                                                        visits/op                                                        │                                              visits/op                                               vs base           │
+NamedChild/full-deep-4096                                                                                                               4.096k ± 0%                                                                                           4.096k ± 0%  ~ (p=1.000 n=6) ¹
+¹ all samples are equal

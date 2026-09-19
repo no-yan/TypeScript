@@ -1,0 +1,17 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Apple M1
+             │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/before-ab.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/after-ab.txt │
+             │                                             sec/op                                              │                                  sec/op                                   vs base              │
+E2EWalkStore                                                                                       4.821m ± 1%                                                                4.536m ± 2%  -5.92% (p=0.002 n=6)
+
+             │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/before-ab.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/after-ab.txt │
+             │                                              B/op                                               │                                    B/op                                      vs base           │
+E2EWalkStore                                                                                        0.000 ± 0%                                                                    0.000 ± 0%  ~ (p=1.000 n=6) ¹
+¹ all samples are equal
+
+             │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/before-ab.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/real-list-elision-20260918/after-ab.txt │
+             │                                            allocs/op                                            │                                  allocs/op                                   vs base           │
+E2EWalkStore                                                                                        0.000 ± 0%                                                                    0.000 ± 0%  ~ (p=1.000 n=6) ¹
+¹ all samples are equal

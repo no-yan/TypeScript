@@ -1,0 +1,16 @@
+goos: darwin
+goarch: arm64
+pkg: ast/e2-same-binary
+cpu: Apple M1
+BenchmarkNamedChild/expression-mixed-16384	1	132518.759 ns/op	0.000 B/op	0.000 allocs/op	12289 visits/op
+BenchmarkNamedChild/expression-mixed-16384	1	133324.911 ns/op	0.000 B/op	0.000 allocs/op	12289 visits/op
+BenchmarkNamedChild/expression-mixed-16384	1	133783.162 ns/op	0.000 B/op	0.000 allocs/op	12289 visits/op
+BenchmarkNamedChild/expression-mixed-16384	1	132558.879 ns/op	0.000 B/op	0.000 allocs/op	12289 visits/op
+BenchmarkNamedChild/expression-mixed-16384	1	132371.785 ns/op	0.000 B/op	0.000 allocs/op	12289 visits/op
+BenchmarkNamedChild/expression-mixed-16384	1	131537.557 ns/op	0.000 B/op	0.000 allocs/op	12289 visits/op
+BenchmarkNamedChild/expression-mixed-16384	1	132152.873 ns/op	0.000 B/op	0.000 allocs/op	12289 visits/op
+BenchmarkNamedChild/expression-mixed-16384	1	132629.557 ns/op	0.000 B/op	0.000 allocs/op	12289 visits/op
+BenchmarkNamedChild/expression-mixed-16384	1	133172.647 ns/op	0.000 B/op	0.000 allocs/op	12289 visits/op
+BenchmarkNamedChild/expression-mixed-16384	1	132437.703 ns/op	0.000 B/op	0.000 allocs/op	12289 visits/op
+BenchmarkNamedChild/expression-mixed-16384	1	131793.904 ns/op	0.000 B/op	0.000 allocs/op	12289 visits/op
+BenchmarkNamedChild/expression-mixed-16384	1	131605.388 ns/op	0.000 B/op	0.000 allocs/op	12289 visits/op

@@ -1,0 +1,22 @@
+goos: darwin
+goarch: arm64
+pkg: ast/e2
+cpu: Apple M1
+                            │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/full-mixed-16384/control-first.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/full-mixed-16384/control-second.txt │
+                            │                                                      sec/op                                                       │                                              sec/op                                               vs base          │
+NamedChild/full-mixed-16384                                                                                                         255.6µ ± 0%                                                                                        255.6µ ± 0%  ~ (p=0.514 n=12)
+
+                            │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/full-mixed-16384/control-first.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/full-mixed-16384/control-second.txt │
+                            │                                                       B/op                                                        │                                              B/op                                               vs base            │
+NamedChild/full-mixed-16384                                                                                                          0.000 ± 0%                                                                                       0.000 ± 0%  ~ (p=1.000 n=12) ¹
+¹ all samples are equal
+
+                            │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/full-mixed-16384/control-first.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/full-mixed-16384/control-second.txt │
+                            │                                                     allocs/op                                                     │                                           allocs/op                                             vs base            │
+NamedChild/full-mixed-16384                                                                                                          0.000 ± 0%                                                                                       0.000 ± 0%  ~ (p=1.000 n=12) ¹
+¹ all samples are equal
+
+                            │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/full-mixed-16384/control-first.txt │ /Volumes/SanDisk1TB/Library/Caches/ast-traversal-bench/e2-named-child-20260918/full-mixed-16384/control-second.txt │
+                            │                                                     visits/op                                                     │                                           visits/op                                             vs base            │
+NamedChild/full-mixed-16384                                                                                                         16.38k ± 0%                                                                                      16.38k ± 0%  ~ (p=1.000 n=12) ¹
+¹ all samples are equal
