@@ -3,6 +3,7 @@ package kperf
 import (
 	"fmt"
 	"runtime"
+	"runtime/debug"
 	"testing"
 )
 
@@ -10,10 +11,16 @@ import (
 // lifetime, and the measurement contract shared by every KPC benchmark: each
 // interval must be strictly positive, and the Read pair overhead is not
 // subtracted. BenchmarkReadPair reports that overhead.
+//
+// The collector is off for the whole session. Mark assists, write barriers and
+// allocation-time sweeps run on the measured thread, so a cycle that overlaps
+// an interval adds instructions that depend on the GC phase, not on the code
+// under test.
 type Session struct {
 	b        *testing.B
 	totals   Totals
 	oldProcs int
+	oldGC    int
 }
 
 // Callers must defer Stop.
@@ -27,7 +34,7 @@ func Start(b *testing.B) *Session {
 		b.Skip("kperf: build with -tags kperf (darwin/arm64, cgo, root)")
 	}
 	runtime.LockOSThread()
-	s := &Session{b: b, oldProcs: runtime.GOMAXPROCS(1)}
+	s := &Session{b: b, oldProcs: runtime.GOMAXPROCS(1), oldGC: debug.SetGCPercent(-1)}
 	if err := Open(); err != nil {
 		s.Stop()
 		b.Fatalf("kperf unavailable: %v", err)
@@ -37,12 +44,18 @@ func Start(b *testing.B) *Session {
 
 func (s *Session) Stop() {
 	Close()
+	debug.SetGCPercent(s.oldGC)
 	runtime.GOMAXPROCS(s.oldProcs)
 	runtime.UnlockOSThread()
 }
 
-// Measure leaves the benchmark timers to the caller.
+// Measure expects a running benchmark timer. It pauses the timer only to
+// collect, which bounds the heap with the collector off and starts every
+// interval from a fully swept heap.
 func (s *Session) Measure(fn func()) {
+	s.b.StopTimer()
+	runtime.GC()
+	s.b.StartTimer()
 	before, err := Read()
 	if err != nil {
 		s.b.Fatal(err)
