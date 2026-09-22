@@ -1,0 +1,3601 @@
+TEXT 
+ast_generated.go:8691 MOVD 16(R28), R16
+ast_generated.go:8691 SUB $240, RSP, R17
+ast_generated.go:8691 CMP R16, R17
+ast_generated.go:8691 BLS 3589(PC)
+ast_generated.go:8691 SUB $368, RSP, R20
+ast_generated.go:8691 STP (R29, R30), -8(R20)
+ast_generated.go:8691 MOVD R20, RSP
+ast_generated.go:8691 SUB $8, RSP, R29
+ast_generated.go:8692 MOVH (R0), R3
+ast_generated.go:8692 SUB $167, R3, R3
+ast_generated.go:8692 CMP $182, R3
+ast_generated.go:8692 BHI 2363(PC)
+ast_generated.go:8692 MOVD R1, 384(RSP)
+ast_generated.go:8692 ADRP 4939776(PC), R2
+ast_generated.go:8692 ADD $2368, R2, R2
+ast_generated.go:8692 MOVD (R2)(R3<<3), R27
+ast_generated.go:8692 JMP (R27)
+ast_generated.go:8694 LDP 32(R0), (R0, R3)
+ast_generated.go:8694 ADRP 6434816(PC), R4
+ast_generated.go:8694 ADD $4048, R4, R4
+ast_generated.go:8694 CMP R4, R0
+ast_generated.go:8694 BNE 3565(PC)
+ast_generated.go:693 MOVD 64(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:693 MOVD ZR, R0
+ast_generated.go:693 JMP 7(PC)
+ast_generated.go:8694 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:693 MOVD 352(RSP), R3
+ast_generated.go:693 TBZ $0, R0, 3(PC)
+ast_generated.go:693 ORR $1, ZR, R0
+ast_generated.go:693 JMP 8(PC)
+ast_generated.go:693 MOVD 72(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:693 MOVD ZR, R0
+ast_generated.go:693 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8694 LDP -8(RSP), (R29, R30)
+ast_generated.go:8694 ADD $368, RSP, RSP
+ast_generated.go:8694 RET
+ast_generated.go:8696 LDP 32(R0), (R0, R3)
+ast_generated.go:8696 ADRP 6438912(PC), R4
+ast_generated.go:8696 ADD $136, R4, R4
+ast_generated.go:8696 CMP R4, R0
+ast_generated.go:8696 BNE 3532(PC)
+ast_generated.go:737 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:737 MOVD ZR, R0
+ast_generated.go:737 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8696 LDP -8(RSP), (R29, R30)
+ast_generated.go:8696 ADD $368, RSP, RSP
+ast_generated.go:8696 RET
+ast_generated.go:9020 LDP 32(R0), (R0, R3)
+ast_generated.go:9020 ADRP 6438912(PC), R4
+ast_generated.go:9020 ADD $320, R4, R4
+ast_generated.go:9020 CMP R4, R0
+ast_generated.go:9020 BNE 3512(PC)
+ast_generated.go:9020 MOVD R3, R0
+ast_generated.go:9020 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*TypeParameterDeclaration).ForEachChild(SB)
+ast_generated.go:9020 LDP -8(RSP), (R29, R30)
+ast_generated.go:9020 ADD $368, RSP, RSP
+ast_generated.go:9020 RET
+ast_generated.go:8744 LDP 32(R0), (R0, R3)
+ast_generated.go:8744 ADRP 6438912(PC), R4
+ast_generated.go:8744 ADD $504, R4, R4
+ast_generated.go:8744 CMP R4, R0
+ast_generated.go:8744 BNE 3497(PC)
+ast_generated.go:8744 MOVD R3, R0
+ast_generated.go:8744 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ParameterDeclaration).ForEachChild(SB)
+ast_generated.go:8744 LDP -8(RSP), (R29, R30)
+ast_generated.go:8744 ADD $368, RSP, RSP
+ast_generated.go:8744 RET
+ast_generated.go:8698 LDP 32(R0), (R0, R3)
+ast_generated.go:8698 ADRP 6438912(PC), R4
+ast_generated.go:8698 ADD $688, R4, R4
+ast_generated.go:8698 CMP R4, R0
+ast_generated.go:8698 BNE 3482(PC)
+ast_generated.go:780 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:780 MOVD ZR, R0
+ast_generated.go:780 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8698 LDP -8(RSP), (R29, R30)
+ast_generated.go:8698 ADD $368, RSP, RSP
+ast_generated.go:8698 RET
+ast_generated.go:8802 LDP 32(R0), (R0, R3)
+ast_generated.go:8802 ADRP 6438912(PC), R4
+ast_generated.go:8802 ADD $872, R4, R4
+ast_generated.go:8802 CMP R4, R0
+ast_generated.go:8802 BNE 3462(PC)
+ast_generated.go:8802 MOVD R3, R0
+ast_generated.go:8802 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*PropertySignatureDeclaration).ForEachChild(SB)
+ast_generated.go:8802 LDP -8(RSP), (R29, R30)
+ast_generated.go:8802 ADD $368, RSP, RSP
+ast_generated.go:8802 RET
+ast_generated.go:8804 LDP 32(R0), (R0, R3)
+ast_generated.go:8804 ADRP 6438912(PC), R4
+ast_generated.go:8804 ADD $1056, R4, R4
+ast_generated.go:8804 CMP R4, R0
+ast_generated.go:8804 BNE 3447(PC)
+ast_generated.go:8804 MOVD R3, R0
+ast_generated.go:8804 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*PropertyDeclaration).ForEachChild(SB)
+ast_generated.go:8804 LDP -8(RSP), (R29, R30)
+ast_generated.go:8804 ADD $368, RSP, RSP
+ast_generated.go:8804 RET
+ast_generated.go:8798 LDP 32(R0), (R0, R3)
+ast_generated.go:8798 ADRP 6438912(PC), R4
+ast_generated.go:8798 ADD $1240, R4, R4
+ast_generated.go:8798 CMP R4, R0
+ast_generated.go:8798 BNE 3432(PC)
+ast_generated.go:8798 MOVD R3, R0
+ast_generated.go:8798 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*MethodSignatureDeclaration).ForEachChild(SB)
+ast_generated.go:8798 LDP -8(RSP), (R29, R30)
+ast_generated.go:8798 ADD $368, RSP, RSP
+ast_generated.go:8798 RET
+ast_generated.go:8800 LDP 32(R0), (R0, R3)
+ast_generated.go:8800 ADRP 6438912(PC), R4
+ast_generated.go:8800 ADD $1424, R4, R4
+ast_generated.go:8800 CMP R4, R0
+ast_generated.go:8800 BNE 3417(PC)
+ast_generated.go:8800 MOVD R3, R0
+ast_generated.go:8800 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*MethodDeclaration).ForEachChild(SB)
+ast_generated.go:8800 LDP -8(RSP), (R29, R30)
+ast_generated.go:8800 ADD $368, RSP, RSP
+ast_generated.go:8800 RET
+ast_generated.go:8806 LDP 32(R0), (R0, R3)
+ast_generated.go:8806 ADRP 6438912(PC), R4
+ast_generated.go:8806 ADD $1608, R4, R4
+ast_generated.go:8806 CMP R4, R0
+ast_generated.go:8806 BNE 3402(PC)
+ast_generated.go:8806 MOVD R3, R0
+ast_generated.go:8806 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ClassStaticBlockDeclaration).ForEachChild(SB)
+ast_generated.go:8806 LDP -8(RSP), (R29, R30)
+ast_generated.go:8806 ADD $368, RSP, RSP
+ast_generated.go:8806 RET
+ast_generated.go:8790 LDP 32(R0), (R0, R3)
+ast_generated.go:8790 ADRP 6438912(PC), R4
+ast_generated.go:8790 ADD $1792, R4, R4
+ast_generated.go:8790 CMP R4, R0
+ast_generated.go:8790 BNE 3387(PC)
+ast_generated.go:8790 MOVD R3, R0
+ast_generated.go:8790 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ConstructorDeclaration).ForEachChild(SB)
+ast_generated.go:8790 LDP -8(RSP), (R29, R30)
+ast_generated.go:8790 ADD $368, RSP, RSP
+ast_generated.go:8790 RET
+ast_generated.go:8792 LDP 32(R0), (R0, R3)
+ast_generated.go:8792 ADRP 6438912(PC), R4
+ast_generated.go:8792 ADD $1976, R4, R4
+ast_generated.go:8792 CMP R4, R0
+ast_generated.go:8792 BNE 3372(PC)
+ast_generated.go:8792 MOVD R3, R0
+ast_generated.go:8792 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*GetAccessorDeclaration).ForEachChild(SB)
+ast_generated.go:8792 LDP -8(RSP), (R29, R30)
+ast_generated.go:8792 ADD $368, RSP, RSP
+ast_generated.go:8792 RET
+ast_generated.go:8794 LDP 32(R0), (R0, R3)
+ast_generated.go:8794 ADRP 6438912(PC), R4
+ast_generated.go:8794 ADD $2160, R4, R4
+ast_generated.go:8794 CMP R4, R0
+ast_generated.go:8794 BNE 3357(PC)
+ast_generated.go:8794 MOVD R3, R0
+ast_generated.go:8794 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*SetAccessorDeclaration).ForEachChild(SB)
+ast_generated.go:8794 LDP -8(RSP), (R29, R30)
+ast_generated.go:8794 ADD $368, RSP, RSP
+ast_generated.go:8794 RET
+ast_generated.go:8786 LDP 32(R0), (R0, R3)
+ast_generated.go:8786 ADRP 6438912(PC), R4
+ast_generated.go:8786 ADD $2344, R4, R4
+ast_generated.go:8786 CMP R4, R0
+ast_generated.go:8786 BNE 3342(PC)
+ast_generated.go:8786 MOVD R3, R0
+ast_generated.go:8786 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*CallSignatureDeclaration).ForEachChild(SB)
+ast_generated.go:8786 LDP -8(RSP), (R29, R30)
+ast_generated.go:8786 ADD $368, RSP, RSP
+ast_generated.go:8786 RET
+ast_generated.go:8788 LDP 32(R0), (R0, R3)
+ast_generated.go:8788 ADRP 6438912(PC), R4
+ast_generated.go:8788 ADD $2528, R4, R4
+ast_generated.go:8788 CMP R4, R0
+ast_generated.go:8788 BNE 3327(PC)
+ast_generated.go:8788 MOVD R3, R0
+ast_generated.go:8788 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ConstructSignatureDeclaration).ForEachChild(SB)
+ast_generated.go:8788 LDP -8(RSP), (R29, R30)
+ast_generated.go:8788 ADD $368, RSP, RSP
+ast_generated.go:8788 RET
+ast_generated.go:8796 LDP 32(R0), (R0, R3)
+ast_generated.go:8796 ADRP 6438912(PC), R4
+ast_generated.go:8796 ADD $2712, R4, R4
+ast_generated.go:8796 CMP R4, R0
+ast_generated.go:8796 BNE 3312(PC)
+ast_generated.go:8796 MOVD R3, R0
+ast_generated.go:8796 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*IndexSignatureDeclaration).ForEachChild(SB)
+ast_generated.go:8796 LDP -8(RSP), (R29, R30)
+ast_generated.go:8796 ADD $368, RSP, RSP
+ast_generated.go:8796 RET
+ast_generated.go:8888 LDP 32(R0), (R0, R3)
+ast_generated.go:8888 ADRP 6438912(PC), R4
+ast_generated.go:8888 ADD $2896, R4, R4
+ast_generated.go:8888 CMP R4, R0
+ast_generated.go:8888 BNE 3297(PC)
+ast_generated.go:8888 MOVD R3, R0
+ast_generated.go:8888 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*TypePredicateNode).ForEachChild(SB)
+ast_generated.go:8888 LDP -8(RSP), (R29, R30)
+ast_generated.go:8888 ADD $368, RSP, RSP
+ast_generated.go:8888 RET
+ast_generated.go:8882 LDP 32(R0), (R0, R3)
+ast_generated.go:8882 ADRP 6438912(PC), R4
+ast_generated.go:8882 ADD $3080, R4, R4
+ast_generated.go:8882 CMP R4, R0
+ast_generated.go:8882 BNE 3282(PC)
+ast_generated.go:8882 MOVD R3, R0
+ast_generated.go:8882 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*TypeReferenceNode).ForEachChild(SB)
+ast_generated.go:8882 LDP -8(RSP), (R29, R30)
+ast_generated.go:8882 ADD $368, RSP, RSP
+ast_generated.go:8882 RET
+ast_generated.go:8910 LDP 32(R0), (R0, R3)
+ast_generated.go:8910 ADRP 6438912(PC), R4
+ast_generated.go:8910 ADD $3264, R4, R4
+ast_generated.go:8910 CMP R4, R0
+ast_generated.go:8910 BNE 3267(PC)
+ast_generated.go:8910 MOVD R3, R0
+ast_generated.go:8910 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*FunctionTypeNode).ForEachChild(SB)
+ast_generated.go:8910 LDP -8(RSP), (R29, R30)
+ast_generated.go:8910 ADD $368, RSP, RSP
+ast_generated.go:8910 RET
+ast_generated.go:8912 LDP 32(R0), (R0, R3)
+ast_generated.go:8912 ADRP 6438912(PC), R4
+ast_generated.go:8912 ADD $3448, R4, R4
+ast_generated.go:8912 CMP R4, R0
+ast_generated.go:8912 BNE 3252(PC)
+ast_generated.go:8912 MOVD R3, R0
+ast_generated.go:8912 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ConstructorTypeNode).ForEachChild(SB)
+ast_generated.go:8912 LDP -8(RSP), (R29, R30)
+ast_generated.go:8912 ADD $368, RSP, RSP
+ast_generated.go:8912 RET
+ast_generated.go:8894 LDP 32(R0), (R0, R3)
+ast_generated.go:8894 ADRP 6438912(PC), R4
+ast_generated.go:8894 ADD $3632, R4, R4
+ast_generated.go:8894 CMP R4, R0
+ast_generated.go:8894 BNE 3237(PC)
+ast_generated.go:8894 MOVD R3, R0
+ast_generated.go:8894 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*TypeQueryNode).ForEachChild(SB)
+ast_generated.go:8894 LDP -8(RSP), (R29, R30)
+ast_generated.go:8894 ADD $368, RSP, RSP
+ast_generated.go:8894 RET
+ast_generated.go:8898 LDP 32(R0), (R0, R3)
+ast_generated.go:8898 ADRP 6438912(PC), R4
+ast_generated.go:8898 ADD $3816, R4, R4
+ast_generated.go:8898 CMP R4, R0
+ast_generated.go:8898 BNE 3222(PC)
+ast_generated.go:5800 MOVD 56(R3), R2
+ast.go:48 CBZ R2, 6(PC)
+ast.go:49 LDP 8(R2), (R2, R3)
+ast.go:49 MOVD R3, 72(RSP)
+ast.go:49 MOVD R2, 232(RSP)
+ast.go:39 MOVD ZR, R0
+ast.go:39 JMP 3202(PC)
+ast_generated.go:5800 MOVD ZR, R0
+ast_generated.go:5800 JMP 3193(PC)
+ast_generated.go:8878 LDP 32(R0), (R0, R3)
+ast_generated.go:8878 ADRP 6438912(PC), R4
+ast_generated.go:8878 ADD $4000, R4, R4
+ast_generated.go:8878 CMP R4, R0
+ast_generated.go:8878 BNE 3183(PC)
+ast_generated.go:5349 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:5349 MOVD ZR, R0
+ast_generated.go:5349 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8878 LDP -8(RSP), (R29, R30)
+ast_generated.go:8878 ADD $368, RSP, RSP
+ast_generated.go:8878 RET
+ast_generated.go:8900 LDP 32(R0), (R0, R3)
+ast_generated.go:8900 ADRP 6443008(PC), R4
+ast_generated.go:8900 ADD $88, R4, R4
+ast_generated.go:8900 CMP R4, R0
+ast_generated.go:8900 BNE 3163(PC)
+ast_generated.go:5838 MOVD 48(R3), R2
+ast.go:48 CBZ R2, 6(PC)
+ast.go:49 LDP 8(R2), (R2, R3)
+ast.go:49 MOVD R3, 64(RSP)
+ast.go:49 MOVD R2, 224(RSP)
+ast.go:39 MOVD ZR, R0
+ast.go:39 JMP 3143(PC)
+ast_generated.go:5838 MOVD ZR, R0
+ast_generated.go:5838 JMP 3134(PC)
+ast_generated.go:8904 LDP 32(R0), (R0, R3)
+ast_generated.go:8904 ADRP 6443008(PC), R4
+ast_generated.go:8904 ADD $272, R4, R4
+ast_generated.go:8904 CMP R4, R0
+ast_generated.go:8904 BNE 3124(PC)
+ast_generated.go:5928 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:5928 MOVD ZR, R0
+ast_generated.go:5928 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8904 LDP -8(RSP), (R29, R30)
+ast_generated.go:8904 ADD $368, RSP, RSP
+ast_generated.go:8904 RET
+ast_generated.go:8906 LDP 32(R0), (R0, R3)
+ast_generated.go:8906 ADRP 6443008(PC), R4
+ast_generated.go:8906 ADD $456, R4, R4
+ast_generated.go:8906 CMP R4, R0
+ast_generated.go:8906 BNE 3104(PC)
+ast_generated.go:5966 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:5966 MOVD ZR, R0
+ast_generated.go:5966 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8906 LDP -8(RSP), (R29, R30)
+ast_generated.go:8906 ADD $368, RSP, RSP
+ast_generated.go:8906 RET
+ast_generated.go:8868 LDP 32(R0), (R0, R3)
+ast_generated.go:8868 ADRP 6443008(PC), R4
+ast_generated.go:8868 ADD $640, R4, R4
+ast_generated.go:8868 CMP R4, R0
+ast_generated.go:8868 BNE 3084(PC)
+ast_generated.go:5148 MOVD 48(R3), R2
+ast.go:48 CBZ R2, 6(PC)
+ast.go:49 LDP 8(R2), (R2, R3)
+ast.go:49 MOVD R3, 96(RSP)
+ast.go:49 MOVD R2, 256(RSP)
+ast.go:39 MOVD ZR, R0
+ast.go:39 JMP 3064(PC)
+ast_generated.go:5148 MOVD ZR, R0
+ast_generated.go:5148 JMP 3055(PC)
+ast_generated.go:8870 LDP 32(R0), (R0, R3)
+ast_generated.go:8870 ADRP 6443008(PC), R4
+ast_generated.go:8870 ADD $824, R4, R4
+ast_generated.go:8870 CMP R4, R0
+ast_generated.go:8870 BNE 3045(PC)
+ast_generated.go:5185 MOVD 48(R3), R2
+ast.go:48 CBZ R2, 6(PC)
+ast.go:49 LDP 8(R2), (R2, R3)
+ast.go:49 MOVD R3, 88(RSP)
+ast.go:49 MOVD R2, 248(RSP)
+ast.go:39 MOVD ZR, R0
+ast.go:39 JMP 3025(PC)
+ast_generated.go:5185 MOVD ZR, R0
+ast_generated.go:5185 JMP 3016(PC)
+ast_generated.go:8872 LDP 32(R0), (R0, R3)
+ast_generated.go:8872 ADRP 6443008(PC), R4
+ast_generated.go:8872 ADD $1008, R4, R4
+ast_generated.go:8872 CMP R4, R0
+ast_generated.go:8872 BNE 3006(PC)
+ast_generated.go:8872 MOVD R3, R0
+ast_generated.go:8872 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ConditionalTypeNode).ForEachChild(SB)
+ast_generated.go:8872 LDP -8(RSP), (R29, R30)
+ast_generated.go:8872 ADD $368, RSP, RSP
+ast_generated.go:8872 RET
+ast_generated.go:8876 LDP 32(R0), (R0, R3)
+ast_generated.go:8876 ADRP 6443008(PC), R4
+ast_generated.go:8876 ADD $1192, R4, R4
+ast_generated.go:8876 CMP R4, R0
+ast_generated.go:8876 BNE 2991(PC)
+ast_generated.go:5311 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:5311 MOVD ZR, R0
+ast_generated.go:5311 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8876 LDP -8(RSP), (R29, R30)
+ast_generated.go:8876 ADD $368, RSP, RSP
+ast_generated.go:8876 RET
+ast_generated.go:8908 LDP 32(R0), (R0, R3)
+ast_generated.go:8908 ADRP 6443008(PC), R4
+ast_generated.go:8908 ADD $1376, R4, R4
+ast_generated.go:8908 CMP R4, R0
+ast_generated.go:8908 BNE 2971(PC)
+ast_generated.go:6004 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:6004 MOVD ZR, R0
+ast_generated.go:6004 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8908 LDP -8(RSP), (R29, R30)
+ast_generated.go:8908 ADD $368, RSP, RSP
+ast_generated.go:8908 RET
+ast_generated.go:8874 LDP 32(R0), (R0, R3)
+ast_generated.go:8874 ADRP 6443008(PC), R4
+ast_generated.go:8874 ADD $1560, R4, R4
+ast_generated.go:8874 CMP R4, R0
+ast_generated.go:8874 BNE 2951(PC)
+ast_generated.go:5273 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:5273 MOVD ZR, R0
+ast_generated.go:5273 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8874 LDP -8(RSP), (R29, R30)
+ast_generated.go:8874 ADD $368, RSP, RSP
+ast_generated.go:8874 RET
+ast_generated.go:8880 LDP 32(R0), (R0, R3)
+ast_generated.go:8880 ADRP 6443008(PC), R4
+ast_generated.go:8880 ADD $1744, R4, R4
+ast_generated.go:8880 CMP R4, R0
+ast_generated.go:8880 BNE 2931(PC)
+ast_generated.go:5389 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:5389 MOVD ZR, R0
+ast_generated.go:5389 JMP 7(PC)
+ast_generated.go:8880 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:5389 MOVD 352(RSP), R3
+ast_generated.go:5389 TBZ $0, R0, 3(PC)
+ast_generated.go:5389 ORR $1, ZR, R0
+ast_generated.go:5389 JMP 8(PC)
+ast_generated.go:5389 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:5389 MOVD ZR, R0
+ast_generated.go:5389 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8880 LDP -8(RSP), (R29, R30)
+ast_generated.go:8880 ADD $368, RSP, RSP
+ast_generated.go:8880 RET
+ast_generated.go:8896 LDP 32(R0), (R0, R3)
+ast_generated.go:8896 ADRP 6443008(PC), R4
+ast_generated.go:8896 ADD $1928, R4, R4
+ast_generated.go:8896 CMP R4, R0
+ast_generated.go:8896 BNE 2898(PC)
+ast_generated.go:8896 MOVD R3, R0
+ast_generated.go:8896 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*MappedTypeNode).ForEachChild(SB)
+ast_generated.go:8896 LDP -8(RSP), (R29, R30)
+ast_generated.go:8896 ADD $368, RSP, RSP
+ast_generated.go:8896 RET
+ast_generated.go:8886 LDP 32(R0), (R0, R3)
+ast_generated.go:8886 ADRP 6443008(PC), R4
+ast_generated.go:8886 ADD $2112, R4, R4
+ast_generated.go:8886 CMP R4, R0
+ast_generated.go:8886 BNE 2883(PC)
+ast_generated.go:5507 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:5507 MOVD ZR, R0
+ast_generated.go:5507 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8886 LDP -8(RSP), (R29, R30)
+ast_generated.go:8886 ADD $368, RSP, RSP
+ast_generated.go:8886 RET
+ast_generated.go:8902 LDP 32(R0), (R0, R3)
+ast_generated.go:8902 ADRP 6443008(PC), R4
+ast_generated.go:8902 ADD $2296, R4, R4
+ast_generated.go:8902 CMP R4, R0
+ast_generated.go:8902 BNE 2863(PC)
+ast_generated.go:8902 MOVD R3, R0
+ast_generated.go:8902 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*NamedTupleMember).ForEachChild(SB)
+ast_generated.go:8902 LDP -8(RSP), (R29, R30)
+ast_generated.go:8902 ADD $368, RSP, RSP
+ast_generated.go:8902 RET
+ast_generated.go:8914 LDP 32(R0), (R0, R3)
+ast_generated.go:8914 ADRP 6443008(PC), R4
+ast_generated.go:8914 ADD $2480, R4, R4
+ast_generated.go:8914 CMP R4, R0
+ast_generated.go:8914 BNE 2848(PC)
+ast_generated.go:8914 MOVD R3, R0
+ast_generated.go:8914 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*TemplateLiteralTypeNode).ForEachChild(SB)
+ast_generated.go:8914 LDP -8(RSP), (R29, R30)
+ast_generated.go:8914 ADD $368, RSP, RSP
+ast_generated.go:8914 RET
+ast_generated.go:8916 LDP 32(R0), (R0, R3)
+ast_generated.go:8916 ADRP 6443008(PC), R4
+ast_generated.go:8916 ADD $2664, R4, R4
+ast_generated.go:8916 CMP R4, R0
+ast_generated.go:8916 BNE 2833(PC)
+ast_generated.go:6244 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:6244 MOVD ZR, R0
+ast_generated.go:6244 JMP 7(PC)
+ast_generated.go:8916 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:6244 MOVD 352(RSP), R3
+ast_generated.go:6244 TBZ $0, R0, 3(PC)
+ast_generated.go:6244 ORR $1, ZR, R0
+ast_generated.go:6244 JMP 8(PC)
+ast_generated.go:6244 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:6244 MOVD ZR, R0
+ast_generated.go:6244 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8916 LDP -8(RSP), (R29, R30)
+ast_generated.go:8916 ADD $368, RSP, RSP
+ast_generated.go:8916 RET
+ast_generated.go:9008 LDP 32(R0), (R0, R3)
+ast_generated.go:9008 ADRP 6443008(PC), R4
+ast_generated.go:9008 ADD $2848, R4, R4
+ast_generated.go:9008 CMP R4, R0
+ast_generated.go:9008 BNE 2800(PC)
+ast_generated.go:9008 MOVD R3, R0
+ast_generated.go:9008 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ImportTypeNode).ForEachChild(SB)
+ast_generated.go:9008 LDP -8(RSP), (R29, R30)
+ast_generated.go:9008 ADD $368, RSP, RSP
+ast_generated.go:9008 RET
+ast_generated.go:8742 LDP 32(R0), (R0, R3)
+ast_generated.go:8742 ADRP 6443008(PC), R4
+ast_generated.go:8742 ADD $3032, R4, R4
+ast_generated.go:8742 CMP R4, R0
+ast_generated.go:8742 BNE 2785(PC)
+ast_generated.go:1813 MOVD 56(R3), R2
+ast.go:48 CBZ R2, 6(PC)
+ast.go:49 LDP 8(R2), (R2, R3)
+ast.go:49 MOVD R3, 160(RSP)
+ast.go:49 MOVD R2, 320(RSP)
+ast.go:39 MOVD ZR, R0
+ast.go:39 JMP 2765(PC)
+ast_generated.go:1813 MOVD ZR, R0
+ast_generated.go:1813 JMP 2756(PC)
+ast_generated.go:8746 LDP 32(R0), (R0, R3)
+ast_generated.go:8746 ADRP 6443008(PC), R4
+ast_generated.go:8746 ADD $3216, R4, R4
+ast_generated.go:8746 CMP R4, R0
+ast_generated.go:8746 BNE 2746(PC)
+ast_generated.go:8746 MOVD R3, R0
+ast_generated.go:8746 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*BindingElement).ForEachChild(SB)
+ast_generated.go:8746 LDP -8(RSP), (R29, R30)
+ast_generated.go:8746 ADD $368, RSP, RSP
+ast_generated.go:8746 RET
+ast_generated.go:8848 LDP 32(R0), (R0, R3)
+ast_generated.go:8848 ADRP 6443008(PC), R4
+ast_generated.go:8848 ADD $3400, R4, R4
+ast_generated.go:8848 CMP R4, R0
+ast_generated.go:8848 BNE 2731(PC)
+ast_generated.go:4679 MOVD 56(R3), R2
+ast.go:48 CBZ R2, 6(PC)
+ast.go:49 LDP 8(R2), (R2, R3)
+ast.go:49 MOVD R3, 112(RSP)
+ast.go:49 MOVD R2, 272(RSP)
+ast.go:39 MOVD ZR, R0
+ast.go:39 JMP 2711(PC)
+ast_generated.go:4679 MOVD ZR, R0
+ast_generated.go:4679 JMP 2702(PC)
+ast_generated.go:8850 LDP 32(R0), (R0, R3)
+ast_generated.go:8850 ADRP 6443008(PC), R4
+ast_generated.go:8850 ADD $3584, R4, R4
+ast_generated.go:8850 CMP R4, R0
+ast_generated.go:8850 BNE 2692(PC)
+ast_generated.go:4725 MOVD 64(R3), R2
+ast.go:48 CBZ R2, 6(PC)
+ast.go:49 LDP 8(R2), (R2, R3)
+ast.go:49 MOVD R3, 104(RSP)
+ast.go:49 MOVD R2, 264(RSP)
+ast.go:39 MOVD ZR, R0
+ast.go:39 JMP 2672(PC)
+ast_generated.go:4725 MOVD ZR, R0
+ast_generated.go:4725 JMP 2663(PC)
+ast_generated.go:8826 LDP 32(R0), (R0, R3)
+ast_generated.go:8826 ADRP 6443008(PC), R4
+ast_generated.go:8826 ADD $3768, R4, R4
+ast_generated.go:8826 CMP R4, R0
+ast_generated.go:8826 BNE 2653(PC)
+ast_generated.go:8826 MOVD R3, R0
+ast_generated.go:8826 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*PropertyAccessExpression).ForEachChild(SB)
+ast_generated.go:8826 LDP -8(RSP), (R29, R30)
+ast_generated.go:8826 ADD $368, RSP, RSP
+ast_generated.go:8826 RET
+ast_generated.go:8828 LDP 32(R0), (R0, R3)
+ast_generated.go:8828 ADRP 6443008(PC), R4
+ast_generated.go:8828 ADD $3952, R4, R4
+ast_generated.go:8828 CMP R4, R0
+ast_generated.go:8828 BNE 2638(PC)
+ast_generated.go:8828 MOVD R3, R0
+ast_generated.go:8828 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ElementAccessExpression).ForEachChild(SB)
+ast_generated.go:8828 LDP -8(RSP), (R29, R30)
+ast_generated.go:8828 ADD $368, RSP, RSP
+ast_generated.go:8828 RET
+ast_generated.go:8830 LDP 32(R0), (R0, R3)
+ast_generated.go:8830 ADRP 6443008(PC), R4
+ast_generated.go:8830 ADD $40, R4, R4
+ast_generated.go:8830 CMP R4, R0
+ast_generated.go:8830 BNE 2623(PC)
+ast_generated.go:8830 MOVD R3, R0
+ast_generated.go:8830 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*CallExpression).ForEachChild(SB)
+ast_generated.go:8830 LDP -8(RSP), (R29, R30)
+ast_generated.go:8830 ADD $368, RSP, RSP
+ast_generated.go:8830 RET
+ast_generated.go:8832 LDP 32(R0), (R0, R3)
+ast_generated.go:8832 ADRP 6443008(PC), R4
+ast_generated.go:8832 ADD $224, R4, R4
+ast_generated.go:8832 CMP R4, R0
+ast_generated.go:8832 BNE 2608(PC)
+ast_generated.go:8832 MOVD R3, R0
+ast_generated.go:8832 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*NewExpression).ForEachChild(SB)
+ast_generated.go:8832 LDP -8(RSP), (R29, R30)
+ast_generated.go:8832 ADD $368, RSP, RSP
+ast_generated.go:8832 RET
+ast_generated.go:8844 LDP 32(R0), (R0, R3)
+ast_generated.go:8844 ADRP 6443008(PC), R4
+ast_generated.go:8844 ADD $408, R4, R4
+ast_generated.go:8844 CMP R4, R0
+ast_generated.go:8844 BNE 2593(PC)
+ast_generated.go:8844 MOVD R3, R0
+ast_generated.go:8844 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*TaggedTemplateExpression).ForEachChild(SB)
+ast_generated.go:8844 LDP -8(RSP), (R29, R30)
+ast_generated.go:8844 ADD $368, RSP, RSP
+ast_generated.go:8844 RET
+ast_generated.go:8866 LDP 32(R0), (R0, R3)
+ast_generated.go:8866 ADRP 6443008(PC), R4
+ast_generated.go:8866 ADD $592, R4, R4
+ast_generated.go:8866 CMP R4, R0
+ast_generated.go:8866 BNE 2578(PC)
+ast_generated.go:5086 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:5086 MOVD ZR, R0
+ast_generated.go:5086 JMP 7(PC)
+ast_generated.go:8866 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:5086 MOVD 352(RSP), R3
+ast_generated.go:5086 TBZ $0, R0, 3(PC)
+ast_generated.go:5086 ORR $1, ZR, R0
+ast_generated.go:5086 JMP 8(PC)
+ast_generated.go:5086 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:5086 MOVD ZR, R0
+ast_generated.go:5086 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8866 LDP -8(RSP), (R29, R30)
+ast_generated.go:8866 ADD $368, RSP, RSP
+ast_generated.go:8866 RET
+ast_generated.go:8846 LDP 32(R0), (R0, R3)
+ast_generated.go:8846 ADRP 6443008(PC), R4
+ast_generated.go:8846 ADD $776, R4, R4
+ast_generated.go:8846 CMP R4, R0
+ast_generated.go:8846 BNE 2545(PC)
+ast_generated.go:4634 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:4634 MOVD ZR, R0
+ast_generated.go:4634 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8846 LDP -8(RSP), (R29, R30)
+ast_generated.go:8846 ADD $368, RSP, RSP
+ast_generated.go:8846 RET
+ast_generated.go:8818 LDP 32(R0), (R0, R3)
+ast_generated.go:8818 ADRP 6443008(PC), R4
+ast_generated.go:8818 ADD $960, R4, R4
+ast_generated.go:8818 CMP R4, R0
+ast_generated.go:8818 BNE 2525(PC)
+ast_generated.go:8818 MOVD R3, R0
+ast_generated.go:8818 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*FunctionExpression).ForEachChild(SB)
+ast_generated.go:8818 LDP -8(RSP), (R29, R30)
+ast_generated.go:8818 ADD $368, RSP, RSP
+ast_generated.go:8818 RET
+ast_generated.go:8816 LDP 32(R0), (R0, R3)
+ast_generated.go:8816 ADRP 6443008(PC), R4
+ast_generated.go:8816 ADD $1144, R4, R4
+ast_generated.go:8816 CMP R4, R0
+ast_generated.go:8816 BNE 2510(PC)
+ast_generated.go:8816 MOVD R3, R0
+ast_generated.go:8816 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ArrowFunction).ForEachChild(SB)
+ast_generated.go:8816 LDP -8(RSP), (R29, R30)
+ast_generated.go:8816 ADD $368, RSP, RSP
+ast_generated.go:8816 RET
+ast_generated.go:8858 LDP 32(R0), (R0, R3)
+ast_generated.go:8858 ADRP 6443008(PC), R4
+ast_generated.go:8858 ADD $1328, R4, R4
+ast_generated.go:8858 CMP R4, R0
+ast_generated.go:8858 BNE 2495(PC)
+ast_generated.go:4920 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:4920 MOVD ZR, R0
+ast_generated.go:4920 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8858 LDP -8(RSP), (R29, R30)
+ast_generated.go:8858 ADD $368, RSP, RSP
+ast_generated.go:8858 RET
+ast_generated.go:8860 LDP 32(R0), (R0, R3)
+ast_generated.go:8860 ADRP 6443008(PC), R4
+ast_generated.go:8860 ADD $1512, R4, R4
+ast_generated.go:8860 CMP R4, R0
+ast_generated.go:8860 BNE 2475(PC)
+ast_generated.go:4962 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:4962 MOVD ZR, R0
+ast_generated.go:4962 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8860 LDP -8(RSP), (R29, R30)
+ast_generated.go:8860 ADD $368, RSP, RSP
+ast_generated.go:8860 RET
+ast_generated.go:8862 LDP 32(R0), (R0, R3)
+ast_generated.go:8862 ADRP 6443008(PC), R4
+ast_generated.go:8862 ADD $1696, R4, R4
+ast_generated.go:8862 CMP R4, R0
+ast_generated.go:8862 BNE 2455(PC)
+ast_generated.go:5004 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:5004 MOVD ZR, R0
+ast_generated.go:5004 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8862 LDP -8(RSP), (R29, R30)
+ast_generated.go:8862 ADD $368, RSP, RSP
+ast_generated.go:8862 RET
+ast_generated.go:8864 LDP 32(R0), (R0, R3)
+ast_generated.go:8864 ADRP 6443008(PC), R4
+ast_generated.go:8864 ADD $1880, R4, R4
+ast_generated.go:8864 CMP R4, R0
+ast_generated.go:8864 BNE 2435(PC)
+ast_generated.go:5046 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:5046 MOVD ZR, R0
+ast_generated.go:5046 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8864 LDP -8(RSP), (R29, R30)
+ast_generated.go:8864 ADD $368, RSP, RSP
+ast_generated.go:8864 RET
+ast_generated.go:8810 LDP 32(R0), (R0, R3)
+ast_generated.go:8810 ADRP 6443008(PC), R4
+ast_generated.go:8810 ADD $2064, R4, R4
+ast_generated.go:8810 CMP R4, R0
+ast_generated.go:8810 BNE 2415(PC)
+ast_generated.go:3791 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:3791 MOVD ZR, R0
+ast_generated.go:3791 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8810 LDP -8(RSP), (R29, R30)
+ast_generated.go:8810 ADD $368, RSP, RSP
+ast_generated.go:8810 RET
+ast_generated.go:8812 LDP 32(R0), (R0, R3)
+ast_generated.go:8812 ADRP 6443008(PC), R4
+ast_generated.go:8812 ADD $2248, R4, R4
+ast_generated.go:8812 CMP R4, R0
+ast_generated.go:8812 BNE 2395(PC)
+ast_generated.go:3835 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:3835 MOVD ZR, R0
+ast_generated.go:3835 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8812 LDP -8(RSP), (R29, R30)
+ast_generated.go:8812 ADD $368, RSP, RSP
+ast_generated.go:8812 RET
+ast_generated.go:8808 LDP 32(R0), (R0, R3)
+ast_generated.go:8808 ADRP 6443008(PC), R4
+ast_generated.go:8808 ADD $2432, R4, R4
+ast_generated.go:8808 CMP R4, R0
+ast_generated.go:8808 BNE 2375(PC)
+ast_generated.go:8808 MOVD R3, R0
+ast_generated.go:8808 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*BinaryExpression).ForEachChild(SB)
+ast_generated.go:8808 LDP -8(RSP), (R29, R30)
+ast_generated.go:8808 ADD $368, RSP, RSP
+ast_generated.go:8808 RET
+ast_generated.go:8824 LDP 32(R0), (R0, R3)
+ast_generated.go:8824 ADRP 6443008(PC), R4
+ast_generated.go:8824 ADD $2616, R4, R4
+ast_generated.go:8824 CMP R4, R0
+ast_generated.go:8824 BNE 2360(PC)
+ast_generated.go:8824 MOVD R3, R0
+ast_generated.go:8824 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ConditionalExpression).ForEachChild(SB)
+ast_generated.go:8824 LDP -8(RSP), (R29, R30)
+ast_generated.go:8824 ADD $368, RSP, RSP
+ast_generated.go:8824 RET
+ast_generated.go:8840 LDP 32(R0), (R0, R3)
+ast_generated.go:8840 ADRP 6443008(PC), R4
+ast_generated.go:8840 ADD $2800, R4, R4
+ast_generated.go:8840 CMP R4, R0
+ast_generated.go:8840 BNE 2345(PC)
+ast_generated.go:8840 MOVD R3, R0
+ast_generated.go:8840 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*TemplateExpression).ForEachChild(SB)
+ast_generated.go:8840 LDP -8(RSP), (R29, R30)
+ast_generated.go:8840 ADD $368, RSP, RSP
+ast_generated.go:8840 RET
+ast_generated.go:8814 LDP 32(R0), (R0, R3)
+ast_generated.go:8814 ADRP 6443008(PC), R4
+ast_generated.go:8814 ADD $2984, R4, R4
+ast_generated.go:8814 CMP R4, R0
+ast_generated.go:8814 BNE 2330(PC)
+ast_generated.go:3879 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:3879 MOVD ZR, R0
+ast_generated.go:3879 JMP 7(PC)
+ast_generated.go:8814 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:3879 MOVD 352(RSP), R3
+ast_generated.go:3879 TBZ $0, R0, 3(PC)
+ast_generated.go:3879 ORR $1, ZR, R0
+ast_generated.go:3879 JMP 8(PC)
+ast_generated.go:3879 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:3879 MOVD ZR, R0
+ast_generated.go:3879 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8814 LDP -8(RSP), (R29, R30)
+ast_generated.go:8814 ADD $368, RSP, RSP
+ast_generated.go:8814 RET
+ast_generated.go:8838 LDP 32(R0), (R0, R3)
+ast_generated.go:8838 ADRP 6443008(PC), R4
+ast_generated.go:8838 ADD $3168, R4, R4
+ast_generated.go:8838 CMP R4, R0
+ast_generated.go:8838 BNE 2297(PC)
+ast_generated.go:4455 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:4455 MOVD ZR, R0
+ast_generated.go:4455 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8838 LDP -8(RSP), (R29, R30)
+ast_generated.go:8838 ADD $368, RSP, RSP
+ast_generated.go:8838 RET
+ast_generated.go:8754 LDP 32(R0), (R0, R3)
+ast_generated.go:8754 ADRP 6443008(PC), R4
+ast_generated.go:8754 ADD $3352, R4, R4
+ast_generated.go:8754 CMP R4, R0
+ast_generated.go:8754 BNE 2277(PC)
+ast_generated.go:8754 MOVD R3, R0
+ast_generated.go:8754 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ClassExpression).ForEachChild(SB)
+ast_generated.go:8754 LDP -8(RSP), (R29, R30)
+ast_generated.go:8754 ADD $368, RSP, RSP
+ast_generated.go:8754 RET
+ast_generated.go:8884 LDP 32(R0), (R0, R3)
+ast_generated.go:8884 ADRP 6443008(PC), R4
+ast_generated.go:8884 ADD $3536, R4, R4
+ast_generated.go:8884 CMP R4, R0
+ast_generated.go:8884 BNE 2262(PC)
+ast_generated.go:8884 MOVD R3, R0
+ast_generated.go:8884 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ExpressionWithTypeArguments).ForEachChild(SB)
+ast_generated.go:8884 LDP -8(RSP), (R29, R30)
+ast_generated.go:8884 ADD $368, RSP, RSP
+ast_generated.go:8884 RET
+ast_generated.go:8820 LDP 32(R0), (R0, R3)
+ast_generated.go:8820 ADRP 6443008(PC), R4
+ast_generated.go:8820 ADD $3720, R4, R4
+ast_generated.go:8820 CMP R4, R0
+ast_generated.go:8820 BNE 2247(PC)
+ast_generated.go:4036 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:4036 MOVD ZR, R0
+ast_generated.go:4036 JMP 7(PC)
+ast_generated.go:8820 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:4036 MOVD 352(RSP), R3
+ast_generated.go:4036 TBZ $0, R0, 3(PC)
+ast_generated.go:4036 ORR $1, ZR, R0
+ast_generated.go:4036 JMP 8(PC)
+ast_generated.go:4036 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:4036 MOVD ZR, R0
+ast_generated.go:4036 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8820 LDP -8(RSP), (R29, R30)
+ast_generated.go:8820 ADD $368, RSP, RSP
+ast_generated.go:8820 RET
+ast_generated.go:8836 LDP 32(R0), (R0, R3)
+ast_generated.go:8836 ADRP 6443008(PC), R4
+ast_generated.go:8836 ADD $3904, R4, R4
+ast_generated.go:8836 CMP R4, R0
+ast_generated.go:8836 BNE 2214(PC)
+ast_generated.go:4417 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:4417 MOVD ZR, R0
+ast_generated.go:4417 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8836 LDP -8(RSP), (R29, R30)
+ast_generated.go:8836 ADD $368, RSP, RSP
+ast_generated.go:8836 RET
+ast_generated.go:8834 LDP 32(R0), (R0, R3)
+ast_generated.go:8834 ADRP 6443008(PC), R4
+ast_generated.go:8834 ADD $4088, R4, R4
+ast_generated.go:8834 CMP R4, R0
+ast_generated.go:8834 BNE 2194(PC)
+ast_generated.go:4373 MOVD 64(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:4373 MOVD ZR, R0
+ast_generated.go:4373 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8834 LDP -8(RSP), (R29, R30)
+ast_generated.go:8834 ADD $368, RSP, RSP
+ast_generated.go:8834 RET
+ast_generated.go:8918 LDP 32(R0), (R0, R3)
+ast_generated.go:8918 ADRP 6447104(PC), R4
+ast_generated.go:8918 ADD $176, R4, R4
+ast_generated.go:8918 CMP R4, R0
+ast_generated.go:8918 BNE 2174(PC)
+ast_generated.go:6286 MOVD 72(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:6286 MOVD ZR, R0
+ast_generated.go:6286 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8918 LDP -8(RSP), (R29, R30)
+ast_generated.go:8918 ADD $368, RSP, RSP
+ast_generated.go:8918 RET
+ast_generated.go:8822 LDP 32(R0), (R0, R3)
+ast_generated.go:8822 ADRP 6447104(PC), R4
+ast_generated.go:8822 ADD $360, R4, R4
+ast_generated.go:8822 CMP R4, R0
+ast_generated.go:8822 BNE 2154(PC)
+ast_generated.go:4076 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:4076 MOVD ZR, R0
+ast_generated.go:4076 JMP 7(PC)
+ast_generated.go:8822 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:4076 MOVD 352(RSP), R3
+ast_generated.go:4076 TBZ $0, R0, 3(PC)
+ast_generated.go:4076 ORR $1, ZR, R0
+ast_generated.go:4076 JMP 8(PC)
+ast_generated.go:4076 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:4076 MOVD ZR, R0
+ast_generated.go:4076 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8822 LDP -8(RSP), (R29, R30)
+ast_generated.go:8822 ADD $368, RSP, RSP
+ast_generated.go:8822 RET
+ast_generated.go:8842 LDP 32(R0), (R0, R3)
+ast_generated.go:8842 ADRP 6447104(PC), R4
+ast_generated.go:8842 ADD $544, R4, R4
+ast_generated.go:8842 CMP R4, R0
+ast_generated.go:8842 BNE 2121(PC)
+ast_generated.go:4541 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:4541 MOVD ZR, R0
+ast_generated.go:4541 JMP 7(PC)
+ast_generated.go:8842 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:4541 MOVD 352(RSP), R3
+ast_generated.go:4541 TBZ $0, R0, 3(PC)
+ast_generated.go:4541 ORR $1, ZR, R0
+ast_generated.go:4541 JMP 8(PC)
+ast_generated.go:4541 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:4541 MOVD ZR, R0
+ast_generated.go:4541 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8842 LDP -8(RSP), (R29, R30)
+ast_generated.go:8842 ADD $368, RSP, RSP
+ast_generated.go:8842 RET
+ast_generated.go:8734 LDP 32(R0), (R0, R3)
+ast_generated.go:8734 ADRP 6447104(PC), R4
+ast_generated.go:8734 ADD $728, R4, R4
+ast_generated.go:8734 CMP R4, R0
+ast_generated.go:8734 BNE 2088(PC)
+ast_generated.go:1634 MOVD 80(R3), R2
+ast.go:48 CBZ R2, 6(PC)
+ast.go:49 LDP 8(R2), (R2, R3)
+ast.go:49 MOVD R3, 176(RSP)
+ast.go:49 MOVD R2, 336(RSP)
+ast.go:39 MOVD ZR, R0
+ast.go:39 JMP 2068(PC)
+ast_generated.go:1634 MOVD ZR, R0
+ast_generated.go:1634 JMP 2059(PC)
+ast_generated.go:8736 LDP 32(R0), (R0, R3)
+ast_generated.go:8736 ADRP 6447104(PC), R4
+ast_generated.go:8736 ADD $912, R4, R4
+ast_generated.go:8736 CMP R4, R0
+ast_generated.go:8736 BNE 2049(PC)
+ast_generated.go:8736 MOVD R3, R0
+ast_generated.go:8736 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*VariableStatement).ForEachChild(SB)
+ast_generated.go:8736 LDP -8(RSP), (R29, R30)
+ast_generated.go:8736 ADD $368, RSP, RSP
+ast_generated.go:8736 RET
+ast_generated.go:8732 LDP 32(R0), (R0, R3)
+ast_generated.go:8732 ADRP 6447104(PC), R4
+ast_generated.go:8732 ADD $1096, R4, R4
+ast_generated.go:8732 CMP R4, R0
+ast_generated.go:8732 BNE 2034(PC)
+ast_generated.go:1588 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:1588 MOVD ZR, R0
+ast_generated.go:1588 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8732 LDP -8(RSP), (R29, R30)
+ast_generated.go:8732 ADD $368, RSP, RSP
+ast_generated.go:8732 RET
+ast_generated.go:8700 LDP 32(R0), (R0, R3)
+ast_generated.go:8700 ADRP 6447104(PC), R4
+ast_generated.go:8700 ADD $1280, R4, R4
+ast_generated.go:8700 CMP R4, R0
+ast_generated.go:8700 BNE 2014(PC)
+ast_generated.go:8700 MOVD R3, R0
+ast_generated.go:8700 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*IfStatement).ForEachChild(SB)
+ast_generated.go:8700 LDP -8(RSP), (R29, R30)
+ast_generated.go:8700 ADD $368, RSP, RSP
+ast_generated.go:8700 RET
+ast_generated.go:8702 LDP 32(R0), (R0, R3)
+ast_generated.go:8702 ADRP 6447104(PC), R4
+ast_generated.go:8702 ADD $1464, R4, R4
+ast_generated.go:8702 CMP R4, R0
+ast_generated.go:8702 BNE 1999(PC)
+ast_generated.go:890 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:890 MOVD ZR, R0
+ast_generated.go:890 JMP 7(PC)
+ast_generated.go:8702 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:890 MOVD 352(RSP), R3
+ast_generated.go:890 TBZ $0, R0, 3(PC)
+ast_generated.go:890 ORR $1, ZR, R0
+ast_generated.go:890 JMP 8(PC)
+ast_generated.go:890 MOVD 72(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:890 MOVD ZR, R0
+ast_generated.go:890 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8702 LDP -8(RSP), (R29, R30)
+ast_generated.go:8702 ADD $368, RSP, RSP
+ast_generated.go:8702 RET
+ast_generated.go:8704 LDP 32(R0), (R0, R3)
+ast_generated.go:8704 ADRP 6447104(PC), R4
+ast_generated.go:8704 ADD $1648, R4, R4
+ast_generated.go:8704 CMP R4, R0
+ast_generated.go:8704 BNE 1966(PC)
+ast_generated.go:935 MOVD 72(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:935 MOVD ZR, R0
+ast_generated.go:935 JMP 7(PC)
+ast_generated.go:8704 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:935 MOVD 352(RSP), R3
+ast_generated.go:935 TBZ $0, R0, 3(PC)
+ast_generated.go:935 ORR $1, ZR, R0
+ast_generated.go:935 JMP 8(PC)
+ast_generated.go:935 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:935 MOVD ZR, R0
+ast_generated.go:935 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8704 LDP -8(RSP), (R29, R30)
+ast_generated.go:8704 ADD $368, RSP, RSP
+ast_generated.go:8704 RET
+ast_generated.go:8706 LDP 32(R0), (R0, R3)
+ast_generated.go:8706 ADRP 6447104(PC), R4
+ast_generated.go:8706 ADD $1832, R4, R4
+ast_generated.go:8706 CMP R4, R0
+ast_generated.go:8706 BNE 1933(PC)
+ast_generated.go:8706 MOVD R3, R0
+ast_generated.go:8706 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ForStatement).ForEachChild(SB)
+ast_generated.go:8706 LDP -8(RSP), (R29, R30)
+ast_generated.go:8706 ADD $368, RSP, RSP
+ast_generated.go:8706 RET
+ast_generated.go:8708 LDP 32(R0), (R0, R3)
+ast_generated.go:8708 ADRP 6447104(PC), R4
+ast_generated.go:8708 ADD $2016, R4, R4
+ast_generated.go:8708 CMP R4, R0
+ast_generated.go:8708 BNE 1918(PC)
+ast_generated.go:8708 MOVD R3, R0
+ast_generated.go:8708 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ForInOrOfStatement).ForEachChild(SB)
+ast_generated.go:8708 LDP -8(RSP), (R29, R30)
+ast_generated.go:8708 ADD $368, RSP, RSP
+ast_generated.go:8708 RET
+ast_generated.go:8712 LDP 32(R0), (R0, R3)
+ast_generated.go:8712 ADRP 6447104(PC), R4
+ast_generated.go:8712 ADD $2200, R4, R4
+ast_generated.go:8712 CMP R4, R0
+ast_generated.go:8712 BNE 1903(PC)
+ast_generated.go:1124 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:1124 MOVD ZR, R0
+ast_generated.go:1124 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8712 LDP -8(RSP), (R29, R30)
+ast_generated.go:8712 ADD $368, RSP, RSP
+ast_generated.go:8712 RET
+ast_generated.go:8710 LDP 32(R0), (R0, R3)
+ast_generated.go:8710 ADRP 6447104(PC), R4
+ast_generated.go:8710 ADD $2384, R4, R4
+ast_generated.go:8710 CMP R4, R0
+ast_generated.go:8710 BNE 1883(PC)
+ast_generated.go:1086 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:1086 MOVD ZR, R0
+ast_generated.go:1086 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8710 LDP -8(RSP), (R29, R30)
+ast_generated.go:8710 ADD $368, RSP, RSP
+ast_generated.go:8710 RET
+ast_generated.go:8714 LDP 32(R0), (R0, R3)
+ast_generated.go:8714 ADRP 6447104(PC), R4
+ast_generated.go:8714 ADD $2568, R4, R4
+ast_generated.go:8714 CMP R4, R0
+ast_generated.go:8714 BNE 1863(PC)
+ast_generated.go:1163 MOVD 64(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:1163 MOVD ZR, R0
+ast_generated.go:1163 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8714 LDP -8(RSP), (R29, R30)
+ast_generated.go:8714 ADD $368, RSP, RSP
+ast_generated.go:8714 RET
+ast_generated.go:8716 LDP 32(R0), (R0, R3)
+ast_generated.go:8716 ADRP 6447104(PC), R4
+ast_generated.go:8716 ADD $2752, R4, R4
+ast_generated.go:8716 CMP R4, R0
+ast_generated.go:8716 BNE 1843(PC)
+ast_generated.go:1204 MOVD 64(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:1204 MOVD ZR, R0
+ast_generated.go:1204 JMP 7(PC)
+ast_generated.go:8716 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:1204 MOVD 352(RSP), R3
+ast_generated.go:1204 TBZ $0, R0, 3(PC)
+ast_generated.go:1204 ORR $1, ZR, R0
+ast_generated.go:1204 JMP 8(PC)
+ast_generated.go:1204 MOVD 72(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:1204 MOVD ZR, R0
+ast_generated.go:1204 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8716 LDP -8(RSP), (R29, R30)
+ast_generated.go:8716 ADD $368, RSP, RSP
+ast_generated.go:8716 RET
+ast_generated.go:8718 LDP 32(R0), (R0, R3)
+ast_generated.go:8718 ADRP 6447104(PC), R4
+ast_generated.go:8718 ADD $2936, R4, R4
+ast_generated.go:8718 CMP R4, R0
+ast_generated.go:8718 BNE 1810(PC)
+ast_generated.go:1250 MOVD 64(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:1250 MOVD ZR, R0
+ast_generated.go:1250 JMP 7(PC)
+ast_generated.go:8718 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:1250 MOVD 352(RSP), R3
+ast_generated.go:1250 TBZ $0, R0, 3(PC)
+ast_generated.go:1250 ORR $1, ZR, R0
+ast_generated.go:1250 JMP 8(PC)
+ast_generated.go:1250 MOVD 72(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:1250 MOVD ZR, R0
+ast_generated.go:1250 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8718 LDP -8(RSP), (R29, R30)
+ast_generated.go:8718 ADD $368, RSP, RSP
+ast_generated.go:8718 RET
+ast_generated.go:8730 LDP 32(R0), (R0, R3)
+ast_generated.go:8730 ADRP 6447104(PC), R4
+ast_generated.go:8730 ADD $3120, R4, R4
+ast_generated.go:8730 CMP R4, R0
+ast_generated.go:8730 BNE 1777(PC)
+ast_generated.go:1545 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:1545 MOVD ZR, R0
+ast_generated.go:1545 JMP 7(PC)
+ast_generated.go:8730 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:1545 MOVD 352(RSP), R3
+ast_generated.go:1545 TBZ $0, R0, 3(PC)
+ast_generated.go:1545 ORR $1, ZR, R0
+ast_generated.go:1545 JMP 8(PC)
+ast_generated.go:1545 MOVD 64(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:1545 MOVD ZR, R0
+ast_generated.go:1545 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8730 LDP -8(RSP), (R29, R30)
+ast_generated.go:8730 ADD $368, RSP, RSP
+ast_generated.go:8730 RET
+ast_generated.go:8724 LDP 32(R0), (R0, R3)
+ast_generated.go:8724 ADRP 6447104(PC), R4
+ast_generated.go:8724 ADD $3304, R4, R4
+ast_generated.go:8724 CMP R4, R0
+ast_generated.go:8724 BNE 1744(PC)
+ast_generated.go:1389 MOVD 64(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:1389 MOVD ZR, R0
+ast_generated.go:1389 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8724 LDP -8(RSP), (R29, R30)
+ast_generated.go:8724 ADD $368, RSP, RSP
+ast_generated.go:8724 RET
+ast_generated.go:8726 LDP 32(R0), (R0, R3)
+ast_generated.go:8726 ADRP 6447104(PC), R4
+ast_generated.go:8726 ADD $3488, R4, R4
+ast_generated.go:8726 CMP R4, R0
+ast_generated.go:8726 BNE 1724(PC)
+ast_generated.go:8726 MOVD R3, R0
+ast_generated.go:8726 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*TryStatement).ForEachChild(SB)
+ast_generated.go:8726 LDP -8(RSP), (R29, R30)
+ast_generated.go:8726 ADD $368, RSP, RSP
+ast_generated.go:8726 RET
+ast_generated.go:8738 LDP 32(R0), (R0, R3)
+ast_generated.go:8738 ADRP 6447104(PC), R4
+ast_generated.go:8738 ADD $3672, R4, R4
+ast_generated.go:8738 CMP R4, R0
+ast_generated.go:8738 BNE 1709(PC)
+ast_generated.go:8738 MOVD R3, R0
+ast_generated.go:8738 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*VariableDeclaration).ForEachChild(SB)
+ast_generated.go:8738 LDP -8(RSP), (R29, R30)
+ast_generated.go:8738 ADD $368, RSP, RSP
+ast_generated.go:8738 RET
+ast_generated.go:8740 LDP 32(R0), (R0, R3)
+ast_generated.go:8740 ADRP 6447104(PC), R4
+ast_generated.go:8740 ADD $3856, R4, R4
+ast_generated.go:8740 CMP R4, R0
+ast_generated.go:8740 BNE 1694(PC)
+ast_generated.go:1774 MOVD 56(R3), R2
+ast.go:48 CBZ R2, 6(PC)
+ast.go:49 LDP 8(R2), (R2, R3)
+ast.go:49 MOVD R3, 168(RSP)
+ast.go:49 MOVD R2, 328(RSP)
+ast.go:39 MOVD ZR, R0
+ast.go:39 JMP 1674(PC)
+ast_generated.go:1774 MOVD ZR, R0
+ast_generated.go:1774 JMP 1665(PC)
+ast_generated.go:8750 LDP 32(R0), (R0, R3)
+ast_generated.go:8750 ADRP 6447104(PC), R4
+ast_generated.go:8750 ADD $4040, R4, R4
+ast_generated.go:8750 CMP R4, R0
+ast_generated.go:8750 BNE 1655(PC)
+ast_generated.go:8750 MOVD R3, R0
+ast_generated.go:8750 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*FunctionDeclaration).ForEachChild(SB)
+ast_generated.go:8750 LDP -8(RSP), (R29, R30)
+ast_generated.go:8750 ADD $368, RSP, RSP
+ast_generated.go:8750 RET
+ast_generated.go:8752 LDP 32(R0), (R0, R3)
+ast_generated.go:8752 ADRP 6451200(PC), R4
+ast_generated.go:8752 ADD $128, R4, R4
+ast_generated.go:8752 CMP R4, R0
+ast_generated.go:8752 BNE 1640(PC)
+ast_generated.go:8752 MOVD R3, R0
+ast_generated.go:8752 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ClassDeclaration).ForEachChild(SB)
+ast_generated.go:8752 LDP -8(RSP), (R29, R30)
+ast_generated.go:8752 ADD $368, RSP, RSP
+ast_generated.go:8752 RET
+ast_generated.go:8758 LDP 32(R0), (R0, R3)
+ast_generated.go:8758 ADRP 6451200(PC), R4
+ast_generated.go:8758 ADD $312, R4, R4
+ast_generated.go:8758 CMP R4, R0
+ast_generated.go:8758 BNE 1625(PC)
+ast_generated.go:8758 MOVD R3, R0
+ast_generated.go:8758 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*InterfaceDeclaration).ForEachChild(SB)
+ast_generated.go:8758 LDP -8(RSP), (R29, R30)
+ast_generated.go:8758 ADD $368, RSP, RSP
+ast_generated.go:8758 RET
+ast_generated.go:8764 LDP 32(R0), (R0, R3)
+ast_generated.go:8764 ADRP 6451200(PC), R4
+ast_generated.go:8764 ADD $680, R4, R4
+ast_generated.go:8764 CMP R4, R0
+ast_generated.go:8764 BNE 1610(PC)
+ast_generated.go:8764 MOVD R3, R0
+ast_generated.go:8764 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*EnumDeclaration).ForEachChild(SB)
+ast_generated.go:8764 LDP -8(RSP), (R29, R30)
+ast_generated.go:8764 ADD $368, RSP, RSP
+ast_generated.go:8764 RET
+ast_generated.go:9002 LDP 32(R0), (R0, R3)
+ast_generated.go:9002 ADRP 6451200(PC), R4
+ast_generated.go:9002 ADD $864, R4, R4
+ast_generated.go:9002 CMP R4, R0
+ast_generated.go:9002 BNE 1595(PC)
+ast_generated.go:9002 MOVD R3, R0
+ast_generated.go:9002 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ModuleDeclaration).ForEachChild(SB)
+ast_generated.go:9002 LDP -8(RSP), (R29, R30)
+ast_generated.go:9002 ADD $368, RSP, RSP
+ast_generated.go:9002 RET
+ast_generated.go:8766 LDP 32(R0), (R0, R3)
+ast_generated.go:8766 ADRP 6451200(PC), R4
+ast_generated.go:8766 ADD $1048, R4, R4
+ast_generated.go:8766 CMP R4, R0
+ast_generated.go:8766 BNE 1580(PC)
+ast_generated.go:2448 MOVD 64(R3), R2
+ast.go:48 CBZ R2, 6(PC)
+ast.go:49 LDP 8(R2), (R2, R3)
+ast.go:49 MOVD R3, 136(RSP)
+ast.go:49 MOVD R2, 296(RSP)
+ast.go:39 MOVD ZR, R0
+ast.go:39 JMP 1560(PC)
+ast_generated.go:2448 MOVD ZR, R0
+ast_generated.go:2448 JMP 1551(PC)
+ast_generated.go:8720 LDP 32(R0), (R0, R3)
+ast_generated.go:8720 ADRP 6451200(PC), R4
+ast_generated.go:8720 ADD $1232, R4, R4
+ast_generated.go:8720 CMP R4, R0
+ast_generated.go:8720 BNE 1541(PC)
+ast_generated.go:1295 MOVD 72(R3), R2
+ast.go:48 CBZ R2, 6(PC)
+ast.go:49 LDP 8(R2), (R2, R3)
+ast.go:49 MOVD R3, 184(RSP)
+ast.go:49 MOVD R2, 344(RSP)
+ast.go:39 MOVD ZR, R0
+ast.go:39 JMP 1521(PC)
+ast_generated.go:1295 MOVD ZR, R0
+ast_generated.go:1295 JMP 1512(PC)
+ast_generated.go:8778 LDP 32(R0), (R0, R3)
+ast_generated.go:8778 ADRP 6451200(PC), R4
+ast_generated.go:8778 ADD $1416, R4, R4
+ast_generated.go:8778 CMP R4, R0
+ast_generated.go:8778 BNE 1502(PC)
+ast_generated.go:8778 MOVD R3, R0
+ast_generated.go:8778 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*NamespaceExportDeclaration).ForEachChild(SB)
+ast_generated.go:8778 LDP -8(RSP), (R29, R30)
+ast_generated.go:8778 ADD $368, RSP, RSP
+ast_generated.go:8778 RET
+ast_generated.go:9004 LDP 32(R0), (R0, R3)
+ast_generated.go:9004 ADRP 6451200(PC), R4
+ast_generated.go:9004 ADD $1600, R4, R4
+ast_generated.go:9004 CMP R4, R0
+ast_generated.go:9004 BNE 1487(PC)
+ast_generated.go:9004 MOVD R3, R0
+ast_generated.go:9004 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ImportEqualsDeclaration).ForEachChild(SB)
+ast_generated.go:9004 LDP -8(RSP), (R29, R30)
+ast_generated.go:9004 ADD $368, RSP, RSP
+ast_generated.go:9004 RET
+ast_generated.go:9010 LDP 32(R0), (R0, R3)
+ast_generated.go:9010 ADRP 6451200(PC), R4
+ast_generated.go:9010 ADD $1968, R4, R4
+ast_generated.go:9010 CMP R4, R0
+ast_generated.go:9010 BNE 1472(PC)
+ast_generated.go:8267 MOVD 72(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:8267 MOVD ZR, R0
+ast_generated.go:8267 JMP 7(PC)
+ast_generated.go:9010 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:8267 MOVD 352(RSP), R3
+ast_generated.go:8267 TBZ $0, R0, 3(PC)
+ast_generated.go:8267 ORR $1, ZR, R0
+ast_generated.go:8267 JMP 8(PC)
+ast_generated.go:8267 MOVD 80(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:8267 MOVD ZR, R0
+ast_generated.go:8267 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:9010 LDP -8(RSP), (R29, R30)
+ast_generated.go:9010 ADD $368, RSP, RSP
+ast_generated.go:9010 RET
+ast_generated.go:8772 LDP 32(R0), (R0, R3)
+ast_generated.go:8772 ADRP 6451200(PC), R4
+ast_generated.go:8772 ADD $2152, R4, R4
+ast_generated.go:8772 CMP R4, R0
+ast_generated.go:8772 BNE 1439(PC)
+ast_generated.go:2660 MOVD 64(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:2660 MOVD ZR, R0
+ast_generated.go:2660 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8772 LDP -8(RSP), (R29, R30)
+ast_generated.go:8772 ADD $368, RSP, RSP
+ast_generated.go:8772 RET
+ast_generated.go:8774 LDP 32(R0), (R0, R3)
+ast_generated.go:8774 ADRP 6451200(PC), R4
+ast_generated.go:8774 ADD $2336, R4, R4
+ast_generated.go:8774 CMP R4, R0
+ast_generated.go:8774 BNE 1419(PC)
+ast_generated.go:2707 MOVD 56(R3), R2
+ast.go:48 CBZ R2, 6(PC)
+ast.go:49 LDP 8(R2), (R2, R3)
+ast.go:49 MOVD R3, 128(RSP)
+ast.go:49 MOVD R2, 288(RSP)
+ast.go:39 MOVD ZR, R0
+ast.go:39 JMP 1399(PC)
+ast_generated.go:2707 MOVD ZR, R0
+ast_generated.go:2707 JMP 1390(PC)
+ast_generated.go:9012 LDP 32(R0), (R0, R3)
+ast_generated.go:9012 ADRP 6451200(PC), R4
+ast_generated.go:9012 ADD $2520, R4, R4
+ast_generated.go:9012 CMP R4, R0
+ast_generated.go:9012 BNE 1380(PC)
+ast_generated.go:8316 MOVD 72(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:8316 MOVD ZR, R0
+ast_generated.go:8316 JMP 7(PC)
+ast_generated.go:9012 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:8316 MOVD 352(RSP), R3
+ast_generated.go:8316 TBZ $0, R0, 3(PC)
+ast_generated.go:8316 ORR $1, ZR, R0
+ast_generated.go:8316 JMP 8(PC)
+ast_generated.go:8316 MOVD 80(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:8316 MOVD ZR, R0
+ast_generated.go:8316 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:9012 LDP -8(RSP), (R29, R30)
+ast_generated.go:9012 ADD $368, RSP, RSP
+ast_generated.go:9012 RET
+ast_generated.go:8776 LDP 32(R0), (R0, R3)
+ast_generated.go:8776 ADRP 6451200(PC), R4
+ast_generated.go:8776 ADD $2704, R4, R4
+ast_generated.go:8776 CMP R4, R0
+ast_generated.go:8776 BNE 1347(PC)
+ast_generated.go:8776 MOVD R3, R0
+ast_generated.go:8776 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ExportAssignment).ForEachChild(SB)
+ast_generated.go:8776 LDP -8(RSP), (R29, R30)
+ast_generated.go:8776 ADD $368, RSP, RSP
+ast_generated.go:8776 RET
+ast_generated.go:9006 LDP 32(R0), (R0, R3)
+ast_generated.go:9006 ADRP 6451200(PC), R4
+ast_generated.go:9006 ADD $2888, R4, R4
+ast_generated.go:9006 CMP R4, R0
+ast_generated.go:9006 BNE 1332(PC)
+ast_generated.go:9006 MOVD R3, R0
+ast_generated.go:9006 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ExportDeclaration).ForEachChild(SB)
+ast_generated.go:9006 LDP -8(RSP), (R29, R30)
+ast_generated.go:9006 ADD $368, RSP, RSP
+ast_generated.go:9006 RET
+ast_generated.go:8782 LDP 32(R0), (R0, R3)
+ast_generated.go:8782 ADRP 6451200(PC), R4
+ast_generated.go:8782 ADD $3072, R4, R4
+ast_generated.go:8782 CMP R4, R0
+ast_generated.go:8782 BNE 1317(PC)
+ast_generated.go:2889 MOVD 56(R3), R2
+ast.go:48 CBZ R2, 6(PC)
+ast.go:49 LDP 8(R2), (R2, R3)
+ast.go:49 MOVD R3, 120(RSP)
+ast.go:49 MOVD R2, 280(RSP)
+ast.go:39 MOVD ZR, R0
+ast.go:39 JMP 1297(PC)
+ast_generated.go:2889 MOVD ZR, R0
+ast_generated.go:2889 JMP 1288(PC)
+ast_generated.go:8780 LDP 32(R0), (R0, R3)
+ast_generated.go:8780 ADRP 6451200(PC), R4
+ast_generated.go:8780 ADD $3256, R4, R4
+ast_generated.go:8780 CMP R4, R0
+ast_generated.go:8780 BNE 1278(PC)
+ast_generated.go:2842 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:2842 MOVD ZR, R0
+ast_generated.go:2842 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8780 LDP -8(RSP), (R29, R30)
+ast_generated.go:8780 ADD $368, RSP, RSP
+ast_generated.go:8780 RET
+ast_generated.go:8784 LDP 32(R0), (R0, R3)
+ast_generated.go:8784 ADRP 6451200(PC), R4
+ast_generated.go:8784 ADD $3440, R4, R4
+ast_generated.go:8784 CMP R4, R0
+ast_generated.go:8784 BNE 1258(PC)
+ast_generated.go:2938 MOVD 72(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:2938 MOVD ZR, R0
+ast_generated.go:2938 JMP 7(PC)
+ast_generated.go:8784 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:2938 MOVD 352(RSP), R3
+ast_generated.go:2938 TBZ $0, R0, 3(PC)
+ast_generated.go:2938 ORR $1, ZR, R0
+ast_generated.go:2938 JMP 8(PC)
+ast_generated.go:2938 MOVD 80(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:2938 MOVD ZR, R0
+ast_generated.go:2938 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8784 LDP -8(RSP), (R29, R30)
+ast_generated.go:8784 ADD $368, RSP, RSP
+ast_generated.go:8784 RET
+ast_generated.go:8748 LDP 32(R0), (R0, R3)
+ast_generated.go:8748 ADRP 6451200(PC), R4
+ast_generated.go:8748 ADD $3624, R4, R4
+ast_generated.go:8748 CMP R4, R0
+ast_generated.go:8748 BNE 1225(PC)
+ast_generated.go:1970 MOVD 64(R3), R2
+ast.go:55 CBZ R2, 6(PC)
+ast.go:56 LDP 8(R2), (R2, R3)
+ast.go:56 MOVD R3, 152(RSP)
+ast.go:56 MOVD R2, 312(RSP)
+ast.go:39 MOVD ZR, R0
+ast.go:39 JMP 1205(PC)
+ast_generated.go:1970 MOVD ZR, R0
+ast_generated.go:1970 JMP 1196(PC)
+ast_generated.go:8770 LDP 32(R0), (R0, R3)
+ast_generated.go:8770 ADRP 6451200(PC), R4
+ast_generated.go:8770 ADD $3808, R4, R4
+ast_generated.go:8770 CMP R4, R0
+ast_generated.go:8770 BNE 1186(PC)
+ast_generated.go:2616 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:2616 MOVD ZR, R0
+ast_generated.go:2616 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8770 LDP -8(RSP), (R29, R30)
+ast_generated.go:8770 ADD $368, RSP, RSP
+ast_generated.go:8770 RET
+ast_generated.go:8922 LDP 32(R0), (R0, R3)
+ast_generated.go:8922 ADRP 6451200(PC), R4
+ast_generated.go:8922 ADD $3992, R4, R4
+ast_generated.go:8922 CMP R4, R0
+ast_generated.go:8922 BNE 1166(PC)
+ast_generated.go:8922 MOVD R3, R0
+ast_generated.go:8922 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JsxElement).ForEachChild(SB)
+ast_generated.go:8922 LDP -8(RSP), (R29, R30)
+ast_generated.go:8922 ADD $368, RSP, RSP
+ast_generated.go:8922 RET
+ast_generated.go:8930 LDP 32(R0), (R0, R3)
+ast_generated.go:8930 ADRP 6455296(PC), R4
+ast_generated.go:8930 ADD $80, R4, R4
+ast_generated.go:8930 CMP R4, R0
+ast_generated.go:8930 BNE 1151(PC)
+ast_generated.go:8930 MOVD R3, R0
+ast_generated.go:8930 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JsxSelfClosingElement).ForEachChild(SB)
+ast_generated.go:8930 LDP -8(RSP), (R29, R30)
+ast_generated.go:8930 ADD $368, RSP, RSP
+ast_generated.go:8930 RET
+ast_generated.go:8928 LDP 32(R0), (R0, R3)
+ast_generated.go:8928 ADRP 6451200(PC), R4
+ast_generated.go:8928 ADD $264, R4, R4
+ast_generated.go:8928 CMP R4, R0
+ast_generated.go:8928 BNE 1136(PC)
+ast_generated.go:8928 MOVD R3, R0
+ast_generated.go:8928 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JsxOpeningElement).ForEachChild(SB)
+ast_generated.go:8928 LDP -8(RSP), (R29, R30)
+ast_generated.go:8928 ADD $368, RSP, RSP
+ast_generated.go:8928 RET
+ast_generated.go:8938 LDP 32(R0), (R0, R3)
+ast_generated.go:8938 ADRP 6451200(PC), R4
+ast_generated.go:8938 ADD $448, R4, R4
+ast_generated.go:8938 CMP R4, R0
+ast_generated.go:8938 BNE 1121(PC)
+ast_generated.go:6750 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:6750 MOVD ZR, R0
+ast_generated.go:6750 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8938 LDP -8(RSP), (R29, R30)
+ast_generated.go:8938 ADD $368, RSP, RSP
+ast_generated.go:8938 RET
+ast_generated.go:8932 LDP 32(R0), (R0, R3)
+ast_generated.go:8932 ADRP 6451200(PC), R4
+ast_generated.go:8932 ADD $632, R4, R4
+ast_generated.go:8932 CMP R4, R0
+ast_generated.go:8932 BNE 1101(PC)
+ast_generated.go:8932 MOVD R3, R0
+ast_generated.go:8932 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JsxFragment).ForEachChild(SB)
+ast_generated.go:8932 LDP -8(RSP), (R29, R30)
+ast_generated.go:8932 ADD $368, RSP, RSP
+ast_generated.go:8932 RET
+ast_generated.go:8934 LDP 32(R0), (R0, R3)
+ast_generated.go:8934 ADRP 6451200(PC), R4
+ast_generated.go:8934 ADD $816, R4, R4
+ast_generated.go:8934 CMP R4, R0
+ast_generated.go:8934 BNE 1086(PC)
+ast_generated.go:6669 MOVD 64(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:6669 MOVD ZR, R0
+ast_generated.go:6669 JMP 7(PC)
+ast_generated.go:8934 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:6669 MOVD 352(RSP), R3
+ast_generated.go:6669 TBZ $0, R0, 3(PC)
+ast_generated.go:6669 ORR $1, ZR, R0
+ast_generated.go:6669 JMP 8(PC)
+ast_generated.go:6669 MOVD 72(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:6669 MOVD ZR, R0
+ast_generated.go:6669 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8934 LDP -8(RSP), (R29, R30)
+ast_generated.go:8934 ADD $368, RSP, RSP
+ast_generated.go:8934 RET
+ast_generated.go:8924 LDP 32(R0), (R0, R3)
+ast_generated.go:8924 ADRP 6451200(PC), R4
+ast_generated.go:8924 ADD $1000, R4, R4
+ast_generated.go:8924 CMP R4, R0
+ast_generated.go:8924 BNE 1053(PC)
+ast_generated.go:6411 MOVD 64(R3), R2
+ast.go:48 CBZ R2, 6(PC)
+ast.go:49 LDP 8(R2), (R2, R3)
+ast.go:49 MOVD R3, 56(RSP)
+ast.go:49 MOVD R2, 216(RSP)
+ast.go:39 MOVD ZR, R0
+ast.go:39 JMP 1033(PC)
+ast_generated.go:6411 MOVD ZR, R0
+ast_generated.go:6411 JMP 1024(PC)
+ast_generated.go:8936 LDP 32(R0), (R0, R3)
+ast_generated.go:8936 ADRP 6451200(PC), R4
+ast_generated.go:8936 ADD $1184, R4, R4
+ast_generated.go:8936 CMP R4, R0
+ast_generated.go:8936 BNE 1014(PC)
+ast_generated.go:6712 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:6712 MOVD ZR, R0
+ast_generated.go:6712 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8936 LDP -8(RSP), (R29, R30)
+ast_generated.go:8936 ADD $368, RSP, RSP
+ast_generated.go:8936 RET
+ast_generated.go:8940 LDP 32(R0), (R0, R3)
+ast_generated.go:8940 ADRP 6451200(PC), R4
+ast_generated.go:8940 ADD $1368, R4, R4
+ast_generated.go:8940 CMP R4, R0
+ast_generated.go:8940 BNE 994(PC)
+ast_generated.go:6790 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:6790 MOVD ZR, R0
+ast_generated.go:6790 JMP 7(PC)
+ast_generated.go:8940 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:6790 MOVD 352(RSP), R3
+ast_generated.go:6790 TBZ $0, R0, 3(PC)
+ast_generated.go:6790 ORR $1, ZR, R0
+ast_generated.go:6790 JMP 8(PC)
+ast_generated.go:6790 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:6790 MOVD ZR, R0
+ast_generated.go:6790 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8940 LDP -8(RSP), (R29, R30)
+ast_generated.go:8940 ADD $368, RSP, RSP
+ast_generated.go:8940 RET
+ast_generated.go:8926 LDP 32(R0), (R0, R3)
+ast_generated.go:8926 ADRP 6451200(PC), R4
+ast_generated.go:8926 ADD $1552, R4, R4
+ast_generated.go:8926 CMP R4, R0
+ast_generated.go:8926 BNE 961(PC)
+ast_generated.go:6452 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:6452 MOVD ZR, R0
+ast_generated.go:6452 JMP 7(PC)
+ast_generated.go:8926 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:6452 MOVD 352(RSP), R3
+ast_generated.go:6452 TBZ $0, R0, 3(PC)
+ast_generated.go:6452 ORR $1, ZR, R0
+ast_generated.go:6452 JMP 8(PC)
+ast_generated.go:6452 MOVD 64(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:6452 MOVD ZR, R0
+ast_generated.go:6452 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8926 LDP -8(RSP), (R29, R30)
+ast_generated.go:8926 ADD $368, RSP, RSP
+ast_generated.go:8926 RET
+ast_generated.go:8722 LDP 32(R0), (R0, R3)
+ast_generated.go:8722 ADRP 6451200(PC), R4
+ast_generated.go:8722 ADD $1736, R4, R4
+ast_generated.go:8722 CMP R4, R0
+ast_generated.go:8722 BNE 928(PC)
+ast_generated.go:8722 MOVD R3, R0
+ast_generated.go:8722 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*CaseOrDefaultClause).ForEachChild(SB)
+ast_generated.go:8722 LDP -8(RSP), (R29, R30)
+ast_generated.go:8722 ADD $368, RSP, RSP
+ast_generated.go:8722 RET
+ast_generated.go:8756 LDP 32(R0), (R0, R3)
+ast_generated.go:8756 ADRP 6451200(PC), R4
+ast_generated.go:8756 ADD $1920, R4, R4
+ast_generated.go:8756 CMP R4, R0
+ast_generated.go:8756 BNE 913(PC)
+ast_generated.go:2175 MOVD 56(R3), R2
+ast.go:48 CBZ R2, 6(PC)
+ast.go:49 LDP 8(R2), (R2, R3)
+ast.go:49 MOVD R3, 144(RSP)
+ast.go:49 MOVD R2, 304(RSP)
+ast.go:39 MOVD ZR, R0
+ast.go:39 JMP 893(PC)
+ast_generated.go:2175 MOVD ZR, R0
+ast_generated.go:2175 JMP 884(PC)
+ast_generated.go:8728 LDP 32(R0), (R0, R3)
+ast_generated.go:8728 ADRP 6451200(PC), R4
+ast_generated.go:8728 ADD $2104, R4, R4
+ast_generated.go:8728 CMP R4, R0
+ast_generated.go:8728 BNE 874(PC)
+ast_generated.go:1484 MOVD 72(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:1484 MOVD ZR, R0
+ast_generated.go:1484 JMP 7(PC)
+ast_generated.go:8728 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:1484 MOVD 352(RSP), R3
+ast_generated.go:1484 TBZ $0, R0, 3(PC)
+ast_generated.go:1484 ORR $1, ZR, R0
+ast_generated.go:1484 JMP 8(PC)
+ast_generated.go:1484 MOVD 80(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:1484 MOVD ZR, R0
+ast_generated.go:1484 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8728 LDP -8(RSP), (R29, R30)
+ast_generated.go:8728 ADD $368, RSP, RSP
+ast_generated.go:8728 RET
+ast_generated.go:8892 LDP 32(R0), (R0, R3)
+ast_generated.go:8892 ADRP 6451200(PC), R4
+ast_generated.go:8892 ADD $2288, R4, R4
+ast_generated.go:8892 CMP R4, R0
+ast_generated.go:8892 BNE 841(PC)
+ast_generated.go:5663 MOVD 56(R3), R2
+ast.go:48 CBZ R2, 6(PC)
+ast.go:49 LDP 8(R2), (R2, R3)
+ast.go:49 MOVD R3, 80(RSP)
+ast.go:49 MOVD R2, 240(RSP)
+ast.go:39 MOVD ZR, R0
+ast.go:39 JMP 821(PC)
+ast_generated.go:5663 MOVD ZR, R0
+ast_generated.go:5663 JMP 812(PC)
+ast_generated.go:8890 LDP 32(R0), (R0, R3)
+ast_generated.go:8890 ADRP 6451200(PC), R4
+ast_generated.go:8890 ADD $2472, R4, R4
+ast_generated.go:8890 CMP R4, R0
+ast_generated.go:8890 BNE 802(PC)
+ast_generated.go:5611 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:5611 MOVD ZR, R0
+ast_generated.go:5611 JMP 7(PC)
+ast_generated.go:8890 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:5611 MOVD 352(RSP), R3
+ast_generated.go:5611 TBZ $0, R0, 3(PC)
+ast_generated.go:5611 ORR $1, ZR, R0
+ast_generated.go:5611 JMP 8(PC)
+ast_generated.go:5611 MOVD 64(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:5611 MOVD ZR, R0
+ast_generated.go:5611 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8890 LDP -8(RSP), (R29, R30)
+ast_generated.go:8890 ADD $368, RSP, RSP
+ast_generated.go:8890 RET
+ast_generated.go:8854 LDP 32(R0), (R0, R3)
+ast_generated.go:8854 ADRP 6451200(PC), R4
+ast_generated.go:8854 ADD $2656, R4, R4
+ast_generated.go:8854 CMP R4, R0
+ast_generated.go:8854 BNE 769(PC)
+ast_generated.go:8854 MOVD R3, R0
+ast_generated.go:8854 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*PropertyAssignment).ForEachChild(SB)
+ast_generated.go:8854 LDP -8(RSP), (R29, R30)
+ast_generated.go:8854 ADD $368, RSP, RSP
+ast_generated.go:8854 RET
+ast_generated.go:8856 LDP 32(R0), (R0, R3)
+ast_generated.go:8856 ADRP 6451200(PC), R4
+ast_generated.go:8856 ADD $2840, R4, R4
+ast_generated.go:8856 CMP R4, R0
+ast_generated.go:8856 BNE 754(PC)
+ast_generated.go:8856 MOVD R3, R0
+ast_generated.go:8856 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ShorthandPropertyAssignment).ForEachChild(SB)
+ast_generated.go:8856 LDP -8(RSP), (R29, R30)
+ast_generated.go:8856 ADD $368, RSP, RSP
+ast_generated.go:8856 RET
+ast_generated.go:8852 LDP 32(R0), (R0, R3)
+ast_generated.go:8852 ADRP 6451200(PC), R4
+ast_generated.go:8852 ADD $3024, R4, R4
+ast_generated.go:8852 CMP R4, R0
+ast_generated.go:8852 BNE 739(PC)
+ast_generated.go:4769 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:4769 MOVD ZR, R0
+ast_generated.go:4769 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8852 LDP -8(RSP), (R29, R30)
+ast_generated.go:8852 ADD $368, RSP, RSP
+ast_generated.go:8852 RET
+ast_generated.go:8762 LDP 32(R0), (R0, R3)
+ast_generated.go:8762 ADRP 6451200(PC), R4
+ast_generated.go:8762 ADD $3208, R4, R4
+ast_generated.go:8762 CMP R4, R0
+ast_generated.go:8762 BNE 719(PC)
+ast_generated.go:2356 MOVD 64(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:2356 MOVD ZR, R0
+ast_generated.go:2356 JMP 7(PC)
+ast_generated.go:8762 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:2356 MOVD 352(RSP), R3
+ast_generated.go:2356 TBZ $0, R0, 3(PC)
+ast_generated.go:2356 ORR $1, ZR, R0
+ast_generated.go:2356 JMP 8(PC)
+ast_generated.go:2356 MOVD 88(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:2356 MOVD ZR, R0
+ast_generated.go:2356 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8762 LDP -8(RSP), (R29, R30)
+ast_generated.go:8762 ADD $368, RSP, RSP
+ast_generated.go:8762 RET
+ast_generated.go:9000 LDP 32(R0), (R0, R3)
+ast_generated.go:9000 ADRP 6451200(PC), R4
+ast_generated.go:9000 ADD $3392, R4, R4
+ast_generated.go:9000 CMP R4, R0
+ast_generated.go:9000 BNE 686(PC)
+ast_generated.go:9000 MOVD R3, R0
+ast_generated.go:9000 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*SourceFile).ForEachChild(SB)
+ast_generated.go:9000 LDP -8(RSP), (R29, R30)
+ast_generated.go:9000 ADD $368, RSP, RSP
+ast_generated.go:9000 RET
+ast_generated.go:8946 LDP 32(R0), (R0, R3)
+ast_generated.go:8946 ADRP 6451200(PC), R4
+ast_generated.go:8946 ADD $3576, R4, R4
+ast_generated.go:8946 CMP R4, R0
+ast_generated.go:8946 BNE 671(PC)
+ast_generated.go:6933 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:6933 MOVD ZR, R0
+ast_generated.go:6933 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8946 LDP -8(RSP), (R29, R30)
+ast_generated.go:8946 ADD $368, RSP, RSP
+ast_generated.go:8946 RET
+ast_generated.go:8998 LDP 32(R0), (R0, R3)
+ast_generated.go:8998 ADRP 6451200(PC), R4
+ast_generated.go:8998 ADD $3760, R4, R4
+ast_generated.go:8998 CMP R4, R0
+ast_generated.go:8998 BNE 651(PC)
+ast_generated.go:8002 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:8002 MOVD ZR, R0
+ast_generated.go:8002 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8998 LDP -8(RSP), (R29, R30)
+ast_generated.go:8998 ADD $368, RSP, RSP
+ast_generated.go:8998 RET
+ast_generated.go:8950 LDP 32(R0), (R0, R3)
+ast_generated.go:8950 ADRP 6451200(PC), R4
+ast_generated.go:8950 ADD $3944, R4, R4
+ast_generated.go:8950 CMP R4, R0
+ast_generated.go:8950 BNE 631(PC)
+ast_generated.go:7009 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:7009 MOVD ZR, R0
+ast_generated.go:7009 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8950 LDP -8(RSP), (R29, R30)
+ast_generated.go:8950 ADD $368, RSP, RSP
+ast_generated.go:8950 RET
+ast_generated.go:8948 LDP 32(R0), (R0, R3)
+ast_generated.go:8948 ADRP 6455296(PC), R4
+ast_generated.go:8948 ADD $32, R4, R4
+ast_generated.go:8948 CMP R4, R0
+ast_generated.go:8948 BNE 611(PC)
+ast_generated.go:6971 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:6971 MOVD ZR, R0
+ast_generated.go:6971 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8948 LDP -8(RSP), (R29, R30)
+ast_generated.go:8948 ADD $368, RSP, RSP
+ast_generated.go:8948 RET
+ast_generated.go:8954 LDP 32(R0), (R0, R3)
+ast_generated.go:8954 ADRP 6455296(PC), R4
+ast_generated.go:8954 ADD $216, R4, R4
+ast_generated.go:8954 CMP R4, R0
+ast_generated.go:8954 BNE 591(PC)
+ast_generated.go:7106 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:7106 MOVD ZR, R0
+ast_generated.go:7106 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8954 LDP -8(RSP), (R29, R30)
+ast_generated.go:8954 ADD $368, RSP, RSP
+ast_generated.go:8954 RET
+ast_generated.go:8952 LDP 32(R0), (R0, R3)
+ast_generated.go:8952 ADRP 6455296(PC), R4
+ast_generated.go:8952 ADD $400, R4, R4
+ast_generated.go:8952 CMP R4, R0
+ast_generated.go:8952 BNE 571(PC)
+ast_generated.go:7068 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:7068 MOVD ZR, R0
+ast_generated.go:7068 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8952 LDP -8(RSP), (R29, R30)
+ast_generated.go:8952 ADD $368, RSP, RSP
+ast_generated.go:8952 RET
+ast_generated.go:8944 LDP 32(R0), (R0, R3)
+ast_generated.go:8944 ADRP 6455296(PC), R4
+ast_generated.go:8944 ADD $584, R4, R4
+ast_generated.go:8944 CMP R4, R0
+ast_generated.go:8944 BNE 551(PC)
+ast_generated.go:8944 MOVD R3, R0
+ast_generated.go:8944 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDoc).ForEachChild(SB)
+ast_generated.go:8944 LDP -8(RSP), (R29, R30)
+ast_generated.go:8944 ADD $368, RSP, RSP
+ast_generated.go:8944 RET
+ast_generated.go:9024 LDP 32(R0), (R0, R3)
+ast_generated.go:9024 ADRP 6455296(PC), R4
+ast_generated.go:9024 ADD $768, R4, R4
+ast_generated.go:9024 CMP R4, R0
+ast_generated.go:9024 BNE 536(PC)
+ast_generated.go:8617 LDP 56(R3), (R2, R3)
+ast_generated.go:8617 MOVD R3, 40(RSP)
+ast_generated.go:8617 MOVD R2, 200(RSP)
+ast.go:39 MOVD ZR, R0
+ast.go:39 JMP 516(PC)
+ast_generated.go:8996 LDP 32(R0), (R0, R3)
+ast_generated.go:8996 ADRP 6455296(PC), R4
+ast_generated.go:8996 ADD $952, R4, R4
+ast_generated.go:8996 CMP R4, R0
+ast_generated.go:8996 BNE 502(PC)
+ast_generated.go:8996 MOVD R3, R0
+ast_generated.go:8996 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocSignature).ForEachChild(SB)
+ast_generated.go:8996 LDP -8(RSP), (R29, R30)
+ast_generated.go:8996 ADD $368, RSP, RSP
+ast_generated.go:8996 RET
+ast_generated.go:9014 LDP 32(R0), (R0, R3)
+ast_generated.go:9014 ADRP 6455296(PC), R4
+ast_generated.go:9014 ADD $1136, R4, R4
+ast_generated.go:9014 CMP R4, R0
+ast_generated.go:9014 BNE 487(PC)
+ast_generated.go:8383 MOVD 72(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:8383 MOVD ZR, R0
+ast_generated.go:8383 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:9014 LDP -8(RSP), (R29, R30)
+ast_generated.go:9014 ADD $368, RSP, RSP
+ast_generated.go:9014 RET
+ast_generated.go:9018 LDP 32(R0), (R0, R3)
+ast_generated.go:9018 ADRP 6455296(PC), R4
+ast_generated.go:9018 ADD $1320, R4, R4
+ast_generated.go:9018 CMP R4, R0
+ast_generated.go:9018 BNE 467(PC)
+ast_generated.go:8471 MOVD 72(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:8471 MOVD ZR, R0
+ast_generated.go:8471 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:9018 LDP -8(RSP), (R29, R30)
+ast_generated.go:9018 ADD $368, RSP, RSP
+ast_generated.go:9018 RET
+ast_generated.go:9016 LDP 32(R0), (R0, R3)
+ast_generated.go:9016 ADRP 6455296(PC), R4
+ast_generated.go:9016 ADD $1504, R4, R4
+ast_generated.go:9016 CMP R4, R0
+ast_generated.go:9016 BNE 447(PC)
+ast_generated.go:8427 MOVD 72(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:8427 MOVD ZR, R0
+ast_generated.go:8427 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:9016 LDP -8(RSP), (R29, R30)
+ast_generated.go:9016 ADD $368, RSP, RSP
+ast_generated.go:9016 RET
+ast_generated.go:8958 LDP 32(R0), (R0, R3)
+ast_generated.go:8958 ADRP 6455296(PC), R4
+ast_generated.go:8958 ADD $1688, R4, R4
+ast_generated.go:8958 CMP R4, R0
+ast_generated.go:8958 BNE 427(PC)
+ast_generated.go:8958 MOVD R3, R0
+ast_generated.go:8958 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocUnknownTag).ForEachChild(SB)
+ast_generated.go:8958 LDP -8(RSP), (R29, R30)
+ast_generated.go:8958 ADD $368, RSP, RSP
+ast_generated.go:8958 RET
+ast_generated.go:8980 LDP 32(R0), (R0, R3)
+ast_generated.go:8980 ADRP 6455296(PC), R4
+ast_generated.go:8980 ADD $1872, R4, R4
+ast_generated.go:8980 CMP R4, R0
+ast_generated.go:8980 BNE 412(PC)
+ast_generated.go:8980 MOVD R3, R0
+ast_generated.go:8980 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocAugmentsTag).ForEachChild(SB)
+ast_generated.go:8980 LDP -8(RSP), (R29, R30)
+ast_generated.go:8980 ADD $368, RSP, RSP
+ast_generated.go:8980 RET
+ast_generated.go:8978 LDP 32(R0), (R0, R3)
+ast_generated.go:8978 ADRP 6455296(PC), R4
+ast_generated.go:8978 ADD $2056, R4, R4
+ast_generated.go:8978 CMP R4, R0
+ast_generated.go:8978 BNE 397(PC)
+ast_generated.go:8978 MOVD R3, R0
+ast_generated.go:8978 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocImplementsTag).ForEachChild(SB)
+ast_generated.go:8978 LDP -8(RSP), (R29, R30)
+ast_generated.go:8978 ADD $368, RSP, RSP
+ast_generated.go:8978 RET
+ast_generated.go:8974 LDP 32(R0), (R0, R3)
+ast_generated.go:8974 ADRP 6455296(PC), R4
+ast_generated.go:8974 ADD $2240, R4, R4
+ast_generated.go:8974 CMP R4, R0
+ast_generated.go:8974 BNE 382(PC)
+ast_generated.go:8974 MOVD R3, R0
+ast_generated.go:8974 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocDeprecatedTag).ForEachChild(SB)
+ast_generated.go:8974 LDP -8(RSP), (R29, R30)
+ast_generated.go:8974 ADD $368, RSP, RSP
+ast_generated.go:8974 RET
+ast_generated.go:8964 LDP 32(R0), (R0, R3)
+ast_generated.go:8964 ADRP 6455296(PC), R4
+ast_generated.go:8964 ADD $2424, R4, R4
+ast_generated.go:8964 CMP R4, R0
+ast_generated.go:8964 BNE 367(PC)
+ast_generated.go:8964 MOVD R3, R0
+ast_generated.go:8964 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocPublicTag).ForEachChild(SB)
+ast_generated.go:8964 LDP -8(RSP), (R29, R30)
+ast_generated.go:8964 ADD $368, RSP, RSP
+ast_generated.go:8964 RET
+ast_generated.go:8966 LDP 32(R0), (R0, R3)
+ast_generated.go:8966 ADRP 6455296(PC), R4
+ast_generated.go:8966 ADD $2608, R4, R4
+ast_generated.go:8966 CMP R4, R0
+ast_generated.go:8966 BNE 352(PC)
+ast_generated.go:8966 MOVD R3, R0
+ast_generated.go:8966 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocPrivateTag).ForEachChild(SB)
+ast_generated.go:8966 LDP -8(RSP), (R29, R30)
+ast_generated.go:8966 ADD $368, RSP, RSP
+ast_generated.go:8966 RET
+ast_generated.go:8968 LDP 32(R0), (R0, R3)
+ast_generated.go:8968 ADRP 6455296(PC), R4
+ast_generated.go:8968 ADD $2792, R4, R4
+ast_generated.go:8968 CMP R4, R0
+ast_generated.go:8968 BNE 337(PC)
+ast_generated.go:8968 MOVD R3, R0
+ast_generated.go:8968 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocProtectedTag).ForEachChild(SB)
+ast_generated.go:8968 LDP -8(RSP), (R29, R30)
+ast_generated.go:8968 ADD $368, RSP, RSP
+ast_generated.go:8968 RET
+ast_generated.go:8970 LDP 32(R0), (R0, R3)
+ast_generated.go:8970 ADRP 6455296(PC), R4
+ast_generated.go:8970 ADD $2976, R4, R4
+ast_generated.go:8970 CMP R4, R0
+ast_generated.go:8970 BNE 322(PC)
+ast_generated.go:8970 MOVD R3, R0
+ast_generated.go:8970 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocReadonlyTag).ForEachChild(SB)
+ast_generated.go:8970 LDP -8(RSP), (R29, R30)
+ast_generated.go:8970 ADD $368, RSP, RSP
+ast_generated.go:8970 RET
+ast_generated.go:8972 LDP 32(R0), (R0, R3)
+ast_generated.go:8972 ADRP 6455296(PC), R4
+ast_generated.go:8972 ADD $3160, R4, R4
+ast_generated.go:8972 CMP R4, R0
+ast_generated.go:8972 BNE 307(PC)
+ast_generated.go:8972 MOVD R3, R0
+ast_generated.go:8972 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocOverrideTag).ForEachChild(SB)
+ast_generated.go:8972 LDP -8(RSP), (R29, R30)
+ast_generated.go:8972 ADD $368, RSP, RSP
+ast_generated.go:8972 RET
+ast_generated.go:8990 LDP 32(R0), (R0, R3)
+ast_generated.go:8990 ADRP 6455296(PC), R4
+ast_generated.go:8990 ADD $3344, R4, R4
+ast_generated.go:8990 CMP R4, R0
+ast_generated.go:8990 BNE 292(PC)
+ast_generated.go:8990 MOVD R3, R0
+ast_generated.go:8990 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocCallbackTag).ForEachChild(SB)
+ast_generated.go:8990 LDP -8(RSP), (R29, R30)
+ast_generated.go:8990 ADD $368, RSP, RSP
+ast_generated.go:8990 RET
+ast_generated.go:8992 LDP 32(R0), (R0, R3)
+ast_generated.go:8992 ADRP 6455296(PC), R4
+ast_generated.go:8992 ADD $3528, R4, R4
+ast_generated.go:8992 CMP R4, R0
+ast_generated.go:8992 BNE 277(PC)
+ast_generated.go:8992 MOVD R3, R0
+ast_generated.go:8992 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocOverloadTag).ForEachChild(SB)
+ast_generated.go:8992 LDP -8(RSP), (R29, R30)
+ast_generated.go:8992 ADD $368, RSP, RSP
+ast_generated.go:8992 RET
+ast_generated.go:8962 LDP 32(R0), (R0, R3)
+ast_generated.go:8962 ADRP 6455296(PC), R4
+ast_generated.go:8962 ADD $3896, R4, R4
+ast_generated.go:8962 CMP R4, R0
+ast_generated.go:8962 BNE 262(PC)
+ast_generated.go:8962 MOVD R3, R0
+ast_generated.go:8962 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocReturnTag).ForEachChild(SB)
+ast_generated.go:8962 LDP -8(RSP), (R29, R30)
+ast_generated.go:8962 ADD $368, RSP, RSP
+ast_generated.go:8962 RET
+ast_generated.go:8986 LDP 32(R0), (R0, R3)
+ast_generated.go:8986 ADRP 6455296(PC), R4
+ast_generated.go:8986 ADD $4080, R4, R4
+ast_generated.go:8986 CMP R4, R0
+ast_generated.go:8986 BNE 247(PC)
+ast_generated.go:8986 MOVD R3, R0
+ast_generated.go:8986 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocThisTag).ForEachChild(SB)
+ast_generated.go:8986 LDP -8(RSP), (R29, R30)
+ast_generated.go:8986 ADD $368, RSP, RSP
+ast_generated.go:8986 RET
+ast_generated.go:8956 LDP 32(R0), (R0, R3)
+ast_generated.go:8956 ADRP 6459392(PC), R4
+ast_generated.go:8956 ADD $168, R4, R4
+ast_generated.go:8956 CMP R4, R0
+ast_generated.go:8956 BNE 232(PC)
+ast_generated.go:8956 MOVD R3, R0
+ast_generated.go:8956 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocTypeTag).ForEachChild(SB)
+ast_generated.go:8956 LDP -8(RSP), (R29, R30)
+ast_generated.go:8956 ADD $368, RSP, RSP
+ast_generated.go:8956 RET
+ast_generated.go:8960 LDP 32(R0), (R0, R3)
+ast_generated.go:8960 ADRP 6459392(PC), R4
+ast_generated.go:8960 ADD $352, R4, R4
+ast_generated.go:8960 CMP R4, R0
+ast_generated.go:8960 BNE 217(PC)
+ast_generated.go:8960 MOVD R3, R0
+ast_generated.go:8960 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocTemplateTag).ForEachChild(SB)
+ast_generated.go:8960 LDP -8(RSP), (R29, R30)
+ast_generated.go:8960 ADD $368, RSP, RSP
+ast_generated.go:8960 RET
+ast_generated.go:8994 LDP 32(R0), (R0, R3)
+ast_generated.go:8994 ADRP 6459392(PC), R4
+ast_generated.go:8994 ADD $536, R4, R4
+ast_generated.go:8994 CMP R4, R0
+ast_generated.go:8994 BNE 202(PC)
+ast_generated.go:8994 MOVD R3, R0
+ast_generated.go:8994 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocTypedefTag).ForEachChild(SB)
+ast_generated.go:8994 LDP -8(RSP), (R29, R30)
+ast_generated.go:8994 ADD $368, RSP, RSP
+ast_generated.go:8994 RET
+ast_generated.go:8976 LDP 32(R0), (R0, R3)
+ast_generated.go:8976 ADRP 6459392(PC), R4
+ast_generated.go:8976 ADD $720, R4, R4
+ast_generated.go:8976 CMP R4, R0
+ast_generated.go:8976 BNE 187(PC)
+ast_generated.go:8976 MOVD R3, R0
+ast_generated.go:8976 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocSeeTag).ForEachChild(SB)
+ast_generated.go:8976 LDP -8(RSP), (R29, R30)
+ast_generated.go:8976 ADD $368, RSP, RSP
+ast_generated.go:8976 RET
+ast_generated.go:9026 LDP 32(R0), (R0, R3)
+ast_generated.go:9026 ADRP 6455296(PC), R4
+ast_generated.go:9026 ADD $3712, R4, R4
+ast_generated.go:9026 CMP R4, R0
+ast_generated.go:9026 BNE 172(PC)
+ast_generated.go:8664 MOVD R3, R0
+ast_generated.go:8664 CALL github.com/microsoft/TypeScript/tsc/internal/ast.forEachChild_JSDocParameterOrPropertyTag(SB)
+ast_generated.go:9026 LDP -8(RSP), (R29, R30)
+ast_generated.go:9026 ADD $368, RSP, RSP
+ast_generated.go:9026 RET
+ast_generated.go:8984 LDP 32(R0), (R0, R3)
+ast_generated.go:8984 ADRP 6459392(PC), R4
+ast_generated.go:8984 ADD $904, R4, R4
+ast_generated.go:8984 CMP R4, R0
+ast_generated.go:8984 BNE 157(PC)
+ast_generated.go:8984 MOVD R3, R0
+ast_generated.go:8984 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocThrowsTag).ForEachChild(SB)
+ast_generated.go:8984 LDP -8(RSP), (R29, R30)
+ast_generated.go:8984 ADD $368, RSP, RSP
+ast_generated.go:8984 RET
+ast_generated.go:8982 LDP 32(R0), (R0, R3)
+ast_generated.go:8982 ADRP 6459392(PC), R4
+ast_generated.go:8982 ADD $1088, R4, R4
+ast_generated.go:8982 CMP R4, R0
+ast_generated.go:8982 BNE 142(PC)
+ast_generated.go:8982 MOVD R3, R0
+ast_generated.go:8982 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocSatisfiesTag).ForEachChild(SB)
+ast_generated.go:8982 LDP -8(RSP), (R29, R30)
+ast_generated.go:8982 ADD $368, RSP, RSP
+ast_generated.go:8982 RET
+ast_generated.go:8988 LDP 32(R0), (R0, R3)
+ast_generated.go:8988 ADRP 6459392(PC), R4
+ast_generated.go:8988 ADD $1272, R4, R4
+ast_generated.go:8988 CMP R4, R0
+ast_generated.go:8988 BNE 127(PC)
+ast_generated.go:8988 MOVD R3, R0
+ast_generated.go:8988 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*JSDocImportTag).ForEachChild(SB)
+ast_generated.go:8988 LDP -8(RSP), (R29, R30)
+ast_generated.go:8988 ADD $368, RSP, RSP
+ast_generated.go:8988 RET
+ast_generated.go:8942 LDP 32(R0), (R0, R3)
+ast_generated.go:8942 ADRP 6459392(PC), R4
+ast_generated.go:8942 ADD $1456, R4, R4
+ast_generated.go:8942 CMP R4, R0
+ast_generated.go:8942 BNE 112(PC)
+ast_generated.go:6854 LDP 48(R3), (R2, R3)
+ast_generated.go:6854 MOVD R3, 48(RSP)
+ast_generated.go:6854 MOVD R2, 208(RSP)
+ast.go:39 MOVD ZR, R0
+ast.go:39 JMP 92(PC)
+ast_generated.go:8760 LDP 32(R0), (R0, R3)
+ast_generated.go:8760 ADRP 6447104(PC), R4
+ast_generated.go:8760 ADD $496, R4, R4
+ast_generated.go:8760 CMP R4, R0
+ast_generated.go:8760 BNE 78(PC)
+ast_generated.go:8760 MOVD R3, R0
+ast_generated.go:8760 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*TypeAliasDeclaration).ForEachChild(SB)
+ast_generated.go:8760 LDP -8(RSP), (R29, R30)
+ast_generated.go:8760 ADD $368, RSP, RSP
+ast_generated.go:8760 RET
+ast_generated.go:8768 LDP 32(R0), (R0, R3)
+ast_generated.go:8768 ADRP 6447104(PC), R4
+ast_generated.go:8768 ADD $1784, R4, R4
+ast_generated.go:8768 CMP R4, R0
+ast_generated.go:8768 BNE 63(PC)
+ast_generated.go:8768 MOVD R3, R0
+ast_generated.go:8768 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*ImportDeclaration).ForEachChild(SB)
+ast_generated.go:8768 LDP -8(RSP), (R29, R30)
+ast_generated.go:8768 ADD $368, RSP, RSP
+ast_generated.go:8768 RET
+ast_generated.go:8920 LDP 32(R0), (R0, R3)
+ast_generated.go:8920 ADRP 6459392(PC), R4
+ast_generated.go:8920 ADD $1640, R4, R4
+ast_generated.go:8920 CMP R4, R0
+ast_generated.go:8920 BNE 48(PC)
+ast_generated.go:6324 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:6324 MOVD ZR, R0
+ast_generated.go:6324 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:8920 LDP -8(RSP), (R29, R30)
+ast_generated.go:8920 ADD $368, RSP, RSP
+ast_generated.go:8920 RET
+ast_generated.go:9022 LDP 32(R0), (R0, R3)
+ast_generated.go:9022 ADRP 6459392(PC), R4
+ast_generated.go:9022 ADD $1824, R4, R4
+ast_generated.go:9022 CMP R4, R0
+ast_generated.go:9022 BNE 28(PC)
+ast_generated.go:8571 MOVD 48(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:8571 MOVD ZR, R0
+ast_generated.go:8571 JMP 7(PC)
+ast_generated.go:9022 MOVD R3, 352(RSP)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast.go:33 MOVD 384(RSP), R1
+ast_generated.go:8571 MOVD 352(RSP), R3
+ast_generated.go:8571 TBZ $0, R0, 3(PC)
+ast_generated.go:8571 ORR $1, ZR, R0
+ast_generated.go:8571 JMP 8(PC)
+ast_generated.go:8571 MOVD 56(R3), R0
+ast.go:32 CBNZ R0, 3(PC)
+ast_generated.go:8571 MOVD ZR, R0
+ast_generated.go:8571 JMP 4(PC)
+ast.go:33 MOVD (R1), R2
+ast.go:33 MOVD R1, R26
+ast.go:33 CALL (R2)
+ast_generated.go:9022 LDP -8(RSP), (R29, R30)
+ast_generated.go:9022 ADD $368, RSP, RSP
+ast_generated.go:9022 RET
+ast_generated.go:9028 MOVD ZR, R0
+ast_generated.go:9028 LDP -8(RSP), (R29, R30)
+ast_generated.go:9028 ADD $368, RSP, RSP
+ast_generated.go:9028 RET
+ast_generated.go:9022 ADRP 5730304(PC), R1
+ast_generated.go:9022 ADD $624, R1, R1
+ast_generated.go:9022 ADRP 6348800(PC), R2
+ast_generated.go:9022 ADD $2024, R2, R2
+ast_generated.go:9022 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8920 ADRP 5615616(PC), R1
+ast_generated.go:8920 ADD $3984, R1, R1
+ast_generated.go:8920 ADRP 6348800(PC), R2
+ast_generated.go:8920 ADD $2024, R2, R2
+ast_generated.go:8920 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8768 ADRP 5193728(PC), R1
+ast_generated.go:8768 ADD $1664, R1, R1
+ast_generated.go:8768 ADRP 6348800(PC), R2
+ast_generated.go:8768 ADD $2024, R2, R2
+ast_generated.go:8768 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8760 ADRP 5791744(PC), R1
+ast_generated.go:8760 ADD $904, R1, R1
+ast_generated.go:8760 ADRP 6348800(PC), R2
+ast_generated.go:8760 ADD $2024, R2, R2
+ast_generated.go:8760 CALL runtime.panicdottypeI(SB)
+ast.go:39 ADD $1, R1, R0
+ast.go:40 MOVD 384(RSP), R1
+ast.go:39 MOVD 208(RSP), R2
+ast.go:39 MOVD 48(RSP), R3
+ast.go:39 CMP R3, R0
+ast.go:39 BGE 10(PC)
+ast.go:39 MOVD R0, 192(RSP)
+ast.go:39 MOVD (R2)(R0<<3), R0
+ast.go:40 MOVD (R1), R2
+ast.go:40 MOVD R1, R26
+ast.go:40 CALL (R2)
+ast.go:39 MOVD 192(RSP), R1
+ast.go:39 MOVD 48(RSP), R2
+ast.go:39 CMP R2, R1
+ast.go:40 TBZ $0, R0, -14(PC)
+ast.go:39 CSET LT, R0
+ast_generated.go:8942 LDP -8(RSP), (R29, R30)
+ast_generated.go:8942 ADD $368, RSP, RSP
+ast_generated.go:8942 RET
+ast_generated.go:8942 ADRP 5722112(PC), R1
+ast_generated.go:8942 ADD $32, R1, R1
+ast_generated.go:8942 ADRP 6348800(PC), R2
+ast_generated.go:8942 ADD $2024, R2, R2
+ast_generated.go:8942 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8988 ADRP 5267456(PC), R1
+ast_generated.go:8988 ADD $2392, R1, R1
+ast_generated.go:8988 ADRP 6348800(PC), R2
+ast_generated.go:8988 ADD $2024, R2, R2
+ast_generated.go:8988 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8982 ADRP 5337088(PC), R1
+ast_generated.go:8982 ADD $3000, R1, R1
+ast_generated.go:8982 ADRP 6348800(PC), R2
+ast_generated.go:8982 ADD $2024, R2, R2
+ast_generated.go:8982 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8984 ADRP 5369856(PC), R1
+ast_generated.go:8984 ADD $880, R1, R1
+ast_generated.go:8984 ADRP 6348800(PC), R2
+ast_generated.go:8984 ADD $2024, R2, R2
+ast_generated.go:8984 CALL runtime.panicdottypeI(SB)
+ast_generated.go:9026 ADRP 5312512(PC), R1
+ast_generated.go:9026 ADD $1256, R1, R1
+ast_generated.go:9026 ADRP 6348800(PC), R2
+ast_generated.go:9026 ADD $2024, R2, R2
+ast_generated.go:9026 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8976 ADRP 5341184(PC), R1
+ast_generated.go:8976 ADD $3280, R1, R1
+ast_generated.go:8976 ADRP 6348800(PC), R2
+ast_generated.go:8976 ADD $2024, R2, R2
+ast_generated.go:8976 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8994 ADRP 5390336(PC), R1
+ast_generated.go:8994 ADD $2344, R1, R1
+ast_generated.go:8994 ADRP 6348800(PC), R2
+ast_generated.go:8994 ADD $2024, R2, R2
+ast_generated.go:8994 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8960 ADRP 5357568(PC), R1
+ast_generated.go:8960 ADD $8, R1, R1
+ast_generated.go:8960 ADRP 6348800(PC), R2
+ast_generated.go:8960 ADD $2024, R2, R2
+ast_generated.go:8960 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8956 ADRP 5386240(PC), R1
+ast_generated.go:8956 ADD $2064, R1, R1
+ast_generated.go:8956 ADRP 6348800(PC), R2
+ast_generated.go:8956 ADD $2024, R2, R2
+ast_generated.go:8956 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8986 ADRP 5365760(PC), R1
+ast_generated.go:8986 ADD $600, R1, R1
+ast_generated.go:8986 ADRP 6348800(PC), R2
+ast_generated.go:8986 ADD $2024, R2, R2
+ast_generated.go:8986 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8962 ADRP 5332992(PC), R1
+ast_generated.go:8962 ADD $2720, R1, R1
+ast_generated.go:8962 ADRP 6348800(PC), R2
+ast_generated.go:8962 ADD $2024, R2, R2
+ast_generated.go:8962 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8992 ADRP 5304320(PC), R1
+ast_generated.go:8992 ADD $680, R1, R1
+ast_generated.go:8992 ADRP 6348800(PC), R2
+ast_generated.go:8992 ADD $2024, R2, R2
+ast_generated.go:8992 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8990 ADRP 5251072(PC), R1
+ast_generated.go:8990 ADD $1224, R1, R1
+ast_generated.go:8990 ADRP 6348800(PC), R2
+ast_generated.go:8990 ADD $2024, R2, R2
+ast_generated.go:8990 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8972 ADRP 5308416(PC), R1
+ast_generated.go:8972 ADD $960, R1, R1
+ast_generated.go:8972 ADRP 6348800(PC), R2
+ast_generated.go:8972 ADD $2024, R2, R2
+ast_generated.go:8972 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8970 ADRP 5328896(PC), R1
+ast_generated.go:8970 ADD $2424, R1, R1
+ast_generated.go:8970 ADRP 6348800(PC), R2
+ast_generated.go:8970 ADD $2024, R2, R2
+ast_generated.go:8970 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8968 ADRP 5320704(PC), R1
+ast_generated.go:8968 ADD $1832, R1, R1
+ast_generated.go:8968 ADRP 6348800(PC), R2
+ast_generated.go:8968 ADD $2024, R2, R2
+ast_generated.go:8968 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8966 ADRP 5316608(PC), R1
+ast_generated.go:8966 ADD $1536, R1, R1
+ast_generated.go:8966 ADRP 6348800(PC), R2
+ast_generated.go:8966 ADD $2024, R2, R2
+ast_generated.go:8966 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8964 ADRP 5324800(PC), R1
+ast_generated.go:8964 ADD $2128, R1, R1
+ast_generated.go:8964 ADRP 6348800(PC), R2
+ast_generated.go:8964 ADD $2024, R2, R2
+ast_generated.go:8964 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8974 ADRP 5259264(PC), R1
+ast_generated.go:8974 ADD $1816, R1, R1
+ast_generated.go:8974 ADRP 6348800(PC), R2
+ast_generated.go:8974 ADD $2024, R2, R2
+ast_generated.go:8974 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8978 ADRP 5263360(PC), R1
+ast_generated.go:8978 ADD $2112, R1, R1
+ast_generated.go:8978 ADRP 6348800(PC), R2
+ast_generated.go:8978 ADD $2024, R2, R2
+ast_generated.go:8978 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8980 ADRP 5246976(PC), R1
+ast_generated.go:8980 ADD $944, R1, R1
+ast_generated.go:8980 ADRP 6348800(PC), R2
+ast_generated.go:8980 ADD $2024, R2, R2
+ast_generated.go:8980 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8958 ADRP 5394432(PC), R1
+ast_generated.go:8958 ADD $2624, R1, R1
+ast_generated.go:8958 ADRP 6348800(PC), R2
+ast_generated.go:8958 ADD $2024, R2, R2
+ast_generated.go:8958 CALL runtime.panicdottypeI(SB)
+ast_generated.go:9016 ADRP 5279744(PC), R1
+ast_generated.go:9016 ADD $3264, R1, R1
+ast_generated.go:9016 ADRP 6348800(PC), R2
+ast_generated.go:9016 ADD $2024, R2, R2
+ast_generated.go:9016 CALL runtime.panicdottypeI(SB)
+ast_generated.go:9018 ADRP 5275648(PC), R1
+ast_generated.go:9018 ADD $2952, R1, R1
+ast_generated.go:9018 ADRP 6348800(PC), R2
+ast_generated.go:9018 ADD $2024, R2, R2
+ast_generated.go:9018 CALL runtime.panicdottypeI(SB)
+ast_generated.go:9014 ADRP 5271552(PC), R1
+ast_generated.go:9014 ADD $2640, R1, R1
+ast_generated.go:9014 ADRP 6348800(PC), R2
+ast_generated.go:9014 ADD $2024, R2, R2
+ast_generated.go:9014 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8996 ADRP 5345280(PC), R1
+ast_generated.go:8996 ADD $3576, R1, R1
+ast_generated.go:8996 ADRP 6348800(PC), R2
+ast_generated.go:8996 ADD $2024, R2, R2
+ast_generated.go:8996 CALL runtime.panicdottypeI(SB)
+ast.go:39 ADD $1, R1, R0
+ast.go:40 MOVD 384(RSP), R1
+ast.go:39 MOVD 200(RSP), R2
+ast.go:39 MOVD 40(RSP), R3
+ast.go:39 CMP R3, R0
+ast.go:39 BGE 10(PC)
+ast.go:39 MOVD R0, 192(RSP)
+ast.go:39 MOVD (R2)(R0<<3), R0
+ast.go:40 MOVD (R1), R2
+ast.go:40 MOVD R1, R26
+ast.go:40 CALL (R2)
+ast.go:39 MOVD 192(RSP), R1
+ast.go:39 MOVD 40(RSP), R2
+ast.go:39 CMP R2, R1
+ast.go:40 TBZ $0, R0, -14(PC)
+ast.go:39 CSET LT, R0
+ast_generated.go:9024 LDP -8(RSP), (R29, R30)
+ast_generated.go:9024 ADD $368, RSP, RSP
+ast_generated.go:9024 RET
+ast_generated.go:9024 ADRP 5382144(PC), R1
+ast_generated.go:9024 ADD $1768, R1, R1
+ast_generated.go:9024 ADRP 6348800(PC), R2
+ast_generated.go:9024 ADD $2024, R2, R2
+ast_generated.go:9024 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8944 ADRP 5238784(PC), R1
+ast_generated.go:8944 ADD $320, R1, R1
+ast_generated.go:8944 ADRP 6348800(PC), R2
+ast_generated.go:8944 ADD $2024, R2, R2
+ast_generated.go:8944 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8952 ADRP 5398528(PC), R1
+ast_generated.go:8952 ADD $2920, R1, R1
+ast_generated.go:8952 ADRP 6348800(PC), R2
+ast_generated.go:8952 ADD $2024, R2, R2
+ast_generated.go:8952 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8954 ADRP 5300224(PC), R1
+ast_generated.go:8954 ADD $384, R1, R1
+ast_generated.go:8954 ADRP 6348800(PC), R2
+ast_generated.go:8954 ADD $2024, R2, R2
+ast_generated.go:8954 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8948 ADRP 5287936(PC), R1
+ast_generated.go:8948 ADD $3888, R1, R1
+ast_generated.go:8948 ADRP 6348800(PC), R2
+ast_generated.go:8948 ADD $2024, R2, R2
+ast_generated.go:8948 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8950 ADRP 5296128(PC), R1
+ast_generated.go:8950 ADD $88, R1, R1
+ast_generated.go:8950 ADRP 6348800(PC), R2
+ast_generated.go:8950 ADD $2024, R2, R2
+ast_generated.go:8950 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8998 ADRP 5283840(PC), R1
+ast_generated.go:8998 ADD $3576, R1, R1
+ast_generated.go:8998 ADRP 6348800(PC), R2
+ast_generated.go:8998 ADD $2024, R2, R2
+ast_generated.go:8998 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8946 ADRP 5378048(PC), R1
+ast_generated.go:8946 ADD $1472, R1, R1
+ast_generated.go:8946 ADRP 6348800(PC), R2
+ast_generated.go:8946 ADD $2024, R2, R2
+ast_generated.go:8946 CALL runtime.panicdottypeI(SB)
+ast_generated.go:9000 ADRP 5693440(PC), R1
+ast_generated.go:9000 ADD $1416, R1, R1
+ast_generated.go:9000 ADRP 6348800(PC), R2
+ast_generated.go:9000 ADD $2024, R2, R2
+ast_generated.go:9000 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8762 ADRP 5099520(PC), R1
+ast_generated.go:8762 ADD $3360, R1, R1
+ast_generated.go:8762 ADRP 6348800(PC), R2
+ast_generated.go:8762 ADD $2024, R2, R2
+ast_generated.go:8762 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8852 ADRP 5697536(PC), R1
+ast_generated.go:8852 ADD $2360, R1, R1
+ast_generated.go:8852 ADRP 6348800(PC), R2
+ast_generated.go:8852 ADD $2024, R2, R2
+ast_generated.go:8852 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8856 ADRP 5689344(PC), R1
+ast_generated.go:8856 ADD $1152, R1, R1
+ast_generated.go:8856 ADRP 6348800(PC), R2
+ast_generated.go:8856 ADD $2024, R2, R2
+ast_generated.go:8856 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8854 ADRP 5644288(PC), R1
+ast_generated.go:8854 ADD $2400, R1, R1
+ast_generated.go:8854 ADRP 6348800(PC), R2
+ast_generated.go:8854 ADD $2024, R2, R2
+ast_generated.go:8854 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8890 ADRP 5181440(PC), R1
+ast_generated.go:8890 ADD $776, R1, R1
+ast_generated.go:8890 ADRP 6348800(PC), R2
+ast_generated.go:8890 ADD $2024, R2, R2
+ast_generated.go:8890 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8892 LDP -8(RSP), (R29, R30)
+ast_generated.go:8892 ADD $368, RSP, RSP
+ast_generated.go:8892 RET
+ast.go:39 ADD $1, R1, R0
+ast.go:40 MOVD 384(RSP), R1
+ast.go:39 MOVD 240(RSP), R2
+ast.go:39 MOVD 80(RSP), R3
+ast.go:39 CMP R3, R0
+ast.go:39 BGE 10(PC)
+ast.go:39 MOVD R0, 192(RSP)
+ast.go:39 MOVD (R2)(R0<<3), R0
+ast.go:40 MOVD (R1), R2
+ast.go:40 MOVD R1, R26
+ast.go:40 CALL (R2)
+ast.go:39 MOVD 192(RSP), R1
+ast.go:39 MOVD 80(RSP), R2
+ast.go:39 CMP R2, R1
+ast.go:40 TBZ $0, R0, -14(PC)
+ast.go:39 CSET LT, R0
+ast_generated.go:5663 JMP -19(PC)
+ast_generated.go:8892 ADRP 5181440(PC), R1
+ast_generated.go:8892 ADD $1088, R1, R1
+ast_generated.go:8892 ADRP 6344704(PC), R2
+ast_generated.go:8892 ADD $2024, R2, R2
+ast_generated.go:8892 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8728 ADRP 5017600(PC), R1
+ast_generated.go:8728 ADD $968, R1, R1
+ast_generated.go:8728 ADRP 6344704(PC), R2
+ast_generated.go:8728 ADD $2024, R2, R2
+ast_generated.go:8728 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8756 LDP -8(RSP), (R29, R30)
+ast_generated.go:8756 ADD $368, RSP, RSP
+ast_generated.go:8756 RET
+ast.go:39 ADD $1, R1, R0
+ast.go:40 MOVD 384(RSP), R1
+ast.go:39 MOVD 304(RSP), R2
+ast.go:39 MOVD 144(RSP), R3
+ast.go:39 CMP R3, R0
+ast.go:39 BGE 10(PC)
+ast.go:39 MOVD R0, 192(RSP)
+ast.go:39 MOVD (R2)(R0<<3), R0
+ast.go:40 MOVD (R1), R2
+ast.go:40 MOVD R1, R26
+ast.go:40 CALL (R2)
+ast.go:39 MOVD 192(RSP), R1
+ast.go:39 MOVD 144(RSP), R2
+ast.go:39 CMP R2, R1
+ast.go:40 TBZ $0, R0, -14(PC)
+ast.go:39 CSET LT, R0
+ast_generated.go:2175 JMP -19(PC)
+ast_generated.go:8756 ADRP 5160960(PC), R1
+ast_generated.go:8756 ADD $3968, R1, R1
+ast_generated.go:8756 ADRP 6344704(PC), R2
+ast_generated.go:8756 ADD $2024, R2, R2
+ast_generated.go:8756 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8722 ADRP 5013504(PC), R1
+ast_generated.go:8722 ADD $688, R1, R1
+ast_generated.go:8722 ADRP 6344704(PC), R2
+ast_generated.go:8722 ADD $2024, R2, R2
+ast_generated.go:8722 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8926 ADRP 5431296(PC), R1
+ast_generated.go:8926 ADD $1176, R1, R1
+ast_generated.go:8926 ADRP 6344704(PC), R2
+ast_generated.go:8926 ADD $2024, R2, R2
+ast_generated.go:8926 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8940 ADRP 5423104(PC), R1
+ast_generated.go:8940 ADD $584, R1, R1
+ast_generated.go:8940 ADRP 6344704(PC), R2
+ast_generated.go:8940 ADD $2024, R2, R2
+ast_generated.go:8940 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8936 ADRP 5447680(PC), R1
+ast_generated.go:8936 ADD $2328, R1, R1
+ast_generated.go:8936 ADRP 6344704(PC), R2
+ast_generated.go:8936 ADD $2024, R2, R2
+ast_generated.go:8936 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8924 LDP -8(RSP), (R29, R30)
+ast_generated.go:8924 ADD $368, RSP, RSP
+ast_generated.go:8924 RET
+ast.go:39 ADD $1, R1, R0
+ast.go:40 MOVD 384(RSP), R1
+ast.go:39 MOVD 216(RSP), R2
+ast.go:39 MOVD 56(RSP), R3
+ast.go:39 CMP R3, R0
+ast.go:39 BGE 10(PC)
+ast.go:39 MOVD R0, 192(RSP)
+ast.go:39 MOVD (R2)(R0<<3), R0
+ast.go:40 MOVD (R1), R2
+ast.go:40 MOVD R1, R26
+ast.go:40 CALL (R2)
+ast.go:39 MOVD 192(RSP), R1
+ast.go:39 MOVD 56(RSP), R2
+ast.go:39 CMP R2, R1
+ast.go:40 TBZ $0, R0, -14(PC)
+ast.go:39 CSET LT, R0
+ast_generated.go:6411 JMP -19(PC)
+ast_generated.go:8924 ADRP 5402624(PC), R1
+ast_generated.go:8924 ADD $3496, R1, R1
+ast_generated.go:8924 ADRP 6344704(PC), R2
+ast_generated.go:8924 ADD $2024, R2, R2
+ast_generated.go:8924 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8934 ADRP 5398528(PC), R1
+ast_generated.go:8934 ADD $3216, R1, R1
+ast_generated.go:8934 ADRP 6344704(PC), R2
+ast_generated.go:8934 ADD $2024, R2, R2
+ast_generated.go:8934 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8932 ADRP 5427200(PC), R1
+ast_generated.go:8932 ADD $880, R1, R1
+ast_generated.go:8932 ADRP 6344704(PC), R2
+ast_generated.go:8932 ADD $2024, R2, R2
+ast_generated.go:8932 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8938 ADRP 5406720(PC), R1
+ast_generated.go:8938 ADD $3776, R1, R1
+ast_generated.go:8938 ADRP 6344704(PC), R2
+ast_generated.go:8938 ADD $2024, R2, R2
+ast_generated.go:8938 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8928 ADRP 5435392(PC), R1
+ast_generated.go:8928 ADD $1488, R1, R1
+ast_generated.go:8928 ADRP 6344704(PC), R2
+ast_generated.go:8928 ADD $2024, R2, R2
+ast_generated.go:8928 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8930 ADRP 5443584(PC), R1
+ast_generated.go:8930 ADD $2064, R1, R1
+ast_generated.go:8930 ADRP 6344704(PC), R2
+ast_generated.go:8930 ADD $2024, R2, R2
+ast_generated.go:8930 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8922 ADRP 5419008(PC), R1
+ast_generated.go:8922 ADD $288, R1, R1
+ast_generated.go:8922 ADRP 6344704(PC), R2
+ast_generated.go:8922 ADD $2024, R2, R2
+ast_generated.go:8922 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8770 ADRP 5128192(PC), R1
+ast_generated.go:8770 ADD $1320, R1, R1
+ast_generated.go:8770 ADRP 6344704(PC), R2
+ast_generated.go:8770 ADD $2024, R2, R2
+ast_generated.go:8770 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8748 LDP -8(RSP), (R29, R30)
+ast_generated.go:8748 ADD $368, RSP, RSP
+ast_generated.go:8748 RET
+ast.go:39 ADD $1, R1, R0
+ast.go:40 MOVD 384(RSP), R1
+ast.go:39 MOVD 312(RSP), R2
+ast.go:39 MOVD 152(RSP), R3
+ast.go:39 CMP R3, R0
+ast.go:39 BGE 10(PC)
+ast.go:39 MOVD R0, 192(RSP)
+ast.go:39 MOVD (R2)(R0<<3), R0
+ast.go:40 MOVD (R1), R2
+ast.go:40 MOVD R1, R26
+ast.go:40 CALL (R2)
+ast.go:39 MOVD 192(RSP), R1
+ast.go:39 MOVD 152(RSP), R2
+ast.go:39 CMP R2, R1
+ast.go:40 TBZ $0, R0, -14(PC)
+ast.go:39 CSET LT, R0
+ast_generated.go:1970 JMP -19(PC)
+ast_generated.go:8748 ADRP 5505024(PC), R1
+ast_generated.go:8748 ADD $2296, R1, R1
+ast_generated.go:8748 ADRP 6344704(PC), R2
+ast_generated.go:8748 ADD $2024, R2, R2
+ast_generated.go:8748 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8784 ADRP 5111808(PC), R1
+ast_generated.go:8784 ADD $40, R1, R1
+ast_generated.go:8784 ADRP 6344704(PC), R2
+ast_generated.go:8784 ADD $2024, R2, R2
+ast_generated.go:8784 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8780 ADRP 5533696(PC), R1
+ast_generated.go:8780 ADD $296, R1, R1
+ast_generated.go:8780 ADRP 6344704(PC), R2
+ast_generated.go:8780 ADD $2024, R2, R2
+ast_generated.go:8780 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8782 LDP -8(RSP), (R29, R30)
+ast_generated.go:8782 ADD $368, RSP, RSP
+ast_generated.go:8782 RET
+ast.go:39 ADD $1, R1, R0
+ast.go:40 MOVD 384(RSP), R1
+ast.go:39 MOVD 280(RSP), R2
+ast.go:39 MOVD 120(RSP), R3
+ast.go:39 CMP R3, R0
+ast.go:39 BGE 10(PC)
+ast.go:39 MOVD R0, 192(RSP)
+ast.go:39 MOVD (R2)(R0<<3), R0
+ast.go:40 MOVD (R1), R2
+ast.go:40 MOVD R1, R26
+ast.go:40 CALL (R2)
+ast.go:39 MOVD 192(RSP), R1
+ast.go:39 MOVD 120(RSP), R2
+ast.go:39 CMP R2, R1
+ast.go:40 TBZ $0, R0, -14(PC)
+ast.go:39 CSET LT, R0
+ast_generated.go:2889 JMP -19(PC)
+ast_generated.go:8782 ADRP 5517312(PC), R1
+ast_generated.go:8782 ADD $3416, R1, R1
+ast_generated.go:8782 ADRP 6344704(PC), R2
+ast_generated.go:8782 ADD $2024, R2, R2
+ast_generated.go:8782 CALL runtime.panicdottypeI(SB)
+ast_generated.go:9006 ADRP 5103616(PC), R1
+ast_generated.go:9006 ADD $3888, R1, R1
+ast_generated.go:9006 ADRP 6344704(PC), R2
+ast_generated.go:9006 ADD $2024, R2, R2
+ast_generated.go:9006 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8776 ADRP 5099520(PC), R1
+ast_generated.go:8776 ADD $3624, R1, R1
+ast_generated.go:8776 ADRP 6344704(PC), R2
+ast_generated.go:8776 ADD $2024, R2, R2
+ast_generated.go:8776 CALL runtime.panicdottypeI(SB)
+ast_generated.go:9012 ADRP 5197824(PC), R1
+ast_generated.go:9012 ADD $2176, R1, R1
+ast_generated.go:9012 ADRP 6344704(PC), R2
+ast_generated.go:9012 ADD $2024, R2, R2
+ast_generated.go:9012 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8774 LDP -8(RSP), (R29, R30)
+ast_generated.go:8774 ADD $368, RSP, RSP
+ast_generated.go:8774 RET
+ast.go:39 ADD $1, R1, R0
+ast.go:40 MOVD 384(RSP), R1
+ast.go:39 MOVD 288(RSP), R2
+ast.go:39 MOVD 128(RSP), R3
+ast.go:39 CMP R3, R0
+ast.go:39 BGE 10(PC)
+ast.go:39 MOVD R0, 192(RSP)
+ast.go:39 MOVD (R2)(R0<<3), R0
+ast.go:40 MOVD (R1), R2
+ast.go:40 MOVD R1, R26
+ast.go:40 CALL (R2)
+ast.go:39 MOVD 192(RSP), R1
+ast.go:39 MOVD 128(RSP), R2
+ast.go:39 CMP R2, R1
+ast.go:40 TBZ $0, R0, -14(PC)
+ast.go:39 CSET LT, R0
+ast_generated.go:2707 JMP -19(PC)
+ast_generated.go:8774 ADRP 5521408(PC), R1
+ast_generated.go:8774 ADD $3712, R1, R1
+ast_generated.go:8774 ADRP 6344704(PC), R2
+ast_generated.go:8774 ADD $2024, R2, R2
+ast_generated.go:8774 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8772 ADRP 5541888(PC), R1
+ast_generated.go:8772 ADD $888, R1, R1
+ast_generated.go:8772 ADRP 6344704(PC), R2
+ast_generated.go:8772 ADD $2024, R2, R2
+ast_generated.go:8772 CALL runtime.panicdottypeI(SB)
+ast_generated.go:9010 ADRP 5185536(PC), R1
+ast_generated.go:9010 ADD $1384, R1, R1
+ast_generated.go:9010 ADRP 6344704(PC), R2
+ast_generated.go:9010 ADD $2024, R2, R2
+ast_generated.go:9010 CALL runtime.panicdottypeI(SB)
+ast_generated.go:9004 ADRP 5193728(PC), R1
+ast_generated.go:9004 ADD $1912, R1, R1
+ast_generated.go:9004 ADRP 6344704(PC), R2
+ast_generated.go:9004 ADD $2024, R2, R2
+ast_generated.go:9004 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8778 ADRP 5537792(PC), R1
+ast_generated.go:8778 ADD $592, R1, R1
+ast_generated.go:8778 ADRP 6344704(PC), R2
+ast_generated.go:8778 ADD $2024, R2, R2
+ast_generated.go:8778 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8720 LDP -8(RSP), (R29, R30)
+ast_generated.go:8720 ADD $368, RSP, RSP
+ast_generated.go:8720 RET
+ast.go:39 ADD $1, R1, R0
+ast.go:40 MOVD 384(RSP), R1
+ast.go:39 MOVD 344(RSP), R2
+ast.go:39 MOVD 184(RSP), R3
+ast.go:39 CMP R3, R0
+ast.go:39 BGE 10(PC)
+ast.go:39 MOVD R0, 192(RSP)
+ast.go:39 MOVD (R2)(R0<<3), R0
+ast.go:40 MOVD (R1), R2
+ast.go:40 MOVD R1, R26
+ast.go:40 CALL (R2)
+ast.go:39 MOVD 192(RSP), R1
+ast.go:39 MOVD 184(RSP), R2
+ast.go:39 CMP R2, R1
+ast.go:40 TBZ $0, R0, -14(PC)
+ast.go:39 CSET LT, R0
+ast_generated.go:1295 JMP -19(PC)
+ast_generated.go:8720 ADRP 5009408(PC), R1
+ast_generated.go:8720 ADD $392, R1, R1
+ast_generated.go:8720 ADRP 6344704(PC), R2
+ast_generated.go:8720 ADD $2024, R2, R2
+ast_generated.go:8720 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8766 LDP -8(RSP), (R29, R30)
+ast_generated.go:8766 ADD $368, RSP, RSP
+ast_generated.go:8766 RET
+ast.go:39 ADD $1, R1, R0
+ast.go:40 MOVD 384(RSP), R1
+ast.go:39 MOVD 296(RSP), R2
+ast.go:39 MOVD 136(RSP), R3
+ast.go:39 CMP R3, R0
+ast.go:39 BGE 10(PC)
+ast.go:39 MOVD R0, 192(RSP)
+ast.go:39 MOVD (R2)(R0<<3), R0
+ast.go:40 MOVD (R1), R2
+ast.go:40 MOVD R1, R26
+ast.go:40 CALL (R2)
+ast.go:39 MOVD 192(RSP), R1
+ast.go:39 MOVD 136(RSP), R2
+ast.go:39 CMP R2, R1
+ast.go:40 TBZ $0, R0, -14(PC)
+ast.go:39 CSET LT, R0
+ast_generated.go:2448 JMP -19(PC)
+ast_generated.go:8766 ADRP 5509120(PC), R1
+ast_generated.go:8766 ADD $2888, R1, R1
+ast_generated.go:8766 ADRP 6344704(PC), R2
+ast_generated.go:8766 ADD $2024, R2, R2
+ast_generated.go:8766 CALL runtime.panicdottypeI(SB)
+ast_generated.go:9002 ADRP 5513216(PC), R1
+ast_generated.go:9002 ADD $3184, R1, R1
+ast_generated.go:9002 ADRP 6344704(PC), R2
+ast_generated.go:9002 ADD $2024, R2, R2
+ast_generated.go:9002 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8764 ADRP 5091328(PC), R1
+ast_generated.go:8764 ADD $3096, R1, R1
+ast_generated.go:8764 ADRP 6344704(PC), R2
+ast_generated.go:8764 ADD $2024, R2, R2
+ast_generated.go:8764 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8758 ADRP 5218304(PC), R1
+ast_generated.go:8758 ADD $3560, R1, R1
+ast_generated.go:8758 ADRP 6344704(PC), R2
+ast_generated.go:8758 ADD $2024, R2, R2
+ast_generated.go:8758 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8752 ADRP 5021696(PC), R1
+ast_generated.go:8752 ADD $1376, R1, R1
+ast_generated.go:8752 ADRP 6344704(PC), R2
+ast_generated.go:8752 ADD $2024, R2, R2
+ast_generated.go:8752 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8750 ADRP 5140480(PC), R1
+ast_generated.go:8750 ADD $2648, R1, R1
+ast_generated.go:8750 ADRP 6344704(PC), R2
+ast_generated.go:8750 ADD $2024, R2, R2
+ast_generated.go:8750 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8740 LDP -8(RSP), (R29, R30)
+ast_generated.go:8740 ADD $368, RSP, RSP
+ast_generated.go:8740 RET
+ast.go:39 ADD $1, R1, R0
+ast.go:40 MOVD 384(RSP), R1
+ast.go:39 MOVD 328(RSP), R2
+ast.go:39 MOVD 168(RSP), R3
+ast.go:39 CMP R3, R0
+ast.go:39 BGE 10(PC)
+ast.go:39 MOVD R0, 192(RSP)
+ast.go:39 MOVD (R2)(R0<<3), R0
+ast.go:40 MOVD (R1), R2
+ast.go:40 MOVD R1, R26
+ast.go:40 CALL (R2)
+ast.go:39 MOVD 192(RSP), R1
+ast.go:39 MOVD 168(RSP), R2
+ast.go:39 CMP R2, R1
+ast.go:40 TBZ $0, R0, -14(PC)
+ast.go:39 CSET LT, R0
+ast_generated.go:1774 JMP -19(PC)
+ast_generated.go:8740 ADRP 5853184(PC), R1
+ast_generated.go:8740 ADD $1328, R1, R1
+ast_generated.go:8740 ADRP 6344704(PC), R2
+ast_generated.go:8740 ADD $2024, R2, R2
+ast_generated.go:8740 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8738 ADRP 5849088(PC), R1
+ast_generated.go:8738 ADD $1080, R1, R1
+ast_generated.go:8738 ADRP 6344704(PC), R2
+ast_generated.go:8738 ADD $2024, R2, R2
+ast_generated.go:8738 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8726 ADRP 5779456(PC), R1
+ast_generated.go:8726 ADD $296, R1, R1
+ast_generated.go:8726 ADRP 6344704(PC), R2
+ast_generated.go:8726 ADD $2024, R2, R2
+ast_generated.go:8726 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8724 ADRP 5767168(PC), R1
+ast_generated.go:8724 ADD $3672, R1, R1
+ast_generated.go:8724 ADRP 6344704(PC), R2
+ast_generated.go:8724 ADD $2024, R2, R2
+ast_generated.go:8724 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8730 ADRP 5464064(PC), R1
+ast_generated.go:8730 ADD $3632, R1, R1
+ast_generated.go:8730 ADRP 6344704(PC), R2
+ast_generated.go:8730 ADD $2024, R2, R2
+ast_generated.go:8730 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8718 ADRP 5709824(PC), R1
+ast_generated.go:8718 ADD $3600, R1, R1
+ast_generated.go:8718 ADRP 6344704(PC), R2
+ast_generated.go:8718 ADD $2024, R2, R2
+ast_generated.go:8718 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8716 ADRP 5869568(PC), R1
+ast_generated.go:8716 ADD $2584, R1, R1
+ast_generated.go:8716 ADRP 6344704(PC), R2
+ast_generated.go:8716 ADD $2024, R2, R2
+ast_generated.go:8716 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8714 ADRP 5668864(PC), R1
+ast_generated.go:8714 ADD $64, R1, R1
+ast_generated.go:8714 ADRP 6344704(PC), R2
+ast_generated.go:8714 ADD $2024, R2, R2
+ast_generated.go:8714 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8710 ADRP 4993024(PC), R1
+ast_generated.go:8710 ADD $3728, R1, R1
+ast_generated.go:8710 ADRP 6344704(PC), R2
+ast_generated.go:8710 ADD $2024, R2, R2
+ast_generated.go:8710 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8712 ADRP 5062656(PC), R1
+ast_generated.go:8712 ADD $368, R1, R1
+ast_generated.go:8712 ADRP 6344704(PC), R2
+ast_generated.go:8712 ADD $2024, R2, R2
+ast_generated.go:8712 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8708 ADRP 5132288(PC), R1
+ast_generated.go:8708 ADD $2136, R1, R1
+ast_generated.go:8708 ADRP 6344704(PC), R2
+ast_generated.go:8708 ADD $2024, R2, R2
+ast_generated.go:8708 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8706 ADRP 5136384(PC), R1
+ast_generated.go:8706 ADD $2384, R1, R1
+ast_generated.go:8706 ADRP 6344704(PC), R2
+ast_generated.go:8706 ADD $2024, R2, R2
+ast_generated.go:8706 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8704 ADRP 5865472(PC), R1
+ast_generated.go:8704 ADD $2304, R1, R1
+ast_generated.go:8704 ADRP 6344704(PC), R2
+ast_generated.go:8704 ADD $2024, R2, R2
+ast_generated.go:8704 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8702 ADRP 5079040(PC), R1
+ast_generated.go:8702 ADD $2224, R1, R1
+ast_generated.go:8702 ADRP 6344704(PC), R2
+ast_generated.go:8702 ADD $2024, R2, R2
+ast_generated.go:8702 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8700 ADRP 5173248(PC), R1
+ast_generated.go:8700 ADD $480, R1, R1
+ast_generated.go:8700 ADRP 6344704(PC), R2
+ast_generated.go:8700 ADD $2024, R2, R2
+ast_generated.go:8700 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8732 ADRP 5120000(PC), R1
+ast_generated.go:8732 ADD $688, R1, R1
+ast_generated.go:8732 ADRP 6344704(PC), R2
+ast_generated.go:8732 ADD $2024, R2, R2
+ast_generated.go:8732 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8736 ADRP 5857280(PC), R1
+ast_generated.go:8736 ADD $1640, R1, R1
+ast_generated.go:8736 ADRP 6344704(PC), R2
+ast_generated.go:8736 ADD $2024, R2, R2
+ast_generated.go:8736 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8734 LDP -8(RSP), (R29, R30)
+ast_generated.go:8734 ADD $368, RSP, RSP
+ast_generated.go:8734 RET
+ast.go:39 ADD $1, R1, R0
+ast.go:40 MOVD 384(RSP), R1
+ast.go:39 MOVD 336(RSP), R2
+ast.go:39 MOVD 176(RSP), R3
+ast.go:39 CMP R3, R0
+ast.go:39 BGE 10(PC)
+ast.go:39 MOVD R0, 192(RSP)
+ast.go:39 MOVD (R2)(R0<<3), R0
+ast.go:40 MOVD (R1), R2
+ast.go:40 MOVD R1, R26
+ast.go:40 CALL (R2)
+ast.go:39 MOVD 192(RSP), R1
+ast.go:39 MOVD 176(RSP), R2
+ast.go:39 CMP R2, R1
+ast.go:40 TBZ $0, R0, -14(PC)
+ast.go:39 CSET LT, R0
+ast_generated.go:1634 JMP -19(PC)
+ast_generated.go:8734 ADRP 4988928(PC), R1
+ast_generated.go:8734 ADD $3360, R1, R1
+ast_generated.go:8734 ADRP 6344704(PC), R2
+ast_generated.go:8734 ADD $2024, R2, R2
+ast_generated.go:8734 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8842 ADRP 5754880(PC), R1
+ast_generated.go:8842 ADD $2784, R1, R1
+ast_generated.go:8842 ADRP 6344704(PC), R2
+ast_generated.go:8842 ADD $2024, R2, R2
+ast_generated.go:8842 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8822 ADRP 5672960(PC), R1
+ast_generated.go:8822 ADD $360, R1, R1
+ast_generated.go:8822 ADRP 6344704(PC), R2
+ast_generated.go:8822 ADD $2024, R2, R2
+ast_generated.go:8822 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8918 ADRP 5722112(PC), R1
+ast_generated.go:8918 ADD $328, R1, R1
+ast_generated.go:8918 ADRP 6344704(PC), R2
+ast_generated.go:8918 ADD $2024, R2, R2
+ast_generated.go:8918 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8834 ADRP 5492736(PC), R1
+ast_generated.go:8834 ADD $1568, R1, R1
+ast_generated.go:8834 ADRP 6344704(PC), R2
+ast_generated.go:8834 ADD $2024, R2, R2
+ast_generated.go:8834 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8836 ADRP 5578752(PC), R1
+ast_generated.go:8836 ADD $1432, R1, R1
+ast_generated.go:8836 ADRP 6344704(PC), R2
+ast_generated.go:8836 ADD $2024, R2, R2
+ast_generated.go:8836 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8820 ADRP 4964352(PC), R1
+ast_generated.go:8820 ADD $1664, R1, R1
+ast_generated.go:8820 ADRP 6344704(PC), R2
+ast_generated.go:8820 ADD $2024, R2, R2
+ast_generated.go:8820 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8884 ADRP 5124096(PC), R1
+ast_generated.go:8884 ADD $984, R1, R1
+ast_generated.go:8884 ADRP 6344704(PC), R2
+ast_generated.go:8884 ADD $2024, R2, R2
+ast_generated.go:8884 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8754 ADRP 5025792(PC), R1
+ast_generated.go:8754 ADD $1664, R1, R1
+ast_generated.go:8754 ADRP 6344704(PC), R2
+ast_generated.go:8754 ADD $2024, R2, R2
+ast_generated.go:8754 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8838 ADRP 5697536(PC), R1
+ast_generated.go:8838 ADD $2640, R1, R1
+ast_generated.go:8838 ADRP 6344704(PC), R2
+ast_generated.go:8838 ADD $2024, R2, R2
+ast_generated.go:8838 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8814 ADRP 5873664(PC), R1
+ast_generated.go:8814 ADD $2864, R1, R1
+ast_generated.go:8814 ADRP 6344704(PC), R2
+ast_generated.go:8814 ADD $2024, R2, R2
+ast_generated.go:8814 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8840 ADRP 5734400(PC), R1
+ast_generated.go:8840 ADD $1200, R1, R1
+ast_generated.go:8840 ADRP 6344704(PC), R2
+ast_generated.go:8840 ADD $2024, R2, R2
+ast_generated.go:8840 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8824 ADRP 5038080(PC), R1
+ast_generated.go:8824 ADD $3136, R1, R1
+ast_generated.go:8824 ADRP 6344704(PC), R2
+ast_generated.go:8824 ADD $2024, R2, R2
+ast_generated.go:8824 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8808 ADRP 4976640(PC), R1
+ast_generated.go:8808 ADD $2536, R1, R1
+ast_generated.go:8808 ADRP 6344704(PC), R2
+ast_generated.go:8808 ADD $2024, R2, R2
+ast_generated.go:8808 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8812 ADRP 5619712(PC), R1
+ast_generated.go:8812 ADD $360, R1, R1
+ast_generated.go:8812 ADRP 6344704(PC), R2
+ast_generated.go:8812 ADD $2024, R2, R2
+ast_generated.go:8812 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8810 ADRP 5623808(PC), R1
+ast_generated.go:8810 ADD $1200, R1, R1
+ast_generated.go:8810 ADRP 6344704(PC), R2
+ast_generated.go:8810 ADD $2024, R2, R2
+ast_generated.go:8810 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8864 ADRP 4968448(PC), R1
+ast_generated.go:8864 ADD $1944, R1, R1
+ast_generated.go:8864 ADRP 6344704(PC), R2
+ast_generated.go:8864 ADD $2024, R2, R2
+ast_generated.go:8864 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8862 ADRP 5861376(PC), R1
+ast_generated.go:8862 ADD $2008, R1, R1
+ast_generated.go:8862 ADRP 6344704(PC), R2
+ast_generated.go:8862 ADD $2024, R2, R2
+ast_generated.go:8862 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8860 ADRP 5804032(PC), R1
+ast_generated.go:8860 ADD $2064, R1, R1
+ast_generated.go:8860 ADRP 6344704(PC), R2
+ast_generated.go:8860 ADD $2024, R2, R2
+ast_generated.go:8860 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8858 ADRP 5074944(PC), R1
+ast_generated.go:8858 ADD $1360, R1, R1
+ast_generated.go:8858 ADRP 6344704(PC), R2
+ast_generated.go:8858 ADD $2024, R2, R2
+ast_generated.go:8858 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8816 ADRP 4960256(PC), R1
+ast_generated.go:8816 ADD $1448, R1, R1
+ast_generated.go:8816 ADRP 6344704(PC), R2
+ast_generated.go:8816 ADD $2024, R2, R2
+ast_generated.go:8816 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8818 ADRP 5144576(PC), R1
+ast_generated.go:8818 ADD $2848, R1, R1
+ast_generated.go:8818 ADRP 6344704(PC), R2
+ast_generated.go:8818 ADD $2024, R2, R2
+ast_generated.go:8818 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8846 ADRP 5603328(PC), R1
+ast_generated.go:8846 ADD $3392, R1, R1
+ast_generated.go:8846 ADRP 6344704(PC), R2
+ast_generated.go:8846 ADD $2024, R2, R2
+ast_generated.go:8846 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8866 ADRP 5791744(PC), R1
+ast_generated.go:8866 ADD $1136, R1, R1
+ast_generated.go:8866 ADRP 6344704(PC), R2
+ast_generated.go:8866 ADD $2024, R2, R2
+ast_generated.go:8866 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8844 ADRP 5730304(PC), R1
+ast_generated.go:8844 ADD $920, R1, R1
+ast_generated.go:8844 ADRP 6344704(PC), R2
+ast_generated.go:8844 ADD $2024, R2, R2
+ast_generated.go:8844 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8832 ADRP 5545984(PC), R1
+ast_generated.go:8832 ADD $1168, R1, R1
+ast_generated.go:8832 ADRP 6344704(PC), R2
+ast_generated.go:8832 ADD $2024, R2, R2
+ast_generated.go:8832 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8830 ADRP 4997120(PC), R1
+ast_generated.go:8830 ADD $4024, R1, R1
+ast_generated.go:8830 ADRP 6344704(PC), R2
+ast_generated.go:8830 ADD $2024, R2, R2
+ast_generated.go:8830 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8828 ADRP 5083136(PC), R1
+ast_generated.go:8828 ADD $2504, R1, R1
+ast_generated.go:8828 ADRP 6344704(PC), R2
+ast_generated.go:8828 ADD $2024, R2, R2
+ast_generated.go:8828 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8826 ADRP 5636096(PC), R1
+ast_generated.go:8826 ADD $2120, R1, R1
+ast_generated.go:8826 ADRP 6344704(PC), R2
+ast_generated.go:8826 ADD $2024, R2, R2
+ast_generated.go:8826 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8850 LDP -8(RSP), (R29, R30)
+ast_generated.go:8850 ADD $368, RSP, RSP
+ast_generated.go:8850 RET
+ast.go:39 ADD $1, R1, R0
+ast.go:40 MOVD 384(RSP), R1
+ast.go:39 MOVD 264(RSP), R2
+ast.go:39 MOVD 104(RSP), R3
+ast.go:39 CMP R3, R0
+ast.go:39 BGE 10(PC)
+ast.go:39 MOVD R0, 192(RSP)
+ast.go:39 MOVD (R2)(R0<<3), R0
+ast.go:40 MOVD (R1), R2
+ast.go:40 MOVD R1, R26
+ast.go:40 CALL (R2)
+ast.go:39 MOVD 192(RSP), R1
+ast.go:39 MOVD 104(RSP), R2
+ast.go:39 CMP R2, R1
+ast.go:40 TBZ $0, R0, -14(PC)
+ast.go:39 CSET LT, R0
+ast_generated.go:4725 JMP -19(PC)
+ast_generated.go:8850 ADRP 5586944(PC), R1
+ast_generated.go:8850 ADD $2256, R1, R1
+ast_generated.go:8850 ADRP 6344704(PC), R2
+ast_generated.go:8850 ADD $2024, R2, R2
+ast_generated.go:8850 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8848 LDP -8(RSP), (R29, R30)
+ast_generated.go:8848 ADD $368, RSP, RSP
+ast_generated.go:8848 RET
+ast.go:39 ADD $1, R1, R0
+ast.go:40 MOVD 384(RSP), R1
+ast.go:39 MOVD 272(RSP), R2
+ast.go:39 MOVD 112(RSP), R3
+ast.go:39 CMP R3, R0
+ast.go:39 BGE 10(PC)
+ast.go:39 MOVD R0, 192(RSP)
+ast.go:39 MOVD (R2)(R0<<3), R0
+ast.go:40 MOVD (R1), R2
+ast.go:40 MOVD R1, R26
+ast.go:40 CALL (R2)
+ast.go:39 MOVD 192(RSP), R1
+ast.go:39 MOVD 112(RSP), R2
+ast.go:39 CMP R2, R1
+ast.go:40 TBZ $0, R0, -14(PC)
+ast.go:39 CSET LT, R0
+ast_generated.go:4679 JMP -19(PC)
+ast_generated.go:8848 ADRP 4952064(PC), R1
+ast_generated.go:8848 ADD $840, R1, R1
+ast_generated.go:8848 ADRP 6344704(PC), R2
+ast_generated.go:8848 ADD $2024, R2, R2
+ast_generated.go:8848 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8746 ADRP 4980736(PC), R1
+ast_generated.go:8746 ADD $2816, R1, R1
+ast_generated.go:8746 ADRP 6344704(PC), R2
+ast_generated.go:8746 ADD $2024, R2, R2
+ast_generated.go:8746 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8742 LDP -8(RSP), (R29, R30)
+ast_generated.go:8742 ADD $368, RSP, RSP
+ast_generated.go:8742 RET
+ast.go:39 ADD $1, R1, R0
+ast.go:40 MOVD 384(RSP), R1
+ast.go:39 MOVD 320(RSP), R2
+ast.go:39 MOVD 160(RSP), R3
+ast.go:39 CMP R3, R0
+ast.go:39 BGE 10(PC)
+ast.go:39 MOVD R0, 192(RSP)
+ast.go:39 MOVD (R2)(R0<<3), R0
+ast.go:40 MOVD (R1), R2
+ast.go:40 MOVD R1, R26
+ast.go:40 CALL (R2)
+ast.go:39 MOVD 192(RSP), R1
+ast.go:39 MOVD 160(RSP), R2
+ast.go:39 CMP R2, R1
+ast.go:40 TBZ $0, R0, -14(PC)
+ast.go:39 CSET LT, R0
+ast_generated.go:1813 JMP -19(PC)
+ast_generated.go:8742 ADRP 4984832(PC), R1
+ast_generated.go:8742 ADD $3064, R1, R1
+ast_generated.go:8742 ADRP 6344704(PC), R2
+ast_generated.go:8742 ADD $2024, R2, R2
+ast_generated.go:8742 CALL runtime.panicdottypeI(SB)
+ast_generated.go:9008 ADRP 5201920(PC), R1
+ast_generated.go:9008 ADD $2424, R1, R1
+ast_generated.go:9008 ADRP 6344704(PC), R2
+ast_generated.go:9008 ADD $2024, R2, R2
+ast_generated.go:9008 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8916 ADRP 5746688(PC), R1
+ast_generated.go:8916 ADD $2208, R1, R1
+ast_generated.go:8916 ADRP 6344704(PC), R2
+ast_generated.go:8916 ADD $2024, R2, R2
+ast_generated.go:8916 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8914 ADRP 5742592(PC), R1
+ast_generated.go:8914 ADD $1896, R1, R1
+ast_generated.go:8914 ADRP 6344704(PC), R2
+ast_generated.go:8914 ADD $2024, R2, R2
+ast_generated.go:8914 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8902 ADRP 5529600(PC), R1
+ast_generated.go:8902 ADD $32, R1, R1
+ast_generated.go:8902 ADRP 6344704(PC), R2
+ast_generated.go:8902 ADD $2024, R2, R2
+ast_generated.go:8902 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8886 ADRP 5480448(PC), R1
+ast_generated.go:8886 ADD $512, R1, R1
+ast_generated.go:8886 ADRP 6344704(PC), R2
+ast_generated.go:8886 ADD $2024, R2, R2
+ast_generated.go:8886 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8896 ADRP 5484544(PC), R1
+ast_generated.go:8896 ADD $1024, R1, R1
+ast_generated.go:8896 ADRP 6344704(PC), R2
+ast_generated.go:8896 ADD $2024, R2, R2
+ast_generated.go:8896 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8880 ADRP 5210112(PC), R1
+ast_generated.go:8880 ADD $2936, R1, R1
+ast_generated.go:8880 ADRP 6344704(PC), R2
+ast_generated.go:8880 ADD $2024, R2, R2
+ast_generated.go:8880 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8874 ADRP 5808128(PC), R1
+ast_generated.go:8874 ADD $2360, R1, R1
+ast_generated.go:8874 ADRP 6344704(PC), R2
+ast_generated.go:8874 ADD $2024, R2, R2
+ast_generated.go:8874 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8908 ADRP 5607424(PC), R1
+ast_generated.go:8908 ADD $3688, R1, R1
+ast_generated.go:8908 ADRP 6344704(PC), R2
+ast_generated.go:8908 ADD $2024, R2, R2
+ast_generated.go:8908 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8876 ADRP 5214208(PC), R1
+ast_generated.go:8876 ADD $3248, R1, R1
+ast_generated.go:8876 ADRP 6344704(PC), R2
+ast_generated.go:8876 ADD $2024, R2, R2
+ast_generated.go:8876 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8872 ADRP 5042176(PC), R1
+ast_generated.go:8872 ADD $3432, R1, R1
+ast_generated.go:8872 ADRP 6344704(PC), R2
+ast_generated.go:8872 ADD $2024, R2, R2
+ast_generated.go:8872 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8870 LDP -8(RSP), (R29, R30)
+ast_generated.go:8870 ADD $368, RSP, RSP
+ast_generated.go:8870 RET
+ast.go:39 ADD $1, R1, R0
+ast.go:40 MOVD 384(RSP), R1
+ast.go:39 MOVD 248(RSP), R2
+ast.go:39 MOVD 88(RSP), R3
+ast.go:39 CMP R3, R0
+ast.go:39 BGE 10(PC)
+ast.go:39 MOVD R0, 192(RSP)
+ast.go:39 MOVD (R2)(R0<<3), R0
+ast.go:40 MOVD (R1), R2
+ast.go:40 MOVD R1, R26
+ast.go:40 CALL (R2)
+ast.go:39 MOVD 192(RSP), R1
+ast.go:39 MOVD 88(RSP), R2
+ast.go:39 CMP R2, R1
+ast.go:40 TBZ $0, R0, -14(PC)
+ast.go:39 CSET LT, R0
+ast_generated.go:5185 JMP -19(PC)
+ast_generated.go:8870 ADRP 5222400(PC), R1
+ast_generated.go:8870 ADD $3808, R1, R1
+ast_generated.go:8870 ADRP 6344704(PC), R2
+ast_generated.go:8870 ADD $2024, R2, R2
+ast_generated.go:8870 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8868 LDP -8(RSP), (R29, R30)
+ast_generated.go:8868 ADD $368, RSP, RSP
+ast_generated.go:8868 RET
+ast.go:39 ADD $1, R1, R0
+ast.go:40 MOVD 384(RSP), R1
+ast.go:39 MOVD 256(RSP), R2
+ast.go:39 MOVD 96(RSP), R3
+ast.go:39 CMP R3, R0
+ast.go:39 BGE 10(PC)
+ast.go:39 MOVD R0, 192(RSP)
+ast.go:39 MOVD (R2)(R0<<3), R0
+ast.go:40 MOVD (R1), R2
+ast.go:40 MOVD R1, R26
+ast.go:40 CALL (R2)
+ast.go:39 MOVD 192(RSP), R1
+ast.go:39 MOVD 96(RSP), R2
+ast.go:39 CMP R2, R1
+ast.go:40 TBZ $0, R0, -14(PC)
+ast.go:39 CSET LT, R0
+ast_generated.go:5148 JMP -19(PC)
+ast_generated.go:8868 ADRP 5840896(PC), R1
+ast_generated.go:8868 ADD $456, R1, R1
+ast_generated.go:8868 ADRP 6344704(PC), R2
+ast_generated.go:8868 ADD $2024, R2, R2
+ast_generated.go:8868 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8906 ADRP 5660672(PC), R1
+ast_generated.go:8906 ADD $3864, R1, R1
+ast_generated.go:8906 ADRP 6344704(PC), R2
+ast_generated.go:8906 ADD $2024, R2, R2
+ast_generated.go:8906 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8904 ADRP 5595136(PC), R1
+ast_generated.go:8904 ADD $2848, R1, R1
+ast_generated.go:8904 ADRP 6344704(PC), R2
+ast_generated.go:8904 ADD $2024, R2, R2
+ast_generated.go:8904 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8900 LDP -8(RSP), (R29, R30)
+ast_generated.go:8900 ADD $368, RSP, RSP
+ast_generated.go:8900 RET
+ast.go:39 ADD $1, R1, R0
+ast.go:40 MOVD 384(RSP), R1
+ast.go:39 MOVD 224(RSP), R2
+ast.go:39 MOVD 64(RSP), R3
+ast.go:39 CMP R3, R0
+ast.go:39 BGE 10(PC)
+ast.go:39 MOVD R0, 192(RSP)
+ast.go:39 MOVD (R2)(R0<<3), R0
+ast.go:40 MOVD (R1), R2
+ast.go:40 MOVD R1, R26
+ast.go:40 CALL (R2)
+ast.go:39 MOVD 192(RSP), R1
+ast.go:39 MOVD 64(RSP), R2
+ast.go:39 CMP R2, R1
+ast.go:40 TBZ $0, R0, -14(PC)
+ast.go:39 CSET LT, R0
+ast_generated.go:5838 JMP -19(PC)
+ast_generated.go:8900 ADRP 5783552(PC), R1
+ast_generated.go:8900 ADD $608, R1, R1
+ast_generated.go:8900 ADRP 6344704(PC), R2
+ast_generated.go:8900 ADD $2024, R2, R2
+ast_generated.go:8900 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8878 ADRP 4956160(PC), R1
+ast_generated.go:8878 ADD $1136, R1, R1
+ast_generated.go:8878 ADRP 6344704(PC), R2
+ast_generated.go:8878 ADD $2024, R2, R2
+ast_generated.go:8878 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8898 LDP -8(RSP), (R29, R30)
+ast_generated.go:8898 ADD $368, RSP, RSP
+ast_generated.go:8898 RET
+ast.go:39 ADD $1, R1, R0
+ast.go:40 MOVD 384(RSP), R1
+ast.go:39 MOVD 232(RSP), R2
+ast.go:39 MOVD 72(RSP), R3
+ast.go:39 CMP R3, R0
+ast.go:39 BGE 10(PC)
+ast.go:39 MOVD R0, 192(RSP)
+ast.go:39 MOVD (R2)(R0<<3), R0
+ast.go:40 MOVD (R1), R2
+ast.go:40 MOVD R1, R26
+ast.go:40 CALL (R2)
+ast.go:39 MOVD 192(RSP), R1
+ast.go:39 MOVD 72(RSP), R2
+ast.go:39 CMP R2, R1
+ast.go:40 TBZ $0, R0, -14(PC)
+ast.go:39 CSET LT, R0
+ast_generated.go:5800 JMP -19(PC)
+ast_generated.go:8898 ADRP 5795840(PC), R1
+ast_generated.go:8898 ADD $1472, R1, R1
+ast_generated.go:8898 ADRP 6344704(PC), R2
+ast_generated.go:8898 ADD $2024, R2, R2
+ast_generated.go:8898 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8894 ADRP 5820416(PC), R1
+ast_generated.go:8894 ADD $3232, R1, R1
+ast_generated.go:8894 ADRP 6344704(PC), R2
+ast_generated.go:8894 ADD $2024, R2, R2
+ast_generated.go:8894 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8912 ADRP 5058560(PC), R1
+ast_generated.go:8912 ADD $80, R1, R1
+ast_generated.go:8912 ADRP 6344704(PC), R2
+ast_generated.go:8912 ADD $2024, R2, R2
+ast_generated.go:8912 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8910 ADRP 5152768(PC), R1
+ast_generated.go:8910 ADD $3520, R1, R1
+ast_generated.go:8910 ADRP 6344704(PC), R2
+ast_generated.go:8910 ADD $2024, R2, R2
+ast_generated.go:8910 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8882 ADRP 5824512(PC), R1
+ast_generated.go:8882 ADD $3528, R1, R1
+ast_generated.go:8882 ADRP 6344704(PC), R2
+ast_generated.go:8882 ADD $2024, R2, R2
+ast_generated.go:8882 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8888 ADRP 5816320(PC), R1
+ast_generated.go:8888 ADD $2936, R1, R1
+ast_generated.go:8888 ADRP 6344704(PC), R2
+ast_generated.go:8888 ADD $2024, R2, R2
+ast_generated.go:8888 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8796 ADRP 5206016(PC), R1
+ast_generated.go:8796 ADD $2704, R1, R1
+ast_generated.go:8796 ADRP 6344704(PC), R2
+ast_generated.go:8796 ADD $2024, R2, R2
+ast_generated.go:8796 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8788 ADRP 5046272(PC), R1
+ast_generated.go:8788 ADD $3728, R1, R1
+ast_generated.go:8788 ADRP 6344704(PC), R2
+ast_generated.go:8788 ADD $2024, R2, R2
+ast_generated.go:8788 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8786 ADRP 5005312(PC), R1
+ast_generated.go:8786 ADD $160, R1, R1
+ast_generated.go:8786 ADRP 6344704(PC), R2
+ast_generated.go:8786 ADD $2024, R2, R2
+ast_generated.go:8786 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8794 ADRP 5681152(PC), R1
+ast_generated.go:8794 ADD $936, R1, R1
+ast_generated.go:8794 ADRP 6344704(PC), R2
+ast_generated.go:8794 ADD $2024, R2, R2
+ast_generated.go:8794 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8792 ADRP 5156864(PC), R1
+ast_generated.go:8792 ADD $3752, R1, R1
+ast_generated.go:8792 ADRP 6344704(PC), R2
+ast_generated.go:8792 ADD $2024, R2, R2
+ast_generated.go:8792 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8790 ADRP 5050368(PC), R1
+ast_generated.go:8790 ADD $3960, R1, R1
+ast_generated.go:8790 ADRP 6344704(PC), R2
+ast_generated.go:8790 ADD $2024, R2, R2
+ast_generated.go:8790 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8806 ADRP 5029888(PC), R1
+ast_generated.go:8806 ADD $2096, R1, R1
+ast_generated.go:8806 ADRP 6344704(PC), R2
+ast_generated.go:8806 ADD $2024, R2, R2
+ast_generated.go:8806 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8800 ADRP 5496832(PC), R1
+ast_generated.go:8800 ADD $1880, R1, R1
+ast_generated.go:8800 ADRP 6344704(PC), R2
+ast_generated.go:8800 ADD $2024, R2, R2
+ast_generated.go:8800 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8798 ADRP 5500928(PC), R1
+ast_generated.go:8798 ADD $2080, R1, R1
+ast_generated.go:8798 ADRP 6344704(PC), R2
+ast_generated.go:8798 ADD $2024, R2, R2
+ast_generated.go:8798 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8804 ADRP 5644288(PC), R1
+ast_generated.go:8804 ADD $2648, R1, R1
+ast_generated.go:8804 ADRP 6344704(PC), R2
+ast_generated.go:8804 ADD $2024, R2, R2
+ast_generated.go:8804 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8802 ADRP 5648384(PC), R1
+ast_generated.go:8802 ADD $2896, R1, R1
+ast_generated.go:8802 ADRP 6344704(PC), R2
+ast_generated.go:8802 ADD $2024, R2, R2
+ast_generated.go:8802 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8698 ADRP 5070848(PC), R1
+ast_generated.go:8698 ADD $1064, R1, R1
+ast_generated.go:8698 ADRP 6344704(PC), R2
+ast_generated.go:8698 ADD $2024, R2, R2
+ast_generated.go:8698 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8744 ADRP 5599232(PC), R1
+ast_generated.go:8744 ADD $3144, R1, R1
+ast_generated.go:8744 ADRP 6344704(PC), R2
+ast_generated.go:8744 ADD $2024, R2, R2
+ast_generated.go:8744 CALL runtime.panicdottypeI(SB)
+ast_generated.go:9020 ADRP 5812224(PC), R1
+ast_generated.go:9020 ADD $2656, R1, R1
+ast_generated.go:9020 ADRP 6344704(PC), R2
+ast_generated.go:9020 ADD $2024, R2, R2
+ast_generated.go:9020 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8696 ADRP 5033984(PC), R1
+ast_generated.go:8696 ADD $2840, R1, R1
+ast_generated.go:8696 ADRP 6344704(PC), R2
+ast_generated.go:8696 ADD $2024, R2, R2
+ast_generated.go:8696 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8694 ADRP 5652480(PC), R1
+ast_generated.go:8694 ADD $3144, R1, R1
+ast_generated.go:8694 ADRP 6344704(PC), R2
+ast_generated.go:8694 ADD $2024, R2, R2
+ast_generated.go:8694 CALL runtime.panicdottypeI(SB)
+ast_generated.go:8694 NOOP
+ast_generated.go:8691 STP (R0, R1), 8(RSP)
+ast_generated.go:8691 MOVD R30, R3
+ast_generated.go:8691 CALL runtime.morestack_noctxt.abi0(SB)
+ast_generated.go:8691 LDP 8(RSP), (R0, R1)
+ast_generated.go:8691 JMP github.com/microsoft/TypeScript/tsc/internal/ast.(*Node).ForEachChild(SB)
+ast_generated.go:8691 ?
+ast_generated.go:8691 ?
+ast_generated.go:8691 ?

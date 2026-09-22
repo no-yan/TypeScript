@@ -1,0 +1,431 @@
+TEXT github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.sumKnownStore(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/ast/storeexp/bench_test.go
+  bench_test.go:316	0x100270530		f9400b90		MOVD 16(R28), R16								
+  bench_test.go:316	0x100270534		eb3063ff		CMP R16, RSP									
+  bench_test.go:316	0x100270538		54000f09		BLS 120(PC)									
+  bench_test.go:316	0x10027053c		f81f0ffe		MOVD.W R30, -16(RSP)								
+  bench_test.go:316	0x100270540		f81f83fd		MOVD R29, -8(RSP)								
+  bench_test.go:316	0x100270544		d10023fd		SUB $8, RSP, R29								
+  bench_test.go:316	0x100270548		f9000fe0		MOVD R0, 24(RSP)								
+  bench_test.go:317	0x10027054c		aa1f03e2		MOVD ZR, R2									
+  bench_test.go:317	0x100270550		14000005		JMP 5(PC)									
+  bench_test.go:317	0x100270554		91004063		ADD $16, R3, R3									
+  bench_test.go:317	0x100270558		d1000421		SUB $1, R1, R1									
+  bench_test.go:317	0x10027055c		aa0003e2		MOVD R0, R2									
+  bench_test.go:317	0x100270560		aa0303e0		MOVD R3, R0									
+  bench_test.go:317	0x100270564		f100003f		CMP $0, R1									
+  bench_test.go:317	0x100270568		54000b6d		BLE 91(PC)									
+  bench_test.go:317	0x10027056c		aa0003e3		MOVD R0, R3									
+  bench_test.go:317	0x100270570		a9401000		LDP (R0), (R0, R4)								
+  store.go:55		0x100270574		79800085		MOVH (R4), R5									
+  bench_test.go:319	0x100270578		d3403ca5		UBFX $0, R5, $16, R5								
+  bench_test.go:318	0x10027057c		d503201f		NOOP										
+  bench_test.go:319	0x100270580		710358bf		CMPW $214, R5									
+  bench_test.go:319	0x100270584		540001e1		BNE 15(PC)									
+  views.go:114		0x100270588		a9419805		LDP 24(R0), (R5, R6)								
+  views.go:114		0x10027058c		b9401484		MOVWU 20(R4), R4								
+  views.go:114		0x100270590		eb06009f		CMP R6, R4									
+  views.go:114		0x100270594		54000be2		BCS 95(PC)									
+  views.go:114		0x100270598		b86478a4		MOVWU (R5)(R4<<2), R4								
+  store.go:50		0x10027059c		a9401400		LDP (R0), (R0, R5)								
+  store.go:50		0x1002705a0		aa0403e6		MOVD R4, R6									
+  store.go:50		0x1002705a4		eb0500df		CMP R5, R6									
+  store.go:50		0x1002705a8		54000b22		BCS 89(PC)									
+  store.go:50		0x1002705ac		d37d7c84		UBFIZ $3, R4, $32, R4								
+  store.go:50		0x1002705b0		8b040484		ADD R4<<1, R4, R4								
+  store.go:55		0x1002705b4		78a46800		MOVH (R0)(R4), R0								
+  bench_test.go:320	0x1002705b8		8b000040		ADD R0, R2, R0									
+  bench_test.go:320	0x1002705bc		17ffffe6		JMP -26(PC)									
+  bench_test.go:321	0x1002705c0		71038cbf		CMPW $227, R5									
+  bench_test.go:321	0x1002705c4		54000521		BNE 41(PC)									
+  views.go:86		0x1002705c8		a9419805		LDP 24(R0), (R5, R6)								
+  views.go:86		0x1002705cc		b9401484		MOVWU 20(R4), R4								
+  views.go:86		0x1002705d0		91000487		ADD $1, R4, R7									
+  views.go:86		0x1002705d4		2a0703e7		MOVW R7, R7									
+  views.go:86		0x1002705d8		eb0600ff		CMP R6, R7									
+  views.go:86		0x1002705dc		54000962		BCS 75(PC)									
+  views.go:86		0x1002705e0		b86778a7		MOVWU (R5)(R7<<2), R7								
+  store.go:50		0x1002705e4		a9402000		LDP (R0), (R0, R8)								
+  store.go:50		0x1002705e8		aa0703e9		MOVD R7, R9									
+  store.go:50		0x1002705ec		eb08013f		CMP R8, R9									
+  store.go:50		0x1002705f0		540008a2		BCS 69(PC)									
+  views.go:94		0x1002705f4		91000c89		ADD $3, R4, R9									
+  views.go:94		0x1002705f8		2a0903e9		MOVW R9, R9									
+  store.go:50		0x1002705fc		d37d7ce7		UBFIZ $3, R7, $32, R7								
+  store.go:50		0x100270600		8b0704e7		ADD R7<<1, R7, R7								
+  store.go:55		0x100270604		78a76807		MOVH (R0)(R7), R7								
+  views.go:94		0x100270608		eb06013f		CMP R6, R9									
+  views.go:94		0x10027060c		540007a2		BCS 61(PC)									
+  views.go:94		0x100270610		b86978a9		MOVWU (R5)(R9<<2), R9								
+  store.go:50		0x100270614		aa0903ea		MOVD R9, R10									
+  store.go:50		0x100270618		eb08015f		CMP R8, R10									
+  store.go:50		0x10027061c		54000702		BCS 56(PC)									
+  views.go:98		0x100270620		91001084		ADD $4, R4, R4									
+  views.go:98		0x100270624		2a0403e4		MOVW R4, R4									
+  store.go:50		0x100270628		d37d7d29		UBFIZ $3, R9, $32, R9								
+  store.go:50		0x10027062c		8b090529		ADD R9<<1, R9, R9								
+  store.go:55		0x100270630		78a96809		MOVH (R0)(R9), R9								
+  views.go:98		0x100270634		eb06009f		CMP R6, R4									
+  views.go:98		0x100270638		54000602		BCS 48(PC)									
+  views.go:98		0x10027063c		b86478a4		MOVWU (R5)(R4<<2), R4								
+  store.go:50		0x100270640		aa0403e5		MOVD R4, R5									
+  store.go:50		0x100270644		eb0800bf		CMP R8, R5									
+  store.go:50		0x100270648		54000562		BCS 43(PC)									
+  bench_test.go:323	0x10027064c		8b070125		ADD R7, R9, R5									
+  store.go:50		0x100270650		d37d7c84		UBFIZ $3, R4, $32, R4								
+  store.go:50		0x100270654		8b040484		ADD R4<<1, R4, R4								
+  store.go:55		0x100270658		78a46804		MOVH (R0)(R4), R4								
+  bench_test.go:323	0x10027065c		8b0400a4		ADD R4, R5, R4									
+  bench_test.go:323	0x100270660		8b040040		ADD R4, R2, R0									
+  bench_test.go:323	0x100270664		17ffffbc		JMP -68(PC)									
+  views.go:142		0x100270668		a9419805		LDP 24(R0), (R5, R6)								
+  views.go:142		0x10027066c		b9401484		MOVWU 20(R4), R4								
+  views.go:142		0x100270670		aa0403e7		MOVD R4, R7									
+  views.go:142		0x100270674		eb0600ff		CMP R6, R7									
+  views.go:142		0x100270678		540003c2		BCS 30(PC)									
+  views.go:142		0x10027067c		b86778a7		MOVWU (R5)(R7<<2), R7								
+  store.go:50		0x100270680		a9402000		LDP (R0), (R0, R8)								
+  store.go:50		0x100270684		aa0703e9		MOVD R7, R9									
+  store.go:50		0x100270688		eb08013f		CMP R8, R9									
+  store.go:50		0x10027068c		54000302		BCS 24(PC)									
+  views.go:150		0x100270690		91000884		ADD $2, R4, R4									
+  views.go:150		0x100270694		2a0403e4		MOVW R4, R4									
+  store.go:50		0x100270698		d37d7ce7		UBFIZ $3, R7, $32, R7								
+  store.go:50		0x10027069c		8b0704e7		ADD R7<<1, R7, R7								
+  store.go:55		0x1002706a0		78a76807		MOVH (R0)(R7), R7								
+  views.go:150		0x1002706a4		eb06009f		CMP R6, R4									
+  views.go:150		0x1002706a8		54000202		BCS 16(PC)									
+  views.go:150		0x1002706ac		b86478a4		MOVWU (R5)(R4<<2), R4								
+  store.go:50		0x1002706b0		aa0403e5		MOVD R4, R5									
+  store.go:50		0x1002706b4		eb0800bf		CMP R8, R5									
+  store.go:50		0x1002706b8		54000162		BCS 11(PC)									
+  store.go:50		0x1002706bc		d37d7c84		UBFIZ $3, R4, $32, R4								
+  store.go:50		0x1002706c0		8b040484		ADD R4<<1, R4, R4								
+  store.go:55		0x1002706c4		78a46804		MOVH (R0)(R4), R4								
+  bench_test.go:326	0x1002706c8		8b070084		ADD R7, R4, R4									
+  bench_test.go:326	0x1002706cc		8b040040		ADD R4, R2, R0									
+  bench_test.go:326	0x1002706d0		17ffffa1		JMP -95(PC)									
+  bench_test.go:329	0x1002706d4		aa0203e0		MOVD R2, R0									
+  bench_test.go:329	0x1002706d8		f85f83fd		MOVD -8(RSP), R29								
+  bench_test.go:329	0x1002706dc		f84107fe		MOVD.P 16(RSP), R30								
+  bench_test.go:329	0x1002706e0		d65f03c0		RET										
+  store.go:50		0x1002706e4		97f854f7		CALL runtime.panicBounds(SB)							
+  views.go:150		0x1002706e8		97f854f6		CALL runtime.panicBounds(SB)							
+  store.go:50		0x1002706ec		97f854f5		CALL runtime.panicBounds(SB)							
+  views.go:142		0x1002706f0		97f854f4		CALL runtime.panicBounds(SB)							
+  store.go:50		0x1002706f4		97f854f3		CALL runtime.panicBounds(SB)							
+  views.go:98		0x1002706f8		97f854f2		CALL runtime.panicBounds(SB)							
+  store.go:50		0x1002706fc		97f854f1		CALL runtime.panicBounds(SB)							
+  views.go:94		0x100270700		97f854f0		CALL runtime.panicBounds(SB)							
+  store.go:50		0x100270704		97f854ef		CALL runtime.panicBounds(SB)							
+  views.go:86		0x100270708		97f854ee		CALL runtime.panicBounds(SB)							
+  store.go:50		0x10027070c		97f854ed		CALL runtime.panicBounds(SB)							
+  views.go:114		0x100270710		97f854ec		CALL runtime.panicBounds(SB)							
+  views.go:114		0x100270714		d503201f		NOOP										
+  bench_test.go:316	0x100270718		a90087e0		STP (R0, R1), 8(RSP)								
+  bench_test.go:316	0x10027071c		f9000fe2		MOVD R2, 24(RSP)								
+  bench_test.go:316	0x100270720		aa1e03e3		MOVD R30, R3									
+  bench_test.go:316	0x100270724		97f84ca3		CALL runtime.morestack_noctxt.abi0(SB)						
+  bench_test.go:316	0x100270728		a94087e0		LDP 8(RSP), (R0, R1)								
+  bench_test.go:316	0x10027072c		f9400fe2		MOVD 24(RSP), R2								
+  bench_test.go:316	0x100270730		17ffff80		JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.sumKnownStore(SB)	
+  bench_test.go:316	0x100270734		00000000		?										
+  bench_test.go:316	0x100270738		00000000		?										
+  bench_test.go:316	0x10027073c		00000000		?										
+
+TEXT github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.sumPolyAllPointer(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/ast/storeexp/bench_test.go
+  bench_test.go:346	0x100270740		f9400b90		MOVD 16(R28), R16									
+  bench_test.go:346	0x100270744		eb3063ff		CMP R16, RSP										
+  bench_test.go:346	0x100270748		54000409		BLS 32(PC)										
+  bench_test.go:346	0x10027074c		f81d0ffe		MOVD.W R30, -48(RSP)									
+  bench_test.go:346	0x100270750		f81f83fd		MOVD R29, -8(RSP)									
+  bench_test.go:346	0x100270754		d10023fd		SUB $8, RSP, R29									
+  bench_test.go:347	0x100270758		f90023e1		MOVD R1, 64(RSP)									
+  bench_test.go:347	0x10027075c		f9001fe0		MOVD R0, 56(RSP)									
+  bench_test.go:347	0x100270760		aa1f03e2		MOVD ZR, R2										
+  bench_test.go:347	0x100270764		aa1f03e3		MOVD ZR, R3										
+  bench_test.go:347	0x100270768		14000007		JMP 7(PC)										
+  bench_test.go:348	0x10027076c		f9400fe4		MOVD 24(RSP), R4									
+  bench_test.go:348	0x100270770		8b000083		ADD R0, R4, R3										
+  bench_test.go:347	0x100270774		f94013e4		MOVD 32(RSP), R4									
+  bench_test.go:347	0x100270778		91000482		ADD $1, R4, R2										
+  bench_test.go:347	0x10027077c		f9401fe0		MOVD 56(RSP), R0									
+  bench_test.go:347	0x100270780		f94023e1		MOVD 64(RSP), R1									
+  bench_test.go:347	0x100270784		eb02003f		CMP R2, R1										
+  bench_test.go:347	0x100270788		5400018d		BLE 12(PC)										
+  bench_test.go:347	0x10027078c		f90013e2		MOVD R2, 32(RSP)									
+  bench_test.go:347	0x100270790		f9000fe3		MOVD R3, 24(RSP)									
+  bench_test.go:347	0x100270794		f8627801		MOVD (R0)(R2<<3), R1									
+  ast.go:210		0x100270798		a9420021		LDP 32(R1), (R1, R0)									
+  ast.go:210		0x10027079c		f9403c21		MOVD 120(R1), R1									
+  ast.go:210		0x1002707a0		d63f0020		CALL (R1)										
+  bench_test.go:213	0x1002707a4		b4000060		CBZ R0, 3(PC)										
+  bench_test.go:214	0x1002707a8		79800000		MOVH (R0), R0										
+  bench_test.go:348	0x1002707ac		17fffff0		JMP -16(PC)										
+  bench_test.go:348	0x1002707b0		aa1f03e0		MOVD ZR, R0										
+  bench_test.go:348	0x1002707b4		17ffffee		JMP -18(PC)										
+  bench_test.go:350	0x1002707b8		aa0303e0		MOVD R3, R0										
+  bench_test.go:350	0x1002707bc		f85f83fd		MOVD -8(RSP), R29									
+  bench_test.go:350	0x1002707c0		f84307fe		MOVD.P 48(RSP), R30									
+  bench_test.go:350	0x1002707c4		d65f03c0		RET											
+  bench_test.go:346	0x1002707c8		a90087e0		STP (R0, R1), 8(RSP)									
+  bench_test.go:346	0x1002707cc		f9000fe2		MOVD R2, 24(RSP)									
+  bench_test.go:346	0x1002707d0		aa1e03e3		MOVD R30, R3										
+  bench_test.go:346	0x1002707d4		97f84c77		CALL runtime.morestack_noctxt.abi0(SB)							
+  bench_test.go:346	0x1002707d8		a94087e0		LDP 8(RSP), (R0, R1)									
+  bench_test.go:346	0x1002707dc		f9400fe2		MOVD 24(RSP), R2									
+  bench_test.go:346	0x1002707e0		17ffffd8		JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.sumPolyAllPointer(SB)	
+  bench_test.go:346	0x1002707e4		00000000		?											
+  bench_test.go:346	0x1002707e8		00000000		?											
+  bench_test.go:346	0x1002707ec		00000000		?											
+
+TEXT github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.sumListStore(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/ast/storeexp/bench_test.go
+  bench_test.go:369	0x1002707f0		f9400b90		MOVD 16(R28), R16								
+  bench_test.go:369	0x1002707f4		eb3063ff		CMP R16, RSP									
+  bench_test.go:369	0x1002707f8		54000969		BLS 75(PC)									
+  bench_test.go:369	0x1002707fc		f81f0ffe		MOVD.W R30, -16(RSP)								
+  bench_test.go:369	0x100270800		f81f83fd		MOVD R29, -8(RSP)								
+  bench_test.go:369	0x100270804		d10023fd		SUB $8, RSP, R29								
+  bench_test.go:369	0x100270808		f9000fe0		MOVD R0, 24(RSP)								
+  bench_test.go:370	0x10027080c		aa1f03e2		MOVD ZR, R2									
+  bench_test.go:370	0x100270810		14000003		JMP 3(PC)									
+  bench_test.go:370	0x100270814		91004060		ADD $16, R3, R0									
+  bench_test.go:370	0x100270818		d1000421		SUB $1, R1, R1									
+  bench_test.go:370	0x10027081c		f100003f		CMP $0, R1									
+  bench_test.go:370	0x100270820		5400064d		BLE 50(PC)									
+  bench_test.go:370	0x100270824		aa0003e3		MOVD R0, R3									
+  bench_test.go:370	0x100270828		a9401000		LDP (R0), (R0, R4)								
+  views.go:126		0x10027082c		a9419805		LDP 24(R0), (R5, R6)								
+  views.go:126		0x100270830		b9401484		MOVWU 20(R4), R4								
+  views.go:126		0x100270834		91000c84		ADD $3, R4, R4									
+  views.go:126		0x100270838		2a0403e4		MOVW R4, R4									
+  views.go:126		0x10027083c		eb06009f		CMP R6, R4									
+  views.go:126		0x100270840		540006e2		BCS 55(PC)									
+  views.go:126		0x100270844		b86478a4		MOVWU (R5)(R4<<2), R4								
+  store.go:115		0x100270848		aa0403e7		MOVD R4, R7									
+  store.go:115		0x10027084c		eb0600ff		CMP R6, R7									
+  store.go:115		0x100270850		54000642		BCS 50(PC)									
+  views.go:126		0x100270854		f9401406		MOVD 40(R0), R6									
+  store.go:115		0x100270858		b86778a7		MOVWU (R5)(R7<<2), R7								
+  store.go:115		0x10027085c		8b070087		ADD R7, R4, R7									
+  store.go:115		0x100270860		91000ce7		ADD $3, R7, R7									
+  store.go:115		0x100270864		2a0703e7		MOVW R7, R7									
+  store.go:115		0x100270868		eb0600ff		CMP R6, R7									
+  store.go:115		0x10027086c		54000548		BHI 42(PC)									
+  store.go:115		0x100270870		91000c84		ADD $3, R4, R4									
+  store.go:115		0x100270874		2a0403e4		MOVW R4, R4									
+  store.go:115		0x100270878		eb07009f		CMP R7, R4									
+  store.go:115		0x10027087c		540004a8		BHI 37(PC)									
+  store.go:115		0x100270880		cb0400e7		SUB R4, R7, R7									
+  store.go:115		0x100270884		cb060086		SUB R6, R4, R6									
+  store.go:115		0x100270888		8a86fc84		AND R6->63, R4, R4								
+  store.go:115		0x10027088c		8b0408a4		ADD R4<<2, R5, R4								
+  store.go:116		0x100270890		b27e03e5		ORR $4, ZR, R5									
+  store.go:116		0x100270894		9bc77ca6		UMULH R7, R5, R6								
+  store.go:116		0x100270898		b5000386		CBNZ R6, 28(PC)									
+  store.go:116		0x10027089c		aa0403e6		MOVD R4, R6									
+  store.go:116		0x1002708a0		cb0403e4		NEG R4, R4									
+  store.go:116		0x1002708a4		eb07089f		CMP R7<<2, R4									
+  store.go:116		0x1002708a8		540002a3		BCC 21(PC)									
+  bench_test.go:371	0x1002708ac		aa1f03e4		MOVD ZR, R4									
+  bench_test.go:371	0x1002708b0		14000006		JMP 6(PC)									
+  store.go:50		0x1002708b4		d37d7d08		UBFIZ $3, R8, $32, R8								
+  store.go:50		0x1002708b8		8b080508		ADD R8<<1, R8, R8								
+  store.go:55		0x1002708bc		78a86928		MOVH (R9)(R8), R8								
+  bench_test.go:372	0x1002708c0		8b080042		ADD R8, R2, R2									
+  bench_test.go:371	0x1002708c4		91000484		ADD $1, R4, R4									
+  bench_test.go:371	0x1002708c8		eb07009f		CMP R7, R4									
+  bench_test.go:371	0x1002708cc		54fffa4a		BGE -46(PC)									
+  bench_test.go:371	0x1002708d0		b86478c8		MOVWU (R6)(R4<<2), R8								
+  store.go:50		0x1002708d4		a9402809		LDP (R0), (R9, R10)								
+  store.go:50		0x1002708d8		aa0803eb		MOVD R8, R11									
+  store.go:50		0x1002708dc		eb0a017f		CMP R10, R11									
+  store.go:50		0x1002708e0		54fffea3		BCC -11(PC)									
+  store.go:50		0x1002708e4		14000005		JMP 5(PC)									
+  bench_test.go:375	0x1002708e8		aa0203e0		MOVD R2, R0									
+  bench_test.go:375	0x1002708ec		f85f83fd		MOVD -8(RSP), R29								
+  bench_test.go:375	0x1002708f0		f84107fe		MOVD.P 16(RSP), R30								
+  bench_test.go:375	0x1002708f4		d65f03c0		RET										
+  store.go:50		0x1002708f8		97f85472		CALL runtime.panicBounds(SB)							
+  store.go:116		0x1002708fc		b4000046		CBZ R6, 2(PC)									
+  store.go:116		0x100270900		97f80fc4		CALL runtime.panicunsafeslicelen(SB)						
+  store.go:116		0x100270904		97f80feb		CALL runtime.panicunsafeslicenilptr(SB)						
+  store.go:116		0x100270908		aa0403e6		MOVD R4, R6									
+  store.go:116		0x10027090c		17fffffc		JMP -4(PC)									
+  store.go:115		0x100270910		97f8546c		CALL runtime.panicBounds(SB)							
+  store.go:115		0x100270914		97f8546b		CALL runtime.panicBounds(SB)							
+  store.go:115		0x100270918		97f8546a		CALL runtime.panicBounds(SB)							
+  views.go:126		0x10027091c		97f85469		CALL runtime.panicBounds(SB)							
+  views.go:126		0x100270920		d503201f		NOOP										
+  bench_test.go:369	0x100270924		a90087e0		STP (R0, R1), 8(RSP)								
+  bench_test.go:369	0x100270928		f9000fe2		MOVD R2, 24(RSP)								
+  bench_test.go:369	0x10027092c		aa1e03e3		MOVD R30, R3									
+  bench_test.go:369	0x100270930		97f84c20		CALL runtime.morestack_noctxt.abi0(SB)						
+  bench_test.go:369	0x100270934		a94087e0		LDP 8(RSP), (R0, R1)								
+  bench_test.go:369	0x100270938		f9400fe2		MOVD 24(RSP), R2								
+  bench_test.go:369	0x10027093c		17ffffad		JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.sumListStore(SB)	
+
+TEXT github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.sumTextPointer(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/ast/storeexp/bench_test.go
+  bench_test.go:378	0x100270940		f9400b90		MOVD 16(R28), R16									
+  bench_test.go:378	0x100270944		eb3063ff		CMP R16, RSP										
+  bench_test.go:378	0x100270948		540003e9		BLS 31(PC)										
+  bench_test.go:378	0x10027094c		f81d0ffe		MOVD.W R30, -48(RSP)									
+  bench_test.go:378	0x100270950		f81f83fd		MOVD R29, -8(RSP)									
+  bench_test.go:378	0x100270954		d10023fd		SUB $8, RSP, R29									
+  bench_test.go:379	0x100270958		f9001fe0		MOVD R0, 56(RSP)									
+  bench_test.go:379	0x10027095c		f90023e1		MOVD R1, 64(RSP)									
+  bench_test.go:379	0x100270960		aa1f03e2		MOVD ZR, R2										
+  bench_test.go:379	0x100270964		aa1f03e3		MOVD ZR, R3										
+  bench_test.go:379	0x100270968		14000007		JMP 7(PC)										
+  bench_test.go:380	0x10027096c		f9400fe4		MOVD 24(RSP), R4									
+  bench_test.go:380	0x100270970		8b000083		ADD R0, R4, R3										
+  bench_test.go:379	0x100270974		f94013e4		MOVD 32(RSP), R4									
+  bench_test.go:379	0x100270978		91000482		ADD $1, R4, R2										
+  bench_test.go:379	0x10027097c		f9401fe0		MOVD 56(RSP), R0									
+  bench_test.go:379	0x100270980		f94023e1		MOVD 64(RSP), R1									
+  bench_test.go:379	0x100270984		eb02003f		CMP R2, R1										
+  bench_test.go:379	0x100270988		5400016d		BLE 11(PC)										
+  bench_test.go:379	0x10027098c		f90013e2		MOVD R2, 32(RSP)									
+  bench_test.go:379	0x100270990		f9000fe3		MOVD R3, 24(RSP)									
+  bench_test.go:379	0x100270994		f8627800		MOVD (R0)(R2<<3), R0									
+  bench_test.go:223	0x100270998		97fcfde2		CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*Node).Text(SB)			
+  bench_test.go:224	0x10027099c		b5000061		CBNZ R1, 3(PC)										
+  bench_test.go:380	0x1002709a0		aa1f03e0		MOVD ZR, R0										
+  bench_test.go:380	0x1002709a4		17fffff2		JMP -14(PC)										
+  bench_test.go:227	0x1002709a8		39400000		MOVBU (R0), R0										
+  bench_test.go:227	0x1002709ac		8b000020		ADD R0, R1, R0										
+  bench_test.go:380	0x1002709b0		17ffffef		JMP -17(PC)										
+  bench_test.go:382	0x1002709b4		aa0303e0		MOVD R3, R0										
+  bench_test.go:382	0x1002709b8		f85f83fd		MOVD -8(RSP), R29									
+  bench_test.go:382	0x1002709bc		f84307fe		MOVD.P 48(RSP), R30									
+  bench_test.go:382	0x1002709c0		d65f03c0		RET											
+  bench_test.go:378	0x1002709c4		a90087e0		STP (R0, R1), 8(RSP)									
+  bench_test.go:378	0x1002709c8		f9000fe2		MOVD R2, 24(RSP)									
+  bench_test.go:378	0x1002709cc		aa1e03e3		MOVD R30, R3										
+  bench_test.go:378	0x1002709d0		97f84bf8		CALL runtime.morestack_noctxt.abi0(SB)							
+  bench_test.go:378	0x1002709d4		a94087e0		LDP 8(RSP), (R0, R1)									
+  bench_test.go:378	0x1002709d8		f9400fe2		MOVD 24(RSP), R2									
+  bench_test.go:378	0x1002709dc		17ffffd9		JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.sumTextPointer(SB)	
+
+TEXT github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.sumTextStore(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/ast/storeexp/bench_test.go
+  bench_test.go:385	0x1002709e0		f9400b90		MOVD 16(R28), R16								
+  bench_test.go:385	0x1002709e4		eb3063ff		CMP R16, RSP									
+  bench_test.go:385	0x1002709e8		54000869		BLS 67(PC)									
+  bench_test.go:385	0x1002709ec		f81f0ffe		MOVD.W R30, -16(RSP)								
+  bench_test.go:385	0x1002709f0		f81f83fd		MOVD R29, -8(RSP)								
+  bench_test.go:385	0x1002709f4		d10023fd		SUB $8, RSP, R29								
+  bench_test.go:385	0x1002709f8		f9000fe0		MOVD R0, 24(RSP)								
+  bench_test.go:386	0x1002709fc		aa1f03e2		MOVD ZR, R2									
+  bench_test.go:386	0x100270a00		14000004		JMP 4(PC)									
+  bench_test.go:387	0x100270a04		8b000042		ADD R0, R2, R2									
+  bench_test.go:386	0x100270a08		91004060		ADD $16, R3, R0									
+  bench_test.go:386	0x100270a0c		d1000421		SUB $1, R1, R1									
+  bench_test.go:386	0x100270a10		f100003f		CMP $0, R1									
+  bench_test.go:386	0x100270a14		540005ad		BLE 45(PC)									
+  bench_test.go:386	0x100270a18		aa0003e3		MOVD R0, R3									
+  bench_test.go:386	0x100270a1c		a9401000		LDP (R0), (R0, R4)								
+  store.go:83		0x100270a20		b9401485		MOVWU 20(R4), R5								
+  store.go:84		0x100270a24		36f80325		TBZ $31, R5, 25(PC)								
+  store.go:91		0x100270a28		a9419804		LDP 24(R0), (R4, R6)								
+  store.go:91		0x100270a2c		924078a7		AND $2147483647, R5, R7								
+  store.go:91		0x100270a30		eb0700df		CMP R7, R6									
+  store.go:91		0x100270a34		540005c9		BLS 46(PC)									
+  store.go:85		0x100270a38		924078a5		AND $2147483647, R5, R5								
+  store.go:91		0x100270a3c		910004a5		ADD $1, R5, R5									
+  store.go:91		0x100270a40		2a0503e5		MOVW R5, R5									
+  store.go:91		0x100270a44		b8677887		MOVWU (R4)(R7<<2), R7								
+  store.go:91		0x100270a48		eb0600bf		CMP R6, R5									
+  store.go:91		0x100270a4c		540004e2		BCS 39(PC)									
+  store.go:91		0x100270a50		b8657884		MOVWU (R4)(R5<<2), R4								
+  store.go:92		0x100270a54		a9441400		LDP 64(R0), (R0, R5)								
+  store.go:92		0x100270a58		8b0400e4		ADD R4, R7, R4									
+  store.go:92		0x100270a5c		2a0403e4		MOVW R4, R4									
+  store.go:92		0x100270a60		eb05009f		CMP R5, R4									
+  store.go:92		0x100270a64		54000408		BHI 32(PC)									
+  store.go:92		0x100270a68		aa0703e5		MOVD R7, R5									
+  store.go:92		0x100270a6c		eb0400bf		CMP R4, R5									
+  store.go:92		0x100270a70		54000388		BHI 28(PC)									
+  store.go:92		0x100270a74		cb0400a6		SUB R4, R5, R6									
+  store.go:92		0x100270a78		8a86fca6		AND R6->63, R5, R6								
+  store.go:92		0x100270a7c		cb050084		SUB R5, R4, R4									
+  store.go:92		0x100270a80		8b060000		ADD R6, R0, R0									
+  bench_test.go:231	0x100270a84		1400000b		JMP 11(PC)									
+  store.go:87		0x100270a88		a9431800		LDP 48(R0), (R0, R6)								
+  store.go:87		0x100270a8c		b9800c84		MOVW 12(R4), R4									
+  store.go:87		0x100270a90		eb06009f		CMP R6, R4									
+  store.go:87		0x100270a94		54000248		BHI 18(PC)									
+  store.go:87		0x100270a98		eb0400bf		CMP R4, R5									
+  store.go:87		0x100270a9c		540001e8		BHI 15(PC)									
+  store.go:87		0x100270aa0		cb0400a6		SUB R4, R5, R6									
+  store.go:87		0x100270aa4		8a86fca6		AND R6->63, R5, R6								
+  store.go:87		0x100270aa8		cb050084		SUB R5, R4, R4									
+  store.go:87		0x100270aac		8b060000		ADD R6, R0, R0									
+  bench_test.go:232	0x100270ab0		b5000064		CBNZ R4, 3(PC)									
+  bench_test.go:387	0x100270ab4		aa1f03e0		MOVD ZR, R0									
+  bench_test.go:387	0x100270ab8		17ffffd3		JMP -45(PC)									
+  bench_test.go:235	0x100270abc		39400000		MOVBU (R0), R0									
+  bench_test.go:235	0x100270ac0		8b040000		ADD R4, R0, R0									
+  bench_test.go:387	0x100270ac4		17ffffd0		JMP -48(PC)									
+  bench_test.go:389	0x100270ac8		aa0203e0		MOVD R2, R0									
+  bench_test.go:389	0x100270acc		f85f83fd		MOVD -8(RSP), R29								
+  bench_test.go:389	0x100270ad0		f84107fe		MOVD.P 16(RSP), R30								
+  bench_test.go:389	0x100270ad4		d65f03c0		RET										
+  store.go:87		0x100270ad8		97f853fa		CALL runtime.panicBounds(SB)							
+  store.go:87		0x100270adc		97f853f9		CALL runtime.panicBounds(SB)							
+  store.go:92		0x100270ae0		97f853f8		CALL runtime.panicBounds(SB)							
+  store.go:92		0x100270ae4		97f853f7		CALL runtime.panicBounds(SB)							
+  store.go:91		0x100270ae8		97f853f6		CALL runtime.panicBounds(SB)							
+  store.go:91		0x100270aec		97f853f5		CALL runtime.panicBounds(SB)							
+  store.go:91		0x100270af0		d503201f		NOOP										
+  bench_test.go:385	0x100270af4		a90087e0		STP (R0, R1), 8(RSP)								
+  bench_test.go:385	0x100270af8		f9000fe2		MOVD R2, 24(RSP)								
+  bench_test.go:385	0x100270afc		aa1e03e3		MOVD R30, R3									
+  bench_test.go:385	0x100270b00		97f84bac		CALL runtime.morestack_noctxt.abi0(SB)						
+  bench_test.go:385	0x100270b04		a94087e0		LDP 8(RSP), (R0, R1)								
+  bench_test.go:385	0x100270b08		f9400fe2		MOVD 24(RSP), R2								
+  bench_test.go:385	0x100270b0c		17ffffb5		JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.sumTextStore(SB)	
+
+TEXT github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.sumModFlagsPointer(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/ast/storeexp/bench_test.go
+  bench_test.go:392	0x100270b10		f9400b90		MOVD 16(R28), R16									
+  bench_test.go:392	0x100270b14		eb3063ff		CMP R16, RSP										
+  bench_test.go:392	0x100270b18		54000449		BLS 34(PC)										
+  bench_test.go:392	0x100270b1c		f81d0ffe		MOVD.W R30, -48(RSP)									
+  bench_test.go:392	0x100270b20		f81f83fd		MOVD R29, -8(RSP)									
+  bench_test.go:392	0x100270b24		d10023fd		SUB $8, RSP, R29									
+  bench_test.go:393	0x100270b28		f90023e1		MOVD R1, 64(RSP)									
+  bench_test.go:393	0x100270b2c		f9001fe0		MOVD R0, 56(RSP)									
+  bench_test.go:393	0x100270b30		aa1f03e2		MOVD ZR, R2										
+  bench_test.go:393	0x100270b34		aa1f03e3		MOVD ZR, R3										
+  bench_test.go:393	0x100270b38		14000008		JMP 8(PC)										
+  bench_test.go:394	0x100270b3c		2a0003e4		MOVW R0, R4										
+  bench_test.go:394	0x100270b40		f9400fe5		MOVD 24(RSP), R5									
+  bench_test.go:394	0x100270b44		8b0400a3		ADD R4, R5, R3										
+  bench_test.go:393	0x100270b48		f94013e4		MOVD 32(RSP), R4									
+  bench_test.go:393	0x100270b4c		91000482		ADD $1, R4, R2										
+  bench_test.go:393	0x100270b50		f9401fe0		MOVD 56(RSP), R0									
+  bench_test.go:393	0x100270b54		f94023e1		MOVD 64(RSP), R1									
+  bench_test.go:393	0x100270b58		eb02003f		CMP R2, R1										
+  bench_test.go:393	0x100270b5c		540001ad		BLE 13(PC)										
+  bench_test.go:393	0x100270b60		f90013e2		MOVD R2, 32(RSP)									
+  bench_test.go:393	0x100270b64		f9000fe3		MOVD R3, 24(RSP)									
+  bench_test.go:393	0x100270b68		f8627801		MOVD (R0)(R2<<3), R1									
+  ast.go:211		0x100270b6c		a9420021		LDP 32(R1), (R1, R0)									
+  ast.go:211		0x100270b70		f9403821		MOVD 112(R1), R1									
+  ast.go:614		0x100270b74		d503201f		NOOP											
+  ast.go:211		0x100270b78		d63f0020		CALL (R1)										
+  ast.go:615		0x100270b7c		b4000060		CBZ R0, 3(PC)										
+  ast.go:616		0x100270b80		b9402000		MOVWU 32(R0), R0									
+  bench_test.go:394	0x100270b84		17ffffee		JMP -18(PC)										
+  bench_test.go:394	0x100270b88		aa1f03e0		MOVD ZR, R0										
+  bench_test.go:394	0x100270b8c		17ffffec		JMP -20(PC)										
+  bench_test.go:396	0x100270b90		aa0303e0		MOVD R3, R0										
+  bench_test.go:396	0x100270b94		f85f83fd		MOVD -8(RSP), R29									
+  bench_test.go:396	0x100270b98		f84307fe		MOVD.P 48(RSP), R30									
+  bench_test.go:396	0x100270b9c		d65f03c0		RET											
+  bench_test.go:392	0x100270ba0		a90087e0		STP (R0, R1), 8(RSP)									
+  bench_test.go:392	0x100270ba4		f9000fe2		MOVD R2, 24(RSP)									
+  bench_test.go:392	0x100270ba8		aa1e03e3		MOVD R30, R3										
+  bench_test.go:392	0x100270bac		97f84b81		CALL runtime.morestack_noctxt.abi0(SB)							
+  bench_test.go:392	0x100270bb0		a94087e0		LDP 8(RSP), (R0, R1)									
+  bench_test.go:392	0x100270bb4		f9400fe2		MOVD 24(RSP), R2									
+  bench_test.go:392	0x100270bb8		17ffffd6		JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.sumModFlagsPointer(SB)	
+  bench_test.go:392	0x100270bbc		00000000		?											

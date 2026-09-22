@@ -1,0 +1,126 @@
+//go:build storeexp
+
+package storeexp
+
+import (
+	"runtime"
+	"testing"
+	"unsafe"
+
+	"github.com/microsoft/TypeScript/tsc/internal/ast"
+	"github.com/microsoft/TypeScript/tsc/internal/testutil/fixtures"
+)
+
+// Temporary: alternatives for node() (section 2.5 reconsideration). Not part of the experiment package.
+
+type header32 struct {
+	NodeHeader
+	pad [2]uint32
+}
+
+type altStore struct {
+	nodes []NodeHeader
+	arr   *[1 << 32]NodeHeader // B: huge array, no bounds check
+	base  unsafe.Pointer       // C: unsafe.Add
+	n32   []header32
+	arr32 *[1 << 32]header32 // E: 32B + huge array
+}
+
+func newAltStore(s *Store) *altStore {
+	a := &altStore{nodes: s.nodes, n32: make([]header32, len(s.nodes))}
+	for i := range s.nodes {
+		a.n32[i].NodeHeader = s.nodes[i]
+	}
+	a.arr = (*[1 << 32]NodeHeader)(unsafe.Pointer(unsafe.SliceData(a.nodes)))
+	a.base = unsafe.Pointer(unsafe.SliceData(a.nodes))
+	a.arr32 = (*[1 << 32]header32)(unsafe.Pointer(unsafe.SliceData(a.n32)))
+	return a
+}
+
+func chainA(a *altStore, ref NodeRef) (d uint64) {
+	for p := &a.nodes[ref]; p.kind != 0; p = &a.nodes[p.parent] {
+		d++
+	}
+	return
+}
+
+func chainB(a *altStore, ref NodeRef) (d uint64) {
+	for p := &a.arr[ref]; p.kind != 0; p = &a.arr[p.parent] {
+		d++
+	}
+	return
+}
+
+func chainC(a *altStore, ref NodeRef) (d uint64) {
+	for p := (*NodeHeader)(unsafe.Add(a.base, uintptr(ref)*24)); p.kind != 0; p = (*NodeHeader)(unsafe.Add(a.base, uintptr(p.parent)*24)) {
+		d++
+	}
+	return
+}
+
+func chainD(a *altStore, ref NodeRef) (d uint64) {
+	for p := &a.n32[ref]; p.kind != 0; p = &a.n32[p.parent] {
+		d++
+	}
+	return
+}
+
+func chainE(a *altStore, ref NodeRef) (d uint64) {
+	for p := &a.arr32[ref]; p.kind != 0; p = &a.arr32[p.parent] {
+		d++
+	}
+	return
+}
+
+func BenchmarkZZResolve(b *testing.B) {
+	file := parseFixture(b, fixtures.ASTBenchCheckerFixture)
+	store := Convert(file, 0)
+	a := newAltStore(store)
+	var ids []NodeRef
+	var pointers []*ast.Node
+	for _, n := range preorderStore(store.Root(), Node.ForEachChild) {
+		if n.Kind() == ast.KindIdentifier {
+			ids = append(ids, n.h.parent)
+		}
+	}
+	for _, p := range preorderPointer(file.AsNode()) {
+		if p.Kind == ast.KindIdentifier {
+			pointers = append(pointers, p.Parent)
+		}
+	}
+	for _, v := range []struct {
+		name string
+		f    func(*altStore, NodeRef) uint64
+	}{{"A_slice24", chainA}, {"B_hugearr24", chainB}, {"C_unsafeAdd24", chainC}, {"D_slice32", chainD}, {"E_hugearr32", chainE}} {
+		b.Run(v.name, func(b *testing.B) {
+			runtime.GC()
+			var got uint64
+			for b.Loop() {
+				got = 0
+				for _, id := range ids {
+					got += v.f(a, id)
+				}
+			}
+			if got != 1455043 {
+				b.Fatal(got)
+			}
+			b.ReportMetric(float64(b.Elapsed().Nanoseconds())/float64(b.N)/1455043, "ns/step")
+		})
+	}
+	b.Run("pointer", func(b *testing.B) {
+		runtime.GC()
+		var got uint64
+		for b.Loop() {
+			got = 0
+			for _, p := range pointers {
+				for ; p != nil; p = p.Parent {
+					got++
+				}
+			}
+		}
+		if got != 1455043 {
+			b.Fatal(got)
+		}
+		b.ReportMetric(float64(b.Elapsed().Nanoseconds())/float64(b.N)/1455043, "ns/step")
+	})
+}

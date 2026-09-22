@@ -1,0 +1,106 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast/storeexp
+cpu: Apple M1
+BenchmarkStoreExpAccess/baseline/pointer-8         	   10000	    110949 ns/op	         0.3722 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/baseline/pointer-8         	   10000	    106814 ns/op	         0.3584 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/baseline/pointer-8         	   10000	    106368 ns/op	         0.3569 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/baseline/pointer-8         	   10000	    106338 ns/op	         0.3568 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/baseline/pointer-8         	   10000	    106396 ns/op	         0.3570 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/baseline/store-8           	    8782	    133439 ns/op	         0.4477 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/baseline/store-8           	    8619	    133995 ns/op	         0.4496 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/baseline/store-8           	    9022	    133362 ns/op	         0.4474 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/baseline/store-8           	    9018	    133282 ns/op	         0.4472 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/baseline/store-8           	    9006	    133309 ns/op	         0.4473 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/header/pointer-8           	    1996	    585094 ns/op	         1.963 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/header/pointer-8           	    2022	    590431 ns/op	         1.981 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/header/pointer-8           	    1975	    566572 ns/op	         1.901 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/header/pointer-8           	    2042	    587337 ns/op	         1.971 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/header/pointer-8           	    1977	    586077 ns/op	         1.966 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/header/store-8             	    4806	    252065 ns/op	         0.8457 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/header/store-8             	    4736	    276200 ns/op	         0.9267 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/header/store-8             	    4771	    255072 ns/op	         0.8558 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/header/store-8             	    4777	    252442 ns/op	         0.8470 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/header/store-8             	    4611	    259591 ns/op	         0.8710 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/known/pointer-8            	    2862	    427956 ns/op	    117921 childreads/op	         7.141 ns/access	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/known/pointer-8            	    2683	    427516 ns/op	    117921 childreads/op	         7.134 ns/access	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/known/pointer-8            	    2748	    413056 ns/op	    117921 childreads/op	         6.892 ns/access	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/known/pointer-8            	    2775	    412369 ns/op	    117921 childreads/op	         6.881 ns/access	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/known/pointer-8            	    2875	    422499 ns/op	    117921 childreads/op	         7.050 ns/access	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/known/store-8              	    3370	    344894 ns/op	    117921 childreads/op	         5.755 ns/access	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/known/store-8              	    3460	    346058 ns/op	    117921 childreads/op	         5.774 ns/access	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/known/store-8              	    3484	    353763 ns/op	    117921 childreads/op	         5.903 ns/access	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/known/store-8              	    3402	    354023 ns/op	    117921 childreads/op	         5.907 ns/access	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/known/store-8              	    3362	    363858 ns/op	    117921 childreads/op	         6.071 ns/access	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyPresent/pointer-8      	    3566	    299410 ns/op	         7.083 ns/access	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyPresent/pointer-8      	    4296	    279566 ns/op	         6.613 ns/access	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyPresent/pointer-8      	    4081	    309296 ns/op	         7.316 ns/access	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyPresent/pointer-8      	    3955	    295646 ns/op	         6.994 ns/access	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyPresent/pointer-8      	    4008	    315118 ns/op	         7.454 ns/access	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyPresent/store-8        	    8767	    144482 ns/op	         3.418 ns/access	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyPresent/store-8        	    9223	    129388 ns/op	         3.061 ns/access	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyPresent/store-8        	    9471	    133407 ns/op	         3.156 ns/access	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyPresent/store-8        	    9184	    133609 ns/op	         3.161 ns/access	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyPresent/store-8        	    8772	    137446 ns/op	         3.251 ns/access	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyAll/pointer-8          	     718	   1644277 ns/op	         5.517 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyAll/pointer-8          	     718	   1645849 ns/op	         5.522 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyAll/pointer-8          	     714	   1612169 ns/op	         5.409 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyAll/pointer-8          	     730	   1624503 ns/op	         5.450 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyAll/pointer-8          	     716	   1641718 ns/op	         5.508 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyAll/store-8            	    1764	    672150 ns/op	         2.255 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyAll/store-8            	    1742	    677070 ns/op	         2.272 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyAll/store-8            	    1794	    736347 ns/op	         2.471 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyAll/store-8            	    1698	    761408 ns/op	         2.555 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/polyAll/store-8            	    1725	    693295 ns/op	         2.326 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/list/pointer-8             	    8474	    138706 ns/op	     30422 elements/op	         7.511 ns/access	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/list/pointer-8             	    9139	    136398 ns/op	     30422 elements/op	         7.386 ns/access	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/list/pointer-8             	    9226	    133602 ns/op	     30422 elements/op	         7.235 ns/access	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/list/pointer-8             	    7891	    126864 ns/op	     30422 elements/op	         6.870 ns/access	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/list/pointer-8             	    9662	    127668 ns/op	     30422 elements/op	         6.914 ns/access	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/list/store-8               	    6964	    173138 ns/op	     30422 elements/op	         9.376 ns/access	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/list/store-8               	    6721	    164344 ns/op	     30422 elements/op	         8.900 ns/access	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/list/store-8               	    7048	    166987 ns/op	     30422 elements/op	         9.043 ns/access	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/list/store-8               	    7080	    168257 ns/op	     30422 elements/op	         9.112 ns/access	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/list/store-8               	    6822	    169388 ns/op	     30422 elements/op	         9.173 ns/access	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/text/pointer-8             	    3423	    357990 ns/op	         2.897 ns/access	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/text/pointer-8             	    3351	    354522 ns/op	         2.869 ns/access	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/text/pointer-8             	    3428	    358552 ns/op	         2.902 ns/access	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/text/pointer-8             	    3228	    376214 ns/op	         3.045 ns/access	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/text/pointer-8             	    3172	    373735 ns/op	         3.025 ns/access	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/text/store-8               	    6565	    187078 ns/op	         1.514 ns/access	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/text/store-8               	    6520	    185609 ns/op	         1.502 ns/access	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/text/store-8               	    6044	    187982 ns/op	         1.521 ns/access	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/text/store-8               	    6536	    186394 ns/op	         1.509 ns/access	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/text/store-8               	    6483	    189217 ns/op	         1.531 ns/access	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/modflags/pointer-8         	     685	   1742849 ns/op	         5.847 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/modflags/pointer-8         	     687	   1748316 ns/op	         5.866 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/modflags/pointer-8         	     688	   1736534 ns/op	         5.826 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/modflags/pointer-8         	     690	   1753841 ns/op	         5.884 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/modflags/pointer-8         	     685	   1754009 ns/op	         5.885 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/modflags/store-8           	    6103	    187706 ns/op	         0.6298 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/modflags/store-8           	    6556	    187020 ns/op	         0.6275 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/modflags/store-8           	    6564	    186100 ns/op	         0.6244 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/modflags/store-8           	    6436	    185929 ns/op	         0.6238 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/modflags/store-8           	    6534	    185794 ns/op	         0.6234 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/parentChain/pointer-8      	     687	   1760941 ns/op	        14.25 ns/access	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/parentChain/pointer-8      	     680	   1758900 ns/op	        14.24 ns/access	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/parentChain/pointer-8      	     680	   1755944 ns/op	        14.21 ns/access	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/parentChain/pointer-8      	     691	   1752908 ns/op	        14.19 ns/access	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/parentChain/pointer-8      	     687	   1756961 ns/op	        14.22 ns/access	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/parentChain/store-8        	     324	   3698692 ns/op	        29.94 ns/access	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/parentChain/store-8        	     324	   3700260 ns/op	        29.95 ns/access	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/parentChain/store-8        	     324	   3696698 ns/op	        29.92 ns/access	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/parentChain/store-8        	     321	   3722174 ns/op	        30.13 ns/access	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/parentChain/store-8        	     324	   3698577 ns/op	        29.93 ns/access	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/parentChainRef/store-8     	     364	   3280511 ns/op	        26.55 ns/access	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/parentChainRef/store-8     	     366	   3280259 ns/op	        26.55 ns/access	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/parentChainRef/store-8     	     366	   3277672 ns/op	        26.53 ns/access	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/parentChainRef/store-8     	     366	   3278582 ns/op	        26.54 ns/access	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/parentChainRef/store-8     	     364	   3281435 ns/op	        26.56 ns/access	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/refRoundTrip/store-8       	    6528	    180365 ns/op	         0.6051 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/refRoundTrip/store-8       	    6652	    180692 ns/op	         0.6062 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/refRoundTrip/store-8       	    6663	    180511 ns/op	         0.6056 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/refRoundTrip/store-8       	    6613	    180712 ns/op	         0.6063 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccess/refRoundTrip/store-8       	    6663	    181214 ns/op	         0.6080 ns/access	    298054 ops/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/ast/storeexp	120.783s

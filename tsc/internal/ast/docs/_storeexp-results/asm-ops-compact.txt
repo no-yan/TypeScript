@@ -1,0 +1,694 @@
+== asmBaselinePointer
+asm_test.go:21 NOOP
+bench_test.go:188 CMP $0, R0
+bench_test.go:188 CSET NE, R0
+asm_test.go:21 RET
+== asmBaselineStore
+asm_test.go:24 MOVD R0, 8(RSP)
+asm_test.go:24 MOVD R1, 16(RSP)
+asm_test.go:24 NOOP
+bench_test.go:195 CMP $0, R1
+bench_test.go:195 CSET NE, R0
+asm_test.go:24 RET
+== asmHeaderPointer
+asm_test.go:27 NOOP
+bench_test.go:202 MOVH (R0), R1
+bench_test.go:202 MOVWU 4(R0), R2
+bench_test.go:202 ADD R1, R2, R1
+ast.go:194 LDPSW 8(R0), R3, R2
+bench_test.go:202 ADD R2, R1, R1
+bench_test.go:202 ADD R1, R3, R0
+ast.go:195 NOOP
+asm_test.go:27 RET
+== asmHeaderStore
+asm_test.go:30 MOVD R0, 8(RSP)
+asm_test.go:30 MOVD R1, 16(RSP)
+asm_test.go:30 NOOP
+store.go:55 MOVH (R1), R2
+store.go:56 MOVWU 4(R1), R3
+bench_test.go:206 ADD R2, R3, R2
+store.go:57 LDPSW 8(R1), R3, R1
+bench_test.go:206 ADD R2, R1, R1
+bench_test.go:206 ADD R1, R3, R0
+asm_test.go:30 RET
+== asmKnownPointer
+asm_test.go:35 MOVD 16(R28), R16
+asm_test.go:35 CMP R16, RSP
+asm_test.go:35 BLS 66(PC)
+asm_test.go:35 MOVD.W R30, -48(RSP)
+asm_test.go:35 MOVD R29, -8(RSP)
+asm_test.go:35 SUB $8, RSP, R29
+asm_test.go:36 MOVH (R0), R3
+asm_test.go:37 UBFX $0, R3, $16, R3
+asm_test.go:37 CMPW $214, R3
+asm_test.go:37 BNE 11(PC)
+ast_generated.go:9369 LDP 32(R0), (R0, R3)
+ast_generated.go:9369 ADRP 5865472(PC), R4
+ast_generated.go:9369 ADD $40, R4, R4
+ast_generated.go:9369 CMP R4, R0
+ast_generated.go:9369 BNE 48(PC)
+asm_test.go:38 MOVD 64(R3), R1
+asm_test.go:38 MOVH (R1), R0
+asm_test.go:38 MOVD -8(RSP), R29
+asm_test.go:38 MOVD.P 48(RSP), R30
+asm_test.go:38 RET
+asm_test.go:39 CMPW $227, R3
+asm_test.go:39 BNE 17(PC)
+ast_generated.go:9325 LDP 32(R0), (R0, R3)
+asm_test.go:40 NOOP
+ast_generated.go:9325 ADRP 5865472(PC), R4
+ast_generated.go:9325 ADD $2432, R4, R4
+ast_generated.go:9325 CMP R4, R0
+ast_generated.go:9325 BNE 30(PC)
+asm_test.go:41 MOVD 72(R3), R1
+asm_test.go:41 MOVH (R1), R1
+asm_test.go:41 LDP 88(R3), (R2, R3)
+asm_test.go:41 MOVH (R2), R2
+asm_test.go:41 ADD R1, R2, R1
+asm_test.go:41 MOVH (R3), R2
+asm_test.go:41 ADD R2, R1, R0
+asm_test.go:41 MOVD -8(RSP), R29
+asm_test.go:41 MOVD.P 48(RSP), R30
+asm_test.go:41 RET
+ast_generated.go:9361 LDP 32(R0), (R0, R3)
+asm_test.go:43 NOOP
+ast_generated.go:9361 ADRP 5861376(PC), R4
+ast_generated.go:9361 ADD $3768, R4, R4
+ast_generated.go:9361 CMP R4, R0
+ast_generated.go:9361 BNE 9(PC)
+asm_test.go:44 MOVD 64(R3), R1
+asm_test.go:44 MOVH (R1), R1
+ast_generated.go:4193 MOVD 80(R3), R2
+asm_test.go:44 MOVH (R2), R2
+asm_test.go:44 ADD R1, R2, R0
+asm_test.go:44 MOVD -8(RSP), R29
+asm_test.go:44 MOVD.P 48(RSP), R30
+asm_test.go:44 RET
+ast_generated.go:9361 ADRP 5066752(PC), R1
+ast_generated.go:9361 ADD $2120, R1, R1
+ast_generated.go:9361 ADRP 5775360(PC), R2
+ast_generated.go:9361 ADD $2024, R2, R2
+ast_generated.go:9361 CALL runtime.panicdottypeI(SB)
+ast_generated.go:9325 ADRP 4407296(PC), R1
+ast_generated.go:9325 ADD $2536, R1, R1
+ast_generated.go:9325 ADRP 5775360(PC), R2
+ast_generated.go:9325 ADD $2024, R2, R2
+ast_generated.go:9325 CALL runtime.panicdottypeI(SB)
+ast_generated.go:9369 ADRP 4427776(PC), R1
+ast_generated.go:9369 ADD $4024, R1, R1
+ast_generated.go:9369 ADRP 5775360(PC), R2
+ast_generated.go:9369 ADD $2024, R2, R2
+ast_generated.go:9369 CALL runtime.panicdottypeI(SB)
+ast_generated.go:9369 NOOP
+asm_test.go:35 MOVD R0, 8(RSP)
+asm_test.go:35 MOVD R30, R3
+asm_test.go:35 CALL runtime.morestack_noctxt.abi0(SB)
+asm_test.go:35 MOVD 8(RSP), R0
+asm_test.go:35 JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.asmKnownPointer(SB)
+== asmKnownStore
+asm_test.go:49 MOVD 16(R28), R16
+asm_test.go:49 CMP R16, RSP
+asm_test.go:49 BLS 110(PC)
+asm_test.go:49 MOVD.W R30, -16(RSP)
+asm_test.go:49 MOVD R29, -8(RSP)
+asm_test.go:49 SUB $8, RSP, R29
+asm_test.go:49 MOVD R0, 24(RSP)
+asm_test.go:49 MOVD R1, 32(RSP)
+store.go:55 MOVH (R1), R2
+asm_test.go:51 UBFX $0, R2, $16, R2
+asm_test.go:50 NOOP
+asm_test.go:51 CMPW $214, R2
+asm_test.go:51 BNE 16(PC)
+views.go:114 LDP 24(R0), (R2, R3)
+views.go:114 MOVWU 20(R1), R1
+views.go:114 CMP R3, R1
+views.go:114 BCS 94(PC)
+views.go:114 MOVWU (R2)(R1<<2), R1
+store.go:50 LDP (R0), (R2, R3)
+store.go:50 MOVD R1, R4
+store.go:50 CMP R3, R4
+store.go:50 BCS 88(PC)
+store.go:50 UBFIZ $3, R1, $32, R1
+store.go:50 ADD R1<<1, R1, R1
+store.go:55 MOVH (R2)(R1), R0
+asm_test.go:52 MOVD -8(RSP), R29
+asm_test.go:52 MOVD.P 16(RSP), R30
+asm_test.go:52 RET
+asm_test.go:53 CMPW $227, R2
+asm_test.go:53 BNE 42(PC)
+views.go:86 LDP 24(R0), (R2, R3)
+views.go:86 MOVWU 20(R1), R1
+views.go:86 ADD $1, R1, R4
+views.go:86 MOVW R4, R4
+views.go:86 CMP R3, R4
+views.go:86 BCS 73(PC)
+views.go:86 MOVWU (R2)(R4<<2), R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 MOVD R4, R7
+store.go:50 CMP R6, R7
+store.go:50 BCS 67(PC)
+views.go:94 ADD $3, R1, R7
+views.go:94 MOVW R7, R7
+store.go:50 UBFIZ $3, R4, $32, R4
+store.go:50 ADD R4<<1, R4, R4
+store.go:55 MOVH (R5)(R4), R4
+views.go:94 CMP R3, R7
+views.go:94 BCS 59(PC)
+views.go:94 MOVWU (R2)(R7<<2), R7
+store.go:50 MOVD R7, R8
+store.go:50 CMP R6, R8
+store.go:50 BCS 54(PC)
+views.go:98 ADD $4, R1, R1
+views.go:98 MOVW R1, R1
+store.go:50 UBFIZ $3, R7, $32, R7
+store.go:50 ADD R7<<1, R7, R7
+store.go:55 MOVH (R5)(R7), R7
+views.go:98 CMP R3, R1
+views.go:98 BCS 46(PC)
+views.go:98 MOVWU (R2)(R1<<2), R1
+store.go:50 MOVD R1, R2
+store.go:50 CMP R6, R2
+store.go:50 BCS 41(PC)
+asm_test.go:55 ADD R4, R7, R2
+store.go:50 UBFIZ $3, R1, $32, R1
+store.go:50 ADD R1<<1, R1, R1
+store.go:55 MOVH (R5)(R1), R1
+asm_test.go:55 ADD R1, R2, R0
+asm_test.go:55 MOVD -8(RSP), R29
+asm_test.go:55 MOVD.P 16(RSP), R30
+asm_test.go:55 RET
+views.go:142 LDP 24(R0), (R2, R3)
+views.go:142 MOVWU 20(R1), R1
+views.go:142 MOVD R1, R4
+views.go:142 CMP R3, R4
+views.go:142 BCS 27(PC)
+views.go:142 MOVWU (R2)(R4<<2), R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 MOVD R4, R7
+store.go:50 CMP R6, R7
+store.go:50 BCS 21(PC)
+views.go:150 ADD $2, R1, R1
+views.go:150 MOVW R1, R1
+store.go:50 UBFIZ $3, R4, $32, R4
+store.go:50 ADD R4<<1, R4, R4
+store.go:55 MOVH (R5)(R4), R4
+views.go:150 CMP R3, R1
+views.go:150 BCS 13(PC)
+views.go:150 MOVWU (R2)(R1<<2), R1
+store.go:50 MOVD R1, R2
+store.go:50 CMP R6, R2
+store.go:50 BCS 8(PC)
+store.go:50 UBFIZ $3, R1, $32, R1
+store.go:50 ADD R1<<1, R1, R1
+store.go:55 MOVH (R5)(R1), R1
+asm_test.go:58 ADD R4, R1, R0
+asm_test.go:58 MOVD -8(RSP), R29
+asm_test.go:58 MOVD.P 16(RSP), R30
+asm_test.go:58 RET
+store.go:50 CALL runtime.panicBounds(SB)
+views.go:150 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+views.go:142 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+views.go:98 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+views.go:94 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+views.go:86 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+views.go:114 CALL runtime.panicBounds(SB)
+views.go:114 NOOP
+asm_test.go:49 STP (R0, R1), 8(RSP)
+asm_test.go:49 MOVD R30, R3
+asm_test.go:49 CALL runtime.morestack_noctxt.abi0(SB)
+asm_test.go:49 LDP 8(RSP), (R0, R1)
+asm_test.go:49 JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.asmKnownStore(SB)
+== asmPolyPresentPointer
+asm_test.go:63 MOVD 16(R28), R16
+asm_test.go:63 CMP R16, RSP
+asm_test.go:63 BLS 11(PC)
+asm_test.go:63 MOVD.W R30, -32(RSP)
+asm_test.go:63 MOVD R29, -8(RSP)
+asm_test.go:63 SUB $8, RSP, R29
+ast.go:210 LDP 32(R0), (R1, R0)
+ast.go:210 MOVD 120(R1), R1
+ast.go:210 CALL (R1)
+bench_test.go:209 MOVH (R0), R0
+asm_test.go:63 MOVD -8(RSP), R29
+asm_test.go:63 MOVD.P 32(RSP), R30
+asm_test.go:63 RET
+asm_test.go:63 MOVD R0, 8(RSP)
+asm_test.go:63 MOVD R30, R3
+asm_test.go:63 CALL runtime.morestack_noctxt.abi0(SB)
+asm_test.go:63 MOVD 8(RSP), R0
+asm_test.go:63 JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.asmPolyPresentPointer(SB)
+== asmPolyPresentStore
+asm_test.go:66 MOVD 16(R28), R16
+asm_test.go:66 CMP R16, RSP
+asm_test.go:66 BLS 41(PC)
+asm_test.go:66 MOVD.W R30, -16(RSP)
+asm_test.go:66 MOVD R29, -8(RSP)
+asm_test.go:66 SUB $8, RSP, R29
+asm_test.go:66 MOVD R0, 24(RSP)
+asm_test.go:66 MOVD R1, 32(RSP)
+views.go:222 MOVH (R1), R2
+views.go:222 AND $511, R2, R2
+views.go:222 ADRP 6402048(PC), R3
+views.go:222 ADD $416, R3, R3
+views.go:222 MOVBU (R3)(R2), R2
+bench_test.go:210 NOOP
+views.go:223 CMPW $255, R2
+views.go:223 BNE 5(PC)
+views.go:224 NOOP
+store.go:50 LDP (R0), (R1, R2)
+store.go:50 CBNZ R2, 16(PC)
+store.go:50 JMP 22(PC)
+views.go:226 LDP 24(R0), (R3, R4)
+views.go:226 MOVWU 20(R1), R1
+views.go:226 ADD R2, R1, R1
+views.go:226 MOVW R1, R1
+views.go:226 CMP R4, R1
+views.go:226 BCS 15(PC)
+views.go:226 MOVWU (R3)(R1<<2), R1
+store.go:50 LDP (R0), (R2, R3)
+store.go:50 MOVD R1, R4
+store.go:50 CMP R3, R4
+store.go:50 BCS 9(PC)
+store.go:50 UBFIZ $3, R1, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R3, R2, R1
+store.go:55 MOVH (R1), R0
+bench_test.go:210 NOOP
+asm_test.go:66 MOVD -8(RSP), R29
+asm_test.go:66 MOVD.P 16(RSP), R30
+asm_test.go:66 RET
+store.go:50 CALL runtime.panicBounds(SB)
+views.go:226 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+store.go:50 NOOP
+asm_test.go:66 STP (R0, R1), 8(RSP)
+asm_test.go:66 MOVD R30, R3
+asm_test.go:66 CALL runtime.morestack_noctxt.abi0(SB)
+asm_test.go:66 LDP 8(RSP), (R0, R1)
+asm_test.go:66 JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.asmPolyPresentStore(SB)
+== asmPolyAllPointer
+asm_test.go:69 MOVD 16(R28), R16
+asm_test.go:69 CMP R16, RSP
+asm_test.go:69 BLS 14(PC)
+asm_test.go:69 MOVD.W R30, -32(RSP)
+asm_test.go:69 MOVD R29, -8(RSP)
+asm_test.go:69 SUB $8, RSP, R29
+ast.go:210 LDP 32(R0), (R1, R0)
+ast.go:210 MOVD 120(R1), R1
+ast.go:210 CALL (R1)
+bench_test.go:213 CBZ R0, 3(PC)
+bench_test.go:214 MOVH (R0), R0
+asm_test.go:69 JMP 2(PC)
+asm_test.go:69 MOVD ZR, R0
+asm_test.go:69 MOVD -8(RSP), R29
+asm_test.go:69 MOVD.P 32(RSP), R30
+asm_test.go:69 RET
+asm_test.go:69 MOVD R0, 8(RSP)
+asm_test.go:69 MOVD R30, R3
+asm_test.go:69 CALL runtime.morestack_noctxt.abi0(SB)
+asm_test.go:69 MOVD 8(RSP), R0
+asm_test.go:69 JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.asmPolyAllPointer(SB)
+== asmPolyAllStore
+asm_test.go:72 MOVD 16(R28), R16
+asm_test.go:72 CMP R16, RSP
+asm_test.go:72 BLS 41(PC)
+asm_test.go:72 MOVD.W R30, -16(RSP)
+asm_test.go:72 MOVD R29, -8(RSP)
+asm_test.go:72 SUB $8, RSP, R29
+asm_test.go:72 MOVD R0, 24(RSP)
+asm_test.go:72 MOVD R1, 32(RSP)
+views.go:222 MOVH (R1), R2
+views.go:222 AND $511, R2, R2
+views.go:222 ADRP 6402048(PC), R3
+views.go:222 ADD $416, R3, R3
+views.go:222 MOVBU (R3)(R2), R2
+bench_test.go:220 NOOP
+views.go:223 CMPW $255, R2
+views.go:223 BNE 5(PC)
+views.go:224 NOOP
+store.go:50 LDP (R0), (R1, R2)
+store.go:50 CBNZ R2, 16(PC)
+store.go:50 JMP 22(PC)
+views.go:226 LDP 24(R0), (R3, R4)
+views.go:226 MOVWU 20(R1), R1
+views.go:226 ADD R2, R1, R1
+views.go:226 MOVW R1, R1
+views.go:226 CMP R4, R1
+views.go:226 BCS 15(PC)
+views.go:226 MOVWU (R3)(R1<<2), R1
+store.go:50 LDP (R0), (R2, R3)
+store.go:50 MOVD R1, R4
+store.go:50 CMP R3, R4
+store.go:50 BCS 9(PC)
+store.go:50 UBFIZ $3, R1, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R3, R2, R1
+store.go:55 MOVH (R1), R0
+bench_test.go:220 NOOP
+asm_test.go:72 MOVD -8(RSP), R29
+asm_test.go:72 MOVD.P 16(RSP), R30
+asm_test.go:72 RET
+store.go:50 CALL runtime.panicBounds(SB)
+views.go:226 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+store.go:50 NOOP
+asm_test.go:72 STP (R0, R1), 8(RSP)
+asm_test.go:72 MOVD R30, R3
+asm_test.go:72 CALL runtime.morestack_noctxt.abi0(SB)
+asm_test.go:72 LDP 8(RSP), (R0, R1)
+asm_test.go:72 JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.asmPolyAllStore(SB)
+== asmListPointer
+asm_test.go:75 MOVD 16(R28), R16
+asm_test.go:75 CMP R16, RSP
+asm_test.go:75 BLS 30(PC)
+asm_test.go:75 MOVD.W R30, -48(RSP)
+asm_test.go:75 MOVD R29, -8(RSP)
+asm_test.go:75 SUB $8, RSP, R29
+ast_generated.go:9369 LDP 32(R0), (R0, R3)
+ast_generated.go:9369 ADRP 5865472(PC), R4
+ast_generated.go:9369 ADD $40, R4, R4
+ast_generated.go:9369 CMP R4, R0
+ast_generated.go:9369 BNE 16(PC)
+asm_test.go:76 MOVD 88(R3), R1
+asm_test.go:76 LDP 8(R1), (R1, R2)
+asm_test.go:76 MOVD ZR, R3
+asm_test.go:76 MOVD ZR, R4
+asm_test.go:76 JMP 5(PC)
+asm_test.go:76 MOVD (R1)(R4<<3), R0
+asm_test.go:77 MOVH (R0), R0
+asm_test.go:77 ADD R0, R3, R3
+asm_test.go:76 ADD $1, R4, R4
+asm_test.go:76 CMP R2, R4
+asm_test.go:76 BLT -5(PC)
+asm_test.go:79 MOVD R3, R0
+asm_test.go:79 MOVD -8(RSP), R29
+asm_test.go:79 MOVD.P 48(RSP), R30
+asm_test.go:79 RET
+ast_generated.go:9369 ADRP 4427776(PC), R1
+ast_generated.go:9369 ADD $4024, R1, R1
+ast_generated.go:9369 ADRP 5775360(PC), R2
+ast_generated.go:9369 ADD $2024, R2, R2
+ast_generated.go:9369 CALL runtime.panicdottypeI(SB)
+ast_generated.go:9369 NOOP
+asm_test.go:75 MOVD R0, 8(RSP)
+asm_test.go:75 MOVD R30, R3
+asm_test.go:75 CALL runtime.morestack_noctxt.abi0(SB)
+asm_test.go:75 MOVD 8(RSP), R0
+asm_test.go:75 JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.asmListPointer(SB)
+== asmListStore
+asm_test.go:83 MOVD 16(R28), R16
+asm_test.go:83 CMP R16, RSP
+asm_test.go:83 BLS 69(PC)
+asm_test.go:83 MOVD.W R30, -16(RSP)
+asm_test.go:83 MOVD R29, -8(RSP)
+asm_test.go:83 SUB $8, RSP, R29
+asm_test.go:83 MOVD R0, 24(RSP)
+asm_test.go:83 MOVD R1, 32(RSP)
+views.go:126 LDP 24(R0), (R2, R3)
+views.go:126 MOVWU 20(R1), R1
+views.go:126 ADD $3, R1, R1
+views.go:126 MOVW R1, R1
+views.go:126 CMP R3, R1
+views.go:126 BCS 56(PC)
+views.go:126 MOVWU (R2)(R1<<2), R1
+store.go:115 MOVD R1, R4
+store.go:115 CMP R3, R4
+store.go:115 BCS 51(PC)
+views.go:126 MOVD 40(R0), R3
+store.go:115 MOVWU (R2)(R4<<2), R4
+store.go:115 ADD R4, R1, R4
+store.go:115 ADD $3, R4, R4
+store.go:115 MOVW R4, R4
+store.go:115 CMP R3, R4
+store.go:115 BHI 43(PC)
+store.go:115 ADD $3, R1, R1
+store.go:115 MOVW R1, R1
+store.go:115 CMP R4, R1
+store.go:115 BHI 38(PC)
+store.go:115 SUB R1, R4, R4
+store.go:115 SUB R3, R1, R3
+store.go:115 AND R3->63, R1, R1
+store.go:115 ADD R1<<2, R2, R1
+store.go:116 ORR $4, ZR, R2
+store.go:116 UMULH R4, R2, R2
+store.go:116 CBNZ R2, 29(PC)
+store.go:116 MOVD R1, R2
+store.go:116 NEG R1, R1
+store.go:116 CMP R4<<2, R1
+store.go:116 BCC 22(PC)
+asm_test.go:84 MOVD ZR, R1
+asm_test.go:84 MOVD ZR, R3
+asm_test.go:84 JMP 6(PC)
+store.go:50 UBFIZ $3, R5, $32, R5
+store.go:50 ADD R5<<1, R5, R5
+store.go:55 MOVH (R6)(R5), R5
+asm_test.go:85 ADD R5, R1, R1
+asm_test.go:84 ADD $1, R3, R3
+asm_test.go:84 CMP R4, R3
+asm_test.go:84 BGE 7(PC)
+asm_test.go:84 MOVWU (R2)(R3<<2), R5
+store.go:50 LDP (R0), (R6, R7)
+store.go:50 MOVD R5, R8
+store.go:50 CMP R7, R8
+store.go:50 BCC -11(PC)
+store.go:50 JMP 5(PC)
+asm_test.go:87 MOVD R1, R0
+asm_test.go:87 MOVD -8(RSP), R29
+asm_test.go:87 MOVD.P 16(RSP), R30
+asm_test.go:87 RET
+store.go:50 CALL runtime.panicBounds(SB)
+store.go:116 CBZ R2, 2(PC)
+store.go:116 CALL runtime.panicunsafeslicelen(SB)
+store.go:116 CALL runtime.panicunsafeslicenilptr(SB)
+store.go:116 MOVD R1, R2
+store.go:116 JMP -4(PC)
+store.go:115 CALL runtime.panicBounds(SB)
+store.go:115 CALL runtime.panicBounds(SB)
+store.go:115 CALL runtime.panicBounds(SB)
+views.go:126 CALL runtime.panicBounds(SB)
+views.go:126 NOOP
+asm_test.go:83 STP (R0, R1), 8(RSP)
+asm_test.go:83 MOVD R30, R3
+asm_test.go:83 CALL runtime.morestack_noctxt.abi0(SB)
+asm_test.go:83 LDP 8(RSP), (R0, R1)
+asm_test.go:83 JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.asmListStore(SB)
+== asmTextPointer
+asm_test.go:91 MOVD 16(R28), R16
+asm_test.go:91 CMP R16, RSP
+asm_test.go:91 BLS 13(PC)
+asm_test.go:91 MOVD.W R30, -32(RSP)
+asm_test.go:91 MOVD R29, -8(RSP)
+asm_test.go:91 SUB $8, RSP, R29
+bench_test.go:223 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*Node).Text(SB)
+bench_test.go:224 CBNZ R1, 3(PC)
+asm_test.go:91 MOVD ZR, R0
+asm_test.go:91 JMP 3(PC)
+bench_test.go:227 MOVBU (R0), R2
+bench_test.go:227 ADD R2, R1, R0
+asm_test.go:91 MOVD -8(RSP), R29
+asm_test.go:91 MOVD.P 32(RSP), R30
+asm_test.go:91 RET
+asm_test.go:91 MOVD R0, 8(RSP)
+asm_test.go:91 MOVD R30, R3
+asm_test.go:91 CALL runtime.morestack_noctxt.abi0(SB)
+asm_test.go:91 MOVD 8(RSP), R0
+asm_test.go:91 JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.asmTextPointer(SB)
+== asmTextStore
+asm_test.go:94 MOVD 16(R28), R16
+asm_test.go:94 CMP R16, RSP
+asm_test.go:94 BLS 57(PC)
+asm_test.go:94 MOVD.W R30, -16(RSP)
+asm_test.go:94 MOVD R29, -8(RSP)
+asm_test.go:94 SUB $8, RSP, R29
+asm_test.go:94 MOVD R0, 24(RSP)
+asm_test.go:94 MOVD R1, 32(RSP)
+store.go:83 MOVWU 20(R1), R2
+store.go:84 TBZ $31, R2, 25(PC)
+store.go:91 LDP 24(R0), (R1, R3)
+store.go:91 AND $2147483647, R2, R4
+store.go:91 CMP R4, R3
+store.go:91 BLS 44(PC)
+store.go:85 AND $2147483647, R2, R2
+store.go:91 ADD $1, R2, R2
+store.go:91 MOVW R2, R2
+store.go:91 MOVWU (R1)(R4<<2), R4
+store.go:91 CMP R3, R2
+store.go:91 BCS 37(PC)
+store.go:91 MOVWU (R1)(R2<<2), R1
+store.go:92 LDP 64(R0), (R2, R3)
+store.go:92 ADD R1, R4, R1
+store.go:92 MOVW R1, R1
+store.go:92 CMP R3, R1
+store.go:92 BHI 30(PC)
+store.go:92 MOVD R4, R3
+store.go:92 CMP R1, R3
+store.go:92 BHI 26(PC)
+store.go:92 SUB R1, R3, R4
+store.go:92 AND R4->63, R3, R4
+store.go:92 SUB R3, R1, R1
+store.go:92 ADD R2, R4, R2
+bench_test.go:231 JMP 11(PC)
+store.go:87 LDP 48(R0), (R3, R4)
+store.go:87 MOVW 12(R1), R1
+store.go:87 CMP R4, R1
+store.go:87 BHI 16(PC)
+store.go:87 CMP R1, R2
+store.go:87 BHI 13(PC)
+store.go:87 SUB R1, R2, R4
+store.go:87 AND R4->63, R2, R4
+store.go:87 SUB R2, R1, R1
+store.go:87 ADD R3, R4, R2
+bench_test.go:232 CBNZ R1, 3(PC)
+asm_test.go:94 MOVD ZR, R0
+asm_test.go:94 JMP 3(PC)
+bench_test.go:235 MOVBU (R2), R2
+bench_test.go:235 ADD R2, R1, R0
+asm_test.go:94 MOVD -8(RSP), R29
+asm_test.go:94 MOVD.P 16(RSP), R30
+asm_test.go:94 RET
+store.go:87 CALL runtime.panicBounds(SB)
+store.go:87 CALL runtime.panicBounds(SB)
+store.go:92 CALL runtime.panicBounds(SB)
+store.go:92 CALL runtime.panicBounds(SB)
+store.go:91 CALL runtime.panicBounds(SB)
+store.go:91 CALL runtime.panicBounds(SB)
+store.go:91 NOOP
+asm_test.go:94 STP (R0, R1), 8(RSP)
+asm_test.go:94 MOVD R30, R3
+asm_test.go:94 CALL runtime.morestack_noctxt.abi0(SB)
+asm_test.go:94 LDP 8(RSP), (R0, R1)
+asm_test.go:94 JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.asmTextStore(SB)
+== asmModFlagsPointer
+asm_test.go:97 MOVD 16(R28), R16
+asm_test.go:97 CMP R16, RSP
+asm_test.go:97 BLS 16(PC)
+asm_test.go:97 MOVD.W R30, -32(RSP)
+asm_test.go:97 MOVD R29, -8(RSP)
+asm_test.go:97 SUB $8, RSP, R29
+ast.go:211 LDP 32(R0), (R1, R0)
+ast.go:211 MOVD 112(R1), R1
+ast.go:614 NOOP
+ast.go:211 CALL (R1)
+ast.go:615 CBZ R0, 3(PC)
+ast.go:616 MOVWU 32(R0), R1
+asm_test.go:97 JMP 2(PC)
+asm_test.go:97 MOVD ZR, R1
+asm_test.go:97 MOVW R1, R0
+asm_test.go:97 MOVD -8(RSP), R29
+asm_test.go:97 MOVD.P 32(RSP), R30
+asm_test.go:97 RET
+asm_test.go:97 MOVD R0, 8(RSP)
+asm_test.go:97 MOVD R30, R3
+asm_test.go:97 CALL runtime.morestack_noctxt.abi0(SB)
+asm_test.go:97 MOVD 8(RSP), R0
+asm_test.go:97 JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.asmModFlagsPointer(SB)
+== asmModFlagsStore
+asm_test.go:100 MOVD R0, 8(RSP)
+asm_test.go:100 MOVD R1, 16(RSP)
+asm_test.go:100 NOOP
+store.go:62 MOVHU 2(R1), R1
+asm_test.go:100 MOVW R1, R0
+asm_test.go:100 RET
+== asmParentChainPointer
+asm_test.go:103 NOOP
+bench_test.go:239 MOVD 24(R0), R1
+bench_test.go:239 MOVD ZR, R2
+bench_test.go:239 JMP 3(PC)
+bench_test.go:239 MOVD 24(R1), R1
+bench_test.go:240 ADD $1, R2, R2
+bench_test.go:239 CBNZ R1, -2(PC)
+asm_test.go:103 MOVD R2, R0
+asm_test.go:103 RET
+== asmParentChainStore
+asm_test.go:106 MOVD 16(R28), R16
+asm_test.go:106 CMP R16, RSP
+asm_test.go:106 BLS 35(PC)
+asm_test.go:106 MOVD.W R30, -16(RSP)
+asm_test.go:106 MOVD R29, -8(RSP)
+asm_test.go:106 SUB $8, RSP, R29
+asm_test.go:106 MOVD R0, 24(RSP)
+asm_test.go:106 MOVD R1, 32(RSP)
+store.go:59 MOVWU 16(R1), R1
+store.go:50 LDP (R0), (R2, R3)
+store.go:50 MOVD R1, R4
+store.go:50 CMP R3, R4
+store.go:50 BCS 23(PC)
+store.go:50 UBFIZ $3, R1, $32, R1
+store.go:50 ADD R1<<1, R1, R1
+store.go:50 ADD R1, R2, R1
+bench_test.go:246 MOVD ZR, R4
+bench_test.go:246 JMP 5(PC)
+store.go:50 UBFIZ $3, R0, $32, R0
+store.go:50 ADD R0<<1, R0, R0
+store.go:50 ADD R0, R2, R1
+bench_test.go:247 ADD $1, R4, R4
+store.go:60 MOVH (R1), R5
+store.go:60 UBFX $0, R5, $16, R5
+bench_test.go:246 CBZW R5, 6(PC)
+store.go:59 MOVWU 16(R1), R0
+store.go:50 MOVD R0, R1
+store.go:50 CMP R3, R1
+store.go:50 BCC -10(PC)
+store.go:50 JMP 5(PC)
+asm_test.go:106 MOVD R4, R0
+asm_test.go:106 MOVD -8(RSP), R29
+asm_test.go:106 MOVD.P 16(RSP), R30
+asm_test.go:106 RET
+store.go:50 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+store.go:50 NOOP
+asm_test.go:106 STP (R0, R1), 8(RSP)
+asm_test.go:106 MOVD R30, R3
+asm_test.go:106 CALL runtime.morestack_noctxt.abi0(SB)
+asm_test.go:106 LDP 8(RSP), (R0, R1)
+asm_test.go:106 JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.asmParentChainStore(SB)
+== asmParentChainRefStore
+asm_test.go:109 MOVD 16(R28), R16
+asm_test.go:109 CMP R16, RSP
+asm_test.go:109 BLS 26(PC)
+asm_test.go:109 MOVD.W R30, -16(RSP)
+asm_test.go:109 MOVD R29, -8(RSP)
+asm_test.go:109 SUB $8, RSP, R29
+asm_test.go:109 MOVD R0, 24(RSP)
+asm_test.go:109 MOVD R1, 32(RSP)
+bench_test.go:255 LDP (R0), (R2, R3)
+bench_test.go:256 MOVWU 16(R1), R1
+bench_test.go:256 MOVD ZR, R4
+bench_test.go:256 JMP 6(PC)
+bench_test.go:256 UBFIZ $3, R1, $32, R0
+bench_test.go:256 ADD R0<<1, R0, R0
+bench_test.go:256 ADD R0, R2, R0
+bench_test.go:256 MOVWU 16(R0), R1
+bench_test.go:257 ADD $1, R4, R4
+bench_test.go:256 CBZW R1, 5(PC)
+bench_test.go:256 MOVW R1, R0
+bench_test.go:256 CMP R3, R0
+bench_test.go:256 BCC -8(PC)
+bench_test.go:256 JMP 5(PC)
+asm_test.go:109 MOVD R4, R0
+asm_test.go:109 MOVD -8(RSP), R29
+asm_test.go:109 MOVD.P 16(RSP), R30
+asm_test.go:109 RET
+bench_test.go:256 CALL runtime.panicBounds(SB)
+bench_test.go:256 NOOP
+asm_test.go:109 STP (R0, R1), 8(RSP)
+asm_test.go:109 MOVD R30, R3
+asm_test.go:109 CALL runtime.morestack_noctxt.abi0(SB)
+asm_test.go:109 LDP 8(RSP), (R0, R1)
+asm_test.go:109 JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.asmParentChainRefStore(SB)
+== asmRefRoundTripStore
+asm_test.go:112 MOVD R0, 8(RSP)
+asm_test.go:112 MOVD R1, 16(RSP)
+asm_test.go:112 NOOP
+store.go:68 MOVD (R0), R2
+store.go:69 SUB R2, R1, R1
+store.go:69 MOVD $-6148914691236517206, R2
+store.go:69 MOVK $43691, R2
+store.go:69 UMULH R2, R1, R1
+bench_test.go:262 UBFX $4, R1, $32, R0
+asm_test.go:112 RET

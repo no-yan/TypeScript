@@ -1,0 +1,120 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast/storeexp
+cpu: Apple M1
+BenchmarkStoreExpWalkKPCV1/pointer-8         	      20	   2479521 ns/op	         2.758 IPC	   7822022 cycles/op	  21570745 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/pointer-8         	      20	   2477352 ns/op	         2.751 IPC	   7849610 cycles/op	  21590793 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/pointer-8         	      20	   2440727 ns/op	         2.782 IPC	   7753716 cycles/op	  21569671 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/pointer-8         	      20	   2433848 ns/op	         2.793 IPC	   7729043 cycles/op	  21585077 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/pointer-8         	      20	   2478694 ns/op	         2.753 IPC	   7835084 cycles/op	  21573102 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/switch-8          	      20	   2810862 ns/op	         3.277 IPC	   8924115 cycles/op	  29239969 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/switch-8          	      20	   2831338 ns/op	         3.264 IPC	   8961269 cycles/op	  29254061 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/switch-8          	      20	   2867673 ns/op	         3.249 IPC	   9004717 cycles/op	  29256158 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/switch-8          	      20	   2847215 ns/op	         3.265 IPC	   8956306 cycles/op	  29239093 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/switch-8          	      20	   2880162 ns/op	         3.242 IPC	   9027104 cycles/op	  29262410 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/shape-8           	      20	   3152946 ns/op	         3.711 IPC	   9945892 cycles/op	  36909155 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/shape-8           	      20	   3144731 ns/op	         3.710 IPC	   9947891 cycles/op	  36907062 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/shape-8           	      20	   3153079 ns/op	         3.703 IPC	   9968207 cycles/op	  36909947 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/shape-8           	      20	   3141994 ns/op	         3.707 IPC	   9956550 cycles/op	  36907223 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/shape-8           	      20	   3155019 ns/op	         3.710 IPC	   9949330 cycles/op	  36909028 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/baseline/pointer-8         	      20	    122433 ns/op	         6.067 IPC	    345938 cycles/op	   2098814 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/baseline/pointer-8         	      20	    121412 ns/op	         6.036 IPC	    347735 cycles/op	   2098812 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/baseline/pointer-8         	      20	    119954 ns/op	         6.055 IPC	    346617 cycles/op	   2098813 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/baseline/pointer-8         	      20	    120277 ns/op	         6.056 IPC	    346551 cycles/op	   2098818 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/baseline/pointer-8         	      20	    120358 ns/op	         6.002 IPC	    349698 cycles/op	   2098812 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/baseline/store-8           	      20	    150717 ns/op	         6.096 IPC	    442113 cycles/op	   2694919 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/baseline/store-8           	      20	    147975 ns/op	         6.189 IPC	    435426 cycles/op	   2694919 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/baseline/store-8           	      20	    148769 ns/op	         6.137 IPC	    439109 cycles/op	   2694918 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/baseline/store-8           	      20	    147531 ns/op	         6.204 IPC	    434405 cycles/op	   2694923 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/baseline/store-8           	      20	    150858 ns/op	         6.163 IPC	    437262 cycles/op	   2694917 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/header/pointer-8           	      20	    619279 ns/op	         1.885 IPC	   1905792 cycles/op	   3592771 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/header/pointer-8           	      20	    584904 ns/op	         1.998 IPC	   1796816 cycles/op	   3590125 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/header/pointer-8           	      20	    566033 ns/op	         2.058 IPC	   1743597 cycles/op	   3589082 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/header/pointer-8           	      20	    581115 ns/op	         2.002 IPC	   1792622 cycles/op	   3589681 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/header/pointer-8           	      20	    564323 ns/op	         2.067 IPC	   1736653 cycles/op	   3589082 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/header/store-8             	      20	    248462 ns/op	         5.181 IPC	    750254 cycles/op	   3887335 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/header/store-8             	      20	    252833 ns/op	         5.148 IPC	    755328 cycles/op	   3888121 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/header/store-8             	      20	    251381 ns/op	         5.175 IPC	    751164 cycles/op	   3887580 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/header/store-8             	      20	    251771 ns/op	         5.157 IPC	    753833 cycles/op	   3887593 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/header/store-8             	      20	    259996 ns/op	         5.060 IPC	    769025 cycles/op	   3891291 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/known/pointer-8            	      20	    460533 ns/op	         1.036 IPC	    117921 childreads/op	   1405753 cycles/op	   1456315 inst/op	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/known/pointer-8            	      20	    468360 ns/op	         1.017 IPC	    117921 childreads/op	   1432372 cycles/op	   1457013 inst/op	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/known/pointer-8            	      20	    459796 ns/op	         1.034 IPC	    117921 childreads/op	   1408474 cycles/op	   1456153 inst/op	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/known/pointer-8            	      20	    463121 ns/op	         1.028 IPC	    117921 childreads/op	   1416459 cycles/op	   1456656 inst/op	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/known/pointer-8            	      20	    467460 ns/op	         1.018 IPC	    117921 childreads/op	   1430651 cycles/op	   1456860 inst/op	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/known/store-8              	      20	    391002 ns/op	         2.109 IPC	    117921 childreads/op	   1171396 cycles/op	   2469992 inst/op	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/known/store-8              	      20	    378175 ns/op	         2.140 IPC	    117921 childreads/op	   1153126 cycles/op	   2467788 inst/op	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/known/store-8              	      20	    372192 ns/op	         2.171 IPC	    117921 childreads/op	   1136288 cycles/op	   2467372 inst/op	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/known/store-8              	      20	    381367 ns/op	         2.128 IPC	    117921 childreads/op	   1160038 cycles/op	   2468641 inst/op	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/known/store-8              	      20	    384756 ns/op	         2.113 IPC	    117921 childreads/op	   1169249 cycles/op	   2470100 inst/op	     59930 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyPresent/pointer-8      	      20	    430331 ns/op	         0.5571 IPC	   1313815 cycles/op	    731946 inst/op	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyPresent/pointer-8      	      20	    434769 ns/op	         0.5503 IPC	   1328948 cycles/op	    731358 inst/op	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyPresent/pointer-8      	      20	    416098 ns/op	         0.5735 IPC	   1275596 cycles/op	    731606 inst/op	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyPresent/pointer-8      	      20	    427315 ns/op	         0.5596 IPC	   1306834 cycles/op	    731260 inst/op	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyPresent/pointer-8      	      20	    436644 ns/op	         0.5498 IPC	   1330790 cycles/op	    731663 inst/op	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyPresent/store-8        	      20	    197127 ns/op	         2.186 IPC	    585797 cycles/op	   1280832 inst/op	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyPresent/store-8        	      20	    210612 ns/op	         2.062 IPC	    621544 cycles/op	   1281873 inst/op	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyPresent/store-8        	      20	    197873 ns/op	         2.186 IPC	    586167 cycles/op	   1281387 inst/op	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyPresent/store-8        	      20	    192163 ns/op	         2.249 IPC	    569444 cycles/op	   1280662 inst/op	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyPresent/store-8        	      20	    211487 ns/op	         2.065 IPC	    621070 cycles/op	   1282247 inst/op	     42274 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyAll/pointer-8          	      20	   1686556 ns/op	         1.140 IPC	   5212927 cycles/op	   5940956 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyAll/pointer-8          	      20	   1684313 ns/op	         1.139 IPC	   5214363 cycles/op	   5938846 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyAll/pointer-8          	      20	   1644992 ns/op	         1.155 IPC	   5136840 cycles/op	   5932630 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyAll/pointer-8          	      20	   1664879 ns/op	         1.146 IPC	   5181783 cycles/op	   5935821 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyAll/pointer-8          	      20	   1668542 ns/op	         1.145 IPC	   5184770 cycles/op	   5936101 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyAll/store-8            	      20	    701538 ns/op	         2.714 IPC	   2168170 cycles/op	   5885419 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyAll/store-8            	      20	    704465 ns/op	         2.712 IPC	   2170177 cycles/op	   5885750 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyAll/store-8            	      20	    703235 ns/op	         2.710 IPC	   2171672 cycles/op	   5886097 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyAll/store-8            	      20	    699892 ns/op	         2.716 IPC	   2167058 cycles/op	   5885708 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/polyAll/store-8            	      20	    702148 ns/op	         2.714 IPC	   2168694 cycles/op	   5885724 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/list/pointer-8             	      20	    277790 ns/op	         0.5850 IPC	    839284 cycles/op	     30422 elements/op	    490972 inst/op	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/list/pointer-8             	      20	    276223 ns/op	         0.5879 IPC	    834805 cycles/op	     30422 elements/op	    490792 inst/op	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/list/pointer-8             	      20	    275215 ns/op	         0.5916 IPC	    829814 cycles/op	     30422 elements/op	    490927 inst/op	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/list/pointer-8             	      20	    317583 ns/op	         0.5173 IPC	    950122 cycles/op	     30422 elements/op	    491459 inst/op	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/list/pointer-8             	      20	    285212 ns/op	         0.5697 IPC	    862157 cycles/op	     30422 elements/op	    491199 inst/op	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/list/store-8               	      20	    232967 ns/op	         1.651 IPC	    698753 cycles/op	     30422 elements/op	   1153530 inst/op	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/list/store-8               	      20	    233252 ns/op	         1.662 IPC	    693848 cycles/op	     30422 elements/op	   1153491 inst/op	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/list/store-8               	      20	    232431 ns/op	         1.657 IPC	    695878 cycles/op	     30422 elements/op	   1153290 inst/op	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/list/store-8               	      20	    233775 ns/op	         1.654 IPC	    697502 cycles/op	     30422 elements/op	   1153845 inst/op	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/list/store-8               	      20	    233606 ns/op	         1.649 IPC	    699452 cycles/op	     30422 elements/op	   1153328 inst/op	     18466 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/text/pointer-8             	      20	    386329 ns/op	         4.410 IPC	   1179734 cycles/op	   5202099 inst/op	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/text/pointer-8             	      20	    388640 ns/op	         4.381 IPC	   1187406 cycles/op	   5201976 inst/op	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/text/pointer-8             	      20	    404379 ns/op	         4.215 IPC	   1234294 cycles/op	   5202137 inst/op	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/text/pointer-8             	      20	    415081 ns/op	         4.182 IPC	   1244575 cycles/op	   5205340 inst/op	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/text/pointer-8             	      20	    387212 ns/op	         4.397 IPC	   1183032 cycles/op	   5201727 inst/op	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/text/store-8               	      20	    222038 ns/op	         4.296 IPC	    664331 cycles/op	   2854196 inst/op	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/text/store-8               	      20	    224683 ns/op	         4.239 IPC	    673492 cycles/op	   2854638 inst/op	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/text/store-8               	      20	    226529 ns/op	         4.199 IPC	    679783 cycles/op	   2854578 inst/op	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/text/store-8               	      20	    221027 ns/op	         4.294 IPC	    664642 cycles/op	   2854198 inst/op	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/text/store-8               	      20	    225619 ns/op	         4.239 IPC	    673343 cycles/op	   2854449 inst/op	    123554 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/modflags/pointer-8         	      20	   1772246 ns/op	         1.181 IPC	   5535158 cycles/op	   6537315 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/modflags/pointer-8         	      20	   1783642 ns/op	         1.174 IPC	   5568343 cycles/op	   6536844 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/modflags/pointer-8         	      20	   1784850 ns/op	         1.173 IPC	   5574479 cycles/op	   6537380 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/modflags/pointer-8         	      20	   1999879 ns/op	         1.105 IPC	   5915416 cycles/op	   6538014 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/modflags/pointer-8         	      20	   1796454 ns/op	         1.165 IPC	   5610353 cycles/op	   6537076 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/modflags/store-8           	      20	    198429 ns/op	         4.567 IPC	    590125 cycles/op	   2694920 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/modflags/store-8           	      20	    201302 ns/op	         4.533 IPC	    594574 cycles/op	   2694920 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/modflags/store-8           	      20	    199381 ns/op	         4.563 IPC	    590561 cycles/op	   2694922 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/modflags/store-8           	      20	    199094 ns/op	         4.552 IPC	    591967 cycles/op	   2694922 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/modflags/store-8           	      20	    204527 ns/op	         4.419 IPC	    609869 cycles/op	   2694917 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/parentChain/pointer-8      	      20	   1794560 ns/op	         1.002 IPC	   5601240 cycles/op	   5613262 inst/op	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/parentChain/pointer-8      	      20	   1777912 ns/op	         1.011 IPC	   5552516 cycles/op	   5615851 inst/op	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/parentChain/pointer-8      	      20	   1780798 ns/op	         1.011 IPC	   5554195 cycles/op	   5614365 inst/op	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/parentChain/pointer-8      	      20	   1774446 ns/op	         1.012 IPC	   5545054 cycles/op	   5613284 inst/op	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/parentChain/pointer-8      	      20	   1793892 ns/op	         1.002 IPC	   5605522 cycles/op	   5614161 inst/op	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/parentChain/store-8        	      20	   3772883 ns/op	         1.565 IPC	  11818078 cycles/op	  18497031 inst/op	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/parentChain/store-8        	      20	   3827573 ns/op	         1.559 IPC	  11873597 cycles/op	  18511210 inst/op	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/parentChain/store-8        	      20	   3793473 ns/op	         1.568 IPC	  11796830 cycles/op	  18501967 inst/op	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/parentChain/store-8        	      20	   3792281 ns/op	         1.568 IPC	  11801252 cycles/op	  18502737 inst/op	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/parentChain/store-8        	      20	   3786171 ns/op	         1.569 IPC	  11791632 cycles/op	  18496640 inst/op	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/parentChainRef/store-8     	      20	   3352683 ns/op	         1.400 IPC	  10434198 cycles/op	  14603435 inst/op	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/parentChainRef/store-8     	      20	   3372373 ns/op	         1.393 IPC	  10487490 cycles/op	  14603930 inst/op	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/parentChainRef/store-8     	      20	   3354300 ns/op	         1.395 IPC	  10465166 cycles/op	  14601089 inst/op	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/parentChainRef/store-8     	      20	   3367983 ns/op	         1.392 IPC	  10495964 cycles/op	  14608787 inst/op	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/parentChainRef/store-8     	      20	   3397375 ns/op	         1.388 IPC	  10530924 cycles/op	  14611966 inst/op	    123554 ops/op	   1455043 steps/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/refRoundTrip/store-8       	      20	    198229 ns/op	         6.598 IPC	    589295 cycles/op	   3887911 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/refRoundTrip/store-8       	      20	    199256 ns/op	         6.559 IPC	    592668 cycles/op	   3887148 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/refRoundTrip/store-8       	      20	    197842 ns/op	         6.624 IPC	    586909 cycles/op	   3887629 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/refRoundTrip/store-8       	      20	    199094 ns/op	         6.604 IPC	    588676 cycles/op	   3887355 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpAccessKPC/refRoundTrip/store-8       	      20	    200515 ns/op	         6.568 IPC	    591888 cycles/op	   3887724 inst/op	    298054 ops/op	       0 B/op	       0 allocs/op
+PASS

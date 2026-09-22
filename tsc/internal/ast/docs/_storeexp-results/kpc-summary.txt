@@ -1,0 +1,27 @@
+== Walk (per visit)
+WalkKPCV1/pointer                inst/visit   72.38 (spread 0.10%)  cyc/visit  26.24 (1.5%)  IPC 2.76
+WalkKPCV1/switch                 inst/visit   98.15 (spread 0.08%)  cyc/visit  30.07 (1.1%)  IPC 3.26
+WalkKPCV1/shape                  inst/visit  123.83 (spread 0.01%)  cyc/visit  33.38 (0.2%)  IPC 3.71
+== Access
+baseline per elem: inst {'pointer': 7.0417206278057, 'store': 9.041713917612245} cycles {'pointer': 1.1629335623746033, 'store': 1.46705630523328}
+op                           ops  raw i/acc  net i/acc  raw c/acc  net c/acc   IPC  spr i%  spr c%  detail
+baseline/pointer          298054       7.04       0.00       1.16       0.00  6.05    0.00     1.1  
+baseline/store            298054       9.04       0.00       1.47       0.00  6.16    0.00     1.8  
+header/pointer            298054      12.04       5.00       6.01       4.85  2.00    0.10     9.4  
+header/store              298054      13.04       4.00       2.53       1.06  5.16    0.10     2.5  
+known/pointer              59930      24.31      17.26      23.64      22.47  1.03    0.06     1.9  childreads/op=117921 net_i/childreads=8.77 net_c=11.42
+known/store                59930      41.19      32.15      19.36      17.89  2.13    0.11     3.0  childreads/op=117921 net_i/childreads=16.34 net_c=9.09
+polyPresent/pointer        42274      17.31      10.26      31.08      29.92  0.56    0.09     4.2  
+polyPresent/store          42274      30.31      21.27      13.87      12.40  2.19    0.12     8.9  
+polyAll/pointer           298054      19.92      12.87      17.40      16.23  1.15    0.14     1.5  
+polyAll/store             298054      19.75      10.71       7.28       5.81  2.71    0.01     0.2  
+list/pointer               18466      26.59      19.55      45.45      44.29  0.58    0.14    14.3  elements/op=30422 net_i/elements=11.86 net_c=26.88
+list/store                 18466      62.47      53.42      37.77      36.31  1.65    0.05     0.8  elements/op=30422 net_i/elements=32.43 net_c=22.04
+text/pointer              123554      42.10      35.06       9.61       8.45  4.38    0.07     5.5  
+text/store                123554      23.10      14.06       5.45       3.98  4.24    0.02     2.3  
+modflags/pointer          298054      21.93      14.89      18.70      17.54  1.17    0.02     6.8  
+modflags/store            298054       9.04       0.00       1.99       0.52  4.55    0.00     3.3  
+parentChain/pointer       123554      45.44      38.40      44.95      43.79  1.01    0.05     1.1  steps/op=1455043 net_i/steps=3.26 net_c=3.72
+parentChain/store         123554     149.75     140.71      95.51      94.05  1.57    0.08     0.7  steps/op=1455043 net_i/steps=11.95 net_c=7.99
+parentChainRef/store      123554     118.20     109.16      84.88      83.41  1.39    0.07     0.9  steps/op=1455043 net_i/steps=9.27 net_c=7.08
+refRoundTrip/store        298054      13.04       4.00       1.98       0.51  6.60    0.02     1.0  

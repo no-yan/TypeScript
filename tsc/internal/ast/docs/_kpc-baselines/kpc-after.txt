@@ -1,0 +1,48 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/testutil/kperf
+cpu: Apple M1
+BenchmarkReadPair-8   	       3	     38778 ns/op	         2.862 IPC	      4338 cycles/op	     12412 inst/op
+BenchmarkReadPair-8   	       3	     34667 ns/op	         3.315 IPC	      3743 cycles/op	     12406 inst/op
+BenchmarkReadPair-8   	       3	     37208 ns/op	         3.488 IPC	      3561 cycles/op	     12423 inst/op
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/testutil/kperf	0.576s
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast
+cpu: Apple M1
+BenchmarkASTWalkKPCV1-8   	       3	   2452167 ns/op	         2.814 IPC	   7655979 cycles/op	  21546018 inst/op	       0 B/op	       0 allocs/op
+BenchmarkASTWalkKPCV1-8   	       3	   2448986 ns/op	         2.817 IPC	   7649843 cycles/op	  21550920 inst/op	       0 B/op	       0 allocs/op
+BenchmarkASTWalkKPCV1-8   	       3	   2437528 ns/op	         2.833 IPC	   7615590 cycles/op	  21578453 inst/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/ast	0.860s
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/parser
+cpu: Apple M1
+BenchmarkASTParseKPCV1-8   	       3	  26865792 ns/op	         3.746 IPC	  70865036 cycles/op	 265432613 inst/op	26139346 B/op	   11935 allocs/op
+BenchmarkASTParseKPCV1-8   	       3	  22455694 ns/op	         3.786 IPC	  69342648 cycles/op	 262502326 inst/op	26139346 B/op	   11935 allocs/op
+BenchmarkASTParseKPCV1-8   	       3	  22395611 ns/op	         3.769 IPC	  69276976 cycles/op	 261107876 inst/op	26139346 B/op	   11935 allocs/op
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/parser	0.932s
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkASTBindKPCV1-8   	       3	  10887847 ns/op	         3.229 IPC	  34142745 cycles/op	 110256596 inst/op	 7424069 B/op	   13952 allocs/op
+BenchmarkASTBindKPCV1-8   	       3	  10735153 ns/op	         3.280 IPC	  33663783 cycles/op	 110410365 inst/op	 7424069 B/op	   13952 allocs/op
+BenchmarkASTBindKPCV1-8   	       3	  10760875 ns/op	         3.286 IPC	  33722114 cycles/op	 110821330 inst/op	 7424069 B/op	   13952 allocs/op
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/binder	1.032s
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/compiler
+cpu: Apple M1
+BenchmarkASTCheckKPCV1-8   	       3	 831945930 ns/op	         3.261 IPC	2602633607 cycles/op	8486781627 inst/op	206246456 B/op	 1401221 allocs/op
+BenchmarkASTCheckKPCV1-8   	       3	 832696166 ns/op	         3.259 IPC	2602958869 cycles/op	8482773294 inst/op	206135853 B/op	 1401204 allocs/op
+BenchmarkASTCheckKPCV1-8   	       3	 862212862 ns/op	         3.179 IPC	2668476256 cycles/op	8482921988 inst/op	206568760 B/op	 1401230 allocs/op
+BenchmarkASTEmitKPCV1-8    	       3	 606967806 ns/op	         3.148 IPC	1879976679 cycles/op	5917593370 inst/op	218808264 B/op	 1031802 allocs/op
+BenchmarkASTEmitKPCV1-8    	       3	 594786389 ns/op	         3.188 IPC	1853300356 cycles/op	5907790225 inst/op	218782994 B/op	 1031800 allocs/op
+BenchmarkASTEmitKPCV1-8    	       3	 658566751 ns/op	         3.051 IPC	1949853309 cycles/op	5948398976 inst/op	218717672 B/op	 1031792 allocs/op
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/compiler	34.953s

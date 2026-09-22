@@ -1,0 +1,36 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast/storeexp
+cpu: Apple M1
+BenchmarkStoreExpWalkV1/checker.ts/pointer-8 	     843	   2634889 ns/op	         8.840 ns/visit	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/checker.ts/pointer-8 	     994	   2370157 ns/op	         7.952 ns/visit	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/checker.ts/pointer-8 	    1000	   2360206 ns/op	         7.919 ns/visit	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/checker.ts/pointer-8 	     997	   2359353 ns/op	         7.916 ns/visit	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/checker.ts/pointer-8 	    1006	   2366894 ns/op	         7.941 ns/visit	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/checker.ts/switch-8  	     873	   2711739 ns/op	         9.098 ns/visit	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/checker.ts/switch-8  	     889	   2736849 ns/op	         9.182 ns/visit	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/checker.ts/switch-8  	     880	   2805715 ns/op	         9.413 ns/visit	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/checker.ts/switch-8  	     836	   2736946 ns/op	         9.183 ns/visit	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/checker.ts/switch-8  	     880	   2715671 ns/op	         9.111 ns/visit	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/checker.ts/shape-8   	     778	   3108252 ns/op	        10.43 ns/visit	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/checker.ts/shape-8   	     776	   3100914 ns/op	        10.40 ns/visit	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/checker.ts/shape-8   	     774	   3095326 ns/op	        10.39 ns/visit	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/checker.ts/shape-8   	     772	   3095929 ns/op	        10.39 ns/visit	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/checker.ts/shape-8   	     774	   3153348 ns/op	        10.58 ns/visit	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/dom.generated.d.ts/pointer-8         	    3967	    576309 ns/op	         5.258 ns/visit	    109605 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/dom.generated.d.ts/pointer-8         	    4179	    575083 ns/op	         5.247 ns/visit	    109605 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/dom.generated.d.ts/pointer-8         	    4167	    574381 ns/op	         5.240 ns/visit	    109605 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/dom.generated.d.ts/pointer-8         	    4180	    575204 ns/op	         5.248 ns/visit	    109605 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/dom.generated.d.ts/pointer-8         	    4179	    577627 ns/op	         5.270 ns/visit	    109605 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/dom.generated.d.ts/switch-8          	    3939	    608370 ns/op	         5.551 ns/visit	    109605 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/dom.generated.d.ts/switch-8          	    3926	    608157 ns/op	         5.549 ns/visit	    109605 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/dom.generated.d.ts/switch-8          	    3938	    606910 ns/op	         5.537 ns/visit	    109605 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/dom.generated.d.ts/switch-8          	    3958	    619081 ns/op	         5.648 ns/visit	    109605 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/dom.generated.d.ts/switch-8          	    3950	    606551 ns/op	         5.534 ns/visit	    109605 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/dom.generated.d.ts/shape-8           	    3050	    785954 ns/op	         7.171 ns/visit	    109605 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/dom.generated.d.ts/shape-8           	    3056	    788151 ns/op	         7.191 ns/visit	    109605 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/dom.generated.d.ts/shape-8           	    3050	    787024 ns/op	         7.181 ns/visit	    109605 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/dom.generated.d.ts/shape-8           	    3055	    786001 ns/op	         7.171 ns/visit	    109605 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkV1/dom.generated.d.ts/shape-8           	    3049	    786080 ns/op	         7.172 ns/visit	    109605 visits/op	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/ast/storeexp	72.131s

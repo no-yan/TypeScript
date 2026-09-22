@@ -1,0 +1,149 @@
+TEXT github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.Node.ForEachChildShape(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/ast/storeexp/walk.go
+  walk.go:20		0x10026de80		f9400b90		MOVD 16(R28), R16										
+  walk.go:20		0x10026de84		eb3063ff		CMP R16, RSP											
+  walk.go:20		0x10026de88		54001169		BLS 139(PC)											
+  walk.go:20		0x10026de8c		f81b0ffe		MOVD.W R30, -80(RSP)										
+  walk.go:20		0x10026de90		f81f83fd		MOVD R29, -8(RSP)										
+  walk.go:20		0x10026de94		d10023fd		SUB $8, RSP, R29										
+  walk.go:20		0x10026de98		f9002fe0		MOVD R0, 88(RSP)										
+  walk.go:20		0x10026de9c		f90033e1		MOVD R1, 96(RSP)										
+  walk.go:23		0x10026dea0		f90037e2		MOVD R2, 104(RSP)										
+  walk.go:23		0x10026dea4		f90023e0		MOVD R0, 64(RSP)										
+  walk.go:21		0x10026dea8		79800023		MOVH (R1), R3											
+  walk.go:21		0x10026deac		92402063		AND $511, R3, R3										
+  walk.go:21		0x10026deb0		b0002d84		ADRP 5967872(PC), R4										
+  walk.go:21		0x10026deb4		91270084		ADD $2496, R4, R4										
+  walk.go:21		0x10026deb8		8b030883		ADD R3<<2, R4, R3										
+  walk.go:21		0x10026debc		39400064		MOVBU (R3), R4											
+  walk.go:21		0x10026dec0		79400463		MOVHU 2(R3), R3											
+  walk.go:21		0x10026dec4		790037e3		MOVH R3, 26(RSP)										
+  walk.go:22		0x10026dec8		b9401425		MOVWU 20(R1), R5										
+  walk.go:22		0x10026decc		b90023e5		MOVW R5, 32(RSP)										
+  walk.go:23		0x10026ded0		b90027e4		MOVW R4, 36(RSP)										
+  walk.go:23		0x10026ded4		aa1f03e6		MOVD ZR, R6											
+  walk.go:23		0x10026ded8		14000002		JMP 2(PC)											
+  walk.go:23		0x10026dedc		910004c6		ADD $1, R6, R6											
+  walk.go:23		0x10026dee0		6b0400df		CMPW R4, R6											
+  walk.go:23		0x10026dee4		540008a2		BCS 69(PC)											
+  walk.go:24		0x10026dee8		a941a007		LDP 24(R0), (R7, R8)										
+  walk.go:24		0x10026deec		8b0500c9		ADD R5, R6, R9											
+  walk.go:24		0x10026def0		2a0903e9		MOVW R9, R9											
+  walk.go:24		0x10026def4		eb08013f		CMP R8, R9											
+  walk.go:24		0x10026def8		54000da2		BCS 109(PC)											
+  walk.go:23		0x10026defc		b9001fe6		MOVW R6, 28(RSP)										
+  walk.go:25		0x10026df00		b24003ea		ORR $1, ZR, R10											
+  walk.go:25		0x10026df04		9ac6214b		LSL R6, R10, R11										
+  walk.go:24		0x10026df08		b86978e9		MOVWU (R7)(R9<<2), R9										
+  walk.go:25		0x10026df0c		710100df		CMPW $64, R6											
+  walk.go:25		0x10026df10		9a9f316b		CSEL LO, R11, ZR, R11										
+  walk.go:25		0x10026df14		8a0b006b		AND R11, R3, R11										
+  walk.go:25		0x10026df18		d3403d6b		UBFX $0, R11, $16, R11										
+  walk.go:25		0x10026df1c		340003eb		CBZW R11, 31(PC)										
+  store.go:115		0x10026df20		aa0903eb		MOVD R9, R11											
+  walk.go:26		0x10026df24		d503201f		NOOP												
+  store.go:115		0x10026df28		eb08017f		CMP R8, R11											
+  store.go:115		0x10026df2c		54000be2		BCS 95(PC)											
+  walk.go:24		0x10026df30		f9401408		MOVD 40(R0), R8											
+  store.go:115		0x10026df34		b86b78eb		MOVWU (R7)(R11<<2), R11										
+  store.go:115		0x10026df38		8b0b012b		ADD R11, R9, R11										
+  store.go:115		0x10026df3c		91000d6b		ADD $3, R11, R11										
+  store.go:115		0x10026df40		2a0b03eb		MOVW R11, R11											
+  store.go:115		0x10026df44		eb08017f		CMP R8, R11											
+  store.go:115		0x10026df48		54000ae8		BHI 87(PC)											
+  store.go:115		0x10026df4c		91000d29		ADD $3, R9, R9											
+  store.go:115		0x10026df50		2a0903e9		MOVW R9, R9											
+  store.go:115		0x10026df54		eb0b013f		CMP R11, R9											
+  store.go:115		0x10026df58		54000a48		BHI 82(PC)											
+  store.go:115		0x10026df5c		cb09016b		SUB R9, R11, R11										
+  store.go:115		0x10026df60		cb080128		SUB R8, R9, R8											
+  store.go:115		0x10026df64		8a88fd28		AND R8->63, R9, R8										
+  store.go:115		0x10026df68		8b0808e7		ADD R8<<2, R7, R7										
+  store.go:116		0x10026df6c		b27e03e8		ORR $4, ZR, R8											
+  store.go:116		0x10026df70		9bcb7d09		UMULH R11, R8, R9										
+  store.go:116		0x10026df74		b5000929		CBNZ R9, 73(PC)											
+  store.go:116		0x10026df78		aa0703e9		MOVD R7, R9											
+  store.go:116		0x10026df7c		cb0703e7		NEG R7, R7											
+  store.go:116		0x10026df80		eb0b08ff		CMP R11<<2, R7											
+  store.go:116		0x10026df84		54000843		BCC 66(PC)											
+  store.go:115		0x10026df88		f90017eb		MOVD R11, 40(RSP)										
+  store.go:115		0x10026df8c		f9001fe9		MOVD R9, 56(RSP)										
+  walk.go:9		0x10026df90		aa1f03e1		MOVD ZR, R1											
+  walk.go:9		0x10026df94		1400002a		JMP 42(PC)											
+  walk.go:29		0x10026df98		34fffa29		CBZW R9, -47(PC)										
+  store.go:50		0x10026df9c		aa0903e7		MOVD R9, R7											
+  store.go:50		0x10026dfa0		a9402c08		LDP (R0), (R8, R11)										
+  store.go:50		0x10026dfa4		eb0b00ff		CMP R11, R7											
+  store.go:50		0x10026dfa8		54000302		BCS 24(PC)											
+  walk.go:29		0x10026dfac		f9400043		MOVD (R2), R3											
+  store.go:50		0x10026dfb0		d37d7d24		UBFIZ $3, R9, $32, R4										
+  store.go:50		0x10026dfb4		8b040484		ADD R4<<1, R4, R4										
+  store.go:50		0x10026dfb8		8b080081		ADD R8, R4, R1											
+  walk.go:29		0x10026dfbc		aa0203fa		MOVD R2, R26											
+  walk.go:29		0x10026dfc0		d63f0060		CALL (R3)											
+  walk.go:29		0x10026dfc4		37000120		TBNZ $0, R0, 9(PC)										
+  walk.go:24		0x10026dfc8		f94023e0		MOVD 64(RSP), R0										
+  walk.go:10		0x10026dfcc		f94037e2		MOVD 104(RSP), R2										
+  walk.go:25		0x10026dfd0		794037e3		MOVHU 26(RSP), R3										
+  walk.go:23		0x10026dfd4		b94027e4		MOVWU 36(RSP), R4										
+  walk.go:24		0x10026dfd8		b94023e5		MOVWU 32(RSP), R5										
+  walk.go:23		0x10026dfdc		b9401fe6		MOVWU 28(RSP), R6										
+  walk.go:23		0x10026dfe0		b24003ea		ORR $1, ZR, R10											
+  walk.go:29		0x10026dfe4		17ffffbe		JMP -66(PC)											
+  walk.go:30		0x10026dfe8		b24003e0		ORR $1, ZR, R0											
+  walk.go:30		0x10026dfec		f85f83fd		MOVD -8(RSP), R29										
+  walk.go:30		0x10026dff0		f84507fe		MOVD.P 80(RSP), R30										
+  walk.go:30		0x10026dff4		d65f03c0		RET												
+  walk.go:33		0x10026dff8		aa1f03e0		MOVD ZR, R0											
+  walk.go:33		0x10026dffc		f85f83fd		MOVD -8(RSP), R29										
+  walk.go:33		0x10026e000		f84507fe		MOVD.P 80(RSP), R30										
+  walk.go:33		0x10026e004		d65f03c0		RET												
+  store.go:50		0x10026e008		97f85eae		CALL runtime.panicBounds(SB)									
+  walk.go:9		0x10026e00c		f9401be7		MOVD 48(RSP), R7										
+  walk.go:9		0x10026e010		910004e1		ADD $1, R7, R1											
+  store.go:50		0x10026e014		f94023e0		MOVD 64(RSP), R0										
+  walk.go:10		0x10026e018		f94037e2		MOVD 104(RSP), R2										
+  walk.go:25		0x10026e01c		794037e3		MOVHU 26(RSP), R3										
+  walk.go:23		0x10026e020		b94027e4		MOVWU 36(RSP), R4										
+  walk.go:24		0x10026e024		b94023e5		MOVWU 32(RSP), R5										
+  walk.go:23		0x10026e028		b9401fe6		MOVWU 28(RSP), R6										
+  walk.go:23		0x10026e02c		b27e03e8		ORR $4, ZR, R8											
+  walk.go:9		0x10026e030		f9401fe9		MOVD 56(RSP), R9										
+  walk.go:9		0x10026e034		b24003ea		ORR $1, ZR, R10											
+  walk.go:9		0x10026e038		f94017eb		MOVD 40(RSP), R11										
+  walk.go:9		0x10026e03c		eb0b003f		CMP R11, R1											
+  walk.go:9		0x10026e040		54fff4ea		BGE -89(PC)											
+  walk.go:9		0x10026e044		b8617927		MOVWU (R9)(R1<<2), R7										
+  store.go:50		0x10026e048		a940340c		LDP (R0), (R12, R13)										
+  store.go:50		0x10026e04c		aa0703ee		MOVD R7, R14											
+  store.go:50		0x10026e050		eb0d01df		CMP R13, R14											
+  store.go:50		0x10026e054		540001a2		BCS 13(PC)											
+  walk.go:9		0x10026e058		f9001be1		MOVD R1, 48(RSP)										
+  walk.go:10		0x10026e05c		f9400043		MOVD (R2), R3											
+  store.go:50		0x10026e060		d37d7ce4		UBFIZ $3, R7, $32, R4										
+  store.go:50		0x10026e064		8b040484		ADD R4<<1, R4, R4										
+  store.go:50		0x10026e068		8b0c0081		ADD R12, R4, R1											
+  walk.go:10		0x10026e06c		aa0203fa		MOVD R2, R26											
+  walk.go:10		0x10026e070		d63f0060		CALL (R3)											
+  walk.go:10		0x10026e074		3607fcc0		TBZ $0, R0, -26(PC)										
+  walk.go:27		0x10026e078		b24003e0		ORR $1, ZR, R0											
+  walk.go:27		0x10026e07c		f85f83fd		MOVD -8(RSP), R29										
+  walk.go:27		0x10026e080		f84507fe		MOVD.P 80(RSP), R30										
+  walk.go:27		0x10026e084		d65f03c0		RET												
+  store.go:50		0x10026e088		97f85e8e		CALL runtime.panicBounds(SB)									
+  store.go:116		0x10026e08c		b4000049		CBZ R9, 2(PC)											
+  store.go:116		0x10026e090		97f819e0		CALL runtime.panicunsafeslicelen(SB)								
+  store.go:116		0x10026e094		97f81a07		CALL runtime.panicunsafeslicenilptr(SB)								
+  store.go:116		0x10026e098		aa0703e9		MOVD R7, R9											
+  store.go:116		0x10026e09c		17fffffc		JMP -4(PC)											
+  store.go:115		0x10026e0a0		97f85e88		CALL runtime.panicBounds(SB)									
+  store.go:115		0x10026e0a4		97f85e87		CALL runtime.panicBounds(SB)									
+  store.go:115		0x10026e0a8		97f85e86		CALL runtime.panicBounds(SB)									
+  walk.go:24		0x10026e0ac		97f85e85		CALL runtime.panicBounds(SB)									
+  walk.go:24		0x10026e0b0		d503201f		NOOP												
+  walk.go:20		0x10026e0b4		a90087e0		STP (R0, R1), 8(RSP)										
+  walk.go:20		0x10026e0b8		f9000fe2		MOVD R2, 24(RSP)										
+  walk.go:20		0x10026e0bc		aa1e03e3		MOVD R30, R3											
+  walk.go:20		0x10026e0c0		97f8563c		CALL runtime.morestack_noctxt.abi0(SB)								
+  walk.go:20		0x10026e0c4		a94087e0		LDP 8(RSP), (R0, R1)										
+  walk.go:20		0x10026e0c8		f9400fe2		MOVD 24(RSP), R2										
+  walk.go:20		0x10026e0cc		17ffff6d		JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.Node.ForEachChildShape(SB)	

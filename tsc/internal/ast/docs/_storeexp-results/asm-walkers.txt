@@ -1,0 +1,96 @@
+TEXT 
+bench_test.go:87 MOVD 16(R28), R16
+bench_test.go:87 CMP R16, RSP
+bench_test.go:87 BLS 18(PC)
+bench_test.go:87 MOVD.W R30, -32(RSP)
+bench_test.go:87 MOVD R29, -8(RSP)
+bench_test.go:87 SUB $8, RSP, R29
+bench_test.go:88 CBZ R1, 11(PC)
+bench_test.go:91 MOVD 8(R0), R2
+bench_test.go:91 ADD $1, R2, R2
+bench_test.go:91 MOVD R2, 8(R0)
+bench_test.go:92 MOVD (R0), R2
+bench_test.go:92 MOVD R1, R0
+bench_test.go:92 MOVD R2, R1
+bench_test.go:92 CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*Node).ForEachChild(SB)
+bench_test.go:93 MOVD -8(RSP), R29
+bench_test.go:93 MOVD.P 32(RSP), R30
+bench_test.go:93 RET
+bench_test.go:89 MOVD -8(RSP), R29
+bench_test.go:89 MOVD.P 32(RSP), R30
+bench_test.go:89 RET
+bench_test.go:87 STP (R0, R1), 8(RSP)
+bench_test.go:87 MOVD R30, R3
+bench_test.go:87 CALL runtime.morestack_noctxt.abi0(SB)
+bench_test.go:87 LDP 8(RSP), (R0, R1)
+bench_test.go:87 JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.(*pointerWalker).walk(SB)
+TEXT 
+bench_test.go:117 MOVD 16(R28), R16
+bench_test.go:117 CMP R16, RSP
+bench_test.go:117 BLS 17(PC)
+bench_test.go:117 MOVD.W R30, -48(RSP)
+bench_test.go:117 MOVD R29, -8(RSP)
+bench_test.go:117 SUB $8, RSP, R29
+bench_test.go:117 MOVD R1, 64(RSP)
+bench_test.go:117 MOVD R2, 72(RSP)
+bench_test.go:118 MOVD 8(R0), R3
+bench_test.go:118 ADD $1, R3, R3
+bench_test.go:118 MOVD R3, 8(R0)
+bench_test.go:119 MOVD (R0), R3
+bench_test.go:119 MOVD R1, R0
+bench_test.go:119 MOVD R2, R1
+bench_test.go:119 MOVD R3, R2
+bench_test.go:119 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.Node.ForEachChild(SB)
+bench_test.go:120 MOVD -8(RSP), R29
+bench_test.go:120 MOVD.P 48(RSP), R30
+bench_test.go:120 RET
+bench_test.go:117 STP (R0, R1), 8(RSP)
+bench_test.go:117 MOVD R2, 24(RSP)
+bench_test.go:117 MOVD R30, R3
+bench_test.go:117 CALL runtime.morestack_noctxt.abi0(SB)
+bench_test.go:117 LDP 8(RSP), (R0, R1)
+bench_test.go:117 MOVD 24(RSP), R2
+bench_test.go:117 JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.(*switchWalker).walk(SB)
+TEXT 
+bench_test.go:110 MOVD 16(R28), R16
+bench_test.go:110 CMP R16, RSP
+bench_test.go:110 BLS 15(PC)
+bench_test.go:110 MOVD.W R30, -48(RSP)
+bench_test.go:110 MOVD R29, -8(RSP)
+bench_test.go:110 SUB $8, RSP, R29
+bench_test.go:110 MOVD R0, 56(RSP)
+bench_test.go:110 MOVD R1, 64(RSP)
+bench_test.go:110 MOVD 8(R26), R3
+bench_test.go:111 MOVD R1, R2
+bench_test.go:111 MOVD R0, R1
+bench_test.go:111 MOVD R3, R0
+bench_test.go:111 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.(*switchWalker).walk(SB)
+bench_test.go:112 MOVD ZR, R0
+bench_test.go:112 MOVD -8(RSP), R29
+bench_test.go:112 MOVD.P 48(RSP), R30
+bench_test.go:112 RET
+bench_test.go:110 STP (R0, R1), 8(RSP)
+bench_test.go:110 MOVD R30, R3
+bench_test.go:110 CALL runtime.morestack.abi0(SB)
+bench_test.go:110 LDP 8(RSP), (R0, R1)
+bench_test.go:110 JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.newSwitchWalker.func1(SB)
+TEXT 
+bench_test.go:80 MOVD 16(R28), R16
+bench_test.go:80 CMP R16, RSP
+bench_test.go:80 BLS 12(PC)
+bench_test.go:80 MOVD.W R30, -32(RSP)
+bench_test.go:80 MOVD R29, -8(RSP)
+bench_test.go:80 SUB $8, RSP, R29
+bench_test.go:80 MOVD 8(R26), R2
+bench_test.go:81 MOVD R0, R1
+bench_test.go:81 MOVD R2, R0
+bench_test.go:81 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.(*pointerWalker).walk(SB)
+bench_test.go:82 MOVD ZR, R0
+bench_test.go:82 MOVD -8(RSP), R29
+bench_test.go:82 MOVD.P 32(RSP), R30
+bench_test.go:82 RET
+bench_test.go:80 MOVD R0, 8(RSP)
+bench_test.go:80 MOVD R30, R3
+bench_test.go:80 CALL runtime.morestack.abi0(SB)
+bench_test.go:80 MOVD 8(RSP), R0
+bench_test.go:80 JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.newPointerWalker.func1(SB)

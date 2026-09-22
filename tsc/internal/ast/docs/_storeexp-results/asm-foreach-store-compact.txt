@@ -1,0 +1,1585 @@
+TEXT 
+foreach_generated.go:10 MOVD 16(R28), R16
+foreach_generated.go:10 CMP R16, RSP
+foreach_generated.go:10 BLS 1572(PC)
+foreach_generated.go:10 MOVD.W R30, -48(RSP)
+foreach_generated.go:10 MOVD R29, -8(RSP)
+foreach_generated.go:10 SUB $8, RSP, R29
+foreach_generated.go:10 MOVD R0, 56(RSP)
+foreach_generated.go:10 MOVD R1, 64(RSP)
+foreach_generated.go:11 MOVH (R1), R3
+foreach_generated.go:11 SUB $167, R3, R3
+foreach_generated.go:11 CMP $182, R3
+foreach_generated.go:11 BHI 1476(PC)
+foreach_generated.go:11 ADRP 4427776(PC), R4
+foreach_generated.go:11 ADD $864, R4, R4
+foreach_generated.go:11 MOVD (R4)(R3<<3), R27
+foreach_generated.go:11 JMP (R27)
+foreach_generated.go:13 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildQualifiedName(SB)
+foreach_generated.go:13 MOVD -8(RSP), R29
+foreach_generated.go:13 MOVD.P 48(RSP), R30
+foreach_generated.go:13 RET
+foreach_generated.go:374 MOVWU 20(R1), R3
+foreach_generated.go:375 LDP 24(R0), (R4, R5)
+foreach_generated.go:375 CMP R5, R3
+foreach_generated.go:375 BCS 1549(PC)
+foreach_generated.go:375 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:375 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 1542(PC)
+foreach_generated.go:375 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:375 MOVD R2, R26
+foreach_generated.go:375 CALL (R4)
+foreach_generated.go:375 TBZ $0, R0, 3(PC)
+foreach_generated.go:375 ORR $1, ZR, R0
+foreach_generated.go:15 JMP 2(PC)
+foreach_generated.go:15 MOVD ZR, R0
+foreach_generated.go:15 MOVD -8(RSP), R29
+foreach_generated.go:15 MOVD.P 48(RSP), R30
+foreach_generated.go:15 RET
+foreach_generated.go:17 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTypeParameterDeclaration(SB)
+foreach_generated.go:17 MOVD -8(RSP), R29
+foreach_generated.go:17 MOVD.P 48(RSP), R30
+foreach_generated.go:17 RET
+foreach_generated.go:19 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildParameterDeclaration(SB)
+foreach_generated.go:19 MOVD -8(RSP), R29
+foreach_generated.go:19 MOVD.P 48(RSP), R30
+foreach_generated.go:19 RET
+foreach_generated.go:425 MOVWU 20(R1), R3
+foreach_generated.go:426 LDP 24(R0), (R4, R5)
+foreach_generated.go:426 CMP R5, R3
+foreach_generated.go:426 BCS 1516(PC)
+foreach_generated.go:426 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:426 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 1509(PC)
+foreach_generated.go:426 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:426 MOVD R2, R26
+foreach_generated.go:426 CALL (R4)
+foreach_generated.go:426 TBZ $0, R0, 3(PC)
+foreach_generated.go:426 ORR $1, ZR, R0
+foreach_generated.go:21 JMP 2(PC)
+foreach_generated.go:21 MOVD ZR, R0
+foreach_generated.go:21 MOVD -8(RSP), R29
+foreach_generated.go:21 MOVD.P 48(RSP), R30
+foreach_generated.go:21 RET
+foreach_generated.go:23 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildPropertySignatureDeclaration(SB)
+foreach_generated.go:23 MOVD -8(RSP), R29
+foreach_generated.go:23 MOVD.P 48(RSP), R30
+foreach_generated.go:23 RET
+foreach_generated.go:25 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildPropertyDeclaration(SB)
+foreach_generated.go:25 MOVD -8(RSP), R29
+foreach_generated.go:25 MOVD.P 48(RSP), R30
+foreach_generated.go:25 RET
+foreach_generated.go:27 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildMethodSignatureDeclaration(SB)
+foreach_generated.go:27 MOVD -8(RSP), R29
+foreach_generated.go:27 MOVD.P 48(RSP), R30
+foreach_generated.go:27 RET
+foreach_generated.go:29 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildMethodDeclaration(SB)
+foreach_generated.go:29 MOVD -8(RSP), R29
+foreach_generated.go:29 MOVD.P 48(RSP), R30
+foreach_generated.go:29 RET
+foreach_generated.go:31 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildClassStaticBlockDeclaration(SB)
+foreach_generated.go:31 MOVD -8(RSP), R29
+foreach_generated.go:31 MOVD.P 48(RSP), R30
+foreach_generated.go:31 RET
+foreach_generated.go:33 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildConstructorDeclaration(SB)
+foreach_generated.go:33 MOVD -8(RSP), R29
+foreach_generated.go:33 MOVD.P 48(RSP), R30
+foreach_generated.go:33 RET
+foreach_generated.go:35 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildGetAccessorDeclaration(SB)
+foreach_generated.go:35 MOVD -8(RSP), R29
+foreach_generated.go:35 MOVD.P 48(RSP), R30
+foreach_generated.go:35 RET
+foreach_generated.go:37 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildSetAccessorDeclaration(SB)
+foreach_generated.go:37 MOVD -8(RSP), R29
+foreach_generated.go:37 MOVD.P 48(RSP), R30
+foreach_generated.go:37 RET
+foreach_generated.go:39 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildCallSignatureDeclaration(SB)
+foreach_generated.go:39 MOVD -8(RSP), R29
+foreach_generated.go:39 MOVD.P 48(RSP), R30
+foreach_generated.go:39 RET
+foreach_generated.go:41 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildConstructSignatureDeclaration(SB)
+foreach_generated.go:41 MOVD -8(RSP), R29
+foreach_generated.go:41 MOVD.P 48(RSP), R30
+foreach_generated.go:41 RET
+foreach_generated.go:43 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildIndexSignatureDeclaration(SB)
+foreach_generated.go:43 MOVD -8(RSP), R29
+foreach_generated.go:43 MOVD.P 48(RSP), R30
+foreach_generated.go:43 RET
+foreach_generated.go:45 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTypePredicateNode(SB)
+foreach_generated.go:45 MOVD -8(RSP), R29
+foreach_generated.go:45 MOVD.P 48(RSP), R30
+foreach_generated.go:45 RET
+foreach_generated.go:47 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTypeReferenceNode(SB)
+foreach_generated.go:47 MOVD -8(RSP), R29
+foreach_generated.go:47 MOVD.P 48(RSP), R30
+foreach_generated.go:47 RET
+foreach_generated.go:49 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildFunctionTypeNode(SB)
+foreach_generated.go:49 MOVD -8(RSP), R29
+foreach_generated.go:49 MOVD.P 48(RSP), R30
+foreach_generated.go:49 RET
+foreach_generated.go:51 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildConstructorTypeNode(SB)
+foreach_generated.go:51 MOVD -8(RSP), R29
+foreach_generated.go:51 MOVD.P 48(RSP), R30
+foreach_generated.go:51 RET
+foreach_generated.go:53 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTypeQueryNode(SB)
+foreach_generated.go:53 MOVD -8(RSP), R29
+foreach_generated.go:53 MOVD.P 48(RSP), R30
+foreach_generated.go:53 RET
+foreach_generated.go:55 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTypeLiteralNode(SB)
+foreach_generated.go:55 MOVD -8(RSP), R29
+foreach_generated.go:55 MOVD.P 48(RSP), R30
+foreach_generated.go:55 RET
+foreach_generated.go:731 MOVWU 20(R1), R3
+foreach_generated.go:732 LDP 24(R0), (R4, R5)
+foreach_generated.go:732 CMP R5, R3
+foreach_generated.go:732 BCS 1423(PC)
+foreach_generated.go:732 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:732 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 1416(PC)
+foreach_generated.go:732 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:732 MOVD R2, R26
+foreach_generated.go:732 CALL (R4)
+foreach_generated.go:732 TBZ $0, R0, 3(PC)
+foreach_generated.go:732 ORR $1, ZR, R0
+foreach_generated.go:57 JMP 2(PC)
+foreach_generated.go:57 MOVD ZR, R0
+foreach_generated.go:57 MOVD -8(RSP), R29
+foreach_generated.go:57 MOVD.P 48(RSP), R30
+foreach_generated.go:57 RET
+foreach_generated.go:59 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTupleTypeNode(SB)
+foreach_generated.go:59 MOVD -8(RSP), R29
+foreach_generated.go:59 MOVD.P 48(RSP), R30
+foreach_generated.go:59 RET
+foreach_generated.go:747 MOVWU 20(R1), R3
+foreach_generated.go:748 LDP 24(R0), (R4, R5)
+foreach_generated.go:748 CMP R5, R3
+foreach_generated.go:748 BCS 1394(PC)
+foreach_generated.go:748 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:748 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 1387(PC)
+foreach_generated.go:748 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:748 MOVD R2, R26
+foreach_generated.go:748 CALL (R4)
+foreach_generated.go:748 TBZ $0, R0, 3(PC)
+foreach_generated.go:748 ORR $1, ZR, R0
+foreach_generated.go:61 JMP 2(PC)
+foreach_generated.go:61 MOVD ZR, R0
+foreach_generated.go:61 MOVD -8(RSP), R29
+foreach_generated.go:61 MOVD.P 48(RSP), R30
+foreach_generated.go:61 RET
+foreach_generated.go:755 MOVWU 20(R1), R3
+foreach_generated.go:756 LDP 24(R0), (R4, R5)
+foreach_generated.go:756 CMP R5, R3
+foreach_generated.go:756 BCS 1369(PC)
+foreach_generated.go:756 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:756 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 1362(PC)
+foreach_generated.go:756 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:756 MOVD R2, R26
+foreach_generated.go:756 CALL (R4)
+foreach_generated.go:756 TBZ $0, R0, 3(PC)
+foreach_generated.go:756 ORR $1, ZR, R0
+foreach_generated.go:63 JMP 2(PC)
+foreach_generated.go:63 MOVD ZR, R0
+foreach_generated.go:63 MOVD -8(RSP), R29
+foreach_generated.go:63 MOVD.P 48(RSP), R30
+foreach_generated.go:63 RET
+foreach_generated.go:65 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildUnionTypeNode(SB)
+foreach_generated.go:65 MOVD -8(RSP), R29
+foreach_generated.go:65 MOVD.P 48(RSP), R30
+foreach_generated.go:65 RET
+foreach_generated.go:67 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildIntersectionTypeNode(SB)
+foreach_generated.go:67 MOVD -8(RSP), R29
+foreach_generated.go:67 MOVD.P 48(RSP), R30
+foreach_generated.go:67 RET
+foreach_generated.go:69 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildConditionalTypeNode(SB)
+foreach_generated.go:69 MOVD -8(RSP), R29
+foreach_generated.go:69 MOVD.P 48(RSP), R30
+foreach_generated.go:69 RET
+foreach_generated.go:796 MOVWU 20(R1), R3
+foreach_generated.go:797 LDP 24(R0), (R4, R5)
+foreach_generated.go:797 CMP R5, R3
+foreach_generated.go:797 BCS 1332(PC)
+foreach_generated.go:797 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:797 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 1325(PC)
+foreach_generated.go:797 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:797 MOVD R2, R26
+foreach_generated.go:797 CALL (R4)
+foreach_generated.go:797 TBZ $0, R0, 3(PC)
+foreach_generated.go:797 ORR $1, ZR, R0
+foreach_generated.go:71 JMP 2(PC)
+foreach_generated.go:71 MOVD ZR, R0
+foreach_generated.go:71 MOVD -8(RSP), R29
+foreach_generated.go:71 MOVD.P 48(RSP), R30
+foreach_generated.go:71 RET
+foreach_generated.go:804 MOVWU 20(R1), R3
+foreach_generated.go:805 LDP 24(R0), (R4, R5)
+foreach_generated.go:805 CMP R5, R3
+foreach_generated.go:805 BCS 1307(PC)
+foreach_generated.go:805 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:805 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 1300(PC)
+foreach_generated.go:805 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:805 MOVD R2, R26
+foreach_generated.go:805 CALL (R4)
+foreach_generated.go:805 TBZ $0, R0, 3(PC)
+foreach_generated.go:805 ORR $1, ZR, R0
+foreach_generated.go:73 JMP 2(PC)
+foreach_generated.go:73 MOVD ZR, R0
+foreach_generated.go:73 MOVD -8(RSP), R29
+foreach_generated.go:73 MOVD.P 48(RSP), R30
+foreach_generated.go:73 RET
+foreach_generated.go:812 MOVWU 20(R1), R3
+foreach_generated.go:813 LDP 24(R0), (R4, R5)
+foreach_generated.go:813 CMP R5, R3
+foreach_generated.go:813 BCS 1282(PC)
+foreach_generated.go:813 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:813 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 1275(PC)
+foreach_generated.go:813 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:813 MOVD R2, R26
+foreach_generated.go:813 CALL (R4)
+foreach_generated.go:813 TBZ $0, R0, 3(PC)
+foreach_generated.go:813 ORR $1, ZR, R0
+foreach_generated.go:75 JMP 2(PC)
+foreach_generated.go:75 MOVD ZR, R0
+foreach_generated.go:75 MOVD -8(RSP), R29
+foreach_generated.go:75 MOVD.P 48(RSP), R30
+foreach_generated.go:75 RET
+foreach_generated.go:77 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildIndexedAccessTypeNode(SB)
+foreach_generated.go:77 MOVD -8(RSP), R29
+foreach_generated.go:77 MOVD.P 48(RSP), R30
+foreach_generated.go:77 RET
+foreach_generated.go:79 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildMappedTypeNode(SB)
+foreach_generated.go:79 MOVD -8(RSP), R29
+foreach_generated.go:79 MOVD.P 48(RSP), R30
+foreach_generated.go:79 RET
+foreach_generated.go:854 MOVWU 20(R1), R3
+foreach_generated.go:855 LDP 24(R0), (R4, R5)
+foreach_generated.go:855 CMP R5, R3
+foreach_generated.go:855 BCS 1249(PC)
+foreach_generated.go:855 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:855 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 1242(PC)
+foreach_generated.go:855 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:855 MOVD R2, R26
+foreach_generated.go:855 CALL (R4)
+foreach_generated.go:855 TBZ $0, R0, 3(PC)
+foreach_generated.go:855 ORR $1, ZR, R0
+foreach_generated.go:81 JMP 2(PC)
+foreach_generated.go:81 MOVD ZR, R0
+foreach_generated.go:81 MOVD -8(RSP), R29
+foreach_generated.go:81 MOVD.P 48(RSP), R30
+foreach_generated.go:81 RET
+foreach_generated.go:83 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildNamedTupleMember(SB)
+foreach_generated.go:83 MOVD -8(RSP), R29
+foreach_generated.go:83 MOVD.P 48(RSP), R30
+foreach_generated.go:83 RET
+foreach_generated.go:85 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTemplateLiteralTypeNode(SB)
+foreach_generated.go:85 MOVD -8(RSP), R29
+foreach_generated.go:85 MOVD.P 48(RSP), R30
+foreach_generated.go:85 RET
+foreach_generated.go:87 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTemplateLiteralTypeSpan(SB)
+foreach_generated.go:87 MOVD -8(RSP), R29
+foreach_generated.go:87 MOVD.P 48(RSP), R30
+foreach_generated.go:87 RET
+foreach_generated.go:89 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildImportTypeNode(SB)
+foreach_generated.go:89 MOVD -8(RSP), R29
+foreach_generated.go:89 MOVD.P 48(RSP), R30
+foreach_generated.go:89 RET
+foreach_generated.go:91 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildBindingPattern(SB)
+foreach_generated.go:91 MOVD -8(RSP), R29
+foreach_generated.go:91 MOVD.P 48(RSP), R30
+foreach_generated.go:91 RET
+foreach_generated.go:93 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildBindingPattern(SB)
+foreach_generated.go:93 MOVD -8(RSP), R29
+foreach_generated.go:93 MOVD.P 48(RSP), R30
+foreach_generated.go:93 RET
+foreach_generated.go:95 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildBindingElement(SB)
+foreach_generated.go:95 MOVD -8(RSP), R29
+foreach_generated.go:95 MOVD.P 48(RSP), R30
+foreach_generated.go:95 RET
+foreach_generated.go:97 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildArrayLiteralExpression(SB)
+foreach_generated.go:97 MOVD -8(RSP), R29
+foreach_generated.go:97 MOVD.P 48(RSP), R30
+foreach_generated.go:97 RET
+foreach_generated.go:99 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildObjectLiteralExpression(SB)
+foreach_generated.go:99 MOVD -8(RSP), R29
+foreach_generated.go:99 MOVD.P 48(RSP), R30
+foreach_generated.go:99 RET
+foreach_generated.go:101 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildPropertyAccessExpression(SB)
+foreach_generated.go:101 MOVD -8(RSP), R29
+foreach_generated.go:101 MOVD.P 48(RSP), R30
+foreach_generated.go:101 RET
+foreach_generated.go:103 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildElementAccessExpression(SB)
+foreach_generated.go:103 MOVD -8(RSP), R29
+foreach_generated.go:103 MOVD.P 48(RSP), R30
+foreach_generated.go:103 RET
+foreach_generated.go:105 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildCallExpression(SB)
+foreach_generated.go:105 MOVD -8(RSP), R29
+foreach_generated.go:105 MOVD.P 48(RSP), R30
+foreach_generated.go:105 RET
+foreach_generated.go:107 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildNewExpression(SB)
+foreach_generated.go:107 MOVD -8(RSP), R29
+foreach_generated.go:107 MOVD.P 48(RSP), R30
+foreach_generated.go:107 RET
+foreach_generated.go:109 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTaggedTemplateExpression(SB)
+foreach_generated.go:109 MOVD -8(RSP), R29
+foreach_generated.go:109 MOVD.P 48(RSP), R30
+foreach_generated.go:109 RET
+foreach_generated.go:111 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTypeAssertion(SB)
+foreach_generated.go:111 MOVD -8(RSP), R29
+foreach_generated.go:111 MOVD.P 48(RSP), R30
+foreach_generated.go:111 RET
+foreach_generated.go:1046 MOVWU 20(R1), R3
+foreach_generated.go:1047 LDP 24(R0), (R4, R5)
+foreach_generated.go:1047 CMP R5, R3
+foreach_generated.go:1047 BCS 1164(PC)
+foreach_generated.go:1047 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1047 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 1157(PC)
+foreach_generated.go:1047 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1047 MOVD R2, R26
+foreach_generated.go:1047 CALL (R4)
+foreach_generated.go:1047 TBZ $0, R0, 3(PC)
+foreach_generated.go:1047 ORR $1, ZR, R0
+foreach_generated.go:113 JMP 2(PC)
+foreach_generated.go:113 MOVD ZR, R0
+foreach_generated.go:113 MOVD -8(RSP), R29
+foreach_generated.go:113 MOVD.P 48(RSP), R30
+foreach_generated.go:113 RET
+foreach_generated.go:115 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildFunctionExpression(SB)
+foreach_generated.go:115 MOVD -8(RSP), R29
+foreach_generated.go:115 MOVD.P 48(RSP), R30
+foreach_generated.go:115 RET
+foreach_generated.go:117 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildArrowFunction(SB)
+foreach_generated.go:117 MOVD -8(RSP), R29
+foreach_generated.go:117 MOVD.P 48(RSP), R30
+foreach_generated.go:117 RET
+foreach_generated.go:1109 MOVWU 20(R1), R3
+foreach_generated.go:1110 LDP 24(R0), (R4, R5)
+foreach_generated.go:1110 CMP R5, R3
+foreach_generated.go:1110 BCS 1131(PC)
+foreach_generated.go:1110 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1110 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 1124(PC)
+foreach_generated.go:1110 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1110 MOVD R2, R26
+foreach_generated.go:1110 CALL (R4)
+foreach_generated.go:1110 TBZ $0, R0, 3(PC)
+foreach_generated.go:1110 ORR $1, ZR, R0
+foreach_generated.go:119 JMP 2(PC)
+foreach_generated.go:119 MOVD ZR, R0
+foreach_generated.go:119 MOVD -8(RSP), R29
+foreach_generated.go:119 MOVD.P 48(RSP), R30
+foreach_generated.go:119 RET
+foreach_generated.go:1117 MOVWU 20(R1), R3
+foreach_generated.go:1118 LDP 24(R0), (R4, R5)
+foreach_generated.go:1118 CMP R5, R3
+foreach_generated.go:1118 BCS 1106(PC)
+foreach_generated.go:1118 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1118 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 1099(PC)
+foreach_generated.go:1118 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1118 MOVD R2, R26
+foreach_generated.go:1118 CALL (R4)
+foreach_generated.go:1118 TBZ $0, R0, 3(PC)
+foreach_generated.go:1118 ORR $1, ZR, R0
+foreach_generated.go:121 JMP 2(PC)
+foreach_generated.go:121 MOVD ZR, R0
+foreach_generated.go:121 MOVD -8(RSP), R29
+foreach_generated.go:121 MOVD.P 48(RSP), R30
+foreach_generated.go:121 RET
+foreach_generated.go:1125 MOVWU 20(R1), R3
+foreach_generated.go:1126 LDP 24(R0), (R4, R5)
+foreach_generated.go:1126 CMP R5, R3
+foreach_generated.go:1126 BCS 1081(PC)
+foreach_generated.go:1126 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1126 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 1074(PC)
+foreach_generated.go:1126 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1126 MOVD R2, R26
+foreach_generated.go:1126 CALL (R4)
+foreach_generated.go:1126 TBZ $0, R0, 3(PC)
+foreach_generated.go:1126 ORR $1, ZR, R0
+foreach_generated.go:123 JMP 2(PC)
+foreach_generated.go:123 MOVD ZR, R0
+foreach_generated.go:123 MOVD -8(RSP), R29
+foreach_generated.go:123 MOVD.P 48(RSP), R30
+foreach_generated.go:123 RET
+foreach_generated.go:1133 MOVWU 20(R1), R3
+foreach_generated.go:1134 LDP 24(R0), (R4, R5)
+foreach_generated.go:1134 CMP R5, R3
+foreach_generated.go:1134 BCS 1056(PC)
+foreach_generated.go:1134 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1134 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 1049(PC)
+foreach_generated.go:1134 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1134 MOVD R2, R26
+foreach_generated.go:1134 CALL (R4)
+foreach_generated.go:1134 TBZ $0, R0, 3(PC)
+foreach_generated.go:1134 ORR $1, ZR, R0
+foreach_generated.go:125 JMP 2(PC)
+foreach_generated.go:125 MOVD ZR, R0
+foreach_generated.go:125 MOVD -8(RSP), R29
+foreach_generated.go:125 MOVD.P 48(RSP), R30
+foreach_generated.go:125 RET
+foreach_generated.go:1141 MOVWU 20(R1), R3
+foreach_generated.go:1142 LDP 24(R0), (R4, R5)
+foreach_generated.go:1142 CMP R5, R3
+foreach_generated.go:1142 BCS 1031(PC)
+foreach_generated.go:1142 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1142 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 1024(PC)
+foreach_generated.go:1142 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1142 MOVD R2, R26
+foreach_generated.go:1142 CALL (R4)
+foreach_generated.go:1142 TBZ $0, R0, 3(PC)
+foreach_generated.go:1142 ORR $1, ZR, R0
+foreach_generated.go:127 JMP 2(PC)
+foreach_generated.go:127 MOVD ZR, R0
+foreach_generated.go:127 MOVD -8(RSP), R29
+foreach_generated.go:127 MOVD.P 48(RSP), R30
+foreach_generated.go:127 RET
+foreach_generated.go:1149 MOVWU 20(R1), R3
+foreach_generated.go:1150 LDP 24(R0), (R4, R5)
+foreach_generated.go:1150 CMP R5, R3
+foreach_generated.go:1150 BCS 1006(PC)
+foreach_generated.go:1150 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1150 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 999(PC)
+foreach_generated.go:1150 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1150 MOVD R2, R26
+foreach_generated.go:1150 CALL (R4)
+foreach_generated.go:1150 TBZ $0, R0, 3(PC)
+foreach_generated.go:1150 ORR $1, ZR, R0
+foreach_generated.go:129 JMP 2(PC)
+foreach_generated.go:129 MOVD ZR, R0
+foreach_generated.go:129 MOVD -8(RSP), R29
+foreach_generated.go:129 MOVD.P 48(RSP), R30
+foreach_generated.go:129 RET
+foreach_generated.go:131 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildBinaryExpression(SB)
+foreach_generated.go:131 MOVD -8(RSP), R29
+foreach_generated.go:131 MOVD.P 48(RSP), R30
+foreach_generated.go:131 RET
+foreach_generated.go:133 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildConditionalExpression(SB)
+foreach_generated.go:133 MOVD -8(RSP), R29
+foreach_generated.go:133 MOVD.P 48(RSP), R30
+foreach_generated.go:133 RET
+foreach_generated.go:135 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTemplateExpression(SB)
+foreach_generated.go:135 MOVD -8(RSP), R29
+foreach_generated.go:135 MOVD.P 48(RSP), R30
+foreach_generated.go:135 RET
+foreach_generated.go:137 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildYieldExpression(SB)
+foreach_generated.go:137 MOVD -8(RSP), R29
+foreach_generated.go:137 MOVD.P 48(RSP), R30
+foreach_generated.go:137 RET
+foreach_generated.go:1219 MOVWU 20(R1), R3
+foreach_generated.go:1220 LDP 24(R0), (R4, R5)
+foreach_generated.go:1220 CMP R5, R3
+foreach_generated.go:1220 BCS 965(PC)
+foreach_generated.go:1220 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1220 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 958(PC)
+foreach_generated.go:1220 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1220 MOVD R2, R26
+foreach_generated.go:1220 CALL (R4)
+foreach_generated.go:1220 TBZ $0, R0, 3(PC)
+foreach_generated.go:1220 ORR $1, ZR, R0
+foreach_generated.go:139 JMP 2(PC)
+foreach_generated.go:139 MOVD ZR, R0
+foreach_generated.go:139 MOVD -8(RSP), R29
+foreach_generated.go:139 MOVD.P 48(RSP), R30
+foreach_generated.go:139 RET
+foreach_generated.go:141 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildClassExpression(SB)
+foreach_generated.go:141 MOVD -8(RSP), R29
+foreach_generated.go:141 MOVD.P 48(RSP), R30
+foreach_generated.go:141 RET
+foreach_generated.go:143 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildExpressionWithTypeArguments(SB)
+foreach_generated.go:143 MOVD -8(RSP), R29
+foreach_generated.go:143 MOVD.P 48(RSP), R30
+foreach_generated.go:143 RET
+foreach_generated.go:145 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildAsExpression(SB)
+foreach_generated.go:145 MOVD -8(RSP), R29
+foreach_generated.go:145 MOVD.P 48(RSP), R30
+foreach_generated.go:145 RET
+foreach_generated.go:1269 MOVWU 20(R1), R3
+foreach_generated.go:1270 LDP 24(R0), (R4, R5)
+foreach_generated.go:1270 CMP R5, R3
+foreach_generated.go:1270 BCS 928(PC)
+foreach_generated.go:1270 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1270 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 921(PC)
+foreach_generated.go:1270 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1270 MOVD R2, R26
+foreach_generated.go:1270 CALL (R4)
+foreach_generated.go:1270 TBZ $0, R0, 3(PC)
+foreach_generated.go:1270 ORR $1, ZR, R0
+foreach_generated.go:147 JMP 2(PC)
+foreach_generated.go:147 MOVD ZR, R0
+foreach_generated.go:147 MOVD -8(RSP), R29
+foreach_generated.go:147 MOVD.P 48(RSP), R30
+foreach_generated.go:147 RET
+foreach_generated.go:1277 MOVWU 20(R1), R3
+foreach_generated.go:1278 LDP 24(R0), (R4, R5)
+foreach_generated.go:1278 CMP R5, R3
+foreach_generated.go:1278 BCS 903(PC)
+foreach_generated.go:1278 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1278 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 896(PC)
+foreach_generated.go:1278 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1278 MOVD R2, R26
+foreach_generated.go:1278 CALL (R4)
+foreach_generated.go:1278 TBZ $0, R0, 3(PC)
+foreach_generated.go:1278 ORR $1, ZR, R0
+foreach_generated.go:149 JMP 2(PC)
+foreach_generated.go:149 MOVD ZR, R0
+foreach_generated.go:149 MOVD -8(RSP), R29
+foreach_generated.go:149 MOVD.P 48(RSP), R30
+foreach_generated.go:149 RET
+foreach_generated.go:1285 MOVWU 20(R1), R3
+foreach_generated.go:1286 LDP 24(R0), (R4, R5)
+foreach_generated.go:1286 CMP R5, R3
+foreach_generated.go:1286 BCS 878(PC)
+foreach_generated.go:1286 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1286 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 871(PC)
+foreach_generated.go:1286 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1286 MOVD R2, R26
+foreach_generated.go:1286 CALL (R4)
+foreach_generated.go:1286 TBZ $0, R0, 3(PC)
+foreach_generated.go:1286 ORR $1, ZR, R0
+foreach_generated.go:151 JMP 2(PC)
+foreach_generated.go:151 MOVD ZR, R0
+foreach_generated.go:151 MOVD -8(RSP), R29
+foreach_generated.go:151 MOVD.P 48(RSP), R30
+foreach_generated.go:151 RET
+foreach_generated.go:153 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildSatisfiesExpression(SB)
+foreach_generated.go:153 MOVD -8(RSP), R29
+foreach_generated.go:153 MOVD.P 48(RSP), R30
+foreach_generated.go:153 RET
+foreach_generated.go:155 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTemplateSpan(SB)
+foreach_generated.go:155 MOVD -8(RSP), R29
+foreach_generated.go:155 MOVD.P 48(RSP), R30
+foreach_generated.go:155 RET
+foreach_generated.go:157 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildBlock(SB)
+foreach_generated.go:157 MOVD -8(RSP), R29
+foreach_generated.go:157 MOVD.P 48(RSP), R30
+foreach_generated.go:157 RET
+foreach_generated.go:159 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildVariableStatement(SB)
+foreach_generated.go:159 MOVD -8(RSP), R29
+foreach_generated.go:159 MOVD.P 48(RSP), R30
+foreach_generated.go:159 RET
+foreach_generated.go:1334 MOVWU 20(R1), R3
+foreach_generated.go:1335 LDP 24(R0), (R4, R5)
+foreach_generated.go:1335 CMP R5, R3
+foreach_generated.go:1335 BCS 837(PC)
+foreach_generated.go:1335 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1335 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 830(PC)
+foreach_generated.go:1335 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1335 MOVD R2, R26
+foreach_generated.go:1335 CALL (R4)
+foreach_generated.go:1335 TBZ $0, R0, 3(PC)
+foreach_generated.go:1335 ORR $1, ZR, R0
+foreach_generated.go:161 JMP 2(PC)
+foreach_generated.go:161 MOVD ZR, R0
+foreach_generated.go:161 MOVD -8(RSP), R29
+foreach_generated.go:161 MOVD.P 48(RSP), R30
+foreach_generated.go:161 RET
+foreach_generated.go:163 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildIfStatement(SB)
+foreach_generated.go:163 MOVD -8(RSP), R29
+foreach_generated.go:163 MOVD.P 48(RSP), R30
+foreach_generated.go:163 RET
+foreach_generated.go:165 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildDoStatement(SB)
+foreach_generated.go:165 MOVD -8(RSP), R29
+foreach_generated.go:165 MOVD.P 48(RSP), R30
+foreach_generated.go:165 RET
+foreach_generated.go:167 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildWhileStatement(SB)
+foreach_generated.go:167 MOVD -8(RSP), R29
+foreach_generated.go:167 MOVD.P 48(RSP), R30
+foreach_generated.go:167 RET
+foreach_generated.go:169 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildForStatement(SB)
+foreach_generated.go:169 MOVD -8(RSP), R29
+foreach_generated.go:169 MOVD.P 48(RSP), R30
+foreach_generated.go:169 RET
+foreach_generated.go:171 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildForInOrOfStatement(SB)
+foreach_generated.go:171 MOVD -8(RSP), R29
+foreach_generated.go:171 MOVD.P 48(RSP), R30
+foreach_generated.go:171 RET
+foreach_generated.go:173 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildForInOrOfStatement(SB)
+foreach_generated.go:173 MOVD -8(RSP), R29
+foreach_generated.go:173 MOVD.P 48(RSP), R30
+foreach_generated.go:173 RET
+foreach_generated.go:1412 MOVWU 20(R1), R3
+foreach_generated.go:1413 LDP 24(R0), (R4, R5)
+foreach_generated.go:1413 CMP R5, R3
+foreach_generated.go:1413 BCS 788(PC)
+foreach_generated.go:1413 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1413 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 781(PC)
+foreach_generated.go:1413 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1413 MOVD R2, R26
+foreach_generated.go:1413 CALL (R4)
+foreach_generated.go:1413 TBZ $0, R0, 3(PC)
+foreach_generated.go:1413 ORR $1, ZR, R0
+foreach_generated.go:175 JMP 2(PC)
+foreach_generated.go:175 MOVD ZR, R0
+foreach_generated.go:175 MOVD -8(RSP), R29
+foreach_generated.go:175 MOVD.P 48(RSP), R30
+foreach_generated.go:175 RET
+foreach_generated.go:1420 MOVWU 20(R1), R3
+foreach_generated.go:1421 LDP 24(R0), (R4, R5)
+foreach_generated.go:1421 CMP R5, R3
+foreach_generated.go:1421 BCS 763(PC)
+foreach_generated.go:1421 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1421 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 756(PC)
+foreach_generated.go:1421 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1421 MOVD R2, R26
+foreach_generated.go:1421 CALL (R4)
+foreach_generated.go:1421 TBZ $0, R0, 3(PC)
+foreach_generated.go:1421 ORR $1, ZR, R0
+foreach_generated.go:177 JMP 2(PC)
+foreach_generated.go:177 MOVD ZR, R0
+foreach_generated.go:177 MOVD -8(RSP), R29
+foreach_generated.go:177 MOVD.P 48(RSP), R30
+foreach_generated.go:177 RET
+foreach_generated.go:1428 MOVWU 20(R1), R3
+foreach_generated.go:1429 LDP 24(R0), (R4, R5)
+foreach_generated.go:1429 CMP R5, R3
+foreach_generated.go:1429 BCS 738(PC)
+foreach_generated.go:1429 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1429 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 731(PC)
+foreach_generated.go:1429 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1429 MOVD R2, R26
+foreach_generated.go:1429 CALL (R4)
+foreach_generated.go:1429 TBZ $0, R0, 3(PC)
+foreach_generated.go:1429 ORR $1, ZR, R0
+foreach_generated.go:179 JMP 2(PC)
+foreach_generated.go:179 MOVD ZR, R0
+foreach_generated.go:179 MOVD -8(RSP), R29
+foreach_generated.go:179 MOVD.P 48(RSP), R30
+foreach_generated.go:179 RET
+foreach_generated.go:181 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildWithStatement(SB)
+foreach_generated.go:181 MOVD -8(RSP), R29
+foreach_generated.go:181 MOVD.P 48(RSP), R30
+foreach_generated.go:181 RET
+foreach_generated.go:183 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildSwitchStatement(SB)
+foreach_generated.go:183 MOVD -8(RSP), R29
+foreach_generated.go:183 MOVD.P 48(RSP), R30
+foreach_generated.go:183 RET
+foreach_generated.go:185 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildLabeledStatement(SB)
+foreach_generated.go:185 MOVD -8(RSP), R29
+foreach_generated.go:185 MOVD.P 48(RSP), R30
+foreach_generated.go:185 RET
+foreach_generated.go:1469 MOVWU 20(R1), R3
+foreach_generated.go:1470 LDP 24(R0), (R4, R5)
+foreach_generated.go:1470 CMP R5, R3
+foreach_generated.go:1470 BCS 701(PC)
+foreach_generated.go:1470 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1470 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 694(PC)
+foreach_generated.go:1470 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1470 MOVD R2, R26
+foreach_generated.go:1470 CALL (R4)
+foreach_generated.go:1470 TBZ $0, R0, 3(PC)
+foreach_generated.go:1470 ORR $1, ZR, R0
+foreach_generated.go:187 JMP 2(PC)
+foreach_generated.go:187 MOVD ZR, R0
+foreach_generated.go:187 MOVD -8(RSP), R29
+foreach_generated.go:187 MOVD.P 48(RSP), R30
+foreach_generated.go:187 RET
+foreach_generated.go:189 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTryStatement(SB)
+foreach_generated.go:189 MOVD -8(RSP), R29
+foreach_generated.go:189 MOVD.P 48(RSP), R30
+foreach_generated.go:189 RET
+foreach_generated.go:191 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildVariableDeclaration(SB)
+foreach_generated.go:191 MOVD -8(RSP), R29
+foreach_generated.go:191 MOVD.P 48(RSP), R30
+foreach_generated.go:191 RET
+foreach_generated.go:193 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildVariableDeclarationList(SB)
+foreach_generated.go:193 MOVD -8(RSP), R29
+foreach_generated.go:193 MOVD.P 48(RSP), R30
+foreach_generated.go:193 RET
+foreach_generated.go:195 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildFunctionDeclaration(SB)
+foreach_generated.go:195 MOVD -8(RSP), R29
+foreach_generated.go:195 MOVD.P 48(RSP), R30
+foreach_generated.go:195 RET
+foreach_generated.go:197 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildClassDeclaration(SB)
+foreach_generated.go:197 MOVD -8(RSP), R29
+foreach_generated.go:197 MOVD.P 48(RSP), R30
+foreach_generated.go:197 RET
+foreach_generated.go:199 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildInterfaceDeclaration(SB)
+foreach_generated.go:199 MOVD -8(RSP), R29
+foreach_generated.go:199 MOVD.P 48(RSP), R30
+foreach_generated.go:199 RET
+foreach_generated.go:201 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTypeAliasDeclaration(SB)
+foreach_generated.go:201 MOVD -8(RSP), R29
+foreach_generated.go:201 MOVD.P 48(RSP), R30
+foreach_generated.go:201 RET
+foreach_generated.go:203 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildEnumDeclaration(SB)
+foreach_generated.go:203 MOVD -8(RSP), R29
+foreach_generated.go:203 MOVD.P 48(RSP), R30
+foreach_generated.go:203 RET
+foreach_generated.go:205 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildModuleDeclaration(SB)
+foreach_generated.go:205 MOVD -8(RSP), R29
+foreach_generated.go:205 MOVD.P 48(RSP), R30
+foreach_generated.go:205 RET
+foreach_generated.go:207 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildModuleBlock(SB)
+foreach_generated.go:207 MOVD -8(RSP), R29
+foreach_generated.go:207 MOVD.P 48(RSP), R30
+foreach_generated.go:207 RET
+foreach_generated.go:209 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildCaseBlock(SB)
+foreach_generated.go:209 MOVD -8(RSP), R29
+foreach_generated.go:209 MOVD.P 48(RSP), R30
+foreach_generated.go:209 RET
+foreach_generated.go:211 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildNamespaceExportDeclaration(SB)
+foreach_generated.go:211 MOVD -8(RSP), R29
+foreach_generated.go:211 MOVD.P 48(RSP), R30
+foreach_generated.go:211 RET
+foreach_generated.go:213 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildImportEqualsDeclaration(SB)
+foreach_generated.go:213 MOVD -8(RSP), R29
+foreach_generated.go:213 MOVD.P 48(RSP), R30
+foreach_generated.go:213 RET
+foreach_generated.go:215 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildImportDeclaration(SB)
+foreach_generated.go:215 MOVD -8(RSP), R29
+foreach_generated.go:215 MOVD.P 48(RSP), R30
+foreach_generated.go:215 RET
+foreach_generated.go:217 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildImportClause(SB)
+foreach_generated.go:217 MOVD -8(RSP), R29
+foreach_generated.go:217 MOVD.P 48(RSP), R30
+foreach_generated.go:217 RET
+foreach_generated.go:1702 MOVWU 20(R1), R3
+foreach_generated.go:1703 LDP 24(R0), (R4, R5)
+foreach_generated.go:1703 CMP R5, R3
+foreach_generated.go:1703 BCS 616(PC)
+foreach_generated.go:1703 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1703 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 609(PC)
+foreach_generated.go:1703 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1703 MOVD R2, R26
+foreach_generated.go:1703 CALL (R4)
+foreach_generated.go:1703 TBZ $0, R0, 3(PC)
+foreach_generated.go:1703 ORR $1, ZR, R0
+foreach_generated.go:219 JMP 2(PC)
+foreach_generated.go:219 MOVD ZR, R0
+foreach_generated.go:219 MOVD -8(RSP), R29
+foreach_generated.go:219 MOVD.P 48(RSP), R30
+foreach_generated.go:219 RET
+foreach_generated.go:221 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildNamedImports(SB)
+foreach_generated.go:221 MOVD -8(RSP), R29
+foreach_generated.go:221 MOVD.P 48(RSP), R30
+foreach_generated.go:221 RET
+foreach_generated.go:223 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildImportSpecifier(SB)
+foreach_generated.go:223 MOVD -8(RSP), R29
+foreach_generated.go:223 MOVD.P 48(RSP), R30
+foreach_generated.go:223 RET
+foreach_generated.go:225 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildExportAssignment(SB)
+foreach_generated.go:225 MOVD -8(RSP), R29
+foreach_generated.go:225 MOVD.P 48(RSP), R30
+foreach_generated.go:225 RET
+foreach_generated.go:227 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildExportDeclaration(SB)
+foreach_generated.go:227 MOVD -8(RSP), R29
+foreach_generated.go:227 MOVD.P 48(RSP), R30
+foreach_generated.go:227 RET
+foreach_generated.go:229 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildNamedExports(SB)
+foreach_generated.go:229 MOVD -8(RSP), R29
+foreach_generated.go:229 MOVD.P 48(RSP), R30
+foreach_generated.go:229 RET
+foreach_generated.go:1768 MOVWU 20(R1), R3
+foreach_generated.go:1769 LDP 24(R0), (R4, R5)
+foreach_generated.go:1769 CMP R5, R3
+foreach_generated.go:1769 BCS 571(PC)
+foreach_generated.go:1769 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1769 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 564(PC)
+foreach_generated.go:1769 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1769 MOVD R2, R26
+foreach_generated.go:1769 CALL (R4)
+foreach_generated.go:1769 TBZ $0, R0, 3(PC)
+foreach_generated.go:1769 ORR $1, ZR, R0
+foreach_generated.go:231 JMP 2(PC)
+foreach_generated.go:231 MOVD ZR, R0
+foreach_generated.go:231 MOVD -8(RSP), R29
+foreach_generated.go:231 MOVD.P 48(RSP), R30
+foreach_generated.go:231 RET
+foreach_generated.go:233 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildExportSpecifier(SB)
+foreach_generated.go:233 MOVD -8(RSP), R29
+foreach_generated.go:233 MOVD.P 48(RSP), R30
+foreach_generated.go:233 RET
+foreach_generated.go:235 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildMissingDeclaration(SB)
+foreach_generated.go:235 MOVD -8(RSP), R29
+foreach_generated.go:235 MOVD.P 48(RSP), R30
+foreach_generated.go:235 RET
+foreach_generated.go:1795 MOVWU 20(R1), R3
+foreach_generated.go:1796 LDP 24(R0), (R4, R5)
+foreach_generated.go:1796 CMP R5, R3
+foreach_generated.go:1796 BCS 538(PC)
+foreach_generated.go:1796 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1796 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 531(PC)
+foreach_generated.go:1796 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1796 MOVD R2, R26
+foreach_generated.go:1796 CALL (R4)
+foreach_generated.go:1796 TBZ $0, R0, 3(PC)
+foreach_generated.go:1796 ORR $1, ZR, R0
+foreach_generated.go:237 JMP 2(PC)
+foreach_generated.go:237 MOVD ZR, R0
+foreach_generated.go:237 MOVD -8(RSP), R29
+foreach_generated.go:237 MOVD.P 48(RSP), R30
+foreach_generated.go:237 RET
+foreach_generated.go:239 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJsxElement(SB)
+foreach_generated.go:239 MOVD -8(RSP), R29
+foreach_generated.go:239 MOVD.P 48(RSP), R30
+foreach_generated.go:239 RET
+foreach_generated.go:241 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJsxSelfClosingElement(SB)
+foreach_generated.go:241 MOVD -8(RSP), R29
+foreach_generated.go:241 MOVD.P 48(RSP), R30
+foreach_generated.go:241 RET
+foreach_generated.go:243 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJsxOpeningElement(SB)
+foreach_generated.go:243 MOVD -8(RSP), R29
+foreach_generated.go:243 MOVD.P 48(RSP), R30
+foreach_generated.go:243 RET
+foreach_generated.go:1845 MOVWU 20(R1), R3
+foreach_generated.go:1846 LDP 24(R0), (R4, R5)
+foreach_generated.go:1846 CMP R5, R3
+foreach_generated.go:1846 BCS 501(PC)
+foreach_generated.go:1846 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1846 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 494(PC)
+foreach_generated.go:1846 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1846 MOVD R2, R26
+foreach_generated.go:1846 CALL (R4)
+foreach_generated.go:1846 TBZ $0, R0, 3(PC)
+foreach_generated.go:1846 ORR $1, ZR, R0
+foreach_generated.go:245 JMP 2(PC)
+foreach_generated.go:245 MOVD ZR, R0
+foreach_generated.go:245 MOVD -8(RSP), R29
+foreach_generated.go:245 MOVD.P 48(RSP), R30
+foreach_generated.go:245 RET
+foreach_generated.go:247 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJsxFragment(SB)
+foreach_generated.go:247 MOVD -8(RSP), R29
+foreach_generated.go:247 MOVD.P 48(RSP), R30
+foreach_generated.go:247 RET
+foreach_generated.go:249 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJsxAttribute(SB)
+foreach_generated.go:249 MOVD -8(RSP), R29
+foreach_generated.go:249 MOVD.P 48(RSP), R30
+foreach_generated.go:249 RET
+foreach_generated.go:251 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJsxAttributes(SB)
+foreach_generated.go:251 MOVD -8(RSP), R29
+foreach_generated.go:251 MOVD.P 48(RSP), R30
+foreach_generated.go:251 RET
+foreach_generated.go:1886 MOVWU 20(R1), R3
+foreach_generated.go:1887 LDP 24(R0), (R4, R5)
+foreach_generated.go:1887 CMP R5, R3
+foreach_generated.go:1887 BCS 464(PC)
+foreach_generated.go:1887 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1887 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 457(PC)
+foreach_generated.go:1887 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:1887 MOVD R2, R26
+foreach_generated.go:1887 CALL (R4)
+foreach_generated.go:1887 TBZ $0, R0, 3(PC)
+foreach_generated.go:1887 ORR $1, ZR, R0
+foreach_generated.go:253 JMP 2(PC)
+foreach_generated.go:253 MOVD ZR, R0
+foreach_generated.go:253 MOVD -8(RSP), R29
+foreach_generated.go:253 MOVD.P 48(RSP), R30
+foreach_generated.go:253 RET
+foreach_generated.go:255 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJsxExpression(SB)
+foreach_generated.go:255 MOVD -8(RSP), R29
+foreach_generated.go:255 MOVD.P 48(RSP), R30
+foreach_generated.go:255 RET
+foreach_generated.go:257 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJsxNamespacedName(SB)
+foreach_generated.go:257 MOVD -8(RSP), R29
+foreach_generated.go:257 MOVD.P 48(RSP), R30
+foreach_generated.go:257 RET
+foreach_generated.go:259 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildCaseOrDefaultClause(SB)
+foreach_generated.go:259 MOVD -8(RSP), R29
+foreach_generated.go:259 MOVD.P 48(RSP), R30
+foreach_generated.go:259 RET
+foreach_generated.go:261 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildCaseOrDefaultClause(SB)
+foreach_generated.go:261 MOVD -8(RSP), R29
+foreach_generated.go:261 MOVD.P 48(RSP), R30
+foreach_generated.go:261 RET
+foreach_generated.go:263 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildHeritageClause(SB)
+foreach_generated.go:263 MOVD -8(RSP), R29
+foreach_generated.go:263 MOVD.P 48(RSP), R30
+foreach_generated.go:263 RET
+foreach_generated.go:265 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildCatchClause(SB)
+foreach_generated.go:265 MOVD -8(RSP), R29
+foreach_generated.go:265 MOVD.P 48(RSP), R30
+foreach_generated.go:265 RET
+foreach_generated.go:267 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildImportAttributes(SB)
+foreach_generated.go:267 MOVD -8(RSP), R29
+foreach_generated.go:267 MOVD.P 48(RSP), R30
+foreach_generated.go:267 RET
+foreach_generated.go:269 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildImportAttribute(SB)
+foreach_generated.go:269 MOVD -8(RSP), R29
+foreach_generated.go:269 MOVD.P 48(RSP), R30
+foreach_generated.go:269 RET
+foreach_generated.go:271 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildPropertyAssignment(SB)
+foreach_generated.go:271 MOVD -8(RSP), R29
+foreach_generated.go:271 MOVD.P 48(RSP), R30
+foreach_generated.go:271 RET
+foreach_generated.go:273 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildShorthandPropertyAssignment(SB)
+foreach_generated.go:273 MOVD -8(RSP), R29
+foreach_generated.go:273 MOVD.P 48(RSP), R30
+foreach_generated.go:273 RET
+foreach_generated.go:2008 MOVWU 20(R1), R3
+foreach_generated.go:2009 LDP 24(R0), (R4, R5)
+foreach_generated.go:2009 CMP R5, R3
+foreach_generated.go:2009 BCS 399(PC)
+foreach_generated.go:2009 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:2009 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 392(PC)
+foreach_generated.go:2009 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:2009 MOVD R2, R26
+foreach_generated.go:2009 CALL (R4)
+foreach_generated.go:2009 TBZ $0, R0, 3(PC)
+foreach_generated.go:2009 ORR $1, ZR, R0
+foreach_generated.go:275 JMP 2(PC)
+foreach_generated.go:275 MOVD ZR, R0
+foreach_generated.go:275 MOVD -8(RSP), R29
+foreach_generated.go:275 MOVD.P 48(RSP), R30
+foreach_generated.go:275 RET
+foreach_generated.go:277 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildEnumMember(SB)
+foreach_generated.go:277 MOVD -8(RSP), R29
+foreach_generated.go:277 MOVD.P 48(RSP), R30
+foreach_generated.go:277 RET
+foreach_generated.go:279 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildSourceFile(SB)
+foreach_generated.go:279 MOVD -8(RSP), R29
+foreach_generated.go:279 MOVD.P 48(RSP), R30
+foreach_generated.go:279 RET
+foreach_generated.go:2038 MOVWU 20(R1), R3
+foreach_generated.go:2039 LDP 24(R0), (R4, R5)
+foreach_generated.go:2039 CMP R5, R3
+foreach_generated.go:2039 BCS 366(PC)
+foreach_generated.go:2039 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:2039 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 359(PC)
+foreach_generated.go:2039 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:2039 MOVD R2, R26
+foreach_generated.go:2039 CALL (R4)
+foreach_generated.go:2039 TBZ $0, R0, 3(PC)
+foreach_generated.go:2039 ORR $1, ZR, R0
+foreach_generated.go:281 JMP 2(PC)
+foreach_generated.go:281 MOVD ZR, R0
+foreach_generated.go:281 MOVD -8(RSP), R29
+foreach_generated.go:281 MOVD.P 48(RSP), R30
+foreach_generated.go:281 RET
+foreach_generated.go:2046 MOVWU 20(R1), R3
+foreach_generated.go:2047 LDP 24(R0), (R4, R5)
+foreach_generated.go:2047 CMP R5, R3
+foreach_generated.go:2047 BCS 341(PC)
+foreach_generated.go:2047 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:2047 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 334(PC)
+foreach_generated.go:2047 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:2047 MOVD R2, R26
+foreach_generated.go:2047 CALL (R4)
+foreach_generated.go:2047 TBZ $0, R0, 3(PC)
+foreach_generated.go:2047 ORR $1, ZR, R0
+foreach_generated.go:283 JMP 2(PC)
+foreach_generated.go:283 MOVD ZR, R0
+foreach_generated.go:283 MOVD -8(RSP), R29
+foreach_generated.go:283 MOVD.P 48(RSP), R30
+foreach_generated.go:283 RET
+foreach_generated.go:2054 MOVWU 20(R1), R3
+foreach_generated.go:2055 LDP 24(R0), (R4, R5)
+foreach_generated.go:2055 CMP R5, R3
+foreach_generated.go:2055 BCS 316(PC)
+foreach_generated.go:2055 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:2055 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 309(PC)
+foreach_generated.go:2055 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:2055 MOVD R2, R26
+foreach_generated.go:2055 CALL (R4)
+foreach_generated.go:2055 TBZ $0, R0, 3(PC)
+foreach_generated.go:2055 ORR $1, ZR, R0
+foreach_generated.go:285 JMP 2(PC)
+foreach_generated.go:285 MOVD ZR, R0
+foreach_generated.go:285 MOVD -8(RSP), R29
+foreach_generated.go:285 MOVD.P 48(RSP), R30
+foreach_generated.go:285 RET
+foreach_generated.go:2062 MOVWU 20(R1), R3
+foreach_generated.go:2063 LDP 24(R0), (R4, R5)
+foreach_generated.go:2063 CMP R5, R3
+foreach_generated.go:2063 BCS 291(PC)
+foreach_generated.go:2063 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:2063 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 284(PC)
+foreach_generated.go:2063 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:2063 MOVD R2, R26
+foreach_generated.go:2063 CALL (R4)
+foreach_generated.go:2063 TBZ $0, R0, 3(PC)
+foreach_generated.go:2063 ORR $1, ZR, R0
+foreach_generated.go:287 JMP 2(PC)
+foreach_generated.go:287 MOVD ZR, R0
+foreach_generated.go:287 MOVD -8(RSP), R29
+foreach_generated.go:287 MOVD.P 48(RSP), R30
+foreach_generated.go:287 RET
+foreach_generated.go:2070 MOVWU 20(R1), R3
+foreach_generated.go:2071 LDP 24(R0), (R4, R5)
+foreach_generated.go:2071 CMP R5, R3
+foreach_generated.go:2071 BCS 266(PC)
+foreach_generated.go:2071 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:2071 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 259(PC)
+foreach_generated.go:2071 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:2071 MOVD R2, R26
+foreach_generated.go:2071 CALL (R4)
+foreach_generated.go:2071 TBZ $0, R0, 3(PC)
+foreach_generated.go:2071 ORR $1, ZR, R0
+foreach_generated.go:289 JMP 2(PC)
+foreach_generated.go:289 MOVD ZR, R0
+foreach_generated.go:289 MOVD -8(RSP), R29
+foreach_generated.go:289 MOVD.P 48(RSP), R30
+foreach_generated.go:289 RET
+foreach_generated.go:2078 MOVWU 20(R1), R3
+foreach_generated.go:2079 LDP 24(R0), (R4, R5)
+foreach_generated.go:2079 CMP R5, R3
+foreach_generated.go:2079 BCS 241(PC)
+foreach_generated.go:2079 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:2079 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 234(PC)
+foreach_generated.go:2079 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:2079 MOVD R2, R26
+foreach_generated.go:2079 CALL (R4)
+foreach_generated.go:2079 TBZ $0, R0, 3(PC)
+foreach_generated.go:2079 ORR $1, ZR, R0
+foreach_generated.go:291 JMP 2(PC)
+foreach_generated.go:291 MOVD ZR, R0
+foreach_generated.go:291 MOVD -8(RSP), R29
+foreach_generated.go:291 MOVD.P 48(RSP), R30
+foreach_generated.go:291 RET
+foreach_generated.go:293 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDoc(SB)
+foreach_generated.go:293 MOVD -8(RSP), R29
+foreach_generated.go:293 MOVD.P 48(RSP), R30
+foreach_generated.go:293 RET
+foreach_generated.go:295 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocTypeLiteral(SB)
+foreach_generated.go:295 MOVD -8(RSP), R29
+foreach_generated.go:295 MOVD.P 48(RSP), R30
+foreach_generated.go:295 RET
+foreach_generated.go:297 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocSignature(SB)
+foreach_generated.go:297 MOVD -8(RSP), R29
+foreach_generated.go:297 MOVD.P 48(RSP), R30
+foreach_generated.go:297 RET
+foreach_generated.go:2119 MOVWU 20(R1), R3
+foreach_generated.go:2120 LDP 24(R0), (R4, R5)
+foreach_generated.go:2120 CMP R5, R3
+foreach_generated.go:2120 BCS 204(PC)
+foreach_generated.go:2120 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:2120 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 197(PC)
+foreach_generated.go:2120 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:2120 MOVD R2, R26
+foreach_generated.go:2120 CALL (R4)
+foreach_generated.go:2120 TBZ $0, R0, 3(PC)
+foreach_generated.go:2120 ORR $1, ZR, R0
+foreach_generated.go:299 JMP 2(PC)
+foreach_generated.go:299 MOVD ZR, R0
+foreach_generated.go:299 MOVD -8(RSP), R29
+foreach_generated.go:299 MOVD.P 48(RSP), R30
+foreach_generated.go:299 RET
+foreach_generated.go:2127 MOVWU 20(R1), R3
+foreach_generated.go:2128 LDP 24(R0), (R4, R5)
+foreach_generated.go:2128 CMP R5, R3
+foreach_generated.go:2128 BCS 179(PC)
+foreach_generated.go:2128 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:2128 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 172(PC)
+foreach_generated.go:2128 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:2128 MOVD R2, R26
+foreach_generated.go:2128 CALL (R4)
+foreach_generated.go:2128 TBZ $0, R0, 3(PC)
+foreach_generated.go:2128 ORR $1, ZR, R0
+foreach_generated.go:301 JMP 2(PC)
+foreach_generated.go:301 MOVD ZR, R0
+foreach_generated.go:301 MOVD -8(RSP), R29
+foreach_generated.go:301 MOVD.P 48(RSP), R30
+foreach_generated.go:301 RET
+foreach_generated.go:2135 MOVWU 20(R1), R3
+foreach_generated.go:2136 LDP 24(R0), (R4, R5)
+foreach_generated.go:2136 CMP R5, R3
+foreach_generated.go:2136 BCS 154(PC)
+foreach_generated.go:2136 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:2136 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 147(PC)
+foreach_generated.go:2136 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:2136 MOVD R2, R26
+foreach_generated.go:2136 CALL (R4)
+foreach_generated.go:2136 TBZ $0, R0, 3(PC)
+foreach_generated.go:2136 ORR $1, ZR, R0
+foreach_generated.go:303 JMP 2(PC)
+foreach_generated.go:303 MOVD ZR, R0
+foreach_generated.go:303 MOVD -8(RSP), R29
+foreach_generated.go:303 MOVD.P 48(RSP), R30
+foreach_generated.go:303 RET
+foreach_generated.go:305 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocUnknownTag(SB)
+foreach_generated.go:305 MOVD -8(RSP), R29
+foreach_generated.go:305 MOVD.P 48(RSP), R30
+foreach_generated.go:305 RET
+foreach_generated.go:307 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocAugmentsTag(SB)
+foreach_generated.go:307 MOVD -8(RSP), R29
+foreach_generated.go:307 MOVD.P 48(RSP), R30
+foreach_generated.go:307 RET
+foreach_generated.go:309 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocImplementsTag(SB)
+foreach_generated.go:309 MOVD -8(RSP), R29
+foreach_generated.go:309 MOVD.P 48(RSP), R30
+foreach_generated.go:309 RET
+foreach_generated.go:311 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocDeprecatedTag(SB)
+foreach_generated.go:311 MOVD -8(RSP), R29
+foreach_generated.go:311 MOVD.P 48(RSP), R30
+foreach_generated.go:311 RET
+foreach_generated.go:313 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocPublicTag(SB)
+foreach_generated.go:313 MOVD -8(RSP), R29
+foreach_generated.go:313 MOVD.P 48(RSP), R30
+foreach_generated.go:313 RET
+foreach_generated.go:315 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocPrivateTag(SB)
+foreach_generated.go:315 MOVD -8(RSP), R29
+foreach_generated.go:315 MOVD.P 48(RSP), R30
+foreach_generated.go:315 RET
+foreach_generated.go:317 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocProtectedTag(SB)
+foreach_generated.go:317 MOVD -8(RSP), R29
+foreach_generated.go:317 MOVD.P 48(RSP), R30
+foreach_generated.go:317 RET
+foreach_generated.go:319 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocReadonlyTag(SB)
+foreach_generated.go:319 MOVD -8(RSP), R29
+foreach_generated.go:319 MOVD.P 48(RSP), R30
+foreach_generated.go:319 RET
+foreach_generated.go:321 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocOverrideTag(SB)
+foreach_generated.go:321 MOVD -8(RSP), R29
+foreach_generated.go:321 MOVD.P 48(RSP), R30
+foreach_generated.go:321 RET
+foreach_generated.go:323 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocCallbackTag(SB)
+foreach_generated.go:323 MOVD -8(RSP), R29
+foreach_generated.go:323 MOVD.P 48(RSP), R30
+foreach_generated.go:323 RET
+foreach_generated.go:325 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocOverloadTag(SB)
+foreach_generated.go:325 MOVD -8(RSP), R29
+foreach_generated.go:325 MOVD.P 48(RSP), R30
+foreach_generated.go:325 RET
+foreach_generated.go:327 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocParameterOrPropertyTag(SB)
+foreach_generated.go:327 MOVD -8(RSP), R29
+foreach_generated.go:327 MOVD.P 48(RSP), R30
+foreach_generated.go:327 RET
+foreach_generated.go:329 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocReturnTag(SB)
+foreach_generated.go:329 MOVD -8(RSP), R29
+foreach_generated.go:329 MOVD.P 48(RSP), R30
+foreach_generated.go:329 RET
+foreach_generated.go:331 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocThisTag(SB)
+foreach_generated.go:331 MOVD -8(RSP), R29
+foreach_generated.go:331 MOVD.P 48(RSP), R30
+foreach_generated.go:331 RET
+foreach_generated.go:333 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocTypeTag(SB)
+foreach_generated.go:333 MOVD -8(RSP), R29
+foreach_generated.go:333 MOVD.P 48(RSP), R30
+foreach_generated.go:333 RET
+foreach_generated.go:335 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocTemplateTag(SB)
+foreach_generated.go:335 MOVD -8(RSP), R29
+foreach_generated.go:335 MOVD.P 48(RSP), R30
+foreach_generated.go:335 RET
+foreach_generated.go:337 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocTypedefTag(SB)
+foreach_generated.go:337 MOVD -8(RSP), R29
+foreach_generated.go:337 MOVD.P 48(RSP), R30
+foreach_generated.go:337 RET
+foreach_generated.go:339 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocSeeTag(SB)
+foreach_generated.go:339 MOVD -8(RSP), R29
+foreach_generated.go:339 MOVD.P 48(RSP), R30
+foreach_generated.go:339 RET
+foreach_generated.go:341 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocParameterOrPropertyTag(SB)
+foreach_generated.go:341 MOVD -8(RSP), R29
+foreach_generated.go:341 MOVD.P 48(RSP), R30
+foreach_generated.go:341 RET
+foreach_generated.go:343 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocThrowsTag(SB)
+foreach_generated.go:343 MOVD -8(RSP), R29
+foreach_generated.go:343 MOVD.P 48(RSP), R30
+foreach_generated.go:343 RET
+foreach_generated.go:345 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocSatisfiesTag(SB)
+foreach_generated.go:345 MOVD -8(RSP), R29
+foreach_generated.go:345 MOVD.P 48(RSP), R30
+foreach_generated.go:345 RET
+foreach_generated.go:347 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocImportTag(SB)
+foreach_generated.go:347 MOVD -8(RSP), R29
+foreach_generated.go:347 MOVD.P 48(RSP), R30
+foreach_generated.go:347 RET
+foreach_generated.go:349 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildSyntaxList(SB)
+foreach_generated.go:349 MOVD -8(RSP), R29
+foreach_generated.go:349 MOVD.P 48(RSP), R30
+foreach_generated.go:349 RET
+foreach_generated.go:351 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTypeAliasDeclaration(SB)
+foreach_generated.go:351 MOVD -8(RSP), R29
+foreach_generated.go:351 MOVD.P 48(RSP), R30
+foreach_generated.go:351 RET
+foreach_generated.go:353 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildImportDeclaration(SB)
+foreach_generated.go:353 MOVD -8(RSP), R29
+foreach_generated.go:353 MOVD.P 48(RSP), R30
+foreach_generated.go:353 RET
+foreach_generated.go:2442 MOVWU 20(R1), R3
+foreach_generated.go:2443 LDP 24(R0), (R4, R5)
+foreach_generated.go:2443 CMP R5, R3
+foreach_generated.go:2443 BCS 29(PC)
+foreach_generated.go:2443 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:2443 CBZW R3, 14(PC)
+store.go:50 MOVD R3, R4
+store.go:50 LDP (R0), (R5, R6)
+store.go:50 CMP R6, R4
+store.go:50 BCS 22(PC)
+foreach_generated.go:2443 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R5, R3, R1
+foreach_generated.go:2443 MOVD R2, R26
+foreach_generated.go:2443 CALL (R4)
+foreach_generated.go:2443 TBZ $0, R0, 3(PC)
+foreach_generated.go:2443 ORR $1, ZR, R0
+foreach_generated.go:355 JMP 2(PC)
+foreach_generated.go:355 MOVD ZR, R0
+foreach_generated.go:355 MOVD -8(RSP), R29
+foreach_generated.go:355 MOVD.P 48(RSP), R30
+foreach_generated.go:355 RET
+foreach_generated.go:357 CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildSyntheticReferenceExpression(SB)
+foreach_generated.go:357 MOVD -8(RSP), R29
+foreach_generated.go:357 MOVD.P 48(RSP), R30
+foreach_generated.go:357 RET
+foreach_generated.go:359 MOVD ZR, R0
+foreach_generated.go:359 MOVD -8(RSP), R29
+foreach_generated.go:359 MOVD.P 48(RSP), R30
+foreach_generated.go:359 RET
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:2443 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:2136 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:2128 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:2120 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:2079 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:2071 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:2063 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:2055 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:2047 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:2039 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:2009 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1887 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1846 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1796 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1769 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1703 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1470 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1429 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1421 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1413 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1335 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1286 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1278 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1270 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1220 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1150 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1142 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1134 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1126 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1118 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1110 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:1047 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:855 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:813 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:805 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:797 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:756 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:748 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:732 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:426 CALL runtime.panicBounds(SB)
+store.go:50 CALL runtime.panicBounds(SB)
+foreach_generated.go:375 CALL runtime.panicBounds(SB)
+foreach_generated.go:375 NOOP
+foreach_generated.go:10 STP (R0, R1), 8(RSP)
+foreach_generated.go:10 MOVD R2, 24(RSP)
+foreach_generated.go:10 MOVD R30, R3
+foreach_generated.go:10 CALL runtime.morestack_noctxt.abi0(SB)
+foreach_generated.go:10 LDP 8(RSP), (R0, R1)
+foreach_generated.go:10 MOVD 24(RSP), R2
+foreach_generated.go:10 JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.Node.ForEachChild(SB)
+foreach_generated.go:10 ?
+foreach_generated.go:10 ?
+foreach_generated.go:10 ?

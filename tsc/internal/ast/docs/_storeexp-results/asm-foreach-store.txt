@@ -1,0 +1,1585 @@
+TEXT github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.Node.ForEachChild(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/ast/storeexp/foreach_generated.go
+  foreach_generated.go:10	0x1002593e0		f9400b90		MOVD 16(R28), R16												
+  foreach_generated.go:10	0x1002593e4		eb3063ff		CMP R16, RSP													
+  foreach_generated.go:10	0x1002593e8		5400c489		BLS 1572(PC)													
+  foreach_generated.go:10	0x1002593ec		f81d0ffe		MOVD.W R30, -48(RSP)												
+  foreach_generated.go:10	0x1002593f0		f81f83fd		MOVD R29, -8(RSP)												
+  foreach_generated.go:10	0x1002593f4		d10023fd		SUB $8, RSP, R29												
+  foreach_generated.go:10	0x1002593f8		f9001fe0		MOVD R0, 56(RSP)												
+  foreach_generated.go:10	0x1002593fc		f90023e1		MOVD R1, 64(RSP)												
+  foreach_generated.go:11	0x100259400		79800023		MOVH (R1), R3													
+  foreach_generated.go:11	0x100259404		d1029c63		SUB $167, R3, R3												
+  foreach_generated.go:11	0x100259408		f102d87f		CMP $182, R3													
+  foreach_generated.go:11	0x10025940c		5400b888		BHI 1476(PC)													
+  foreach_generated.go:11	0x100259410		b00021e4		ADRP 4444160(PC), R4												
+  foreach_generated.go:11	0x100259414		910e0084		ADD $896, R4, R4												
+  foreach_generated.go:11	0x100259418		f863789b		MOVD (R4)(R3<<3), R27												
+  foreach_generated.go:11	0x10025941c		d61f0360		JMP (R27)													
+  foreach_generated.go:13	0x100259420		94000620		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildQualifiedName(SB)			
+  foreach_generated.go:13	0x100259424		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:13	0x100259428		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:13	0x10025942c		d65f03c0		RET														
+  foreach_generated.go:374	0x100259430		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:375	0x100259434		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:375	0x100259438		eb05007f		CMP R5, R3													
+  foreach_generated.go:375	0x10025943c		5400c1a2		BCS 1549(PC)													
+  foreach_generated.go:375	0x100259440		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:375	0x100259444		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x100259448		aa0303e4		MOVD R3, R4													
+  store.go:50			0x10025944c		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x100259450		eb06009f		CMP R6, R4													
+  store.go:50			0x100259454		5400c0c2		BCS 1542(PC)													
+  foreach_generated.go:375	0x100259458		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025945c		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x100259460		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x100259464		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:375	0x100259468		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:375	0x10025946c		d63f0080		CALL (R4)													
+  foreach_generated.go:375	0x100259470		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:375	0x100259474		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:15	0x100259478		14000002		JMP 2(PC)													
+  foreach_generated.go:15	0x10025947c		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:15	0x100259480		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:15	0x100259484		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:15	0x100259488		d65f03c0		RET														
+  foreach_generated.go:17	0x10025948c		94000651		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTypeParameterDeclaration(SB)		
+  foreach_generated.go:17	0x100259490		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:17	0x100259494		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:17	0x100259498		d65f03c0		RET														
+  foreach_generated.go:19	0x10025949c		94000719		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildParameterDeclaration(SB)		
+  foreach_generated.go:19	0x1002594a0		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:19	0x1002594a4		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:19	0x1002594a8		d65f03c0		RET														
+  foreach_generated.go:425	0x1002594ac		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:426	0x1002594b0		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:426	0x1002594b4		eb05007f		CMP R5, R3													
+  foreach_generated.go:426	0x1002594b8		5400bd82		BCS 1516(PC)													
+  foreach_generated.go:426	0x1002594bc		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:426	0x1002594c0		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x1002594c4		aa0303e4		MOVD R3, R4													
+  store.go:50			0x1002594c8		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x1002594cc		eb06009f		CMP R6, R4													
+  store.go:50			0x1002594d0		5400bca2		BCS 1509(PC)													
+  foreach_generated.go:426	0x1002594d4		f9400044		MOVD (R2), R4													
+  store.go:50			0x1002594d8		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x1002594dc		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x1002594e0		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:426	0x1002594e4		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:426	0x1002594e8		d63f0080		CALL (R4)													
+  foreach_generated.go:426	0x1002594ec		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:426	0x1002594f0		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:21	0x1002594f4		14000002		JMP 2(PC)													
+  foreach_generated.go:21	0x1002594f8		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:21	0x1002594fc		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:21	0x100259500		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:21	0x100259504		d65f03c0		RET														
+  foreach_generated.go:23	0x100259508		940007e6		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildPropertySignatureDeclaration(SB)	
+  foreach_generated.go:23	0x10025950c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:23	0x100259510		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:23	0x100259514		d65f03c0		RET														
+  foreach_generated.go:25	0x100259518		940008ae		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildPropertyDeclaration(SB)		
+  foreach_generated.go:25	0x10025951c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:25	0x100259520		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:25	0x100259524		d65f03c0		RET														
+  foreach_generated.go:27	0x100259528		94000976		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildMethodSignatureDeclaration(SB)	
+  foreach_generated.go:27	0x10025952c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:27	0x100259530		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:27	0x100259534		d65f03c0		RET														
+  foreach_generated.go:29	0x100259538		94000ab2		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildMethodDeclaration(SB)		
+  foreach_generated.go:29	0x10025953c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:29	0x100259540		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:29	0x100259544		d65f03c0		RET														
+  foreach_generated.go:31	0x100259548		94000c42		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildClassStaticBlockDeclaration(SB)	
+  foreach_generated.go:31	0x10025954c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:31	0x100259550		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:31	0x100259554		d65f03c0		RET														
+  foreach_generated.go:33	0x100259558		94000cb6		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildConstructorDeclaration(SB)		
+  foreach_generated.go:33	0x10025955c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:33	0x100259560		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:33	0x100259564		d65f03c0		RET														
+  foreach_generated.go:35	0x100259568		94000dee		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildGetAccessorDeclaration(SB)		
+  foreach_generated.go:35	0x10025956c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:35	0x100259570		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:35	0x100259574		d65f03c0		RET														
+  foreach_generated.go:37	0x100259578		94000f46		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildSetAccessorDeclaration(SB)		
+  foreach_generated.go:37	0x10025957c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:37	0x100259580		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:37	0x100259584		d65f03c0		RET														
+  foreach_generated.go:39	0x100259588		9400109e		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildCallSignatureDeclaration(SB)		
+  foreach_generated.go:39	0x10025958c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:39	0x100259590		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:39	0x100259594		d65f03c0		RET														
+  foreach_generated.go:41	0x100259598		9400115a		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildConstructSignatureDeclaration(SB)	
+  foreach_generated.go:41	0x10025959c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:41	0x1002595a0		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:41	0x1002595a4		d65f03c0		RET														
+  foreach_generated.go:43	0x1002595a8		94001216		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildIndexSignatureDeclaration(SB)	
+  foreach_generated.go:43	0x1002595ac		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:43	0x1002595b0		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:43	0x1002595b4		d65f03c0		RET														
+  foreach_generated.go:45	0x1002595b8		940012d2		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTypePredicateNode(SB)		
+  foreach_generated.go:45	0x1002595bc		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:45	0x1002595c0		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:45	0x1002595c4		d65f03c0		RET														
+  foreach_generated.go:47	0x1002595c8		94001336		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTypeReferenceNode(SB)		
+  foreach_generated.go:47	0x1002595cc		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:47	0x1002595d0		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:47	0x1002595d4		d65f03c0		RET														
+  foreach_generated.go:49	0x1002595d8		940013ae		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildFunctionTypeNode(SB)			
+  foreach_generated.go:49	0x1002595dc		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:49	0x1002595e0		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:49	0x1002595e4		d65f03c0		RET														
+  foreach_generated.go:51	0x1002595e8		9400146a		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildConstructorTypeNode(SB)		
+  foreach_generated.go:51	0x1002595ec		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:51	0x1002595f0		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:51	0x1002595f4		d65f03c0		RET														
+  foreach_generated.go:53	0x1002595f8		9400156a		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTypeQueryNode(SB)			
+  foreach_generated.go:53	0x1002595fc		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:53	0x100259600		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:53	0x100259604		d65f03c0		RET														
+  foreach_generated.go:55	0x100259608		940015e2		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTypeLiteralNode(SB)			
+  foreach_generated.go:55	0x10025960c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:55	0x100259610		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:55	0x100259614		d65f03c0		RET														
+  foreach_generated.go:731	0x100259618		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:732	0x10025961c		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:732	0x100259620		eb05007f		CMP R5, R3													
+  foreach_generated.go:732	0x100259624		5400b1e2		BCS 1423(PC)													
+  foreach_generated.go:732	0x100259628		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:732	0x10025962c		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x100259630		aa0303e4		MOVD R3, R4													
+  store.go:50			0x100259634		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x100259638		eb06009f		CMP R6, R4													
+  store.go:50			0x10025963c		5400b102		BCS 1416(PC)													
+  foreach_generated.go:732	0x100259640		f9400044		MOVD (R2), R4													
+  store.go:50			0x100259644		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x100259648		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x10025964c		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:732	0x100259650		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:732	0x100259654		d63f0080		CALL (R4)													
+  foreach_generated.go:732	0x100259658		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:732	0x10025965c		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:57	0x100259660		14000002		JMP 2(PC)													
+  foreach_generated.go:57	0x100259664		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:57	0x100259668		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:57	0x10025966c		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:57	0x100259670		d65f03c0		RET														
+  foreach_generated.go:59	0x100259674		94001623		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTupleTypeNode(SB)			
+  foreach_generated.go:59	0x100259678		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:59	0x10025967c		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:59	0x100259680		d65f03c0		RET														
+  foreach_generated.go:747	0x100259684		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:748	0x100259688		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:748	0x10025968c		eb05007f		CMP R5, R3													
+  foreach_generated.go:748	0x100259690		5400ae42		BCS 1394(PC)													
+  foreach_generated.go:748	0x100259694		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:748	0x100259698		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025969c		aa0303e4		MOVD R3, R4													
+  store.go:50			0x1002596a0		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x1002596a4		eb06009f		CMP R6, R4													
+  store.go:50			0x1002596a8		5400ad62		BCS 1387(PC)													
+  foreach_generated.go:748	0x1002596ac		f9400044		MOVD (R2), R4													
+  store.go:50			0x1002596b0		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x1002596b4		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x1002596b8		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:748	0x1002596bc		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:748	0x1002596c0		d63f0080		CALL (R4)													
+  foreach_generated.go:748	0x1002596c4		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:748	0x1002596c8		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:61	0x1002596cc		14000002		JMP 2(PC)													
+  foreach_generated.go:61	0x1002596d0		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:61	0x1002596d4		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:61	0x1002596d8		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:61	0x1002596dc		d65f03c0		RET														
+  foreach_generated.go:755	0x1002596e0		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:756	0x1002596e4		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:756	0x1002596e8		eb05007f		CMP R5, R3													
+  foreach_generated.go:756	0x1002596ec		5400ab22		BCS 1369(PC)													
+  foreach_generated.go:756	0x1002596f0		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:756	0x1002596f4		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x1002596f8		aa0303e4		MOVD R3, R4													
+  store.go:50			0x1002596fc		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x100259700		eb06009f		CMP R6, R4													
+  store.go:50			0x100259704		5400aa42		BCS 1362(PC)													
+  foreach_generated.go:756	0x100259708		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025970c		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x100259710		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x100259714		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:756	0x100259718		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:756	0x10025971c		d63f0080		CALL (R4)													
+  foreach_generated.go:756	0x100259720		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:756	0x100259724		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:63	0x100259728		14000002		JMP 2(PC)													
+  foreach_generated.go:63	0x10025972c		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:63	0x100259730		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:63	0x100259734		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:63	0x100259738		d65f03c0		RET														
+  foreach_generated.go:65	0x10025973c		9400164d		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildUnionTypeNode(SB)			
+  foreach_generated.go:65	0x100259740		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:65	0x100259744		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:65	0x100259748		d65f03c0		RET														
+  foreach_generated.go:67	0x10025974c		940016a5		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildIntersectionTypeNode(SB)		
+  foreach_generated.go:67	0x100259750		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:67	0x100259754		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:67	0x100259758		d65f03c0		RET														
+  foreach_generated.go:69	0x10025975c		940016fd		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildConditionalTypeNode(SB)		
+  foreach_generated.go:69	0x100259760		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:69	0x100259764		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:69	0x100259768		d65f03c0		RET														
+  foreach_generated.go:796	0x10025976c		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:797	0x100259770		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:797	0x100259774		eb05007f		CMP R5, R3													
+  foreach_generated.go:797	0x100259778		5400a682		BCS 1332(PC)													
+  foreach_generated.go:797	0x10025977c		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:797	0x100259780		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x100259784		aa0303e4		MOVD R3, R4													
+  store.go:50			0x100259788		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x10025978c		eb06009f		CMP R6, R4													
+  store.go:50			0x100259790		5400a5a2		BCS 1325(PC)													
+  foreach_generated.go:797	0x100259794		f9400044		MOVD (R2), R4													
+  store.go:50			0x100259798		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x10025979c		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x1002597a0		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:797	0x1002597a4		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:797	0x1002597a8		d63f0080		CALL (R4)													
+  foreach_generated.go:797	0x1002597ac		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:797	0x1002597b0		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:71	0x1002597b4		14000002		JMP 2(PC)													
+  foreach_generated.go:71	0x1002597b8		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:71	0x1002597bc		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:71	0x1002597c0		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:71	0x1002597c4		d65f03c0		RET														
+  foreach_generated.go:804	0x1002597c8		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:805	0x1002597cc		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:805	0x1002597d0		eb05007f		CMP R5, R3													
+  foreach_generated.go:805	0x1002597d4		5400a362		BCS 1307(PC)													
+  foreach_generated.go:805	0x1002597d8		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:805	0x1002597dc		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x1002597e0		aa0303e4		MOVD R3, R4													
+  store.go:50			0x1002597e4		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x1002597e8		eb06009f		CMP R6, R4													
+  store.go:50			0x1002597ec		5400a282		BCS 1300(PC)													
+  foreach_generated.go:805	0x1002597f0		f9400044		MOVD (R2), R4													
+  store.go:50			0x1002597f4		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x1002597f8		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x1002597fc		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:805	0x100259800		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:805	0x100259804		d63f0080		CALL (R4)													
+  foreach_generated.go:805	0x100259808		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:805	0x10025980c		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:73	0x100259810		14000002		JMP 2(PC)													
+  foreach_generated.go:73	0x100259814		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:73	0x100259818		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:73	0x10025981c		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:73	0x100259820		d65f03c0		RET														
+  foreach_generated.go:812	0x100259824		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:813	0x100259828		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:813	0x10025982c		eb05007f		CMP R5, R3													
+  foreach_generated.go:813	0x100259830		5400a042		BCS 1282(PC)													
+  foreach_generated.go:813	0x100259834		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:813	0x100259838		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025983c		aa0303e4		MOVD R3, R4													
+  store.go:50			0x100259840		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x100259844		eb06009f		CMP R6, R4													
+  store.go:50			0x100259848		54009f62		BCS 1275(PC)													
+  foreach_generated.go:813	0x10025984c		f9400044		MOVD (R2), R4													
+  store.go:50			0x100259850		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x100259854		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x100259858		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:813	0x10025985c		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:813	0x100259860		d63f0080		CALL (R4)													
+  foreach_generated.go:813	0x100259864		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:813	0x100259868		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:75	0x10025986c		14000002		JMP 2(PC)													
+  foreach_generated.go:75	0x100259870		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:75	0x100259874		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:75	0x100259878		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:75	0x10025987c		d65f03c0		RET														
+  foreach_generated.go:77	0x100259880		94001738		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildIndexedAccessTypeNode(SB)		
+  foreach_generated.go:77	0x100259884		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:77	0x100259888		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:77	0x10025988c		d65f03c0		RET														
+  foreach_generated.go:79	0x100259890		94001780		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildMappedTypeNode(SB)			
+  foreach_generated.go:79	0x100259894		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:79	0x100259898		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:79	0x10025989c		d65f03c0		RET														
+  foreach_generated.go:854	0x1002598a0		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:855	0x1002598a4		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:855	0x1002598a8		eb05007f		CMP R5, R3													
+  foreach_generated.go:855	0x1002598ac		54009c22		BCS 1249(PC)													
+  foreach_generated.go:855	0x1002598b0		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:855	0x1002598b4		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x1002598b8		aa0303e4		MOVD R3, R4													
+  store.go:50			0x1002598bc		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x1002598c0		eb06009f		CMP R6, R4													
+  store.go:50			0x1002598c4		54009b42		BCS 1242(PC)													
+  foreach_generated.go:855	0x1002598c8		f9400044		MOVD (R2), R4													
+  store.go:50			0x1002598cc		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x1002598d0		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x1002598d4		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:855	0x1002598d8		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:855	0x1002598dc		d63f0080		CALL (R4)													
+  foreach_generated.go:855	0x1002598e0		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:855	0x1002598e4		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:81	0x1002598e8		14000002		JMP 2(PC)													
+  foreach_generated.go:81	0x1002598ec		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:81	0x1002598f0		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:81	0x1002598f4		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:81	0x1002598f8		d65f03c0		RET														
+  foreach_generated.go:83	0x1002598fc		94001851		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildNamedTupleMember(SB)			
+  foreach_generated.go:83	0x100259900		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:83	0x100259904		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:83	0x100259908		d65f03c0		RET														
+  foreach_generated.go:85	0x10025990c		940018d1		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTemplateLiteralTypeNode(SB)		
+  foreach_generated.go:85	0x100259910		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:85	0x100259914		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:85	0x100259918		d65f03c0		RET														
+  foreach_generated.go:87	0x10025991c		94001949		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTemplateLiteralTypeSpan(SB)		
+  foreach_generated.go:87	0x100259920		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:87	0x100259924		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:87	0x100259928		d65f03c0		RET														
+  foreach_generated.go:89	0x10025992c		94001991		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildImportTypeNode(SB)			
+  foreach_generated.go:89	0x100259930		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:89	0x100259934		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:89	0x100259938		d65f03c0		RET														
+  foreach_generated.go:91	0x10025993c		94001a41		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildBindingPattern(SB)			
+  foreach_generated.go:91	0x100259940		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:91	0x100259944		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:91	0x100259948		d65f03c0		RET														
+  foreach_generated.go:93	0x10025994c		94001a3d		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildBindingPattern(SB)			
+  foreach_generated.go:93	0x100259950		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:93	0x100259954		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:93	0x100259958		d65f03c0		RET														
+  foreach_generated.go:95	0x10025995c		94001a95		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildBindingElement(SB)			
+  foreach_generated.go:95	0x100259960		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:95	0x100259964		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:95	0x100259968		d65f03c0		RET														
+  foreach_generated.go:97	0x10025996c		94001b15		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildArrayLiteralExpression(SB)		
+  foreach_generated.go:97	0x100259970		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:97	0x100259974		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:97	0x100259978		d65f03c0		RET														
+  foreach_generated.go:99	0x10025997c		94001b6d		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildObjectLiteralExpression(SB)		
+  foreach_generated.go:99	0x100259980		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:99	0x100259984		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:99	0x100259988		d65f03c0		RET														
+  foreach_generated.go:101	0x10025998c		94001bc5		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildPropertyAccessExpression(SB)		
+  foreach_generated.go:101	0x100259990		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:101	0x100259994		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:101	0x100259998		d65f03c0		RET														
+  foreach_generated.go:103	0x10025999c		94001c29		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildElementAccessExpression(SB)		
+  foreach_generated.go:103	0x1002599a0		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:103	0x1002599a4		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:103	0x1002599a8		d65f03c0		RET														
+  foreach_generated.go:105	0x1002599ac		94001c8d		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildCallExpression(SB)			
+  foreach_generated.go:105	0x1002599b0		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:105	0x1002599b4		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:105	0x1002599b8		d65f03c0		RET														
+  foreach_generated.go:107	0x1002599bc		94001d65		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildNewExpression(SB)			
+  foreach_generated.go:107	0x1002599c0		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:107	0x1002599c4		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:107	0x1002599c8		d65f03c0		RET														
+  foreach_generated.go:109	0x1002599cc		94001e21		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTaggedTemplateExpression(SB)		
+  foreach_generated.go:109	0x1002599d0		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:109	0x1002599d4		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:109	0x1002599d8		d65f03c0		RET														
+  foreach_generated.go:111	0x1002599dc		94001ecd		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTypeAssertion(SB)			
+  foreach_generated.go:111	0x1002599e0		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:111	0x1002599e4		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:111	0x1002599e8		d65f03c0		RET														
+  foreach_generated.go:1046	0x1002599ec		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1047	0x1002599f0		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1047	0x1002599f4		eb05007f		CMP R5, R3													
+  foreach_generated.go:1047	0x1002599f8		54009182		BCS 1164(PC)													
+  foreach_generated.go:1047	0x1002599fc		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1047	0x100259a00		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x100259a04		aa0303e4		MOVD R3, R4													
+  store.go:50			0x100259a08		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x100259a0c		eb06009f		CMP R6, R4													
+  store.go:50			0x100259a10		540090a2		BCS 1157(PC)													
+  foreach_generated.go:1047	0x100259a14		f9400044		MOVD (R2), R4													
+  store.go:50			0x100259a18		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x100259a1c		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x100259a20		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1047	0x100259a24		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1047	0x100259a28		d63f0080		CALL (R4)													
+  foreach_generated.go:1047	0x100259a2c		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1047	0x100259a30		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:113	0x100259a34		14000002		JMP 2(PC)													
+  foreach_generated.go:113	0x100259a38		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:113	0x100259a3c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:113	0x100259a40		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:113	0x100259a44		d65f03c0		RET														
+  foreach_generated.go:115	0x100259a48		94001efe		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildFunctionExpression(SB)		
+  foreach_generated.go:115	0x100259a4c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:115	0x100259a50		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:115	0x100259a54		d65f03c0		RET														
+  foreach_generated.go:117	0x100259a58		94002072		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildArrowFunction(SB)			
+  foreach_generated.go:117	0x100259a5c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:117	0x100259a60		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:117	0x100259a64		d65f03c0		RET														
+  foreach_generated.go:1109	0x100259a68		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1110	0x100259a6c		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1110	0x100259a70		eb05007f		CMP R5, R3													
+  foreach_generated.go:1110	0x100259a74		54008d62		BCS 1131(PC)													
+  foreach_generated.go:1110	0x100259a78		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1110	0x100259a7c		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x100259a80		aa0303e4		MOVD R3, R4													
+  store.go:50			0x100259a84		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x100259a88		eb06009f		CMP R6, R4													
+  store.go:50			0x100259a8c		54008c82		BCS 1124(PC)													
+  foreach_generated.go:1110	0x100259a90		f9400044		MOVD (R2), R4													
+  store.go:50			0x100259a94		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x100259a98		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x100259a9c		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1110	0x100259aa0		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1110	0x100259aa4		d63f0080		CALL (R4)													
+  foreach_generated.go:1110	0x100259aa8		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1110	0x100259aac		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:119	0x100259ab0		14000002		JMP 2(PC)													
+  foreach_generated.go:119	0x100259ab4		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:119	0x100259ab8		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:119	0x100259abc		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:119	0x100259ac0		d65f03c0		RET														
+  foreach_generated.go:1117	0x100259ac4		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1118	0x100259ac8		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1118	0x100259acc		eb05007f		CMP R5, R3													
+  foreach_generated.go:1118	0x100259ad0		54008a42		BCS 1106(PC)													
+  foreach_generated.go:1118	0x100259ad4		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1118	0x100259ad8		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x100259adc		aa0303e4		MOVD R3, R4													
+  store.go:50			0x100259ae0		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x100259ae4		eb06009f		CMP R6, R4													
+  store.go:50			0x100259ae8		54008962		BCS 1099(PC)													
+  foreach_generated.go:1118	0x100259aec		f9400044		MOVD (R2), R4													
+  store.go:50			0x100259af0		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x100259af4		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x100259af8		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1118	0x100259afc		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1118	0x100259b00		d63f0080		CALL (R4)													
+  foreach_generated.go:1118	0x100259b04		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1118	0x100259b08		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:121	0x100259b0c		14000002		JMP 2(PC)													
+  foreach_generated.go:121	0x100259b10		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:121	0x100259b14		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:121	0x100259b18		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:121	0x100259b1c		d65f03c0		RET														
+  foreach_generated.go:1125	0x100259b20		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1126	0x100259b24		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1126	0x100259b28		eb05007f		CMP R5, R3													
+  foreach_generated.go:1126	0x100259b2c		54008722		BCS 1081(PC)													
+  foreach_generated.go:1126	0x100259b30		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1126	0x100259b34		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x100259b38		aa0303e4		MOVD R3, R4													
+  store.go:50			0x100259b3c		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x100259b40		eb06009f		CMP R6, R4													
+  store.go:50			0x100259b44		54008642		BCS 1074(PC)													
+  foreach_generated.go:1126	0x100259b48		f9400044		MOVD (R2), R4													
+  store.go:50			0x100259b4c		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x100259b50		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x100259b54		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1126	0x100259b58		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1126	0x100259b5c		d63f0080		CALL (R4)													
+  foreach_generated.go:1126	0x100259b60		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1126	0x100259b64		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:123	0x100259b68		14000002		JMP 2(PC)													
+  foreach_generated.go:123	0x100259b6c		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:123	0x100259b70		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:123	0x100259b74		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:123	0x100259b78		d65f03c0		RET														
+  foreach_generated.go:1133	0x100259b7c		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1134	0x100259b80		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1134	0x100259b84		eb05007f		CMP R5, R3													
+  foreach_generated.go:1134	0x100259b88		54008402		BCS 1056(PC)													
+  foreach_generated.go:1134	0x100259b8c		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1134	0x100259b90		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x100259b94		aa0303e4		MOVD R3, R4													
+  store.go:50			0x100259b98		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x100259b9c		eb06009f		CMP R6, R4													
+  store.go:50			0x100259ba0		54008322		BCS 1049(PC)													
+  foreach_generated.go:1134	0x100259ba4		f9400044		MOVD (R2), R4													
+  store.go:50			0x100259ba8		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x100259bac		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x100259bb0		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1134	0x100259bb4		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1134	0x100259bb8		d63f0080		CALL (R4)													
+  foreach_generated.go:1134	0x100259bbc		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1134	0x100259bc0		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:125	0x100259bc4		14000002		JMP 2(PC)													
+  foreach_generated.go:125	0x100259bc8		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:125	0x100259bcc		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:125	0x100259bd0		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:125	0x100259bd4		d65f03c0		RET														
+  foreach_generated.go:1141	0x100259bd8		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1142	0x100259bdc		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1142	0x100259be0		eb05007f		CMP R5, R3													
+  foreach_generated.go:1142	0x100259be4		540080e2		BCS 1031(PC)													
+  foreach_generated.go:1142	0x100259be8		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1142	0x100259bec		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x100259bf0		aa0303e4		MOVD R3, R4													
+  store.go:50			0x100259bf4		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x100259bf8		eb06009f		CMP R6, R4													
+  store.go:50			0x100259bfc		54008002		BCS 1024(PC)													
+  foreach_generated.go:1142	0x100259c00		f9400044		MOVD (R2), R4													
+  store.go:50			0x100259c04		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x100259c08		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x100259c0c		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1142	0x100259c10		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1142	0x100259c14		d63f0080		CALL (R4)													
+  foreach_generated.go:1142	0x100259c18		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1142	0x100259c1c		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:127	0x100259c20		14000002		JMP 2(PC)													
+  foreach_generated.go:127	0x100259c24		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:127	0x100259c28		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:127	0x100259c2c		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:127	0x100259c30		d65f03c0		RET														
+  foreach_generated.go:1149	0x100259c34		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1150	0x100259c38		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1150	0x100259c3c		eb05007f		CMP R5, R3													
+  foreach_generated.go:1150	0x100259c40		54007dc2		BCS 1006(PC)													
+  foreach_generated.go:1150	0x100259c44		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1150	0x100259c48		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x100259c4c		aa0303e4		MOVD R3, R4													
+  store.go:50			0x100259c50		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x100259c54		eb06009f		CMP R6, R4													
+  store.go:50			0x100259c58		54007ce2		BCS 999(PC)													
+  foreach_generated.go:1150	0x100259c5c		f9400044		MOVD (R2), R4													
+  store.go:50			0x100259c60		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x100259c64		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x100259c68		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1150	0x100259c6c		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1150	0x100259c70		d63f0080		CALL (R4)													
+  foreach_generated.go:1150	0x100259c74		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1150	0x100259c78		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:129	0x100259c7c		14000002		JMP 2(PC)													
+  foreach_generated.go:129	0x100259c80		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:129	0x100259c84		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:129	0x100259c88		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:129	0x100259c8c		d65f03c0		RET														
+  foreach_generated.go:131	0x100259c90		9400213c		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildBinaryExpression(SB)			
+  foreach_generated.go:131	0x100259c94		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:131	0x100259c98		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:131	0x100259c9c		d65f03c0		RET														
+  foreach_generated.go:133	0x100259ca0		94002204		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildConditionalExpression(SB)		
+  foreach_generated.go:133	0x100259ca4		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:133	0x100259ca8		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:133	0x100259cac		d65f03c0		RET														
+  foreach_generated.go:135	0x100259cb0		940022a0		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTemplateExpression(SB)		
+  foreach_generated.go:135	0x100259cb4		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:135	0x100259cb8		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:135	0x100259cbc		d65f03c0		RET														
+  foreach_generated.go:137	0x100259cc0		94002318		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildYieldExpression(SB)			
+  foreach_generated.go:137	0x100259cc4		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:137	0x100259cc8		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:137	0x100259ccc		d65f03c0		RET														
+  foreach_generated.go:1219	0x100259cd0		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1220	0x100259cd4		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1220	0x100259cd8		eb05007f		CMP R5, R3													
+  foreach_generated.go:1220	0x100259cdc		540078a2		BCS 965(PC)													
+  foreach_generated.go:1220	0x100259ce0		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1220	0x100259ce4		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x100259ce8		aa0303e4		MOVD R3, R4													
+  store.go:50			0x100259cec		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x100259cf0		eb06009f		CMP R6, R4													
+  store.go:50			0x100259cf4		540077c2		BCS 958(PC)													
+  foreach_generated.go:1220	0x100259cf8		f9400044		MOVD (R2), R4													
+  store.go:50			0x100259cfc		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x100259d00		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x100259d04		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1220	0x100259d08		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1220	0x100259d0c		d63f0080		CALL (R4)													
+  foreach_generated.go:1220	0x100259d10		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1220	0x100259d14		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:139	0x100259d18		14000002		JMP 2(PC)													
+  foreach_generated.go:139	0x100259d1c		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:139	0x100259d20		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:139	0x100259d24		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:139	0x100259d28		d65f03c0		RET														
+  foreach_generated.go:141	0x100259d2c		94002349		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildClassExpression(SB)			
+  foreach_generated.go:141	0x100259d30		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:141	0x100259d34		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:141	0x100259d38		d65f03c0		RET														
+  foreach_generated.go:143	0x100259d3c		94002495		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildExpressionWithTypeArguments(SB)	
+  foreach_generated.go:143	0x100259d40		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:143	0x100259d44		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:143	0x100259d48		d65f03c0		RET														
+  foreach_generated.go:145	0x100259d4c		9400250d		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildAsExpression(SB)			
+  foreach_generated.go:145	0x100259d50		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:145	0x100259d54		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:145	0x100259d58		d65f03c0		RET														
+  foreach_generated.go:1269	0x100259d5c		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1270	0x100259d60		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1270	0x100259d64		eb05007f		CMP R5, R3													
+  foreach_generated.go:1270	0x100259d68		54007402		BCS 928(PC)													
+  foreach_generated.go:1270	0x100259d6c		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1270	0x100259d70		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x100259d74		aa0303e4		MOVD R3, R4													
+  store.go:50			0x100259d78		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x100259d7c		eb06009f		CMP R6, R4													
+  store.go:50			0x100259d80		54007322		BCS 921(PC)													
+  foreach_generated.go:1270	0x100259d84		f9400044		MOVD (R2), R4													
+  store.go:50			0x100259d88		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x100259d8c		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x100259d90		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1270	0x100259d94		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1270	0x100259d98		d63f0080		CALL (R4)													
+  foreach_generated.go:1270	0x100259d9c		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1270	0x100259da0		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:147	0x100259da4		14000002		JMP 2(PC)													
+  foreach_generated.go:147	0x100259da8		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:147	0x100259dac		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:147	0x100259db0		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:147	0x100259db4		d65f03c0		RET														
+  foreach_generated.go:1277	0x100259db8		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1278	0x100259dbc		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1278	0x100259dc0		eb05007f		CMP R5, R3													
+  foreach_generated.go:1278	0x100259dc4		540070e2		BCS 903(PC)													
+  foreach_generated.go:1278	0x100259dc8		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1278	0x100259dcc		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x100259dd0		aa0303e4		MOVD R3, R4													
+  store.go:50			0x100259dd4		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x100259dd8		eb06009f		CMP R6, R4													
+  store.go:50			0x100259ddc		54007002		BCS 896(PC)													
+  foreach_generated.go:1278	0x100259de0		f9400044		MOVD (R2), R4													
+  store.go:50			0x100259de4		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x100259de8		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x100259dec		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1278	0x100259df0		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1278	0x100259df4		d63f0080		CALL (R4)													
+  foreach_generated.go:1278	0x100259df8		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1278	0x100259dfc		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:149	0x100259e00		14000002		JMP 2(PC)													
+  foreach_generated.go:149	0x100259e04		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:149	0x100259e08		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:149	0x100259e0c		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:149	0x100259e10		d65f03c0		RET														
+  foreach_generated.go:1285	0x100259e14		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1286	0x100259e18		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1286	0x100259e1c		eb05007f		CMP R5, R3													
+  foreach_generated.go:1286	0x100259e20		54006dc2		BCS 878(PC)													
+  foreach_generated.go:1286	0x100259e24		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1286	0x100259e28		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x100259e2c		aa0303e4		MOVD R3, R4													
+  store.go:50			0x100259e30		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x100259e34		eb06009f		CMP R6, R4													
+  store.go:50			0x100259e38		54006ce2		BCS 871(PC)													
+  foreach_generated.go:1286	0x100259e3c		f9400044		MOVD (R2), R4													
+  store.go:50			0x100259e40		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x100259e44		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x100259e48		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1286	0x100259e4c		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1286	0x100259e50		d63f0080		CALL (R4)													
+  foreach_generated.go:1286	0x100259e54		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1286	0x100259e58		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:151	0x100259e5c		14000002		JMP 2(PC)													
+  foreach_generated.go:151	0x100259e60		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:151	0x100259e64		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:151	0x100259e68		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:151	0x100259e6c		d65f03c0		RET														
+  foreach_generated.go:153	0x100259e70		94002510		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildSatisfiesExpression(SB)		
+  foreach_generated.go:153	0x100259e74		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:153	0x100259e78		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:153	0x100259e7c		d65f03c0		RET														
+  foreach_generated.go:155	0x100259e80		94002558		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTemplateSpan(SB)			
+  foreach_generated.go:155	0x100259e84		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:155	0x100259e88		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:155	0x100259e8c		d65f03c0		RET														
+  foreach_generated.go:157	0x100259e90		940025a0		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildBlock(SB)				
+  foreach_generated.go:157	0x100259e94		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:157	0x100259e98		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:157	0x100259e9c		d65f03c0		RET														
+  foreach_generated.go:159	0x100259ea0		940025f8		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildVariableStatement(SB)		
+  foreach_generated.go:159	0x100259ea4		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:159	0x100259ea8		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:159	0x100259eac		d65f03c0		RET														
+  foreach_generated.go:1334	0x100259eb0		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1335	0x100259eb4		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1335	0x100259eb8		eb05007f		CMP R5, R3													
+  foreach_generated.go:1335	0x100259ebc		540068a2		BCS 837(PC)													
+  foreach_generated.go:1335	0x100259ec0		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1335	0x100259ec4		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x100259ec8		aa0303e4		MOVD R3, R4													
+  store.go:50			0x100259ecc		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x100259ed0		eb06009f		CMP R6, R4													
+  store.go:50			0x100259ed4		540067c2		BCS 830(PC)													
+  foreach_generated.go:1335	0x100259ed8		f9400044		MOVD (R2), R4													
+  store.go:50			0x100259edc		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x100259ee0		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x100259ee4		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1335	0x100259ee8		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1335	0x100259eec		d63f0080		CALL (R4)													
+  foreach_generated.go:1335	0x100259ef0		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1335	0x100259ef4		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:161	0x100259ef8		14000002		JMP 2(PC)													
+  foreach_generated.go:161	0x100259efc		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:161	0x100259f00		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:161	0x100259f04		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:161	0x100259f08		d65f03c0		RET														
+  foreach_generated.go:163	0x100259f0c		94002655		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildIfStatement(SB)			
+  foreach_generated.go:163	0x100259f10		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:163	0x100259f14		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:163	0x100259f18		d65f03c0		RET														
+  foreach_generated.go:165	0x100259f1c		940026b9		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildDoStatement(SB)			
+  foreach_generated.go:165	0x100259f20		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:165	0x100259f24		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:165	0x100259f28		d65f03c0		RET														
+  foreach_generated.go:167	0x100259f2c		94002701		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildWhileStatement(SB)			
+  foreach_generated.go:167	0x100259f30		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:167	0x100259f34		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:167	0x100259f38		d65f03c0		RET														
+  foreach_generated.go:169	0x100259f3c		94002749		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildForStatement(SB)			
+  foreach_generated.go:169	0x100259f40		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:169	0x100259f44		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:169	0x100259f48		d65f03c0		RET														
+  foreach_generated.go:171	0x100259f4c		940027c9		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildForInOrOfStatement(SB)		
+  foreach_generated.go:171	0x100259f50		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:171	0x100259f54		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:171	0x100259f58		d65f03c0		RET														
+  foreach_generated.go:173	0x100259f5c		940027c5		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildForInOrOfStatement(SB)		
+  foreach_generated.go:173	0x100259f60		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:173	0x100259f64		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:173	0x100259f68		d65f03c0		RET														
+  foreach_generated.go:1412	0x100259f6c		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1413	0x100259f70		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1413	0x100259f74		eb05007f		CMP R5, R3													
+  foreach_generated.go:1413	0x100259f78		54006282		BCS 788(PC)													
+  foreach_generated.go:1413	0x100259f7c		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1413	0x100259f80		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x100259f84		aa0303e4		MOVD R3, R4													
+  store.go:50			0x100259f88		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x100259f8c		eb06009f		CMP R6, R4													
+  store.go:50			0x100259f90		540061a2		BCS 781(PC)													
+  foreach_generated.go:1413	0x100259f94		f9400044		MOVD (R2), R4													
+  store.go:50			0x100259f98		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x100259f9c		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x100259fa0		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1413	0x100259fa4		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1413	0x100259fa8		d63f0080		CALL (R4)													
+  foreach_generated.go:1413	0x100259fac		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1413	0x100259fb0		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:175	0x100259fb4		14000002		JMP 2(PC)													
+  foreach_generated.go:175	0x100259fb8		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:175	0x100259fbc		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:175	0x100259fc0		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:175	0x100259fc4		d65f03c0		RET														
+  foreach_generated.go:1420	0x100259fc8		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1421	0x100259fcc		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1421	0x100259fd0		eb05007f		CMP R5, R3													
+  foreach_generated.go:1421	0x100259fd4		54005f62		BCS 763(PC)													
+  foreach_generated.go:1421	0x100259fd8		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1421	0x100259fdc		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x100259fe0		aa0303e4		MOVD R3, R4													
+  store.go:50			0x100259fe4		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x100259fe8		eb06009f		CMP R6, R4													
+  store.go:50			0x100259fec		54005e82		BCS 756(PC)													
+  foreach_generated.go:1421	0x100259ff0		f9400044		MOVD (R2), R4													
+  store.go:50			0x100259ff4		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x100259ff8		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x100259ffc		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1421	0x10025a000		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1421	0x10025a004		d63f0080		CALL (R4)													
+  foreach_generated.go:1421	0x10025a008		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1421	0x10025a00c		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:177	0x10025a010		14000002		JMP 2(PC)													
+  foreach_generated.go:177	0x10025a014		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:177	0x10025a018		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:177	0x10025a01c		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:177	0x10025a020		d65f03c0		RET														
+  foreach_generated.go:1428	0x10025a024		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1429	0x10025a028		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1429	0x10025a02c		eb05007f		CMP R5, R3													
+  foreach_generated.go:1429	0x10025a030		54005c42		BCS 738(PC)													
+  foreach_generated.go:1429	0x10025a034		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1429	0x10025a038		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025a03c		aa0303e4		MOVD R3, R4													
+  store.go:50			0x10025a040		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x10025a044		eb06009f		CMP R6, R4													
+  store.go:50			0x10025a048		54005b62		BCS 731(PC)													
+  foreach_generated.go:1429	0x10025a04c		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025a050		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x10025a054		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x10025a058		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1429	0x10025a05c		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1429	0x10025a060		d63f0080		CALL (R4)													
+  foreach_generated.go:1429	0x10025a064		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1429	0x10025a068		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:179	0x10025a06c		14000002		JMP 2(PC)													
+  foreach_generated.go:179	0x10025a070		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:179	0x10025a074		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:179	0x10025a078		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:179	0x10025a07c		d65f03c0		RET														
+  foreach_generated.go:181	0x10025a080		94002800		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildWithStatement(SB)			
+  foreach_generated.go:181	0x10025a084		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:181	0x10025a088		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:181	0x10025a08c		d65f03c0		RET														
+  foreach_generated.go:183	0x10025a090		94002848		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildSwitchStatement(SB)			
+  foreach_generated.go:183	0x10025a094		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:183	0x10025a098		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:183	0x10025a09c		d65f03c0		RET														
+  foreach_generated.go:185	0x10025a0a0		94002890		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildLabeledStatement(SB)			
+  foreach_generated.go:185	0x10025a0a4		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:185	0x10025a0a8		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:185	0x10025a0ac		d65f03c0		RET														
+  foreach_generated.go:1469	0x10025a0b0		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1470	0x10025a0b4		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1470	0x10025a0b8		eb05007f		CMP R5, R3													
+  foreach_generated.go:1470	0x10025a0bc		540057a2		BCS 701(PC)													
+  foreach_generated.go:1470	0x10025a0c0		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1470	0x10025a0c4		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025a0c8		aa0303e4		MOVD R3, R4													
+  store.go:50			0x10025a0cc		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x10025a0d0		eb06009f		CMP R6, R4													
+  store.go:50			0x10025a0d4		540056c2		BCS 694(PC)													
+  foreach_generated.go:1470	0x10025a0d8		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025a0dc		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x10025a0e0		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x10025a0e4		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1470	0x10025a0e8		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1470	0x10025a0ec		d63f0080		CALL (R4)													
+  foreach_generated.go:1470	0x10025a0f0		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1470	0x10025a0f4		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:187	0x10025a0f8		14000002		JMP 2(PC)													
+  foreach_generated.go:187	0x10025a0fc		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:187	0x10025a100		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:187	0x10025a104		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:187	0x10025a108		d65f03c0		RET														
+  foreach_generated.go:189	0x10025a10c		940028c1		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTryStatement(SB)			
+  foreach_generated.go:189	0x10025a110		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:189	0x10025a114		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:189	0x10025a118		d65f03c0		RET														
+  foreach_generated.go:191	0x10025a11c		94002925		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildVariableDeclaration(SB)		
+  foreach_generated.go:191	0x10025a120		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:191	0x10025a124		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:191	0x10025a128		d65f03c0		RET														
+  foreach_generated.go:193	0x10025a12c		940029a5		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildVariableDeclarationList(SB)		
+  foreach_generated.go:193	0x10025a130		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:193	0x10025a134		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:193	0x10025a138		d65f03c0		RET														
+  foreach_generated.go:195	0x10025a13c		940029fd		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildFunctionDeclaration(SB)		
+  foreach_generated.go:195	0x10025a140		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:195	0x10025a144		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:195	0x10025a148		d65f03c0		RET														
+  foreach_generated.go:197	0x10025a14c		94002b71		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildClassDeclaration(SB)			
+  foreach_generated.go:197	0x10025a150		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:197	0x10025a154		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:197	0x10025a158		d65f03c0		RET														
+  foreach_generated.go:199	0x10025a15c		94002cbd		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildInterfaceDeclaration(SB)		
+  foreach_generated.go:199	0x10025a160		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:199	0x10025a164		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:199	0x10025a168		d65f03c0		RET														
+  foreach_generated.go:201	0x10025a16c		94002e09		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTypeAliasDeclaration(SB)		
+  foreach_generated.go:201	0x10025a170		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:201	0x10025a174		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:201	0x10025a178		d65f03c0		RET														
+  foreach_generated.go:203	0x10025a17c		94002ee1		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildEnumDeclaration(SB)			
+  foreach_generated.go:203	0x10025a180		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:203	0x10025a184		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:203	0x10025a188		d65f03c0		RET														
+  foreach_generated.go:205	0x10025a18c		94002fa1		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildModuleDeclaration(SB)		
+  foreach_generated.go:205	0x10025a190		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:205	0x10025a194		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:205	0x10025a198		d65f03c0		RET														
+  foreach_generated.go:207	0x10025a19c		9400304d		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildModuleBlock(SB)			
+  foreach_generated.go:207	0x10025a1a0		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:207	0x10025a1a4		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:207	0x10025a1a8		d65f03c0		RET														
+  foreach_generated.go:209	0x10025a1ac		940030a5		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildCaseBlock(SB)			
+  foreach_generated.go:209	0x10025a1b0		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:209	0x10025a1b4		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:209	0x10025a1b8		d65f03c0		RET														
+  foreach_generated.go:211	0x10025a1bc		940030fd		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildNamespaceExportDeclaration(SB)	
+  foreach_generated.go:211	0x10025a1c0		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:211	0x10025a1c4		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:211	0x10025a1c8		d65f03c0		RET														
+  foreach_generated.go:213	0x10025a1cc		94003171		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildImportEqualsDeclaration(SB)		
+  foreach_generated.go:213	0x10025a1d0		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:213	0x10025a1d4		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:213	0x10025a1d8		d65f03c0		RET														
+  foreach_generated.go:215	0x10025a1dc		94003201		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildImportDeclaration(SB)		
+  foreach_generated.go:215	0x10025a1e0		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:215	0x10025a1e4		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:215	0x10025a1e8		d65f03c0		RET														
+  foreach_generated.go:217	0x10025a1ec		940032ad		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildImportClause(SB)			
+  foreach_generated.go:217	0x10025a1f0		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:217	0x10025a1f4		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:217	0x10025a1f8		d65f03c0		RET														
+  foreach_generated.go:1702	0x10025a1fc		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1703	0x10025a200		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1703	0x10025a204		eb05007f		CMP R5, R3													
+  foreach_generated.go:1703	0x10025a208		54004d02		BCS 616(PC)													
+  foreach_generated.go:1703	0x10025a20c		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1703	0x10025a210		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025a214		aa0303e4		MOVD R3, R4													
+  store.go:50			0x10025a218		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x10025a21c		eb06009f		CMP R6, R4													
+  store.go:50			0x10025a220		54004c22		BCS 609(PC)													
+  foreach_generated.go:1703	0x10025a224		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025a228		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x10025a22c		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x10025a230		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1703	0x10025a234		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1703	0x10025a238		d63f0080		CALL (R4)													
+  foreach_generated.go:1703	0x10025a23c		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1703	0x10025a240		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:219	0x10025a244		14000002		JMP 2(PC)													
+  foreach_generated.go:219	0x10025a248		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:219	0x10025a24c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:219	0x10025a250		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:219	0x10025a254		d65f03c0		RET														
+  foreach_generated.go:221	0x10025a258		940032de		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildNamedImports(SB)			
+  foreach_generated.go:221	0x10025a25c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:221	0x10025a260		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:221	0x10025a264		d65f03c0		RET														
+  foreach_generated.go:223	0x10025a268		94003336		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildImportSpecifier(SB)			
+  foreach_generated.go:223	0x10025a26c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:223	0x10025a270		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:223	0x10025a274		d65f03c0		RET														
+  foreach_generated.go:225	0x10025a278		9400337e		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildExportAssignment(SB)			
+  foreach_generated.go:225	0x10025a27c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:225	0x10025a280		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:225	0x10025a284		d65f03c0		RET														
+  foreach_generated.go:227	0x10025a288		9400340e		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildExportDeclaration(SB)		
+  foreach_generated.go:227	0x10025a28c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:227	0x10025a290		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:227	0x10025a294		d65f03c0		RET														
+  foreach_generated.go:229	0x10025a298		940034ba		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildNamedExports(SB)			
+  foreach_generated.go:229	0x10025a29c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:229	0x10025a2a0		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:229	0x10025a2a4		d65f03c0		RET														
+  foreach_generated.go:1768	0x10025a2a8		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1769	0x10025a2ac		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1769	0x10025a2b0		eb05007f		CMP R5, R3													
+  foreach_generated.go:1769	0x10025a2b4		54004762		BCS 571(PC)													
+  foreach_generated.go:1769	0x10025a2b8		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1769	0x10025a2bc		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025a2c0		aa0303e4		MOVD R3, R4													
+  store.go:50			0x10025a2c4		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x10025a2c8		eb06009f		CMP R6, R4													
+  store.go:50			0x10025a2cc		54004682		BCS 564(PC)													
+  foreach_generated.go:1769	0x10025a2d0		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025a2d4		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x10025a2d8		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x10025a2dc		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1769	0x10025a2e0		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1769	0x10025a2e4		d63f0080		CALL (R4)													
+  foreach_generated.go:1769	0x10025a2e8		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1769	0x10025a2ec		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:231	0x10025a2f0		14000002		JMP 2(PC)													
+  foreach_generated.go:231	0x10025a2f4		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:231	0x10025a2f8		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:231	0x10025a2fc		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:231	0x10025a300		d65f03c0		RET														
+  foreach_generated.go:233	0x10025a304		940034fb		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildExportSpecifier(SB)			
+  foreach_generated.go:233	0x10025a308		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:233	0x10025a30c		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:233	0x10025a310		d65f03c0		RET														
+  foreach_generated.go:235	0x10025a314		94003543		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildMissingDeclaration(SB)		
+  foreach_generated.go:235	0x10025a318		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:235	0x10025a31c		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:235	0x10025a320		d65f03c0		RET														
+  foreach_generated.go:1795	0x10025a324		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1796	0x10025a328		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1796	0x10025a32c		eb05007f		CMP R5, R3													
+  foreach_generated.go:1796	0x10025a330		54004342		BCS 538(PC)													
+  foreach_generated.go:1796	0x10025a334		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1796	0x10025a338		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025a33c		aa0303e4		MOVD R3, R4													
+  store.go:50			0x10025a340		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x10025a344		eb06009f		CMP R6, R4													
+  store.go:50			0x10025a348		54004262		BCS 531(PC)													
+  foreach_generated.go:1796	0x10025a34c		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025a350		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x10025a354		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x10025a358		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1796	0x10025a35c		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1796	0x10025a360		d63f0080		CALL (R4)													
+  foreach_generated.go:1796	0x10025a364		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1796	0x10025a368		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:237	0x10025a36c		14000002		JMP 2(PC)													
+  foreach_generated.go:237	0x10025a370		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:237	0x10025a374		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:237	0x10025a378		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:237	0x10025a37c		d65f03c0		RET														
+  foreach_generated.go:239	0x10025a380		94003584		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJsxElement(SB)			
+  foreach_generated.go:239	0x10025a384		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:239	0x10025a388		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:239	0x10025a38c		d65f03c0		RET														
+  foreach_generated.go:241	0x10025a390		94003614		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJsxSelfClosingElement(SB)		
+  foreach_generated.go:241	0x10025a394		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:241	0x10025a398		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:241	0x10025a39c		d65f03c0		RET														
+  foreach_generated.go:243	0x10025a3a0		940036a4		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJsxOpeningElement(SB)		
+  foreach_generated.go:243	0x10025a3a4		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:243	0x10025a3a8		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:243	0x10025a3ac		d65f03c0		RET														
+  foreach_generated.go:1845	0x10025a3b0		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1846	0x10025a3b4		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1846	0x10025a3b8		eb05007f		CMP R5, R3													
+  foreach_generated.go:1846	0x10025a3bc		54003ea2		BCS 501(PC)													
+  foreach_generated.go:1846	0x10025a3c0		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1846	0x10025a3c4		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025a3c8		aa0303e4		MOVD R3, R4													
+  store.go:50			0x10025a3cc		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x10025a3d0		eb06009f		CMP R6, R4													
+  store.go:50			0x10025a3d4		54003dc2		BCS 494(PC)													
+  foreach_generated.go:1846	0x10025a3d8		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025a3dc		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x10025a3e0		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x10025a3e4		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1846	0x10025a3e8		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1846	0x10025a3ec		d63f0080		CALL (R4)													
+  foreach_generated.go:1846	0x10025a3f0		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1846	0x10025a3f4		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:245	0x10025a3f8		14000002		JMP 2(PC)													
+  foreach_generated.go:245	0x10025a3fc		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:245	0x10025a400		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:245	0x10025a404		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:245	0x10025a408		d65f03c0		RET														
+  foreach_generated.go:247	0x10025a40c		9400371d		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJsxFragment(SB)			
+  foreach_generated.go:247	0x10025a410		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:247	0x10025a414		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:247	0x10025a418		d65f03c0		RET														
+  foreach_generated.go:249	0x10025a41c		940037ad		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJsxAttribute(SB)			
+  foreach_generated.go:249	0x10025a420		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:249	0x10025a424		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:249	0x10025a428		d65f03c0		RET														
+  foreach_generated.go:251	0x10025a42c		940037f5		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJsxAttributes(SB)			
+  foreach_generated.go:251	0x10025a430		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:251	0x10025a434		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:251	0x10025a438		d65f03c0		RET														
+  foreach_generated.go:1886	0x10025a43c		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:1887	0x10025a440		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:1887	0x10025a444		eb05007f		CMP R5, R3													
+  foreach_generated.go:1887	0x10025a448		54003a02		BCS 464(PC)													
+  foreach_generated.go:1887	0x10025a44c		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:1887	0x10025a450		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025a454		aa0303e4		MOVD R3, R4													
+  store.go:50			0x10025a458		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x10025a45c		eb06009f		CMP R6, R4													
+  store.go:50			0x10025a460		54003922		BCS 457(PC)													
+  foreach_generated.go:1887	0x10025a464		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025a468		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x10025a46c		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x10025a470		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:1887	0x10025a474		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:1887	0x10025a478		d63f0080		CALL (R4)													
+  foreach_generated.go:1887	0x10025a47c		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:1887	0x10025a480		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:253	0x10025a484		14000002		JMP 2(PC)													
+  foreach_generated.go:253	0x10025a488		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:253	0x10025a48c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:253	0x10025a490		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:253	0x10025a494		d65f03c0		RET														
+  foreach_generated.go:255	0x10025a498		94003836		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJsxExpression(SB)			
+  foreach_generated.go:255	0x10025a49c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:255	0x10025a4a0		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:255	0x10025a4a4		d65f03c0		RET														
+  foreach_generated.go:257	0x10025a4a8		9400387e		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJsxNamespacedName(SB)		
+  foreach_generated.go:257	0x10025a4ac		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:257	0x10025a4b0		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:257	0x10025a4b4		d65f03c0		RET														
+  foreach_generated.go:259	0x10025a4b8		940038c6		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildCaseOrDefaultClause(SB)		
+  foreach_generated.go:259	0x10025a4bc		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:259	0x10025a4c0		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:259	0x10025a4c4		d65f03c0		RET														
+  foreach_generated.go:261	0x10025a4c8		940038c2		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildCaseOrDefaultClause(SB)		
+  foreach_generated.go:261	0x10025a4cc		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:261	0x10025a4d0		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:261	0x10025a4d4		d65f03c0		RET														
+  foreach_generated.go:263	0x10025a4d8		9400393a		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildHeritageClause(SB)			
+  foreach_generated.go:263	0x10025a4dc		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:263	0x10025a4e0		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:263	0x10025a4e4		d65f03c0		RET														
+  foreach_generated.go:265	0x10025a4e8		94003992		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildCatchClause(SB)			
+  foreach_generated.go:265	0x10025a4ec		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:265	0x10025a4f0		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:265	0x10025a4f4		d65f03c0		RET														
+  foreach_generated.go:267	0x10025a4f8		940039da		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildImportAttributes(SB)			
+  foreach_generated.go:267	0x10025a4fc		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:267	0x10025a500		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:267	0x10025a504		d65f03c0		RET														
+  foreach_generated.go:269	0x10025a508		94003a32		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildImportAttribute(SB)			
+  foreach_generated.go:269	0x10025a50c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:269	0x10025a510		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:269	0x10025a514		d65f03c0		RET														
+  foreach_generated.go:271	0x10025a518		94003a7a		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildPropertyAssignment(SB)		
+  foreach_generated.go:271	0x10025a51c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:271	0x10025a520		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:271	0x10025a524		d65f03c0		RET														
+  foreach_generated.go:273	0x10025a528		94003b42		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildShorthandPropertyAssignment(SB)	
+  foreach_generated.go:273	0x10025a52c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:273	0x10025a530		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:273	0x10025a534		d65f03c0		RET														
+  foreach_generated.go:2008	0x10025a538		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:2009	0x10025a53c		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:2009	0x10025a540		eb05007f		CMP R5, R3													
+  foreach_generated.go:2009	0x10025a544		540031e2		BCS 399(PC)													
+  foreach_generated.go:2009	0x10025a548		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:2009	0x10025a54c		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025a550		aa0303e4		MOVD R3, R4													
+  store.go:50			0x10025a554		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x10025a558		eb06009f		CMP R6, R4													
+  store.go:50			0x10025a55c		54003102		BCS 392(PC)													
+  foreach_generated.go:2009	0x10025a560		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025a564		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x10025a568		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x10025a56c		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:2009	0x10025a570		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:2009	0x10025a574		d63f0080		CALL (R4)													
+  foreach_generated.go:2009	0x10025a578		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:2009	0x10025a57c		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:275	0x10025a580		14000002		JMP 2(PC)													
+  foreach_generated.go:275	0x10025a584		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:275	0x10025a588		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:275	0x10025a58c		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:275	0x10025a590		d65f03c0		RET														
+  foreach_generated.go:277	0x10025a594		94003c0f		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildEnumMember(SB)			
+  foreach_generated.go:277	0x10025a598		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:277	0x10025a59c		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:277	0x10025a5a0		d65f03c0		RET														
+  foreach_generated.go:279	0x10025a5a4		94003c57		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildSourceFile(SB)			
+  foreach_generated.go:279	0x10025a5a8		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:279	0x10025a5ac		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:279	0x10025a5b0		d65f03c0		RET														
+  foreach_generated.go:2038	0x10025a5b4		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:2039	0x10025a5b8		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:2039	0x10025a5bc		eb05007f		CMP R5, R3													
+  foreach_generated.go:2039	0x10025a5c0		54002dc2		BCS 366(PC)													
+  foreach_generated.go:2039	0x10025a5c4		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:2039	0x10025a5c8		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025a5cc		aa0303e4		MOVD R3, R4													
+  store.go:50			0x10025a5d0		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x10025a5d4		eb06009f		CMP R6, R4													
+  store.go:50			0x10025a5d8		54002ce2		BCS 359(PC)													
+  foreach_generated.go:2039	0x10025a5dc		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025a5e0		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x10025a5e4		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x10025a5e8		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:2039	0x10025a5ec		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:2039	0x10025a5f0		d63f0080		CALL (R4)													
+  foreach_generated.go:2039	0x10025a5f4		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:2039	0x10025a5f8		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:281	0x10025a5fc		14000002		JMP 2(PC)													
+  foreach_generated.go:281	0x10025a600		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:281	0x10025a604		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:281	0x10025a608		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:281	0x10025a60c		d65f03c0		RET														
+  foreach_generated.go:2046	0x10025a610		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:2047	0x10025a614		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:2047	0x10025a618		eb05007f		CMP R5, R3													
+  foreach_generated.go:2047	0x10025a61c		54002aa2		BCS 341(PC)													
+  foreach_generated.go:2047	0x10025a620		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:2047	0x10025a624		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025a628		aa0303e4		MOVD R3, R4													
+  store.go:50			0x10025a62c		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x10025a630		eb06009f		CMP R6, R4													
+  store.go:50			0x10025a634		540029c2		BCS 334(PC)													
+  foreach_generated.go:2047	0x10025a638		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025a63c		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x10025a640		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x10025a644		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:2047	0x10025a648		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:2047	0x10025a64c		d63f0080		CALL (R4)													
+  foreach_generated.go:2047	0x10025a650		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:2047	0x10025a654		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:283	0x10025a658		14000002		JMP 2(PC)													
+  foreach_generated.go:283	0x10025a65c		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:283	0x10025a660		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:283	0x10025a664		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:283	0x10025a668		d65f03c0		RET														
+  foreach_generated.go:2054	0x10025a66c		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:2055	0x10025a670		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:2055	0x10025a674		eb05007f		CMP R5, R3													
+  foreach_generated.go:2055	0x10025a678		54002782		BCS 316(PC)													
+  foreach_generated.go:2055	0x10025a67c		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:2055	0x10025a680		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025a684		aa0303e4		MOVD R3, R4													
+  store.go:50			0x10025a688		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x10025a68c		eb06009f		CMP R6, R4													
+  store.go:50			0x10025a690		540026a2		BCS 309(PC)													
+  foreach_generated.go:2055	0x10025a694		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025a698		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x10025a69c		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x10025a6a0		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:2055	0x10025a6a4		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:2055	0x10025a6a8		d63f0080		CALL (R4)													
+  foreach_generated.go:2055	0x10025a6ac		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:2055	0x10025a6b0		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:285	0x10025a6b4		14000002		JMP 2(PC)													
+  foreach_generated.go:285	0x10025a6b8		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:285	0x10025a6bc		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:285	0x10025a6c0		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:285	0x10025a6c4		d65f03c0		RET														
+  foreach_generated.go:2062	0x10025a6c8		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:2063	0x10025a6cc		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:2063	0x10025a6d0		eb05007f		CMP R5, R3													
+  foreach_generated.go:2063	0x10025a6d4		54002462		BCS 291(PC)													
+  foreach_generated.go:2063	0x10025a6d8		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:2063	0x10025a6dc		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025a6e0		aa0303e4		MOVD R3, R4													
+  store.go:50			0x10025a6e4		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x10025a6e8		eb06009f		CMP R6, R4													
+  store.go:50			0x10025a6ec		54002382		BCS 284(PC)													
+  foreach_generated.go:2063	0x10025a6f0		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025a6f4		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x10025a6f8		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x10025a6fc		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:2063	0x10025a700		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:2063	0x10025a704		d63f0080		CALL (R4)													
+  foreach_generated.go:2063	0x10025a708		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:2063	0x10025a70c		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:287	0x10025a710		14000002		JMP 2(PC)													
+  foreach_generated.go:287	0x10025a714		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:287	0x10025a718		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:287	0x10025a71c		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:287	0x10025a720		d65f03c0		RET														
+  foreach_generated.go:2070	0x10025a724		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:2071	0x10025a728		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:2071	0x10025a72c		eb05007f		CMP R5, R3													
+  foreach_generated.go:2071	0x10025a730		54002142		BCS 266(PC)													
+  foreach_generated.go:2071	0x10025a734		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:2071	0x10025a738		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025a73c		aa0303e4		MOVD R3, R4													
+  store.go:50			0x10025a740		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x10025a744		eb06009f		CMP R6, R4													
+  store.go:50			0x10025a748		54002062		BCS 259(PC)													
+  foreach_generated.go:2071	0x10025a74c		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025a750		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x10025a754		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x10025a758		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:2071	0x10025a75c		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:2071	0x10025a760		d63f0080		CALL (R4)													
+  foreach_generated.go:2071	0x10025a764		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:2071	0x10025a768		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:289	0x10025a76c		14000002		JMP 2(PC)													
+  foreach_generated.go:289	0x10025a770		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:289	0x10025a774		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:289	0x10025a778		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:289	0x10025a77c		d65f03c0		RET														
+  foreach_generated.go:2078	0x10025a780		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:2079	0x10025a784		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:2079	0x10025a788		eb05007f		CMP R5, R3													
+  foreach_generated.go:2079	0x10025a78c		54001e22		BCS 241(PC)													
+  foreach_generated.go:2079	0x10025a790		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:2079	0x10025a794		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025a798		aa0303e4		MOVD R3, R4													
+  store.go:50			0x10025a79c		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x10025a7a0		eb06009f		CMP R6, R4													
+  store.go:50			0x10025a7a4		54001d42		BCS 234(PC)													
+  foreach_generated.go:2079	0x10025a7a8		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025a7ac		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x10025a7b0		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x10025a7b4		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:2079	0x10025a7b8		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:2079	0x10025a7bc		d63f0080		CALL (R4)													
+  foreach_generated.go:2079	0x10025a7c0		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:2079	0x10025a7c4		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:291	0x10025a7c8		14000002		JMP 2(PC)													
+  foreach_generated.go:291	0x10025a7cc		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:291	0x10025a7d0		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:291	0x10025a7d4		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:291	0x10025a7d8		d65f03c0		RET														
+  foreach_generated.go:293	0x10025a7dc		94003c41		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDoc(SB)				
+  foreach_generated.go:293	0x10025a7e0		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:293	0x10025a7e4		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:293	0x10025a7e8		d65f03c0		RET														
+  foreach_generated.go:295	0x10025a7ec		94003ce1		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocTypeLiteral(SB)			
+  foreach_generated.go:295	0x10025a7f0		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:295	0x10025a7f4		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:295	0x10025a7f8		d65f03c0		RET														
+  foreach_generated.go:297	0x10025a7fc		94003d39		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocSignature(SB)			
+  foreach_generated.go:297	0x10025a800		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:297	0x10025a804		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:297	0x10025a808		d65f03c0		RET														
+  foreach_generated.go:2119	0x10025a80c		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:2120	0x10025a810		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:2120	0x10025a814		eb05007f		CMP R5, R3													
+  foreach_generated.go:2120	0x10025a818		54001982		BCS 204(PC)													
+  foreach_generated.go:2120	0x10025a81c		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:2120	0x10025a820		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025a824		aa0303e4		MOVD R3, R4													
+  store.go:50			0x10025a828		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x10025a82c		eb06009f		CMP R6, R4													
+  store.go:50			0x10025a830		540018a2		BCS 197(PC)													
+  foreach_generated.go:2120	0x10025a834		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025a838		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x10025a83c		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x10025a840		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:2120	0x10025a844		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:2120	0x10025a848		d63f0080		CALL (R4)													
+  foreach_generated.go:2120	0x10025a84c		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:2120	0x10025a850		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:299	0x10025a854		14000002		JMP 2(PC)													
+  foreach_generated.go:299	0x10025a858		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:299	0x10025a85c		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:299	0x10025a860		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:299	0x10025a864		d65f03c0		RET														
+  foreach_generated.go:2127	0x10025a868		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:2128	0x10025a86c		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:2128	0x10025a870		eb05007f		CMP R5, R3													
+  foreach_generated.go:2128	0x10025a874		54001662		BCS 179(PC)													
+  foreach_generated.go:2128	0x10025a878		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:2128	0x10025a87c		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025a880		aa0303e4		MOVD R3, R4													
+  store.go:50			0x10025a884		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x10025a888		eb06009f		CMP R6, R4													
+  store.go:50			0x10025a88c		54001582		BCS 172(PC)													
+  foreach_generated.go:2128	0x10025a890		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025a894		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x10025a898		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x10025a89c		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:2128	0x10025a8a0		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:2128	0x10025a8a4		d63f0080		CALL (R4)													
+  foreach_generated.go:2128	0x10025a8a8		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:2128	0x10025a8ac		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:301	0x10025a8b0		14000002		JMP 2(PC)													
+  foreach_generated.go:301	0x10025a8b4		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:301	0x10025a8b8		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:301	0x10025a8bc		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:301	0x10025a8c0		d65f03c0		RET														
+  foreach_generated.go:2135	0x10025a8c4		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:2136	0x10025a8c8		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:2136	0x10025a8cc		eb05007f		CMP R5, R3													
+  foreach_generated.go:2136	0x10025a8d0		54001342		BCS 154(PC)													
+  foreach_generated.go:2136	0x10025a8d4		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:2136	0x10025a8d8		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025a8dc		aa0303e4		MOVD R3, R4													
+  store.go:50			0x10025a8e0		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x10025a8e4		eb06009f		CMP R6, R4													
+  store.go:50			0x10025a8e8		54001262		BCS 147(PC)													
+  foreach_generated.go:2136	0x10025a8ec		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025a8f0		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x10025a8f4		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x10025a8f8		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:2136	0x10025a8fc		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:2136	0x10025a900		d63f0080		CALL (R4)													
+  foreach_generated.go:2136	0x10025a904		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:2136	0x10025a908		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:303	0x10025a90c		14000002		JMP 2(PC)													
+  foreach_generated.go:303	0x10025a910		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:303	0x10025a914		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:303	0x10025a918		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:303	0x10025a91c		d65f03c0		RET														
+  foreach_generated.go:305	0x10025a920		94003db0		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocUnknownTag(SB)			
+  foreach_generated.go:305	0x10025a924		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:305	0x10025a928		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:305	0x10025a92c		d65f03c0		RET														
+  foreach_generated.go:307	0x10025a930		94003e28		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocAugmentsTag(SB)			
+  foreach_generated.go:307	0x10025a934		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:307	0x10025a938		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:307	0x10025a93c		d65f03c0		RET														
+  foreach_generated.go:309	0x10025a940		94003ebc		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocImplementsTag(SB)		
+  foreach_generated.go:309	0x10025a944		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:309	0x10025a948		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:309	0x10025a94c		d65f03c0		RET														
+  foreach_generated.go:311	0x10025a950		94003f50		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocDeprecatedTag(SB)		
+  foreach_generated.go:311	0x10025a954		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:311	0x10025a958		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:311	0x10025a95c		d65f03c0		RET														
+  foreach_generated.go:313	0x10025a960		94003fc8		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocPublicTag(SB)			
+  foreach_generated.go:313	0x10025a964		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:313	0x10025a968		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:313	0x10025a96c		d65f03c0		RET														
+  foreach_generated.go:315	0x10025a970		94004040		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocPrivateTag(SB)			
+  foreach_generated.go:315	0x10025a974		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:315	0x10025a978		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:315	0x10025a97c		d65f03c0		RET														
+  foreach_generated.go:317	0x10025a980		940040b8		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocProtectedTag(SB)		
+  foreach_generated.go:317	0x10025a984		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:317	0x10025a988		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:317	0x10025a98c		d65f03c0		RET														
+  foreach_generated.go:319	0x10025a990		94004130		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocReadonlyTag(SB)			
+  foreach_generated.go:319	0x10025a994		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:319	0x10025a998		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:319	0x10025a99c		d65f03c0		RET														
+  foreach_generated.go:321	0x10025a9a0		940041a8		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocOverrideTag(SB)			
+  foreach_generated.go:321	0x10025a9a4		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:321	0x10025a9a8		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:321	0x10025a9ac		d65f03c0		RET														
+  foreach_generated.go:323	0x10025a9b0		94004220		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocCallbackTag(SB)			
+  foreach_generated.go:323	0x10025a9b4		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:323	0x10025a9b8		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:323	0x10025a9bc		d65f03c0		RET														
+  foreach_generated.go:325	0x10025a9c0		940042d0		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocOverloadTag(SB)			
+  foreach_generated.go:325	0x10025a9c4		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:325	0x10025a9c8		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:325	0x10025a9cc		d65f03c0		RET														
+  foreach_generated.go:327	0x10025a9d0		94004364		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocParameterOrPropertyTag(SB)	
+  foreach_generated.go:327	0x10025a9d4		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:327	0x10025a9d8		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:327	0x10025a9dc		d65f03c0		RET														
+  foreach_generated.go:329	0x10025a9e0		94004414		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocReturnTag(SB)			
+  foreach_generated.go:329	0x10025a9e4		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:329	0x10025a9e8		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:329	0x10025a9ec		d65f03c0		RET														
+  foreach_generated.go:331	0x10025a9f0		940044a8		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocThisTag(SB)			
+  foreach_generated.go:331	0x10025a9f4		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:331	0x10025a9f8		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:331	0x10025a9fc		d65f03c0		RET														
+  foreach_generated.go:333	0x10025aa00		9400453c		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocTypeTag(SB)			
+  foreach_generated.go:333	0x10025aa04		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:333	0x10025aa08		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:333	0x10025aa0c		d65f03c0		RET														
+  foreach_generated.go:335	0x10025aa10		940045d0		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocTemplateTag(SB)			
+  foreach_generated.go:335	0x10025aa14		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:335	0x10025aa18		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:335	0x10025aa1c		d65f03c0		RET														
+  foreach_generated.go:337	0x10025aa20		940046a8		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocTypedefTag(SB)			
+  foreach_generated.go:337	0x10025aa24		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:337	0x10025aa28		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:337	0x10025aa2c		d65f03c0		RET														
+  foreach_generated.go:339	0x10025aa30		94004758		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocSeeTag(SB)			
+  foreach_generated.go:339	0x10025aa34		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:339	0x10025aa38		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:339	0x10025aa3c		d65f03c0		RET														
+  foreach_generated.go:341	0x10025aa40		94004348		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocParameterOrPropertyTag(SB)	
+  foreach_generated.go:341	0x10025aa44		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:341	0x10025aa48		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:341	0x10025aa4c		d65f03c0		RET														
+  foreach_generated.go:343	0x10025aa50		940047e8		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocThrowsTag(SB)			
+  foreach_generated.go:343	0x10025aa54		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:343	0x10025aa58		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:343	0x10025aa5c		d65f03c0		RET														
+  foreach_generated.go:345	0x10025aa60		9400487c		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocSatisfiesTag(SB)		
+  foreach_generated.go:345	0x10025aa64		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:345	0x10025aa68		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:345	0x10025aa6c		d65f03c0		RET														
+  foreach_generated.go:347	0x10025aa70		94004910		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildJSDocImportTag(SB)			
+  foreach_generated.go:347	0x10025aa74		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:347	0x10025aa78		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:347	0x10025aa7c		d65f03c0		RET														
+  foreach_generated.go:349	0x10025aa80		940049dc		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildSyntaxList(SB)			
+  foreach_generated.go:349	0x10025aa84		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:349	0x10025aa88		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:349	0x10025aa8c		d65f03c0		RET														
+  foreach_generated.go:351	0x10025aa90		94002bc0		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildTypeAliasDeclaration(SB)		
+  foreach_generated.go:351	0x10025aa94		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:351	0x10025aa98		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:351	0x10025aa9c		d65f03c0		RET														
+  foreach_generated.go:353	0x10025aaa0		94002fd0		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildImportDeclaration(SB)		
+  foreach_generated.go:353	0x10025aaa4		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:353	0x10025aaa8		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:353	0x10025aaac		d65f03c0		RET														
+  foreach_generated.go:2442	0x10025aab0		b9401423		MOVWU 20(R1), R3												
+  foreach_generated.go:2443	0x10025aab4		a9419404		LDP 24(R0), (R4, R5)												
+  foreach_generated.go:2443	0x10025aab8		eb05007f		CMP R5, R3													
+  foreach_generated.go:2443	0x10025aabc		540003a2		BCS 29(PC)													
+  foreach_generated.go:2443	0x10025aac0		b8637883		MOVWU (R4)(R3<<2), R3												
+  foreach_generated.go:2443	0x10025aac4		340001c3		CBZW R3, 14(PC)													
+  store.go:50			0x10025aac8		aa0303e4		MOVD R3, R4													
+  store.go:50			0x10025aacc		a9401805		LDP (R0), (R5, R6)												
+  store.go:50			0x10025aad0		eb06009f		CMP R6, R4													
+  store.go:50			0x10025aad4		540002c2		BCS 22(PC)													
+  foreach_generated.go:2443	0x10025aad8		f9400044		MOVD (R2), R4													
+  store.go:50			0x10025aadc		d37d7c63		UBFIZ $3, R3, $32, R3												
+  store.go:50			0x10025aae0		8b030463		ADD R3<<1, R3, R3												
+  store.go:50			0x10025aae4		8b050061		ADD R5, R3, R1													
+  foreach_generated.go:2443	0x10025aae8		aa0203fa		MOVD R2, R26													
+  foreach_generated.go:2443	0x10025aaec		d63f0080		CALL (R4)													
+  foreach_generated.go:2443	0x10025aaf0		36000060		TBZ $0, R0, 3(PC)												
+  foreach_generated.go:2443	0x10025aaf4		b24003e0		ORR $1, ZR, R0													
+  foreach_generated.go:355	0x10025aaf8		14000002		JMP 2(PC)													
+  foreach_generated.go:355	0x10025aafc		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:355	0x10025ab00		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:355	0x10025ab04		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:355	0x10025ab08		d65f03c0		RET														
+  foreach_generated.go:357	0x10025ab0c		94004a15		CALL github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildSyntheticReferenceExpression(SB)	
+  foreach_generated.go:357	0x10025ab10		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:357	0x10025ab14		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:357	0x10025ab18		d65f03c0		RET														
+  foreach_generated.go:359	0x10025ab1c		aa1f03e0		MOVD ZR, R0													
+  foreach_generated.go:359	0x10025ab20		f85f83fd		MOVD -8(RSP), R29												
+  foreach_generated.go:359	0x10025ab24		f84307fe		MOVD.P 48(RSP), R30												
+  foreach_generated.go:359	0x10025ab28		d65f03c0		RET														
+  store.go:50			0x10025ab2c		97f8abe5		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:2443	0x10025ab30		97f8abe4		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ab34		97f8abe3		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:2136	0x10025ab38		97f8abe2		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ab3c		97f8abe1		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:2128	0x10025ab40		97f8abe0		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ab44		97f8abdf		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:2120	0x10025ab48		97f8abde		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ab4c		97f8abdd		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:2079	0x10025ab50		97f8abdc		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ab54		97f8abdb		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:2071	0x10025ab58		97f8abda		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ab5c		97f8abd9		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:2063	0x10025ab60		97f8abd8		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ab64		97f8abd7		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:2055	0x10025ab68		97f8abd6		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ab6c		97f8abd5		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:2047	0x10025ab70		97f8abd4		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ab74		97f8abd3		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:2039	0x10025ab78		97f8abd2		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ab7c		97f8abd1		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:2009	0x10025ab80		97f8abd0		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ab84		97f8abcf		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1887	0x10025ab88		97f8abce		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ab8c		97f8abcd		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1846	0x10025ab90		97f8abcc		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ab94		97f8abcb		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1796	0x10025ab98		97f8abca		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ab9c		97f8abc9		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1769	0x10025aba0		97f8abc8		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025aba4		97f8abc7		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1703	0x10025aba8		97f8abc6		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025abac		97f8abc5		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1470	0x10025abb0		97f8abc4		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025abb4		97f8abc3		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1429	0x10025abb8		97f8abc2		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025abbc		97f8abc1		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1421	0x10025abc0		97f8abc0		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025abc4		97f8abbf		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1413	0x10025abc8		97f8abbe		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025abcc		97f8abbd		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1335	0x10025abd0		97f8abbc		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025abd4		97f8abbb		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1286	0x10025abd8		97f8abba		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025abdc		97f8abb9		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1278	0x10025abe0		97f8abb8		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025abe4		97f8abb7		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1270	0x10025abe8		97f8abb6		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025abec		97f8abb5		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1220	0x10025abf0		97f8abb4		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025abf4		97f8abb3		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1150	0x10025abf8		97f8abb2		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025abfc		97f8abb1		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1142	0x10025ac00		97f8abb0		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ac04		97f8abaf		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1134	0x10025ac08		97f8abae		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ac0c		97f8abad		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1126	0x10025ac10		97f8abac		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ac14		97f8abab		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1118	0x10025ac18		97f8abaa		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ac1c		97f8aba9		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1110	0x10025ac20		97f8aba8		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ac24		97f8aba7		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:1047	0x10025ac28		97f8aba6		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ac2c		97f8aba5		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:855	0x10025ac30		97f8aba4		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ac34		97f8aba3		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:813	0x10025ac38		97f8aba2		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ac3c		97f8aba1		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:805	0x10025ac40		97f8aba0		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ac44		97f8ab9f		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:797	0x10025ac48		97f8ab9e		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ac4c		97f8ab9d		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:756	0x10025ac50		97f8ab9c		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ac54		97f8ab9b		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:748	0x10025ac58		97f8ab9a		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ac5c		97f8ab99		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:732	0x10025ac60		97f8ab98		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ac64		97f8ab97		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:426	0x10025ac68		97f8ab96		CALL runtime.panicBounds(SB)											
+  store.go:50			0x10025ac6c		97f8ab95		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:375	0x10025ac70		97f8ab94		CALL runtime.panicBounds(SB)											
+  foreach_generated.go:375	0x10025ac74		d503201f		NOOP														
+  foreach_generated.go:10	0x10025ac78		a90087e0		STP (R0, R1), 8(RSP)												
+  foreach_generated.go:10	0x10025ac7c		f9000fe2		MOVD R2, 24(RSP)												
+  foreach_generated.go:10	0x10025ac80		aa1e03e3		MOVD R30, R3													
+  foreach_generated.go:10	0x10025ac84		97f8a34b		CALL runtime.morestack_noctxt.abi0(SB)										
+  foreach_generated.go:10	0x10025ac88		a94087e0		LDP 8(RSP), (R0, R1)												
+  foreach_generated.go:10	0x10025ac8c		f9400fe2		MOVD 24(RSP), R2												
+  foreach_generated.go:10	0x10025ac90		17fff9d4		JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.Node.ForEachChild(SB)				
+  foreach_generated.go:10	0x10025ac94		00000000		?														
+  foreach_generated.go:10	0x10025ac98		00000000		?														
+  foreach_generated.go:10	0x10025ac9c		00000000		?														

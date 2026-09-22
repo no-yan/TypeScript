@@ -1,0 +1,20 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast/storeexp
+cpu: Apple M1
+BenchmarkStoreExpWalkKPCV1/pointer-8         	      20	   2418631 ns/op	         2.817 IPC	   7658029 cycles/op	  21569299 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/pointer-8         	      20	   2384302 ns/op	         2.841 IPC	   7596411 cycles/op	  21584581 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/pointer-8         	      20	   2483325 ns/op	         2.735 IPC	   7885071 cycles/op	  21565794 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/pointer-8         	      20	   2407940 ns/op	         2.827 IPC	   7638092 cycles/op	  21589324 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/pointer-8         	      20	   2402171 ns/op	         2.819 IPC	   7652110 cycles/op	  21571644 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/switch-8          	      20	   2740415 ns/op	         3.161 IPC	   8728201 cycles/op	  27592148 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/switch-8          	      20	   2730225 ns/op	         3.169 IPC	   8702006 cycles/op	  27579721 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/switch-8          	      20	   2726158 ns/op	         3.174 IPC	   8689335 cycles/op	  27577966 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/switch-8          	      20	   2728456 ns/op	         3.168 IPC	   8703637 cycles/op	  27577351 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/switch-8          	      20	   2729734 ns/op	         3.173 IPC	   8691856 cycles/op	  27576876 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/shape-8           	      20	   3080056 ns/op	         3.583 IPC	   9810211 cycles/op	  35146132 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/shape-8           	      20	   3066738 ns/op	         3.599 IPC	   9764034 cycles/op	  35144207 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/shape-8           	      20	   3068756 ns/op	         3.594 IPC	   9779250 cycles/op	  35146407 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/shape-8           	      20	   3069931 ns/op	         3.600 IPC	   9762411 cycles/op	  35144896 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+BenchmarkStoreExpWalkKPCV1/shape-8           	      20	   3096340 ns/op	         3.565 IPC	   9860130 cycles/op	  35154318 inst/op	    298054 visits/op	       0 B/op	       0 allocs/op
+PASS

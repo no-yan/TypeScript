@@ -1,0 +1,96 @@
+TEXT 
+foreach_generated.go:1314 MOVD 16(R28), R16
+foreach_generated.go:1314 CMP R16, RSP
+foreach_generated.go:1314 BLS 86(PC)
+foreach_generated.go:1314 MOVD.W R30, -64(RSP)
+foreach_generated.go:1314 MOVD R29, -8(RSP)
+foreach_generated.go:1314 SUB $8, RSP, R29
+foreach_generated.go:1314 MOVD R0, 72(RSP)
+foreach_generated.go:1314 MOVD R1, 80(RSP)
+foreach_generated.go:1315 MOVWU 20(R1), R3
+foreach_generated.go:1316 LDP 24(R0), (R4, R5)
+foreach_generated.go:1316 CMP R5, R3
+foreach_generated.go:1316 BCS 75(PC)
+foreach_generated.go:1316 MOVWU (R4)(R3<<2), R3
+foreach_generated.go:1316 CBZW R3, 32(PC)
+store.go:115 MOVD R3, R6
+store.go:115 CMP R5, R6
+store.go:115 BCS 69(PC)
+foreach_generated.go:1316 MOVD 40(R0), R5
+store.go:115 MOVWU (R4)(R6<<2), R6
+store.go:115 ADD R6, R3, R6
+store.go:115 ADD $3, R6, R6
+store.go:115 MOVW R6, R6
+store.go:115 CMP R5, R6
+store.go:115 BHI 61(PC)
+store.go:115 ADD $3, R3, R3
+store.go:115 MOVW R3, R3
+store.go:115 CMP R6, R3
+store.go:115 BHI 56(PC)
+store.go:115 SUB R3, R6, R6
+store.go:115 SUB R5, R3, R5
+store.go:115 AND R5->63, R3, R3
+store.go:115 ADD R3<<2, R4, R3
+store.go:116 ORR $4, ZR, R4
+store.go:116 UMULH R6, R4, R4
+store.go:116 CBNZ R4, 47(PC)
+store.go:116 MOVD R3, R4
+store.go:116 NEG R3, R3
+store.go:116 CMP R6<<2, R3
+store.go:116 BCC 40(PC)
+foreach_generated.go:1316 MOVD R2, 88(RSP)
+foreach_generated.go:1316 MOVD R0, 48(RSP)
+store.go:115 MOVD R6, 24(RSP)
+store.go:115 MOVD R4, 40(RSP)
+walk.go:13 MOVD ZR, R1
+walk.go:13 JMP 10(PC)
+foreach_generated.go:1319 MOVD ZR, R0
+foreach_generated.go:1319 MOVD -8(RSP), R29
+foreach_generated.go:1319 MOVD.P 64(RSP), R30
+foreach_generated.go:1319 RET
+walk.go:13 ADD $1, R2, R1
+store.go:50 MOVD 48(RSP), R0
+walk.go:14 MOVD 88(RSP), R2
+walk.go:13 MOVD 40(RSP), R4
+walk.go:13 MOVD R3, R6
+walk.go:13 CMP R6, R1
+walk.go:13 BGE 17(PC)
+walk.go:13 MOVWU (R4)(R1<<2), R3
+store.go:50 LDP (R0), (R5, R7)
+store.go:50 MOVD R3, R8
+store.go:50 CMP R7, R8
+store.go:50 BCS 17(PC)
+walk.go:13 MOVD R1, 32(RSP)
+walk.go:14 MOVD (R2), R4
+store.go:50 UBFIZ $3, R3, $32, R3
+store.go:50 ADD R3<<1, R3, R3
+store.go:50 ADD R3, R5, R1
+walk.go:14 MOVD R2, R26
+walk.go:14 CALL (R4)
+walk.go:13 MOVD 32(RSP), R2
+walk.go:13 MOVD 24(RSP), R3
+walk.go:13 CMP R3, R2
+walk.go:14 TBZ $0, R0, -22(PC)
+foreach_generated.go:1316 BGE -27(PC)
+foreach_generated.go:1317 ORR $1, ZR, R0
+foreach_generated.go:1317 MOVD -8(RSP), R29
+foreach_generated.go:1317 MOVD.P 64(RSP), R30
+foreach_generated.go:1317 RET
+store.go:50 CALL runtime.panicBounds(SB)
+store.go:116 CBZ R4, 2(PC)
+store.go:116 CALL runtime.panicunsafeslicelen(SB)
+store.go:116 CALL runtime.panicunsafeslicenilptr(SB)
+store.go:116 MOVD R3, R4
+store.go:116 JMP -4(PC)
+store.go:115 CALL runtime.panicBounds(SB)
+store.go:115 CALL runtime.panicBounds(SB)
+store.go:115 CALL runtime.panicBounds(SB)
+foreach_generated.go:1316 CALL runtime.panicBounds(SB)
+foreach_generated.go:1316 NOOP
+foreach_generated.go:1314 STP (R0, R1), 8(RSP)
+foreach_generated.go:1314 MOVD R2, 24(RSP)
+foreach_generated.go:1314 MOVD R30, R3
+foreach_generated.go:1314 CALL runtime.morestack_noctxt.abi0(SB)
+foreach_generated.go:1314 LDP 8(RSP), (R0, R1)
+foreach_generated.go:1314 MOVD 24(RSP), R2
+foreach_generated.go:1314 JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.forEachChildBlock(SB)

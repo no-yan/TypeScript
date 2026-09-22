@@ -1,0 +1,6 @@
+=== RUN   TestStoreExpFootprint
+    store_test.go:350: checker.ts: 298054 nodes, headers 7153320 B, extra 2568076 B, texts 0 B, total 32.62 B/node
+    store_test.go:350: dom.generated.d.ts: 109605 nodes, headers 2630544 B, extra 1064048 B, texts 0 B, total 33.71 B/node
+--- PASS: TestStoreExpFootprint (0.09s)
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/ast/storeexp	0.386s

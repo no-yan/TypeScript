@@ -1,0 +1,44 @@
+//go:build storeexp
+
+package storeexp
+
+import (
+	"math/bits"
+	"testing"
+
+	"github.com/microsoft/TypeScript/tsc/internal/testutil/fixtures"
+)
+
+func TestZZSlotCount(t *testing.T) {
+	for _, fixture := range fixtures.ASTBenchFixtures {
+		s := Convert(parseFixture(t, fixture), 0)
+		var nodes, withSlots, childSlots, childNil, listSlots, listNil, listEmpty, elems, called int
+		for _, n := range preorderStore(s.Root(), Node.ForEachChild) {
+			nodes++
+			sh := shapes[n.h.kind&511]
+			if sh.slots == 0 {
+				continue
+			}
+			withSlots++
+			nl := bits.OnesCount16(sh.listMask)
+			listSlots += nl
+			childSlots += int(sh.slots) - nl
+			for i := range uint32(sh.slots) {
+				v := s.extra[n.h.data+i]
+				if sh.listMask&(1<<i) != 0 {
+					if v == 0 {
+						listNil++
+					} else if s.extra[v] == 0 {
+						listEmpty++
+					}
+					elems += int(s.extra[v])
+				} else if v == 0 {
+					childNil++
+				}
+			}
+		}
+		_ = called
+		t.Logf("%s: nodes %d, withSlots %d, childSlots %d (nil %d), listSlots %d (nil %d, empty %d), elems %d",
+			fixture.Name(), nodes, withSlots, childSlots, childNil, listSlots, listNil, listEmpty, elems)
+	}
+}

@@ -1,0 +1,3 @@
+    zz_slotcount_test.go:41: checker.ts: nodes 298054, withSlots 144994, childSlots 331161 (nil 109976), listSlots 105860 (nil 63151, empty 1449), elems 76868
+    zz_slotcount_test.go:41: dom.generated.d.ts: nodes 109605, withSlots 50862, childSlots 116554 (nil 45293), listSlots 56587 (nil 38412, empty 1182), elems 38343
+ok  	github.com/microsoft/TypeScript/tsc/internal/ast/storeexp	0.560s

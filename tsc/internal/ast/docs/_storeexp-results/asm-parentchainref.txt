@@ -1,0 +1,34 @@
+TEXT  
+asm_test.go:109   MOVD 16(R28), R16
+asm_test.go:109   CMP R16, RSP
+asm_test.go:109   BLS 26(PC)
+asm_test.go:109   MOVD.W R30, -16(RSP)
+asm_test.go:109   MOVD R29, -8(RSP)
+asm_test.go:109   SUB $8, RSP, R29
+asm_test.go:109   MOVD R0, 24(RSP)
+asm_test.go:109   MOVD R1, 32(RSP)
+bench_test.go:255   LDP (R0), (R2, R3)
+bench_test.go:256   MOVWU 16(R1), R1
+bench_test.go:256   MOVD ZR, R4
+bench_test.go:256   JMP 6(PC)
+bench_test.go:256   UBFIZ $3, R1, $32, R0
+bench_test.go:256   ADD R0<<1, R0, R0
+bench_test.go:256   ADD R0, R2, R0
+bench_test.go:256   MOVWU 16(R0), R1
+bench_test.go:257   ADD $1, R4, R4
+bench_test.go:256   CBZW R1, 5(PC)
+bench_test.go:256   MOVW R1, R0
+bench_test.go:256   CMP R3, R0
+bench_test.go:256   BCC -8(PC)
+bench_test.go:256   JMP 5(PC)
+asm_test.go:109   MOVD R4, R0
+asm_test.go:109   MOVD -8(RSP), R29
+asm_test.go:109   MOVD.P 16(RSP), R30
+asm_test.go:109   RET
+bench_test.go:256   CALL runtime.panicBounds(SB)
+bench_test.go:256   NOOP
+asm_test.go:109   STP (R0, R1), 8(RSP)
+asm_test.go:109   MOVD R30, R3
+asm_test.go:109   CALL runtime.morestack_noctxt.abi0(SB)
+asm_test.go:109   LDP 8(RSP), (R0, R1)
+asm_test.go:109   JMP github.com/microsoft/TypeScript/tsc/internal/ast/storeexp.asmParentChainRefStore(SB)
