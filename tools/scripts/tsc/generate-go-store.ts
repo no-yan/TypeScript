@@ -11,7 +11,7 @@
  *   - foreach_generated.go: ForEachChild
  *   - builder_generated.go: one constructor per definition
  *   - convert/convert_generated.go: Pointer AST to Store
- *   - equivalence_generated_test.go: Pointer and Store compared member by member
+ *   - storetest/equivalence_generated.go: Pointer and Store compared member by member
  *
  * A member takes payload words in declaration order: a child or list is one
  * word, a text is two ([offset, length]), a bool, TokenFlags or kind is one.
@@ -741,7 +741,7 @@ function generateConvert(): string {
     return w.toString();
 }
 
-// ── equivalence_generated_test.go ──
+// ── storetest/equivalence_generated.go ──
 
 function generateEquivalenceTest(): string {
     const w = new CodeWriter();
@@ -749,7 +749,7 @@ function generateEquivalenceTest(): string {
     let roleChecks = 0;
     w.write(HEADER);
     w.write();
-    w.write("package store_test");
+    w.write("package storetest");
     w.write();
     w.write("import (");
     w.write(`\t${AST_IMPORT}`);
@@ -759,7 +759,7 @@ function generateEquivalenceTest(): string {
     w.write("// compareMembers compares every member of the definition of p.Kind through the");
     w.write("// typed view: a child by kind and position, a list by length, position and");
     w.write("// elements, a text by value, a bool, TokenFlags or kind by value.");
-    w.write("func compareMembers(m mismatches, p *ast.Node, n store.Node) {");
+    w.write("func compareMembers(m *comparer, p *ast.Node, n store.Node) {");
     w.write("\tswitch p.Kind {");
     for (const def of viewDefinitions) {
         w.write(`\tcase ${goKinds(def)}:`);
@@ -808,7 +808,7 @@ function generateEquivalenceTest(): string {
     w.write("// compareRoles compares the role accessors with the Pointer methods of the same");
     w.write("// name, on the kinds whose role table is not 0xFF. A Pointer method that panics");
     w.write("// on a kind is reported by guard and belongs in the generator's roleOverrides.");
-    w.write("func compareRoles(m mismatches, p *ast.Node, n store.Node) {");
+    w.write("func compareRoles(m *comparer, p *ast.Node, n store.Node) {");
     w.write("\tswitch p.Kind {");
     for (const { kind, def } of [...payloadKinds, ...definitions.filter(d => d.headerText).map(d => ({ kind: d.kinds[0], def: d }))]) {
         const lines: string[] = [];
@@ -838,8 +838,8 @@ function generateEquivalenceTest(): string {
     w.write();
     w.write("// Comparisons per node kind, for the verification report.");
     w.write("const (");
-    w.write(`\tcomparedMembers = ${members}`);
-    w.write(`\tcomparedRoles   = ${roleChecks}`);
+    w.write(`\tComparedMembers = ${members}`);
+    w.write(`\tComparedRoles   = ${roleChecks}`);
     w.write(")");
     return w.toString();
 }
@@ -865,7 +865,7 @@ export default function main() {
     writeAndFormat(path.join(OUT_DIR, "foreach_generated.go"), generateForEachChild());
     writeAndFormat(path.join(OUT_DIR, "builder_generated.go"), generateBuilder());
     writeAndFormat(path.join(OUT_DIR, "convert/convert_generated.go"), generateConvert());
-    writeAndFormat(path.join(OUT_DIR, "equivalence_generated_test.go"), generateEquivalenceTest());
+    writeAndFormat(path.join(OUT_DIR, "storetest/equivalence_generated.go"), generateEquivalenceTest());
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

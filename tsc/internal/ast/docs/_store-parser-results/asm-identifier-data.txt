@@ -1,0 +1,97 @@
+TEXT github.com/microsoft/TypeScript/tsc/internal/ast/store.(*Builder).identifierData(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/ast/store/store.go
+  store.go:254		0x100237db0		f9400b90		MOVD 16(R28), R16										
+  store.go:254		0x100237db4		eb3063ff		CMP R16, RSP											
+  store.go:254		0x100237db8		54000a89		BLS 84(PC)											
+  store.go:254		0x100237dbc		f8190ffe		MOVD.W R30, -112(RSP)										
+  store.go:254		0x100237dc0		f81f83fd		MOVD R29, -8(RSP)										
+  store.go:254		0x100237dc4		d10023fd		SUB $8, RSP, R29										
+  store.go:254		0x100237dc8		f90047e2		MOVD R2, 136(RSP)										
+  store.go:255		0x100237dcc		f9003fe0		MOVD R0, 120(RSP)										
+  store.go:255		0x100237dd0		93407c24		SXTW R1, R4											
+  store.go:255		0x100237dd4		cb030085		SUB R3, R4, R5											
+  store.go:255		0x100237dd8		b7f80405		TBNZ $63, R5, 32(PC)										
+  store.go:255		0x100237ddc		a9451c06		LDP 80(R0), (R6, R7)										
+  store.go:255		0x100237de0		eb07009f		CMP R7, R4											
+  store.go:255		0x100237de4		540003ac		BGT 29(PC)											
+  store.go:255		0x100237de8		540008c8		BHI 70(PC)											
+  store.go:255		0x100237dec		eb05009f		CMP R5, R4											
+  store.go:255		0x100237df0		54000863		BCC 67(PC)											
+  store.go:255		0x100237df4		8b030087		ADD R3, R4, R7											
+  store.go:255		0x100237df8		cb0400e8		SUB R4, R7, R8											
+  store.go:255		0x100237dfc		cb070084		SUB R7, R4, R4											
+  store.go:255		0x100237e00		8a84fca4		AND R4->63, R5, R4										
+  store.go:255		0x100237e04		8b0400c4		ADD R4, R6, R4											
+  store.go:255		0x100237e08		eb08007f		CMP R8, R3											
+  store.go:255		0x100237e0c		54000261		BNE 19(PC)											
+  store.go:255		0x100237e10		b90083e1		MOVW R1, 128(RSP)										
+  store.go:255		0x100237e14		f9002fe5		MOVD R5, 88(RSP)										
+  store.go:255		0x100237e18		f9004be3		MOVD R3, 144(RSP)										
+  store.go:255		0x100237e1c		f90047e2		MOVD R2, 136(RSP)										
+  store.go:255		0x100237e20		aa0403e0		MOVD R4, R0											
+  store.go:255		0x100237e24		aa0203e1		MOVD R2, R1											
+  store.go:255		0x100237e28		aa0803e2		MOVD R8, R2											
+  store.go:255		0x100237e2c		97f72785		CALL runtime.memequal(SB)									
+  store.go:255		0x100237e30		370000c0		TBNZ $0, R0, 6(PC)										
+  store.go:258		0x100237e34		f9403fe0		MOVD 120(RSP), R0										
+  store.go:259		0x100237e38		b98083e1		MOVW 128(RSP), R1										
+  store.go:259		0x100237e3c		f94047e2		MOVD 136(RSP), R2										
+  store.go:259		0x100237e40		f9404be3		MOVD 144(RSP), R3										
+  store.go:255		0x100237e44		14000005		JMP 5(PC)											
+  store.go:256		0x100237e48		f9402fe0		MOVD 88(RSP), R0										
+  store.go:256		0x100237e4c		f85f83fd		MOVD -8(RSP), R29										
+  store.go:256		0x100237e50		f84707fe		MOVD.P 112(RSP), R30										
+  store.go:256		0x100237e54		d65f03c0		RET												
+  store.go:258		0x100237e58		f9401004		MOVD 32(R0), R4											
+  store.go:258		0x100237e5c		f90033e4		MOVD R4, 96(RSP)										
+  store.go:259		0x100237e60		94000034		CALL github.com/microsoft/TypeScript/tsc/internal/ast/store.(*Builder).textWords(SB)		
+  store.go:260		0x100237e64		f9403fe4		MOVD 120(RSP), R4										
+  store.go:260		0x100237e68		a9419885		LDP 24(R4), (R5, R6)										
+  store.go:260		0x100237e6c		f9401482		MOVD 40(R4), R2											
+  store.go:260		0x100237e70		910008c6		ADD $2, R6, R6											
+  store.go:260		0x100237e74		eb06005f		CMP R6, R2											
+  store.go:260		0x100237e78		540002e2		BCS 23(PC)											
+  store.go:259		0x100237e7c		b90053e0		MOVW R0, 80(RSP)										
+  store.go:259		0x100237e80		b90057e1		MOVW R1, 84(RSP)										
+  store.go:260		0x100237e84		aa0503e0		MOVD R5, R0											
+  store.go:260		0x100237e88		aa0603e1		MOVD R6, R1											
+  store.go:260		0x100237e8c		b27f03e3		ORR $2, ZR, R3											
+  store.go:260		0x100237e90		d0003b44		ADRP 7774208(PC), R4										
+  store.go:260		0x100237e94		91208084		ADD $2080, R4, R4										
+  store.go:260		0x100237e98		97f92942		CALL runtime.growslice(SB)									
+  store.go:260		0x100237e9c		f9403fe5		MOVD 120(RSP), R5										
+  store.go:260		0x100237ea0		f90014a2		MOVD R2, 40(R5)											
+  store.go:260		0x100237ea4		9000423b		ADRP 8667136(PC), R27										
+  store.go:260		0x100237ea8		b9453366		MOVWU 1328(R27), R6										
+  store.go:260		0x100237eac		34000086		CBZW R6, 4(PC)											
+  store.go:260		0x100237eb0		f9400ca2		MOVD 24(R5), R2											
+  store.go:260		0x100237eb4		97f93c5b		CALL runtime.gcWriteBarrier2(SB)								
+  store.go:260		0x100237eb8		a9000b20		STP (R0, R2), (R25)										
+  store.go:260		0x100237ebc		f9000ca0		MOVD R0, 24(R5)											
+  store.go:260		0x100237ec0		aa0503e4		MOVD R5, R4											
+  store.go:261		0x100237ec4		aa0103e6		MOVD R1, R6											
+  store.go:261		0x100237ec8		aa0003e5		MOVD R0, R5											
+  store.go:260		0x100237ecc		b94053e0		MOVWU 80(RSP), R0										
+  store.go:260		0x100237ed0		b94057e1		MOVWU 84(RSP), R1										
+  store.go:260		0x100237ed4		f9001086		MOVD R6, 32(R4)											
+  store.go:260		0x100237ed8		d10008c2		SUB $2, R6, R2											
+  store.go:260		0x100237edc		b82278a0		MOVW R0, (R5)(R2<<2)										
+  store.go:260		0x100237ee0		8b0208a2		ADD R2<<2, R5, R2										
+  store.go:260		0x100237ee4		b9000441		MOVW R1, 4(R2)											
+  store.go:261		0x100237ee8		f94033e1		MOVD 96(RSP), R1										
+  store.go:261		0x100237eec		b2618020		ORR $-2147483648, R1, R0									
+  store.go:261		0x100237ef0		f85f83fd		MOVD -8(RSP), R29										
+  store.go:261		0x100237ef4		f84707fe		MOVD.P 112(RSP), R30										
+  store.go:261		0x100237ef8		d65f03c0		RET												
+  store.go:255		0x100237efc		97f93cfd		CALL runtime.panicBounds(SB)									
+  store.go:255		0x100237f00		97f93cfc		CALL runtime.panicBounds(SB)									
+  store.go:255		0x100237f04		d503201f		NOOP												
+  store.go:254		0x100237f08		f90007e0		MOVD R0, 8(RSP)											
+  store.go:254		0x100237f0c		b90013e1		MOVW R1, 16(RSP)										
+  store.go:254		0x100237f10		a9018fe2		STP (R2, R3), 24(RSP)										
+  store.go:254		0x100237f14		aa1e03e3		MOVD R30, R3											
+  store.go:254		0x100237f18		97f934b2		CALL runtime.morestack_noctxt.abi0(SB)								
+  store.go:254		0x100237f1c		f94007e0		MOVD 8(RSP), R0											
+  store.go:254		0x100237f20		b98013e1		MOVW 16(RSP), R1										
+  store.go:254		0x100237f24		a9418fe2		LDP 24(RSP), (R2, R3)										
+  store.go:254		0x100237f28		17ffffa2		JMP github.com/microsoft/TypeScript/tsc/internal/ast/store.(*Builder).identifierData(SB)	
+  store.go:254		0x100237f2c		00000000		?												

@@ -1,0 +1,381 @@
+TEXT github.com/microsoft/TypeScript/tsc/internal/storeparser.(*Parser).parseCallExpressionRest(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/storeparser/parser.go
+  parser.go:5526		0x100334520		f9400b90		MOVD 16(R28), R16												
+  parser.go:5526		0x100334524		d10483f1		SUB $288, RSP, R17												
+  parser.go:5526		0x100334528		eb10023f		CMP R16, R17													
+  parser.go:5526		0x10033452c		54002de9		BLS 367(PC)													
+  parser.go:5526		0x100334530		d10683f4		SUB $416, RSP, R20												
+  parser.go:5526		0x100334534		a93ffa9d		STP (R29, R30), -8(R20)												
+  parser.go:5526		0x100334538		9100029f		MOVD R20, RSP													
+  parser.go:5526		0x10033453c		d10023fd		SUB $8, RSP, R29												
+  parser.go:5527		0x100334540		f900d7e0		MOVD R0, 424(RSP)												
+  parser.go:5527		0x100334544		f900dbe1		MOVD R1, 432(RSP)												
+  parser.go:5527		0x100334548		14000004		JMP 4(PC)													
+  parser.go:5528		0x10033454c		f940dbe1		MOVD 432(RSP), R1												
+  parser.go:5528		0x100334550		aa0003e2		MOVD R0, R2													
+  parser.go:5528		0x100334554		f940d7e0		MOVD 424(RSP), R0												
+  parser.go:5528		0x100334558		b24003e3		ORR $1, ZR, R3													
+  parser.go:5528		0x10033455c		97fffa71		CALL github.com/microsoft/TypeScript/tsc/internal/storeparser.(*Parser).parseMemberExpressionRest(SB)		
+  parser.go:5528		0x100334560		b9004be0		MOVW R0, 72(RSP)												
+  parser.go:1025		0x100334564		f940d7e4		MOVD 424(RSP), R4												
+  parser.go:1025		0x100334568		798a5085		MOVH 1320(R4), R5												
+  parser.go:1025		0x10033456c		d3403ca5		UBFX $0, R5, $16, R5												
+  parser.go:1025		0x100334570		710070bf		CMPW $28, R5													
+  parser.go:1025		0x100334574		54000060		BEQ 3(PC)													
+  parser.go:5530		0x100334578		aa1f03e1		MOVD ZR, R1													
+  parser.go:5530		0x10033457c		14000006		JMP 6(PC)													
+  parser.go:1026		0x100334580		aa0403e0		MOVD R4, R0													
+  parser.go:1026		0x100334584		97ff7d47		CALL github.com/microsoft/TypeScript/tsc/internal/storeparser.(*Parser).parseTokenNode(SB)			
+  parser.go:5538		0x100334588		f940d7e4		MOVD 424(RSP), R4												
+  parser.go:5530		0x10033458c		aa0003e1		MOVD R0, R1													
+  parser.go:5546		0x100334590		b9404be0		MOVWU 72(RSP), R0												
+  parser.go:5530		0x100334594		b90043e1		MOVW R1, 64(RSP)												
+  parser.go:5531		0x100334598		35000061		CBNZW R1, 3(PC)													
+  parser.go:5538		0x10033459c		aa1f03e2		MOVD ZR, R2													
+  parser.go:5531		0x1003345a0		1400000d		JMP 13(PC)													
+  parser.go:5532		0x1003345a4		aa0403e0		MOVD R4, R0													
+  parser.go:5532		0x1003345a8		97fff976		CALL github.com/microsoft/TypeScript/tsc/internal/storeparser.(*Parser).tryParseTypeArgumentsInExpression(SB)	
+  parser.go:5315		0x1003345ac		f940d7e1		MOVD 424(RSP), R1												
+  parser.go:5315		0x1003345b0		798a5022		MOVH 1320(R1), R2												
+  parser.go:5315		0x1003345b4		b2400042		ORR $1, R2, R2													
+  parser.go:5315		0x1003345b8		d3403c42		UBFX $0, R2, $16, R2												
+  parser.go:5315		0x1003345bc		71003c5f		CMPW $15, R2													
+  parser.go:5533		0x1003345c0		540022e0		BEQ 279(PC)													
+  parser.go:5540		0x1003345c4		b94043e1		MOVWU 64(RSP), R1												
+  parser.go:5538		0x1003345c8		f940d7e4		MOVD 424(RSP), R4												
+  parser.go:5538		0x1003345cc		aa0003e2		MOVD R0, R2													
+  parser.go:5546		0x1003345d0		b9404be0		MOVWU 72(RSP), R0												
+  parser.go:5538		0x1003345d4		350000a2		CBNZW R2, 5(PC)													
+  parser.go:5538		0x1003345d8		798a5085		MOVH 1320(R4), R5												
+  parser.go:5538		0x1003345dc		d3403ca5		UBFX $0, R5, $16, R5												
+  parser.go:5538		0x1003345e0		710050bf		CMPW $20, R5													
+  parser.go:5538		0x1003345e4		540022a1		BNE 277(PC)													
+  parser.go:5540		0x1003345e8		350008a1		CBNZW R1, 69(PC)												
+  parser.go:5540		0x1003345ec		f9400483		MOVD 8(R4), R3													
+  store.go:198			0x1003345f0		a9439865		LDP 56(R3), (R5, R6)												
+  builder.go:47			0x1003345f4		aa0503e7		MOVD R5, R7													
+  builder.go:47			0x1003345f8		cb0503e5		NEG R5, R5													
+  builder.go:47			0x1003345fc		eb0500df		CMP R5, R6													
+  builder.go:47			0x100334600		540026c8		BHI 310(PC)													
+  store.go:198			0x100334604		9104e3e5		ADD $312, RSP, R5												
+  store.go:198			0x100334608		a9007cbf		STP (ZR, ZR), (R5)												
+  store.go:198			0x10033460c		a9017cbf		STP (ZR, ZR), 16(R5)												
+  store.go:198			0x100334610		a9027cbf		STP (ZR, ZR), 32(R5)												
+  store.go:198			0x100334614		a9037cbf		STP (ZR, ZR), 48(R5)												
+  store.go:198			0x100334618		a9047cbf		STP (ZR, ZR), 64(R5)												
+  store.go:198			0x10033461c		f90028bf		MOVD ZR, 80(R5)													
+  store.go:198			0x100334620		a9402468		LDP (R3), (R8, R9)												
+  store.go:198			0x100334624		f940086a		MOVD 16(R3), R10												
+  store.go:198			0x100334628		a913a7e8		STP (R8, R9), 312(RSP)												
+  store.go:198			0x10033462c		f900a7ea		MOVD R10, 328(RSP)												
+  store.go:198			0x100334630		a941a468		LDP 24(R3), (R8, R9)												
+  store.go:198			0x100334634		f940146a		MOVD 40(R3), R10												
+  store.go:198			0x100334638		a91527e8		STP (R8, R9), 336(RSP)												
+  store.go:198			0x10033463c		f900b3ea		MOVD R10, 352(RSP)												
+  store.go:198			0x100334640		a9452468		LDP 80(R3), (R8, R9)												
+  store.go:198			0x100334644		a916a7e8		STP (R8, R9), 360(RSP)												
+  store.go:198			0x100334648		a9179be7		STP (R7, R6), 376(RSP)												
+  store.go:198			0x10033464c		b9406066		MOVWU 96(R3), R6												
+  store.go:198			0x100334650		b9018be6		MOVW R6, 392(RSP)												
+  store.go:198			0x100334654		9101a066		ADD $104, R3, R6												
+  store.go:58			0x100334658		f940a3e7		MOVD 320(RSP), R7												
+  store.go:198			0x10033465c		f0003a3b		ADRP 7630848(PC), R27												
+  store.go:198			0x100334660		b9453368		MOVWU 1328(R27), R8												
+  store.go:198			0x100334664		34000248		CBZW R8, 18(PC)													
+  parser.go:5538		0x100334668		b90047e2		MOVW R2, 68(RSP)												
+  parser.go:5540		0x10033466c		f90043e3		MOVD R3, 128(RSP)												
+  store.go:198			0x100334670		f900cbe6		MOVD R6, 400(RSP)												
+  store.go:58			0x100334674		f90037e7		MOVD R7, 104(RSP)												
+  store.go:198			0x100334678		b0003500		ADRP 6950912(PC), R0												
+  store.go:198			0x10033467c		912aa000		ADD $2728, R0, R0												
+  store.go:198			0x100334680		aa0603e1		MOVD R6, R1													
+  store.go:198			0x100334684		aa0503e2		MOVD R5, R2													
+  store.go:198			0x100334688		97f3a77a		CALL runtime.wbMove(SB)												
+  store.go:58			0x10033468c		b9404be0		MOVWU 72(RSP), R0												
+  parser.go:5547		0x100334690		b94043e1		MOVWU 64(RSP), R1												
+  parser.go:5546		0x100334694		b94047e2		MOVWU 68(RSP), R2												
+  store.go:58			0x100334698		f94043e3		MOVD 128(RSP), R3												
+  parser.go:5543		0x10033469c		f940d7e4		MOVD 424(RSP), R4												
+  store.go:198			0x1003346a0		9104e3e5		ADD $312, RSP, R5												
+  store.go:198			0x1003346a4		f940cbe6		MOVD 400(RSP), R6												
+  store.go:58			0x1003346a8		f94037e7		MOVD 104(RSP), R7												
+  store.go:198			0x1003346ac		ad4044b0		FLDPQ (R5), (F16, F17)												
+  store.go:198			0x1003346b0		ad0044d0		FSTPQ (F16, F17), (R6)												
+  store.go:198			0x1003346b4		ad4144b0		FLDPQ 32(R5), (F16, F17)											
+  store.go:198			0x1003346b8		ad0144d0		FSTPQ (F16, F17), 32(R6)											
+  store.go:198			0x1003346bc		3dc010b0		FMOVQ 64(R5), F16												
+  store.go:198			0x1003346c0		3d8010d0		FMOVQ F16, 64(R6)												
+  store.go:198			0x1003346c4		f94028b9		MOVD 80(R5), R25												
+  store.go:198			0x1003346c8		f90028d9		MOVD R25, 80(R6)												
+  store.go:58			0x1003346cc		2a0003e5		MOVW R0, R5													
+  store.go:199			0x1003346d0		d503201f		NOOP														
+  store.go:58			0x1003346d4		eb0700bf		CMP R7, R5													
+  store.go:58			0x1003346d8		54001fe2		BCS 255(PC)													
+  store.go:58			0x1003346dc		f9403463		MOVD 104(R3), R3												
+  store.go:58			0x1003346e0		d37d7c05		UBFIZ $3, R0, $32, R5												
+  store.go:58			0x1003346e4		8b0504a5		ADD R5<<1, R5, R5												
+  store.go:63			0x1003346e8		78a56863		MOVH (R3)(R5), R3												
+  parser.go:5540		0x1003346ec		d3403c63		UBFX $0, R3, $16, R3												
+  parser.go:5540		0x1003346f0		7103a87f		CMPW $234, R3													
+  parser.go:5540		0x1003346f4		9a9f17e3		CSET EQ, R3													
+  parser.go:5540		0x1003346f8		14000002		JMP 2(PC)													
+  parser.go:5540		0x1003346fc		aa1f03e3		MOVD ZR, R3													
+  parser.go:5540		0x100334700		360013e3		TBZ $0, R3, 159(PC)												
+  parser.go:5543		0x100334704		f9400483		MOVD 8(R4), R3													
+  store.go:198			0x100334708		a9439865		LDP 56(R3), (R5, R6)												
+  builder.go:47			0x10033470c		aa0503e7		MOVD R5, R7													
+  builder.go:47			0x100334710		cb0503e5		NEG R5, R5													
+  builder.go:47			0x100334714		eb0500df		CMP R5, R6													
+  builder.go:47			0x100334718		54001d88		BHI 236(PC)													
+  store.go:198			0x10033471c		910383e2		ADD $224, RSP, R2												
+  store.go:198			0x100334720		a9007c5f		STP (ZR, ZR), (R2)												
+  store.go:198			0x100334724		a9017c5f		STP (ZR, ZR), 16(R2)												
+  store.go:198			0x100334728		a9027c5f		STP (ZR, ZR), 32(R2)												
+  store.go:198			0x10033472c		a9037c5f		STP (ZR, ZR), 48(R2)												
+  store.go:198			0x100334730		a9047c5f		STP (ZR, ZR), 64(R2)												
+  store.go:198			0x100334734		f900285f		MOVD ZR, 80(R2)													
+  store.go:198			0x100334738		a9402065		LDP (R3), (R5, R8)												
+  store.go:198			0x10033473c		f9400869		MOVD 16(R3), R9													
+  store.go:198			0x100334740		a90e23e5		STP (R5, R8), 224(RSP)												
+  store.go:198			0x100334744		f9007be9		MOVD R9, 240(RSP)												
+  store.go:198			0x100334748		a941a065		LDP 24(R3), (R5, R8)												
+  store.go:198			0x10033474c		f9401469		MOVD 40(R3), R9													
+  store.go:198			0x100334750		a90fa3e5		STP (R5, R8), 248(RSP)												
+  store.go:198			0x100334754		f90087e9		MOVD R9, 264(RSP)												
+  store.go:198			0x100334758		a9452065		LDP 80(R3), (R5, R8)												
+  store.go:198			0x10033475c		a91123e5		STP (R5, R8), 272(RSP)												
+  store.go:198			0x100334760		a9121be7		STP (R7, R6), 288(RSP)												
+  store.go:198			0x100334764		b9406065		MOVWU 96(R3), R5												
+  store.go:198			0x100334768		b90133e5		MOVW R5, 304(RSP)												
+  store.go:198			0x10033476c		9101a065		ADD $104, R3, R5												
+  store.go:58			0x100334770		f94077e6		MOVD 232(RSP), R6												
+  store.go:198			0x100334774		f0003a3b		ADRP 7630848(PC), R27												
+  store.go:198			0x100334778		b9453367		MOVWU 1328(R27), R7												
+  store.go:198			0x10033477c		340001e7		CBZW R7, 15(PC)													
+  parser.go:5543		0x100334780		f9003fe3		MOVD R3, 120(RSP)												
+  store.go:198			0x100334784		f900cbe5		MOVD R5, 400(RSP)												
+  store.go:58			0x100334788		f90037e6		MOVD R6, 104(RSP)												
+  store.go:198			0x10033478c		b0003500		ADRP 6950912(PC), R0												
+  store.go:198			0x100334790		912aa000		ADD $2728, R0, R0												
+  store.go:198			0x100334794		aa0503e1		MOVD R5, R1													
+  store.go:198			0x100334798		97f3a736		CALL runtime.wbMove(SB)												
+  store.go:58			0x10033479c		b9404be0		MOVWU 72(RSP), R0												
+  parser.go:5547		0x1003347a0		b94043e1		MOVWU 64(RSP), R1												
+  store.go:198			0x1003347a4		910383e2		ADD $224, RSP, R2												
+  store.go:58			0x1003347a8		f9403fe3		MOVD 120(RSP), R3												
+  parser.go:5544		0x1003347ac		f940d7e4		MOVD 424(RSP), R4												
+  store.go:198			0x1003347b0		f940cbe5		MOVD 400(RSP), R5												
+  store.go:58			0x1003347b4		f94037e6		MOVD 104(RSP), R6												
+  store.go:198			0x1003347b8		ad404450		FLDPQ (R2), (F16, F17)												
+  store.go:198			0x1003347bc		ad0044b0		FSTPQ (F16, F17), (R5)												
+  store.go:198			0x1003347c0		ad414450		FLDPQ 32(R2), (F16, F17)											
+  store.go:198			0x1003347c4		ad0144b0		FSTPQ (F16, F17), 32(R5)											
+  store.go:198			0x1003347c8		3dc01050		FMOVQ 64(R2), F16												
+  store.go:198			0x1003347cc		3d8010b0		FMOVQ F16, 64(R5)												
+  store.go:198			0x1003347d0		f9402859		MOVD 80(R2), R25												
+  store.go:198			0x1003347d4		f90028b9		MOVD R25, 80(R5)												
+  store.go:58			0x1003347d8		2a0003e5		MOVW R0, R5													
+  store.go:199			0x1003347dc		d503201f		NOOP														
+  store.go:58			0x1003347e0		eb0600bf		CMP R6, R5													
+  store.go:58			0x1003347e4		54001702		BCS 184(PC)													
+  store.go:58			0x1003347e8		f9403466		MOVD 104(R3), R6												
+  store.go:58			0x1003347ec		d37d7c07		UBFIZ $3, R0, $32, R7												
+  store.go:58			0x1003347f0		8b0704e7		ADD R7<<1, R7, R7												
+  views_generated.go:5401	0x1003347f4		78a768c8		MOVH (R6)(R7), R8												
+  views_generated.go:5401	0x1003347f8		92402108		AND $511, R8, R8												
+  views_generated.go:5401	0x1003347fc		90003a69		ADRP 7651328(PC), R9												
+  views_generated.go:5401	0x100334800		910d8129		ADD $864, R9, R9												
+  views_generated.go:5401	0x100334804		38686928		MOVBU (R9)(R8), R8												
+  views_generated.go:5402	0x100334808		aa0803e9		MOVD R8, R9													
+  store.go:58			0x10033480c		8b0700c6		ADD R7, R6, R6													
+  views_generated.go:5402	0x100334810		7103fd3f		CMPW $255, R9													
+  views_generated.go:5402	0x100334814		54000061		BNE 3(PC)													
+  parser.go:5543		0x100334818		aa1f03e3		MOVD ZR, R3													
+  parser.go:5543		0x10033481c		14000007		JMP 7(PC)													
+  views_generated.go:5405	0x100334820		a9482463		LDP 128(R3), (R3, R9)												
+  views_generated.go:5405	0x100334824		b94014c6		MOVWU 20(R6), R6												
+  views_generated.go:5405	0x100334828		8b0800c6		ADD R8, R6, R6													
+  views_generated.go:5405	0x10033482c		eb06013f		CMP R6, R9													
+  views_generated.go:5405	0x100334830		54001489		BLS 164(PC)													
+  views_generated.go:5405	0x100334834		b8667863		MOVWU (R3)(R6<<2), R3												
+  parser.go:5544		0x100334838		f9400486		MOVD 8(R4), R6													
+  store.go:198			0x10033483c		a943a4c8		LDP 56(R6), (R8, R9)												
+  builder.go:47			0x100334840		aa0803ea		MOVD R8, R10													
+  builder.go:47			0x100334844		cb0803e8		NEG R8, R8													
+  builder.go:47			0x100334848		eb08013f		CMP R8, R9													
+  builder.go:47			0x10033484c		54001348		BHI 154(PC)													
+  store.go:198			0x100334850		910223e2		ADD $136, RSP, R2												
+  store.go:198			0x100334854		a9007c5f		STP (ZR, ZR), (R2)												
+  store.go:198			0x100334858		a9017c5f		STP (ZR, ZR), 16(R2)												
+  store.go:198			0x10033485c		a9027c5f		STP (ZR, ZR), 32(R2)												
+  store.go:198			0x100334860		a9037c5f		STP (ZR, ZR), 48(R2)												
+  store.go:198			0x100334864		a9047c5f		STP (ZR, ZR), 64(R2)												
+  store.go:198			0x100334868		f900285f		MOVD ZR, 80(R2)													
+  store.go:198			0x10033486c		a9402cc8		LDP (R6), (R8, R11)												
+  store.go:198			0x100334870		f94008cc		MOVD 16(R6), R12												
+  store.go:198			0x100334874		a908afe8		STP (R8, R11), 136(RSP)												
+  store.go:198			0x100334878		f9004fec		MOVD R12, 152(RSP)												
+  store.go:198			0x10033487c		a941acc8		LDP 24(R6), (R8, R11)												
+  store.go:198			0x100334880		f94014cc		MOVD 40(R6), R12												
+  store.go:198			0x100334884		a90a2fe8		STP (R8, R11), 160(RSP)												
+  store.go:198			0x100334888		f9005bec		MOVD R12, 176(RSP)												
+  store.go:198			0x10033488c		a9452cc8		LDP 80(R6), (R8, R11)												
+  store.go:198			0x100334890		a90bafe8		STP (R8, R11), 184(RSP)												
+  store.go:198			0x100334894		a90ca7ea		STP (R10, R9), 200(RSP)												
+  store.go:198			0x100334898		b94060c8		MOVWU 96(R6), R8												
+  store.go:198			0x10033489c		b900dbe8		MOVW R8, 216(RSP)												
+  store.go:198			0x1003348a0		9101a0c8		ADD $104, R6, R8												
+  store.go:58			0x1003348a4		f9404be9		MOVD 144(RSP), R9												
+  store.go:198			0x1003348a8		f0003a3b		ADRP 7630848(PC), R27												
+  store.go:198			0x1003348ac		b945336a		MOVWU 1328(R27), R10												
+  store.go:198			0x1003348b0		3400028a		CBZW R10, 20(PC)												
+  store.go:58			0x1003348b4		f90037e7		MOVD R7, 104(RSP)												
+  store.go:58			0x1003348b8		f90033e5		MOVD R5, 96(RSP)												
+  parser.go:5544		0x1003348bc		f9003be6		MOVD R6, 112(RSP)												
+  store.go:198			0x1003348c0		f900cbe8		MOVD R8, 400(RSP)												
+  store.go:58			0x1003348c4		f9002fe9		MOVD R9, 88(RSP)												
+  parser.go:5543		0x1003348c8		b9003fe3		MOVW R3, 60(RSP)												
+  store.go:198			0x1003348cc		b0003500		ADRP 6950912(PC), R0												
+  store.go:198			0x1003348d0		912aa000		ADD $2728, R0, R0												
+  store.go:198			0x1003348d4		aa0803e1		MOVD R8, R1													
+  store.go:198			0x1003348d8		97f3a6e6		CALL runtime.wbMove(SB)												
+  parser.go:5547		0x1003348dc		b94043e1		MOVWU 64(RSP), R1												
+  store.go:198			0x1003348e0		910223e2		ADD $136, RSP, R2												
+  parser.go:5546		0x1003348e4		b9403fe3		MOVWU 60(RSP), R3												
+  parser.go:5546		0x1003348e8		f940d7e4		MOVD 424(RSP), R4												
+  store.go:58			0x1003348ec		f94033e5		MOVD 96(RSP), R5												
+  views_generated.go:3028	0x1003348f0		f9403be6		MOVD 112(RSP), R6												
+  store.go:58			0x1003348f4		f94037e7		MOVD 104(RSP), R7												
+  store.go:198			0x1003348f8		f940cbe8		MOVD 400(RSP), R8												
+  store.go:58			0x1003348fc		f9402fe9		MOVD 88(RSP), R9												
+  store.go:198			0x100334900		ad404450		FLDPQ (R2), (F16, F17)												
+  store.go:198			0x100334904		ad004510		FSTPQ (F16, F17), (R8)												
+  store.go:198			0x100334908		ad414450		FLDPQ 32(R2), (F16, F17)											
+  store.go:198			0x10033490c		ad014510		FSTPQ (F16, F17), 32(R8)											
+  store.go:198			0x100334910		3dc01050		FMOVQ 64(R2), F16												
+  store.go:198			0x100334914		3d801110		FMOVQ F16, 64(R8)												
+  store.go:198			0x100334918		f9402859		MOVD 80(R2), R25												
+  store.go:198			0x10033491c		f9002919		MOVD R25, 80(R8)												
+  store.go:199			0x100334920		d503201f		NOOP														
+  store.go:58			0x100334924		eb0900bf		CMP R9, R5													
+  store.go:58			0x100334928		54000c42		BCS 98(PC)													
+  views_generated.go:3028	0x10033492c		a94814c2		LDP 128(R6), (R2, R5)												
+  store.go:58			0x100334930		f94034c6		MOVD 104(R6), R6												
+  store.go:58			0x100334934		8b0700c7		ADD R7, R6, R7													
+  views_generated.go:3028	0x100334938		b94014e7		MOVWU 20(R7), R7												
+  views_generated.go:3028	0x10033493c		eb0500ff		CMP R5, R7													
+  views_generated.go:3028	0x100334940		54000b62		BCS 91(PC)													
+  views_generated.go:3028	0x100334944		b8677842		MOVWU (R2)(R7<<2), R2												
+  store.go:58			0x100334948		aa0203e5		MOVD R2, R5													
+  store.go:58			0x10033494c		eb0900bf		CMP R9, R5													
+  store.go:58			0x100334950		54000ac2		BCS 86(PC)													
+  store.go:76			0x100334954		aa0603e5		MOVD R6, R5													
+  store.go:58			0x100334958		d37d7c47		UBFIZ $3, R2, $32, R7												
+  store.go:58			0x10033495c		8b0704e7		ADD R7<<1, R7, R7												
+  store.go:58			0x100334960		8b0500e5		ADD R5, R7, R5													
+  store.go:77			0x100334964		cb0600a5		SUB R6, R5, R5													
+  store.go:77			0x100334968		b201f3e6		MOVD $-6148914691236517206, R6											
+  store.go:77			0x10033496c		f2955566		MOVK $43691, R6													
+  store.go:77			0x100334970		9bc67ca5		UMULH R6, R5, R5												
+  store.go:77			0x100334974		d344fca0		LSR $4, R5, R0													
+  parser.go:5544		0x100334978		14000002		JMP 2(PC)													
+  parser.go:5546		0x10033497c		aa0203e3		MOVD R2, R3													
+  parser.go:5546		0x100334980		b90057e3		MOVW R3, 84(RSP)												
+  parser.go:5546		0x100334984		b90053e0		MOVW R0, 80(RSP)												
+  parser.go:5546		0x100334988		aa0403e0		MOVD R4, R0													
+  parser.go:5546		0x10033498c		94000061		CALL github.com/microsoft/TypeScript/tsc/internal/storeparser.(*Parser).parseArgumentList(SB)			
+  parser.go:5547		0x100334990		b94043e1		MOVWU 64(RSP), R1												
+  parser.go:5547		0x100334994		34000061		CBZW R1, 3(PC)													
+  parser.go:5547		0x100334998		b24003e2		ORR $1, ZR, R2													
+  parser.go:5547		0x10033499c		14000008		JMP 8(PC)													
+  parser.go:5546		0x1003349a0		b9004fe0		MOVW R0, 76(RSP)												
+  parser.go:5547		0x1003349a4		f940d7e0		MOVD 424(RSP), R0												
+  parser.go:5547		0x1003349a8		b94053e1		MOVWU 80(RSP), R1												
+  parser.go:5547		0x1003349ac		97fffcb9		CALL github.com/microsoft/TypeScript/tsc/internal/storeparser.(*Parser).tryReparseOptionalChain(SB)		
+  parser.go:5548		0x1003349b0		b94043e1		MOVWU 64(RSP), R1												
+  parser.go:5547		0x1003349b4		aa0003e2		MOVD R0, R2													
+  parser.go:5548		0x1003349b8		b9404fe0		MOVWU 76(RSP), R0												
+  parser.go:433			0x1003349bc		f940d7e8		MOVD 424(RSP), R8												
+  parser.go:433			0x1003349c0		b9453109		MOVWU 1328(R8), R9												
+  parser.go:434			0x1003349c4		3955050a		MOVBU 1345(R8), R10												
+  parser.go:434			0x1003349c8		3600006a		TBZ $0, R10, 3(PC)												
+  parser.go:436			0x1003349cc		3915051f		MOVB ZR, 1345(R8)												
+  parser.go:435			0x1003349d0		b2710129		ORR $32768, R9, R9												
+  parser.go:396			0x1003349d4		a9402908		LDP (R8), (R8, R10)												
+  scanner.go:265		0x1003349d8		f9401d03		MOVD 56(R8), R3													
+  parser.go:5548		0x1003349dc		7200005f		TSTW $1, R2													
+  parser.go:5548		0x1003349e0		b27b03e8		ORR $32, ZR, R8													
+  parser.go:5548		0x1003349e4		9a9f1108		CSEL NE, R8, ZR, R8												
+  parser.go:5548		0x1003349e8		aa090108		ORR R9, R8, R8													
+  parser.go:5548		0x1003349ec		f940dbe2		MOVD 432(RSP), R2												
+  parser.go:5548		0x1003349f0		b94053e4		MOVWU 80(RSP), R4												
+  parser.go:5548		0x1003349f4		aa0103e5		MOVD R1, R5													
+  parser.go:5548		0x1003349f8		b94057e6		MOVWU 84(RSP), R6												
+  parser.go:5548		0x1003349fc		aa0003e7		MOVD R0, R7													
+  parser.go:5548		0x100334a00		aa0a03e0		MOVD R10, R0													
+  parser.go:5548		0x100334a04		aa0803e1		MOVD R8, R1													
+  parser.go:5548		0x100334a08		97fb9992		CALL github.com/microsoft/TypeScript/tsc/internal/ast/store.(*Builder).NewCallExpression(SB)			
+  parser.go:5548		0x100334a0c		aa0003e1		MOVD R0, R1													
+  parser.go:5548		0x100334a10		f940d7e0		MOVD 424(RSP), R0												
+  parser.go:5548		0x100334a14		94001dbb		CALL github.com/microsoft/TypeScript/tsc/internal/storeparser.(*Parser).checkJSSyntax(SB)			
+  core.go:401			0x100334a18		17fffecd		JMP -307(PC)													
+  parser.go:5534		0x100334a1c		b9404be2		MOVWU 72(RSP), R2												
+  parser.go:5534		0x100334a20		b94043e3		MOVWU 64(RSP), R3												
+  parser.go:5534		0x100334a24		aa0003e4		MOVD R0, R4													
+  parser.go:5534		0x100334a28		aa0103e0		MOVD R1, R0													
+  parser.go:5534		0x100334a2c		f940dbe1		MOVD 432(RSP), R1												
+  parser.go:5534		0x100334a30		9400014c		CALL github.com/microsoft/TypeScript/tsc/internal/storeparser.(*Parser).parseTaggedTemplateRest(SB)		
+  parser.go:5535		0x100334a34		17fffec6		JMP -314(PC)													
+  parser.go:5551		0x100334a38		34000321		CBZW R1, 25(PC)													
+  parser.go:5553		0x100334a3c		d000375b		ADRP 7249920(PC), R27												
+  parser.go:5553		0x100334a40		f9462f61		MOVD 3160(R27), R1												
+  parser.go:5553		0x100334a44		aa0403e0		MOVD R4, R0													
+  parser.go:5553		0x100334a48		aa1f03e2		MOVD ZR, R2													
+  parser.go:5553		0x100334a4c		aa1f03e3		MOVD ZR, R3													
+  parser.go:5553		0x100334a50		aa1f03e4		MOVD ZR, R4													
+  parser.go:5553		0x100334a54		97ff7147		CALL github.com/microsoft/TypeScript/tsc/internal/storeparser.(*Parser).parseErrorAtCurrentToken(SB)		
+  parser.go:5554		0x100334a58		f940d7e0		MOVD 424(RSP), R0												
+  parser.go:5554		0x100334a5c		97ffb52d		CALL github.com/microsoft/TypeScript/tsc/internal/storeparser.(*Parser).createMissingIdentifier(SB)		
+  parser.go:433			0x100334a60		f940d7e5		MOVD 424(RSP), R5												
+  parser.go:433			0x100334a64		b94530a6		MOVWU 1328(R5), R6												
+  parser.go:434			0x100334a68		395504a7		MOVBU 1345(R5), R7												
+  parser.go:434			0x100334a6c		36000067		TBZ $0, R7, 3(PC)												
+  parser.go:436			0x100334a70		391504bf		MOVB ZR, 1345(R5)												
+  parser.go:435			0x100334a74		b27100c6		ORR $32768, R6, R6												
+  parser.go:5555		0x100334a78		b27b00c1		ORR $32, R6, R1													
+  parser.go:396			0x100334a7c		a94020a7		LDP (R5), (R7, R8)												
+  scanner.go:265		0x100334a80		f9401ce3		MOVD 56(R7), R3													
+  parser.go:5555		0x100334a84		f940dbe2		MOVD 432(RSP), R2												
+  parser.go:5555		0x100334a88		b9404be4		MOVWU 72(RSP), R4												
+  parser.go:5555		0x100334a8c		b94043e5		MOVWU 64(RSP), R5												
+  parser.go:5555		0x100334a90		aa0003e6		MOVD R0, R6													
+  parser.go:5555		0x100334a94		aa0803e0		MOVD R8, R0													
+  parser.go:5555		0x100334a98		97fb9846		CALL github.com/microsoft/TypeScript/tsc/internal/ast/store.(*Builder).NewPropertyAccessExpression(SB)		
+  parser.go:5559		0x100334a9c		a97ffbfd		LDP -8(RSP), (R29, R30)												
+  parser.go:5559		0x100334aa0		910683ff		ADD $416, RSP, RSP												
+  parser.go:5559		0x100334aa4		d65f03c0		RET														
+  store.go:58			0x100334aa8		97f54a12		CALL runtime.panicBounds(SB)											
+  views_generated.go:3028	0x100334aac		97f54a11		CALL runtime.panicBounds(SB)											
+  store.go:58			0x100334ab0		97f54a10		CALL runtime.panicBounds(SB)											
+  builder.go:47			0x100334ab4		b400004a		CBZ R10, 2(PC)													
+  builder.go:47			0x100334ab8		97f5048a		CALL runtime.panicunsafestringlen(SB)										
+  builder.go:47			0x100334abc		97f50499		CALL runtime.panicunsafestringnilptr(SB)									
+  views_generated.go:5405	0x100334ac0		97f54a0c		CALL runtime.panicBounds(SB)											
+  store.go:58			0x100334ac4		97f54a0b		CALL runtime.panicBounds(SB)											
+  builder.go:47			0x100334ac8		b4000047		CBZ R7, 2(PC)													
+  builder.go:47			0x100334acc		97f50485		CALL runtime.panicunsafestringlen(SB)										
+  builder.go:47			0x100334ad0		97f50494		CALL runtime.panicunsafestringnilptr(SB)									
+  store.go:58			0x100334ad4		97f54a07		CALL runtime.panicBounds(SB)											
+  builder.go:47			0x100334ad8		b4000047		CBZ R7, 2(PC)													
+  builder.go:47			0x100334adc		97f50481		CALL runtime.panicunsafestringlen(SB)										
+  builder.go:47			0x100334ae0		97f50490		CALL runtime.panicunsafestringnilptr(SB)									
+  builder.go:47			0x100334ae4		d503201f		NOOP														
+  parser.go:5526		0x100334ae8		a90087e0		STP (R0, R1), 8(RSP)												
+  parser.go:5526		0x100334aec		b9001be2		MOVW R2, 24(RSP)												
+  parser.go:5526		0x100334af0		aa1e03e3		MOVD R30, R3													
+  parser.go:5526		0x100334af4		97f541bb		CALL runtime.morestack_noctxt.abi0(SB)										
+  parser.go:5526		0x100334af8		a94087e0		LDP 8(RSP), (R0, R1)												
+  parser.go:5526		0x100334afc		b9401be2		MOVWU 24(RSP), R2												
+  parser.go:5526		0x100334b00		17fffe88		JMP github.com/microsoft/TypeScript/tsc/internal/storeparser.(*Parser).parseCallExpressionRest(SB)		
+  parser.go:5526		0x100334b04		00000000		?														
+  parser.go:5526		0x100334b08		00000000		?														
+  parser.go:5526		0x100334b0c		00000000		?														

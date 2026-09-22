@@ -1,0 +1,20 @@
+gc 1 @0.001s 2%: 0.007+0.11+0.002 ms clock, 0.062+0/0.18/0.065+0.018 ms cpu, 1->1->0 MB, 4 MB goal, 0 MB stacks, 0 MB globals, 8 P (forced)
+gc 2 @0.001s 3%: 0.008+0.10+0.002 ms clock, 0.068+0/0.17/0.059+0.021 ms cpu, 0->0->0 MB, 4 MB goal, 0 MB stacks, 0 MB globals, 8 P (forced)
+gc 3 @0.002s 3%: 0.021+0.14+0.002 ms clock, 0.17+0/0.22/0.030+0.016 ms cpu, 4->4->3 MB, 4 MB goal, 0 MB stacks, 0 MB globals, 8 P
+gc 4 @0.002s 3%: 0.020+0.14+0.002 ms clock, 0.16+0.015/0.19/0.044+0.017 ms cpu, 8->8->4 MB, 8 MB goal, 0 MB stacks, 0 MB globals, 8 P
+gc 5 @0.003s 3%: 0.020+0.13+0.002 ms clock, 0.16+0.020/0.18/0.022+0.017 ms cpu, 9->9->7 MB, 9 MB goal, 0 MB stacks, 0 MB globals, 8 P
+gc 6 @0.005s 3%: 0.024+0.21+0.023 ms clock, 0.19+0.042/0.18/0.028+0.18 ms cpu, 14->14->10 MB, 14 MB goal, 0 MB stacks, 0 MB globals, 8 P
+gc 7 @0.008s 2%: 0.031+0.16+0.001 ms clock, 0.25+0/0.17/0.10+0.013 ms cpu, 16->16->13 MB, 21 MB goal, 0 MB stacks, 0 MB globals, 8 P (forced)
+gc 8 @0.009s 2%: 0.025+0.11+0.001 ms clock, 0.20+0/0.10/0.12+0.015 ms cpu, 13->13->13 MB, 26 MB goal, 0 MB stacks, 0 MB globals, 8 P (forced)
+gc 9 @0.020s 2%: 0.044+1.3+0.015 ms clock, 0.35+0.028/2.3/5.1+0.12 ms cpu, 25->26->25 MB, 26 MB goal, 0 MB stacks, 0 MB globals, 8 P
+gc 10 @0.040s 3%: 0.039+3.4+0.009 ms clock, 0.31+0.050/6.2/12+0.077 ms cpu, 45->47->46 MB, 52 MB goal, 0 MB stacks, 0 MB globals, 8 P
+gc 11 @0.072s 3%: 0.043+5.0+0.011 ms clock, 0.34+0.024/9.8/24+0.090 ms cpu, 79->79->78 MB, 93 MB goal, 0 MB stacks, 0 MB globals, 8 P
+gc 12 @0.114s 3%: 0.066+7.4+0.007 ms clock, 0.53+0/14/43+0.062 ms cpu, 113->113->111 MB, 156 MB goal, 0 MB stacks, 0 MB globals, 8 P (forced)
+gc 13 @0.122s 4%: 0.026+7.0+0.003 ms clock, 0.21+0/13/41+0.026 ms cpu, 111->111->111 MB, 223 MB goal, 0 MB stacks, 0 MB globals, 8 P (forced)
+gc 14 @0.130s 5%: 0.020+6.9+0.003 ms clock, 0.16+0/13/40+0.030 ms cpu, 111->111->111 MB, 223 MB goal, 0 MB stacks, 0 MB globals, 8 P (forced)
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/storeparser
+cpu: Apple M1
+BenchmarkStoreParseRetainedV1/pointer-8         	       1	 128851584 ns/op	         7.588 gc-ms	   1097788 nodes	        94.05 retained-B/node	       103.2 retained-MB
+PASS

@@ -8,14 +8,13 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
-	"sort"
-	"strings"
 	"testing"
 	"unsafe"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store"
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store/convert"
+	"github.com/microsoft/TypeScript/tsc/internal/ast/store/storetest"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/parser"
 	"github.com/microsoft/TypeScript/tsc/internal/repo"
@@ -51,34 +50,10 @@ func parseSource(name, source string) *ast.SourceFile {
 	}, source, core.GetScriptKindFromFileName(name))
 }
 
-func preorderStore(root store.Node) []store.Node {
-	var nodes []store.Node
-	var visit store.Visitor
-	visit = func(n store.Node) bool {
-		nodes = append(nodes, n)
-		n.ForEachChild(visit)
-		return false
-	}
-	visit(root)
-	return nodes
-}
-
-func preorderPointer(root *ast.Node) []*ast.Node {
-	var nodes []*ast.Node
-	var visit ast.Visitor
-	visit = func(n *ast.Node) bool {
-		nodes = append(nodes, n)
-		n.ForEachChild(visit)
-		return false
-	}
-	visit(root)
-	return nodes
-}
-
 func TestFingerprint(t *testing.T) {
 	for _, fixture := range fixtures.ASTBenchFixtures {
 		t.Run(fixture.Name(), func(t *testing.T) {
-			nodes := preorderStore(convert.Convert(parseFixture(t, fixture), 0).Root())
+			nodes := storetest.Preorder(convert.Convert(parseFixture(t, fixture), 0).Root())
 			h := sha256.New()
 			for _, n := range nodes {
 				fmt.Fprintf(h, "%s|%d|%d\n", n.Kind(), n.Pos(), n.End())
@@ -126,7 +101,7 @@ func TestSmallWalk(t *testing.T) {
 		{ast.KindEndOfFile, 61, 61},
 	}
 	var got []visit
-	for _, n := range preorderStore(convert.Convert(parseSource("/ast-benchmark-small.ts", smallSource), 0).Root()) {
+	for _, n := range storetest.Preorder(convert.Convert(parseSource("/ast-benchmark-small.ts", smallSource), 0).Root()) {
 		got = append(got, visit{n.Kind(), n.Pos(), n.End()})
 	}
 	if !slices.Equal(got, want) {
@@ -134,120 +109,21 @@ func TestSmallWalk(t *testing.T) {
 	}
 }
 
-// mismatches collects every difference by kind and label, so one run shows
-// everything the generator's override tables need.
-type mismatches map[string]int
-
-func (m mismatches) add(owner *ast.Node, label string) {
-	m[owner.Kind.String()+" "+label]++
-}
-
-func (m mismatches) node(label string, owner *ast.Node, p *ast.Node, n store.Node) {
-	if p == nil && n.IsNil() {
-		return
-	}
-	if p == nil || n.Kind() != p.Kind || int(n.Pos()) != p.Pos() || int(n.End()) != p.End() {
-		m.add(owner, label)
-	}
-}
-
-func (m mismatches) elements(label string, owner *ast.Node, p []*ast.Node, l store.List) {
-	if l.Len() != len(p) {
-		m.add(owner, label)
-		return
-	}
-	for i, elem := range p {
-		m.node(label+" element", owner, elem, l.At(i))
-	}
-}
-
-func (m mismatches) list(label string, owner *ast.Node, p *ast.NodeList, l store.List) {
-	if p == nil && l.IsNil() {
-		return
-	}
-	if p == nil || l.IsNil() || int(l.Pos()) != p.Pos() || int(l.End()) != p.End() {
-		m.add(owner, label)
-		return
-	}
-	m.elements(label, owner, p.Nodes, l)
-}
-
-func (m mismatches) modifiers(label string, owner *ast.Node, p *ast.ModifierList, l store.List) {
-	if p == nil {
-		m.list(label, owner, nil, l)
-	} else {
-		m.list(label, owner, &p.NodeList, l)
-	}
-}
-
-// A raw list has no Loc.
-func (m mismatches) raw(label string, owner *ast.Node, p []*ast.Node, l store.List) {
-	if p == nil && l.IsNil() {
-		return
-	}
-	if p == nil || l.IsNil() || l.Pos() != 0 || l.End() != 0 {
-		m.add(owner, label)
-		return
-	}
-	m.elements(label, owner, p, l)
-}
-
-// guard runs a comparison whose Pointer side may panic on this kind.
-func (m mismatches) guard(owner *ast.Node, label string, compare func()) {
-	defer func() {
-		if recover() != nil {
-			m.add(owner, label+" (Pointer panics)")
-		}
-	}()
-	compare()
-}
-
-// equivalent walks the Pointer AST and its Store in preorder together and
-// compares every node: header, parent, Ref round trip, then every member of
-// its definition and every role accessor (equivalence_generated_test.go).
-func equivalent(file *ast.SourceFile) (m mismatches, visits int) {
+// equivalent converts file and compares the Store with storetest.Equivalent;
+// the Ref round trip needs NodeAt, which only this package's tests have.
+func equivalent(file *ast.SourceFile) (storetest.Mismatches, int) {
 	s := convert.Convert(file, 0)
-	pointers := preorderPointer(file.AsNode())
-	nodes := preorderStore(s.Root())
-	m = mismatches{}
-	if len(pointers) != len(nodes) {
-		m[fmt.Sprintf("visits %d, want %d", len(nodes), len(pointers))]++
-		return m, len(nodes)
-	}
-	for i, p := range pointers {
-		n := nodes[i]
-		m.node("self", p, p, n)
-		m.node("Parent", p, p.Parent, n.Parent())
-		if n.Flags() != p.Flags {
-			m.add(p, "Flags")
-		}
-		if n.ModifierFlags() != p.ModifierFlags()&0xFFFF {
-			m.add(p, "ModifierFlags")
-		}
+	m, visits := storetest.Equivalent(file, s, storetest.Options{})
+	for _, n := range storetest.Preorder(s.Root()) {
 		if s.NodeAt(n.Ref()) != n {
-			m.add(p, "Ref round trip")
+			m[n.Kind().String()+" Ref round trip"]++
 		}
-		compareMembers(m, p, n)
-		compareRoles(m, p, n)
 	}
-	return m, len(nodes)
-}
-
-func (m mismatches) report(t *testing.T) {
-	t.Helper()
-	if len(m) == 0 {
-		return
-	}
-	var lines []string
-	for label, count := range m {
-		lines = append(lines, fmt.Sprintf("%s: %d", label, count))
-	}
-	sort.Strings(lines)
-	t.Errorf("Store differs from Pointer:\n%s", strings.Join(lines, "\n"))
+	return m, visits
 }
 
 func TestEquivalence(t *testing.T) {
-	t.Logf("comparing %d members and %d roles per kind", comparedMembers, comparedRoles)
+	t.Logf("comparing %d members and %d roles per kind", storetest.ComparedMembers, storetest.ComparedRoles)
 	files := map[string]*ast.SourceFile{"small": parseSource("/ast-benchmark-small.ts", smallSource)}
 	for _, fixture := range fixtures.ASTBenchFixtures {
 		files[fixture.Name()] = parseFixture(t, fixture)
@@ -255,7 +131,7 @@ func TestEquivalence(t *testing.T) {
 	for name, file := range files {
 		t.Run(name, func(t *testing.T) {
 			m, _ := equivalent(file)
-			m.report(t)
+			m.Report(t)
 		})
 	}
 }
@@ -330,7 +206,7 @@ func corpus(t *testing.T) []corpusFile {
 
 func TestCorpus(t *testing.T) {
 	files := corpus(t)
-	all := mismatches{}
+	all := storetest.Mismatches{}
 	example := map[string]int{}
 	var visits int
 	for i, f := range files {
@@ -344,11 +220,11 @@ func TestCorpus(t *testing.T) {
 		}
 	}
 	t.Logf("%d files, %d nodes", len(files), visits)
-	located := mismatches{}
+	located := storetest.Mismatches{}
 	for label, count := range all {
 		located[fmt.Sprintf("%s (first in %s #%d)", label, files[example[label]].name, example[label])] = count
 	}
-	located.report(t)
+	located.Report(t)
 }
 
 // An escaped identifier and a literal with an escape have texts that are not
@@ -358,7 +234,7 @@ func TestTexts(t *testing.T) {
 	s := convert.Convert(file, 0)
 	var identifiers, literals []string
 	var inTexts int
-	for _, n := range preorderStore(s.Root()) {
+	for _, n := range storetest.Preorder(s.Root()) {
 		switch n.Kind() {
 		case ast.KindIdentifier:
 			identifiers = append(identifiers, n.AsIdentifier().Text(), n.Text())

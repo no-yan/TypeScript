@@ -1,0 +1,53 @@
+TEXT github.com/microsoft/TypeScript/tsc/internal/storeparser.(*Parser).newIdentifier(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/storeparser/parser.go
+  parser.go:3022	0x100321e40		f9400b90		MOVD 16(R28), R16										
+  parser.go:3022	0x100321e44		eb3063ff		CMP R16, RSP											
+  parser.go:3022	0x100321e48		54000529		BLS 41(PC)											
+  parser.go:3022	0x100321e4c		f81c0ffe		MOVD.W R30, -64(RSP)										
+  parser.go:3022	0x100321e50		f81f83fd		MOVD R29, -8(RSP)										
+  parser.go:3022	0x100321e54		d10023fd		SUB $8, RSP, R29										
+  parser.go:3022	0x100321e58		f9002be1		MOVD R1, 80(RSP)										
+  parser.go:3023	0x100321e5c		f942a406		MOVD 1352(R0), R6										
+  parser.go:3023	0x100321e60		910004c6		ADD $1, R6, R6											
+  parser.go:3023	0x100321e64		f902a406		MOVD R6, 1352(R0)										
+  parser.go:433		0x100321e68		b9453006		MOVWU 1328(R0), R6										
+  parser.go:434		0x100321e6c		39550407		MOVBU 1345(R0), R7										
+  parser.go:434		0x100321e70		36000067		TBZ $0, R7, 3(PC)										
+  parser.go:436		0x100321e74		3915041f		MOVB ZR, 1345(R0)										
+  parser.go:435		0x100321e78		b27100c6		ORR $32768, R6, R6										
+  parser.go:434		0x100321e7c		f90027e0		MOVD R0, 72(RSP)										
+  parser.go:434		0x100321e80		f9002be1		MOVD R1, 80(RSP)										
+  parser.go:434		0x100321e84		f9002fe2		MOVD R2, 88(RSP)										
+  parser.go:3024	0x100321e88		f9400400		MOVD 8(R0), R0											
+  parser.go:3024	0x100321e8c		aa0203e5		MOVD R2, R5											
+  parser.go:3024	0x100321e90		aa0303e2		MOVD R3, R2											
+  parser.go:3024	0x100321e94		aa0403e3		MOVD R4, R3											
+  parser.go:3024	0x100321e98		aa0103e4		MOVD R1, R4											
+  parser.go:3024	0x100321e9c		aa0603e1		MOVD R6, R1											
+  parser.go:3024	0x100321ea0		97fbb888		CALL github.com/microsoft/TypeScript/tsc/internal/ast/store.(*Builder).NewIdentifier(SB)	
+  parser.go:3025	0x100321ea4		f9402fe6		MOVD 88(RSP), R6										
+  parser.go:3025	0x100321ea8		f10014df		CMP $5, R6											
+  parser.go:3025	0x100321eac		540001a1		BNE 13(PC)											
+  parser.go:3025	0x100321eb0		f9402be1		MOVD 80(RSP), R1										
+  parser.go:3025	0x100321eb4		b9400022		MOVWU (R1), R2											
+  parser.go:3025	0x100321eb8		d28eec23		MOVD $30561, R3											
+  parser.go:3025	0x100321ebc		f2ad2c23		MOVK $(26977<<16), R3										
+  parser.go:3025	0x100321ec0		6b03005f		CMPW R3, R2											
+  parser.go:3025	0x100321ec4		540000e1		BNE 7(PC)											
+  parser.go:3025	0x100321ec8		39401021		MOVBU 4(R1), R1											
+  parser.go:3025	0x100321ecc		7101d03f		CMPW $116, R1											
+  parser.go:3025	0x100321ed0		54000081		BNE 4(PC)											
+  parser.go:3026	0x100321ed4		b24003e1		ORR $1, ZR, R1											
+  parser.go:3026	0x100321ed8		f94027e2		MOVD 72(RSP), R2										
+  parser.go:3026	0x100321edc		39150041		MOVB R1, 1344(R2)										
+  parser.go:3028	0x100321ee0		f85f83fd		MOVD -8(RSP), R29										
+  parser.go:3028	0x100321ee4		f84407fe		MOVD.P 64(RSP), R30										
+  parser.go:3028	0x100321ee8		d65f03c0		RET												
+  parser.go:3022	0x100321eec		a90087e0		STP (R0, R1), 8(RSP)										
+  parser.go:3022	0x100321ef0		a9018fe2		STP (R2, R3), 24(RSP)										
+  parser.go:3022	0x100321ef4		f90017e4		MOVD R4, 40(RSP)										
+  parser.go:3022	0x100321ef8		aa1e03e3		MOVD R30, R3											
+  parser.go:3022	0x100321efc		97f58cb9		CALL runtime.morestack_noctxt.abi0(SB)								
+  parser.go:3022	0x100321f00		a94087e0		LDP 8(RSP), (R0, R1)										
+  parser.go:3022	0x100321f04		a9418fe2		LDP 24(RSP), (R2, R3)										
+  parser.go:3022	0x100321f08		f94017e4		MOVD 40(RSP), R4										
+  parser.go:3022	0x100321f0c		17ffffcd		JMP github.com/microsoft/TypeScript/tsc/internal/storeparser.(*Parser).newIdentifier(SB)	

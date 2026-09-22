@@ -2,6 +2,7 @@ package store
 
 import (
 	"fmt"
+	"strings"
 	"unsafe"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
@@ -125,10 +126,11 @@ type List struct {
 	at ListRef // NoListRef = nil list
 }
 
-func (l List) IsNil() bool { return l.at == NoListRef }
-func (l List) Len() int    { return int(l.s.extra[l.at]) }
-func (l List) Pos() int32  { return int32(l.s.extra[l.at+1]) }
-func (l List) End() int32  { return int32(l.s.extra[l.at+2]) }
+func (l List) IsNil() bool  { return l.at == NoListRef }
+func (l List) Ref() ListRef { return l.at }
+func (l List) Len() int     { return int(l.s.extra[l.at]) }
+func (l List) Pos() int32   { return int32(l.s.extra[l.at+1]) }
+func (l List) End() int32   { return int32(l.s.extra[l.at+2]) }
 
 // Refs is a contiguous view of the elements. It does not allocate.
 func (l List) Refs() []NodeRef {
@@ -156,23 +158,65 @@ func visitList(s *Store, at ListRef, v Visitor) bool {
 }
 
 // Builder writes by id and never holds a *NodeHeader, because append moves the
-// headers. Nodes are handed out only after Finish.
+// headers. Nodes are handed out after Finish; View hands one out during
+// construction, valid only until the next append.
 type Builder struct {
 	nodes []NodeHeader
 	extra []uint32
-	texts []byte
+	texts strings.Builder // String() is zero-copy, so View can read it
 	src   string
 	file  uint32
+	view  Store // what View returns; its columns are re-synced on every call
 }
 
 func NewBuilder(src string, file uint32) *Builder {
-	return &Builder{
-		nodes: make([]NodeHeader, 1),
-		extra: make([]uint32, 3),
-		src:   src,
-		file:  file,
-	}
+	b := &Builder{}
+	b.Reset(src, file)
+	return b
 }
+
+// Reset starts a file on the same scratch: the sentinel rows are rewritten,
+// the capacity is kept, texts is emptied.
+func (b *Builder) Reset(src string, file uint32) {
+	if cap(b.nodes) == 0 {
+		b.nodes = make([]NodeHeader, 1, 1024)
+		b.extra = make([]uint32, 3, 1024)
+	} else {
+		b.nodes = b.nodes[:1]
+		b.extra = b.extra[:3]
+		b.nodes[0] = NodeHeader{}
+		clear(b.extra)
+	}
+	b.texts.Reset()
+	b.src = src
+	b.file = file
+}
+
+// View is the Node of id in the scratch. It points into nodes, so it is valid
+// only until the next constructor, List or NewXxx call.
+func (b *Builder) View(id NodeRef) Node {
+	b.view = Store{nodes: b.nodes, extra: b.extra, src: b.src, texts: b.texts.String(), file: b.file}
+	return b.view.node(id)
+}
+
+// ViewList is View for a list block.
+func (b *Builder) ViewList(at ListRef) List {
+	b.view = Store{nodes: b.nodes, extra: b.extra, src: b.src, texts: b.texts.String(), file: b.file}
+	return List{&b.view, at}
+}
+
+func (b *Builder) AddFlags(id NodeRef, flags ast.NodeFlags) { b.nodes[id].flags |= flags }
+func (b *Builder) SetFlags(id NodeRef, flags ast.NodeFlags) { b.nodes[id].flags = flags }
+func (b *Builder) SetLoc(id NodeRef, pos, end int32)        { b.nodes[id].pos, b.nodes[id].end = pos, end }
+
+// Mark and Truncate are the speculation pair: Truncate drops every node and
+// payload word made since Mark. texts is not truncated (strings.Builder has no
+// truncate), so a text made during a rewound speculation stays as dead bytes.
+func (b *Builder) Mark() (nodes, extra int)  { return len(b.nodes), len(b.extra) }
+func (b *Builder) Truncate(nodes, extra int) { b.nodes, b.extra = b.nodes[:nodes], b.extra[:extra] }
+
+// Len is the number of rows including the sentinel and any dead node.
+func (b *Builder) Len() int { return len(b.nodes) }
 
 // List returns the index of the new block.
 func (b *Builder) List(pos, end int32, elems []NodeRef) ListRef {
@@ -223,8 +267,8 @@ func (b *Builder) textWords(end int32, text string) (off, length uint32) {
 	if start := int(end) - len(text); start >= 0 && int(end) <= len(b.src) && b.src[start:end] == text {
 		return uint32(start), uint32(len(text))
 	}
-	off = textInTexts | uint32(len(b.texts))
-	b.texts = append(b.texts, text...)
+	off = textInTexts | uint32(b.texts.Len())
+	b.texts.WriteString(text)
 	return off, uint32(len(text))
 }
 
@@ -257,13 +301,15 @@ func (b *Builder) modifierFlags(at ListRef) ast.ModifierFlags {
 	return flags
 }
 
-// Finish copies to the exact size. It does not renumber.
+// Finish copies to the exact size (Compact). It does not renumber. The
+// scratch may be reused for the next file afterwards; texts is cloned so that
+// the Store never aliases the builder (store-ast-design-20260922.md 2.4).
 func (b *Builder) Finish() *Store {
 	return &Store{
 		nodes: append(make([]NodeHeader, 0, len(b.nodes)), b.nodes...),
 		extra: append(make([]uint32, 0, len(b.extra)), b.extra...),
 		src:   b.src,
-		texts: string(b.texts),
+		texts: strings.Clone(b.texts.String()),
 		file:  b.file,
 	}
 }

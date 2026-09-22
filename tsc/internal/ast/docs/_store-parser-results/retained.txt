@@ -1,0 +1,16 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/storeparser
+cpu: Apple M1
+BenchmarkStoreParseRetainedV1/pointer-8         	       1	 179073208 ns/op	        15.29 gc-ms	   1097788 nodes	        94.04 retained-B/node	       103.2 retained-MB
+BenchmarkStoreParseRetainedV1/pointer-8         	       1	 220184250 ns/op	        11.35 gc-ms	   1097788 nodes	        94.04 retained-B/node	       103.2 retained-MB
+BenchmarkStoreParseRetainedV1/pointer-8         	       1	 139685000 ns/op	         9.994 gc-ms	   1097788 nodes	        94.04 retained-B/node	       103.2 retained-MB
+BenchmarkStoreParseRetainedV1/pointer-8         	       1	 144739375 ns/op	         9.233 gc-ms	   1097788 nodes	        94.04 retained-B/node	       103.2 retained-MB
+BenchmarkStoreParseRetainedV1/pointer-8         	       1	 142510416 ns/op	        11.12 gc-ms	   1097788 nodes	        94.04 retained-B/node	       103.2 retained-MB
+BenchmarkStoreParseRetainedV1/store-8           	       1	  94533125 ns/op	         0.2970 gc-ms	   1075673 nodes	        35.07 retained-B/node	        37.72 retained-MB
+BenchmarkStoreParseRetainedV1/store-8           	       1	  93132041 ns/op	         0.3730 gc-ms	   1075673 nodes	        35.07 retained-B/node	        37.72 retained-MB
+BenchmarkStoreParseRetainedV1/store-8           	       1	 113015417 ns/op	         0.2930 gc-ms	   1075673 nodes	        35.07 retained-B/node	        37.72 retained-MB
+BenchmarkStoreParseRetainedV1/store-8           	       1	  90221666 ns/op	         0.2510 gc-ms	   1075673 nodes	        35.07 retained-B/node	        37.72 retained-MB
+BenchmarkStoreParseRetainedV1/store-8           	       1	  89729875 ns/op	         0.3010 gc-ms	   1075673 nodes	        35.07 retained-B/node	        37.72 retained-MB
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/storeparser	2.071s
