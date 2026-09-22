@@ -33,7 +33,7 @@ Store AST ([store-ast-design-20260922.md](store-ast-design-20260922.md)、以下
 | 合成 Node (SwitchClause / ReduceLabel) | 878 | 0 |
 
 - `FlowNode{Flags, Node NodeRef, Antecedent, Antecedents uint32}` 16B を `[]FlowNode`、`FlowList{Flow, Next uint32}` 8B を `[]FlowList` に置く。どちらも noscan。checker.ts で 0.85 MB。
-- node → flow は **`[]uint32` の密列** (4 B/node、1.19 MB)。58% のノードが flow を持つので疎列に意味が無く、`[]*FlowNode` (8 B/node = 2.4 MB) は flow graph 本体より大きい。
+- node → flow は密でなければならない: 58% のノードが flow を持つので疎列に意味が無く、`[]*FlowNode` (8 B/node = 2.4 MB) は flow graph 本体より大きい。置き場 (`[]uint32` の側列か header か) は §2.3 で決め、**header に置く**。
 - binder の `currentFlow` / label 類は slab の index になる (slab は append で動くので pointer は持てない)。増分は bounds check で、flow の生成と label 書き込みは約 0.7 回/node なので ≤ 3 inst/node (Pointer 371 の 0.8%)。数えられる量なので実験はしない。
 - 合成 Node (`FlowSwitchClauseData` / `FlowReduceLabelData` を `Node` field に詰める Pointer の形) の代替表現は §2.3 (flow の行) で決める。
 - 列の名前と置き場所 (どの package の struct か) は §2.3 で決める。
@@ -62,7 +62,7 @@ Store AST ([store-ast-design-20260922.md](store-ast-design-20260922.md)、以下
 
 - **`NodeRef` を渡して呼び先で解決する形は採らない。** 境界 4 つで約 +70 inst/node (Pointer 371 の 19%) になり、前回の rewrite +21% と一致する。
 - **1 word の `*NodeHeader` は採らない (差し戻し可)。** binder は単一 Store なので `b.s` から `Node` を作り直せて、理屈の上では通貨を 1 word にできる。差は境界 1 回 +2 inst (スタック退避) で、bind の境界を 5 つと見て約 10 inst/node (2.7%)、ns では 1% 以下。header のスカラ accessor を `*NodeHeader` にも生やすか `Store.Node(h)` を公開する API の追加に見合わない。`View` が 47 inst / 35 cycles だったのは 5 word の `Store` を heap の field に書き戻していたためで、レジスタに載る 2 word の構造体の費用ではない。**Bind ゲートを cycles で落とした場合に最初に試す案として残す。**
-- `Ref()` (magic 乗算 6 inst) は flow の書き込み 58% + symbol 6% ≈ 0.64 回/node ≈ 4 inst/node (1%)、container 側は宣言 6% × 2 回 ≈ 0.7 inst/node。32B header (設計文書 §2.5 再検討 4) なら shift になる。§2.3 で予約 slot と一緒に再検討する。
+- `Ref()` が要るのは side 列を引くときだけで、§2.3 (flow と symbol を header に置く) の下では flow の生成時の `FlowNode.Node` (0.15〜0.3 回/node)、宣言の `FileRef()` (6%)、`containers` (2%)、pattern ambient module の名前、で合わせて **約 0.25〜0.3 回/node**。24B なら magic 乗算 6 inst で約 2 inst/node、32B (§2.3) なら shift 1〜2 inst で 0.5 inst/node。
 - Identifier (41%) の `IsIdentifierName` (Parent 1 段 +8.7 inst、`Name()` 在 +12) は 0.41 × 約 20 ≈ +8 inst/node (2%) で既知の負債。`checkContextualIdentifier` の条件順を入れ替えて避ける案は Pointer 版でも関数単体 −26% (2026-09-16) なので、7b §11.4 の scanASCIIWhile と同じく「両方に入れるか、入れないか」とし、7c では入れない。
 
 **走査は生成 `ForEachChild` と Pointer と同じ訪問順** (statements の functions-first、flow 用の手書き順もそのまま)。線形 pass は採らない: flow 付け (58%)、container stack、symbol 宣言が訪問順に依存するので木の走査は無くならず、線形 pass に移せるのは `ThisNodeOrAnySubNodesHasError` の伝播 (save / restore + or で約 6 inst/node) 程度で、別 pass の費用 (parent index を読んで or、約 5 inst/node) と相殺する。線形 pass の候補は §2.5 の `ExternalModuleIndicator` (statements の kind を見るだけ) に限る。
@@ -115,7 +115,7 @@ type NodeHeader struct {            // 32B、noscan
 
 | 出力 | 置き場 | 備考 |
 | --- | --- | --- |
-| node → flow | `NodeHeader.flow` | 全 kind。Pointer の `FlowNodeData() != nil` 判定は不要 (無い kind は 0 のまま)。読み書き 1 load / 1 store で、`h` が手元にあるので `Ref()` が要らない |
+| node → flow | `NodeHeader.flow` | 全 kind。Pointer の `FlowNodeData() != nil` 判定は不要 (無い kind は 0 のまま)。これが成り立つのは binder の 4 呼び出し箇所が kind でガードされている (statement は `StatementBase` が `FlowNodeBase` を埋め込む、他は kind の分岐の中) からで、ガード無しの書き込みが増えたら flow を持たない kind に書くことになる。読み書き 1 load / 1 store で、`h` が手元にあるので `Ref()` が要らない |
 | node → symbol | `NodeHeader.symbol` | 全 kind。JS の `BinaryExpression` / `CallExpression` の expando symbol も同じ場所で、kind の列挙が要らない |
 | symbols の実体 | `Bound.symbols` (file ごとの slab、id は 1 始まり) | 型と slab の形は §2.4 |
 | Locals | container kind (`LocalsContainerBase` を埋め込む定義、直接 13 + `FunctionLikeBase` 経由) の予約 slot → `Bound.locals []SymbolTable` の index。`Locals()` は kind 表の番兵 (0xFF) で不在 kind を 1 比較で弾く | 表は `SymbolTable` (map) のまま。7c の等価テストは key 集合を比べ、hot な読みは 7d の nameresolver なので、map をやめるかは 7d で `Resolve` の実測で決める |
@@ -123,8 +123,8 @@ type NodeHeader struct {            // 32B、noscan
 | EndFlow / ReturnFlow / Fallthrough | `BodyBase` (2 定義 + 合成) / 4 kind / CaseClause・DefaultClause の予約 slot | checker が `BodyData()` 経由で 524k 回読む。typed view の 1 slot 読み |
 | NextContainer | `Bound.containers []NodeRef` (宣言順の列、checker.ts で 5.6k) | 読み手は printer 1 箇所。連結リストを列にするだけ |
 | 合成 flow (SwitchClause 878 / ReduceLabel) | `Bound.flowData []struct{a, b, c uint32}`。`FlowNode.Node` を flags で index に読み替える | Pointer が `*Node` に詰める形の index 版。SwitchClause は (switchStatement, clauseStart, clauseEnd)、ReduceLabel は (target, antecedents) |
-| `Flags` 書き 22 箇所 | `Node.AddFlags` / `Node.ClearFlags` を store に足す。`storeChecks` build では `File.Seal()` 後の呼び出しで panic | Builder は bind まで生かさない (Compact 後の `{s,h}` を配る契約、設計文書 §2.7)。予約 slot の setter (`SetLocals` 等、生成) も同じ規則。header の `flow` / `symbol` も `Node.SetFlow` / `SetSymbol` で書く |
-| file の field | checker / LS / compiler が読む `Symbol`、`SymbolCount`、`PatternAmbientModules`、`GlobalExports`、bind diagnostics、`CommonJSModuleIndicator` は `File.Bound` (`IsBound` は `Bound != nil`、`BindOnce` は `File`)。`ExternalModuleIndicator` は parser の出力なので `File` 直下 (§2.5)。`notConstEnumOnlyModules`、`expandoAssignments`、`symbolCount` は Binder に留める | 読み手 (grep、binder 外): PatternAmbientModules checker + ls/autoimport、GlobalExports checker + ls、SymbolCount checker + compiler + tsc、BindDiagnostics / IsBound compiler、CommonJSModuleIndicator checker + ls + transformers、NextContainer printer、EndFlow / ReturnFlow / Fallthrough checker、LocalSymbol checker |
+| `Flags` 書き (binder.go で `node.Flags` に書く 12 行。他の `Flags |=` は symbol / flow / `emitFlags`) | `Node.AddFlags` / `Node.ClearFlags` を store に足す。`storeChecks` build では `Store.Seal()` 後の呼び出しで panic | Builder は bind まで生かさない (Compact 後の `{s,h}` を配る契約、設計文書 §2.7)。予約 slot の setter (`SetLocals` 等、生成) も同じ規則。header の `flow` / `symbol` も `Node.SetFlow` / `SetSymbol` で書く |
+| file の field | file の `Symbol` は Pointer でも独立 field ではなく root ノードの `DeclarationBase.Symbol` (`SourceFile` が `DeclarationBase` を埋め込む。JSON 経路は root の symbol を一時的に上書きして復元する) なので、Store でも **root header の `symbol`** で、`File.Symbol()` はその読み。`Bound` には置かない。checker / LS / compiler が読む `SymbolCount`、`PatternAmbientModules`、`GlobalExports`、bind diagnostics、`CommonJSModuleIndicator` は `File.Bound`。`IsBound` は Pointer と同じく bind 完了後に atomic で立てる (`Bound` は bind 開始時に付くので `Bound != nil` では bind 中に true になる)。`ExternalModuleIndicator` は parser の出力なので `File` 直下 (§2.5)。`notConstEnumOnlyModules`、`expandoAssignments`、`symbolCount` は Binder に留める | 読み手 (grep、binder 外): PatternAmbientModules checker + ls/autoimport、GlobalExports checker + ls、SymbolCount checker + compiler + tsc、BindDiagnostics / IsBound compiler、CommonJSModuleIndicator checker + ls + transformers、NextContainer printer、EndFlow / ReturnFlow / Fallthrough checker、LocalSymbol checker |
 | 列の所有者 | 型 (`FlowRef`、`FlowNode`、`FlowList`、`SymbolId`、`Symbol`、`SymbolTable`、`Bound`) は `store` package。書き手は `storebinder` package | 前例: Pointer では `ast` が `Symbol` / `FlowNode` を持ち、`binder` が書く。Store 本体は header の 2 word と slot の uint32 を「意味を知らない番号」として持つだけで noscan のまま。`Bound` だけが scan 対象 |
 
 費用の見積り (checker.ts): header +8 B/node、予約 slot ≈ 0.4 B/node、flow slab 0.85 MB (2.9 B/node)、symbol は §2.4。symbol の 4B は 94% のノードで空だが、それと引き換えに `Ref()` が shift 1〜2 inst、`node()` −1 inst、parent 1 段 2.64 → 2.09 ns (−21%、storeexp D 案の実測) になり、check の `Parent` 49 回/node の支配項に効く。
@@ -187,12 +187,12 @@ type NodeHeader struct {            // 32B、noscan
 設計文書 §2.8 の 6 つに加えて:
 
 7. `NodeHeader` は 32B。`flow` と `symbol` は bind だけが書き、0 が nil。parse は 0 で作る。
-8. **bind 完了後は Store に書かない (設計文書 §2.8 の 5) を API で守る。** 書き込み API は `Node.AddFlags` / `ClearFlags` / `SetFlow` / `SetSymbol` と生成された予約 slot の setter だけで、binder が `File.Seal()` を呼んだ後は `storeChecks` build で panic する。Builder は bind まで生かさない。
+8. **bind 完了後は Store に書かない (設計文書 §2.8 の 5) を API で守る。** 書き込み API は `Node.AddFlags` / `ClearFlags` / `SetFlow` / `SetSymbol` と生成された予約 slot の setter だけで、binder が `Store.Seal()` を呼んだ後は `storeChecks` build で panic する。Builder は bind まで生かさない。
 9. `Bound` と `Symbol` に保存するノードの手掛かりは `Ref` (file + id) だけ。`Node{s,h}` を `Bound` / `Symbol` / `SymbolTable` に入れない (設計文書 §2.5)。
 10. bind の出力型 (`FlowRef`、`FlowNode`、`FlowList`、`SymbolId`、`Symbol`、`SymbolTable`、`Bound`) は `store` package が持ち、`storebinder` が書く。`store` は `storebinder` を import しない。Store 本体 (`nodes` / `extra`) は id の意味を知らず noscan のまま。
 11. flow は slab の index で参照する。`FlowRef` 0 = nil、`unreachableFlow` は最初に作る (index 1)。slab は append で動くので `*FlowNode` を bind 中に保持しない。
 12. `SymbolId` は file 内で密 (生成順、1 始まり)。`Bound.symbols[id]` が `*Symbol`。
-13. binder に `map[NodeRef]T` を置かない。Pointer が `GetNodeId(attributes)` に使っていた 1 箇所は `NodeRef` をそのまま使う。
+13. binder に `map[NodeRef]T` を置かない。Pointer が `GetNodeId(attributes)` に使っていた 1 箇所 (pattern ambient module の symbol 名 `…pattern@<id>`) は **`FileRef()` (file + id)** を使う。`NodeRef` だけだと別 file の同名 pattern が 7d の globals merge で同じ symbol に merge される (Pointer の id はプロセス一意)。名前が Pointer と一致しなくなるので、等価テストは private 名の `#<id>@` と同じくこの id を正規化する。
 14. 走査は生成 `ForEachChild` と Pointer と同じ訪問順。線形 pass は `ExternalModuleIndicator` の statements ループだけ。
 
 ## 5. 検証計画
@@ -207,7 +207,7 @@ type NodeHeader struct {            // 32B、noscan
 | Parse KPC (32B) | `BenchmarkStoreParseKPCV1`、24B の before と比較 | cycles ≤ 1.00 × pointer (7b の線。S1 後 0.813) |
 | Bind KPC | `BenchmarkStoreBindKPCV1` (`BenchmarkASTBindKPCV1` の形、parse は区間外、bind だけ `Measure`)。分母は両方 Pointer の visits 298,054 | **cycles ≤ 1.10 × pointer (決定済み)**。inst / IPC は報告 |
 | 命令列 | `Ref()` に乗算が無い、`bind` → `bindChildren` → `ForEachChild` で `node()` が辺 1 本に 1 回、setter と `Symbol()` / `FlowNode()` / `Locals()` の inline、表引きの bounds check なし | 期待どおり。外れたら命令列で理由 |
-| retained / GC | `BenchmarkStoreBindRetainedV1` (7b の retained ベンチを bind まで伸ばす。GC 2 回) | **提案 (未決)**: retained Store / Pointer ≤ 0.60 (見積り 0.50)、保持中の GC ms ≤ 0.15 × pointer (7b は 0.03、`Bound` が scan 対象に加わる)。B/op と allocs は報告 |
+| retained / GC | `BenchmarkStoreBindRetainedV1` (7b の retained ベンチを bind まで伸ばす。GC 2 回)。入力は 7b と同じ fixtures 166 file に加えて checker.ts 単独と dom 単独 | **提案 (未決)**。比は symbol の密度で動く (symbol 96B と `SymbolTable` は両側に同量乗る): checker.ts (6.2%) は Store ≈ 52.8 + T、Pointer ≈ 105.6 + T (T ≈ 10 は map 等の共通分、Pointer の bind B/op 24.9 B/node から flow 5.7 と symbol 5.9 を引いた残り) で 0.54、dom (23.5%) は 69 + 15 / 118 + 15 で 0.63。fixtures 166 file は dom 系が多い。線: retained は checker.ts ≤ 0.60、fixtures ≤ 0.70、dom は報告。GC ms は Store 側で scan されるのが symbol + map + `symbols` 表 (S ≈ 16〜19 B/node) だけで、Pointer は全部 (≈ 100 + S) なので比 ≈ S / (100 + S) = 0.14〜0.16 (checker.ts)、dom 密度で約 0.25。map は string key + pointer 値で bytes 比より重い。線: checker.ts ≤ 0.25、fixtures ≤ 0.35。B/op と allocs は報告 |
 | 移植の機械性 | diff と分類 (a)〜(g)、`internal/binder` / `parser` / `ast` (store 以外) に差分なし、production からの import なし、generator の再現、`-tags storechecks`、`unsafe` は `Ref()` / `Refs()` だけ | 7b と同じ |
 
 before の取り方: 7c の変更前 (この文書の commit) で、ユーザーが別ターミナルで Walk KPC (`internal/ast/store`)、Parse KPC (`internal/storeparser`)、Pointer の Bind KPC (`internal/binder`) を取り、`internal/ast/docs/_kpc-baselines/store-24b-before-<日付>.txt` に保存する。after は同じコマンドを 7c の binary で取る。

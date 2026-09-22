@@ -81,6 +81,9 @@ func (n Node) ClearFlags(f ast.NodeFlags)   // h.flags &^= f
 func (n Node) SetFlow(f FlowRef)
 func (n Node) SetSymbol(id SymbolId)
 func (n Node) FileRef() Ref                 // Ref{s.file, n.Ref()}。Declarations 等、heap に保存する形
+func (r Ref) File() uint32
+func (r Ref) Id() NodeRef
+func (s *Store) Node(ref NodeRef) Node      // s.node の公開。list の要素と Ref の解決に binder が使う
 func (s *Store) Seal()                      // 以後の書き込みは storeChecks build で panic
 ```
 
@@ -105,7 +108,6 @@ type FlowList struct{ Flow FlowRef; Next FlowListRef }   // 8B
 type FlowData struct{ A, B, C uint32 }       // SwitchClause: (switchStatement, clauseStart, clauseEnd)。ReduceLabel: (target FlowRef, antecedents FlowListRef, 0)
 
 type Bound struct {
-    Symbol               SymbolId            // file の symbol (external module のとき)
     SymbolCount          int
     PatternAmbientModules []PatternAmbientModule
     GlobalExports        SymbolTable
@@ -118,12 +120,25 @@ type Bound struct {
     locals               []SymbolTable       // 予約 slot の index → table。[0] は nil
     containers           []NodeRef           // NextContainer の連鎖を宣言順の列に
 }
+// 読み
 func (b *Bound) Flow(r FlowRef) *FlowNode           // &b.flows[r]。bind 中は append で動くので保持しない
 func (b *Bound) FlowList(r FlowListRef) *FlowList
+func (b *Bound) FlowData(i uint32) *FlowData
 func (b *Bound) SymbolOf(id SymbolId) *Symbol       // b.symbols[id]
 func (b *Bound) Locals(i uint32) SymbolTable
+func (b *Bound) Containers() []NodeRef
 func (b *Bound) BindDiagnostics() []*ast.Diagnostic
+// 書き (storebinder が呼ぶ。field は非公開のまま)
+func (b *Bound) NewFlow(flags ast.FlowFlags, node NodeRef, antecedent FlowRef) FlowRef
+func (b *Bound) NewFlowList(flow FlowRef, next FlowListRef) FlowListRef
+func (b *Bound) NewFlowData(a, bb, c uint32) uint32
+func (b *Bound) AddSymbol(s *Symbol) SymbolId       // s.id を書いて返す
+func (b *Bound) NewLocals() uint32                  // make(SymbolTable) を append、index を返す
+func (b *Bound) AddContainer(ref NodeRef)
+func (b *Bound) AddDiagnostic(d *ast.Diagnostic)
 ```
+
+file の symbol は `Bound` に置かない。Pointer の `file.Symbol` は root ノードの `DeclarationBase.Symbol` そのもの (`SourceFile` が `DeclarationBase` を埋め込む) なので、Store では root header の `symbol` であり、`File.Symbol()` がそれを読む (§3.4)。
 
 ```go
 // symbol.go: internal/ast/symbol.go を移植し、2 field の型を変える
@@ -186,10 +201,12 @@ ModuleAugmentations         []NodeRef
 AmbientModuleNames          []string
 UsesUriStyleNodeCoreModules core.Tristate
 // binder が書く
-Bound                       *Bound               // nil = 未 bind
+Bound                       *Bound               // bind 開始時に付く
 bindOnce                    sync.Once
-func (f *File) IsBound() bool                    // f.Bound != nil
-func (f *File) BindOnce(fn func())               // ast.SourceFile.BindOnce と同じ形
+isBound                     atomic.Bool          // bind 完了後に BindOnce が立てる (Pointer と同じ)
+func (f *File) IsBound() bool                    // isBound.Load()
+func (f *File) BindOnce(fn func())               // ast.SourceFile.BindOnce と同じ形: fn() の後に isBound を立てる
+func (f *File) Symbol() *Symbol                  // Bound.SymbolOf(Root().Symbol())。root header が Pointer の file.Symbol
 func (f *File) IsExternalModule() bool           // ExternalModuleIndicator != 0
 func (f *File) IsExternalOrCommonJSModule() bool // 上 || Bound.CommonJSModuleIndicator != 0。binder は bind 中に CommonJS 側を書くので、Bound を先に付けてから bind する
 ```
@@ -233,7 +250,7 @@ func Pairs(file *ast.SourceFile, s *store.Store, opts Options) ([]Pair, Mismatch
 | `[]*ast.Node` (Declarations) | `[]store.Ref` |
 | `ast.NewFlowSwitchClauseData` / `NewFlowReduceLabelData` | `b.newFlowData(a, b, c)` が `Bound.flowData` に append して index を返し、それを `FlowNode.Node` に入れる |
 | `core.Arena[ast.Symbol]` 等 | `symbolArena core.Arena[store.Symbol]`、`singleDeclarationsArena core.Arena[store.Ref]`。flow の arena は `Bound.flows` / `flowLists` への append |
-| `ast.GetNodeId(attributes)` | `attributes.Ref()` (`NodeRef` を 10 進で) |
+| `ast.GetNodeId(attributes)` (pattern ambient module の symbol 名) | `attributes.FileRef()` を `file:id` の 10 進で。`NodeRef` だけだと別 file の同名 pattern が 7d の globals merge で衝突する (7c 設計 §4 の 13)。等価テストは `pattern@<…>` を正規化する (§6.1) |
 
 ### 5.2 出力先 (分類 (b))
 
@@ -244,28 +261,29 @@ func Pairs(file *ast.SourceFile, s *store.Store, opts Options) ([]Pair, Mismatch
 | `node.ExportableData().LocalSymbol = local` | `node.SetLocalSymbol(local.Id())` (役割 setter) |
 | `ast.GetLocals(container)` | `b.getLocals(container)`: `container.LocalsSlot()` で slot を読み、0 なら `Bound.locals` に table を append して slot に index を書く |
 | `container.LocalsContainerData() != nil` (`lookupName`、`IsLocalsContainer`) | `LocalsSlot()` の ok |
-| `node.AsIdentifier().FlowNode = f`、`setFlowNode`、`flowNodeData.FlowNode = f` | `node.SetFlow(f)`。`FlowNodeData() != nil` の判定は不要 (全 kind に slot がある) |
+| `node.AsIdentifier().FlowNode = f`、`setFlowNode`、`flowNodeData.FlowNode = f` | `node.SetFlow(f)`。`FlowNodeData() != nil` の判定は不要 (全 kind に slot がある)。成り立つ根拠は 4 呼び出し箇所が kind でガードされていること (statement は `StatementBase` が `FlowNodeBase` を埋め込む、他は kind の分岐の中)。ガード無しの書き込みを足さない |
 | `bodyData.EndFlowNode = f`、`setReturnFlowNode`、`clause.FallthroughFlowNode = f` | 役割 setter `SetEndFlowNode` / `SetReturnFlowNode` / `SetFallthroughFlowNode` (kind switch は setter の中の表引きに畳まれる) |
-| `node.Flags |= …`、`&^=` (22 箇所) | `node.AddFlags(…)`、`node.ClearFlags(…)` |
+| `node.Flags |= …`、`&^=` (binder.go で `node.Flags` に書く 12 行。`symbol.Flags` / flow の `Flags` / `emitFlags` は別) | `node.AddFlags(…)`、`node.ClearFlags(…)` |
 | `b.lastContainer.LocalsContainerData().NextContainer = next` | `b.bound.containers = append(…, next.Ref())` |
-| `b.file.Symbol`、`SymbolCount`、`PatternAmbientModules`、`GlobalExports`、`SetBindDiagnostics`、`CommonJSModuleIndicator` | `b.bound.*` |
+| `b.file.Symbol` (読み / 一時上書き / 復元。`bindSourceFileIfExternalModule` の JSON 経路) | root の header: `root.Symbol()` / `root.SetSymbol(…)`。`bindSourceFileAsExternalModule` は `addDeclarationToSymbol` 経由で同じ header に書くので、上書きと復元が同じ場所になる |
+| `SymbolCount`、`PatternAmbientModules`、`GlobalExports`、`SetBindDiagnostics` (`addDiagnostic`)、`CommonJSModuleIndicator` | `b.bound.*` (`AddDiagnostic`) |
 | `b.file.ExternalModuleIndicator`、`IsDeclarationFile`、`Diagnostics()`、`FileName()`、`Text()` | `b.file.*` |
 | `ast.IsExternalModule(file)`、`IsExternalOrCommonJSModule(file)` | `b.file.IsExternalModule()` 等 (§3.4) |
 | `symbol.Declarations = append(…, node)` 等 | `node.FileRef()` |
-| `SetValueDeclaration` の `valueDeclaration.Kind` | `b.s.node(ref.id).Kind()` (7c は単一 file。`Ref.file` は検証で `s.file` と一致することを見る) |
+| `SetValueDeclaration` の `valueDeclaration.Kind` | `b.s.Node(ref.Id()).Kind()` (7c は単一 file。`Ref.File()` は検証で `s.file` と一致することを見る) |
 
 ### 5.3 flow (分類 (d))
 
-- `newFlowNode(flags)` は `Bound.flows` に append して index を返す。`unreachableFlow` は Pointer と同じく最初に作る (index 1)。
+- `newFlowNode(flags)` は `b.bound.NewFlow(flags, 0, 0)`、`newFlowNodeEx` は `NewFlow(flags, node.Ref(), antecedent)`、`newFlowList` は `NewFlowList`。`unreachableFlow` は Pointer と同じく最初に作る (index 1)。
 - flow の field を読む / 書く箇所 (`antecedent.Flags`、`label.Antecedents`、`list.Flow` / `list.Next`、`flowStart.Node = node`) は `b.bound.Flow(r).Field` に置き換える。**`*FlowNode` をローカル変数に保持しない** (append で動く)。`addAntecedent` のループは index で回す。
 - `combineFlowLists` の再帰はそのまま (index を返す)。
-- `createFlowSwitchClause` / `createReduceLabel` は `newFlowData` の index を `Node` に入れる。
+- `createFlowSwitchClause` / `createReduceLabel` は `b.bound.NewFlowData(…)` の index を `Node` に入れる。
 
 ### 5.4 訪問
 
 - `bind(node store.Node) bool`、`bindFunc store.Visitor`。`node.ForEachChild(b.bindFunc)`。
 - 子を typed view で受ける (`stmt := node.AsWhileStatement(); b.bind(stmt.Expression())`)。Pointer の `stmt.Expression` (field) は `stmt.Expression()` (accessor、解決済み `Node`) に。nil の子は番兵 Node で来て `bind` の先頭の `IsNil()` で戻る。
-- list は `Refs()` を回して `b.bind(b.s.node(ref))` (`bindEach`)。`b.s.node` は `store` 内部なので、`store` に `func (s *Store) Node(ref NodeRef) Node` を公開する (§3.1 に含める)。
+- list は `Refs()` を回して `b.bind(b.s.Node(ref))` (`bindEach`。`Store.Node` は §3.1)。
 - 訪問順を変えない: `bindEachStatementFunctionsFirst`、`bindDestructuringAssignmentFlow` の左右の順、`bindCallExpressionFlow` の IIFE の順など、手書きの順はそのまま。
 
 ### 5.5 `ast` の述語と helper
@@ -292,7 +310,7 @@ binder.go が `*ast.Node` に対して呼ぶ `ast` の関数のうち、**kind �
 
 1. **等価 (fixture)**: `fixtures.ASTBenchFixtures` と小さな source を Pointer (`parser.ParseSourceFile` + `binder.BindSourceFile`) と Store (`storeparser.ParseSourceFile` + `storebinder.BindSourceFile`) で bind し、`storetest.Pairs` の対ごとに次を比べる driver (`bindequiv.go`、test package 内):
    - bind 後の flags (`MaskFlags` を適用)。
-   - symbol: `Name` (private 名は `#<id>@` を `#@` に正規化)、`Flags`、`CheckFlags`、`Declarations` の (kind, pos, end) 列、`ValueDeclaration` の (kind, pos, end)、`Parent` / `ExportSymbol` の再帰、`Members` / `Exports` の key 集合と値の再帰。(Pointer, Store) の対を memo にして循環を止め、同じ Pointer symbol が別の Store symbol と対になったら mismatch。
+   - symbol: `Name` (id を含む 2 種を正規化する: private 名の `#<id>@` → `#@`、pattern ambient module の `pattern@<id>` → `pattern@`。それ以外の緩めはしない)、`Flags`、`CheckFlags`、`Declarations` の (kind, pos, end) 列、`ValueDeclaration` の (kind, pos, end)、`Parent` / `ExportSymbol` の再帰、`Members` / `Exports` の key 集合と値の再帰。(Pointer, Store) の対を memo にして循環を止め、同じ Pointer symbol が別の Store symbol と対になったら mismatch。
    - `LocalSymbol`、`Locals` (不在 kind は両方 nil、key 集合、値の再帰)。
    - flow: node の flow、`EndFlowNode`、`ReturnFlowNode`、`FallthroughFlowNode` から並行に辿る: `Flags`、`Node` の (kind, pos) (SwitchClause は (switch の pos, start, end)、ReduceLabel は target と antecedents を再帰)、`Antecedent` の再帰、`Antecedents` の長さと順序。対を memo。
    - file: `SymbolCount`、`Symbol`、`GlobalExports`、`PatternAmbientModules` (pattern の文字列と symbol)、bind diagnostics の (pos, len, code, message) 列、`CommonJSModuleIndicator` / `ExternalModuleIndicator` の (kind, pos)、`Imports` / `ModuleAugmentations` の (kind, pos) 列、`AmbientModuleNames`、`UsesUriStyleNodeCoreModules`。
@@ -311,7 +329,7 @@ binder.go が `*ast.Node` に対して呼ぶ `ast` の関数のうち、**kind �
 
 - `BenchmarkStoreBindV1/<fixture>/{pointer,store}`: parse は `StopTimer` の外 (毎回 parse し直す。Pointer は `BindOnce` が 2 回目を弾くため)。ns/op、B/op、allocs/op。
 - `BenchmarkStoreBindKPCV1/{pointer,store}`: checker.ts、`kperf.Session`、`Measure` の中は bind だけ。両方とも分母 298,054 で cycles/node と inst/node を `ReportMetric`。
-- `BenchmarkStoreBindRetainedV1/{pointer,store}`: 7b の `BenchmarkStoreParseRetainedV1` を bind まで伸ばす (parse + bind の結果を保持、GC 2 回、`HeapAlloc` 増分 / node、その後の GC 1 回の ms)。
+- `BenchmarkStoreBindRetainedV1/{fixtures,checker.ts,dom}/{pointer,store}`: 7b の `BenchmarkStoreParseRetainedV1` を bind まで伸ばす (parse + bind の結果を保持、GC 2 回、`HeapAlloc` 増分 / node、その後の GC 1 回の ms)。入力は 7b と同じ fixtures 166 file に加えて、checker.ts 単独と dom 単独 (比が symbol の密度で動くため。7c 設計 §5)。
 
 ## 8. 完了条件
 
