@@ -20,7 +20,7 @@ type converter struct {
 	elems []store.NodeRef // stack of the elements of the lists under construction
 }
 
-func (c *converter) elements(pos, end int32, nodes []*ast.Node) uint32 {
+func (c *converter) elements(pos, end int32, nodes []*ast.Node) store.ListRef {
 	mark := len(c.elems)
 	for _, n := range nodes {
 		c.elems = append(c.elems, c.node(n))
@@ -30,24 +30,24 @@ func (c *converter) elements(pos, end int32, nodes []*ast.Node) uint32 {
 	return at
 }
 
-func (c *converter) list(l *ast.NodeList) uint32 {
+func (c *converter) list(l *ast.NodeList) store.ListRef {
 	if l == nil {
-		return 0
+		return store.NoListRef
 	}
 	return c.elements(int32(l.Pos()), int32(l.End()), l.Nodes)
 }
 
-func (c *converter) modifiers(l *ast.ModifierList) uint32 {
+func (c *converter) modifiers(l *ast.ModifierList) store.ListRef {
 	if l == nil {
-		return 0
+		return store.NoListRef
 	}
 	return c.list(&l.NodeList)
 }
 
 // A raw list has no Loc of its own.
-func (c *converter) raw(nodes []*ast.Node) uint32 {
+func (c *converter) raw(nodes []*ast.Node) store.ListRef {
 	if nodes == nil {
-		return 0
+		return store.NoListRef
 	}
 	return c.elements(0, 0, nodes)
 }
@@ -56,7 +56,7 @@ func (c *converter) raw(nodes []*ast.Node) uint32 {
 // left to right, so the children exist, in member order, before their parent.
 func (c *converter) node(n *ast.Node) store.NodeRef {
 	if n == nil {
-		return 0
+		return store.NoNodeRef
 	}
 	pos, end := int32(n.Pos()), int32(n.End())
 	switch n.Kind {

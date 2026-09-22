@@ -359,10 +359,10 @@ func (n Node) ForEachChild(v Visitor) bool {
 
 func forEachChildQualifiedName(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Left
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Left
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Right
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Right
 		return true
 	}
 	return false
@@ -370,7 +370,7 @@ func forEachChildQualifiedName(n Node, v Visitor) bool {
 
 func forEachChildComputedPropertyName(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -378,19 +378,19 @@ func forEachChildComputedPropertyName(n Node, v Visitor) bool {
 
 func forEachChildTypeParameterDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Constraint
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Constraint
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
-	if ref := NodeRef(s.extra[data+4]); ref != 0 && v(s.node(ref)) { // DefaultType
+	if ref := NodeRef(s.extra[data+4]); ref != NoNodeRef && v(s.node(ref)) { // DefaultType
 		return true
 	}
 	return false
@@ -398,22 +398,22 @@ func forEachChildTypeParameterDeclaration(n Node, v Visitor) bool {
 
 func forEachChildParameterDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // DotDotDotToken
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // DotDotDotToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // QuestionToken
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // QuestionToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+4]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+4]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
-	if ref := NodeRef(s.extra[data+5]); ref != 0 && v(s.node(ref)) { // Initializer
+	if ref := NodeRef(s.extra[data+5]); ref != NoNodeRef && v(s.node(ref)) { // Initializer
 		return true
 	}
 	return false
@@ -421,7 +421,7 @@ func forEachChildParameterDeclaration(n Node, v Visitor) bool {
 
 func forEachChildDecorator(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -429,19 +429,19 @@ func forEachChildDecorator(n Node, v Visitor) bool {
 
 func forEachChildPropertySignatureDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // PostfixToken
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // PostfixToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
-	if ref := NodeRef(s.extra[data+4]); ref != 0 && v(s.node(ref)) { // Initializer
+	if ref := NodeRef(s.extra[data+4]); ref != NoNodeRef && v(s.node(ref)) { // Initializer
 		return true
 	}
 	return false
@@ -449,19 +449,19 @@ func forEachChildPropertySignatureDeclaration(n Node, v Visitor) bool {
 
 func forEachChildPropertyDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // PostfixToken
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // PostfixToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
-	if ref := NodeRef(s.extra[data+4]); ref != 0 && v(s.node(ref)) { // Initializer
+	if ref := NodeRef(s.extra[data+4]); ref != NoNodeRef && v(s.node(ref)) { // Initializer
 		return true
 	}
 	return false
@@ -469,22 +469,22 @@ func forEachChildPropertyDeclaration(n Node, v Visitor) bool {
 
 func forEachChildMethodSignatureDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // PostfixToken
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // PostfixToken
 		return true
 	}
-	if at := s.extra[data+3]; at != 0 && visitList(s, at, v) { // TypeParameters
+	if at := ListRef(s.extra[data+3]); at != NoListRef && visitList(s, at, v) { // TypeParameters
 		return true
 	}
-	if at := s.extra[data+4]; at != 0 && visitList(s, at, v) { // Parameters
+	if at := ListRef(s.extra[data+4]); at != NoListRef && visitList(s, at, v) { // Parameters
 		return true
 	}
-	if ref := NodeRef(s.extra[data+5]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+5]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -492,31 +492,31 @@ func forEachChildMethodSignatureDeclaration(n Node, v Visitor) bool {
 
 func forEachChildMethodDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // AsteriskToken
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // AsteriskToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // PostfixToken
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // PostfixToken
 		return true
 	}
-	if at := s.extra[data+4]; at != 0 && visitList(s, at, v) { // TypeParameters
+	if at := ListRef(s.extra[data+4]); at != NoListRef && visitList(s, at, v) { // TypeParameters
 		return true
 	}
-	if at := s.extra[data+5]; at != 0 && visitList(s, at, v) { // Parameters
+	if at := ListRef(s.extra[data+5]); at != NoListRef && visitList(s, at, v) { // Parameters
 		return true
 	}
-	if ref := NodeRef(s.extra[data+6]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+6]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
-	if ref := NodeRef(s.extra[data+7]); ref != 0 && v(s.node(ref)) { // FullSignature
+	if ref := NodeRef(s.extra[data+7]); ref != NoNodeRef && v(s.node(ref)) { // FullSignature
 		return true
 	}
-	if ref := NodeRef(s.extra[data+8]); ref != 0 && v(s.node(ref)) { // Body
+	if ref := NodeRef(s.extra[data+8]); ref != NoNodeRef && v(s.node(ref)) { // Body
 		return true
 	}
 	return false
@@ -524,10 +524,10 @@ func forEachChildMethodDeclaration(n Node, v Visitor) bool {
 
 func forEachChildClassStaticBlockDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Body
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Body
 		return true
 	}
 	return false
@@ -535,22 +535,22 @@ func forEachChildClassStaticBlockDeclaration(n Node, v Visitor) bool {
 
 func forEachChildConstructorDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // TypeParameters
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // TypeParameters
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // Parameters
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // Parameters
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
-	if ref := NodeRef(s.extra[data+4]); ref != 0 && v(s.node(ref)) { // FullSignature
+	if ref := NodeRef(s.extra[data+4]); ref != NoNodeRef && v(s.node(ref)) { // FullSignature
 		return true
 	}
-	if ref := NodeRef(s.extra[data+5]); ref != 0 && v(s.node(ref)) { // Body
+	if ref := NodeRef(s.extra[data+5]); ref != NoNodeRef && v(s.node(ref)) { // Body
 		return true
 	}
 	return false
@@ -558,25 +558,25 @@ func forEachChildConstructorDeclaration(n Node, v Visitor) bool {
 
 func forEachChildGetAccessorDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // TypeParameters
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // TypeParameters
 		return true
 	}
-	if at := s.extra[data+3]; at != 0 && visitList(s, at, v) { // Parameters
+	if at := ListRef(s.extra[data+3]); at != NoListRef && visitList(s, at, v) { // Parameters
 		return true
 	}
-	if ref := NodeRef(s.extra[data+4]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+4]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
-	if ref := NodeRef(s.extra[data+5]); ref != 0 && v(s.node(ref)) { // FullSignature
+	if ref := NodeRef(s.extra[data+5]); ref != NoNodeRef && v(s.node(ref)) { // FullSignature
 		return true
 	}
-	if ref := NodeRef(s.extra[data+6]); ref != 0 && v(s.node(ref)) { // Body
+	if ref := NodeRef(s.extra[data+6]); ref != NoNodeRef && v(s.node(ref)) { // Body
 		return true
 	}
 	return false
@@ -584,25 +584,25 @@ func forEachChildGetAccessorDeclaration(n Node, v Visitor) bool {
 
 func forEachChildSetAccessorDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // TypeParameters
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // TypeParameters
 		return true
 	}
-	if at := s.extra[data+3]; at != 0 && visitList(s, at, v) { // Parameters
+	if at := ListRef(s.extra[data+3]); at != NoListRef && visitList(s, at, v) { // Parameters
 		return true
 	}
-	if ref := NodeRef(s.extra[data+4]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+4]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
-	if ref := NodeRef(s.extra[data+5]); ref != 0 && v(s.node(ref)) { // FullSignature
+	if ref := NodeRef(s.extra[data+5]); ref != NoNodeRef && v(s.node(ref)) { // FullSignature
 		return true
 	}
-	if ref := NodeRef(s.extra[data+6]); ref != 0 && v(s.node(ref)) { // Body
+	if ref := NodeRef(s.extra[data+6]); ref != NoNodeRef && v(s.node(ref)) { // Body
 		return true
 	}
 	return false
@@ -610,13 +610,13 @@ func forEachChildSetAccessorDeclaration(n Node, v Visitor) bool {
 
 func forEachChildCallSignatureDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // TypeParameters
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // TypeParameters
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // Parameters
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // Parameters
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -624,13 +624,13 @@ func forEachChildCallSignatureDeclaration(n Node, v Visitor) bool {
 
 func forEachChildConstructSignatureDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // TypeParameters
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // TypeParameters
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // Parameters
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // Parameters
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -638,13 +638,13 @@ func forEachChildConstructSignatureDeclaration(n Node, v Visitor) bool {
 
 func forEachChildIndexSignatureDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // Parameters
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // Parameters
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -652,13 +652,13 @@ func forEachChildIndexSignatureDeclaration(n Node, v Visitor) bool {
 
 func forEachChildTypePredicateNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // AssertsModifier
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // AssertsModifier
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // ParameterName
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // ParameterName
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -666,10 +666,10 @@ func forEachChildTypePredicateNode(n Node, v Visitor) bool {
 
 func forEachChildTypeReferenceNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TypeName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TypeName
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // TypeArguments
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // TypeArguments
 		return true
 	}
 	return false
@@ -677,13 +677,13 @@ func forEachChildTypeReferenceNode(n Node, v Visitor) bool {
 
 func forEachChildFunctionTypeNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // TypeParameters
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // TypeParameters
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // Parameters
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // Parameters
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -691,16 +691,16 @@ func forEachChildFunctionTypeNode(n Node, v Visitor) bool {
 
 func forEachChildConstructorTypeNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // TypeParameters
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // TypeParameters
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // Parameters
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // Parameters
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -708,10 +708,10 @@ func forEachChildConstructorTypeNode(n Node, v Visitor) bool {
 
 func forEachChildTypeQueryNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // ExprName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // ExprName
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // TypeArguments
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // TypeArguments
 		return true
 	}
 	return false
@@ -719,7 +719,7 @@ func forEachChildTypeQueryNode(n Node, v Visitor) bool {
 
 func forEachChildTypeLiteralNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Members
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Members
 		return true
 	}
 	return false
@@ -727,7 +727,7 @@ func forEachChildTypeLiteralNode(n Node, v Visitor) bool {
 
 func forEachChildArrayTypeNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // ElementType
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // ElementType
 		return true
 	}
 	return false
@@ -735,7 +735,7 @@ func forEachChildArrayTypeNode(n Node, v Visitor) bool {
 
 func forEachChildTupleTypeNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Elements
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Elements
 		return true
 	}
 	return false
@@ -743,7 +743,7 @@ func forEachChildTupleTypeNode(n Node, v Visitor) bool {
 
 func forEachChildOptionalTypeNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -751,7 +751,7 @@ func forEachChildOptionalTypeNode(n Node, v Visitor) bool {
 
 func forEachChildRestTypeNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -759,7 +759,7 @@ func forEachChildRestTypeNode(n Node, v Visitor) bool {
 
 func forEachChildUnionTypeNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Types
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Types
 		return true
 	}
 	return false
@@ -767,7 +767,7 @@ func forEachChildUnionTypeNode(n Node, v Visitor) bool {
 
 func forEachChildIntersectionTypeNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Types
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Types
 		return true
 	}
 	return false
@@ -775,16 +775,16 @@ func forEachChildIntersectionTypeNode(n Node, v Visitor) bool {
 
 func forEachChildConditionalTypeNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // CheckType
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // CheckType
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // ExtendsType
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // ExtendsType
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // TrueType
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // TrueType
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // FalseType
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // FalseType
 		return true
 	}
 	return false
@@ -792,7 +792,7 @@ func forEachChildConditionalTypeNode(n Node, v Visitor) bool {
 
 func forEachChildInferTypeNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TypeParameter
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TypeParameter
 		return true
 	}
 	return false
@@ -800,7 +800,7 @@ func forEachChildInferTypeNode(n Node, v Visitor) bool {
 
 func forEachChildParenthesizedTypeNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -808,7 +808,7 @@ func forEachChildParenthesizedTypeNode(n Node, v Visitor) bool {
 
 func forEachChildTypeOperatorNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -816,10 +816,10 @@ func forEachChildTypeOperatorNode(n Node, v Visitor) bool {
 
 func forEachChildIndexedAccessTypeNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // ObjectType
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // ObjectType
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // IndexType
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // IndexType
 		return true
 	}
 	return false
@@ -827,22 +827,22 @@ func forEachChildIndexedAccessTypeNode(n Node, v Visitor) bool {
 
 func forEachChildMappedTypeNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // ReadonlyToken
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // ReadonlyToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // TypeParameter
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // TypeParameter
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // NameType
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // NameType
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // QuestionToken
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // QuestionToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+4]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+4]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
-	if at := s.extra[data+5]; at != 0 && visitList(s, at, v) { // Members
+	if at := ListRef(s.extra[data+5]); at != NoListRef && visitList(s, at, v) { // Members
 		return true
 	}
 	return false
@@ -850,7 +850,7 @@ func forEachChildMappedTypeNode(n Node, v Visitor) bool {
 
 func forEachChildLiteralTypeNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Literal
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Literal
 		return true
 	}
 	return false
@@ -858,16 +858,16 @@ func forEachChildLiteralTypeNode(n Node, v Visitor) bool {
 
 func forEachChildNamedTupleMember(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // DotDotDotToken
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // DotDotDotToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // QuestionToken
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // QuestionToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -875,10 +875,10 @@ func forEachChildNamedTupleMember(n Node, v Visitor) bool {
 
 func forEachChildTemplateLiteralTypeNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Head
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Head
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // TemplateSpans
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // TemplateSpans
 		return true
 	}
 	return false
@@ -886,10 +886,10 @@ func forEachChildTemplateLiteralTypeNode(n Node, v Visitor) bool {
 
 func forEachChildTemplateLiteralTypeSpan(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Literal
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Literal
 		return true
 	}
 	return false
@@ -897,16 +897,16 @@ func forEachChildTemplateLiteralTypeSpan(n Node, v Visitor) bool {
 
 func forEachChildImportTypeNode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Argument
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Argument
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Attributes
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Attributes
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Qualifier
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Qualifier
 		return true
 	}
-	if at := s.extra[data+4]; at != 0 && visitList(s, at, v) { // TypeArguments
+	if at := ListRef(s.extra[data+4]); at != NoListRef && visitList(s, at, v) { // TypeArguments
 		return true
 	}
 	return false
@@ -914,7 +914,7 @@ func forEachChildImportTypeNode(n Node, v Visitor) bool {
 
 func forEachChildBindingPattern(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Elements
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Elements
 		return true
 	}
 	return false
@@ -922,16 +922,16 @@ func forEachChildBindingPattern(n Node, v Visitor) bool {
 
 func forEachChildBindingElement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // DotDotDotToken
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // DotDotDotToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // PropertyName
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // PropertyName
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Initializer
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Initializer
 		return true
 	}
 	return false
@@ -939,7 +939,7 @@ func forEachChildBindingElement(n Node, v Visitor) bool {
 
 func forEachChildArrayLiteralExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Elements
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Elements
 		return true
 	}
 	return false
@@ -947,7 +947,7 @@ func forEachChildArrayLiteralExpression(n Node, v Visitor) bool {
 
 func forEachChildObjectLiteralExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Properties
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Properties
 		return true
 	}
 	return false
@@ -955,13 +955,13 @@ func forEachChildObjectLiteralExpression(n Node, v Visitor) bool {
 
 func forEachChildPropertyAccessExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // QuestionDotToken
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // QuestionDotToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
 	return false
@@ -969,13 +969,13 @@ func forEachChildPropertyAccessExpression(n Node, v Visitor) bool {
 
 func forEachChildElementAccessExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // QuestionDotToken
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // QuestionDotToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // ArgumentExpression
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // ArgumentExpression
 		return true
 	}
 	return false
@@ -983,16 +983,16 @@ func forEachChildElementAccessExpression(n Node, v Visitor) bool {
 
 func forEachChildCallExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // QuestionDotToken
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // QuestionDotToken
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // TypeArguments
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // TypeArguments
 		return true
 	}
-	if at := s.extra[data+3]; at != 0 && visitList(s, at, v) { // Arguments
+	if at := ListRef(s.extra[data+3]); at != NoListRef && visitList(s, at, v) { // Arguments
 		return true
 	}
 	return false
@@ -1000,13 +1000,13 @@ func forEachChildCallExpression(n Node, v Visitor) bool {
 
 func forEachChildNewExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // TypeArguments
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // TypeArguments
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // Arguments
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // Arguments
 		return true
 	}
 	return false
@@ -1014,16 +1014,16 @@ func forEachChildNewExpression(n Node, v Visitor) bool {
 
 func forEachChildTaggedTemplateExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Tag
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Tag
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // QuestionDotToken
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // QuestionDotToken
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // TypeArguments
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // TypeArguments
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Template
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Template
 		return true
 	}
 	return false
@@ -1031,10 +1031,10 @@ func forEachChildTaggedTemplateExpression(n Node, v Visitor) bool {
 
 func forEachChildTypeAssertion(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -1042,7 +1042,7 @@ func forEachChildTypeAssertion(n Node, v Visitor) bool {
 
 func forEachChildParenthesizedExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -1050,28 +1050,28 @@ func forEachChildParenthesizedExpression(n Node, v Visitor) bool {
 
 func forEachChildFunctionExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // AsteriskToken
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // AsteriskToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if at := s.extra[data+3]; at != 0 && visitList(s, at, v) { // TypeParameters
+	if at := ListRef(s.extra[data+3]); at != NoListRef && visitList(s, at, v) { // TypeParameters
 		return true
 	}
-	if at := s.extra[data+4]; at != 0 && visitList(s, at, v) { // Parameters
+	if at := ListRef(s.extra[data+4]); at != NoListRef && visitList(s, at, v) { // Parameters
 		return true
 	}
-	if ref := NodeRef(s.extra[data+5]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+5]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
-	if ref := NodeRef(s.extra[data+6]); ref != 0 && v(s.node(ref)) { // FullSignature
+	if ref := NodeRef(s.extra[data+6]); ref != NoNodeRef && v(s.node(ref)) { // FullSignature
 		return true
 	}
-	if ref := NodeRef(s.extra[data+7]); ref != 0 && v(s.node(ref)) { // Body
+	if ref := NodeRef(s.extra[data+7]); ref != NoNodeRef && v(s.node(ref)) { // Body
 		return true
 	}
 	return false
@@ -1079,25 +1079,25 @@ func forEachChildFunctionExpression(n Node, v Visitor) bool {
 
 func forEachChildArrowFunction(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // TypeParameters
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // TypeParameters
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // Parameters
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // Parameters
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
-	if ref := NodeRef(s.extra[data+4]); ref != 0 && v(s.node(ref)) { // FullSignature
+	if ref := NodeRef(s.extra[data+4]); ref != NoNodeRef && v(s.node(ref)) { // FullSignature
 		return true
 	}
-	if ref := NodeRef(s.extra[data+5]); ref != 0 && v(s.node(ref)) { // EqualsGreaterThanToken
+	if ref := NodeRef(s.extra[data+5]); ref != NoNodeRef && v(s.node(ref)) { // EqualsGreaterThanToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+6]); ref != 0 && v(s.node(ref)) { // Body
+	if ref := NodeRef(s.extra[data+6]); ref != NoNodeRef && v(s.node(ref)) { // Body
 		return true
 	}
 	return false
@@ -1105,7 +1105,7 @@ func forEachChildArrowFunction(n Node, v Visitor) bool {
 
 func forEachChildDeleteExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -1113,7 +1113,7 @@ func forEachChildDeleteExpression(n Node, v Visitor) bool {
 
 func forEachChildTypeOfExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -1121,7 +1121,7 @@ func forEachChildTypeOfExpression(n Node, v Visitor) bool {
 
 func forEachChildVoidExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -1129,7 +1129,7 @@ func forEachChildVoidExpression(n Node, v Visitor) bool {
 
 func forEachChildAwaitExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -1137,7 +1137,7 @@ func forEachChildAwaitExpression(n Node, v Visitor) bool {
 
 func forEachChildPrefixUnaryExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Operand
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Operand
 		return true
 	}
 	return false
@@ -1145,7 +1145,7 @@ func forEachChildPrefixUnaryExpression(n Node, v Visitor) bool {
 
 func forEachChildPostfixUnaryExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Operand
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Operand
 		return true
 	}
 	return false
@@ -1153,19 +1153,19 @@ func forEachChildPostfixUnaryExpression(n Node, v Visitor) bool {
 
 func forEachChildBinaryExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Left
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Left
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // OperatorToken
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // OperatorToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+4]); ref != 0 && v(s.node(ref)) { // Right
+	if ref := NodeRef(s.extra[data+4]); ref != NoNodeRef && v(s.node(ref)) { // Right
 		return true
 	}
 	return false
@@ -1173,19 +1173,19 @@ func forEachChildBinaryExpression(n Node, v Visitor) bool {
 
 func forEachChildConditionalExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Condition
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Condition
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // QuestionToken
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // QuestionToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // WhenTrue
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // WhenTrue
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // ColonToken
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // ColonToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+4]); ref != 0 && v(s.node(ref)) { // WhenFalse
+	if ref := NodeRef(s.extra[data+4]); ref != NoNodeRef && v(s.node(ref)) { // WhenFalse
 		return true
 	}
 	return false
@@ -1193,10 +1193,10 @@ func forEachChildConditionalExpression(n Node, v Visitor) bool {
 
 func forEachChildTemplateExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Head
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Head
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // TemplateSpans
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // TemplateSpans
 		return true
 	}
 	return false
@@ -1204,10 +1204,10 @@ func forEachChildTemplateExpression(n Node, v Visitor) bool {
 
 func forEachChildYieldExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // AsteriskToken
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // AsteriskToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -1215,7 +1215,7 @@ func forEachChildYieldExpression(n Node, v Visitor) bool {
 
 func forEachChildSpreadElement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -1223,19 +1223,19 @@ func forEachChildSpreadElement(n Node, v Visitor) bool {
 
 func forEachChildClassExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // TypeParameters
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // TypeParameters
 		return true
 	}
-	if at := s.extra[data+3]; at != 0 && visitList(s, at, v) { // HeritageClauses
+	if at := ListRef(s.extra[data+3]); at != NoListRef && visitList(s, at, v) { // HeritageClauses
 		return true
 	}
-	if at := s.extra[data+4]; at != 0 && visitList(s, at, v) { // Members
+	if at := ListRef(s.extra[data+4]); at != NoListRef && visitList(s, at, v) { // Members
 		return true
 	}
 	return false
@@ -1243,10 +1243,10 @@ func forEachChildClassExpression(n Node, v Visitor) bool {
 
 func forEachChildExpressionWithTypeArguments(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // TypeArguments
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // TypeArguments
 		return true
 	}
 	return false
@@ -1254,10 +1254,10 @@ func forEachChildExpressionWithTypeArguments(n Node, v Visitor) bool {
 
 func forEachChildAsExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -1265,7 +1265,7 @@ func forEachChildAsExpression(n Node, v Visitor) bool {
 
 func forEachChildNonNullExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -1273,7 +1273,7 @@ func forEachChildNonNullExpression(n Node, v Visitor) bool {
 
 func forEachChildMetaProperty(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
 	return false
@@ -1281,7 +1281,7 @@ func forEachChildMetaProperty(n Node, v Visitor) bool {
 
 func forEachChildSyntheticExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // TupleNameSource
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // TupleNameSource
 		return true
 	}
 	return false
@@ -1289,10 +1289,10 @@ func forEachChildSyntheticExpression(n Node, v Visitor) bool {
 
 func forEachChildSatisfiesExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -1300,10 +1300,10 @@ func forEachChildSatisfiesExpression(n Node, v Visitor) bool {
 
 func forEachChildTemplateSpan(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Literal
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Literal
 		return true
 	}
 	return false
@@ -1311,7 +1311,7 @@ func forEachChildTemplateSpan(n Node, v Visitor) bool {
 
 func forEachChildBlock(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Statements
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Statements
 		return true
 	}
 	return false
@@ -1319,10 +1319,10 @@ func forEachChildBlock(n Node, v Visitor) bool {
 
 func forEachChildVariableStatement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // DeclarationList
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // DeclarationList
 		return true
 	}
 	return false
@@ -1330,7 +1330,7 @@ func forEachChildVariableStatement(n Node, v Visitor) bool {
 
 func forEachChildExpressionStatement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -1338,13 +1338,13 @@ func forEachChildExpressionStatement(n Node, v Visitor) bool {
 
 func forEachChildIfStatement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // ThenStatement
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // ThenStatement
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // ElseStatement
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // ElseStatement
 		return true
 	}
 	return false
@@ -1352,10 +1352,10 @@ func forEachChildIfStatement(n Node, v Visitor) bool {
 
 func forEachChildDoStatement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Statement
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Statement
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -1363,10 +1363,10 @@ func forEachChildDoStatement(n Node, v Visitor) bool {
 
 func forEachChildWhileStatement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Statement
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Statement
 		return true
 	}
 	return false
@@ -1374,16 +1374,16 @@ func forEachChildWhileStatement(n Node, v Visitor) bool {
 
 func forEachChildForStatement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Initializer
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Initializer
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Condition
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Condition
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Incrementor
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Incrementor
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Statement
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Statement
 		return true
 	}
 	return false
@@ -1391,16 +1391,16 @@ func forEachChildForStatement(n Node, v Visitor) bool {
 
 func forEachChildForInOrOfStatement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // AwaitModifier
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // AwaitModifier
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Initializer
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Initializer
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Statement
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Statement
 		return true
 	}
 	return false
@@ -1408,7 +1408,7 @@ func forEachChildForInOrOfStatement(n Node, v Visitor) bool {
 
 func forEachChildContinueStatement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Label
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Label
 		return true
 	}
 	return false
@@ -1416,7 +1416,7 @@ func forEachChildContinueStatement(n Node, v Visitor) bool {
 
 func forEachChildBreakStatement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Label
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Label
 		return true
 	}
 	return false
@@ -1424,7 +1424,7 @@ func forEachChildBreakStatement(n Node, v Visitor) bool {
 
 func forEachChildReturnStatement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -1432,10 +1432,10 @@ func forEachChildReturnStatement(n Node, v Visitor) bool {
 
 func forEachChildWithStatement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Statement
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Statement
 		return true
 	}
 	return false
@@ -1443,10 +1443,10 @@ func forEachChildWithStatement(n Node, v Visitor) bool {
 
 func forEachChildSwitchStatement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // CaseBlock
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // CaseBlock
 		return true
 	}
 	return false
@@ -1454,10 +1454,10 @@ func forEachChildSwitchStatement(n Node, v Visitor) bool {
 
 func forEachChildLabeledStatement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Label
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Label
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Statement
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Statement
 		return true
 	}
 	return false
@@ -1465,7 +1465,7 @@ func forEachChildLabeledStatement(n Node, v Visitor) bool {
 
 func forEachChildThrowStatement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -1473,13 +1473,13 @@ func forEachChildThrowStatement(n Node, v Visitor) bool {
 
 func forEachChildTryStatement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TryBlock
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TryBlock
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // CatchClause
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // CatchClause
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // FinallyBlock
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // FinallyBlock
 		return true
 	}
 	return false
@@ -1487,16 +1487,16 @@ func forEachChildTryStatement(n Node, v Visitor) bool {
 
 func forEachChildVariableDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // ExclamationToken
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // ExclamationToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Initializer
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Initializer
 		return true
 	}
 	return false
@@ -1504,7 +1504,7 @@ func forEachChildVariableDeclaration(n Node, v Visitor) bool {
 
 func forEachChildVariableDeclarationList(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Declarations
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Declarations
 		return true
 	}
 	return false
@@ -1512,28 +1512,28 @@ func forEachChildVariableDeclarationList(n Node, v Visitor) bool {
 
 func forEachChildFunctionDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // AsteriskToken
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // AsteriskToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if at := s.extra[data+3]; at != 0 && visitList(s, at, v) { // TypeParameters
+	if at := ListRef(s.extra[data+3]); at != NoListRef && visitList(s, at, v) { // TypeParameters
 		return true
 	}
-	if at := s.extra[data+4]; at != 0 && visitList(s, at, v) { // Parameters
+	if at := ListRef(s.extra[data+4]); at != NoListRef && visitList(s, at, v) { // Parameters
 		return true
 	}
-	if ref := NodeRef(s.extra[data+5]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+5]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
-	if ref := NodeRef(s.extra[data+6]); ref != 0 && v(s.node(ref)) { // FullSignature
+	if ref := NodeRef(s.extra[data+6]); ref != NoNodeRef && v(s.node(ref)) { // FullSignature
 		return true
 	}
-	if ref := NodeRef(s.extra[data+7]); ref != 0 && v(s.node(ref)) { // Body
+	if ref := NodeRef(s.extra[data+7]); ref != NoNodeRef && v(s.node(ref)) { // Body
 		return true
 	}
 	return false
@@ -1541,19 +1541,19 @@ func forEachChildFunctionDeclaration(n Node, v Visitor) bool {
 
 func forEachChildClassDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // TypeParameters
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // TypeParameters
 		return true
 	}
-	if at := s.extra[data+3]; at != 0 && visitList(s, at, v) { // HeritageClauses
+	if at := ListRef(s.extra[data+3]); at != NoListRef && visitList(s, at, v) { // HeritageClauses
 		return true
 	}
-	if at := s.extra[data+4]; at != 0 && visitList(s, at, v) { // Members
+	if at := ListRef(s.extra[data+4]); at != NoListRef && visitList(s, at, v) { // Members
 		return true
 	}
 	return false
@@ -1561,19 +1561,19 @@ func forEachChildClassDeclaration(n Node, v Visitor) bool {
 
 func forEachChildInterfaceDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // TypeParameters
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // TypeParameters
 		return true
 	}
-	if at := s.extra[data+3]; at != 0 && visitList(s, at, v) { // HeritageClauses
+	if at := ListRef(s.extra[data+3]); at != NoListRef && visitList(s, at, v) { // HeritageClauses
 		return true
 	}
-	if at := s.extra[data+4]; at != 0 && visitList(s, at, v) { // Members
+	if at := ListRef(s.extra[data+4]); at != NoListRef && visitList(s, at, v) { // Members
 		return true
 	}
 	return false
@@ -1581,16 +1581,16 @@ func forEachChildInterfaceDeclaration(n Node, v Visitor) bool {
 
 func forEachChildTypeAliasDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // TypeParameters
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // TypeParameters
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -1598,13 +1598,13 @@ func forEachChildTypeAliasDeclaration(n Node, v Visitor) bool {
 
 func forEachChildEnumDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // Members
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // Members
 		return true
 	}
 	return false
@@ -1612,16 +1612,16 @@ func forEachChildEnumDeclaration(n Node, v Visitor) bool {
 
 func forEachChildModuleDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Attributes
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Attributes
 		return true
 	}
-	if ref := NodeRef(s.extra[data+4]); ref != 0 && v(s.node(ref)) { // Body
+	if ref := NodeRef(s.extra[data+4]); ref != NoNodeRef && v(s.node(ref)) { // Body
 		return true
 	}
 	return false
@@ -1629,7 +1629,7 @@ func forEachChildModuleDeclaration(n Node, v Visitor) bool {
 
 func forEachChildModuleBlock(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Statements
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Statements
 		return true
 	}
 	return false
@@ -1637,7 +1637,7 @@ func forEachChildModuleBlock(n Node, v Visitor) bool {
 
 func forEachChildCaseBlock(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Clauses
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Clauses
 		return true
 	}
 	return false
@@ -1645,10 +1645,10 @@ func forEachChildCaseBlock(n Node, v Visitor) bool {
 
 func forEachChildNamespaceExportDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
 	return false
@@ -1656,13 +1656,13 @@ func forEachChildNamespaceExportDeclaration(n Node, v Visitor) bool {
 
 func forEachChildImportEqualsDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // ModuleReference
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // ModuleReference
 		return true
 	}
 	return false
@@ -1670,16 +1670,16 @@ func forEachChildImportEqualsDeclaration(n Node, v Visitor) bool {
 
 func forEachChildImportDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // ImportClause
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // ImportClause
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // ModuleSpecifier
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // ModuleSpecifier
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Attributes
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Attributes
 		return true
 	}
 	return false
@@ -1687,10 +1687,10 @@ func forEachChildImportDeclaration(n Node, v Visitor) bool {
 
 func forEachChildImportClause(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // NamedBindings
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // NamedBindings
 		return true
 	}
 	return false
@@ -1698,7 +1698,7 @@ func forEachChildImportClause(n Node, v Visitor) bool {
 
 func forEachChildNamespaceImport(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
 	return false
@@ -1706,7 +1706,7 @@ func forEachChildNamespaceImport(n Node, v Visitor) bool {
 
 func forEachChildNamedImports(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Elements
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Elements
 		return true
 	}
 	return false
@@ -1714,10 +1714,10 @@ func forEachChildNamedImports(n Node, v Visitor) bool {
 
 func forEachChildImportSpecifier(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // PropertyName
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // PropertyName
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
 	return false
@@ -1725,13 +1725,13 @@ func forEachChildImportSpecifier(n Node, v Visitor) bool {
 
 func forEachChildExportAssignment(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -1739,16 +1739,16 @@ func forEachChildExportAssignment(n Node, v Visitor) bool {
 
 func forEachChildExportDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // ExportClause
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // ExportClause
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // ModuleSpecifier
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // ModuleSpecifier
 		return true
 	}
-	if ref := NodeRef(s.extra[data+4]); ref != 0 && v(s.node(ref)) { // Attributes
+	if ref := NodeRef(s.extra[data+4]); ref != NoNodeRef && v(s.node(ref)) { // Attributes
 		return true
 	}
 	return false
@@ -1756,7 +1756,7 @@ func forEachChildExportDeclaration(n Node, v Visitor) bool {
 
 func forEachChildNamedExports(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Elements
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Elements
 		return true
 	}
 	return false
@@ -1764,7 +1764,7 @@ func forEachChildNamedExports(n Node, v Visitor) bool {
 
 func forEachChildNamespaceExport(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
 	return false
@@ -1772,10 +1772,10 @@ func forEachChildNamespaceExport(n Node, v Visitor) bool {
 
 func forEachChildExportSpecifier(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // PropertyName
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // PropertyName
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
 	return false
@@ -1783,7 +1783,7 @@ func forEachChildExportSpecifier(n Node, v Visitor) bool {
 
 func forEachChildMissingDeclaration(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
 	return false
@@ -1791,7 +1791,7 @@ func forEachChildMissingDeclaration(n Node, v Visitor) bool {
 
 func forEachChildExternalModuleReference(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -1799,13 +1799,13 @@ func forEachChildExternalModuleReference(n Node, v Visitor) bool {
 
 func forEachChildJsxElement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // OpeningElement
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // OpeningElement
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // Children
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // Children
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // ClosingElement
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // ClosingElement
 		return true
 	}
 	return false
@@ -1813,13 +1813,13 @@ func forEachChildJsxElement(n Node, v Visitor) bool {
 
 func forEachChildJsxSelfClosingElement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // TypeArguments
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // TypeArguments
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Attributes
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Attributes
 		return true
 	}
 	return false
@@ -1827,13 +1827,13 @@ func forEachChildJsxSelfClosingElement(n Node, v Visitor) bool {
 
 func forEachChildJsxOpeningElement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // TypeArguments
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // TypeArguments
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Attributes
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Attributes
 		return true
 	}
 	return false
@@ -1841,7 +1841,7 @@ func forEachChildJsxOpeningElement(n Node, v Visitor) bool {
 
 func forEachChildJsxClosingElement(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
 	return false
@@ -1849,13 +1849,13 @@ func forEachChildJsxClosingElement(n Node, v Visitor) bool {
 
 func forEachChildJsxFragment(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // OpeningFragment
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // OpeningFragment
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // Children
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // Children
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // ClosingFragment
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // ClosingFragment
 		return true
 	}
 	return false
@@ -1863,10 +1863,10 @@ func forEachChildJsxFragment(n Node, v Visitor) bool {
 
 func forEachChildJsxAttribute(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Initializer
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Initializer
 		return true
 	}
 	return false
@@ -1874,7 +1874,7 @@ func forEachChildJsxAttribute(n Node, v Visitor) bool {
 
 func forEachChildJsxAttributes(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Properties
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Properties
 		return true
 	}
 	return false
@@ -1882,7 +1882,7 @@ func forEachChildJsxAttributes(n Node, v Visitor) bool {
 
 func forEachChildJsxSpreadAttribute(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -1890,10 +1890,10 @@ func forEachChildJsxSpreadAttribute(n Node, v Visitor) bool {
 
 func forEachChildJsxExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // DotDotDotToken
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // DotDotDotToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -1901,10 +1901,10 @@ func forEachChildJsxExpression(n Node, v Visitor) bool {
 
 func forEachChildJsxNamespacedName(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Namespace
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Namespace
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
 	return false
@@ -1912,10 +1912,10 @@ func forEachChildJsxNamespacedName(n Node, v Visitor) bool {
 
 func forEachChildCaseOrDefaultClause(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // Statements
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // Statements
 		return true
 	}
 	return false
@@ -1923,7 +1923,7 @@ func forEachChildCaseOrDefaultClause(n Node, v Visitor) bool {
 
 func forEachChildHeritageClause(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // Types
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // Types
 		return true
 	}
 	return false
@@ -1931,10 +1931,10 @@ func forEachChildHeritageClause(n Node, v Visitor) bool {
 
 func forEachChildCatchClause(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // VariableDeclaration
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // VariableDeclaration
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Block
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Block
 		return true
 	}
 	return false
@@ -1942,7 +1942,7 @@ func forEachChildCatchClause(n Node, v Visitor) bool {
 
 func forEachChildImportAttributes(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // Attributes
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // Attributes
 		return true
 	}
 	return false
@@ -1950,10 +1950,10 @@ func forEachChildImportAttributes(n Node, v Visitor) bool {
 
 func forEachChildImportAttribute(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Value
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Value
 		return true
 	}
 	return false
@@ -1961,19 +1961,19 @@ func forEachChildImportAttribute(n Node, v Visitor) bool {
 
 func forEachChildPropertyAssignment(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // PostfixToken
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // PostfixToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
-	if ref := NodeRef(s.extra[data+4]); ref != 0 && v(s.node(ref)) { // Initializer
+	if ref := NodeRef(s.extra[data+4]); ref != NoNodeRef && v(s.node(ref)) { // Initializer
 		return true
 	}
 	return false
@@ -1981,22 +1981,22 @@ func forEachChildPropertyAssignment(n Node, v Visitor) bool {
 
 func forEachChildShorthandPropertyAssignment(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Modifiers
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Modifiers
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // PostfixToken
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // PostfixToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
-	if ref := NodeRef(s.extra[data+4]); ref != 0 && v(s.node(ref)) { // EqualsToken
+	if ref := NodeRef(s.extra[data+4]); ref != NoNodeRef && v(s.node(ref)) { // EqualsToken
 		return true
 	}
-	if ref := NodeRef(s.extra[data+5]); ref != 0 && v(s.node(ref)) { // ObjectAssignmentInitializer
+	if ref := NodeRef(s.extra[data+5]); ref != NoNodeRef && v(s.node(ref)) { // ObjectAssignmentInitializer
 		return true
 	}
 	return false
@@ -2004,7 +2004,7 @@ func forEachChildShorthandPropertyAssignment(n Node, v Visitor) bool {
 
 func forEachChildSpreadAssignment(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -2012,10 +2012,10 @@ func forEachChildSpreadAssignment(n Node, v Visitor) bool {
 
 func forEachChildEnumMember(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Initializer
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Initializer
 		return true
 	}
 	return false
@@ -2023,10 +2023,10 @@ func forEachChildEnumMember(n Node, v Visitor) bool {
 
 func forEachChildSourceFile(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Statements
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Statements
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // EndOfFileToken
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // EndOfFileToken
 		return true
 	}
 	return false
@@ -2034,7 +2034,7 @@ func forEachChildSourceFile(n Node, v Visitor) bool {
 
 func forEachChildJSDocTypeExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -2042,7 +2042,7 @@ func forEachChildJSDocTypeExpression(n Node, v Visitor) bool {
 
 func forEachChildJSDocNameReference(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
 	return false
@@ -2050,7 +2050,7 @@ func forEachChildJSDocNameReference(n Node, v Visitor) bool {
 
 func forEachChildJSDocNullableType(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -2058,7 +2058,7 @@ func forEachChildJSDocNullableType(n Node, v Visitor) bool {
 
 func forEachChildJSDocNonNullableType(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -2066,7 +2066,7 @@ func forEachChildJSDocNonNullableType(n Node, v Visitor) bool {
 
 func forEachChildJSDocOptionalType(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -2074,7 +2074,7 @@ func forEachChildJSDocOptionalType(n Node, v Visitor) bool {
 
 func forEachChildJSDocVariadicType(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -2082,10 +2082,10 @@ func forEachChildJSDocVariadicType(n Node, v Visitor) bool {
 
 func forEachChildJSDoc(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // Tags
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // Tags
 		return true
 	}
 	return false
@@ -2093,7 +2093,7 @@ func forEachChildJSDoc(n Node, v Visitor) bool {
 
 func forEachChildJSDocTypeLiteral(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // JSDocPropertyTags
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // JSDocPropertyTags
 		return true
 	}
 	return false
@@ -2101,13 +2101,13 @@ func forEachChildJSDocTypeLiteral(n Node, v Visitor) bool {
 
 func forEachChildJSDocSignature(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // TypeParameters
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // TypeParameters
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // Parameters
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // Parameters
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Type
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Type
 		return true
 	}
 	return false
@@ -2115,7 +2115,7 @@ func forEachChildJSDocSignature(n Node, v Visitor) bool {
 
 func forEachChildJSDocLink(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
 	return false
@@ -2123,7 +2123,7 @@ func forEachChildJSDocLink(n Node, v Visitor) bool {
 
 func forEachChildJSDocLinkCode(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
 	return false
@@ -2131,7 +2131,7 @@ func forEachChildJSDocLinkCode(n Node, v Visitor) bool {
 
 func forEachChildJSDocLinkPlain(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
 	return false
@@ -2139,10 +2139,10 @@ func forEachChildJSDocLinkPlain(n Node, v Visitor) bool {
 
 func forEachChildJSDocUnknownTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2150,13 +2150,13 @@ func forEachChildJSDocUnknownTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocAugmentsTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // ClassName
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // ClassName
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2164,13 +2164,13 @@ func forEachChildJSDocAugmentsTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocImplementsTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // ClassName
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // ClassName
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2178,10 +2178,10 @@ func forEachChildJSDocImplementsTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocDeprecatedTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2189,10 +2189,10 @@ func forEachChildJSDocDeprecatedTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocPublicTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2200,10 +2200,10 @@ func forEachChildJSDocPublicTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocPrivateTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2211,10 +2211,10 @@ func forEachChildJSDocPrivateTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocProtectedTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2222,10 +2222,10 @@ func forEachChildJSDocProtectedTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocReadonlyTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2233,10 +2233,10 @@ func forEachChildJSDocReadonlyTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocOverrideTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if at := s.extra[data+1]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+1]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2244,16 +2244,16 @@ func forEachChildJSDocOverrideTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocCallbackTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // TypeExpression
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // TypeExpression
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if at := s.extra[data+3]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+3]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2261,13 +2261,13 @@ func forEachChildJSDocCallbackTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocOverloadTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // TypeExpression
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // TypeExpression
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2275,16 +2275,16 @@ func forEachChildJSDocOverloadTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocParameterOrPropertyTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // TypeExpression
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // TypeExpression
 		return true
 	}
-	if at := s.extra[data+5]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+5]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2292,13 +2292,13 @@ func forEachChildJSDocParameterOrPropertyTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocReturnTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // TypeExpression
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // TypeExpression
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2306,13 +2306,13 @@ func forEachChildJSDocReturnTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocThisTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // TypeExpression
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // TypeExpression
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2320,13 +2320,13 @@ func forEachChildJSDocThisTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocTypeTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // TypeExpression
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // TypeExpression
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2334,16 +2334,16 @@ func forEachChildJSDocTypeTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocTemplateTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // Constraint
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Constraint
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // TypeParameters
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // TypeParameters
 		return true
 	}
-	if at := s.extra[data+3]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+3]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2351,16 +2351,16 @@ func forEachChildJSDocTemplateTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocTypedefTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // TypeExpression
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // TypeExpression
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // Name
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // Name
 		return true
 	}
-	if at := s.extra[data+3]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+3]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2368,13 +2368,13 @@ func forEachChildJSDocTypedefTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocSeeTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // NameExpression
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // NameExpression
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2382,13 +2382,13 @@ func forEachChildJSDocSeeTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocThrowsTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // TypeExpression
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // TypeExpression
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2396,13 +2396,13 @@ func forEachChildJSDocThrowsTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocSatisfiesTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // TypeExpression
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // TypeExpression
 		return true
 	}
-	if at := s.extra[data+2]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+2]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2410,19 +2410,19 @@ func forEachChildJSDocSatisfiesTag(n Node, v Visitor) bool {
 
 func forEachChildJSDocImportTag(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // TagName
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // ImportClause
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // ImportClause
 		return true
 	}
-	if ref := NodeRef(s.extra[data+2]); ref != 0 && v(s.node(ref)) { // ModuleSpecifier
+	if ref := NodeRef(s.extra[data+2]); ref != NoNodeRef && v(s.node(ref)) { // ModuleSpecifier
 		return true
 	}
-	if ref := NodeRef(s.extra[data+3]); ref != 0 && v(s.node(ref)) { // Attributes
+	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // Attributes
 		return true
 	}
-	if at := s.extra[data+4]; at != 0 && visitList(s, at, v) { // Comment
+	if at := ListRef(s.extra[data+4]); at != NoListRef && visitList(s, at, v) { // Comment
 		return true
 	}
 	return false
@@ -2430,7 +2430,7 @@ func forEachChildJSDocImportTag(n Node, v Visitor) bool {
 
 func forEachChildSyntaxList(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if at := s.extra[data+0]; at != 0 && visitList(s, at, v) { // Children
+	if at := ListRef(s.extra[data+0]); at != NoListRef && visitList(s, at, v) { // Children
 		return true
 	}
 	return false
@@ -2438,7 +2438,7 @@ func forEachChildSyntaxList(n Node, v Visitor) bool {
 
 func forEachChildPartiallyEmittedExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
 	return false
@@ -2446,10 +2446,10 @@ func forEachChildPartiallyEmittedExpression(n Node, v Visitor) bool {
 
 func forEachChildSyntheticReferenceExpression(n Node, v Visitor) bool {
 	s, data := n.s, int(n.h.data)
-	if ref := NodeRef(s.extra[data+0]); ref != 0 && v(s.node(ref)) { // Expression
+	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // Expression
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != 0 && v(s.node(ref)) { // ThisArg
+	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // ThisArg
 		return true
 	}
 	return false

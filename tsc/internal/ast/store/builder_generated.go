@@ -133,17 +133,17 @@ func (b *Builder) NewSwitchStatement(flags ast.NodeFlags, pos, end int32, expres
 	return id
 }
 
-func (b *Builder) NewCaseBlock(flags ast.NodeFlags, pos, end int32, clauses uint32) NodeRef {
+func (b *Builder) NewCaseBlock(flags ast.NodeFlags, pos, end int32, clauses ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, clauses)
+	b.extra = append(b.extra, uint32(clauses))
 	id := b.header(ast.KindCaseBlock, flags, 0, pos, end, data)
 	b.adoptList(clauses, id)
 	return id
 }
 
-func (b *Builder) NewCaseOrDefaultClause(kind ast.Kind, flags ast.NodeFlags, pos, end int32, expression NodeRef, statements uint32) NodeRef {
+func (b *Builder) NewCaseOrDefaultClause(kind ast.Kind, flags ast.NodeFlags, pos, end int32, expression NodeRef, statements ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression), statements)
+	b.extra = append(b.extra, uint32(expression), uint32(statements))
 	id := b.header(kind, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	b.adoptList(statements, id)
@@ -194,17 +194,17 @@ func (b *Builder) NewExpressionStatement(flags ast.NodeFlags, pos, end int32, ex
 	return id
 }
 
-func (b *Builder) NewBlock(flags ast.NodeFlags, pos, end int32, statements uint32, multiLine bool) NodeRef {
+func (b *Builder) NewBlock(flags ast.NodeFlags, pos, end int32, statements ListRef, multiLine bool) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, statements, boolWord(multiLine))
+	b.extra = append(b.extra, uint32(statements), boolWord(multiLine))
 	id := b.header(ast.KindBlock, flags, 0, pos, end, data)
 	b.adoptList(statements, id)
 	return id
 }
 
-func (b *Builder) NewVariableStatement(flags ast.NodeFlags, pos, end int32, modifiers uint32, declarationList NodeRef) NodeRef {
+func (b *Builder) NewVariableStatement(flags ast.NodeFlags, pos, end int32, modifiers ListRef, declarationList NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(declarationList))
+	b.extra = append(b.extra, uint32(modifiers), uint32(declarationList))
 	id := b.header(ast.KindVariableStatement, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(declarationList, id)
@@ -222,25 +222,25 @@ func (b *Builder) NewVariableDeclaration(flags ast.NodeFlags, pos, end int32, na
 	return id
 }
 
-func (b *Builder) NewVariableDeclarationList(flags ast.NodeFlags, pos, end int32, declarations uint32) NodeRef {
+func (b *Builder) NewVariableDeclarationList(flags ast.NodeFlags, pos, end int32, declarations ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, declarations)
+	b.extra = append(b.extra, uint32(declarations))
 	id := b.header(ast.KindVariableDeclarationList, flags, 0, pos, end, data)
 	b.adoptList(declarations, id)
 	return id
 }
 
-func (b *Builder) NewBindingPattern(kind ast.Kind, flags ast.NodeFlags, pos, end int32, elements uint32) NodeRef {
+func (b *Builder) NewBindingPattern(kind ast.Kind, flags ast.NodeFlags, pos, end int32, elements ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, elements)
+	b.extra = append(b.extra, uint32(elements))
 	id := b.header(kind, flags, 0, pos, end, data)
 	b.adoptList(elements, id)
 	return id
 }
 
-func (b *Builder) NewParameterDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32, dotDotDotToken NodeRef, name NodeRef, questionToken NodeRef, typeNode NodeRef, initializer NodeRef) NodeRef {
+func (b *Builder) NewParameterDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, dotDotDotToken NodeRef, name NodeRef, questionToken NodeRef, typeNode NodeRef, initializer NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(dotDotDotToken), uint32(name), uint32(questionToken), uint32(typeNode), uint32(initializer))
+	b.extra = append(b.extra, uint32(modifiers), uint32(dotDotDotToken), uint32(name), uint32(questionToken), uint32(typeNode), uint32(initializer))
 	id := b.header(ast.KindParameter, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(dotDotDotToken, id)
@@ -262,17 +262,17 @@ func (b *Builder) NewBindingElement(flags ast.NodeFlags, pos, end int32, dotDotD
 	return id
 }
 
-func (b *Builder) NewMissingDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32) NodeRef {
+func (b *Builder) NewMissingDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers)
+	b.extra = append(b.extra, uint32(modifiers))
 	id := b.header(ast.KindMissingDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	return id
 }
 
-func (b *Builder) NewFunctionDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32, asteriskToken NodeRef, name NodeRef, typeParameters uint32, parameters uint32, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
+func (b *Builder) NewFunctionDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, asteriskToken NodeRef, name NodeRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(asteriskToken), uint32(name), typeParameters, parameters, uint32(typeNode), uint32(fullSignature), uint32(body))
+	b.extra = append(b.extra, uint32(modifiers), uint32(asteriskToken), uint32(name), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(body))
 	id := b.header(ast.KindFunctionDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(asteriskToken, id)
@@ -285,9 +285,9 @@ func (b *Builder) NewFunctionDeclaration(flags ast.NodeFlags, pos, end int32, mo
 	return id
 }
 
-func (b *Builder) NewClassDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32, name NodeRef, typeParameters uint32, heritageClauses uint32, members uint32) NodeRef {
+func (b *Builder) NewClassDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, typeParameters ListRef, heritageClauses ListRef, members ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(name), typeParameters, heritageClauses, members)
+	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(typeParameters), uint32(heritageClauses), uint32(members))
 	id := b.header(ast.KindClassDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -297,9 +297,9 @@ func (b *Builder) NewClassDeclaration(flags ast.NodeFlags, pos, end int32, modif
 	return id
 }
 
-func (b *Builder) NewClassExpression(flags ast.NodeFlags, pos, end int32, modifiers uint32, name NodeRef, typeParameters uint32, heritageClauses uint32, members uint32) NodeRef {
+func (b *Builder) NewClassExpression(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, typeParameters ListRef, heritageClauses ListRef, members ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(name), typeParameters, heritageClauses, members)
+	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(typeParameters), uint32(heritageClauses), uint32(members))
 	id := b.header(ast.KindClassExpression, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -309,17 +309,17 @@ func (b *Builder) NewClassExpression(flags ast.NodeFlags, pos, end int32, modifi
 	return id
 }
 
-func (b *Builder) NewHeritageClause(flags ast.NodeFlags, pos, end int32, token ast.Kind, types uint32) NodeRef {
+func (b *Builder) NewHeritageClause(flags ast.NodeFlags, pos, end int32, token ast.Kind, types ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(token), types)
+	b.extra = append(b.extra, uint32(token), uint32(types))
 	id := b.header(ast.KindHeritageClause, flags, 0, pos, end, data)
 	b.adoptList(types, id)
 	return id
 }
 
-func (b *Builder) NewInterfaceDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32, name NodeRef, typeParameters uint32, heritageClauses uint32, members uint32) NodeRef {
+func (b *Builder) NewInterfaceDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, typeParameters ListRef, heritageClauses ListRef, members ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(name), typeParameters, heritageClauses, members)
+	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(typeParameters), uint32(heritageClauses), uint32(members))
 	id := b.header(ast.KindInterfaceDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -329,9 +329,9 @@ func (b *Builder) NewInterfaceDeclaration(flags ast.NodeFlags, pos, end int32, m
 	return id
 }
 
-func (b *Builder) NewTypeAliasDeclaration(kind ast.Kind, flags ast.NodeFlags, pos, end int32, modifiers uint32, name NodeRef, typeParameters uint32, typeNode NodeRef) NodeRef {
+func (b *Builder) NewTypeAliasDeclaration(kind ast.Kind, flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, typeParameters ListRef, typeNode NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(name), typeParameters, uint32(typeNode))
+	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(typeParameters), uint32(typeNode))
 	id := b.header(kind, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -349,9 +349,9 @@ func (b *Builder) NewEnumMember(flags ast.NodeFlags, pos, end int32, name NodeRe
 	return id
 }
 
-func (b *Builder) NewEnumDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32, name NodeRef, members uint32) NodeRef {
+func (b *Builder) NewEnumDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, members ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(name), members)
+	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(members))
 	id := b.header(ast.KindEnumDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -359,17 +359,17 @@ func (b *Builder) NewEnumDeclaration(flags ast.NodeFlags, pos, end int32, modifi
 	return id
 }
 
-func (b *Builder) NewModuleBlock(flags ast.NodeFlags, pos, end int32, statements uint32) NodeRef {
+func (b *Builder) NewModuleBlock(flags ast.NodeFlags, pos, end int32, statements ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, statements)
+	b.extra = append(b.extra, uint32(statements))
 	id := b.header(ast.KindModuleBlock, flags, 0, pos, end, data)
 	b.adoptList(statements, id)
 	return id
 }
 
-func (b *Builder) NewImportDeclaration(kind ast.Kind, flags ast.NodeFlags, pos, end int32, modifiers uint32, importClause NodeRef, moduleSpecifier NodeRef, attributes NodeRef) NodeRef {
+func (b *Builder) NewImportDeclaration(kind ast.Kind, flags ast.NodeFlags, pos, end int32, modifiers ListRef, importClause NodeRef, moduleSpecifier NodeRef, attributes NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(importClause), uint32(moduleSpecifier), uint32(attributes))
+	b.extra = append(b.extra, uint32(modifiers), uint32(importClause), uint32(moduleSpecifier), uint32(attributes))
 	id := b.header(kind, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(importClause, id)
@@ -394,17 +394,17 @@ func (b *Builder) NewNamespaceImport(flags ast.NodeFlags, pos, end int32, name N
 	return id
 }
 
-func (b *Builder) NewNamedImports(flags ast.NodeFlags, pos, end int32, elements uint32) NodeRef {
+func (b *Builder) NewNamedImports(flags ast.NodeFlags, pos, end int32, elements ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, elements)
+	b.extra = append(b.extra, uint32(elements))
 	id := b.header(ast.KindNamedImports, flags, 0, pos, end, data)
 	b.adoptList(elements, id)
 	return id
 }
 
-func (b *Builder) NewExportAssignment(flags ast.NodeFlags, pos, end int32, modifiers uint32, isExportEquals bool, typeNode NodeRef, expression NodeRef) NodeRef {
+func (b *Builder) NewExportAssignment(flags ast.NodeFlags, pos, end int32, modifiers ListRef, isExportEquals bool, typeNode NodeRef, expression NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, boolWord(isExportEquals), uint32(typeNode), uint32(expression))
+	b.extra = append(b.extra, uint32(modifiers), boolWord(isExportEquals), uint32(typeNode), uint32(expression))
 	id := b.header(ast.KindExportAssignment, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(typeNode, id)
@@ -412,9 +412,9 @@ func (b *Builder) NewExportAssignment(flags ast.NodeFlags, pos, end int32, modif
 	return id
 }
 
-func (b *Builder) NewNamespaceExportDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32, name NodeRef) NodeRef {
+func (b *Builder) NewNamespaceExportDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(name))
+	b.extra = append(b.extra, uint32(modifiers), uint32(name))
 	id := b.header(ast.KindNamespaceExportDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -429,9 +429,9 @@ func (b *Builder) NewNamespaceExport(flags ast.NodeFlags, pos, end int32, name N
 	return id
 }
 
-func (b *Builder) NewNamedExports(flags ast.NodeFlags, pos, end int32, elements uint32) NodeRef {
+func (b *Builder) NewNamedExports(flags ast.NodeFlags, pos, end int32, elements ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, elements)
+	b.extra = append(b.extra, uint32(elements))
 	id := b.header(ast.KindNamedExports, flags, 0, pos, end, data)
 	b.adoptList(elements, id)
 	return id
@@ -446,9 +446,9 @@ func (b *Builder) NewExportSpecifier(flags ast.NodeFlags, pos, end int32, isType
 	return id
 }
 
-func (b *Builder) NewCallSignatureDeclaration(flags ast.NodeFlags, pos, end int32, typeParameters uint32, parameters uint32, typeNode NodeRef) NodeRef {
+func (b *Builder) NewCallSignatureDeclaration(flags ast.NodeFlags, pos, end int32, typeParameters ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, typeParameters, parameters, uint32(typeNode))
+	b.extra = append(b.extra, uint32(typeParameters), uint32(parameters), uint32(typeNode))
 	id := b.header(ast.KindCallSignature, flags, 0, pos, end, data)
 	b.adoptList(typeParameters, id)
 	b.adoptList(parameters, id)
@@ -456,9 +456,9 @@ func (b *Builder) NewCallSignatureDeclaration(flags ast.NodeFlags, pos, end int3
 	return id
 }
 
-func (b *Builder) NewConstructSignatureDeclaration(flags ast.NodeFlags, pos, end int32, typeParameters uint32, parameters uint32, typeNode NodeRef) NodeRef {
+func (b *Builder) NewConstructSignatureDeclaration(flags ast.NodeFlags, pos, end int32, typeParameters ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, typeParameters, parameters, uint32(typeNode))
+	b.extra = append(b.extra, uint32(typeParameters), uint32(parameters), uint32(typeNode))
 	id := b.header(ast.KindConstructSignature, flags, 0, pos, end, data)
 	b.adoptList(typeParameters, id)
 	b.adoptList(parameters, id)
@@ -466,9 +466,9 @@ func (b *Builder) NewConstructSignatureDeclaration(flags ast.NodeFlags, pos, end
 	return id
 }
 
-func (b *Builder) NewConstructorDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32, typeParameters uint32, parameters uint32, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
+func (b *Builder) NewConstructorDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, typeParameters, parameters, uint32(typeNode), uint32(fullSignature), uint32(body))
+	b.extra = append(b.extra, uint32(modifiers), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(body))
 	id := b.header(ast.KindConstructor, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adoptList(typeParameters, id)
@@ -479,9 +479,9 @@ func (b *Builder) NewConstructorDeclaration(flags ast.NodeFlags, pos, end int32,
 	return id
 }
 
-func (b *Builder) NewGetAccessorDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32, name NodeRef, typeParameters uint32, parameters uint32, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
+func (b *Builder) NewGetAccessorDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(name), typeParameters, parameters, uint32(typeNode), uint32(fullSignature), uint32(body))
+	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(body))
 	id := b.header(ast.KindGetAccessor, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -493,9 +493,9 @@ func (b *Builder) NewGetAccessorDeclaration(flags ast.NodeFlags, pos, end int32,
 	return id
 }
 
-func (b *Builder) NewSetAccessorDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32, name NodeRef, typeParameters uint32, parameters uint32, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
+func (b *Builder) NewSetAccessorDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(name), typeParameters, parameters, uint32(typeNode), uint32(fullSignature), uint32(body))
+	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(body))
 	id := b.header(ast.KindSetAccessor, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -507,9 +507,9 @@ func (b *Builder) NewSetAccessorDeclaration(flags ast.NodeFlags, pos, end int32,
 	return id
 }
 
-func (b *Builder) NewIndexSignatureDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32, parameters uint32, typeNode NodeRef) NodeRef {
+func (b *Builder) NewIndexSignatureDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, parameters, uint32(typeNode))
+	b.extra = append(b.extra, uint32(modifiers), uint32(parameters), uint32(typeNode))
 	id := b.header(ast.KindIndexSignature, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adoptList(parameters, id)
@@ -517,9 +517,9 @@ func (b *Builder) NewIndexSignatureDeclaration(flags ast.NodeFlags, pos, end int
 	return id
 }
 
-func (b *Builder) NewMethodSignatureDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32, name NodeRef, postfixToken NodeRef, typeParameters uint32, parameters uint32, typeNode NodeRef) NodeRef {
+func (b *Builder) NewMethodSignatureDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, postfixToken NodeRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(name), uint32(postfixToken), typeParameters, parameters, uint32(typeNode))
+	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(postfixToken), uint32(typeParameters), uint32(parameters), uint32(typeNode))
 	id := b.header(ast.KindMethodSignature, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -530,9 +530,9 @@ func (b *Builder) NewMethodSignatureDeclaration(flags ast.NodeFlags, pos, end in
 	return id
 }
 
-func (b *Builder) NewMethodDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32, asteriskToken NodeRef, name NodeRef, postfixToken NodeRef, typeParameters uint32, parameters uint32, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
+func (b *Builder) NewMethodDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, asteriskToken NodeRef, name NodeRef, postfixToken NodeRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(asteriskToken), uint32(name), uint32(postfixToken), typeParameters, parameters, uint32(typeNode), uint32(fullSignature), uint32(body))
+	b.extra = append(b.extra, uint32(modifiers), uint32(asteriskToken), uint32(name), uint32(postfixToken), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(body))
 	id := b.header(ast.KindMethodDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(asteriskToken, id)
@@ -546,9 +546,9 @@ func (b *Builder) NewMethodDeclaration(flags ast.NodeFlags, pos, end int32, modi
 	return id
 }
 
-func (b *Builder) NewPropertySignatureDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32, name NodeRef, postfixToken NodeRef, typeNode NodeRef, initializer NodeRef) NodeRef {
+func (b *Builder) NewPropertySignatureDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, postfixToken NodeRef, typeNode NodeRef, initializer NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(name), uint32(postfixToken), uint32(typeNode), uint32(initializer))
+	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(postfixToken), uint32(typeNode), uint32(initializer))
 	id := b.header(ast.KindPropertySignature, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -558,9 +558,9 @@ func (b *Builder) NewPropertySignatureDeclaration(flags ast.NodeFlags, pos, end 
 	return id
 }
 
-func (b *Builder) NewPropertyDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32, name NodeRef, postfixToken NodeRef, typeNode NodeRef, initializer NodeRef) NodeRef {
+func (b *Builder) NewPropertyDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, postfixToken NodeRef, typeNode NodeRef, initializer NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(name), uint32(postfixToken), uint32(typeNode), uint32(initializer))
+	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(postfixToken), uint32(typeNode), uint32(initializer))
 	id := b.header(ast.KindPropertyDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -570,9 +570,9 @@ func (b *Builder) NewPropertyDeclaration(flags ast.NodeFlags, pos, end int32, mo
 	return id
 }
 
-func (b *Builder) NewClassStaticBlockDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32, body NodeRef) NodeRef {
+func (b *Builder) NewClassStaticBlockDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, body NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(body))
+	b.extra = append(b.extra, uint32(modifiers), uint32(body))
 	id := b.header(ast.KindClassStaticBlockDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(body, id)
@@ -614,9 +614,9 @@ func (b *Builder) NewNoSubstitutionTemplateLiteral(flags ast.NodeFlags, pos, end
 	return b.header(ast.KindNoSubstitutionTemplateLiteral, flags, 0, pos, end, data)
 }
 
-func (b *Builder) NewBinaryExpression(flags ast.NodeFlags, pos, end int32, modifiers uint32, left NodeRef, typeNode NodeRef, operatorToken NodeRef, right NodeRef) NodeRef {
+func (b *Builder) NewBinaryExpression(flags ast.NodeFlags, pos, end int32, modifiers ListRef, left NodeRef, typeNode NodeRef, operatorToken NodeRef, right NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(left), uint32(typeNode), uint32(operatorToken), uint32(right))
+	b.extra = append(b.extra, uint32(modifiers), uint32(left), uint32(typeNode), uint32(operatorToken), uint32(right))
 	id := b.header(ast.KindBinaryExpression, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(left, id)
@@ -651,9 +651,9 @@ func (b *Builder) NewYieldExpression(flags ast.NodeFlags, pos, end int32, asteri
 	return id
 }
 
-func (b *Builder) NewArrowFunction(flags ast.NodeFlags, pos, end int32, modifiers uint32, typeParameters uint32, parameters uint32, typeNode NodeRef, fullSignature NodeRef, equalsGreaterThanToken NodeRef, body NodeRef) NodeRef {
+func (b *Builder) NewArrowFunction(flags ast.NodeFlags, pos, end int32, modifiers ListRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, equalsGreaterThanToken NodeRef, body NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, typeParameters, parameters, uint32(typeNode), uint32(fullSignature), uint32(equalsGreaterThanToken), uint32(body))
+	b.extra = append(b.extra, uint32(modifiers), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(equalsGreaterThanToken), uint32(body))
 	id := b.header(ast.KindArrowFunction, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adoptList(typeParameters, id)
@@ -665,9 +665,9 @@ func (b *Builder) NewArrowFunction(flags ast.NodeFlags, pos, end int32, modifier
 	return id
 }
 
-func (b *Builder) NewFunctionExpression(flags ast.NodeFlags, pos, end int32, modifiers uint32, asteriskToken NodeRef, name NodeRef, typeParameters uint32, parameters uint32, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
+func (b *Builder) NewFunctionExpression(flags ast.NodeFlags, pos, end int32, modifiers ListRef, asteriskToken NodeRef, name NodeRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(asteriskToken), uint32(name), typeParameters, parameters, uint32(typeNode), uint32(fullSignature), uint32(body))
+	b.extra = append(b.extra, uint32(modifiers), uint32(asteriskToken), uint32(name), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(body))
 	id := b.header(ast.KindFunctionExpression, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(asteriskToken, id)
@@ -730,9 +730,9 @@ func (b *Builder) NewElementAccessExpression(flags ast.NodeFlags, pos, end int32
 	return id
 }
 
-func (b *Builder) NewCallExpression(flags ast.NodeFlags, pos, end int32, expression NodeRef, questionDotToken NodeRef, typeArguments uint32, arguments uint32) NodeRef {
+func (b *Builder) NewCallExpression(flags ast.NodeFlags, pos, end int32, expression NodeRef, questionDotToken NodeRef, typeArguments ListRef, arguments ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression), uint32(questionDotToken), typeArguments, arguments)
+	b.extra = append(b.extra, uint32(expression), uint32(questionDotToken), uint32(typeArguments), uint32(arguments))
 	id := b.header(ast.KindCallExpression, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	b.adopt(questionDotToken, id)
@@ -741,9 +741,9 @@ func (b *Builder) NewCallExpression(flags ast.NodeFlags, pos, end int32, express
 	return id
 }
 
-func (b *Builder) NewNewExpression(flags ast.NodeFlags, pos, end int32, expression NodeRef, typeArguments uint32, arguments uint32) NodeRef {
+func (b *Builder) NewNewExpression(flags ast.NodeFlags, pos, end int32, expression NodeRef, typeArguments ListRef, arguments ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression), typeArguments, arguments)
+	b.extra = append(b.extra, uint32(expression), uint32(typeArguments), uint32(arguments))
 	id := b.header(ast.KindNewExpression, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	b.adoptList(typeArguments, id)
@@ -775,9 +775,9 @@ func (b *Builder) NewSpreadElement(flags ast.NodeFlags, pos, end int32, expressi
 	return id
 }
 
-func (b *Builder) NewTemplateExpression(flags ast.NodeFlags, pos, end int32, head NodeRef, templateSpans uint32) NodeRef {
+func (b *Builder) NewTemplateExpression(flags ast.NodeFlags, pos, end int32, head NodeRef, templateSpans ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(head), templateSpans)
+	b.extra = append(b.extra, uint32(head), uint32(templateSpans))
 	id := b.header(ast.KindTemplateExpression, flags, 0, pos, end, data)
 	b.adopt(head, id)
 	b.adoptList(templateSpans, id)
@@ -793,9 +793,9 @@ func (b *Builder) NewTemplateSpan(flags ast.NodeFlags, pos, end int32, expressio
 	return id
 }
 
-func (b *Builder) NewTaggedTemplateExpression(flags ast.NodeFlags, pos, end int32, tag NodeRef, questionDotToken NodeRef, typeArguments uint32, template NodeRef) NodeRef {
+func (b *Builder) NewTaggedTemplateExpression(flags ast.NodeFlags, pos, end int32, tag NodeRef, questionDotToken NodeRef, typeArguments ListRef, template NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tag), uint32(questionDotToken), typeArguments, uint32(template))
+	b.extra = append(b.extra, uint32(tag), uint32(questionDotToken), uint32(typeArguments), uint32(template))
 	id := b.header(ast.KindTaggedTemplateExpression, flags, 0, pos, end, data)
 	b.adopt(tag, id)
 	b.adopt(questionDotToken, id)
@@ -812,17 +812,17 @@ func (b *Builder) NewParenthesizedExpression(flags ast.NodeFlags, pos, end int32
 	return id
 }
 
-func (b *Builder) NewArrayLiteralExpression(flags ast.NodeFlags, pos, end int32, elements uint32, multiLine bool) NodeRef {
+func (b *Builder) NewArrayLiteralExpression(flags ast.NodeFlags, pos, end int32, elements ListRef, multiLine bool) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, elements, boolWord(multiLine))
+	b.extra = append(b.extra, uint32(elements), boolWord(multiLine))
 	id := b.header(ast.KindArrayLiteralExpression, flags, 0, pos, end, data)
 	b.adoptList(elements, id)
 	return id
 }
 
-func (b *Builder) NewObjectLiteralExpression(flags ast.NodeFlags, pos, end int32, properties uint32, multiLine bool) NodeRef {
+func (b *Builder) NewObjectLiteralExpression(flags ast.NodeFlags, pos, end int32, properties ListRef, multiLine bool) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, properties, boolWord(multiLine))
+	b.extra = append(b.extra, uint32(properties), boolWord(multiLine))
 	id := b.header(ast.KindObjectLiteralExpression, flags, 0, pos, end, data)
 	b.adoptList(properties, id)
 	return id
@@ -836,9 +836,9 @@ func (b *Builder) NewSpreadAssignment(flags ast.NodeFlags, pos, end int32, expre
 	return id
 }
 
-func (b *Builder) NewPropertyAssignment(flags ast.NodeFlags, pos, end int32, modifiers uint32, name NodeRef, postfixToken NodeRef, typeNode NodeRef, initializer NodeRef) NodeRef {
+func (b *Builder) NewPropertyAssignment(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, postfixToken NodeRef, typeNode NodeRef, initializer NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(name), uint32(postfixToken), uint32(typeNode), uint32(initializer))
+	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(postfixToken), uint32(typeNode), uint32(initializer))
 	id := b.header(ast.KindPropertyAssignment, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -848,9 +848,9 @@ func (b *Builder) NewPropertyAssignment(flags ast.NodeFlags, pos, end int32, mod
 	return id
 }
 
-func (b *Builder) NewShorthandPropertyAssignment(flags ast.NodeFlags, pos, end int32, modifiers uint32, name NodeRef, postfixToken NodeRef, typeNode NodeRef, equalsToken NodeRef, objectAssignmentInitializer NodeRef) NodeRef {
+func (b *Builder) NewShorthandPropertyAssignment(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, postfixToken NodeRef, typeNode NodeRef, equalsToken NodeRef, objectAssignmentInitializer NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(name), uint32(postfixToken), uint32(typeNode), uint32(equalsToken), uint32(objectAssignmentInitializer))
+	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(postfixToken), uint32(typeNode), uint32(equalsToken), uint32(objectAssignmentInitializer))
 	id := b.header(ast.KindShorthandPropertyAssignment, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -902,17 +902,17 @@ func (b *Builder) NewTypeAssertion(flags ast.NodeFlags, pos, end int32, typeNode
 	return id
 }
 
-func (b *Builder) NewUnionTypeNode(flags ast.NodeFlags, pos, end int32, types uint32) NodeRef {
+func (b *Builder) NewUnionTypeNode(flags ast.NodeFlags, pos, end int32, types ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, types)
+	b.extra = append(b.extra, uint32(types))
 	id := b.header(ast.KindUnionType, flags, 0, pos, end, data)
 	b.adoptList(types, id)
 	return id
 }
 
-func (b *Builder) NewIntersectionTypeNode(flags ast.NodeFlags, pos, end int32, types uint32) NodeRef {
+func (b *Builder) NewIntersectionTypeNode(flags ast.NodeFlags, pos, end int32, types ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, types)
+	b.extra = append(b.extra, uint32(types))
 	id := b.header(ast.KindIntersectionType, flags, 0, pos, end, data)
 	b.adoptList(types, id)
 	return id
@@ -962,18 +962,18 @@ func (b *Builder) NewIndexedAccessTypeNode(flags ast.NodeFlags, pos, end int32, 
 	return id
 }
 
-func (b *Builder) NewTypeReferenceNode(flags ast.NodeFlags, pos, end int32, typeName NodeRef, typeArguments uint32) NodeRef {
+func (b *Builder) NewTypeReferenceNode(flags ast.NodeFlags, pos, end int32, typeName NodeRef, typeArguments ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(typeName), typeArguments)
+	b.extra = append(b.extra, uint32(typeName), uint32(typeArguments))
 	id := b.header(ast.KindTypeReference, flags, 0, pos, end, data)
 	b.adopt(typeName, id)
 	b.adoptList(typeArguments, id)
 	return id
 }
 
-func (b *Builder) NewExpressionWithTypeArguments(flags ast.NodeFlags, pos, end int32, expression NodeRef, typeArguments uint32) NodeRef {
+func (b *Builder) NewExpressionWithTypeArguments(flags ast.NodeFlags, pos, end int32, expression NodeRef, typeArguments ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression), typeArguments)
+	b.extra = append(b.extra, uint32(expression), uint32(typeArguments))
 	id := b.header(ast.KindExpressionWithTypeArguments, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	b.adoptList(typeArguments, id)
@@ -1007,26 +1007,26 @@ func (b *Builder) NewImportAttribute(flags ast.NodeFlags, pos, end int32, name N
 	return id
 }
 
-func (b *Builder) NewImportAttributes(flags ast.NodeFlags, pos, end int32, token ast.Kind, attributes uint32, multiLine bool) NodeRef {
+func (b *Builder) NewImportAttributes(flags ast.NodeFlags, pos, end int32, token ast.Kind, attributes ListRef, multiLine bool) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(token), attributes, boolWord(multiLine))
+	b.extra = append(b.extra, uint32(token), uint32(attributes), boolWord(multiLine))
 	id := b.header(ast.KindImportAttributes, flags, 0, pos, end, data)
 	b.adoptList(attributes, id)
 	return id
 }
 
-func (b *Builder) NewTypeQueryNode(flags ast.NodeFlags, pos, end int32, exprName NodeRef, typeArguments uint32) NodeRef {
+func (b *Builder) NewTypeQueryNode(flags ast.NodeFlags, pos, end int32, exprName NodeRef, typeArguments ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(exprName), typeArguments)
+	b.extra = append(b.extra, uint32(exprName), uint32(typeArguments))
 	id := b.header(ast.KindTypeQuery, flags, 0, pos, end, data)
 	b.adopt(exprName, id)
 	b.adoptList(typeArguments, id)
 	return id
 }
 
-func (b *Builder) NewMappedTypeNode(flags ast.NodeFlags, pos, end int32, readonlyToken NodeRef, typeParameter NodeRef, nameType NodeRef, questionToken NodeRef, typeNode NodeRef, members uint32) NodeRef {
+func (b *Builder) NewMappedTypeNode(flags ast.NodeFlags, pos, end int32, readonlyToken NodeRef, typeParameter NodeRef, nameType NodeRef, questionToken NodeRef, typeNode NodeRef, members ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(readonlyToken), uint32(typeParameter), uint32(nameType), uint32(questionToken), uint32(typeNode), members)
+	b.extra = append(b.extra, uint32(readonlyToken), uint32(typeParameter), uint32(nameType), uint32(questionToken), uint32(typeNode), uint32(members))
 	id := b.header(ast.KindMappedType, flags, 0, pos, end, data)
 	b.adopt(readonlyToken, id)
 	b.adopt(typeParameter, id)
@@ -1037,17 +1037,17 @@ func (b *Builder) NewMappedTypeNode(flags ast.NodeFlags, pos, end int32, readonl
 	return id
 }
 
-func (b *Builder) NewTypeLiteralNode(flags ast.NodeFlags, pos, end int32, members uint32) NodeRef {
+func (b *Builder) NewTypeLiteralNode(flags ast.NodeFlags, pos, end int32, members ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, members)
+	b.extra = append(b.extra, uint32(members))
 	id := b.header(ast.KindTypeLiteral, flags, 0, pos, end, data)
 	b.adoptList(members, id)
 	return id
 }
 
-func (b *Builder) NewTupleTypeNode(flags ast.NodeFlags, pos, end int32, elements uint32) NodeRef {
+func (b *Builder) NewTupleTypeNode(flags ast.NodeFlags, pos, end int32, elements ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, elements)
+	b.extra = append(b.extra, uint32(elements))
 	id := b.header(ast.KindTupleType, flags, 0, pos, end, data)
 	b.adoptList(elements, id)
 	return id
@@ -1088,9 +1088,9 @@ func (b *Builder) NewParenthesizedTypeNode(flags ast.NodeFlags, pos, end int32, 
 	return id
 }
 
-func (b *Builder) NewFunctionTypeNode(flags ast.NodeFlags, pos, end int32, typeParameters uint32, parameters uint32, typeNode NodeRef) NodeRef {
+func (b *Builder) NewFunctionTypeNode(flags ast.NodeFlags, pos, end int32, typeParameters ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, typeParameters, parameters, uint32(typeNode))
+	b.extra = append(b.extra, uint32(typeParameters), uint32(parameters), uint32(typeNode))
 	id := b.header(ast.KindFunctionType, flags, 0, pos, end, data)
 	b.adoptList(typeParameters, id)
 	b.adoptList(parameters, id)
@@ -1098,9 +1098,9 @@ func (b *Builder) NewFunctionTypeNode(flags ast.NodeFlags, pos, end int32, typeP
 	return id
 }
 
-func (b *Builder) NewConstructorTypeNode(flags ast.NodeFlags, pos, end int32, modifiers uint32, typeParameters uint32, parameters uint32, typeNode NodeRef) NodeRef {
+func (b *Builder) NewConstructorTypeNode(flags ast.NodeFlags, pos, end int32, modifiers ListRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, typeParameters, parameters, uint32(typeNode))
+	b.extra = append(b.extra, uint32(modifiers), uint32(typeParameters), uint32(parameters), uint32(typeNode))
 	id := b.header(ast.KindConstructorType, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adoptList(typeParameters, id)
@@ -1133,9 +1133,9 @@ func (b *Builder) NewTemplateTail(flags ast.NodeFlags, pos, end int32, text stri
 	return b.header(ast.KindTemplateTail, flags, 0, pos, end, data)
 }
 
-func (b *Builder) NewTemplateLiteralTypeNode(flags ast.NodeFlags, pos, end int32, head NodeRef, templateSpans uint32) NodeRef {
+func (b *Builder) NewTemplateLiteralTypeNode(flags ast.NodeFlags, pos, end int32, head NodeRef, templateSpans ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(head), templateSpans)
+	b.extra = append(b.extra, uint32(head), uint32(templateSpans))
 	id := b.header(ast.KindTemplateLiteralType, flags, 0, pos, end, data)
 	b.adopt(head, id)
 	b.adoptList(templateSpans, id)
@@ -1167,9 +1167,9 @@ func (b *Builder) NewPartiallyEmittedExpression(flags ast.NodeFlags, pos, end in
 	return id
 }
 
-func (b *Builder) NewJsxElement(flags ast.NodeFlags, pos, end int32, openingElement NodeRef, children uint32, closingElement NodeRef) NodeRef {
+func (b *Builder) NewJsxElement(flags ast.NodeFlags, pos, end int32, openingElement NodeRef, children ListRef, closingElement NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(openingElement), children, uint32(closingElement))
+	b.extra = append(b.extra, uint32(openingElement), uint32(children), uint32(closingElement))
 	id := b.header(ast.KindJsxElement, flags, 0, pos, end, data)
 	b.adopt(openingElement, id)
 	b.adoptList(children, id)
@@ -1177,9 +1177,9 @@ func (b *Builder) NewJsxElement(flags ast.NodeFlags, pos, end int32, openingElem
 	return id
 }
 
-func (b *Builder) NewJsxAttributes(flags ast.NodeFlags, pos, end int32, properties uint32) NodeRef {
+func (b *Builder) NewJsxAttributes(flags ast.NodeFlags, pos, end int32, properties ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, properties)
+	b.extra = append(b.extra, uint32(properties))
 	id := b.header(ast.KindJsxAttributes, flags, 0, pos, end, data)
 	b.adoptList(properties, id)
 	return id
@@ -1194,9 +1194,9 @@ func (b *Builder) NewJsxNamespacedName(flags ast.NodeFlags, pos, end int32, name
 	return id
 }
 
-func (b *Builder) NewJsxOpeningElement(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeArguments uint32, attributes NodeRef) NodeRef {
+func (b *Builder) NewJsxOpeningElement(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeArguments ListRef, attributes NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), typeArguments, uint32(attributes))
+	b.extra = append(b.extra, uint32(tagName), uint32(typeArguments), uint32(attributes))
 	id := b.header(ast.KindJsxOpeningElement, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adoptList(typeArguments, id)
@@ -1204,9 +1204,9 @@ func (b *Builder) NewJsxOpeningElement(flags ast.NodeFlags, pos, end int32, tagN
 	return id
 }
 
-func (b *Builder) NewJsxSelfClosingElement(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeArguments uint32, attributes NodeRef) NodeRef {
+func (b *Builder) NewJsxSelfClosingElement(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeArguments ListRef, attributes NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), typeArguments, uint32(attributes))
+	b.extra = append(b.extra, uint32(tagName), uint32(typeArguments), uint32(attributes))
 	id := b.header(ast.KindJsxSelfClosingElement, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adoptList(typeArguments, id)
@@ -1214,9 +1214,9 @@ func (b *Builder) NewJsxSelfClosingElement(flags ast.NodeFlags, pos, end int32, 
 	return id
 }
 
-func (b *Builder) NewJsxFragment(flags ast.NodeFlags, pos, end int32, openingFragment NodeRef, children uint32, closingFragment NodeRef) NodeRef {
+func (b *Builder) NewJsxFragment(flags ast.NodeFlags, pos, end int32, openingFragment NodeRef, children ListRef, closingFragment NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(openingFragment), children, uint32(closingFragment))
+	b.extra = append(b.extra, uint32(openingFragment), uint32(children), uint32(closingFragment))
 	id := b.header(ast.KindJsxFragment, flags, 0, pos, end, data)
 	b.adopt(openingFragment, id)
 	b.adoptList(children, id)
@@ -1265,17 +1265,17 @@ func (b *Builder) NewJsxText(flags ast.NodeFlags, pos, end int32, text string, c
 	return b.header(ast.KindJsxText, flags, 0, pos, end, data)
 }
 
-func (b *Builder) NewSyntaxList(flags ast.NodeFlags, pos, end int32, children uint32) NodeRef {
+func (b *Builder) NewSyntaxList(flags ast.NodeFlags, pos, end int32, children ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, children)
+	b.extra = append(b.extra, uint32(children))
 	id := b.header(ast.KindSyntaxList, flags, 0, pos, end, data)
 	b.adoptList(children, id)
 	return id
 }
 
-func (b *Builder) NewJSDoc(flags ast.NodeFlags, pos, end int32, comment uint32, tags uint32) NodeRef {
+func (b *Builder) NewJSDoc(flags ast.NodeFlags, pos, end int32, comment ListRef, tags ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, comment, tags)
+	b.extra = append(b.extra, uint32(comment), uint32(tags))
 	id := b.header(ast.KindJSDoc, flags, 0, pos, end, data)
 	b.adoptList(comment, id)
 	b.adoptList(tags, id)
@@ -1322,9 +1322,9 @@ func (b *Builder) NewJSDocOptionalType(flags ast.NodeFlags, pos, end int32, type
 	return id
 }
 
-func (b *Builder) NewJSDocTypeTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, comment uint32) NodeRef {
+func (b *Builder) NewJSDocTypeTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), uint32(comment))
 	id := b.header(ast.KindJSDocTypeTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(typeExpression, id)
@@ -1332,18 +1332,18 @@ func (b *Builder) NewJSDocTypeTag(flags ast.NodeFlags, pos, end int32, tagName N
 	return id
 }
 
-func (b *Builder) NewJSDocUnknownTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment uint32) NodeRef {
+func (b *Builder) NewJSDocUnknownTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(comment))
 	id := b.header(ast.KindJSDocUnknownTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adoptList(comment, id)
 	return id
 }
 
-func (b *Builder) NewJSDocTemplateTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, constraint NodeRef, typeParameters uint32, comment uint32) NodeRef {
+func (b *Builder) NewJSDocTemplateTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, constraint NodeRef, typeParameters ListRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(constraint), typeParameters, comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(constraint), uint32(typeParameters), uint32(comment))
 	id := b.header(ast.KindJSDocTemplateTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(constraint, id)
@@ -1352,9 +1352,9 @@ func (b *Builder) NewJSDocTemplateTag(flags ast.NodeFlags, pos, end int32, tagNa
 	return id
 }
 
-func (b *Builder) NewJSDocReturnTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, comment uint32) NodeRef {
+func (b *Builder) NewJSDocReturnTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), uint32(comment))
 	id := b.header(ast.KindJSDocReturnTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(typeExpression, id)
@@ -1362,63 +1362,63 @@ func (b *Builder) NewJSDocReturnTag(flags ast.NodeFlags, pos, end int32, tagName
 	return id
 }
 
-func (b *Builder) NewJSDocPublicTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment uint32) NodeRef {
+func (b *Builder) NewJSDocPublicTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(comment))
 	id := b.header(ast.KindJSDocPublicTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adoptList(comment, id)
 	return id
 }
 
-func (b *Builder) NewJSDocPrivateTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment uint32) NodeRef {
+func (b *Builder) NewJSDocPrivateTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(comment))
 	id := b.header(ast.KindJSDocPrivateTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adoptList(comment, id)
 	return id
 }
 
-func (b *Builder) NewJSDocProtectedTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment uint32) NodeRef {
+func (b *Builder) NewJSDocProtectedTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(comment))
 	id := b.header(ast.KindJSDocProtectedTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adoptList(comment, id)
 	return id
 }
 
-func (b *Builder) NewJSDocReadonlyTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment uint32) NodeRef {
+func (b *Builder) NewJSDocReadonlyTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(comment))
 	id := b.header(ast.KindJSDocReadonlyTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adoptList(comment, id)
 	return id
 }
 
-func (b *Builder) NewJSDocOverrideTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment uint32) NodeRef {
+func (b *Builder) NewJSDocOverrideTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(comment))
 	id := b.header(ast.KindJSDocOverrideTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adoptList(comment, id)
 	return id
 }
 
-func (b *Builder) NewJSDocDeprecatedTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment uint32) NodeRef {
+func (b *Builder) NewJSDocDeprecatedTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(comment))
 	id := b.header(ast.KindJSDocDeprecatedTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adoptList(comment, id)
 	return id
 }
 
-func (b *Builder) NewJSDocSeeTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, nameExpression NodeRef, comment uint32) NodeRef {
+func (b *Builder) NewJSDocSeeTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, nameExpression NodeRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(nameExpression), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(nameExpression), uint32(comment))
 	id := b.header(ast.KindJSDocSeeTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(nameExpression, id)
@@ -1426,9 +1426,9 @@ func (b *Builder) NewJSDocSeeTag(flags ast.NodeFlags, pos, end int32, tagName No
 	return id
 }
 
-func (b *Builder) NewJSDocImplementsTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, className NodeRef, comment uint32) NodeRef {
+func (b *Builder) NewJSDocImplementsTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, className NodeRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(className), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(className), uint32(comment))
 	id := b.header(ast.KindJSDocImplementsTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(className, id)
@@ -1436,9 +1436,9 @@ func (b *Builder) NewJSDocImplementsTag(flags ast.NodeFlags, pos, end int32, tag
 	return id
 }
 
-func (b *Builder) NewJSDocAugmentsTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, className NodeRef, comment uint32) NodeRef {
+func (b *Builder) NewJSDocAugmentsTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, className NodeRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(className), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(className), uint32(comment))
 	id := b.header(ast.KindJSDocAugmentsTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(className, id)
@@ -1446,9 +1446,9 @@ func (b *Builder) NewJSDocAugmentsTag(flags ast.NodeFlags, pos, end int32, tagNa
 	return id
 }
 
-func (b *Builder) NewJSDocSatisfiesTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, comment uint32) NodeRef {
+func (b *Builder) NewJSDocSatisfiesTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), uint32(comment))
 	id := b.header(ast.KindJSDocSatisfiesTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(typeExpression, id)
@@ -1456,9 +1456,9 @@ func (b *Builder) NewJSDocSatisfiesTag(flags ast.NodeFlags, pos, end int32, tagN
 	return id
 }
 
-func (b *Builder) NewJSDocThrowsTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, comment uint32) NodeRef {
+func (b *Builder) NewJSDocThrowsTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), uint32(comment))
 	id := b.header(ast.KindJSDocThrowsTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(typeExpression, id)
@@ -1466,9 +1466,9 @@ func (b *Builder) NewJSDocThrowsTag(flags ast.NodeFlags, pos, end int32, tagName
 	return id
 }
 
-func (b *Builder) NewJSDocThisTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, comment uint32) NodeRef {
+func (b *Builder) NewJSDocThisTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), uint32(comment))
 	id := b.header(ast.KindJSDocThisTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(typeExpression, id)
@@ -1476,9 +1476,9 @@ func (b *Builder) NewJSDocThisTag(flags ast.NodeFlags, pos, end int32, tagName N
 	return id
 }
 
-func (b *Builder) NewJSDocImportTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, importClause NodeRef, moduleSpecifier NodeRef, attributes NodeRef, comment uint32) NodeRef {
+func (b *Builder) NewJSDocImportTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, importClause NodeRef, moduleSpecifier NodeRef, attributes NodeRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(importClause), uint32(moduleSpecifier), uint32(attributes), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(importClause), uint32(moduleSpecifier), uint32(attributes), uint32(comment))
 	id := b.header(ast.KindJSDocImportTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(importClause, id)
@@ -1488,9 +1488,9 @@ func (b *Builder) NewJSDocImportTag(flags ast.NodeFlags, pos, end int32, tagName
 	return id
 }
 
-func (b *Builder) NewJSDocCallbackTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, name NodeRef, comment uint32) NodeRef {
+func (b *Builder) NewJSDocCallbackTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, name NodeRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), uint32(name), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), uint32(name), uint32(comment))
 	id := b.header(ast.KindJSDocCallbackTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(typeExpression, id)
@@ -1499,9 +1499,9 @@ func (b *Builder) NewJSDocCallbackTag(flags ast.NodeFlags, pos, end int32, tagNa
 	return id
 }
 
-func (b *Builder) NewJSDocOverloadTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, comment uint32) NodeRef {
+func (b *Builder) NewJSDocOverloadTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), uint32(comment))
 	id := b.header(ast.KindJSDocOverloadTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(typeExpression, id)
@@ -1509,9 +1509,9 @@ func (b *Builder) NewJSDocOverloadTag(flags ast.NodeFlags, pos, end int32, tagNa
 	return id
 }
 
-func (b *Builder) NewJSDocTypedefTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, name NodeRef, comment uint32) NodeRef {
+func (b *Builder) NewJSDocTypedefTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, name NodeRef, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), uint32(name), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), uint32(name), uint32(comment))
 	id := b.header(ast.KindJSDocTypedefTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(typeExpression, id)
@@ -1520,9 +1520,9 @@ func (b *Builder) NewJSDocTypedefTag(flags ast.NodeFlags, pos, end int32, tagNam
 	return id
 }
 
-func (b *Builder) NewJSDocSignature(flags ast.NodeFlags, pos, end int32, typeParameters uint32, parameters uint32, typeNode NodeRef) NodeRef {
+func (b *Builder) NewJSDocSignature(flags ast.NodeFlags, pos, end int32, typeParameters ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, typeParameters, parameters, uint32(typeNode))
+	b.extra = append(b.extra, uint32(typeParameters), uint32(parameters), uint32(typeNode))
 	id := b.header(ast.KindJSDocSignature, flags, 0, pos, end, data)
 	b.adoptList(typeParameters, id)
 	b.adoptList(parameters, id)
@@ -1538,18 +1538,18 @@ func (b *Builder) NewJSDocNameReference(flags ast.NodeFlags, pos, end int32, nam
 	return id
 }
 
-func (b *Builder) NewSourceFile(flags ast.NodeFlags, pos, end int32, statements uint32, endOfFileToken NodeRef) NodeRef {
+func (b *Builder) NewSourceFile(flags ast.NodeFlags, pos, end int32, statements ListRef, endOfFileToken NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, statements, uint32(endOfFileToken))
+	b.extra = append(b.extra, uint32(statements), uint32(endOfFileToken))
 	id := b.header(ast.KindSourceFile, flags, 0, pos, end, data)
 	b.adoptList(statements, id)
 	b.adopt(endOfFileToken, id)
 	return id
 }
 
-func (b *Builder) NewModuleDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32, keyword ast.Kind, name NodeRef, attributes NodeRef, body NodeRef) NodeRef {
+func (b *Builder) NewModuleDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, keyword ast.Kind, name NodeRef, attributes NodeRef, body NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(keyword), uint32(name), uint32(attributes), uint32(body))
+	b.extra = append(b.extra, uint32(modifiers), uint32(keyword), uint32(name), uint32(attributes), uint32(body))
 	id := b.header(ast.KindModuleDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -1558,9 +1558,9 @@ func (b *Builder) NewModuleDeclaration(flags ast.NodeFlags, pos, end int32, modi
 	return id
 }
 
-func (b *Builder) NewImportEqualsDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32, isTypeOnly bool, name NodeRef, moduleReference NodeRef) NodeRef {
+func (b *Builder) NewImportEqualsDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, isTypeOnly bool, name NodeRef, moduleReference NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, boolWord(isTypeOnly), uint32(name), uint32(moduleReference))
+	b.extra = append(b.extra, uint32(modifiers), boolWord(isTypeOnly), uint32(name), uint32(moduleReference))
 	id := b.header(ast.KindImportEqualsDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -1568,9 +1568,9 @@ func (b *Builder) NewImportEqualsDeclaration(flags ast.NodeFlags, pos, end int32
 	return id
 }
 
-func (b *Builder) NewExportDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32, isTypeOnly bool, exportClause NodeRef, moduleSpecifier NodeRef, attributes NodeRef) NodeRef {
+func (b *Builder) NewExportDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, isTypeOnly bool, exportClause NodeRef, moduleSpecifier NodeRef, attributes NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, boolWord(isTypeOnly), uint32(exportClause), uint32(moduleSpecifier), uint32(attributes))
+	b.extra = append(b.extra, uint32(modifiers), boolWord(isTypeOnly), uint32(exportClause), uint32(moduleSpecifier), uint32(attributes))
 	id := b.header(ast.KindExportDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(exportClause, id)
@@ -1579,9 +1579,9 @@ func (b *Builder) NewExportDeclaration(flags ast.NodeFlags, pos, end int32, modi
 	return id
 }
 
-func (b *Builder) NewImportTypeNode(flags ast.NodeFlags, pos, end int32, isTypeOf bool, argument NodeRef, attributes NodeRef, qualifier NodeRef, typeArguments uint32) NodeRef {
+func (b *Builder) NewImportTypeNode(flags ast.NodeFlags, pos, end int32, isTypeOf bool, argument NodeRef, attributes NodeRef, qualifier NodeRef, typeArguments ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, boolWord(isTypeOf), uint32(argument), uint32(attributes), uint32(qualifier), typeArguments)
+	b.extra = append(b.extra, boolWord(isTypeOf), uint32(argument), uint32(attributes), uint32(qualifier), uint32(typeArguments))
 	id := b.header(ast.KindImportType, flags, 0, pos, end, data)
 	b.adopt(argument, id)
 	b.adopt(attributes, id)
@@ -1632,9 +1632,9 @@ func (b *Builder) NewJSDocLinkCode(flags ast.NodeFlags, pos, end int32, name Nod
 	return id
 }
 
-func (b *Builder) NewTypeParameterDeclaration(flags ast.NodeFlags, pos, end int32, modifiers uint32, name NodeRef, constraint NodeRef, expression NodeRef, defaultType NodeRef) NodeRef {
+func (b *Builder) NewTypeParameterDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, constraint NodeRef, expression NodeRef, defaultType NodeRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, modifiers, uint32(name), uint32(constraint), uint32(expression), uint32(defaultType))
+	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(constraint), uint32(expression), uint32(defaultType))
 	id := b.header(ast.KindTypeParameter, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -1653,17 +1653,17 @@ func (b *Builder) NewSyntheticReferenceExpression(flags ast.NodeFlags, pos, end 
 	return id
 }
 
-func (b *Builder) NewJSDocTypeLiteral(flags ast.NodeFlags, pos, end int32, jsdocPropertyTags uint32, isArrayType bool) NodeRef {
+func (b *Builder) NewJSDocTypeLiteral(flags ast.NodeFlags, pos, end int32, jsdocPropertyTags ListRef, isArrayType bool) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, jsdocPropertyTags, boolWord(isArrayType))
+	b.extra = append(b.extra, uint32(jsdocPropertyTags), boolWord(isArrayType))
 	id := b.header(ast.KindJSDocTypeLiteral, flags, 0, pos, end, data)
 	b.adoptList(jsdocPropertyTags, id)
 	return id
 }
 
-func (b *Builder) NewJSDocParameterOrPropertyTag(kind ast.Kind, flags ast.NodeFlags, pos, end int32, tagName NodeRef, name NodeRef, isBracketed bool, typeExpression NodeRef, isNameFirst bool, comment uint32) NodeRef {
+func (b *Builder) NewJSDocParameterOrPropertyTag(kind ast.Kind, flags ast.NodeFlags, pos, end int32, tagName NodeRef, name NodeRef, isBracketed bool, typeExpression NodeRef, isNameFirst bool, comment ListRef) NodeRef {
 	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(name), boolWord(isBracketed), uint32(typeExpression), boolWord(isNameFirst), comment)
+	b.extra = append(b.extra, uint32(tagName), uint32(name), boolWord(isBracketed), uint32(typeExpression), boolWord(isNameFirst), uint32(comment))
 	id := b.header(kind, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(name, id)

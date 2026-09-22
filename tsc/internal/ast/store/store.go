@@ -7,7 +7,16 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 )
 
-type NodeRef uint32 // index into Store.nodes; dense; 0 = nil
+type NodeRef uint32 // index into Store.nodes; dense
+
+// NoNodeRef is the nil node: nodes[0] is a sentinel row of kind Unknown, so
+// accessors read it without a guard.
+const NoNodeRef NodeRef = 0
+
+type ListRef uint32 // index of a list block in Store.extra
+
+// NoListRef is the nil list: extra[0:3] is a sentinel block of length 0.
+const NoListRef ListRef = 0
 
 type NodeHeader struct { // 24 bytes, no pointers
 	kind ast.Kind
@@ -113,10 +122,10 @@ func (n Node) assertKinds(view string, kinds ...ast.Kind) {
 // List is a view of a block in extra: [len, pos, end, elem0 ... elem(len-1)].
 type List struct {
 	s  *Store
-	at uint32 // index of the block in extra; 0 = nil list
+	at ListRef // NoListRef = nil list
 }
 
-func (l List) IsNil() bool { return l.at == 0 }
+func (l List) IsNil() bool { return l.at == NoListRef }
 func (l List) Len() int    { return int(l.s.extra[l.at]) }
 func (l List) Pos() int32  { return int32(l.s.extra[l.at+1]) }
 func (l List) End() int32  { return int32(l.s.extra[l.at+2]) }
@@ -124,7 +133,7 @@ func (l List) End() int32  { return int32(l.s.extra[l.at+2]) }
 // Refs is a contiguous view of the elements. It does not allocate.
 func (l List) Refs() []NodeRef {
 	extra := l.s.extra
-	elems := extra[l.at+3 : l.at+3+extra[l.at]]
+	elems := extra[l.at+3 : l.at+3+ListRef(extra[l.at])]
 	return unsafe.Slice((*NodeRef)(unsafe.Pointer(unsafe.SliceData(elems))), len(elems))
 }
 
@@ -133,11 +142,11 @@ func (l List) At(i int) Node { return l.s.node(l.Refs()[i]) }
 // Visitor returns true to stop the walk, like ast.Visitor.
 type Visitor func(Node) bool
 
-// Callers skip the nil list (at == 0) before calling: 60% of the list slots in
+// Callers skip the nil list (at == NoListRef) before calling: 60% of the list slots in
 // a walk are nil, and Refs() costs 25 instructions (store-ast-design-20260922.md
 // 2.3). The check lives at the call site so that visitList stays within the
 // inline budget (cost 80).
-func visitList(s *Store, at uint32, v Visitor) bool {
+func visitList(s *Store, at ListRef, v Visitor) bool {
 	for _, ref := range (List{s, at}).Refs() {
 		if v(s.node(ref)) {
 			return true
@@ -166,8 +175,8 @@ func NewBuilder(src string, file uint32) *Builder {
 }
 
 // List returns the index of the new block.
-func (b *Builder) List(pos, end int32, elems []NodeRef) uint32 {
-	at := uint32(len(b.extra))
+func (b *Builder) List(pos, end int32, elems []NodeRef) ListRef {
+	at := ListRef(len(b.extra))
 	b.extra = append(b.extra, uint32(len(elems)), uint32(pos), uint32(end))
 	for _, elem := range elems {
 		b.extra = append(b.extra, uint32(elem))
@@ -227,22 +236,22 @@ func boolWord(v bool) uint32 {
 }
 
 func (b *Builder) adopt(child, parent NodeRef) {
-	if child != 0 {
+	if child != NoNodeRef {
 		b.nodes[child].parent = parent
 	}
 }
 
-func (b *Builder) adoptList(at uint32, parent NodeRef) {
-	for _, elem := range b.extra[at+3 : at+3+b.extra[at]] {
+func (b *Builder) adoptList(at ListRef, parent NodeRef) {
+	for _, elem := range b.extra[at+3 : at+3+ListRef(b.extra[at])] {
 		b.nodes[elem].parent = parent
 	}
 }
 
 // modifierFlags folds the kinds of the elements of a modifier block, like
 // ast.ModifiersToFlags. Block 0 is empty.
-func (b *Builder) modifierFlags(at uint32) ast.ModifierFlags {
+func (b *Builder) modifierFlags(at ListRef) ast.ModifierFlags {
 	var flags ast.ModifierFlags
-	for _, elem := range b.extra[at+3 : at+3+b.extra[at]] {
+	for _, elem := range b.extra[at+3 : at+3+ListRef(b.extra[at])] {
 		flags |= ast.ModifierToFlag(b.nodes[elem].kind)
 	}
 	return flags

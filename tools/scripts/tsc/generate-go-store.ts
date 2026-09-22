@@ -332,7 +332,7 @@ function paramType(slot: Slot): string {
         case "child":
             return "NodeRef";
         case "list":
-            return "uint32";
+            return "ListRef";
         default:
             return goType(slot);
     }
@@ -399,7 +399,7 @@ function memberAccessor(def: Definition, slot: Slot): string {
         case "child":
             return `return n.s.node(NodeRef(n.s.extra[${index}]))`;
         case "list":
-            return `return List{n.s, n.s.extra[${index}]}`;
+            return `return List{n.s, ListRef(n.s.extra[${index}])}`;
         case "text":
             return `return n.s.text(${index})`;
         case "bool":
@@ -492,7 +492,7 @@ function generateViews(): string {
                 w.write("\t\treturn n.s.node(0)");
                 break;
             case "list":
-                w.write("\t\treturn List{n.s, 0}");
+                w.write("\t\treturn List{n.s, NoListRef}");
                 break;
             case "text":
                 w.write(`\t\treturn ""`);
@@ -504,7 +504,7 @@ function generateViews(): string {
                 w.write(`\treturn n.s.node(NodeRef(n.s.extra[${index}]))`);
                 break;
             case "list":
-                w.write(`\treturn List{n.s, n.s.extra[${index}]}`);
+                w.write(`\treturn List{n.s, ListRef(n.s.extra[${index}])}`);
                 break;
             case "text":
                 w.write(`\treturn n.s.text(${index})`);
@@ -545,12 +545,12 @@ function generateForEachChild(): string {
         w.write("\ts, data := n.s, int(n.h.data)");
         for (const slot of def.slots) {
             if (slot.class === "child") {
-                w.write(`\tif ref := NodeRef(s.extra[data+${slot.word}]); ref != 0 && v(s.node(ref)) { // ${slot.name}`);
+                w.write(`\tif ref := NodeRef(s.extra[data+${slot.word}]); ref != NoNodeRef && v(s.node(ref)) { // ${slot.name}`);
                 w.write("\t\treturn true");
                 w.write("\t}");
             }
             else if (slot.class === "list") {
-                w.write(`\tif at := s.extra[data+${slot.word}]; at != 0 && visitList(s, at, v) { // ${slot.name}`);
+                w.write(`\tif at := ListRef(s.extra[data+${slot.word}]); at != NoListRef && visitList(s, at, v) { // ${slot.name}`);
                 w.write("\t\treturn true");
                 w.write("\t}");
             }
@@ -597,7 +597,7 @@ function generateBuilder(): string {
                     words.push(`uint32(${p})`);
                     break;
                 case "list":
-                    words.push(p);
+                    words.push(`uint32(${p})`);
                     break;
                 case "text":
                     w.write(`\t${p}Off, ${p}Len := b.textWords(end, ${p})`);
@@ -686,7 +686,7 @@ function generateConvert(): string {
     w.write("\telems []store.NodeRef // stack of the elements of the lists under construction");
     w.write("}");
     w.write();
-    w.write("func (c *converter) elements(pos, end int32, nodes []*ast.Node) uint32 {");
+    w.write("func (c *converter) elements(pos, end int32, nodes []*ast.Node) store.ListRef {");
     w.write("\tmark := len(c.elems)");
     w.write("\tfor _, n := range nodes {");
     w.write("\t\tc.elems = append(c.elems, c.node(n))");
@@ -696,24 +696,24 @@ function generateConvert(): string {
     w.write("\treturn at");
     w.write("}");
     w.write();
-    w.write("func (c *converter) list(l *ast.NodeList) uint32 {");
+    w.write("func (c *converter) list(l *ast.NodeList) store.ListRef {");
     w.write("\tif l == nil {");
-    w.write("\t\treturn 0");
+    w.write("\t\treturn store.NoListRef");
     w.write("\t}");
     w.write("\treturn c.elements(int32(l.Pos()), int32(l.End()), l.Nodes)");
     w.write("}");
     w.write();
-    w.write("func (c *converter) modifiers(l *ast.ModifierList) uint32 {");
+    w.write("func (c *converter) modifiers(l *ast.ModifierList) store.ListRef {");
     w.write("\tif l == nil {");
-    w.write("\t\treturn 0");
+    w.write("\t\treturn store.NoListRef");
     w.write("\t}");
     w.write("\treturn c.list(&l.NodeList)");
     w.write("}");
     w.write();
     w.write("// A raw list has no Loc of its own.");
-    w.write("func (c *converter) raw(nodes []*ast.Node) uint32 {");
+    w.write("func (c *converter) raw(nodes []*ast.Node) store.ListRef {");
     w.write("\tif nodes == nil {");
-    w.write("\t\treturn 0");
+    w.write("\t\treturn store.NoListRef");
     w.write("\t}");
     w.write("\treturn c.elements(0, 0, nodes)");
     w.write("}");
@@ -722,7 +722,7 @@ function generateConvert(): string {
     w.write("// left to right, so the children exist, in member order, before their parent.");
     w.write("func (c *converter) node(n *ast.Node) store.NodeRef {");
     w.write("\tif n == nil {");
-    w.write("\t\treturn 0");
+    w.write("\t\treturn store.NoNodeRef");
     w.write("\t}");
     w.write("\tpos, end := int32(n.Pos()), int32(n.End())");
     w.write("\tswitch n.Kind {");

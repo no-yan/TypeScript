@@ -394,7 +394,9 @@ func (n Node) AsCaseBlock() CaseBlock {
 	return CaseBlock(n)
 }
 
-func (n CaseBlock) Clauses() List { return List{n.s, n.s.extra[int(n.h.data)+caseBlockClausesSlot]} }
+func (n CaseBlock) Clauses() List {
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+caseBlockClausesSlot])}
+}
 
 // CaseOrDefaultClause: ast.KindCaseClause, ast.KindDefaultClause
 const (
@@ -419,7 +421,7 @@ func (n CaseOrDefaultClause) Expression() Node {
 }
 
 func (n CaseOrDefaultClause) Statements() List {
-	return List{n.s, n.s.extra[int(n.h.data)+caseOrDefaultClauseStatementsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+caseOrDefaultClauseStatementsSlot])}
 }
 
 // ThrowStatement: ast.KindThrowStatement
@@ -565,7 +567,9 @@ func (n Node) AsBlock() Block {
 	return Block(n)
 }
 
-func (n Block) Statements() List { return List{n.s, n.s.extra[int(n.h.data)+blockStatementsSlot]} }
+func (n Block) Statements() List {
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+blockStatementsSlot])}
+}
 
 func (n Block) MultiLine() bool { return n.s.extra[int(n.h.data)+blockMultiLineSlot] != 0 }
 
@@ -588,7 +592,7 @@ func (n Node) AsVariableStatement() VariableStatement {
 }
 
 func (n VariableStatement) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+variableStatementModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+variableStatementModifiersSlot])}
 }
 
 func (n VariableStatement) DeclarationList() Node {
@@ -649,7 +653,7 @@ func (n Node) AsVariableDeclarationList() VariableDeclarationList {
 }
 
 func (n VariableDeclarationList) Declarations() List {
-	return List{n.s, n.s.extra[int(n.h.data)+variableDeclarationListDeclarationsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+variableDeclarationListDeclarationsSlot])}
 }
 
 // BindingPattern: ast.KindObjectBindingPattern, ast.KindArrayBindingPattern
@@ -670,7 +674,7 @@ func (n Node) AsBindingPattern() BindingPattern {
 }
 
 func (n BindingPattern) Elements() List {
-	return List{n.s, n.s.extra[int(n.h.data)+bindingPatternElementsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+bindingPatternElementsSlot])}
 }
 
 // ParameterDeclaration: ast.KindParameter
@@ -696,7 +700,7 @@ func (n Node) AsParameterDeclaration() ParameterDeclaration {
 }
 
 func (n ParameterDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+parameterDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+parameterDeclarationModifiersSlot])}
 }
 
 func (n ParameterDeclaration) DotDotDotToken() Node {
@@ -773,7 +777,7 @@ func (n Node) AsMissingDeclaration() MissingDeclaration {
 }
 
 func (n MissingDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+missingDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+missingDeclarationModifiersSlot])}
 }
 
 // FunctionDeclaration: ast.KindFunctionDeclaration
@@ -801,7 +805,7 @@ func (n Node) AsFunctionDeclaration() FunctionDeclaration {
 }
 
 func (n FunctionDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+functionDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+functionDeclarationModifiersSlot])}
 }
 
 func (n FunctionDeclaration) AsteriskToken() Node {
@@ -813,11 +817,11 @@ func (n FunctionDeclaration) Name() Node {
 }
 
 func (n FunctionDeclaration) TypeParameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+functionDeclarationTypeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+functionDeclarationTypeParametersSlot])}
 }
 
 func (n FunctionDeclaration) Parameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+functionDeclarationParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+functionDeclarationParametersSlot])}
 }
 
 func (n FunctionDeclaration) Type() Node {
@@ -854,7 +858,7 @@ func (n Node) AsClassDeclaration() ClassDeclaration {
 }
 
 func (n ClassDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+classDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classDeclarationModifiersSlot])}
 }
 
 func (n ClassDeclaration) Name() Node {
@@ -862,15 +866,15 @@ func (n ClassDeclaration) Name() Node {
 }
 
 func (n ClassDeclaration) TypeParameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+classDeclarationTypeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classDeclarationTypeParametersSlot])}
 }
 
 func (n ClassDeclaration) HeritageClauses() List {
-	return List{n.s, n.s.extra[int(n.h.data)+classDeclarationHeritageClausesSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classDeclarationHeritageClausesSlot])}
 }
 
 func (n ClassDeclaration) Members() List {
-	return List{n.s, n.s.extra[int(n.h.data)+classDeclarationMembersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classDeclarationMembersSlot])}
 }
 
 // ClassExpression: ast.KindClassExpression
@@ -895,7 +899,7 @@ func (n Node) AsClassExpression() ClassExpression {
 }
 
 func (n ClassExpression) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+classExpressionModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classExpressionModifiersSlot])}
 }
 
 func (n ClassExpression) Name() Node {
@@ -903,15 +907,15 @@ func (n ClassExpression) Name() Node {
 }
 
 func (n ClassExpression) TypeParameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+classExpressionTypeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classExpressionTypeParametersSlot])}
 }
 
 func (n ClassExpression) HeritageClauses() List {
-	return List{n.s, n.s.extra[int(n.h.data)+classExpressionHeritageClausesSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classExpressionHeritageClausesSlot])}
 }
 
 func (n ClassExpression) Members() List {
-	return List{n.s, n.s.extra[int(n.h.data)+classExpressionMembersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classExpressionMembersSlot])}
 }
 
 // HeritageClause: ast.KindHeritageClause
@@ -937,7 +941,7 @@ func (n HeritageClause) Token() ast.Kind {
 }
 
 func (n HeritageClause) Types() List {
-	return List{n.s, n.s.extra[int(n.h.data)+heritageClauseTypesSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+heritageClauseTypesSlot])}
 }
 
 // InterfaceDeclaration: ast.KindInterfaceDeclaration
@@ -962,7 +966,7 @@ func (n Node) AsInterfaceDeclaration() InterfaceDeclaration {
 }
 
 func (n InterfaceDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+interfaceDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+interfaceDeclarationModifiersSlot])}
 }
 
 func (n InterfaceDeclaration) Name() Node {
@@ -970,15 +974,15 @@ func (n InterfaceDeclaration) Name() Node {
 }
 
 func (n InterfaceDeclaration) TypeParameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+interfaceDeclarationTypeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+interfaceDeclarationTypeParametersSlot])}
 }
 
 func (n InterfaceDeclaration) HeritageClauses() List {
-	return List{n.s, n.s.extra[int(n.h.data)+interfaceDeclarationHeritageClausesSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+interfaceDeclarationHeritageClausesSlot])}
 }
 
 func (n InterfaceDeclaration) Members() List {
-	return List{n.s, n.s.extra[int(n.h.data)+interfaceDeclarationMembersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+interfaceDeclarationMembersSlot])}
 }
 
 // TypeAliasDeclaration: ast.KindTypeAliasDeclaration, ast.KindJSTypeAliasDeclaration
@@ -1002,7 +1006,7 @@ func (n Node) AsTypeAliasDeclaration() TypeAliasDeclaration {
 }
 
 func (n TypeAliasDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+typeAliasDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+typeAliasDeclarationModifiersSlot])}
 }
 
 func (n TypeAliasDeclaration) Name() Node {
@@ -1010,7 +1014,7 @@ func (n TypeAliasDeclaration) Name() Node {
 }
 
 func (n TypeAliasDeclaration) TypeParameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+typeAliasDeclarationTypeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+typeAliasDeclarationTypeParametersSlot])}
 }
 
 func (n TypeAliasDeclaration) Type() Node {
@@ -1063,7 +1067,7 @@ func (n Node) AsEnumDeclaration() EnumDeclaration {
 }
 
 func (n EnumDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+enumDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+enumDeclarationModifiersSlot])}
 }
 
 func (n EnumDeclaration) Name() Node {
@@ -1071,7 +1075,7 @@ func (n EnumDeclaration) Name() Node {
 }
 
 func (n EnumDeclaration) Members() List {
-	return List{n.s, n.s.extra[int(n.h.data)+enumDeclarationMembersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+enumDeclarationMembersSlot])}
 }
 
 // ModuleBlock: ast.KindModuleBlock
@@ -1092,7 +1096,7 @@ func (n Node) AsModuleBlock() ModuleBlock {
 }
 
 func (n ModuleBlock) Statements() List {
-	return List{n.s, n.s.extra[int(n.h.data)+moduleBlockStatementsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+moduleBlockStatementsSlot])}
 }
 
 // ImportDeclaration: ast.KindImportDeclaration, ast.KindJSImportDeclaration
@@ -1116,7 +1120,7 @@ func (n Node) AsImportDeclaration() ImportDeclaration {
 }
 
 func (n ImportDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+importDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+importDeclarationModifiersSlot])}
 }
 
 func (n ImportDeclaration) ImportClause() Node {
@@ -1191,7 +1195,7 @@ func (n Node) AsNamedImports() NamedImports {
 }
 
 func (n NamedImports) Elements() List {
-	return List{n.s, n.s.extra[int(n.h.data)+namedImportsElementsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+namedImportsElementsSlot])}
 }
 
 // ExportAssignment: ast.KindExportAssignment
@@ -1215,7 +1219,7 @@ func (n Node) AsExportAssignment() ExportAssignment {
 }
 
 func (n ExportAssignment) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+exportAssignmentModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+exportAssignmentModifiersSlot])}
 }
 
 func (n ExportAssignment) IsExportEquals() bool {
@@ -1249,7 +1253,7 @@ func (n Node) AsNamespaceExportDeclaration() NamespaceExportDeclaration {
 }
 
 func (n NamespaceExportDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+namespaceExportDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+namespaceExportDeclarationModifiersSlot])}
 }
 
 func (n NamespaceExportDeclaration) Name() Node {
@@ -1295,7 +1299,7 @@ func (n Node) AsNamedExports() NamedExports {
 }
 
 func (n NamedExports) Elements() List {
-	return List{n.s, n.s.extra[int(n.h.data)+namedExportsElementsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+namedExportsElementsSlot])}
 }
 
 // ExportSpecifier: ast.KindExportSpecifier
@@ -1349,11 +1353,11 @@ func (n Node) AsCallSignatureDeclaration() CallSignatureDeclaration {
 }
 
 func (n CallSignatureDeclaration) TypeParameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+callSignatureDeclarationTypeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+callSignatureDeclarationTypeParametersSlot])}
 }
 
 func (n CallSignatureDeclaration) Parameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+callSignatureDeclarationParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+callSignatureDeclarationParametersSlot])}
 }
 
 func (n CallSignatureDeclaration) Type() Node {
@@ -1380,11 +1384,11 @@ func (n Node) AsConstructSignatureDeclaration() ConstructSignatureDeclaration {
 }
 
 func (n ConstructSignatureDeclaration) TypeParameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+constructSignatureDeclarationTypeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+constructSignatureDeclarationTypeParametersSlot])}
 }
 
 func (n ConstructSignatureDeclaration) Parameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+constructSignatureDeclarationParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+constructSignatureDeclarationParametersSlot])}
 }
 
 func (n ConstructSignatureDeclaration) Type() Node {
@@ -1414,15 +1418,15 @@ func (n Node) AsConstructorDeclaration() ConstructorDeclaration {
 }
 
 func (n ConstructorDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+constructorDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+constructorDeclarationModifiersSlot])}
 }
 
 func (n ConstructorDeclaration) TypeParameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+constructorDeclarationTypeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+constructorDeclarationTypeParametersSlot])}
 }
 
 func (n ConstructorDeclaration) Parameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+constructorDeclarationParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+constructorDeclarationParametersSlot])}
 }
 
 func (n ConstructorDeclaration) Type() Node {
@@ -1461,7 +1465,7 @@ func (n Node) AsGetAccessorDeclaration() GetAccessorDeclaration {
 }
 
 func (n GetAccessorDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+getAccessorDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+getAccessorDeclarationModifiersSlot])}
 }
 
 func (n GetAccessorDeclaration) Name() Node {
@@ -1469,11 +1473,11 @@ func (n GetAccessorDeclaration) Name() Node {
 }
 
 func (n GetAccessorDeclaration) TypeParameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+getAccessorDeclarationTypeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+getAccessorDeclarationTypeParametersSlot])}
 }
 
 func (n GetAccessorDeclaration) Parameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+getAccessorDeclarationParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+getAccessorDeclarationParametersSlot])}
 }
 
 func (n GetAccessorDeclaration) Type() Node {
@@ -1512,7 +1516,7 @@ func (n Node) AsSetAccessorDeclaration() SetAccessorDeclaration {
 }
 
 func (n SetAccessorDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+setAccessorDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+setAccessorDeclarationModifiersSlot])}
 }
 
 func (n SetAccessorDeclaration) Name() Node {
@@ -1520,11 +1524,11 @@ func (n SetAccessorDeclaration) Name() Node {
 }
 
 func (n SetAccessorDeclaration) TypeParameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+setAccessorDeclarationTypeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+setAccessorDeclarationTypeParametersSlot])}
 }
 
 func (n SetAccessorDeclaration) Parameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+setAccessorDeclarationParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+setAccessorDeclarationParametersSlot])}
 }
 
 func (n SetAccessorDeclaration) Type() Node {
@@ -1559,11 +1563,11 @@ func (n Node) AsIndexSignatureDeclaration() IndexSignatureDeclaration {
 }
 
 func (n IndexSignatureDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+indexSignatureDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+indexSignatureDeclarationModifiersSlot])}
 }
 
 func (n IndexSignatureDeclaration) Parameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+indexSignatureDeclarationParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+indexSignatureDeclarationParametersSlot])}
 }
 
 func (n IndexSignatureDeclaration) Type() Node {
@@ -1593,7 +1597,7 @@ func (n Node) AsMethodSignatureDeclaration() MethodSignatureDeclaration {
 }
 
 func (n MethodSignatureDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+methodSignatureDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+methodSignatureDeclarationModifiersSlot])}
 }
 
 func (n MethodSignatureDeclaration) Name() Node {
@@ -1605,11 +1609,11 @@ func (n MethodSignatureDeclaration) PostfixToken() Node {
 }
 
 func (n MethodSignatureDeclaration) TypeParameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+methodSignatureDeclarationTypeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+methodSignatureDeclarationTypeParametersSlot])}
 }
 
 func (n MethodSignatureDeclaration) Parameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+methodSignatureDeclarationParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+methodSignatureDeclarationParametersSlot])}
 }
 
 func (n MethodSignatureDeclaration) Type() Node {
@@ -1642,7 +1646,7 @@ func (n Node) AsMethodDeclaration() MethodDeclaration {
 }
 
 func (n MethodDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+methodDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+methodDeclarationModifiersSlot])}
 }
 
 func (n MethodDeclaration) AsteriskToken() Node {
@@ -1658,11 +1662,11 @@ func (n MethodDeclaration) PostfixToken() Node {
 }
 
 func (n MethodDeclaration) TypeParameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+methodDeclarationTypeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+methodDeclarationTypeParametersSlot])}
 }
 
 func (n MethodDeclaration) Parameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+methodDeclarationParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+methodDeclarationParametersSlot])}
 }
 
 func (n MethodDeclaration) Type() Node {
@@ -1699,7 +1703,7 @@ func (n Node) AsPropertySignatureDeclaration() PropertySignatureDeclaration {
 }
 
 func (n PropertySignatureDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+propertySignatureDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+propertySignatureDeclarationModifiersSlot])}
 }
 
 func (n PropertySignatureDeclaration) Name() Node {
@@ -1740,7 +1744,7 @@ func (n Node) AsPropertyDeclaration() PropertyDeclaration {
 }
 
 func (n PropertyDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+propertyDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+propertyDeclarationModifiersSlot])}
 }
 
 func (n PropertyDeclaration) Name() Node {
@@ -1778,7 +1782,7 @@ func (n Node) AsClassStaticBlockDeclaration() ClassStaticBlockDeclaration {
 }
 
 func (n ClassStaticBlockDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+classStaticBlockDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classStaticBlockDeclarationModifiersSlot])}
 }
 
 func (n ClassStaticBlockDeclaration) Body() Node {
@@ -1931,7 +1935,7 @@ func (n Node) AsBinaryExpression() BinaryExpression {
 }
 
 func (n BinaryExpression) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+binaryExpressionModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+binaryExpressionModifiersSlot])}
 }
 
 func (n BinaryExpression) Left() Node {
@@ -2052,15 +2056,15 @@ func (n Node) AsArrowFunction() ArrowFunction {
 }
 
 func (n ArrowFunction) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+arrowFunctionModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+arrowFunctionModifiersSlot])}
 }
 
 func (n ArrowFunction) TypeParameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+arrowFunctionTypeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+arrowFunctionTypeParametersSlot])}
 }
 
 func (n ArrowFunction) Parameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+arrowFunctionParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+arrowFunctionParametersSlot])}
 }
 
 func (n ArrowFunction) Type() Node {
@@ -2104,7 +2108,7 @@ func (n Node) AsFunctionExpression() FunctionExpression {
 }
 
 func (n FunctionExpression) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+functionExpressionModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+functionExpressionModifiersSlot])}
 }
 
 func (n FunctionExpression) AsteriskToken() Node {
@@ -2116,11 +2120,11 @@ func (n FunctionExpression) Name() Node {
 }
 
 func (n FunctionExpression) TypeParameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+functionExpressionTypeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+functionExpressionTypeParametersSlot])}
 }
 
 func (n FunctionExpression) Parameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+functionExpressionParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+functionExpressionParametersSlot])}
 }
 
 func (n FunctionExpression) Type() Node {
@@ -2319,11 +2323,11 @@ func (n CallExpression) QuestionDotToken() Node {
 }
 
 func (n CallExpression) TypeArguments() List {
-	return List{n.s, n.s.extra[int(n.h.data)+callExpressionTypeArgumentsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+callExpressionTypeArgumentsSlot])}
 }
 
 func (n CallExpression) Arguments() List {
-	return List{n.s, n.s.extra[int(n.h.data)+callExpressionArgumentsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+callExpressionArgumentsSlot])}
 }
 
 // NewExpression: ast.KindNewExpression
@@ -2350,11 +2354,11 @@ func (n NewExpression) Expression() Node {
 }
 
 func (n NewExpression) TypeArguments() List {
-	return List{n.s, n.s.extra[int(n.h.data)+newExpressionTypeArgumentsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+newExpressionTypeArgumentsSlot])}
 }
 
 func (n NewExpression) Arguments() List {
-	return List{n.s, n.s.extra[int(n.h.data)+newExpressionArgumentsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+newExpressionArgumentsSlot])}
 }
 
 // MetaProperty: ast.KindMetaProperty
@@ -2448,7 +2452,7 @@ func (n TemplateExpression) Head() Node {
 }
 
 func (n TemplateExpression) TemplateSpans() List {
-	return List{n.s, n.s.extra[int(n.h.data)+templateExpressionTemplateSpansSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+templateExpressionTemplateSpansSlot])}
 }
 
 // TemplateSpan: ast.KindTemplateSpan
@@ -2506,7 +2510,7 @@ func (n TaggedTemplateExpression) QuestionDotToken() Node {
 }
 
 func (n TaggedTemplateExpression) TypeArguments() List {
-	return List{n.s, n.s.extra[int(n.h.data)+taggedTemplateExpressionTypeArgumentsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+taggedTemplateExpressionTypeArgumentsSlot])}
 }
 
 func (n TaggedTemplateExpression) Template() Node {
@@ -2553,7 +2557,7 @@ func (n Node) AsArrayLiteralExpression() ArrayLiteralExpression {
 }
 
 func (n ArrayLiteralExpression) Elements() List {
-	return List{n.s, n.s.extra[int(n.h.data)+arrayLiteralExpressionElementsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+arrayLiteralExpressionElementsSlot])}
 }
 
 func (n ArrayLiteralExpression) MultiLine() bool {
@@ -2579,7 +2583,7 @@ func (n Node) AsObjectLiteralExpression() ObjectLiteralExpression {
 }
 
 func (n ObjectLiteralExpression) Properties() List {
-	return List{n.s, n.s.extra[int(n.h.data)+objectLiteralExpressionPropertiesSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+objectLiteralExpressionPropertiesSlot])}
 }
 
 func (n ObjectLiteralExpression) MultiLine() bool {
@@ -2629,7 +2633,7 @@ func (n Node) AsPropertyAssignment() PropertyAssignment {
 }
 
 func (n PropertyAssignment) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+propertyAssignmentModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+propertyAssignmentModifiersSlot])}
 }
 
 func (n PropertyAssignment) Name() Node {
@@ -2671,7 +2675,7 @@ func (n Node) AsShorthandPropertyAssignment() ShorthandPropertyAssignment {
 }
 
 func (n ShorthandPropertyAssignment) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+shorthandPropertyAssignmentModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+shorthandPropertyAssignmentModifiersSlot])}
 }
 
 func (n ShorthandPropertyAssignment) Name() Node {
@@ -2822,7 +2826,7 @@ func (n Node) AsUnionTypeNode() UnionTypeNode {
 }
 
 func (n UnionTypeNode) Types() List {
-	return List{n.s, n.s.extra[int(n.h.data)+unionTypeNodeTypesSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+unionTypeNodeTypesSlot])}
 }
 
 // IntersectionTypeNode: ast.KindIntersectionType
@@ -2843,7 +2847,7 @@ func (n Node) AsIntersectionTypeNode() IntersectionTypeNode {
 }
 
 func (n IntersectionTypeNode) Types() List {
-	return List{n.s, n.s.extra[int(n.h.data)+intersectionTypeNodeTypesSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+intersectionTypeNodeTypesSlot])}
 }
 
 // ConditionalTypeNode: ast.KindConditionalType
@@ -2999,7 +3003,7 @@ func (n TypeReferenceNode) TypeName() Node {
 }
 
 func (n TypeReferenceNode) TypeArguments() List {
-	return List{n.s, n.s.extra[int(n.h.data)+typeReferenceNodeTypeArgumentsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+typeReferenceNodeTypeArgumentsSlot])}
 }
 
 // ExpressionWithTypeArguments: ast.KindExpressionWithTypeArguments
@@ -3025,7 +3029,7 @@ func (n ExpressionWithTypeArguments) Expression() Node {
 }
 
 func (n ExpressionWithTypeArguments) TypeArguments() List {
-	return List{n.s, n.s.extra[int(n.h.data)+expressionWithTypeArgumentsTypeArgumentsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+expressionWithTypeArgumentsTypeArgumentsSlot])}
 }
 
 // LiteralTypeNode: ast.KindLiteralType
@@ -3130,7 +3134,7 @@ func (n ImportAttributes) Token() ast.Kind {
 }
 
 func (n ImportAttributes) Attributes() List {
-	return List{n.s, n.s.extra[int(n.h.data)+importAttributesAttributesSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+importAttributesAttributesSlot])}
 }
 
 func (n ImportAttributes) MultiLine() bool {
@@ -3160,7 +3164,7 @@ func (n TypeQueryNode) ExprName() Node {
 }
 
 func (n TypeQueryNode) TypeArguments() List {
-	return List{n.s, n.s.extra[int(n.h.data)+typeQueryNodeTypeArgumentsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+typeQueryNodeTypeArgumentsSlot])}
 }
 
 // MappedTypeNode: ast.KindMappedType
@@ -3206,7 +3210,7 @@ func (n MappedTypeNode) Type() Node {
 }
 
 func (n MappedTypeNode) Members() List {
-	return List{n.s, n.s.extra[int(n.h.data)+mappedTypeNodeMembersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+mappedTypeNodeMembersSlot])}
 }
 
 // TypeLiteralNode: ast.KindTypeLiteral
@@ -3227,7 +3231,7 @@ func (n Node) AsTypeLiteralNode() TypeLiteralNode {
 }
 
 func (n TypeLiteralNode) Members() List {
-	return List{n.s, n.s.extra[int(n.h.data)+typeLiteralNodeMembersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+typeLiteralNodeMembersSlot])}
 }
 
 // TupleTypeNode: ast.KindTupleType
@@ -3248,7 +3252,7 @@ func (n Node) AsTupleTypeNode() TupleTypeNode {
 }
 
 func (n TupleTypeNode) Elements() List {
-	return List{n.s, n.s.extra[int(n.h.data)+tupleTypeNodeElementsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+tupleTypeNodeElementsSlot])}
 }
 
 // NamedTupleMember: ast.KindNamedTupleMember
@@ -3370,11 +3374,11 @@ func (n Node) AsFunctionTypeNode() FunctionTypeNode {
 }
 
 func (n FunctionTypeNode) TypeParameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+functionTypeNodeTypeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+functionTypeNodeTypeParametersSlot])}
 }
 
 func (n FunctionTypeNode) Parameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+functionTypeNodeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+functionTypeNodeParametersSlot])}
 }
 
 func (n FunctionTypeNode) Type() Node {
@@ -3402,15 +3406,15 @@ func (n Node) AsConstructorTypeNode() ConstructorTypeNode {
 }
 
 func (n ConstructorTypeNode) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+constructorTypeNodeModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+constructorTypeNodeModifiersSlot])}
 }
 
 func (n ConstructorTypeNode) TypeParameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+constructorTypeNodeTypeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+constructorTypeNodeTypeParametersSlot])}
 }
 
 func (n ConstructorTypeNode) Parameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+constructorTypeNodeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+constructorTypeNodeParametersSlot])}
 }
 
 func (n ConstructorTypeNode) Type() Node {
@@ -3521,7 +3525,7 @@ func (n TemplateLiteralTypeNode) Head() Node {
 }
 
 func (n TemplateLiteralTypeNode) TemplateSpans() List {
-	return List{n.s, n.s.extra[int(n.h.data)+templateLiteralTypeNodeTemplateSpansSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+templateLiteralTypeNodeTemplateSpansSlot])}
 }
 
 // TemplateLiteralTypeSpan: ast.KindTemplateLiteralTypeSpan
@@ -3622,7 +3626,7 @@ func (n JsxElement) OpeningElement() Node {
 }
 
 func (n JsxElement) Children() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsxElementChildrenSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsxElementChildrenSlot])}
 }
 
 func (n JsxElement) ClosingElement() Node {
@@ -3647,7 +3651,7 @@ func (n Node) AsJsxAttributes() JsxAttributes {
 }
 
 func (n JsxAttributes) Properties() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsxAttributesPropertiesSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsxAttributesPropertiesSlot])}
 }
 
 // JsxNamespacedName: ast.KindJsxNamespacedName
@@ -3700,7 +3704,7 @@ func (n JsxOpeningElement) TagName() Node {
 }
 
 func (n JsxOpeningElement) TypeArguments() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsxOpeningElementTypeArgumentsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsxOpeningElementTypeArgumentsSlot])}
 }
 
 func (n JsxOpeningElement) Attributes() Node {
@@ -3731,7 +3735,7 @@ func (n JsxSelfClosingElement) TagName() Node {
 }
 
 func (n JsxSelfClosingElement) TypeArguments() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsxSelfClosingElementTypeArgumentsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsxSelfClosingElementTypeArgumentsSlot])}
 }
 
 func (n JsxSelfClosingElement) Attributes() Node {
@@ -3762,7 +3766,7 @@ func (n JsxFragment) OpeningFragment() Node {
 }
 
 func (n JsxFragment) Children() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsxFragmentChildrenSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsxFragmentChildrenSlot])}
 }
 
 func (n JsxFragment) ClosingFragment() Node {
@@ -3905,7 +3909,7 @@ func (n Node) AsSyntaxList() SyntaxList {
 }
 
 func (n SyntaxList) Children() List {
-	return List{n.s, n.s.extra[int(n.h.data)+syntaxListChildrenSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+syntaxListChildrenSlot])}
 }
 
 // JSDoc: ast.KindJSDoc
@@ -3926,9 +3930,9 @@ func (n Node) AsJSDoc() JSDoc {
 	return JSDoc(n)
 }
 
-func (n JSDoc) Comment() List { return List{n.s, n.s.extra[int(n.h.data)+jsdocCommentSlot]} }
+func (n JSDoc) Comment() List { return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocCommentSlot])} }
 
-func (n JSDoc) Tags() List { return List{n.s, n.s.extra[int(n.h.data)+jsdocTagsSlot]} }
+func (n JSDoc) Tags() List { return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocTagsSlot])} }
 
 // JSDocTypeExpression: ast.KindJSDocTypeExpression
 const (
@@ -4063,7 +4067,7 @@ func (n JSDocTypeTag) TypeExpression() Node {
 }
 
 func (n JSDocTypeTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocTypeTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocTypeTagCommentSlot])}
 }
 
 // JSDocUnknownTag: ast.KindJSDocUnknownTag
@@ -4089,7 +4093,7 @@ func (n JSDocUnknownTag) TagName() Node {
 }
 
 func (n JSDocUnknownTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocUnknownTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocUnknownTagCommentSlot])}
 }
 
 // JSDocTemplateTag: ast.KindJSDocTemplateTag
@@ -4121,11 +4125,11 @@ func (n JSDocTemplateTag) Constraint() Node {
 }
 
 func (n JSDocTemplateTag) TypeParameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocTemplateTagTypeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocTemplateTagTypeParametersSlot])}
 }
 
 func (n JSDocTemplateTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocTemplateTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocTemplateTagCommentSlot])}
 }
 
 // JSDocReturnTag: ast.KindJSDocReturnTag
@@ -4156,7 +4160,7 @@ func (n JSDocReturnTag) TypeExpression() Node {
 }
 
 func (n JSDocReturnTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocReturnTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocReturnTagCommentSlot])}
 }
 
 // JSDocPublicTag: ast.KindJSDocPublicTag
@@ -4182,7 +4186,7 @@ func (n JSDocPublicTag) TagName() Node {
 }
 
 func (n JSDocPublicTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocPublicTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocPublicTagCommentSlot])}
 }
 
 // JSDocPrivateTag: ast.KindJSDocPrivateTag
@@ -4208,7 +4212,7 @@ func (n JSDocPrivateTag) TagName() Node {
 }
 
 func (n JSDocPrivateTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocPrivateTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocPrivateTagCommentSlot])}
 }
 
 // JSDocProtectedTag: ast.KindJSDocProtectedTag
@@ -4234,7 +4238,7 @@ func (n JSDocProtectedTag) TagName() Node {
 }
 
 func (n JSDocProtectedTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocProtectedTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocProtectedTagCommentSlot])}
 }
 
 // JSDocReadonlyTag: ast.KindJSDocReadonlyTag
@@ -4260,7 +4264,7 @@ func (n JSDocReadonlyTag) TagName() Node {
 }
 
 func (n JSDocReadonlyTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocReadonlyTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocReadonlyTagCommentSlot])}
 }
 
 // JSDocOverrideTag: ast.KindJSDocOverrideTag
@@ -4286,7 +4290,7 @@ func (n JSDocOverrideTag) TagName() Node {
 }
 
 func (n JSDocOverrideTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocOverrideTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocOverrideTagCommentSlot])}
 }
 
 // JSDocDeprecatedTag: ast.KindJSDocDeprecatedTag
@@ -4312,7 +4316,7 @@ func (n JSDocDeprecatedTag) TagName() Node {
 }
 
 func (n JSDocDeprecatedTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocDeprecatedTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocDeprecatedTagCommentSlot])}
 }
 
 // JSDocSeeTag: ast.KindJSDocSeeTag
@@ -4343,7 +4347,7 @@ func (n JSDocSeeTag) NameExpression() Node {
 }
 
 func (n JSDocSeeTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocSeeTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocSeeTagCommentSlot])}
 }
 
 // JSDocImplementsTag: ast.KindJSDocImplementsTag
@@ -4374,7 +4378,7 @@ func (n JSDocImplementsTag) ClassName() Node {
 }
 
 func (n JSDocImplementsTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocImplementsTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocImplementsTagCommentSlot])}
 }
 
 // JSDocAugmentsTag: ast.KindJSDocAugmentsTag
@@ -4405,7 +4409,7 @@ func (n JSDocAugmentsTag) ClassName() Node {
 }
 
 func (n JSDocAugmentsTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocAugmentsTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocAugmentsTagCommentSlot])}
 }
 
 // JSDocSatisfiesTag: ast.KindJSDocSatisfiesTag
@@ -4436,7 +4440,7 @@ func (n JSDocSatisfiesTag) TypeExpression() Node {
 }
 
 func (n JSDocSatisfiesTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocSatisfiesTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocSatisfiesTagCommentSlot])}
 }
 
 // JSDocThrowsTag: ast.KindJSDocThrowsTag
@@ -4467,7 +4471,7 @@ func (n JSDocThrowsTag) TypeExpression() Node {
 }
 
 func (n JSDocThrowsTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocThrowsTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocThrowsTagCommentSlot])}
 }
 
 // JSDocThisTag: ast.KindJSDocThisTag
@@ -4498,7 +4502,7 @@ func (n JSDocThisTag) TypeExpression() Node {
 }
 
 func (n JSDocThisTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocThisTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocThisTagCommentSlot])}
 }
 
 // JSDocImportTag: ast.KindJSDocImportTag
@@ -4539,7 +4543,7 @@ func (n JSDocImportTag) Attributes() Node {
 }
 
 func (n JSDocImportTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocImportTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocImportTagCommentSlot])}
 }
 
 // JSDocCallbackTag: ast.KindJSDocCallbackTag
@@ -4575,7 +4579,7 @@ func (n JSDocCallbackTag) Name() Node {
 }
 
 func (n JSDocCallbackTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocCallbackTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocCallbackTagCommentSlot])}
 }
 
 // JSDocOverloadTag: ast.KindJSDocOverloadTag
@@ -4606,7 +4610,7 @@ func (n JSDocOverloadTag) TypeExpression() Node {
 }
 
 func (n JSDocOverloadTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocOverloadTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocOverloadTagCommentSlot])}
 }
 
 // JSDocTypedefTag: ast.KindJSDocTypedefTag
@@ -4642,7 +4646,7 @@ func (n JSDocTypedefTag) Name() Node {
 }
 
 func (n JSDocTypedefTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocTypedefTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocTypedefTagCommentSlot])}
 }
 
 // JSDocSignature: ast.KindJSDocSignature
@@ -4665,11 +4669,11 @@ func (n Node) AsJSDocSignature() JSDocSignature {
 }
 
 func (n JSDocSignature) TypeParameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocSignatureTypeParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocSignatureTypeParametersSlot])}
 }
 
 func (n JSDocSignature) Parameters() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocSignatureParametersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocSignatureParametersSlot])}
 }
 
 func (n JSDocSignature) Type() Node {
@@ -4716,7 +4720,7 @@ func (n Node) AsSourceFile() SourceFile {
 }
 
 func (n SourceFile) Statements() List {
-	return List{n.s, n.s.extra[int(n.h.data)+sourceFileStatementsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+sourceFileStatementsSlot])}
 }
 
 func (n SourceFile) EndOfFileToken() Node {
@@ -4745,7 +4749,7 @@ func (n Node) AsModuleDeclaration() ModuleDeclaration {
 }
 
 func (n ModuleDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+moduleDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+moduleDeclarationModifiersSlot])}
 }
 
 func (n ModuleDeclaration) Keyword() ast.Kind {
@@ -4785,7 +4789,7 @@ func (n Node) AsImportEqualsDeclaration() ImportEqualsDeclaration {
 }
 
 func (n ImportEqualsDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+importEqualsDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+importEqualsDeclarationModifiersSlot])}
 }
 
 func (n ImportEqualsDeclaration) IsTypeOnly() bool {
@@ -4822,7 +4826,7 @@ func (n Node) AsExportDeclaration() ExportDeclaration {
 }
 
 func (n ExportDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+exportDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+exportDeclarationModifiersSlot])}
 }
 
 func (n ExportDeclaration) IsTypeOnly() bool {
@@ -4879,7 +4883,7 @@ func (n ImportTypeNode) Qualifier() Node {
 }
 
 func (n ImportTypeNode) TypeArguments() List {
-	return List{n.s, n.s.extra[int(n.h.data)+importTypeNodeTypeArgumentsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+importTypeNodeTypeArgumentsSlot])}
 }
 
 // ImportClause: ast.KindImportClause
@@ -5030,7 +5034,7 @@ func (n Node) AsTypeParameterDeclaration() TypeParameterDeclaration {
 }
 
 func (n TypeParameterDeclaration) Modifiers() List {
-	return List{n.s, n.s.extra[int(n.h.data)+typeParameterDeclarationModifiersSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+typeParameterDeclarationModifiersSlot])}
 }
 
 func (n TypeParameterDeclaration) Name() Node {
@@ -5094,7 +5098,7 @@ func (n Node) AsJSDocTypeLiteral() JSDocTypeLiteral {
 }
 
 func (n JSDocTypeLiteral) JSDocPropertyTags() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocTypeLiteralJSDocPropertyTagsSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocTypeLiteralJSDocPropertyTagsSlot])}
 }
 
 func (n JSDocTypeLiteral) IsArrayType() bool {
@@ -5144,7 +5148,7 @@ func (n JSDocParameterOrPropertyTag) IsNameFirst() bool {
 }
 
 func (n JSDocParameterOrPropertyTag) Comment() List {
-	return List{n.s, n.s.extra[int(n.h.data)+jsdocParameterOrPropertyTagCommentSlot]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocParameterOrPropertyTagCommentSlot])}
 }
 
 // Kind-polymorphic accessors. One static table lookup picks the payload word,
@@ -5210,17 +5214,17 @@ func (n Node) Label() Node {
 func (n Node) Statements() List {
 	slot := statementsSlot[n.h.kind&511]
 	if slot == 0xFF {
-		return List{n.s, 0}
+		return List{n.s, NoListRef}
 	}
-	return List{n.s, n.s.extra[int(n.h.data)+int(slot)]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
 }
 
 func (n Node) Modifiers() List {
 	slot := modifiersSlot[n.h.kind&511]
 	if slot == 0xFF {
-		return List{n.s, 0}
+		return List{n.s, NoListRef}
 	}
-	return List{n.s, n.s.extra[int(n.h.data)+int(slot)]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
 }
 
 func (n Node) Name() Node {
@@ -5242,9 +5246,9 @@ func (n Node) Type() Node {
 func (n Node) Elements() List {
 	slot := elementsSlot[n.h.kind&511]
 	if slot == 0xFF {
-		return List{n.s, 0}
+		return List{n.s, NoListRef}
 	}
-	return List{n.s, n.s.extra[int(n.h.data)+int(slot)]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
 }
 
 func (n Node) DotDotDotToken() Node {
@@ -5282,17 +5286,17 @@ func (n Node) AsteriskToken() Node {
 func (n Node) TypeParameters() List {
 	slot := typeParametersSlot[n.h.kind&511]
 	if slot == 0xFF {
-		return List{n.s, 0}
+		return List{n.s, NoListRef}
 	}
-	return List{n.s, n.s.extra[int(n.h.data)+int(slot)]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
 }
 
 func (n Node) Parameters() List {
 	slot := parametersSlot[n.h.kind&511]
 	if slot == 0xFF {
-		return List{n.s, 0}
+		return List{n.s, NoListRef}
 	}
-	return List{n.s, n.s.extra[int(n.h.data)+int(slot)]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
 }
 
 func (n Node) FullSignature() Node {
@@ -5314,25 +5318,25 @@ func (n Node) Body() Node {
 func (n Node) HeritageClauses() List {
 	slot := heritageClausesSlot[n.h.kind&511]
 	if slot == 0xFF {
-		return List{n.s, 0}
+		return List{n.s, NoListRef}
 	}
-	return List{n.s, n.s.extra[int(n.h.data)+int(slot)]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
 }
 
 func (n Node) Members() List {
 	slot := membersSlot[n.h.kind&511]
 	if slot == 0xFF {
-		return List{n.s, 0}
+		return List{n.s, NoListRef}
 	}
-	return List{n.s, n.s.extra[int(n.h.data)+int(slot)]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
 }
 
 func (n Node) Types() List {
 	slot := typesSlot[n.h.kind&511]
 	if slot == 0xFF {
-		return List{n.s, 0}
+		return List{n.s, NoListRef}
 	}
-	return List{n.s, n.s.extra[int(n.h.data)+int(slot)]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
 }
 
 func (n Node) ImportClause() Node {
@@ -5396,17 +5400,17 @@ func (n Node) QuestionDotToken() Node {
 func (n Node) TypeArguments() List {
 	slot := typeArgumentsSlot[n.h.kind&511]
 	if slot == 0xFF {
-		return List{n.s, 0}
+		return List{n.s, NoListRef}
 	}
-	return List{n.s, n.s.extra[int(n.h.data)+int(slot)]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
 }
 
 func (n Node) Arguments() List {
 	slot := argumentsSlot[n.h.kind&511]
 	if slot == 0xFF {
-		return List{n.s, 0}
+		return List{n.s, NoListRef}
 	}
-	return List{n.s, n.s.extra[int(n.h.data)+int(slot)]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
 }
 
 func (n Node) Head() Node {
@@ -5420,9 +5424,9 @@ func (n Node) Head() Node {
 func (n Node) TemplateSpans() List {
 	slot := templateSpansSlot[n.h.kind&511]
 	if slot == 0xFF {
-		return List{n.s, 0}
+		return List{n.s, NoListRef}
 	}
-	return List{n.s, n.s.extra[int(n.h.data)+int(slot)]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
 }
 
 func (n Node) Literal() Node {
@@ -5436,9 +5440,9 @@ func (n Node) Literal() Node {
 func (n Node) Properties() List {
 	slot := propertiesSlot[n.h.kind&511]
 	if slot == 0xFF {
-		return List{n.s, 0}
+		return List{n.s, NoListRef}
 	}
-	return List{n.s, n.s.extra[int(n.h.data)+int(slot)]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
 }
 
 func (n Node) TypeParameter() Node {
@@ -5460,9 +5464,9 @@ func (n Node) RawText() string {
 func (n Node) Children() List {
 	slot := childrenSlot[n.h.kind&511]
 	if slot == 0xFF {
-		return List{n.s, 0}
+		return List{n.s, NoListRef}
 	}
-	return List{n.s, n.s.extra[int(n.h.data)+int(slot)]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
 }
 
 func (n Node) TagName() Node {
@@ -5476,9 +5480,9 @@ func (n Node) TagName() Node {
 func (n Node) Comment() List {
 	slot := commentSlot[n.h.kind&511]
 	if slot == 0xFF {
-		return List{n.s, 0}
+		return List{n.s, NoListRef}
 	}
-	return List{n.s, n.s.extra[int(n.h.data)+int(slot)]}
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
 }
 
 func (n Node) TypeExpression() Node {
