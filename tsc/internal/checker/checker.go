@@ -14574,7 +14574,7 @@ func (c *Checker) cloneSymbol(symbol *ast.Symbol) *ast.Symbol {
 }
 
 func (c *Checker) getMergedSymbol(symbol *ast.Symbol) *ast.Symbol {
-	if symbol != nil {
+	if symbol != nil && symbol.IsMergeSource() {
 		merged := c.mergedSymbols[symbol]
 		if merged != nil {
 			return merged
@@ -14592,6 +14592,7 @@ func (c *Checker) getParentOfSymbol(symbol *ast.Symbol) *ast.Symbol {
 
 func (c *Checker) recordMergedSymbol(target *ast.Symbol, source *ast.Symbol) {
 	c.mergedSymbols[source] = target
+	source.MarkAsMergeSource()
 }
 
 func (c *Checker) getSymbolIfSameReference(s1 *ast.Symbol, s2 *ast.Symbol) *ast.Symbol {

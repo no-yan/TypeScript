@@ -16,8 +16,17 @@ type Symbol struct {
 	Members          SymbolTable
 	Exports          SymbolTable
 	id               atomic.Uint64
+	merged           atomic.Uint32
 	Parent           *Symbol
 	ExportSymbol     *Symbol
+}
+
+func (s *Symbol) IsMergeSource() bool {
+	return s.merged.Load() != 0
+}
+
+func (s *Symbol) MarkAsMergeSource() {
+	s.merged.Store(1)
 }
 
 func (s *Symbol) IsExternalModule() bool {
