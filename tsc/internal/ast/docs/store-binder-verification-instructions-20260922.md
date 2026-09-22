@@ -82,7 +82,8 @@ cd $TSC && go test -tags kperf -c -o /tmp/store24.test ./internal/ast/store/ && 
 cd $TSC/internal/ast/store && sudo /tmp/store24.test -test.run '^$' -test.bench 'StoreWalkKPCV1' -test.benchtime 20x -test.count 5 | tee $TSC/internal/ast/docs/_kpc-baselines/store-24b-before-$(date +%Y%m%d).txt
 cd $TSC/internal/storeparser && sudo /tmp/parse24.test -test.run '^$' -test.bench 'StoreParseKPCV1' -test.benchtime 20x -test.count 5 | tee -a $TSC/internal/ast/docs/_kpc-baselines/store-24b-before-$(date +%Y%m%d).txt
 cd $TSC/internal/binder && sudo /tmp/bind24.test -test.run '^$' -test.bench 'ASTBindKPCV1' -test.benchtime 20x -test.count 5 | tee -a $TSC/internal/ast/docs/_kpc-baselines/store-24b-before-$(date +%Y%m%d).txt
-# after (7c の binary)
+# after (7c の binary)。直前に 24B の Walk をもう一度 (同じセッションで比べるため):
+cd $TSC/internal/ast/store && sudo /tmp/kpc-24b/store.test -test.run '^$' -test.bench 'StoreWalkKPCV1' -test.benchtime 20x -test.count 5 | tee $OUT/kpc-walk-24b-$(date +%Y%m%d-%H%M).txt
 cd $TSC && go test -tags kperf -c -o $OUT/store.kperf.test ./internal/ast/store/ && go test -tags kperf -c -o $OUT/storeparser.kperf.test ./internal/storeparser/ && go test -tags kperf -c -o $OUT/storebinder.kperf.test ./internal/storebinder/
 cd $TSC/internal/ast/store && sudo $OUT/store.kperf.test -test.run '^$' -test.bench 'StoreWalkKPCV1' -test.benchtime 20x -test.count 5 | tee $OUT/kpc-walk-$(date +%Y%m%d-%H%M).txt
 cd $TSC/internal/storeparser && sudo $OUT/storeparser.kperf.test -test.run '^$' -test.bench 'StoreParseKPCV1' -test.benchtime 20x -test.count 5 | tee $OUT/kpc-parse-$(date +%Y%m%d-%H%M).txt
@@ -107,10 +108,20 @@ cd $TSC && go test -run '^$' -bench 'StoreParseV1' -benchtime 2s -count 5 ./inte
 
 判定は**同じ binary の pointer に対する比**で行う (基準値は再現の照合用。pointer の inst の幅が 1.5% を超えたら測り直す)。
 
+before の実測 (2026-09-22 23:38、load average 1.3〜1.9、`_kpc-baselines/store-24b-before-20260922.txt`、5 run 平均):
+
+| ベンチ | pointer | store (24B) | 比 (cycles / inst) | 7a / 7b の値 |
+| --- | ---: | ---: | ---: | ---: |
+| Walk | 7.69M cycles (25.79/visit)、21.57M inst (72.4)、IPC 2.81 | 8.90M cycles (29.86/visit)、27.18M inst (91.2)、IPC 3.05 | **1.157** / 1.260 | 1.137 / 1.279 |
+| Parse | 66.79M cycles、259.99M inst、IPC 3.89 | 54.88M cycles、214.44M inst、IPC 3.91 | 0.822 / 0.825 | 0.813 / 0.823 (S1) |
+| Bind (Pointer) | 33.52M cycles (112.5/node)、110.34M inst (370.2)、IPC 3.29 | | | 33.66〜34.14M |
+
+Parse と Bind は再現した。**Walk は store 側が 7a の 29.20 より +2.2% (pointer は +0.5%) で、比 1.157 が線 1.15 を超えている。** 7a の 1.137 が再現しない理由は取れていない (run 内の幅は 0.3% で、負荷か温度か、7a 以降の `store.go` の変更 (S1 は Builder だけ) かは未分離)。したがって 32B の Walk の判定は **同じセッションで 24B の binary (`/tmp/kpc-24b/store.test`、無ければ commit 326bc57b8a で `go test -tags kperf -c` し直す) を直前にもう一度走らせ、その値との差**で行う。線 1.15 は絶対値として据え置くが、24B の同時測定が 1.15 を超えていれば「24B と同等以内」を合格とし、7a の値と食い違うことをレポートに残す。
+
 | 指標 | 線 | 状態 |
 | --- | --- | --- |
-| Walk cycles/visit、store / pointer | ≤ 1.15 (ゲート 1)。24B の before (1.137) と並べ、悪化していれば `node()` の命令列で理由 | 決定済み |
-| Parse cycles/op、store / pointer | ≤ 1.00 (7b の線)。24B の before (S1 後 0.813) と並べる。`Finish` の copy が 8B/node 増える分は B/op に出る | 決定済み (7b) |
+| Walk cycles/visit、store / pointer | ≤ 1.15 (ゲート 1)。24B の同時測定 (上記) と並べ、悪化していれば `node()` の命令列で理由 | 決定済み。24B の before は 1.157 (上記) |
+| Parse cycles/op、store / pointer | ≤ 1.00 (7b の線)。24B の before (0.822) と並べる。`Finish` の copy が 8B/node 増える分は B/op に出る | 決定済み (7b) |
 | **Bind cycles/node、store / pointer** | **≤ 1.10** | **決定済み (ゲート 2)** |
 | Bind inst/node、IPC | 報告。増えた分は §3 の命令列と (f) の表で内訳 | |
 | Bind B/op、allocs/op | 報告 (Pointer は 7.42 MB / 13,952。`SymbolTable` の map が主) | |

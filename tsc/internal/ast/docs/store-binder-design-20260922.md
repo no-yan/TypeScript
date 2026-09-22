@@ -228,4 +228,8 @@ before の取り方: 7c の変更前 (この文書の commit) で、ユーザー
 6. 検証指示書の全項目。after の KPC 3 本 + Bind KPC (ユーザー)。
 7. レポート。設計文書 (この文書と store-ast-design) への反映案。
 
+7c の後、Bind ゲートの結果が出てから行うもの (2026-09-22 に決定): **accessor の命名の 2 層化**。今の指示書は id 層 (`SymbolId()` / `FlowNode() FlowRef` / `LocalsSlot()`) と `Bound` の解決 (`SymbolOf` / `Flow` / `Locals(i)`) に割れていて、格納方式 (slot、uint32) が名前に漏れ、Pointer の 1 呼び出し (`n.Locals()`) が 2 呼び出しになる。理想は id 層を型付き id の名前 (`SymbolId()` / `FlowRef()` / `LocalsRef()`) に、解決層を Pointer と同名 (`Symbol()` / `Locals()` / `FlowNode()`) にして `Store` が `bound *Bound` を持つ形。`*FlowNode` は bind 中は slab が動くので解決層は `Seal` 後にだけ使う。性能の懸念 (`s.bound` の load 1 回) を Bind ゲートの数字で消してから直す。
+
+before の KPC (2026-09-22、`_kpc-baselines/store-24b-before-20260922.txt`): Parse 0.822、Pointer Bind 112.5 cycles/node は再現。Walk は 1.157 で 7a の 1.137 を再現せず、32B の判定は同じセッションで 24B を再測して比べる (検証指示 §4)。
+
 7c の後に残るもの: JSDoc の置き場と JS 293 file の再検証、nameresolver / referenceresolver の port、診断の file、`SymbolId` の global 化、Locals の map 以外の形、flow の packed 化 (CSR は [flow-antecedents-csr-20260922.md](flow-antecedents-csr-20260922.md))、32B header の空き活用の再検討。いずれも 7d (checker) の設計で扱う。

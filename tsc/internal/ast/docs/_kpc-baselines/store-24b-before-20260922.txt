@@ -1,0 +1,40 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast/store
+cpu: Apple M1
+BenchmarkStoreWalkKPCV1/pointer-8         	      20	   2397225 ns/op	         2.825 IPC	   7638368 cycles/op	  21579145 inst/op	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkKPCV1/pointer-8         	      20	   2412208 ns/op	         2.807 IPC	   7687457 cycles/op	  21581285 inst/op	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkKPCV1/pointer-8         	      20	   2453175 ns/op	         2.759 IPC	   7820180 cycles/op	  21573360 inst/op	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkKPCV1/pointer-8         	      20	   2408373 ns/op	         2.807 IPC	   7676467 cycles/op	  21547375 inst/op	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkKPCV1/pointer-8         	      20	   2392287 ns/op	         2.832 IPC	   7617337 cycles/op	  21574073 inst/op	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkKPCV1/store-8           	      20	   2800783 ns/op	         3.049 IPC	   8915878 cycles/op	  27186151 inst/op	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkKPCV1/store-8           	      20	   2795762 ns/op	         3.055 IPC	   8901299 cycles/op	  27190387 inst/op	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkKPCV1/store-8           	      20	   2792044 ns/op	         3.056 IPC	   8894191 cycles/op	  27179987 inst/op	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkKPCV1/store-8           	      20	   2790521 ns/op	         3.055 IPC	   8893017 cycles/op	  27170772 inst/op	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkKPCV1/store-8           	      20	   2787965 ns/op	         3.057 IPC	   8889108 cycles/op	  27175280 inst/op	       0 B/op	       0 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/storeparser
+cpu: Apple M1
+BenchmarkStoreParseKPCV1/pointer-8         	      20	  21047008 ns/op	         3.882 IPC	  67091313 cycles/op	 260418756 inst/op	26137522 B/op	   11931 allocs/op
+BenchmarkStoreParseKPCV1/pointer-8         	      20	  20929750 ns/op	         3.894 IPC	  66760858 cycles/op	 259974951 inst/op	26137522 B/op	   11931 allocs/op
+BenchmarkStoreParseKPCV1/pointer-8         	      20	  20861296 ns/op	         3.896 IPC	  66706759 cycles/op	 259871639 inst/op	26137522 B/op	   11931 allocs/op
+BenchmarkStoreParseKPCV1/pointer-8         	      20	  20897306 ns/op	         3.893 IPC	  66704865 cycles/op	 259704830 inst/op	26137522 B/op	   11931 allocs/op
+BenchmarkStoreParseKPCV1/pointer-8         	      20	  20904352 ns/op	         3.898 IPC	  66698595 cycles/op	 259982816 inst/op	26137522 B/op	   11931 allocs/op
+BenchmarkStoreParseKPCV1/store-8           	      20	  17150906 ns/op	         3.915 IPC	  54763944 cycles/op	 214426172 inst/op	12721046 B/op	     582 allocs/op
+BenchmarkStoreParseKPCV1/store-8           	      20	  17260458 ns/op	         3.911 IPC	  54851581 cycles/op	 214513696 inst/op	12721046 B/op	     582 allocs/op
+BenchmarkStoreParseKPCV1/store-8           	      20	  17130533 ns/op	         3.917 IPC	  54726746 cycles/op	 214389889 inst/op	12721046 B/op	     582 allocs/op
+BenchmarkStoreParseKPCV1/store-8           	      20	  17282610 ns/op	         3.898 IPC	  55017650 cycles/op	 214475211 inst/op	12721046 B/op	     582 allocs/op
+BenchmarkStoreParseKPCV1/store-8           	      20	  17319796 ns/op	         3.895 IPC	  55049898 cycles/op	 214418461 inst/op	12721046 B/op	     582 allocs/op
+PASS
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/binder
+cpu: Apple M1
+BenchmarkASTBindKPCV1-8   	      20	  10546535 ns/op	         3.282 IPC	  33648171 cycles/op	 110435100 inst/op	 7423983 B/op	   13952 allocs/op
+BenchmarkASTBindKPCV1-8   	      20	  10532398 ns/op	         3.307 IPC	  33608413 cycles/op	 111128081 inst/op	 7423983 B/op	   13952 allocs/op
+BenchmarkASTBindKPCV1-8   	      20	  10485388 ns/op	         3.288 IPC	  33421495 cycles/op	 109889825 inst/op	 7423983 B/op	   13952 allocs/op
+BenchmarkASTBindKPCV1-8   	      20	  10530892 ns/op	         3.291 IPC	  33478685 cycles/op	 110167199 inst/op	 7423983 B/op	   13952 allocs/op
+BenchmarkASTBindKPCV1-8   	      20	  10493915 ns/op	         3.292 IPC	  33444316 cycles/op	 110094111 inst/op	 7423983 B/op	   13952 allocs/op
+PASS
