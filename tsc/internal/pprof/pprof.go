@@ -133,6 +133,9 @@ func SaveHeapProfile(profileDir string) (string, error) {
 	}
 	defer heapFile.Close()
 
+	// Twice: one collection only moves sync.Pool contents (parser scratch and
+	// the like) to the victim cache, and they would still count as in use.
+	runtime.GC()
 	runtime.GC()
 	if err := pprof.Lookup("heap").WriteTo(heapFile, 0); err != nil {
 		os.Remove(heapProfilePath)

@@ -52,6 +52,13 @@ func (s *Session) Stop() {
 // Measure expects a running benchmark timer. It pauses the timer only to
 // collect, which bounds the heap with the collector off and starts every
 // interval from a fully swept heap.
+//
+// It collects once, not twice, on purpose: a sync.Pool survives one
+// collection (its contents move to the victim cache), so a pooled parser's
+// scratch stays warm from one interval to the next, which is the steady state
+// the parse benchmarks measure. A second collection would empty every pool and
+// measure a cold parser. A benchmark that reads retained heap after a
+// collection must collect twice itself for the same reason.
 func (s *Session) Measure(fn func()) {
 	s.b.StopTimer()
 	runtime.GC()
