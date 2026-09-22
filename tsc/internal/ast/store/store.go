@@ -158,15 +158,13 @@ func visitList(s *Store, at ListRef, v Visitor) bool {
 }
 
 // Builder writes by id and never holds a *NodeHeader, because append moves the
-// headers. Nodes are handed out after Finish; View hands one out during
-// construction, valid only until the next append.
+// headers. The columns under construction are s, the Store that View reads;
+// nothing is copied or re-synced on a View. Builder is used only by pointer:
+// Node values from View point into s. (strings.Builder panics on a copy after
+// the first write, so a copied Builder fails at the first text.)
 type Builder struct {
-	nodes []NodeHeader
-	extra []uint32
-	texts strings.Builder // String() is zero-copy, so View can read it
-	src   string
-	file  uint32
-	view  Store // what View returns; its columns are re-synced on every call
+	s       Store           // nodes, extra, src, texts, file: the columns under construction
+	textBuf strings.Builder // s.texts is textBuf.String(), re-set after every write (textWords)
 }
 
 func NewBuilder(src string, file uint32) *Builder {
@@ -178,52 +176,49 @@ func NewBuilder(src string, file uint32) *Builder {
 // Reset starts a file on the same scratch: the sentinel rows are rewritten,
 // the capacity is kept, texts is emptied.
 func (b *Builder) Reset(src string, file uint32) {
-	if cap(b.nodes) == 0 {
-		b.nodes = make([]NodeHeader, 1, 1024)
-		b.extra = make([]uint32, 3, 1024)
+	if cap(b.s.nodes) == 0 {
+		b.s.nodes = make([]NodeHeader, 1, 1024)
+		b.s.extra = make([]uint32, 3, 1024)
 	} else {
-		b.nodes = b.nodes[:1]
-		b.extra = b.extra[:3]
-		b.nodes[0] = NodeHeader{}
-		clear(b.extra)
+		b.s.nodes = b.s.nodes[:1]
+		b.s.extra = b.s.extra[:3]
+		b.s.nodes[0] = NodeHeader{}
+		clear(b.s.extra)
 	}
-	b.texts.Reset()
-	b.src = src
-	b.file = file
+	b.textBuf.Reset()
+	b.s.texts = ""
+	b.s.src = src
+	b.s.file = file
 }
 
-// View is the Node of id in the scratch. It points into nodes, so it is valid
+// View is the Node of id in the scratch. It points into s.nodes, so it is valid
 // only until the next constructor, List or NewXxx call.
-func (b *Builder) View(id NodeRef) Node {
-	b.view = Store{nodes: b.nodes, extra: b.extra, src: b.src, texts: b.texts.String(), file: b.file}
-	return b.view.node(id)
-}
+func (b *Builder) View(id NodeRef) Node { return b.s.node(id) }
 
 // ViewList is View for a list block.
-func (b *Builder) ViewList(at ListRef) List {
-	b.view = Store{nodes: b.nodes, extra: b.extra, src: b.src, texts: b.texts.String(), file: b.file}
-	return List{&b.view, at}
-}
+func (b *Builder) ViewList(at ListRef) List { return List{&b.s, at} }
 
-func (b *Builder) AddFlags(id NodeRef, flags ast.NodeFlags) { b.nodes[id].flags |= flags }
-func (b *Builder) SetFlags(id NodeRef, flags ast.NodeFlags) { b.nodes[id].flags = flags }
-func (b *Builder) SetLoc(id NodeRef, pos, end int32)        { b.nodes[id].pos, b.nodes[id].end = pos, end }
+func (b *Builder) AddFlags(id NodeRef, flags ast.NodeFlags) { b.s.nodes[id].flags |= flags }
+func (b *Builder) SetFlags(id NodeRef, flags ast.NodeFlags) { b.s.nodes[id].flags = flags }
+func (b *Builder) SetLoc(id NodeRef, pos, end int32)        { b.s.nodes[id].pos, b.s.nodes[id].end = pos, end }
 
 // Mark and Truncate are the speculation pair: Truncate drops every node and
 // payload word made since Mark. texts is not truncated (strings.Builder has no
 // truncate), so a text made during a rewound speculation stays as dead bytes.
-func (b *Builder) Mark() (nodes, extra int)  { return len(b.nodes), len(b.extra) }
-func (b *Builder) Truncate(nodes, extra int) { b.nodes, b.extra = b.nodes[:nodes], b.extra[:extra] }
+func (b *Builder) Mark() (nodes, extra int) { return len(b.s.nodes), len(b.s.extra) }
+func (b *Builder) Truncate(nodes, extra int) {
+	b.s.nodes, b.s.extra = b.s.nodes[:nodes], b.s.extra[:extra]
+}
 
 // Len is the number of rows including the sentinel and any dead node.
-func (b *Builder) Len() int { return len(b.nodes) }
+func (b *Builder) Len() int { return len(b.s.nodes) }
 
 // List returns the index of the new block.
 func (b *Builder) List(pos, end int32, elems []NodeRef) ListRef {
-	at := ListRef(len(b.extra))
-	b.extra = append(b.extra, uint32(len(elems)), uint32(pos), uint32(end))
+	at := ListRef(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(len(elems)), uint32(pos), uint32(end))
 	for _, elem := range elems {
-		b.extra = append(b.extra, uint32(elem))
+		b.s.extra = append(b.s.extra, uint32(elem))
 	}
 	return at
 }
@@ -235,8 +230,8 @@ func (b *Builder) NewToken(kind ast.Kind, flags ast.NodeFlags, pos, end int32) N
 }
 
 func (b *Builder) header(kind ast.Kind, flags ast.NodeFlags, mod ast.ModifierFlags, pos, end int32, data uint32) NodeRef {
-	id := NodeRef(len(b.nodes))
-	b.nodes = append(b.nodes, NodeHeader{
+	id := NodeRef(len(b.s.nodes))
+	b.s.nodes = append(b.s.nodes, NodeHeader{
 		kind: kind,
 		// TODO(store): truncates ModifierFlags to bits 0-15. See the TODO on
 		// NodeHeader.modifierFlags for what happens to bit 16 and up.
@@ -252,23 +247,24 @@ func (b *Builder) header(kind ast.Kind, flags ast.NodeFlags, mod ast.ModifierFla
 // identifierData is the data word of an Identifier: the source offset of the
 // text, or textInTexts and the index of its [offset, length] pair in extra.
 func (b *Builder) identifierData(end int32, text string) uint32 {
-	if start := int(end) - len(text); start >= 0 && int(end) <= len(b.src) && b.src[start:end] == text {
+	if start := int(end) - len(text); start >= 0 && int(end) <= len(b.s.src) && b.s.src[start:end] == text {
 		return uint32(start)
 	}
-	at := uint32(len(b.extra))
+	at := uint32(len(b.s.extra))
 	off, length := b.textWords(end, text)
-	b.extra = append(b.extra, off, length)
+	b.s.extra = append(b.s.extra, off, length)
 	return textInTexts | at
 }
 
 // textWords is the [offset, length] pair of a text member: the source offset
 // when the text ends at end, else the offset in texts with textInTexts set.
 func (b *Builder) textWords(end int32, text string) (off, length uint32) {
-	if start := int(end) - len(text); start >= 0 && int(end) <= len(b.src) && b.src[start:end] == text {
+	if start := int(end) - len(text); start >= 0 && int(end) <= len(b.s.src) && b.s.src[start:end] == text {
 		return uint32(start), uint32(len(text))
 	}
-	off = textInTexts | uint32(b.texts.Len())
-	b.texts.WriteString(text)
+	off = textInTexts | uint32(b.textBuf.Len())
+	b.textBuf.WriteString(text)
+	b.s.texts = b.textBuf.String() // the buffer may have moved
 	return off, uint32(len(text))
 }
 
@@ -281,13 +277,13 @@ func boolWord(v bool) uint32 {
 
 func (b *Builder) adopt(child, parent NodeRef) {
 	if child != NoNodeRef {
-		b.nodes[child].parent = parent
+		b.s.nodes[child].parent = parent
 	}
 }
 
 func (b *Builder) adoptList(at ListRef, parent NodeRef) {
-	for _, elem := range b.extra[at+3 : at+3+ListRef(b.extra[at])] {
-		b.nodes[elem].parent = parent
+	for _, elem := range b.s.extra[at+3 : at+3+ListRef(b.s.extra[at])] {
+		b.s.nodes[elem].parent = parent
 	}
 }
 
@@ -295,8 +291,8 @@ func (b *Builder) adoptList(at ListRef, parent NodeRef) {
 // ast.ModifiersToFlags. Block 0 is empty.
 func (b *Builder) modifierFlags(at ListRef) ast.ModifierFlags {
 	var flags ast.ModifierFlags
-	for _, elem := range b.extra[at+3 : at+3+ListRef(b.extra[at])] {
-		flags |= ast.ModifierToFlag(b.nodes[elem].kind)
+	for _, elem := range b.s.extra[at+3 : at+3+ListRef(b.s.extra[at])] {
+		flags |= ast.ModifierToFlag(b.s.nodes[elem].kind)
 	}
 	return flags
 }
@@ -306,10 +302,10 @@ func (b *Builder) modifierFlags(at ListRef) ast.ModifierFlags {
 // the Store never aliases the builder (store-ast-design-20260922.md 2.4).
 func (b *Builder) Finish() *Store {
 	return &Store{
-		nodes: append(make([]NodeHeader, 0, len(b.nodes)), b.nodes...),
-		extra: append(make([]uint32, 0, len(b.extra)), b.extra...),
-		src:   b.src,
-		texts: strings.Clone(b.texts.String()),
-		file:  b.file,
+		nodes: append(make([]NodeHeader, 0, len(b.s.nodes)), b.s.nodes...),
+		extra: append(make([]uint32, 0, len(b.s.extra)), b.s.extra...),
+		src:   b.s.src,
+		texts: strings.Clone(b.textBuf.String()),
+		file:  b.s.file,
 	}
 }

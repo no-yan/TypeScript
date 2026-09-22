@@ -8,6 +8,8 @@ KPC はユーザーが別ターミナルで実行した (`kpc-20260922-1602.txt`
 
 **訂正 (同日 16:34)**: 評価で retained の数字に `sync.Pool` の scratch が混じっていることが分かり (§7.2)、`BenchmarkStoreParseRetainedV1` の `runtime.GC()` を 2 回にして retained / gctrace を取り直した (`bench_test.go` だけ変更、`sha256.txt` 更新)。allocs の内訳も取った (§6.3)。§1 の表と §7 はその数字に差し替えてあり、初回の値は §7.2 に残す。
 
+**追記 (同日 19:13)**: §6.2 で未帰属だった IPC 低下は `View` だった。`Builder` に `Store` を埋め込んで `View` の詰め直しを消した (S1) 後の KPC と、その帰属を §11 に足した。§6.2 と §9 の該当行にも印を付けた。§1 の表は 7b 時点のままにしてある。
+
 ## 1. 結論
 
 1. **正しさは全項目合格。** TS / TSX / D.TS / JSON は corpus 17,415 file (7a と同じ入力、skip なし) で木・flags・診断が完全一致。JS は Pointer の JSDoc 由来の差 (§3.3) を除いて一致。生成物は再現し、`internal/parser` / `scanner` / `ast` (store 以外) に差分なし、production からの import なし。
@@ -230,6 +232,8 @@ pointer は基準値 (262.5M inst、69.3M cycles) を inst −0.9% で再現し�
 
 **命令が 30M 減って cycles が動かない。** IPC 3.90 → 3.46。この差の帰属は取っていない。候補は (1) constructor の call 138 種 (§5.2)、(2) `header` と `extra` の 2 本を伸ばす append の依存、(3) `adopt` の親書き込み (子の header への store)、(4) `identifierData` の `memequal`、(5) `View` が毎回 `Store` 構造体 (5 word) を詰め直す 157 箇所。関数別の retired instructions か Instruments の delivery 分解が要る (§9)。
 
+**→ §11 で確定: (5) の `View` がほぼ全部。**
+
 ### 6.3 allocs
 
 allocs 582 の内訳 (`-memprofilerate=1`、20 回、`allocs-store-checker.txt`。数字は 1 回あたり):
@@ -279,7 +283,7 @@ gctrace (強制 GC、`gctrace-{store,pointer}.txt`): pointer は live 111 MB で
 ## 9. 限界
 
 - 実装者と検証者が同じ。diff の hunk は移植中に全部読んだが、独立した目は入っていない。
-- IPC 低下の帰属 (§6.2) は未計測。dom の allocs 1,527 の profile も取っていない (§6.3)。
+- IPC 低下の帰属 (§6.2) は未計測 (→ 同日 19:13 に §11 で計測、`View`)。dom の allocs 1,527 の profile も取っていない (§6.3)。
 - top-level await の 8 file は比べていない (§3.4)。
 - JS の等価は Pointer の JSDoc 由来を除いた「部分一致」で、除外規則 (§3.2) の正しさは corpus の JS file (約 3,000) が 0 mismatch で通ることによる。
 - load average が高い環境 (1.7〜3.6) で取った。KPC は GOMAXPROCS(1) + GC オフなので幅は小さいが、ns は参考値。
@@ -294,6 +298,7 @@ gctrace (強制 GC、`gctrace-{store,pointer}.txt`): pointer は live 111 MB で
 | `env.txt` | go version、commit、uptime |
 | `sha256.txt` | 計測対象 source の sha256 |
 | `kpc-20260922-1602.txt` | KPC 5 run (ユーザー実行) |
+| `kpc-20260922-1908-s1.txt` | S1 後の KPC 5 run (ユーザー実行、§11) |
 | `parse-ns.txt` | ns / B/op / allocs 5 run |
 | `retained.txt` | retained 5 run (16:34、GC 2 回版) |
 | `gctrace-store.txt`、`gctrace-pointer.txt` | テストバイナリを直接実行した gctrace (`go test` 経由だと go コマンド自身の GC が混じる)。16:34、GC 2 回版 |
@@ -306,3 +311,61 @@ gctrace (強制 GC、`gctrace-{store,pointer}.txt`): pointer は live 111 MB で
 コマンドは検証指示 §1 / §3 / §4 / §5 のとおり。gctrace だけは `go test -c` したバイナリを `internal/storeparser` で直接実行する。
 
 次は TODO 7c (binder)。7c の前に決めること: IPC 低下の帰属 (§6.2) を先に取るか、7c と並行にするか。7c の設計に入る前提として、`ExternalModuleIndicator` / `collectExternalModuleReferences` の実装と除外 8 file の再検証 (§3.4)、JS の JSDoc reparse ノード (binder が bind する `@typedef` / `@template` 等) の置き場、診断の file が nil である点 (§4.3 #11) を挙げておく。
+
+## 11. 追記 (同日 19:13): `View` の除去 (S1) と IPC 低下の帰属
+
+§6.2 の候補 (5) を単独で消して測った。実装は [store-builder-embed-implementation-instructions-20260922.md](store-builder-embed-implementation-instructions-20260922.md) (S1)。`Builder` の列 (`nodes` / `extra` / `src` / `texts` / `file`) を `View` が返す `Store` そのもの (`s Store`) にし、`View` を `b.s.node(id)` だけにした。generator は 2 行、`storeparser` は無変更、等価テスト (`storechecks` あり / なし) は無変更で通過。
+
+### 11.1 変更前の `View` の費用
+
+checker.ts の parse 1 回で `View` は 338,615 回 (node 298,884、Scan 362,421。overlay のカウンタで計数)。呼び出し元は parseAssignmentExpressionOrHigherWorker 135k、tryReparseOptionalChain 87k、checkJSSyntax 43k、parsePropertyAccessExpressionRest 25k、parseCallExpressionRest 18k。
+
+`b.view = Store{...}` の複合リテラル代入は、objdump で 88B の stack temp のゼロ化、フィールド転記、`runtime.writeBarrier` の判定、`runtime.wbMove` 付きの typed copy、直後の slice header 再ロードと bounds check になる (呼び出し箇所ごとに約 50 命令。tryReparseOptionalChain は 5 箇所で `wbMove` 5 つ、`store.go:198` 帰属 200 命令)。単価はマイクロベンチで 6.1ns (直接 `b.nodes[id].kind` を読む 0.40ns の 15 倍)。回数 × 単価 ≈ 2.1ms で、pprof の flat 16.9% (≈3.5ms) と同じ桁。
+
+Pointer parser に対応物はない (`node.Kind` は deref 1 つ)。Store の自己負担なので、消しても比較は Store に有利に歪まない。
+
+### 11.2 KPC (checker.ts、5 run、`kpc-20260922-1908-s1.txt`)
+
+| | pointer (7b → S1) | store 7b | store S1 | store の差 |
+| --- | ---: | ---: | ---: | ---: |
+| inst/op | 260.2M → 260.5M | 230.1M | 214.3M (214.29〜214.30) | −15.8M (−6.9%) |
+| cycles/op | 66.77M → 67.35M | 66.51M | 54.72M (54.66〜54.81) | −11.8M (−17.7%) |
+| IPC | 3.90 → 3.87 | 3.46 | 3.92 | |
+| ns/op | 21.2ms | | 17.19ms | |
+| Pointer 比 | | inst 0.884 / cycles 0.996 | **inst 0.823 / cycles 0.813** | |
+
+pointer は 1% 以内で不変 (対照)。store の run 幅は inst 0.01M、cycles 0.15M。
+
+- **IPC 低下は `View` が全部だった。** `View` だけを消して IPC が 3.46 → 3.92 になり、pointer の 3.87 と並んだ。§6.2 の候補 (1) constructor の call、(2) append 2 本の依存、(3) `adopt`、(4) `memequal` は IPC には効いていない (命令数には残っている)。
+- **`View` 1 回あたり 47 inst / 35 cycles。** 単価ベンチの 19.5 cycles (6.1ns) より大きい。parser では直後に header を読むので store→load の依存が露出し、GC 中は `wbMove` が実行されるため。「マイクロベンチ単価 × 回数」は write barrier と依存連鎖を含む経路では下限見積になる。
+- 7b の「命令は減るが cycles は同等」は「命令も cycles も 2 割減」になった。
+
+### 11.3 wall (`BenchmarkStoreParseV1`、GC あり) の読み方
+
+`--count 5` で store 18.1〜20.4ms とばらつくが、B/op と相関する。9.94MB (578 allocs) の run は Finish の copy だけで 17.3ms、10.8MB 超 (579 allocs) の run は `sync.Pool` が parser を落として scratch を cap 1024 から作り直した run で +1〜2ms。どちらになるかは GC と Pool の位相で決まり (GOGC=400 で 9.94MB 水準に揃う)、`-tags kperf` の有無は無関係。7b の変更前 (20.8ms) は 5 run とも 10.9MB 水準だったので、同じ水準で比べて 20.8 → 18.2ms (−12%)。KPC の Session は GC オフなのでこの 2 水準は出ない。
+
+### 11.4 残る費用と次の候補
+
+S1 後の Store parse の内訳 (S1 前の pprof、focus ParseSourceFile、`View` を除いた比率): scanner 約 35% (`Scan` cum。うち `scanASCIIWhile` 18%、`GetIdentifierToken` の map 5.4%)、ノード構築 (`header` / `adopt` / `List` / `identifierData`) 約 8%、`Finish` の Compact 3.8%、残りは parser の構造。
+
+**Store 固有** (Pointer に対応物なし): `identifierData` の `b.src[start:end] == text` (識別子ごとの byte 比較、pointer 同一性で O(1) にできる、1.5%)、`Builder.List` の 1 要素ずつの append (1.3%)。合わせて 3% 弱で、KPC の幅から見て測れる下限に近い。`Finish` は RSS のための設計判断で対象外。
+
+**Pointer と共通** (両方に入れるか、入れないか。Store だけに入れると比較が歪む): `scanASCIIWhile` の識別子述語のテーブル化。現状は closure が inline 済みでも小文字 1 byte あたり 11 命令・条件分岐 4 本 (`>= 0x80`、a-z、A-Z、0-9、`_`、`$` の順に脱落) で、大文字混じりの識別子で分岐パターンが変わり mispredict する。`[256]bool` の package 変数にすると、述語の比較 4〜7 本が `MOVBU` 1 load になり、`>= 0x80` の判定は 0x80 以上を false にしたテーブルに吸収され、添字が byte なので bounds check も出ない。1 byte あたりの分岐は「ループ継続」と「テーブルの真偽」の 2 本になる。
+
+```go
+var identPart = func() (t [256]bool) {
+	for b := 0; b < 128; b++ {
+		c := byte(b)
+		t[b] = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+			(c >= '0' && c <= '9') || c == '_' || c == '$'
+	}
+	return
+}()
+
+for i < len(t) && identPart[t[i]] {
+	i++
+}
+```
+
+`scanASCIIWhile` は closure を受ける汎用関数なので、テーブル版は述語ごと (識別子の続き、改行後の空白、行コメント) に配列を 1 つずつ持つ。package 変数として init 時に一度作るだけで、実行時の生成費用はない。マイクロベンチ (checker.ts の識別子 227k、平均 8.6 byte、scratchpad の scanbench): 現状 2.30 ns/byte・19.7 ns/識別子 → テーブル 1.59 ns/byte・13.7 ns/識別子 (−30%)。`(b|0x20)-'a' < 26` の範囲畳み込みは −25%、128-bit mask 2 word は −18%。Rust (oxc) は LLVM が a-z / A-Z を `and 0xdf; sub 65; cmp 26` に畳んで `ccmp` で分岐無しに繋ぐが、Go の ssa はこの畳み込みをしない。テーブル化後の 13.7 ns/識別子 ≈ 44 cycles は識別子末尾の exit mispredict (≈15 cycles) と呼び出し固定費が支配で、述語をこれ以上削っても効かない。実 parse での期待は `scanASCIIWhile` flat 分の 1/3、parse 全体の −5〜7%。`scanner` は Pointer / Store 共通なので、入れれば両方が同じだけ縮む。
+

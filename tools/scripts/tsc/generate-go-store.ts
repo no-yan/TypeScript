@@ -612,8 +612,8 @@ function generateBuilder(): string {
                     break;
             }
         }
-        w.write("\tdata := uint32(len(b.extra))");
-        w.write(`\tb.extra = append(b.extra, ${words.join(", ")})`);
+        w.write("\tdata := uint32(len(b.s.extra))");
+        w.write(`\tb.s.extra = append(b.s.extra, ${words.join(", ")})`);
         const modifiers = def.slots.find(s => s.name === "Modifiers" && s.class === "list");
         const mod = modifiers ? `b.modifierFlags(${modifiers.member.goParamName()})` : "0";
         const children = def.slots.filter(s => s.class === "child" || s.class === "list");

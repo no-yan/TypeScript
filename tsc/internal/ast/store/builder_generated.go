@@ -17,8 +17,8 @@ func (b *Builder) NewPrivateIdentifier(flags ast.NodeFlags, pos, end int32, text
 }
 
 func (b *Builder) NewQualifiedName(flags ast.NodeFlags, pos, end int32, left NodeRef, right NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(left), uint32(right))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(left), uint32(right))
 	id := b.header(ast.KindQualifiedName, flags, 0, pos, end, data)
 	b.adopt(left, id)
 	b.adopt(right, id)
@@ -26,24 +26,24 @@ func (b *Builder) NewQualifiedName(flags ast.NodeFlags, pos, end int32, left Nod
 }
 
 func (b *Builder) NewComputedPropertyName(flags ast.NodeFlags, pos, end int32, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression))
 	id := b.header(ast.KindComputedPropertyName, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	return id
 }
 
 func (b *Builder) NewDecorator(flags ast.NodeFlags, pos, end int32, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression))
 	id := b.header(ast.KindDecorator, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	return id
 }
 
 func (b *Builder) NewIfStatement(flags ast.NodeFlags, pos, end int32, expression NodeRef, thenStatement NodeRef, elseStatement NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression), uint32(thenStatement), uint32(elseStatement))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression), uint32(thenStatement), uint32(elseStatement))
 	id := b.header(ast.KindIfStatement, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	b.adopt(thenStatement, id)
@@ -52,8 +52,8 @@ func (b *Builder) NewIfStatement(flags ast.NodeFlags, pos, end int32, expression
 }
 
 func (b *Builder) NewDoStatement(flags ast.NodeFlags, pos, end int32, statement NodeRef, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(statement), uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(statement), uint32(expression))
 	id := b.header(ast.KindDoStatement, flags, 0, pos, end, data)
 	b.adopt(statement, id)
 	b.adopt(expression, id)
@@ -61,8 +61,8 @@ func (b *Builder) NewDoStatement(flags ast.NodeFlags, pos, end int32, statement 
 }
 
 func (b *Builder) NewWhileStatement(flags ast.NodeFlags, pos, end int32, expression NodeRef, statement NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression), uint32(statement))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression), uint32(statement))
 	id := b.header(ast.KindWhileStatement, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	b.adopt(statement, id)
@@ -70,8 +70,8 @@ func (b *Builder) NewWhileStatement(flags ast.NodeFlags, pos, end int32, express
 }
 
 func (b *Builder) NewForStatement(flags ast.NodeFlags, pos, end int32, initializer NodeRef, condition NodeRef, incrementor NodeRef, statement NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(initializer), uint32(condition), uint32(incrementor), uint32(statement))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(initializer), uint32(condition), uint32(incrementor), uint32(statement))
 	id := b.header(ast.KindForStatement, flags, 0, pos, end, data)
 	b.adopt(initializer, id)
 	b.adopt(condition, id)
@@ -81,8 +81,8 @@ func (b *Builder) NewForStatement(flags ast.NodeFlags, pos, end int32, initializ
 }
 
 func (b *Builder) NewForInOrOfStatement(kind ast.Kind, flags ast.NodeFlags, pos, end int32, awaitModifier NodeRef, initializer NodeRef, expression NodeRef, statement NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(awaitModifier), uint32(initializer), uint32(expression), uint32(statement))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(awaitModifier), uint32(initializer), uint32(expression), uint32(statement))
 	id := b.header(kind, flags, 0, pos, end, data)
 	b.adopt(awaitModifier, id)
 	b.adopt(initializer, id)
@@ -92,32 +92,32 @@ func (b *Builder) NewForInOrOfStatement(kind ast.Kind, flags ast.NodeFlags, pos,
 }
 
 func (b *Builder) NewBreakStatement(flags ast.NodeFlags, pos, end int32, label NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(label))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(label))
 	id := b.header(ast.KindBreakStatement, flags, 0, pos, end, data)
 	b.adopt(label, id)
 	return id
 }
 
 func (b *Builder) NewContinueStatement(flags ast.NodeFlags, pos, end int32, label NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(label))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(label))
 	id := b.header(ast.KindContinueStatement, flags, 0, pos, end, data)
 	b.adopt(label, id)
 	return id
 }
 
 func (b *Builder) NewReturnStatement(flags ast.NodeFlags, pos, end int32, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression))
 	id := b.header(ast.KindReturnStatement, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	return id
 }
 
 func (b *Builder) NewWithStatement(flags ast.NodeFlags, pos, end int32, expression NodeRef, statement NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression), uint32(statement))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression), uint32(statement))
 	id := b.header(ast.KindWithStatement, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	b.adopt(statement, id)
@@ -125,8 +125,8 @@ func (b *Builder) NewWithStatement(flags ast.NodeFlags, pos, end int32, expressi
 }
 
 func (b *Builder) NewSwitchStatement(flags ast.NodeFlags, pos, end int32, expression NodeRef, caseBlock NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression), uint32(caseBlock))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression), uint32(caseBlock))
 	id := b.header(ast.KindSwitchStatement, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	b.adopt(caseBlock, id)
@@ -134,16 +134,16 @@ func (b *Builder) NewSwitchStatement(flags ast.NodeFlags, pos, end int32, expres
 }
 
 func (b *Builder) NewCaseBlock(flags ast.NodeFlags, pos, end int32, clauses ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(clauses))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(clauses))
 	id := b.header(ast.KindCaseBlock, flags, 0, pos, end, data)
 	b.adoptList(clauses, id)
 	return id
 }
 
 func (b *Builder) NewCaseOrDefaultClause(kind ast.Kind, flags ast.NodeFlags, pos, end int32, expression NodeRef, statements ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression), uint32(statements))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression), uint32(statements))
 	id := b.header(kind, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	b.adoptList(statements, id)
@@ -151,16 +151,16 @@ func (b *Builder) NewCaseOrDefaultClause(kind ast.Kind, flags ast.NodeFlags, pos
 }
 
 func (b *Builder) NewThrowStatement(flags ast.NodeFlags, pos, end int32, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression))
 	id := b.header(ast.KindThrowStatement, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	return id
 }
 
 func (b *Builder) NewTryStatement(flags ast.NodeFlags, pos, end int32, tryBlock NodeRef, catchClause NodeRef, finallyBlock NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tryBlock), uint32(catchClause), uint32(finallyBlock))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tryBlock), uint32(catchClause), uint32(finallyBlock))
 	id := b.header(ast.KindTryStatement, flags, 0, pos, end, data)
 	b.adopt(tryBlock, id)
 	b.adopt(catchClause, id)
@@ -169,8 +169,8 @@ func (b *Builder) NewTryStatement(flags ast.NodeFlags, pos, end int32, tryBlock 
 }
 
 func (b *Builder) NewCatchClause(flags ast.NodeFlags, pos, end int32, variableDeclaration NodeRef, block NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(variableDeclaration), uint32(block))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(variableDeclaration), uint32(block))
 	id := b.header(ast.KindCatchClause, flags, 0, pos, end, data)
 	b.adopt(variableDeclaration, id)
 	b.adopt(block, id)
@@ -178,8 +178,8 @@ func (b *Builder) NewCatchClause(flags ast.NodeFlags, pos, end int32, variableDe
 }
 
 func (b *Builder) NewLabeledStatement(flags ast.NodeFlags, pos, end int32, label NodeRef, statement NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(label), uint32(statement))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(label), uint32(statement))
 	id := b.header(ast.KindLabeledStatement, flags, 0, pos, end, data)
 	b.adopt(label, id)
 	b.adopt(statement, id)
@@ -187,24 +187,24 @@ func (b *Builder) NewLabeledStatement(flags ast.NodeFlags, pos, end int32, label
 }
 
 func (b *Builder) NewExpressionStatement(flags ast.NodeFlags, pos, end int32, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression))
 	id := b.header(ast.KindExpressionStatement, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	return id
 }
 
 func (b *Builder) NewBlock(flags ast.NodeFlags, pos, end int32, statements ListRef, multiLine bool) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(statements), boolWord(multiLine))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(statements), boolWord(multiLine))
 	id := b.header(ast.KindBlock, flags, 0, pos, end, data)
 	b.adoptList(statements, id)
 	return id
 }
 
 func (b *Builder) NewVariableStatement(flags ast.NodeFlags, pos, end int32, modifiers ListRef, declarationList NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(declarationList))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(declarationList))
 	id := b.header(ast.KindVariableStatement, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(declarationList, id)
@@ -212,8 +212,8 @@ func (b *Builder) NewVariableStatement(flags ast.NodeFlags, pos, end int32, modi
 }
 
 func (b *Builder) NewVariableDeclaration(flags ast.NodeFlags, pos, end int32, name NodeRef, exclamationToken NodeRef, typeNode NodeRef, initializer NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(name), uint32(exclamationToken), uint32(typeNode), uint32(initializer))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(name), uint32(exclamationToken), uint32(typeNode), uint32(initializer))
 	id := b.header(ast.KindVariableDeclaration, flags, 0, pos, end, data)
 	b.adopt(name, id)
 	b.adopt(exclamationToken, id)
@@ -223,24 +223,24 @@ func (b *Builder) NewVariableDeclaration(flags ast.NodeFlags, pos, end int32, na
 }
 
 func (b *Builder) NewVariableDeclarationList(flags ast.NodeFlags, pos, end int32, declarations ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(declarations))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(declarations))
 	id := b.header(ast.KindVariableDeclarationList, flags, 0, pos, end, data)
 	b.adoptList(declarations, id)
 	return id
 }
 
 func (b *Builder) NewBindingPattern(kind ast.Kind, flags ast.NodeFlags, pos, end int32, elements ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(elements))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(elements))
 	id := b.header(kind, flags, 0, pos, end, data)
 	b.adoptList(elements, id)
 	return id
 }
 
 func (b *Builder) NewParameterDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, dotDotDotToken NodeRef, name NodeRef, questionToken NodeRef, typeNode NodeRef, initializer NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(dotDotDotToken), uint32(name), uint32(questionToken), uint32(typeNode), uint32(initializer))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(dotDotDotToken), uint32(name), uint32(questionToken), uint32(typeNode), uint32(initializer))
 	id := b.header(ast.KindParameter, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(dotDotDotToken, id)
@@ -252,8 +252,8 @@ func (b *Builder) NewParameterDeclaration(flags ast.NodeFlags, pos, end int32, m
 }
 
 func (b *Builder) NewBindingElement(flags ast.NodeFlags, pos, end int32, dotDotDotToken NodeRef, propertyName NodeRef, name NodeRef, initializer NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(dotDotDotToken), uint32(propertyName), uint32(name), uint32(initializer))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(dotDotDotToken), uint32(propertyName), uint32(name), uint32(initializer))
 	id := b.header(ast.KindBindingElement, flags, 0, pos, end, data)
 	b.adopt(dotDotDotToken, id)
 	b.adopt(propertyName, id)
@@ -263,16 +263,16 @@ func (b *Builder) NewBindingElement(flags ast.NodeFlags, pos, end int32, dotDotD
 }
 
 func (b *Builder) NewMissingDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers))
 	id := b.header(ast.KindMissingDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	return id
 }
 
 func (b *Builder) NewFunctionDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, asteriskToken NodeRef, name NodeRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(asteriskToken), uint32(name), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(body))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(asteriskToken), uint32(name), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(body))
 	id := b.header(ast.KindFunctionDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(asteriskToken, id)
@@ -286,8 +286,8 @@ func (b *Builder) NewFunctionDeclaration(flags ast.NodeFlags, pos, end int32, mo
 }
 
 func (b *Builder) NewClassDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, typeParameters ListRef, heritageClauses ListRef, members ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(typeParameters), uint32(heritageClauses), uint32(members))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(name), uint32(typeParameters), uint32(heritageClauses), uint32(members))
 	id := b.header(ast.KindClassDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -298,8 +298,8 @@ func (b *Builder) NewClassDeclaration(flags ast.NodeFlags, pos, end int32, modif
 }
 
 func (b *Builder) NewClassExpression(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, typeParameters ListRef, heritageClauses ListRef, members ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(typeParameters), uint32(heritageClauses), uint32(members))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(name), uint32(typeParameters), uint32(heritageClauses), uint32(members))
 	id := b.header(ast.KindClassExpression, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -310,16 +310,16 @@ func (b *Builder) NewClassExpression(flags ast.NodeFlags, pos, end int32, modifi
 }
 
 func (b *Builder) NewHeritageClause(flags ast.NodeFlags, pos, end int32, token ast.Kind, types ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(token), uint32(types))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(token), uint32(types))
 	id := b.header(ast.KindHeritageClause, flags, 0, pos, end, data)
 	b.adoptList(types, id)
 	return id
 }
 
 func (b *Builder) NewInterfaceDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, typeParameters ListRef, heritageClauses ListRef, members ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(typeParameters), uint32(heritageClauses), uint32(members))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(name), uint32(typeParameters), uint32(heritageClauses), uint32(members))
 	id := b.header(ast.KindInterfaceDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -330,8 +330,8 @@ func (b *Builder) NewInterfaceDeclaration(flags ast.NodeFlags, pos, end int32, m
 }
 
 func (b *Builder) NewTypeAliasDeclaration(kind ast.Kind, flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, typeParameters ListRef, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(typeParameters), uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(name), uint32(typeParameters), uint32(typeNode))
 	id := b.header(kind, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -341,8 +341,8 @@ func (b *Builder) NewTypeAliasDeclaration(kind ast.Kind, flags ast.NodeFlags, po
 }
 
 func (b *Builder) NewEnumMember(flags ast.NodeFlags, pos, end int32, name NodeRef, initializer NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(name), uint32(initializer))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(name), uint32(initializer))
 	id := b.header(ast.KindEnumMember, flags, 0, pos, end, data)
 	b.adopt(name, id)
 	b.adopt(initializer, id)
@@ -350,8 +350,8 @@ func (b *Builder) NewEnumMember(flags ast.NodeFlags, pos, end int32, name NodeRe
 }
 
 func (b *Builder) NewEnumDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, members ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(members))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(name), uint32(members))
 	id := b.header(ast.KindEnumDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -360,16 +360,16 @@ func (b *Builder) NewEnumDeclaration(flags ast.NodeFlags, pos, end int32, modifi
 }
 
 func (b *Builder) NewModuleBlock(flags ast.NodeFlags, pos, end int32, statements ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(statements))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(statements))
 	id := b.header(ast.KindModuleBlock, flags, 0, pos, end, data)
 	b.adoptList(statements, id)
 	return id
 }
 
 func (b *Builder) NewImportDeclaration(kind ast.Kind, flags ast.NodeFlags, pos, end int32, modifiers ListRef, importClause NodeRef, moduleSpecifier NodeRef, attributes NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(importClause), uint32(moduleSpecifier), uint32(attributes))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(importClause), uint32(moduleSpecifier), uint32(attributes))
 	id := b.header(kind, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(importClause, id)
@@ -379,32 +379,32 @@ func (b *Builder) NewImportDeclaration(kind ast.Kind, flags ast.NodeFlags, pos, 
 }
 
 func (b *Builder) NewExternalModuleReference(flags ast.NodeFlags, pos, end int32, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression))
 	id := b.header(ast.KindExternalModuleReference, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	return id
 }
 
 func (b *Builder) NewNamespaceImport(flags ast.NodeFlags, pos, end int32, name NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(name))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(name))
 	id := b.header(ast.KindNamespaceImport, flags, 0, pos, end, data)
 	b.adopt(name, id)
 	return id
 }
 
 func (b *Builder) NewNamedImports(flags ast.NodeFlags, pos, end int32, elements ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(elements))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(elements))
 	id := b.header(ast.KindNamedImports, flags, 0, pos, end, data)
 	b.adoptList(elements, id)
 	return id
 }
 
 func (b *Builder) NewExportAssignment(flags ast.NodeFlags, pos, end int32, modifiers ListRef, isExportEquals bool, typeNode NodeRef, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), boolWord(isExportEquals), uint32(typeNode), uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), boolWord(isExportEquals), uint32(typeNode), uint32(expression))
 	id := b.header(ast.KindExportAssignment, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(typeNode, id)
@@ -413,8 +413,8 @@ func (b *Builder) NewExportAssignment(flags ast.NodeFlags, pos, end int32, modif
 }
 
 func (b *Builder) NewNamespaceExportDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(name))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(name))
 	id := b.header(ast.KindNamespaceExportDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -422,24 +422,24 @@ func (b *Builder) NewNamespaceExportDeclaration(flags ast.NodeFlags, pos, end in
 }
 
 func (b *Builder) NewNamespaceExport(flags ast.NodeFlags, pos, end int32, name NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(name))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(name))
 	id := b.header(ast.KindNamespaceExport, flags, 0, pos, end, data)
 	b.adopt(name, id)
 	return id
 }
 
 func (b *Builder) NewNamedExports(flags ast.NodeFlags, pos, end int32, elements ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(elements))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(elements))
 	id := b.header(ast.KindNamedExports, flags, 0, pos, end, data)
 	b.adoptList(elements, id)
 	return id
 }
 
 func (b *Builder) NewExportSpecifier(flags ast.NodeFlags, pos, end int32, isTypeOnly bool, propertyName NodeRef, name NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, boolWord(isTypeOnly), uint32(propertyName), uint32(name))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, boolWord(isTypeOnly), uint32(propertyName), uint32(name))
 	id := b.header(ast.KindExportSpecifier, flags, 0, pos, end, data)
 	b.adopt(propertyName, id)
 	b.adopt(name, id)
@@ -447,8 +447,8 @@ func (b *Builder) NewExportSpecifier(flags ast.NodeFlags, pos, end int32, isType
 }
 
 func (b *Builder) NewCallSignatureDeclaration(flags ast.NodeFlags, pos, end int32, typeParameters ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(typeParameters), uint32(parameters), uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(typeParameters), uint32(parameters), uint32(typeNode))
 	id := b.header(ast.KindCallSignature, flags, 0, pos, end, data)
 	b.adoptList(typeParameters, id)
 	b.adoptList(parameters, id)
@@ -457,8 +457,8 @@ func (b *Builder) NewCallSignatureDeclaration(flags ast.NodeFlags, pos, end int3
 }
 
 func (b *Builder) NewConstructSignatureDeclaration(flags ast.NodeFlags, pos, end int32, typeParameters ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(typeParameters), uint32(parameters), uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(typeParameters), uint32(parameters), uint32(typeNode))
 	id := b.header(ast.KindConstructSignature, flags, 0, pos, end, data)
 	b.adoptList(typeParameters, id)
 	b.adoptList(parameters, id)
@@ -467,8 +467,8 @@ func (b *Builder) NewConstructSignatureDeclaration(flags ast.NodeFlags, pos, end
 }
 
 func (b *Builder) NewConstructorDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(body))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(body))
 	id := b.header(ast.KindConstructor, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adoptList(typeParameters, id)
@@ -480,8 +480,8 @@ func (b *Builder) NewConstructorDeclaration(flags ast.NodeFlags, pos, end int32,
 }
 
 func (b *Builder) NewGetAccessorDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(body))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(name), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(body))
 	id := b.header(ast.KindGetAccessor, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -494,8 +494,8 @@ func (b *Builder) NewGetAccessorDeclaration(flags ast.NodeFlags, pos, end int32,
 }
 
 func (b *Builder) NewSetAccessorDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(body))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(name), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(body))
 	id := b.header(ast.KindSetAccessor, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -508,8 +508,8 @@ func (b *Builder) NewSetAccessorDeclaration(flags ast.NodeFlags, pos, end int32,
 }
 
 func (b *Builder) NewIndexSignatureDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(parameters), uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(parameters), uint32(typeNode))
 	id := b.header(ast.KindIndexSignature, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adoptList(parameters, id)
@@ -518,8 +518,8 @@ func (b *Builder) NewIndexSignatureDeclaration(flags ast.NodeFlags, pos, end int
 }
 
 func (b *Builder) NewMethodSignatureDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, postfixToken NodeRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(postfixToken), uint32(typeParameters), uint32(parameters), uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(name), uint32(postfixToken), uint32(typeParameters), uint32(parameters), uint32(typeNode))
 	id := b.header(ast.KindMethodSignature, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -531,8 +531,8 @@ func (b *Builder) NewMethodSignatureDeclaration(flags ast.NodeFlags, pos, end in
 }
 
 func (b *Builder) NewMethodDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, asteriskToken NodeRef, name NodeRef, postfixToken NodeRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(asteriskToken), uint32(name), uint32(postfixToken), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(body))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(asteriskToken), uint32(name), uint32(postfixToken), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(body))
 	id := b.header(ast.KindMethodDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(asteriskToken, id)
@@ -547,8 +547,8 @@ func (b *Builder) NewMethodDeclaration(flags ast.NodeFlags, pos, end int32, modi
 }
 
 func (b *Builder) NewPropertySignatureDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, postfixToken NodeRef, typeNode NodeRef, initializer NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(postfixToken), uint32(typeNode), uint32(initializer))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(name), uint32(postfixToken), uint32(typeNode), uint32(initializer))
 	id := b.header(ast.KindPropertySignature, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -559,8 +559,8 @@ func (b *Builder) NewPropertySignatureDeclaration(flags ast.NodeFlags, pos, end 
 }
 
 func (b *Builder) NewPropertyDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, postfixToken NodeRef, typeNode NodeRef, initializer NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(postfixToken), uint32(typeNode), uint32(initializer))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(name), uint32(postfixToken), uint32(typeNode), uint32(initializer))
 	id := b.header(ast.KindPropertyDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -571,8 +571,8 @@ func (b *Builder) NewPropertyDeclaration(flags ast.NodeFlags, pos, end int32, mo
 }
 
 func (b *Builder) NewClassStaticBlockDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, body NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(body))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(body))
 	id := b.header(ast.KindClassStaticBlockDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(body, id)
@@ -581,42 +581,42 @@ func (b *Builder) NewClassStaticBlockDeclaration(flags ast.NodeFlags, pos, end i
 
 func (b *Builder) NewStringLiteral(flags ast.NodeFlags, pos, end int32, text string, tokenFlags ast.TokenFlags) NodeRef {
 	textOff, textLen := b.textWords(end, text)
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, textOff, textLen, uint32(tokenFlags))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, textOff, textLen, uint32(tokenFlags))
 	return b.header(ast.KindStringLiteral, flags, 0, pos, end, data)
 }
 
 func (b *Builder) NewNumericLiteral(flags ast.NodeFlags, pos, end int32, text string, tokenFlags ast.TokenFlags) NodeRef {
 	textOff, textLen := b.textWords(end, text)
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, textOff, textLen, uint32(tokenFlags))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, textOff, textLen, uint32(tokenFlags))
 	return b.header(ast.KindNumericLiteral, flags, 0, pos, end, data)
 }
 
 func (b *Builder) NewBigIntLiteral(flags ast.NodeFlags, pos, end int32, text string, tokenFlags ast.TokenFlags) NodeRef {
 	textOff, textLen := b.textWords(end, text)
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, textOff, textLen, uint32(tokenFlags))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, textOff, textLen, uint32(tokenFlags))
 	return b.header(ast.KindBigIntLiteral, flags, 0, pos, end, data)
 }
 
 func (b *Builder) NewRegularExpressionLiteral(flags ast.NodeFlags, pos, end int32, text string, tokenFlags ast.TokenFlags) NodeRef {
 	textOff, textLen := b.textWords(end, text)
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, textOff, textLen, uint32(tokenFlags))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, textOff, textLen, uint32(tokenFlags))
 	return b.header(ast.KindRegularExpressionLiteral, flags, 0, pos, end, data)
 }
 
 func (b *Builder) NewNoSubstitutionTemplateLiteral(flags ast.NodeFlags, pos, end int32, text string, templateFlags ast.TokenFlags) NodeRef {
 	textOff, textLen := b.textWords(end, text)
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, textOff, textLen, uint32(templateFlags))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, textOff, textLen, uint32(templateFlags))
 	return b.header(ast.KindNoSubstitutionTemplateLiteral, flags, 0, pos, end, data)
 }
 
 func (b *Builder) NewBinaryExpression(flags ast.NodeFlags, pos, end int32, modifiers ListRef, left NodeRef, typeNode NodeRef, operatorToken NodeRef, right NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(left), uint32(typeNode), uint32(operatorToken), uint32(right))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(left), uint32(typeNode), uint32(operatorToken), uint32(right))
 	id := b.header(ast.KindBinaryExpression, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(left, id)
@@ -627,24 +627,24 @@ func (b *Builder) NewBinaryExpression(flags ast.NodeFlags, pos, end int32, modif
 }
 
 func (b *Builder) NewPrefixUnaryExpression(flags ast.NodeFlags, pos, end int32, operator ast.Kind, operand NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(operator), uint32(operand))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(operator), uint32(operand))
 	id := b.header(ast.KindPrefixUnaryExpression, flags, 0, pos, end, data)
 	b.adopt(operand, id)
 	return id
 }
 
 func (b *Builder) NewPostfixUnaryExpression(flags ast.NodeFlags, pos, end int32, operand NodeRef, operator ast.Kind) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(operand), uint32(operator))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(operand), uint32(operator))
 	id := b.header(ast.KindPostfixUnaryExpression, flags, 0, pos, end, data)
 	b.adopt(operand, id)
 	return id
 }
 
 func (b *Builder) NewYieldExpression(flags ast.NodeFlags, pos, end int32, asteriskToken NodeRef, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(asteriskToken), uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(asteriskToken), uint32(expression))
 	id := b.header(ast.KindYieldExpression, flags, 0, pos, end, data)
 	b.adopt(asteriskToken, id)
 	b.adopt(expression, id)
@@ -652,8 +652,8 @@ func (b *Builder) NewYieldExpression(flags ast.NodeFlags, pos, end int32, asteri
 }
 
 func (b *Builder) NewArrowFunction(flags ast.NodeFlags, pos, end int32, modifiers ListRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, equalsGreaterThanToken NodeRef, body NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(equalsGreaterThanToken), uint32(body))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(equalsGreaterThanToken), uint32(body))
 	id := b.header(ast.KindArrowFunction, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adoptList(typeParameters, id)
@@ -666,8 +666,8 @@ func (b *Builder) NewArrowFunction(flags ast.NodeFlags, pos, end int32, modifier
 }
 
 func (b *Builder) NewFunctionExpression(flags ast.NodeFlags, pos, end int32, modifiers ListRef, asteriskToken NodeRef, name NodeRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef, fullSignature NodeRef, body NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(asteriskToken), uint32(name), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(body))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(asteriskToken), uint32(name), uint32(typeParameters), uint32(parameters), uint32(typeNode), uint32(fullSignature), uint32(body))
 	id := b.header(ast.KindFunctionExpression, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(asteriskToken, id)
@@ -681,8 +681,8 @@ func (b *Builder) NewFunctionExpression(flags ast.NodeFlags, pos, end int32, mod
 }
 
 func (b *Builder) NewAsExpression(flags ast.NodeFlags, pos, end int32, expression NodeRef, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression), uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression), uint32(typeNode))
 	id := b.header(ast.KindAsExpression, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	b.adopt(typeNode, id)
@@ -690,8 +690,8 @@ func (b *Builder) NewAsExpression(flags ast.NodeFlags, pos, end int32, expressio
 }
 
 func (b *Builder) NewSatisfiesExpression(flags ast.NodeFlags, pos, end int32, expression NodeRef, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression), uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression), uint32(typeNode))
 	id := b.header(ast.KindSatisfiesExpression, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	b.adopt(typeNode, id)
@@ -699,8 +699,8 @@ func (b *Builder) NewSatisfiesExpression(flags ast.NodeFlags, pos, end int32, ex
 }
 
 func (b *Builder) NewConditionalExpression(flags ast.NodeFlags, pos, end int32, condition NodeRef, questionToken NodeRef, whenTrue NodeRef, colonToken NodeRef, whenFalse NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(condition), uint32(questionToken), uint32(whenTrue), uint32(colonToken), uint32(whenFalse))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(condition), uint32(questionToken), uint32(whenTrue), uint32(colonToken), uint32(whenFalse))
 	id := b.header(ast.KindConditionalExpression, flags, 0, pos, end, data)
 	b.adopt(condition, id)
 	b.adopt(questionToken, id)
@@ -711,8 +711,8 @@ func (b *Builder) NewConditionalExpression(flags ast.NodeFlags, pos, end int32, 
 }
 
 func (b *Builder) NewPropertyAccessExpression(flags ast.NodeFlags, pos, end int32, expression NodeRef, questionDotToken NodeRef, name NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression), uint32(questionDotToken), uint32(name))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression), uint32(questionDotToken), uint32(name))
 	id := b.header(ast.KindPropertyAccessExpression, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	b.adopt(questionDotToken, id)
@@ -721,8 +721,8 @@ func (b *Builder) NewPropertyAccessExpression(flags ast.NodeFlags, pos, end int3
 }
 
 func (b *Builder) NewElementAccessExpression(flags ast.NodeFlags, pos, end int32, expression NodeRef, questionDotToken NodeRef, argumentExpression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression), uint32(questionDotToken), uint32(argumentExpression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression), uint32(questionDotToken), uint32(argumentExpression))
 	id := b.header(ast.KindElementAccessExpression, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	b.adopt(questionDotToken, id)
@@ -731,8 +731,8 @@ func (b *Builder) NewElementAccessExpression(flags ast.NodeFlags, pos, end int32
 }
 
 func (b *Builder) NewCallExpression(flags ast.NodeFlags, pos, end int32, expression NodeRef, questionDotToken NodeRef, typeArguments ListRef, arguments ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression), uint32(questionDotToken), uint32(typeArguments), uint32(arguments))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression), uint32(questionDotToken), uint32(typeArguments), uint32(arguments))
 	id := b.header(ast.KindCallExpression, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	b.adopt(questionDotToken, id)
@@ -742,8 +742,8 @@ func (b *Builder) NewCallExpression(flags ast.NodeFlags, pos, end int32, express
 }
 
 func (b *Builder) NewNewExpression(flags ast.NodeFlags, pos, end int32, expression NodeRef, typeArguments ListRef, arguments ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression), uint32(typeArguments), uint32(arguments))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression), uint32(typeArguments), uint32(arguments))
 	id := b.header(ast.KindNewExpression, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	b.adoptList(typeArguments, id)
@@ -752,32 +752,32 @@ func (b *Builder) NewNewExpression(flags ast.NodeFlags, pos, end int32, expressi
 }
 
 func (b *Builder) NewMetaProperty(flags ast.NodeFlags, pos, end int32, keywordToken ast.Kind, name NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(keywordToken), uint32(name))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(keywordToken), uint32(name))
 	id := b.header(ast.KindMetaProperty, flags, 0, pos, end, data)
 	b.adopt(name, id)
 	return id
 }
 
 func (b *Builder) NewNonNullExpression(flags ast.NodeFlags, pos, end int32, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression))
 	id := b.header(ast.KindNonNullExpression, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	return id
 }
 
 func (b *Builder) NewSpreadElement(flags ast.NodeFlags, pos, end int32, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression))
 	id := b.header(ast.KindSpreadElement, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	return id
 }
 
 func (b *Builder) NewTemplateExpression(flags ast.NodeFlags, pos, end int32, head NodeRef, templateSpans ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(head), uint32(templateSpans))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(head), uint32(templateSpans))
 	id := b.header(ast.KindTemplateExpression, flags, 0, pos, end, data)
 	b.adopt(head, id)
 	b.adoptList(templateSpans, id)
@@ -785,8 +785,8 @@ func (b *Builder) NewTemplateExpression(flags ast.NodeFlags, pos, end int32, hea
 }
 
 func (b *Builder) NewTemplateSpan(flags ast.NodeFlags, pos, end int32, expression NodeRef, literal NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression), uint32(literal))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression), uint32(literal))
 	id := b.header(ast.KindTemplateSpan, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	b.adopt(literal, id)
@@ -794,8 +794,8 @@ func (b *Builder) NewTemplateSpan(flags ast.NodeFlags, pos, end int32, expressio
 }
 
 func (b *Builder) NewTaggedTemplateExpression(flags ast.NodeFlags, pos, end int32, tag NodeRef, questionDotToken NodeRef, typeArguments ListRef, template NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tag), uint32(questionDotToken), uint32(typeArguments), uint32(template))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tag), uint32(questionDotToken), uint32(typeArguments), uint32(template))
 	id := b.header(ast.KindTaggedTemplateExpression, flags, 0, pos, end, data)
 	b.adopt(tag, id)
 	b.adopt(questionDotToken, id)
@@ -805,40 +805,40 @@ func (b *Builder) NewTaggedTemplateExpression(flags ast.NodeFlags, pos, end int3
 }
 
 func (b *Builder) NewParenthesizedExpression(flags ast.NodeFlags, pos, end int32, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression))
 	id := b.header(ast.KindParenthesizedExpression, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	return id
 }
 
 func (b *Builder) NewArrayLiteralExpression(flags ast.NodeFlags, pos, end int32, elements ListRef, multiLine bool) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(elements), boolWord(multiLine))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(elements), boolWord(multiLine))
 	id := b.header(ast.KindArrayLiteralExpression, flags, 0, pos, end, data)
 	b.adoptList(elements, id)
 	return id
 }
 
 func (b *Builder) NewObjectLiteralExpression(flags ast.NodeFlags, pos, end int32, properties ListRef, multiLine bool) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(properties), boolWord(multiLine))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(properties), boolWord(multiLine))
 	id := b.header(ast.KindObjectLiteralExpression, flags, 0, pos, end, data)
 	b.adoptList(properties, id)
 	return id
 }
 
 func (b *Builder) NewSpreadAssignment(flags ast.NodeFlags, pos, end int32, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression))
 	id := b.header(ast.KindSpreadAssignment, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	return id
 }
 
 func (b *Builder) NewPropertyAssignment(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, postfixToken NodeRef, typeNode NodeRef, initializer NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(postfixToken), uint32(typeNode), uint32(initializer))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(name), uint32(postfixToken), uint32(typeNode), uint32(initializer))
 	id := b.header(ast.KindPropertyAssignment, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -849,8 +849,8 @@ func (b *Builder) NewPropertyAssignment(flags ast.NodeFlags, pos, end int32, mod
 }
 
 func (b *Builder) NewShorthandPropertyAssignment(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, postfixToken NodeRef, typeNode NodeRef, equalsToken NodeRef, objectAssignmentInitializer NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(postfixToken), uint32(typeNode), uint32(equalsToken), uint32(objectAssignmentInitializer))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(name), uint32(postfixToken), uint32(typeNode), uint32(equalsToken), uint32(objectAssignmentInitializer))
 	id := b.header(ast.KindShorthandPropertyAssignment, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -862,40 +862,40 @@ func (b *Builder) NewShorthandPropertyAssignment(flags ast.NodeFlags, pos, end i
 }
 
 func (b *Builder) NewDeleteExpression(flags ast.NodeFlags, pos, end int32, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression))
 	id := b.header(ast.KindDeleteExpression, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	return id
 }
 
 func (b *Builder) NewTypeOfExpression(flags ast.NodeFlags, pos, end int32, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression))
 	id := b.header(ast.KindTypeOfExpression, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	return id
 }
 
 func (b *Builder) NewVoidExpression(flags ast.NodeFlags, pos, end int32, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression))
 	id := b.header(ast.KindVoidExpression, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	return id
 }
 
 func (b *Builder) NewAwaitExpression(flags ast.NodeFlags, pos, end int32, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression))
 	id := b.header(ast.KindAwaitExpression, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	return id
 }
 
 func (b *Builder) NewTypeAssertion(flags ast.NodeFlags, pos, end int32, typeNode NodeRef, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(typeNode), uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(typeNode), uint32(expression))
 	id := b.header(ast.KindTypeAssertionExpression, flags, 0, pos, end, data)
 	b.adopt(typeNode, id)
 	b.adopt(expression, id)
@@ -903,24 +903,24 @@ func (b *Builder) NewTypeAssertion(flags ast.NodeFlags, pos, end int32, typeNode
 }
 
 func (b *Builder) NewUnionTypeNode(flags ast.NodeFlags, pos, end int32, types ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(types))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(types))
 	id := b.header(ast.KindUnionType, flags, 0, pos, end, data)
 	b.adoptList(types, id)
 	return id
 }
 
 func (b *Builder) NewIntersectionTypeNode(flags ast.NodeFlags, pos, end int32, types ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(types))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(types))
 	id := b.header(ast.KindIntersectionType, flags, 0, pos, end, data)
 	b.adoptList(types, id)
 	return id
 }
 
 func (b *Builder) NewConditionalTypeNode(flags ast.NodeFlags, pos, end int32, checkType NodeRef, extendsType NodeRef, trueType NodeRef, falseType NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(checkType), uint32(extendsType), uint32(trueType), uint32(falseType))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(checkType), uint32(extendsType), uint32(trueType), uint32(falseType))
 	id := b.header(ast.KindConditionalType, flags, 0, pos, end, data)
 	b.adopt(checkType, id)
 	b.adopt(extendsType, id)
@@ -930,32 +930,32 @@ func (b *Builder) NewConditionalTypeNode(flags ast.NodeFlags, pos, end int32, ch
 }
 
 func (b *Builder) NewTypeOperatorNode(flags ast.NodeFlags, pos, end int32, operator ast.Kind, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(operator), uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(operator), uint32(typeNode))
 	id := b.header(ast.KindTypeOperator, flags, 0, pos, end, data)
 	b.adopt(typeNode, id)
 	return id
 }
 
 func (b *Builder) NewInferTypeNode(flags ast.NodeFlags, pos, end int32, typeParameter NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(typeParameter))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(typeParameter))
 	id := b.header(ast.KindInferType, flags, 0, pos, end, data)
 	b.adopt(typeParameter, id)
 	return id
 }
 
 func (b *Builder) NewArrayTypeNode(flags ast.NodeFlags, pos, end int32, elementType NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(elementType))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(elementType))
 	id := b.header(ast.KindArrayType, flags, 0, pos, end, data)
 	b.adopt(elementType, id)
 	return id
 }
 
 func (b *Builder) NewIndexedAccessTypeNode(flags ast.NodeFlags, pos, end int32, objectType NodeRef, indexType NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(objectType), uint32(indexType))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(objectType), uint32(indexType))
 	id := b.header(ast.KindIndexedAccessType, flags, 0, pos, end, data)
 	b.adopt(objectType, id)
 	b.adopt(indexType, id)
@@ -963,8 +963,8 @@ func (b *Builder) NewIndexedAccessTypeNode(flags ast.NodeFlags, pos, end int32, 
 }
 
 func (b *Builder) NewTypeReferenceNode(flags ast.NodeFlags, pos, end int32, typeName NodeRef, typeArguments ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(typeName), uint32(typeArguments))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(typeName), uint32(typeArguments))
 	id := b.header(ast.KindTypeReference, flags, 0, pos, end, data)
 	b.adopt(typeName, id)
 	b.adoptList(typeArguments, id)
@@ -972,8 +972,8 @@ func (b *Builder) NewTypeReferenceNode(flags ast.NodeFlags, pos, end int32, type
 }
 
 func (b *Builder) NewExpressionWithTypeArguments(flags ast.NodeFlags, pos, end int32, expression NodeRef, typeArguments ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression), uint32(typeArguments))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression), uint32(typeArguments))
 	id := b.header(ast.KindExpressionWithTypeArguments, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	b.adoptList(typeArguments, id)
@@ -981,16 +981,16 @@ func (b *Builder) NewExpressionWithTypeArguments(flags ast.NodeFlags, pos, end i
 }
 
 func (b *Builder) NewLiteralTypeNode(flags ast.NodeFlags, pos, end int32, literal NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(literal))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(literal))
 	id := b.header(ast.KindLiteralType, flags, 0, pos, end, data)
 	b.adopt(literal, id)
 	return id
 }
 
 func (b *Builder) NewTypePredicateNode(flags ast.NodeFlags, pos, end int32, assertsModifier NodeRef, parameterName NodeRef, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(assertsModifier), uint32(parameterName), uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(assertsModifier), uint32(parameterName), uint32(typeNode))
 	id := b.header(ast.KindTypePredicate, flags, 0, pos, end, data)
 	b.adopt(assertsModifier, id)
 	b.adopt(parameterName, id)
@@ -999,8 +999,8 @@ func (b *Builder) NewTypePredicateNode(flags ast.NodeFlags, pos, end int32, asse
 }
 
 func (b *Builder) NewImportAttribute(flags ast.NodeFlags, pos, end int32, name NodeRef, value NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(name), uint32(value))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(name), uint32(value))
 	id := b.header(ast.KindImportAttribute, flags, 0, pos, end, data)
 	b.adopt(name, id)
 	b.adopt(value, id)
@@ -1008,16 +1008,16 @@ func (b *Builder) NewImportAttribute(flags ast.NodeFlags, pos, end int32, name N
 }
 
 func (b *Builder) NewImportAttributes(flags ast.NodeFlags, pos, end int32, token ast.Kind, attributes ListRef, multiLine bool) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(token), uint32(attributes), boolWord(multiLine))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(token), uint32(attributes), boolWord(multiLine))
 	id := b.header(ast.KindImportAttributes, flags, 0, pos, end, data)
 	b.adoptList(attributes, id)
 	return id
 }
 
 func (b *Builder) NewTypeQueryNode(flags ast.NodeFlags, pos, end int32, exprName NodeRef, typeArguments ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(exprName), uint32(typeArguments))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(exprName), uint32(typeArguments))
 	id := b.header(ast.KindTypeQuery, flags, 0, pos, end, data)
 	b.adopt(exprName, id)
 	b.adoptList(typeArguments, id)
@@ -1025,8 +1025,8 @@ func (b *Builder) NewTypeQueryNode(flags ast.NodeFlags, pos, end int32, exprName
 }
 
 func (b *Builder) NewMappedTypeNode(flags ast.NodeFlags, pos, end int32, readonlyToken NodeRef, typeParameter NodeRef, nameType NodeRef, questionToken NodeRef, typeNode NodeRef, members ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(readonlyToken), uint32(typeParameter), uint32(nameType), uint32(questionToken), uint32(typeNode), uint32(members))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(readonlyToken), uint32(typeParameter), uint32(nameType), uint32(questionToken), uint32(typeNode), uint32(members))
 	id := b.header(ast.KindMappedType, flags, 0, pos, end, data)
 	b.adopt(readonlyToken, id)
 	b.adopt(typeParameter, id)
@@ -1038,24 +1038,24 @@ func (b *Builder) NewMappedTypeNode(flags ast.NodeFlags, pos, end int32, readonl
 }
 
 func (b *Builder) NewTypeLiteralNode(flags ast.NodeFlags, pos, end int32, members ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(members))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(members))
 	id := b.header(ast.KindTypeLiteral, flags, 0, pos, end, data)
 	b.adoptList(members, id)
 	return id
 }
 
 func (b *Builder) NewTupleTypeNode(flags ast.NodeFlags, pos, end int32, elements ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(elements))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(elements))
 	id := b.header(ast.KindTupleType, flags, 0, pos, end, data)
 	b.adoptList(elements, id)
 	return id
 }
 
 func (b *Builder) NewNamedTupleMember(flags ast.NodeFlags, pos, end int32, dotDotDotToken NodeRef, name NodeRef, questionToken NodeRef, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(dotDotDotToken), uint32(name), uint32(questionToken), uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(dotDotDotToken), uint32(name), uint32(questionToken), uint32(typeNode))
 	id := b.header(ast.KindNamedTupleMember, flags, 0, pos, end, data)
 	b.adopt(dotDotDotToken, id)
 	b.adopt(name, id)
@@ -1065,32 +1065,32 @@ func (b *Builder) NewNamedTupleMember(flags ast.NodeFlags, pos, end int32, dotDo
 }
 
 func (b *Builder) NewOptionalTypeNode(flags ast.NodeFlags, pos, end int32, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(typeNode))
 	id := b.header(ast.KindOptionalType, flags, 0, pos, end, data)
 	b.adopt(typeNode, id)
 	return id
 }
 
 func (b *Builder) NewRestTypeNode(flags ast.NodeFlags, pos, end int32, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(typeNode))
 	id := b.header(ast.KindRestType, flags, 0, pos, end, data)
 	b.adopt(typeNode, id)
 	return id
 }
 
 func (b *Builder) NewParenthesizedTypeNode(flags ast.NodeFlags, pos, end int32, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(typeNode))
 	id := b.header(ast.KindParenthesizedType, flags, 0, pos, end, data)
 	b.adopt(typeNode, id)
 	return id
 }
 
 func (b *Builder) NewFunctionTypeNode(flags ast.NodeFlags, pos, end int32, typeParameters ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(typeParameters), uint32(parameters), uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(typeParameters), uint32(parameters), uint32(typeNode))
 	id := b.header(ast.KindFunctionType, flags, 0, pos, end, data)
 	b.adoptList(typeParameters, id)
 	b.adoptList(parameters, id)
@@ -1099,8 +1099,8 @@ func (b *Builder) NewFunctionTypeNode(flags ast.NodeFlags, pos, end int32, typeP
 }
 
 func (b *Builder) NewConstructorTypeNode(flags ast.NodeFlags, pos, end int32, modifiers ListRef, typeParameters ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(typeParameters), uint32(parameters), uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(typeParameters), uint32(parameters), uint32(typeNode))
 	id := b.header(ast.KindConstructorType, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adoptList(typeParameters, id)
@@ -1112,30 +1112,30 @@ func (b *Builder) NewConstructorTypeNode(flags ast.NodeFlags, pos, end int32, mo
 func (b *Builder) NewTemplateHead(flags ast.NodeFlags, pos, end int32, text string, rawText string, templateFlags ast.TokenFlags) NodeRef {
 	textOff, textLen := b.textWords(end, text)
 	rawTextOff, rawTextLen := b.textWords(end, rawText)
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, textOff, textLen, rawTextOff, rawTextLen, uint32(templateFlags))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, textOff, textLen, rawTextOff, rawTextLen, uint32(templateFlags))
 	return b.header(ast.KindTemplateHead, flags, 0, pos, end, data)
 }
 
 func (b *Builder) NewTemplateMiddle(flags ast.NodeFlags, pos, end int32, text string, rawText string, templateFlags ast.TokenFlags) NodeRef {
 	textOff, textLen := b.textWords(end, text)
 	rawTextOff, rawTextLen := b.textWords(end, rawText)
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, textOff, textLen, rawTextOff, rawTextLen, uint32(templateFlags))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, textOff, textLen, rawTextOff, rawTextLen, uint32(templateFlags))
 	return b.header(ast.KindTemplateMiddle, flags, 0, pos, end, data)
 }
 
 func (b *Builder) NewTemplateTail(flags ast.NodeFlags, pos, end int32, text string, rawText string, templateFlags ast.TokenFlags) NodeRef {
 	textOff, textLen := b.textWords(end, text)
 	rawTextOff, rawTextLen := b.textWords(end, rawText)
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, textOff, textLen, rawTextOff, rawTextLen, uint32(templateFlags))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, textOff, textLen, rawTextOff, rawTextLen, uint32(templateFlags))
 	return b.header(ast.KindTemplateTail, flags, 0, pos, end, data)
 }
 
 func (b *Builder) NewTemplateLiteralTypeNode(flags ast.NodeFlags, pos, end int32, head NodeRef, templateSpans ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(head), uint32(templateSpans))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(head), uint32(templateSpans))
 	id := b.header(ast.KindTemplateLiteralType, flags, 0, pos, end, data)
 	b.adopt(head, id)
 	b.adoptList(templateSpans, id)
@@ -1143,8 +1143,8 @@ func (b *Builder) NewTemplateLiteralTypeNode(flags ast.NodeFlags, pos, end int32
 }
 
 func (b *Builder) NewTemplateLiteralTypeSpan(flags ast.NodeFlags, pos, end int32, typeNode NodeRef, literal NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(typeNode), uint32(literal))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(typeNode), uint32(literal))
 	id := b.header(ast.KindTemplateLiteralTypeSpan, flags, 0, pos, end, data)
 	b.adopt(typeNode, id)
 	b.adopt(literal, id)
@@ -1152,24 +1152,24 @@ func (b *Builder) NewTemplateLiteralTypeSpan(flags ast.NodeFlags, pos, end int32
 }
 
 func (b *Builder) NewSyntheticExpression(flags ast.NodeFlags, pos, end int32, isSpread bool, tupleNameSource NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, boolWord(isSpread), uint32(tupleNameSource))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, boolWord(isSpread), uint32(tupleNameSource))
 	id := b.header(ast.KindSyntheticExpression, flags, 0, pos, end, data)
 	b.adopt(tupleNameSource, id)
 	return id
 }
 
 func (b *Builder) NewPartiallyEmittedExpression(flags ast.NodeFlags, pos, end int32, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression))
 	id := b.header(ast.KindPartiallyEmittedExpression, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	return id
 }
 
 func (b *Builder) NewJsxElement(flags ast.NodeFlags, pos, end int32, openingElement NodeRef, children ListRef, closingElement NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(openingElement), uint32(children), uint32(closingElement))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(openingElement), uint32(children), uint32(closingElement))
 	id := b.header(ast.KindJsxElement, flags, 0, pos, end, data)
 	b.adopt(openingElement, id)
 	b.adoptList(children, id)
@@ -1178,16 +1178,16 @@ func (b *Builder) NewJsxElement(flags ast.NodeFlags, pos, end int32, openingElem
 }
 
 func (b *Builder) NewJsxAttributes(flags ast.NodeFlags, pos, end int32, properties ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(properties))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(properties))
 	id := b.header(ast.KindJsxAttributes, flags, 0, pos, end, data)
 	b.adoptList(properties, id)
 	return id
 }
 
 func (b *Builder) NewJsxNamespacedName(flags ast.NodeFlags, pos, end int32, namespace NodeRef, name NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(namespace), uint32(name))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(namespace), uint32(name))
 	id := b.header(ast.KindJsxNamespacedName, flags, 0, pos, end, data)
 	b.adopt(namespace, id)
 	b.adopt(name, id)
@@ -1195,8 +1195,8 @@ func (b *Builder) NewJsxNamespacedName(flags ast.NodeFlags, pos, end int32, name
 }
 
 func (b *Builder) NewJsxOpeningElement(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeArguments ListRef, attributes NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(typeArguments), uint32(attributes))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(typeArguments), uint32(attributes))
 	id := b.header(ast.KindJsxOpeningElement, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adoptList(typeArguments, id)
@@ -1205,8 +1205,8 @@ func (b *Builder) NewJsxOpeningElement(flags ast.NodeFlags, pos, end int32, tagN
 }
 
 func (b *Builder) NewJsxSelfClosingElement(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeArguments ListRef, attributes NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(typeArguments), uint32(attributes))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(typeArguments), uint32(attributes))
 	id := b.header(ast.KindJsxSelfClosingElement, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adoptList(typeArguments, id)
@@ -1215,8 +1215,8 @@ func (b *Builder) NewJsxSelfClosingElement(flags ast.NodeFlags, pos, end int32, 
 }
 
 func (b *Builder) NewJsxFragment(flags ast.NodeFlags, pos, end int32, openingFragment NodeRef, children ListRef, closingFragment NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(openingFragment), uint32(children), uint32(closingFragment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(openingFragment), uint32(children), uint32(closingFragment))
 	id := b.header(ast.KindJsxFragment, flags, 0, pos, end, data)
 	b.adopt(openingFragment, id)
 	b.adoptList(children, id)
@@ -1225,8 +1225,8 @@ func (b *Builder) NewJsxFragment(flags ast.NodeFlags, pos, end int32, openingFra
 }
 
 func (b *Builder) NewJsxAttribute(flags ast.NodeFlags, pos, end int32, name NodeRef, initializer NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(name), uint32(initializer))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(name), uint32(initializer))
 	id := b.header(ast.KindJsxAttribute, flags, 0, pos, end, data)
 	b.adopt(name, id)
 	b.adopt(initializer, id)
@@ -1234,24 +1234,24 @@ func (b *Builder) NewJsxAttribute(flags ast.NodeFlags, pos, end int32, name Node
 }
 
 func (b *Builder) NewJsxSpreadAttribute(flags ast.NodeFlags, pos, end int32, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression))
 	id := b.header(ast.KindJsxSpreadAttribute, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	return id
 }
 
 func (b *Builder) NewJsxClosingElement(flags ast.NodeFlags, pos, end int32, tagName NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName))
 	id := b.header(ast.KindJsxClosingElement, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	return id
 }
 
 func (b *Builder) NewJsxExpression(flags ast.NodeFlags, pos, end int32, dotDotDotToken NodeRef, expression NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(dotDotDotToken), uint32(expression))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(dotDotDotToken), uint32(expression))
 	id := b.header(ast.KindJsxExpression, flags, 0, pos, end, data)
 	b.adopt(dotDotDotToken, id)
 	b.adopt(expression, id)
@@ -1260,22 +1260,22 @@ func (b *Builder) NewJsxExpression(flags ast.NodeFlags, pos, end int32, dotDotDo
 
 func (b *Builder) NewJsxText(flags ast.NodeFlags, pos, end int32, text string, containsOnlyTriviaWhiteSpaces bool) NodeRef {
 	textOff, textLen := b.textWords(end, text)
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, textOff, textLen, boolWord(containsOnlyTriviaWhiteSpaces))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, textOff, textLen, boolWord(containsOnlyTriviaWhiteSpaces))
 	return b.header(ast.KindJsxText, flags, 0, pos, end, data)
 }
 
 func (b *Builder) NewSyntaxList(flags ast.NodeFlags, pos, end int32, children ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(children))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(children))
 	id := b.header(ast.KindSyntaxList, flags, 0, pos, end, data)
 	b.adoptList(children, id)
 	return id
 }
 
 func (b *Builder) NewJSDoc(flags ast.NodeFlags, pos, end int32, comment ListRef, tags ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(comment), uint32(tags))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(comment), uint32(tags))
 	id := b.header(ast.KindJSDoc, flags, 0, pos, end, data)
 	b.adoptList(comment, id)
 	b.adoptList(tags, id)
@@ -1283,48 +1283,48 @@ func (b *Builder) NewJSDoc(flags ast.NodeFlags, pos, end int32, comment ListRef,
 }
 
 func (b *Builder) NewJSDocTypeExpression(flags ast.NodeFlags, pos, end int32, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(typeNode))
 	id := b.header(ast.KindJSDocTypeExpression, flags, 0, pos, end, data)
 	b.adopt(typeNode, id)
 	return id
 }
 
 func (b *Builder) NewJSDocNonNullableType(flags ast.NodeFlags, pos, end int32, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(typeNode))
 	id := b.header(ast.KindJSDocNonNullableType, flags, 0, pos, end, data)
 	b.adopt(typeNode, id)
 	return id
 }
 
 func (b *Builder) NewJSDocNullableType(flags ast.NodeFlags, pos, end int32, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(typeNode))
 	id := b.header(ast.KindJSDocNullableType, flags, 0, pos, end, data)
 	b.adopt(typeNode, id)
 	return id
 }
 
 func (b *Builder) NewJSDocVariadicType(flags ast.NodeFlags, pos, end int32, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(typeNode))
 	id := b.header(ast.KindJSDocVariadicType, flags, 0, pos, end, data)
 	b.adopt(typeNode, id)
 	return id
 }
 
 func (b *Builder) NewJSDocOptionalType(flags ast.NodeFlags, pos, end int32, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(typeNode))
 	id := b.header(ast.KindJSDocOptionalType, flags, 0, pos, end, data)
 	b.adopt(typeNode, id)
 	return id
 }
 
 func (b *Builder) NewJSDocTypeTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(typeExpression), uint32(comment))
 	id := b.header(ast.KindJSDocTypeTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(typeExpression, id)
@@ -1333,8 +1333,8 @@ func (b *Builder) NewJSDocTypeTag(flags ast.NodeFlags, pos, end int32, tagName N
 }
 
 func (b *Builder) NewJSDocUnknownTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(comment))
 	id := b.header(ast.KindJSDocUnknownTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adoptList(comment, id)
@@ -1342,8 +1342,8 @@ func (b *Builder) NewJSDocUnknownTag(flags ast.NodeFlags, pos, end int32, tagNam
 }
 
 func (b *Builder) NewJSDocTemplateTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, constraint NodeRef, typeParameters ListRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(constraint), uint32(typeParameters), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(constraint), uint32(typeParameters), uint32(comment))
 	id := b.header(ast.KindJSDocTemplateTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(constraint, id)
@@ -1353,8 +1353,8 @@ func (b *Builder) NewJSDocTemplateTag(flags ast.NodeFlags, pos, end int32, tagNa
 }
 
 func (b *Builder) NewJSDocReturnTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(typeExpression), uint32(comment))
 	id := b.header(ast.KindJSDocReturnTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(typeExpression, id)
@@ -1363,8 +1363,8 @@ func (b *Builder) NewJSDocReturnTag(flags ast.NodeFlags, pos, end int32, tagName
 }
 
 func (b *Builder) NewJSDocPublicTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(comment))
 	id := b.header(ast.KindJSDocPublicTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adoptList(comment, id)
@@ -1372,8 +1372,8 @@ func (b *Builder) NewJSDocPublicTag(flags ast.NodeFlags, pos, end int32, tagName
 }
 
 func (b *Builder) NewJSDocPrivateTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(comment))
 	id := b.header(ast.KindJSDocPrivateTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adoptList(comment, id)
@@ -1381,8 +1381,8 @@ func (b *Builder) NewJSDocPrivateTag(flags ast.NodeFlags, pos, end int32, tagNam
 }
 
 func (b *Builder) NewJSDocProtectedTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(comment))
 	id := b.header(ast.KindJSDocProtectedTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adoptList(comment, id)
@@ -1390,8 +1390,8 @@ func (b *Builder) NewJSDocProtectedTag(flags ast.NodeFlags, pos, end int32, tagN
 }
 
 func (b *Builder) NewJSDocReadonlyTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(comment))
 	id := b.header(ast.KindJSDocReadonlyTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adoptList(comment, id)
@@ -1399,8 +1399,8 @@ func (b *Builder) NewJSDocReadonlyTag(flags ast.NodeFlags, pos, end int32, tagNa
 }
 
 func (b *Builder) NewJSDocOverrideTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(comment))
 	id := b.header(ast.KindJSDocOverrideTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adoptList(comment, id)
@@ -1408,8 +1408,8 @@ func (b *Builder) NewJSDocOverrideTag(flags ast.NodeFlags, pos, end int32, tagNa
 }
 
 func (b *Builder) NewJSDocDeprecatedTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(comment))
 	id := b.header(ast.KindJSDocDeprecatedTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adoptList(comment, id)
@@ -1417,8 +1417,8 @@ func (b *Builder) NewJSDocDeprecatedTag(flags ast.NodeFlags, pos, end int32, tag
 }
 
 func (b *Builder) NewJSDocSeeTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, nameExpression NodeRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(nameExpression), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(nameExpression), uint32(comment))
 	id := b.header(ast.KindJSDocSeeTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(nameExpression, id)
@@ -1427,8 +1427,8 @@ func (b *Builder) NewJSDocSeeTag(flags ast.NodeFlags, pos, end int32, tagName No
 }
 
 func (b *Builder) NewJSDocImplementsTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, className NodeRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(className), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(className), uint32(comment))
 	id := b.header(ast.KindJSDocImplementsTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(className, id)
@@ -1437,8 +1437,8 @@ func (b *Builder) NewJSDocImplementsTag(flags ast.NodeFlags, pos, end int32, tag
 }
 
 func (b *Builder) NewJSDocAugmentsTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, className NodeRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(className), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(className), uint32(comment))
 	id := b.header(ast.KindJSDocAugmentsTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(className, id)
@@ -1447,8 +1447,8 @@ func (b *Builder) NewJSDocAugmentsTag(flags ast.NodeFlags, pos, end int32, tagNa
 }
 
 func (b *Builder) NewJSDocSatisfiesTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(typeExpression), uint32(comment))
 	id := b.header(ast.KindJSDocSatisfiesTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(typeExpression, id)
@@ -1457,8 +1457,8 @@ func (b *Builder) NewJSDocSatisfiesTag(flags ast.NodeFlags, pos, end int32, tagN
 }
 
 func (b *Builder) NewJSDocThrowsTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(typeExpression), uint32(comment))
 	id := b.header(ast.KindJSDocThrowsTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(typeExpression, id)
@@ -1467,8 +1467,8 @@ func (b *Builder) NewJSDocThrowsTag(flags ast.NodeFlags, pos, end int32, tagName
 }
 
 func (b *Builder) NewJSDocThisTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(typeExpression), uint32(comment))
 	id := b.header(ast.KindJSDocThisTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(typeExpression, id)
@@ -1477,8 +1477,8 @@ func (b *Builder) NewJSDocThisTag(flags ast.NodeFlags, pos, end int32, tagName N
 }
 
 func (b *Builder) NewJSDocImportTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, importClause NodeRef, moduleSpecifier NodeRef, attributes NodeRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(importClause), uint32(moduleSpecifier), uint32(attributes), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(importClause), uint32(moduleSpecifier), uint32(attributes), uint32(comment))
 	id := b.header(ast.KindJSDocImportTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(importClause, id)
@@ -1489,8 +1489,8 @@ func (b *Builder) NewJSDocImportTag(flags ast.NodeFlags, pos, end int32, tagName
 }
 
 func (b *Builder) NewJSDocCallbackTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, name NodeRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), uint32(name), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(typeExpression), uint32(name), uint32(comment))
 	id := b.header(ast.KindJSDocCallbackTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(typeExpression, id)
@@ -1500,8 +1500,8 @@ func (b *Builder) NewJSDocCallbackTag(flags ast.NodeFlags, pos, end int32, tagNa
 }
 
 func (b *Builder) NewJSDocOverloadTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(typeExpression), uint32(comment))
 	id := b.header(ast.KindJSDocOverloadTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(typeExpression, id)
@@ -1510,8 +1510,8 @@ func (b *Builder) NewJSDocOverloadTag(flags ast.NodeFlags, pos, end int32, tagNa
 }
 
 func (b *Builder) NewJSDocTypedefTag(flags ast.NodeFlags, pos, end int32, tagName NodeRef, typeExpression NodeRef, name NodeRef, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(typeExpression), uint32(name), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(typeExpression), uint32(name), uint32(comment))
 	id := b.header(ast.KindJSDocTypedefTag, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(typeExpression, id)
@@ -1521,8 +1521,8 @@ func (b *Builder) NewJSDocTypedefTag(flags ast.NodeFlags, pos, end int32, tagNam
 }
 
 func (b *Builder) NewJSDocSignature(flags ast.NodeFlags, pos, end int32, typeParameters ListRef, parameters ListRef, typeNode NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(typeParameters), uint32(parameters), uint32(typeNode))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(typeParameters), uint32(parameters), uint32(typeNode))
 	id := b.header(ast.KindJSDocSignature, flags, 0, pos, end, data)
 	b.adoptList(typeParameters, id)
 	b.adoptList(parameters, id)
@@ -1531,16 +1531,16 @@ func (b *Builder) NewJSDocSignature(flags ast.NodeFlags, pos, end int32, typePar
 }
 
 func (b *Builder) NewJSDocNameReference(flags ast.NodeFlags, pos, end int32, name NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(name))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(name))
 	id := b.header(ast.KindJSDocNameReference, flags, 0, pos, end, data)
 	b.adopt(name, id)
 	return id
 }
 
 func (b *Builder) NewSourceFile(flags ast.NodeFlags, pos, end int32, statements ListRef, endOfFileToken NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(statements), uint32(endOfFileToken))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(statements), uint32(endOfFileToken))
 	id := b.header(ast.KindSourceFile, flags, 0, pos, end, data)
 	b.adoptList(statements, id)
 	b.adopt(endOfFileToken, id)
@@ -1548,8 +1548,8 @@ func (b *Builder) NewSourceFile(flags ast.NodeFlags, pos, end int32, statements 
 }
 
 func (b *Builder) NewModuleDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, keyword ast.Kind, name NodeRef, attributes NodeRef, body NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(keyword), uint32(name), uint32(attributes), uint32(body))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(keyword), uint32(name), uint32(attributes), uint32(body))
 	id := b.header(ast.KindModuleDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -1559,8 +1559,8 @@ func (b *Builder) NewModuleDeclaration(flags ast.NodeFlags, pos, end int32, modi
 }
 
 func (b *Builder) NewImportEqualsDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, isTypeOnly bool, name NodeRef, moduleReference NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), boolWord(isTypeOnly), uint32(name), uint32(moduleReference))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), boolWord(isTypeOnly), uint32(name), uint32(moduleReference))
 	id := b.header(ast.KindImportEqualsDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -1569,8 +1569,8 @@ func (b *Builder) NewImportEqualsDeclaration(flags ast.NodeFlags, pos, end int32
 }
 
 func (b *Builder) NewExportDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, isTypeOnly bool, exportClause NodeRef, moduleSpecifier NodeRef, attributes NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), boolWord(isTypeOnly), uint32(exportClause), uint32(moduleSpecifier), uint32(attributes))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), boolWord(isTypeOnly), uint32(exportClause), uint32(moduleSpecifier), uint32(attributes))
 	id := b.header(ast.KindExportDeclaration, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(exportClause, id)
@@ -1580,8 +1580,8 @@ func (b *Builder) NewExportDeclaration(flags ast.NodeFlags, pos, end int32, modi
 }
 
 func (b *Builder) NewImportTypeNode(flags ast.NodeFlags, pos, end int32, isTypeOf bool, argument NodeRef, attributes NodeRef, qualifier NodeRef, typeArguments ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, boolWord(isTypeOf), uint32(argument), uint32(attributes), uint32(qualifier), uint32(typeArguments))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, boolWord(isTypeOf), uint32(argument), uint32(attributes), uint32(qualifier), uint32(typeArguments))
 	id := b.header(ast.KindImportType, flags, 0, pos, end, data)
 	b.adopt(argument, id)
 	b.adopt(attributes, id)
@@ -1591,8 +1591,8 @@ func (b *Builder) NewImportTypeNode(flags ast.NodeFlags, pos, end int32, isTypeO
 }
 
 func (b *Builder) NewImportClause(flags ast.NodeFlags, pos, end int32, phaseModifier ast.Kind, name NodeRef, namedBindings NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(phaseModifier), uint32(name), uint32(namedBindings))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(phaseModifier), uint32(name), uint32(namedBindings))
 	id := b.header(ast.KindImportClause, flags, 0, pos, end, data)
 	b.adopt(name, id)
 	b.adopt(namedBindings, id)
@@ -1600,8 +1600,8 @@ func (b *Builder) NewImportClause(flags ast.NodeFlags, pos, end int32, phaseModi
 }
 
 func (b *Builder) NewImportSpecifier(flags ast.NodeFlags, pos, end int32, isTypeOnly bool, propertyName NodeRef, name NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, boolWord(isTypeOnly), uint32(propertyName), uint32(name))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, boolWord(isTypeOnly), uint32(propertyName), uint32(name))
 	id := b.header(ast.KindImportSpecifier, flags, 0, pos, end, data)
 	b.adopt(propertyName, id)
 	b.adopt(name, id)
@@ -1609,32 +1609,32 @@ func (b *Builder) NewImportSpecifier(flags ast.NodeFlags, pos, end int32, isType
 }
 
 func (b *Builder) NewJSDocLink(flags ast.NodeFlags, pos, end int32, name NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(name))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(name))
 	id := b.header(ast.KindJSDocLink, flags, 0, pos, end, data)
 	b.adopt(name, id)
 	return id
 }
 
 func (b *Builder) NewJSDocLinkPlain(flags ast.NodeFlags, pos, end int32, name NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(name))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(name))
 	id := b.header(ast.KindJSDocLinkPlain, flags, 0, pos, end, data)
 	b.adopt(name, id)
 	return id
 }
 
 func (b *Builder) NewJSDocLinkCode(flags ast.NodeFlags, pos, end int32, name NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(name))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(name))
 	id := b.header(ast.KindJSDocLinkCode, flags, 0, pos, end, data)
 	b.adopt(name, id)
 	return id
 }
 
 func (b *Builder) NewTypeParameterDeclaration(flags ast.NodeFlags, pos, end int32, modifiers ListRef, name NodeRef, constraint NodeRef, expression NodeRef, defaultType NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(modifiers), uint32(name), uint32(constraint), uint32(expression), uint32(defaultType))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(modifiers), uint32(name), uint32(constraint), uint32(expression), uint32(defaultType))
 	id := b.header(ast.KindTypeParameter, flags, b.modifierFlags(modifiers), pos, end, data)
 	b.adoptList(modifiers, id)
 	b.adopt(name, id)
@@ -1645,8 +1645,8 @@ func (b *Builder) NewTypeParameterDeclaration(flags ast.NodeFlags, pos, end int3
 }
 
 func (b *Builder) NewSyntheticReferenceExpression(flags ast.NodeFlags, pos, end int32, expression NodeRef, thisArg NodeRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(expression), uint32(thisArg))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(expression), uint32(thisArg))
 	id := b.header(ast.KindSyntheticReferenceExpression, flags, 0, pos, end, data)
 	b.adopt(expression, id)
 	b.adopt(thisArg, id)
@@ -1654,16 +1654,16 @@ func (b *Builder) NewSyntheticReferenceExpression(flags ast.NodeFlags, pos, end 
 }
 
 func (b *Builder) NewJSDocTypeLiteral(flags ast.NodeFlags, pos, end int32, jsdocPropertyTags ListRef, isArrayType bool) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(jsdocPropertyTags), boolWord(isArrayType))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(jsdocPropertyTags), boolWord(isArrayType))
 	id := b.header(ast.KindJSDocTypeLiteral, flags, 0, pos, end, data)
 	b.adoptList(jsdocPropertyTags, id)
 	return id
 }
 
 func (b *Builder) NewJSDocParameterOrPropertyTag(kind ast.Kind, flags ast.NodeFlags, pos, end int32, tagName NodeRef, name NodeRef, isBracketed bool, typeExpression NodeRef, isNameFirst bool, comment ListRef) NodeRef {
-	data := uint32(len(b.extra))
-	b.extra = append(b.extra, uint32(tagName), uint32(name), boolWord(isBracketed), uint32(typeExpression), boolWord(isNameFirst), uint32(comment))
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(tagName), uint32(name), boolWord(isBracketed), uint32(typeExpression), boolWord(isNameFirst), uint32(comment))
 	id := b.header(kind, flags, 0, pos, end, data)
 	b.adopt(tagName, id)
 	b.adopt(name, id)
