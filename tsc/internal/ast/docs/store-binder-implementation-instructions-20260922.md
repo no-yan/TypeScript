@@ -184,7 +184,7 @@ func GetLocals(...)                                   // §5.2 (予約 slot 経�
 | `CompositeBase.facts` | | skip のまま |
 
 - `bound` slot は宣言順の末尾に置く (子と list の並びと `ForEachChild` の契約を変えない。`listMask` の bit は立てない)。constructor は 0 で埋める (引数に取らない)。
-- 生成する API: 定義ごとの getter (`func (v FunctionDeclaration) Locals() uint32` 等) と setter (`SetLocals(uint32)`。§3.1 と同じ `sealed` 検査)、役割 accessor `func (n Node) LocalsSlot() (uint32, bool)` / `LocalSymbol() SymbolId` / `EndFlowNode() FlowRef` / `ReturnFlowNode() FlowRef` / `FallthroughFlowNode() FlowRef` を `nameSlot` と同じ `[512]uint8` の表 (番兵 0xFF で不在) で。**不在 kind の経路は表引き + 比較 1 回で戻る** (設計文書 §2.6)。
+- 生成する API: 定義ごとの getter (`func (v FunctionDeclaration) LocalsSlot() uint32` 等) と setter (`SetLocalsSlot(uint32)`。§3.1 と同じ `sealed` 検査)、役割 accessor `func (n Node) LocalsSlot() (uint32, bool)` / `LocalSymbol() SymbolId` / `EndFlowNode() FlowRef` / `ReturnFlowNode() FlowRef` / `FallthroughFlowNode() FlowRef` を `nameSlot` と同じ `[512]uint8` の表 (番兵 0xFF で不在) で。**不在 kind の経路は表引き + 比較 1 回で戻る** (設計文書 §2.6)。名前の使い分け: `LocalsSlot` (typed view と役割 accessor、`extra` の値 = `Bound.locals` の index)、`Bound.Locals(i)` (index → `SymbolTable`)。`Locals()` という名前は Store 側に作らない。
 - `storetest/equivalence_generated.go` の member 比較から `bound` slot は除く (parse 直後は 0 で、Pointer 側は nil。bind の等価は §6 の driver が見る)。
 - `convert` は `bound` slot を 0 で作る。
 - 生成物の差分は `shapes_generated.go` (words の増加と役割表 5 本)、`views_generated.go` (getter / setter / 役割 accessor)、`builder_generated.go` (0 埋め) に限られること。
@@ -259,7 +259,7 @@ func Pairs(file *ast.SourceFile, s *store.Store, opts Options) ([]Pair, Mismatch
 | `node.DeclarationData().Symbol = s` (`addDeclarationToSymbol`) | `node.SetSymbol(s.Id())` |
 | `node.Symbol()` | `b.bound.SymbolOf(node.Symbol())` (binder 内のヘルパ `b.symbolOf(node)`) |
 | `node.ExportableData().LocalSymbol = local` | `node.SetLocalSymbol(local.Id())` (役割 setter) |
-| `ast.GetLocals(container)` | `b.getLocals(container)`: `container.LocalsSlot()` で slot を読み、0 なら `Bound.locals` に table を append して slot に index を書く |
+| `ast.GetLocals(container)` | `b.getLocals(container)`: `container.LocalsSlot()` で slot を読み、0 なら `b.bound.NewLocals()` の index を `SetLocalsSlot` で書き、`b.bound.Locals(i)` を返す |
 | `container.LocalsContainerData() != nil` (`lookupName`、`IsLocalsContainer`) | `LocalsSlot()` の ok |
 | `node.AsIdentifier().FlowNode = f`、`setFlowNode`、`flowNodeData.FlowNode = f` | `node.SetFlow(f)`。`FlowNodeData() != nil` の判定は不要 (全 kind に slot がある)。成り立つ根拠は 4 呼び出し箇所が kind でガードされていること (statement は `StatementBase` が `FlowNodeBase` を埋め込む、他は kind の分岐の中)。ガード無しの書き込みを足さない |
 | `bodyData.EndFlowNode = f`、`setReturnFlowNode`、`clause.FallthroughFlowNode = f` | 役割 setter `SetEndFlowNode` / `SetReturnFlowNode` / `SetFallthroughFlowNode` (kind switch は setter の中の表引きに畳まれる) |
