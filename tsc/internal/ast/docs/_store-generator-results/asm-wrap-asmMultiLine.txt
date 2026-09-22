@@ -1,0 +1,29 @@
+TEXT github.com/microsoft/TypeScript/tsc/internal/ast/store_test.asmMultiLine(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/ast/store/zz_verify_test.go
+  zz_verify_test.go:41		0x100318590		f9400b90		MOVD 16(R28), R16									
+  zz_verify_test.go:41		0x100318594		eb3063ff		CMP R16, RSP										
+  zz_verify_test.go:41		0x100318598		54000269		BLS 19(PC)										
+  zz_verify_test.go:41		0x10031859c		f81f0ffe		MOVD.W R30, -16(RSP)									
+  zz_verify_test.go:41		0x1003185a0		f81f83fd		MOVD R29, -8(RSP)									
+  zz_verify_test.go:41		0x1003185a4		d10023fd		SUB $8, RSP, R29									
+  zz_verify_test.go:41		0x1003185a8		f9000fe0		MOVD R0, 24(RSP)									
+  zz_verify_test.go:41		0x1003185ac		f90013e1		MOVD R1, 32(RSP)									
+  views_generated.go:570	0x1003185b0		a9418c02		LDP 24(R0), (R2, R3)									
+  views_generated.go:570	0x1003185b4		b9401421		MOVWU 20(R1), R1									
+  views_generated.go:570	0x1003185b8		91000421		ADD $1, R1, R1										
+  views_generated.go:570	0x1003185bc		eb01007f		CMP R1, R3										
+  views_generated.go:570	0x1003185c0		540000e9		BLS 7(PC)										
+  views_generated.go:570	0x1003185c4		b8617841		MOVWU (R2)(R1<<2), R1									
+  views_generated.go:570	0x1003185c8		7100003f		CMPW $0, R1										
+  views_generated.go:570	0x1003185cc		9a9f07e0		CSET NE, R0										
+  zz_verify_test.go:41		0x1003185d0		f85f83fd		MOVD -8(RSP), R29									
+  zz_verify_test.go:41		0x1003185d4		f84107fe		MOVD.P 16(RSP), R30									
+  zz_verify_test.go:41		0x1003185d8		d65f03c0		RET											
+  views_generated.go:570	0x1003185dc		97f5bb7d		CALL runtime.panicBounds(SB)								
+  views_generated.go:570	0x1003185e0		d503201f		NOOP											
+  zz_verify_test.go:41		0x1003185e4		a90087e0		STP (R0, R1), 8(RSP)									
+  zz_verify_test.go:41		0x1003185e8		aa1e03e3		MOVD R30, R3										
+  zz_verify_test.go:41		0x1003185ec		97f5b335		CALL runtime.morestack_noctxt.abi0(SB)							
+  zz_verify_test.go:41		0x1003185f0		a94087e0		LDP 8(RSP), (R0, R1)									
+  zz_verify_test.go:41		0x1003185f4		17ffffe7		JMP github.com/microsoft/TypeScript/tsc/internal/ast/store_test.asmMultiLine(SB)	
+  zz_verify_test.go:41		0x1003185f8		00000000		?											
+  zz_verify_test.go:41		0x1003185fc		00000000		?											

@@ -1,0 +1,48 @@
+== go test store (no tag)
+=== RUN   TestFingerprint
+=== RUN   TestFingerprint/checker.ts
+=== RUN   TestFingerprint/dom.generated.d.ts
+--- PASS: TestFingerprint (0.18s)
+=== RUN   TestSmallWalk
+--- PASS: TestSmallWalk (0.00s)
+=== RUN   TestEquivalence
+    store_test.go:250: comparing 466 members and 180 roles per kind
+=== RUN   TestEquivalence/small
+=== RUN   TestEquivalence/checker.ts
+=== RUN   TestEquivalence/dom.generated.d.ts
+--- PASS: TestEquivalence (0.08s)
+=== RUN   TestCorpus
+    store_test.go:346: 17415 files, 2584467 nodes
+--- PASS: TestCorpus (3.64s)
+=== RUN   TestTexts
+--- PASS: TestTexts (0.00s)
+=== RUN   TestLayout
+--- PASS: TestLayout (0.00s)
+=== RUN   TestStoreFootprint
+    store_test.go:402: checker.ts: 298054 nodes, headers 7153320 B, extra 2668172 B, texts 11265 B, total 32.95 B/node
+    store_test.go:402: dom.generated.d.ts: 109605 nodes, headers 2630544 B, extra 1115688 B, texts 24269 B, total 34.18 B/node
+--- PASS: TestStoreFootprint (0.05s)
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/ast/store	4.408s
+go test -count=1 -v -run 'Test' ./internal/ast/store/... 2>&1  2.53s user 2.20s system 33% cpu 13.991 total
+== go test store -tags storechecks
+--- PASS: TestFingerprint (0.15s)
+--- PASS: TestSmallWalk (0.00s)
+    store_test.go:250: comparing 466 members and 180 roles per kind
+--- PASS: TestEquivalence (0.09s)
+    store_test.go:346: 17415 files, 2584467 nodes
+--- PASS: TestCorpus (3.21s)
+--- PASS: TestTexts (0.00s)
+--- PASS: TestLayout (0.00s)
+    store_test.go:402: checker.ts: 298054 nodes, headers 7153320 B, extra 2668172 B, texts 11265 B, total 32.95 B/node
+    store_test.go:402: dom.generated.d.ts: 109605 nodes, headers 2630544 B, extra 1115688 B, texts 24269 B, total 34.18 B/node
+--- PASS: TestStoreFootprint (0.05s)
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/ast/store	3.954s
+go test -tags storechecks -count=1 -v -run 'Test' ./internal/ast/store/... 2>  2.38s user 1.53s system 43% cpu 9.066 total
+== go test ast parser
+ok  	github.com/microsoft/TypeScript/tsc/internal/ast	0.902s
+ok  	github.com/microsoft/TypeScript/tsc/internal/parser	3.925s
+go test -count=1 ./internal/ast/ ./internal/parser/ 2>&1  3.30s user 2.84s system 48% cpu 12.565 total
+tail -5  0.00s user 0.00s system 0% cpu 12.564 total
+done

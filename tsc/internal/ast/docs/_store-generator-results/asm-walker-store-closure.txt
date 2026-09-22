@@ -1,0 +1,25 @@
+TEXT github.com/microsoft/TypeScript/tsc/internal/ast/store_test.newStoreWalker.func1(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/ast/store/bench_test.go
+  bench_test.go:52	0x100316420		f9400b90		MOVD 16(R28), R16										
+  bench_test.go:52	0x100316424		eb3063ff		CMP R16, RSP											
+  bench_test.go:52	0x100316428		540001e9		BLS 15(PC)											
+  bench_test.go:52	0x10031642c		f81d0ffe		MOVD.W R30, -48(RSP)										
+  bench_test.go:52	0x100316430		f81f83fd		MOVD R29, -8(RSP)										
+  bench_test.go:52	0x100316434		d10023fd		SUB $8, RSP, R29										
+  bench_test.go:52	0x100316438		f9001fe0		MOVD R0, 56(RSP)										
+  bench_test.go:52	0x10031643c		f90023e1		MOVD R1, 64(RSP)										
+  bench_test.go:52	0x100316440		f9400743		MOVD 8(R26), R3											
+  bench_test.go:53	0x100316444		aa0103e2		MOVD R1, R2											
+  bench_test.go:53	0x100316448		aa0003e1		MOVD R0, R1											
+  bench_test.go:53	0x10031644c		aa0303e0		MOVD R3, R0											
+  bench_test.go:53	0x100316450		97ffc7fc		CALL github.com/microsoft/TypeScript/tsc/internal/ast/store_test.(*storeWalker).walk(SB)	
+  bench_test.go:54	0x100316454		aa1f03e0		MOVD ZR, R0											
+  bench_test.go:54	0x100316458		f85f83fd		MOVD -8(RSP), R29										
+  bench_test.go:54	0x10031645c		f84307fe		MOVD.P 48(RSP), R30										
+  bench_test.go:54	0x100316460		d65f03c0		RET												
+  bench_test.go:52	0x100316464		a90087e0		STP (R0, R1), 8(RSP)										
+  bench_test.go:52	0x100316468		aa1e03e3		MOVD R30, R3											
+  bench_test.go:52	0x10031646c		97f5bb3d		CALL runtime.morestack.abi0(SB)									
+  bench_test.go:52	0x100316470		a94087e0		LDP 8(RSP), (R0, R1)										
+  bench_test.go:52	0x100316474		17ffffeb		JMP github.com/microsoft/TypeScript/tsc/internal/ast/store_test.newStoreWalker.func1(SB)	
+  bench_test.go:52	0x100316478		00000000		?												
+  bench_test.go:52	0x10031647c		00000000		?												

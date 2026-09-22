@@ -1,0 +1,137 @@
+TEXT github.com/microsoft/TypeScript/tsc/internal/ast/store.Node.Text(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/ast/store/views_generated.go
+  views_generated.go:5362	0x10024c0d0		f9400b90		MOVD 16(R28), R16								
+  views_generated.go:5362	0x10024c0d4		eb3063ff		CMP R16, RSP									
+  views_generated.go:5362	0x10024c0d8		54001029		BLS 129(PC)									
+  views_generated.go:5362	0x10024c0dc		f81f0ffe		MOVD.W R30, -16(RSP)								
+  views_generated.go:5362	0x10024c0e0		f81f83fd		MOVD R29, -8(RSP)								
+  views_generated.go:5362	0x10024c0e4		d10023fd		SUB $8, RSP, R29								
+  views_generated.go:5362	0x10024c0e8		f9000fe0		MOVD R0, 24(RSP)								
+  views_generated.go:5362	0x10024c0ec		f90013e1		MOVD R1, 32(RSP)								
+  views_generated.go:5363	0x10024c0f0		79800022		MOVH (R1), R2									
+  views_generated.go:5363	0x10024c0f4		d3403c43		UBFX $0, R2, $16, R3								
+  views_generated.go:5363	0x10024c0f8		71013c7f		CMPW $79, R3									
+  views_generated.go:5363	0x10024c0fc		54000060		BEQ 3(PC)									
+  views_generated.go:5363	0x10024c100		7101407f		CMPW $80, R3									
+  views_generated.go:5363	0x10024c104		54000681		BNE 52(PC)									
+  store.go:80			0x10024c108		b9401422		MOVWU 20(R1), R2								
+  store.go:81			0x10024c10c		36f804a2		TBZ $31, R2, 37(PC)								
+  store.go:82			0x10024c110		92407842		AND $2147483647, R2, R2								
+  store.go:90			0x10024c114		a9419003		LDP 24(R0), (R3, R4)								
+  store.go:90			0x10024c118		eb02009f		CMP R2, R4									
+  store.go:90			0x10024c11c		54000dc9		BLS 110(PC)									
+  store.go:90			0x10024c120		91000445		ADD $1, R2, R5									
+  store.go:90			0x10024c124		b8627862		MOVWU (R3)(R2<<2), R2								
+  store.go:90			0x10024c128		eb05009f		CMP R5, R4									
+  store.go:90			0x10024c12c		54000d29		BLS 105(PC)									
+  store.go:90			0x10024c130		b8657863		MOVWU (R3)(R5<<2), R3								
+  store.go:91			0x10024c134		36f801e2		TBZ $31, R2, 15(PC)								
+  store.go:92			0x10024c138		92407844		AND $2147483647, R2, R4								
+  store.go:93			0x10024c13c		a9441805		LDP 64(R0), (R5, R6)								
+  store.go:93			0x10024c140		8b040063		ADD R4, R3, R3									
+  store.go:93			0x10024c144		2a0303e3		MOVW R3, R3									
+  store.go:93			0x10024c148		eb06007f		CMP R6, R3									
+  store.go:93			0x10024c14c		54000c08		BHI 96(PC)									
+  store.go:93			0x10024c150		92407842		AND $2147483647, R2, R2								
+  store.go:93			0x10024c154		eb02007f		CMP R2, R3									
+  store.go:93			0x10024c158		54000b83		BCC 92(PC)									
+  store.go:93			0x10024c15c		cb030044		SUB R3, R2, R4									
+  store.go:93			0x10024c160		8a84fc44		AND R4->63, R2, R4								
+  store.go:93			0x10024c164		cb020061		SUB R2, R3, R1									
+  store.go:93			0x10024c168		8b050080		ADD R5, R4, R0									
+  store.go:82			0x10024c16c		14000017		JMP 23(PC)									
+  store.go:95			0x10024c170		a9431404		LDP 48(R0), (R4, R5)								
+  store.go:95			0x10024c174		8b020063		ADD R2, R3, R3									
+  store.go:95			0x10024c178		2a0303e3		MOVW R3, R3									
+  store.go:95			0x10024c17c		eb05007f		CMP R5, R3									
+  store.go:95			0x10024c180		54000a28		BHI 81(PC)									
+  store.go:95			0x10024c184		eb03005f		CMP R3, R2									
+  store.go:95			0x10024c188		540009c8		BHI 78(PC)									
+  store.go:95			0x10024c18c		cb030045		SUB R3, R2, R5									
+  store.go:95			0x10024c190		8a85fc45		AND R5->63, R2, R5								
+  store.go:95			0x10024c194		cb020061		SUB R2, R3, R1									
+  store.go:95			0x10024c198		8b0400a0		ADD R4, R5, R0									
+  store.go:82			0x10024c19c		1400000b		JMP 11(PC)									
+  store.go:84			0x10024c1a0		a9431003		LDP 48(R0), (R3, R4)								
+  store.go:84			0x10024c1a4		b9800c25		MOVW 12(R1), R5									
+  store.go:84			0x10024c1a8		eb0400bf		CMP R4, R5									
+  store.go:84			0x10024c1ac		54000888		BHI 68(PC)									
+  store.go:84			0x10024c1b0		eb05005f		CMP R5, R2									
+  store.go:84			0x10024c1b4		54000828		BHI 65(PC)									
+  store.go:84			0x10024c1b8		cb050044		SUB R5, R2, R4									
+  store.go:84			0x10024c1bc		8a84fc44		AND R4->63, R2, R4								
+  store.go:84			0x10024c1c0		cb0200a1		SUB R2, R5, R1									
+  store.go:84			0x10024c1c4		8b030080		ADD R3, R4, R0									
+  views_generated.go:5364	0x10024c1c8		f85f83fd		MOVD -8(RSP), R29								
+  views_generated.go:5364	0x10024c1cc		f84107fe		MOVD.P 16(RSP), R30								
+  views_generated.go:5364	0x10024c1d0		d65f03c0		RET										
+  views_generated.go:5366	0x10024c1d4		92402042		AND $511, R2, R2								
+  views_generated.go:5366	0x10024c1d8		90003f03		ADRP 8257536(PC), R3								
+  views_generated.go:5366	0x10024c1dc		91028063		ADD $160, R3, R3								
+  views_generated.go:5366	0x10024c1e0		38626862		MOVBU (R3)(R2), R2								
+  views_generated.go:5367	0x10024c1e4		aa0203e3		MOVD R2, R3									
+  views_generated.go:5367	0x10024c1e8		7103fc7f		CMPW $255, R3									
+  views_generated.go:5367	0x10024c1ec		54000500		BEQ 40(PC)									
+  views_generated.go:5370	0x10024c1f0		b9401423		MOVWU 20(R1), R3								
+  views_generated.go:5370	0x10024c1f4		8b030042		ADD R3, R2, R2									
+  store.go:90			0x10024c1f8		a9419003		LDP 24(R0), (R3, R4)								
+  store.go:90			0x10024c1fc		eb02009f		CMP R2, R4									
+  store.go:90			0x10024c200		540005a9		BLS 45(PC)									
+  store.go:90			0x10024c204		91000445		ADD $1, R2, R5									
+  store.go:90			0x10024c208		b8627862		MOVWU (R3)(R2<<2), R2								
+  store.go:90			0x10024c20c		eb05009f		CMP R5, R4									
+  store.go:90			0x10024c210		54000509		BLS 40(PC)									
+  store.go:90			0x10024c214		b8657863		MOVWU (R3)(R5<<2), R3								
+  store.go:91			0x10024c218		36f801e2		TBZ $31, R2, 15(PC)								
+  store.go:92			0x10024c21c		92407844		AND $2147483647, R2, R4								
+  store.go:93			0x10024c220		a9441805		LDP 64(R0), (R5, R6)								
+  store.go:93			0x10024c224		8b040063		ADD R4, R3, R3									
+  store.go:93			0x10024c228		2a0303e3		MOVW R3, R3									
+  store.go:93			0x10024c22c		eb06007f		CMP R6, R3									
+  store.go:93			0x10024c230		540003e8		BHI 31(PC)									
+  store.go:93			0x10024c234		92407842		AND $2147483647, R2, R2								
+  store.go:93			0x10024c238		eb02007f		CMP R2, R3									
+  store.go:93			0x10024c23c		54000363		BCC 27(PC)									
+  store.go:93			0x10024c240		cb030044		SUB R3, R2, R4									
+  store.go:93			0x10024c244		8a84fc44		AND R4->63, R2, R4								
+  store.go:93			0x10024c248		cb020061		SUB R2, R3, R1									
+  store.go:93			0x10024c24c		8b050080		ADD R5, R4, R0									
+  views_generated.go:5370	0x10024c250		1400000c		JMP 12(PC)									
+  store.go:95			0x10024c254		a9431404		LDP 48(R0), (R4, R5)								
+  store.go:95			0x10024c258		8b020063		ADD R2, R3, R3									
+  store.go:95			0x10024c25c		2a0303e3		MOVW R3, R3									
+  store.go:95			0x10024c260		eb05007f		CMP R5, R3									
+  store.go:95			0x10024c264		54000208		BHI 16(PC)									
+  store.go:95			0x10024c268		eb03005f		CMP R3, R2									
+  store.go:95			0x10024c26c		540001a8		BHI 13(PC)									
+  store.go:95			0x10024c270		cb030045		SUB R3, R2, R5									
+  store.go:95			0x10024c274		8a85fc45		AND R5->63, R2, R5								
+  store.go:95			0x10024c278		cb020061		SUB R2, R3, R1									
+  store.go:95			0x10024c27c		8b0400a0		ADD R4, R5, R0									
+  views_generated.go:5370	0x10024c280		f85f83fd		MOVD -8(RSP), R29								
+  views_generated.go:5370	0x10024c284		f84107fe		MOVD.P 16(RSP), R30								
+  views_generated.go:5370	0x10024c288		d65f03c0		RET										
+  views_generated.go:5368	0x10024c28c		aa1f03e0		MOVD ZR, R0									
+  views_generated.go:5368	0x10024c290		aa1f03e1		MOVD ZR, R1									
+  views_generated.go:5368	0x10024c294		f85f83fd		MOVD -8(RSP), R29								
+  views_generated.go:5368	0x10024c298		f84107fe		MOVD.P 16(RSP), R30								
+  views_generated.go:5368	0x10024c29c		d65f03c0		RET										
+  store.go:95			0x10024c2a0		97f8ec14		CALL runtime.panicBounds(SB)							
+  store.go:95			0x10024c2a4		97f8ec13		CALL runtime.panicBounds(SB)							
+  store.go:93			0x10024c2a8		97f8ec12		CALL runtime.panicBounds(SB)							
+  store.go:93			0x10024c2ac		97f8ec11		CALL runtime.panicBounds(SB)							
+  store.go:90			0x10024c2b0		97f8ec10		CALL runtime.panicBounds(SB)							
+  store.go:90			0x10024c2b4		97f8ec0f		CALL runtime.panicBounds(SB)							
+  store.go:84			0x10024c2b8		97f8ec0e		CALL runtime.panicBounds(SB)							
+  store.go:84			0x10024c2bc		97f8ec0d		CALL runtime.panicBounds(SB)							
+  store.go:95			0x10024c2c0		97f8ec0c		CALL runtime.panicBounds(SB)							
+  store.go:95			0x10024c2c4		97f8ec0b		CALL runtime.panicBounds(SB)							
+  store.go:93			0x10024c2c8		97f8ec0a		CALL runtime.panicBounds(SB)							
+  store.go:93			0x10024c2cc		97f8ec09		CALL runtime.panicBounds(SB)							
+  store.go:90			0x10024c2d0		97f8ec08		CALL runtime.panicBounds(SB)							
+  store.go:90			0x10024c2d4		97f8ec07		CALL runtime.panicBounds(SB)							
+  store.go:90			0x10024c2d8		d503201f		NOOP										
+  views_generated.go:5362	0x10024c2dc		a90087e0		STP (R0, R1), 8(RSP)								
+  views_generated.go:5362	0x10024c2e0		aa1e03e3		MOVD R30, R3									
+  views_generated.go:5362	0x10024c2e4		97f8e3bf		CALL runtime.morestack_noctxt.abi0(SB)						
+  views_generated.go:5362	0x10024c2e8		a94087e0		LDP 8(RSP), (R0, R1)								
+  views_generated.go:5362	0x10024c2ec		17ffff79		JMP github.com/microsoft/TypeScript/tsc/internal/ast/store.Node.Text(SB)	

@@ -1,0 +1,49 @@
+TEXT github.com/microsoft/TypeScript/tsc/internal/ast/store_test.asmName(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/ast/store/zz_verify_test.go
+  zz_verify_test.go:17		0x1003180a0		f9400b90		MOVD 16(R28), R16								
+  zz_verify_test.go:17		0x1003180a4		eb3063ff		CMP R16, RSP									
+  zz_verify_test.go:17		0x1003180a8		540004c9		BLS 38(PC)									
+  zz_verify_test.go:17		0x1003180ac		f81f0ffe		MOVD.W R30, -16(RSP)								
+  zz_verify_test.go:17		0x1003180b0		f81f83fd		MOVD R29, -8(RSP)								
+  zz_verify_test.go:17		0x1003180b4		d10023fd		SUB $8, RSP, R29								
+  zz_verify_test.go:17		0x1003180b8		f9000fe0		MOVD R0, 24(RSP)								
+  zz_verify_test.go:17		0x1003180bc		f90013e1		MOVD R1, 32(RSP)								
+  views_generated.go:5227	0x1003180c0		79800022		MOVH (R1), R2									
+  views_generated.go:5227	0x1003180c4		92402042		AND $511, R2, R2								
+  views_generated.go:5227	0x1003180c8		b00038a3		ADRP 7426048(PC), R3								
+  views_generated.go:5227	0x1003180cc		913b8063		ADD $3808, R3, R3								
+  views_generated.go:5227	0x1003180d0		38626862		MOVBU (R3)(R2), R2								
+  views_generated.go:5228	0x1003180d4		aa0203e3		MOVD R2, R3									
+  views_generated.go:5228	0x1003180d8		7103fc7f		CMPW $255, R3									
+  views_generated.go:5228	0x1003180dc		540000a1		BNE 5(PC)									
+  views_generated.go:5229	0x1003180e0		d503201f		NOOP										
+  store.go:48			0x1003180e4		a9400801		LDP (R0), (R1, R2)								
+  store.go:48			0x1003180e8		b50001e2		CBNZ R2, 15(PC)									
+  store.go:48			0x1003180ec		14000013		JMP 19(PC)									
+  views_generated.go:5231	0x1003180f0		a9419003		LDP 24(R0), (R3, R4)								
+  views_generated.go:5231	0x1003180f4		b9401425		MOVWU 20(R1), R5								
+  views_generated.go:5231	0x1003180f8		8b0200a2		ADD R2, R5, R2									
+  views_generated.go:5231	0x1003180fc		eb02009f		CMP R2, R4									
+  views_generated.go:5231	0x100318100		540001a9		BLS 13(PC)									
+  views_generated.go:5231	0x100318104		b8627862		MOVWU (R3)(R2<<2), R2								
+  store.go:48			0x100318108		a9401003		LDP (R0), (R3, R4)								
+  store.go:48			0x10031810c		aa0203e5		MOVD R2, R5									
+  store.go:48			0x100318110		eb0400bf		CMP R4, R5									
+  store.go:48			0x100318114		540000e2		BCS 7(PC)									
+  store.go:48			0x100318118		d37d7c42		UBFIZ $3, R2, $32, R2								
+  store.go:48			0x10031811c		8b020442		ADD R2<<1, R2, R2								
+  store.go:48			0x100318120		8b020061		ADD R2, R3, R1									
+  zz_verify_test.go:17		0x100318124		f85f83fd		MOVD -8(RSP), R29								
+  zz_verify_test.go:17		0x100318128		f84107fe		MOVD.P 16(RSP), R30								
+  zz_verify_test.go:17		0x10031812c		d65f03c0		RET										
+  store.go:48			0x100318130		97f5bca8		CALL runtime.panicBounds(SB)							
+  views_generated.go:5231	0x100318134		97f5bca7		CALL runtime.panicBounds(SB)							
+  store.go:48			0x100318138		97f5bca6		CALL runtime.panicBounds(SB)							
+  store.go:48			0x10031813c		d503201f		NOOP										
+  zz_verify_test.go:17		0x100318140		a90087e0		STP (R0, R1), 8(RSP)								
+  zz_verify_test.go:17		0x100318144		aa1e03e3		MOVD R30, R3									
+  zz_verify_test.go:17		0x100318148		97f5b45e		CALL runtime.morestack_noctxt.abi0(SB)						
+  zz_verify_test.go:17		0x10031814c		a94087e0		LDP 8(RSP), (R0, R1)								
+  zz_verify_test.go:17		0x100318150		17ffffd4		JMP github.com/microsoft/TypeScript/tsc/internal/ast/store_test.asmName(SB)	
+  zz_verify_test.go:17		0x100318154		00000000		?										
+  zz_verify_test.go:17		0x100318158		00000000		?										
+  zz_verify_test.go:17		0x10031815c		00000000		?										

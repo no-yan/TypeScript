@@ -1,0 +1,29 @@
+TEXT github.com/microsoft/TypeScript/tsc/internal/ast/store_test.(*storeWalker).walk(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/ast/store/bench_test.go
+  bench_test.go:59	0x100308440		f9400b90		MOVD 16(R28), R16									
+  bench_test.go:59	0x100308444		eb3063ff		CMP R16, RSP										
+  bench_test.go:59	0x100308448		54000229		BLS 17(PC)										
+  bench_test.go:59	0x10030844c		f81d0ffe		MOVD.W R30, -48(RSP)									
+  bench_test.go:59	0x100308450		f81f83fd		MOVD R29, -8(RSP)									
+  bench_test.go:59	0x100308454		d10023fd		SUB $8, RSP, R29									
+  bench_test.go:59	0x100308458		f90023e1		MOVD R1, 64(RSP)									
+  bench_test.go:59	0x10030845c		f90027e2		MOVD R2, 72(RSP)									
+  bench_test.go:60	0x100308460		f9400403		MOVD 8(R0), R3										
+  bench_test.go:60	0x100308464		91000463		ADD $1, R3, R3										
+  bench_test.go:60	0x100308468		f9000403		MOVD R3, 8(R0)										
+  bench_test.go:61	0x10030846c		f9400003		MOVD (R0), R3										
+  bench_test.go:61	0x100308470		aa0103e0		MOVD R1, R0										
+  bench_test.go:61	0x100308474		aa0203e1		MOVD R2, R1										
+  bench_test.go:61	0x100308478		aa0303e2		MOVD R3, R2										
+  bench_test.go:61	0x10030847c		97fc9119		CALL github.com/microsoft/TypeScript/tsc/internal/ast/store.Node.ForEachChild(SB)	
+  bench_test.go:62	0x100308480		f85f83fd		MOVD -8(RSP), R29									
+  bench_test.go:62	0x100308484		f84307fe		MOVD.P 48(RSP), R30									
+  bench_test.go:62	0x100308488		d65f03c0		RET											
+  bench_test.go:59	0x10030848c		a90087e0		STP (R0, R1), 8(RSP)									
+  bench_test.go:59	0x100308490		f9000fe2		MOVD R2, 24(RSP)									
+  bench_test.go:59	0x100308494		aa1e03e3		MOVD R30, R3										
+  bench_test.go:59	0x100308498		97f5f352		CALL runtime.morestack_noctxt.abi0(SB)							
+  bench_test.go:59	0x10030849c		a94087e0		LDP 8(RSP), (R0, R1)									
+  bench_test.go:59	0x1003084a0		f9400fe2		MOVD 24(RSP), R2									
+  bench_test.go:59	0x1003084a4		17ffffe7		JMP github.com/microsoft/TypeScript/tsc/internal/ast/store_test.(*storeWalker).walk(SB)	
+  bench_test.go:59	0x1003084a8		00000000		?											
+  bench_test.go:59	0x1003084ac		00000000		?											

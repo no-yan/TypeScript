@@ -1,0 +1,33 @@
+TEXT github.com/microsoft/TypeScript/tsc/internal/ast/store_test.asmBinaryOperator(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/ast/store/zz_verify_test.go
+  zz_verify_test.go:35		0x100318420		f9400b90		MOVD 16(R28), R16									
+  zz_verify_test.go:35		0x100318424		eb3063ff		CMP R16, RSP										
+  zz_verify_test.go:35		0x100318428		54000329		BLS 25(PC)										
+  zz_verify_test.go:35		0x10031842c		f81f0ffe		MOVD.W R30, -16(RSP)									
+  zz_verify_test.go:35		0x100318430		f81f83fd		MOVD R29, -8(RSP)									
+  zz_verify_test.go:35		0x100318434		d10023fd		SUB $8, RSP, R29									
+  zz_verify_test.go:35		0x100318438		f9000fe0		MOVD R0, 24(RSP)									
+  zz_verify_test.go:35		0x10031843c		f90013e1		MOVD R1, 32(RSP)									
+  views_generated.go:1946	0x100318440		a9418c02		LDP 24(R0), (R2, R3)									
+  views_generated.go:1946	0x100318444		b9401421		MOVWU 20(R1), R1									
+  views_generated.go:1946	0x100318448		91000c21		ADD $3, R1, R1										
+  views_generated.go:1946	0x10031844c		eb01007f		CMP R1, R3										
+  views_generated.go:1946	0x100318450		540001a9		BLS 13(PC)										
+  views_generated.go:1946	0x100318454		b8617841		MOVWU (R2)(R1<<2), R1									
+  store.go:48			0x100318458		a9400c02		LDP (R0), (R2, R3)									
+  store.go:48			0x10031845c		aa0103e4		MOVD R1, R4										
+  store.go:48			0x100318460		eb03009f		CMP R3, R4										
+  store.go:48			0x100318464		540000e2		BCS 7(PC)										
+  store.go:48			0x100318468		d37d7c21		UBFIZ $3, R1, $32, R1									
+  store.go:48			0x10031846c		8b010421		ADD R1<<1, R1, R1									
+  store.go:53			0x100318470		78a16840		MOVH (R2)(R1), R0									
+  zz_verify_test.go:35		0x100318474		f85f83fd		MOVD -8(RSP), R29									
+  zz_verify_test.go:35		0x100318478		f84107fe		MOVD.P 16(RSP), R30									
+  zz_verify_test.go:35		0x10031847c		d65f03c0		RET											
+  store.go:48			0x100318480		97f5bbd4		CALL runtime.panicBounds(SB)								
+  views_generated.go:1946	0x100318484		97f5bbd3		CALL runtime.panicBounds(SB)								
+  views_generated.go:1946	0x100318488		d503201f		NOOP											
+  zz_verify_test.go:35		0x10031848c		a90087e0		STP (R0, R1), 8(RSP)									
+  zz_verify_test.go:35		0x100318490		aa1e03e3		MOVD R30, R3										
+  zz_verify_test.go:35		0x100318494		97f5b38b		CALL runtime.morestack_noctxt.abi0(SB)							
+  zz_verify_test.go:35		0x100318498		a94087e0		LDP 8(RSP), (R0, R1)									
+  zz_verify_test.go:35		0x10031849c		17ffffe1		JMP github.com/microsoft/TypeScript/tsc/internal/ast/store_test.asmBinaryOperator(SB)	

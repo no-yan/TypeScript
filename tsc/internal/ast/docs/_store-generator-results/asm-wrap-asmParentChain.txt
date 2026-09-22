@@ -1,0 +1,37 @@
+TEXT github.com/microsoft/TypeScript/tsc/internal/ast/store_test.asmParentChain(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/ast/store/zz_verify_test.go
+  zz_verify_test.go:44	0x100318600		f9400b90		MOVD 16(R28), R16									
+  zz_verify_test.go:44	0x100318604		eb3063ff		CMP R16, RSP										
+  zz_verify_test.go:44	0x100318608		54000389		BLS 28(PC)										
+  zz_verify_test.go:44	0x10031860c		f81f0ffe		MOVD.W R30, -16(RSP)									
+  zz_verify_test.go:44	0x100318610		f81f83fd		MOVD R29, -8(RSP)									
+  zz_verify_test.go:44	0x100318614		d10023fd		SUB $8, RSP, R29									
+  zz_verify_test.go:44	0x100318618		f9000fe0		MOVD R0, 24(RSP)									
+  zz_verify_test.go:44	0x10031861c		f90013e1		MOVD R1, 32(RSP)									
+  zz_verify_test.go:46	0x100318620		aa1f03e2		MOVD ZR, R2										
+  zz_verify_test.go:46	0x100318624		14000005		JMP 5(PC)										
+  store.go:48		0x100318628		d37d7c24		UBFIZ $3, R1, $32, R4									
+  store.go:48		0x10031862c		8b040484		ADD R4<<1, R4, R4									
+  store.go:48		0x100318630		8b040061		ADD R4, R3, R1										
+  zz_verify_test.go:48	0x100318634		91000442		ADD $1, R2, R2										
+  store.go:58		0x100318638		79800023		MOVH (R1), R3										
+  store.go:58		0x10031863c		d3403c63		UBFX $0, R3, $16, R3									
+  zz_verify_test.go:46	0x100318640		34000103		CBZW R3, 8(PC)										
+  store.go:57		0x100318644		b9401021		MOVWU 16(R1), R1									
+  store.go:48		0x100318648		a9401003		LDP (R0), (R3, R4)									
+  store.go:48		0x10031864c		aa0103e5		MOVD R1, R5										
+  zz_verify_test.go:47	0x100318650		d503201f		NOOP											
+  store.go:48		0x100318654		eb0400bf		CMP R4, R5										
+  store.go:48		0x100318658		54fffe83		BCC -12(PC)										
+  store.go:48		0x10031865c		14000005		JMP 5(PC)										
+  zz_verify_test.go:50	0x100318660		aa0203e0		MOVD R2, R0										
+  zz_verify_test.go:50	0x100318664		f85f83fd		MOVD -8(RSP), R29									
+  zz_verify_test.go:50	0x100318668		f84107fe		MOVD.P 16(RSP), R30									
+  zz_verify_test.go:50	0x10031866c		d65f03c0		RET											
+  store.go:48		0x100318670		97f5bb58		CALL runtime.panicBounds(SB)								
+  store.go:48		0x100318674		d503201f		NOOP											
+  zz_verify_test.go:44	0x100318678		a90087e0		STP (R0, R1), 8(RSP)									
+  zz_verify_test.go:44	0x10031867c		aa1e03e3		MOVD R30, R3										
+  zz_verify_test.go:44	0x100318680		97f5b310		CALL runtime.morestack_noctxt.abi0(SB)							
+  zz_verify_test.go:44	0x100318684		a94087e0		LDP 8(RSP), (R0, R1)									
+  zz_verify_test.go:44	0x100318688		17ffffde		JMP github.com/microsoft/TypeScript/tsc/internal/ast/store_test.asmParentChain(SB)	
+  zz_verify_test.go:44	0x10031868c		00000000		?											

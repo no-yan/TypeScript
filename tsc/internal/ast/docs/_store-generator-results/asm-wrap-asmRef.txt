@@ -1,0 +1,13 @@
+TEXT github.com/microsoft/TypeScript/tsc/internal/ast/store_test.asmRef(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/ast/store/zz_verify_test.go
+  zz_verify_test.go:29	0x100318320		f90007e0		MOVD R0, 8(RSP)			
+  zz_verify_test.go:29	0x100318324		f9000be1		MOVD R1, 16(RSP)		
+  zz_verify_test.go:29	0x100318328		d503201f		NOOP				
+  store.go:66		0x10031832c		f9400002		MOVD (R0), R2			
+  store.go:67		0x100318330		cb020021		SUB R2, R1, R1			
+  store.go:67		0x100318334		b201f3e2		MOVD $-6148914691236517206, R2	
+  store.go:67		0x100318338		f2955562		MOVK $43691, R2			
+  store.go:67		0x10031833c		9bc27c21		UMULH R2, R1, R1		
+  store.go:67		0x100318340		d344fc20		LSR $4, R1, R0			
+  zz_verify_test.go:29	0x100318344		d65f03c0		RET				
+  zz_verify_test.go:29	0x100318348		00000000		?				
+  zz_verify_test.go:29	0x10031834c		00000000		?				

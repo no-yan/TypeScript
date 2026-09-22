@@ -1,6 +1,4 @@
-//go:build storeexp
-
-package storeexp
+package store
 
 import (
 	"fmt"
@@ -13,7 +11,7 @@ type NodeRef uint32 // index into Store.nodes; dense; 0 = nil
 
 type NodeHeader struct { // 24 bytes, no pointers
 	kind ast.Kind
-	// TODO(storeexp): only the syntactic ModifierFlags, bits 0-15, live here.
+	// TODO(store): only the syntactic ModifierFlags, bits 0-15, live here.
 	// Bit 16 and up (Deprecated, the JSDoc cache bits 23-27,
 	// HasComputedJSDocModifiers, HasComputedFlags) are computed lazily from
 	// JSDoc and need a separate path. That path is undesigned; it is decided
@@ -23,13 +21,13 @@ type NodeHeader struct { // 24 bytes, no pointers
 	flags         ast.NodeFlags
 	pos, end      int32
 	parent        NodeRef
-	data          uint32 // start of the payload in Store.extra; Identifier: see Text
+	data          uint32 // start of the payload in Store.extra; Identifier: see identifierText
 }
 
 type Store struct {
 	nodes []NodeHeader // nodes[0] is a sentinel: kind Unknown, parent 0
-	// Child slots and list blocks. extra[0:3] is zero, so list block 0 (the nil
-	// list) reads as an empty block without a guard.
+	// Payload words and list blocks. extra[0:3] is zero, so list block 0 (the
+	// nil list) reads as an empty block without a guard.
 	extra []uint32
 	src   string
 	texts string // texts that are not a substring of src
@@ -69,33 +67,47 @@ func (n Node) Ref() NodeRef {
 	return NodeRef((uintptr(unsafe.Pointer(n.h)) - base) / unsafe.Sizeof(NodeHeader{}))
 }
 
-// textInTexts marks an Identifier whose text is not the tail of its source
-// range. Provisional: where this flag lives is an open question in
+// textInTexts marks a text that is not a substring of the source: in the data
+// word of an Identifier, and in the offset word of any other text member.
+// Provisional: where this flag lives is an open question in
 // store-ast-design-20260922.md section 7.
 const textInTexts = 1 << 31
 
-// Text is defined for Identifier only. Other kinds have no text or data word
-// in this experiment.
-func (n Node) Text() string {
-	if storeChecks {
-		n.assertKind(ast.KindIdentifier)
-	}
+// identifierText is the text of an Identifier or PrivateIdentifier: the
+// source from data to end, or, with textInTexts set, the [offset, length] pair
+// in extra at the remaining bits.
+func (n Node) identifierText() string {
 	d := n.h.data
 	if d&textInTexts != 0 {
-		return n.s.escapedText(d &^ textInTexts)
+		return n.s.text(int(d &^ textInTexts))
 	}
 	return n.s.src[d:n.h.end]
 }
 
-func (s *Store) escapedText(at uint32) string {
+// text reads the [offset, length] pair at extra[at]. The offset's top bit
+// selects texts over src.
+func (s *Store) text(at int) string {
 	off, length := s.extra[at], s.extra[at+1]
-	return s.texts[off : off+length]
+	if off&textInTexts != 0 {
+		off &^= textInTexts
+		return s.texts[off : off+length]
+	}
+	return s.src[off : off+length]
 }
 
 func (n Node) assertKind(kind ast.Kind) {
 	if n.h.kind != kind {
-		panic(fmt.Sprintf("storeexp: %v is not %v", n.h.kind, kind))
+		panic(fmt.Sprintf("store: %v is not %v", n.h.kind, kind))
 	}
+}
+
+func (n Node) assertKinds(view string, kinds ...ast.Kind) {
+	for _, kind := range kinds {
+		if n.h.kind == kind {
+			return
+		}
+	}
+	panic(fmt.Sprintf("store: %v is not a %s", n.h.kind, view))
 }
 
 // List is a view of a block in extra: [len, pos, end, elem0 ... elem(len-1)].
@@ -117,6 +129,22 @@ func (l List) Refs() []NodeRef {
 }
 
 func (l List) At(i int) Node { return l.s.node(l.Refs()[i]) }
+
+// Visitor returns true to stop the walk, like ast.Visitor.
+type Visitor func(Node) bool
+
+// Callers skip the nil list (at == 0) before calling: 60% of the list slots in
+// a walk are nil, and Refs() costs 25 instructions (store-ast-design-20260922.md
+// 2.3). The check lives at the call site so that visitList stays within the
+// inline budget (cost 80).
+func visitList(s *Store, at uint32, v Visitor) bool {
+	for _, ref := range (List{s, at}).Refs() {
+		if v(s.node(ref)) {
+			return true
+		}
+	}
+	return false
+}
 
 // Builder writes by id and never holds a *NodeHeader, because append moves the
 // headers. Nodes are handed out only after Finish.
@@ -147,51 +175,17 @@ func (b *Builder) List(pos, end int32, elems []NodeRef) uint32 {
 	return at
 }
 
-// Node takes one slot per shapes[kind]: a NodeRef for a child slot, a block
-// index for a list slot, 0 for an absent one. Children must already exist
-// (post-order), so their parent is written here rather than in a later pass.
-func (b *Builder) Node(kind ast.Kind, flags ast.NodeFlags, mod ast.ModifierFlags, pos, end int32, slots []uint32) NodeRef {
-	sh := shapes[kind&511]
-	if len(slots) != int(sh.slots) {
-		panic(fmt.Sprintf("storeexp: %v takes %d slots, got %d", kind, sh.slots, len(slots)))
-	}
-	var data uint32
-	if len(slots) != 0 {
-		data = uint32(len(b.extra))
-		b.extra = append(b.extra, slots...)
-	}
-	id := b.header(kind, flags, mod, pos, end, data)
-	for i, slot := range slots {
-		switch {
-		case slot == 0:
-		case sh.listMask&(1<<i) != 0:
-			for _, elem := range b.extra[slot+3 : slot+3+b.extra[slot]] {
-				b.nodes[elem].parent = id
-			}
-		default:
-			b.nodes[slot].parent = id
-		}
-	}
-	return id
-}
-
-func (b *Builder) Identifier(flags ast.NodeFlags, pos, end int32, text string) NodeRef {
-	var data uint32
-	if start := int(end) - len(text); start >= 0 && int(end) <= len(b.src) && b.src[start:end] == text {
-		data = uint32(start)
-	} else {
-		data = textInTexts | uint32(len(b.extra))
-		b.extra = append(b.extra, uint32(len(b.texts)), uint32(len(text)))
-		b.texts = append(b.texts, text...)
-	}
-	return b.header(ast.KindIdentifier, flags, ast.ModifierFlagsNone, pos, end, data)
+// NewToken is the constructor of every kind without a payload: tokens,
+// keywords and the definitions without members.
+func (b *Builder) NewToken(kind ast.Kind, flags ast.NodeFlags, pos, end int32) NodeRef {
+	return b.header(kind, flags, 0, pos, end, 0)
 }
 
 func (b *Builder) header(kind ast.Kind, flags ast.NodeFlags, mod ast.ModifierFlags, pos, end int32, data uint32) NodeRef {
 	id := NodeRef(len(b.nodes))
 	b.nodes = append(b.nodes, NodeHeader{
 		kind: kind,
-		// TODO(storeexp): truncates ModifierFlags to bits 0-15. See the TODO on
+		// TODO(store): truncates ModifierFlags to bits 0-15. See the TODO on
 		// NodeHeader.modifierFlags for what happens to bit 16 and up.
 		modifierFlags: uint16(mod),
 		flags:         flags,
@@ -200,6 +194,58 @@ func (b *Builder) header(kind ast.Kind, flags ast.NodeFlags, mod ast.ModifierFla
 		data:          data,
 	})
 	return id
+}
+
+// identifierData is the data word of an Identifier: the source offset of the
+// text, or textInTexts and the index of its [offset, length] pair in extra.
+func (b *Builder) identifierData(end int32, text string) uint32 {
+	if start := int(end) - len(text); start >= 0 && int(end) <= len(b.src) && b.src[start:end] == text {
+		return uint32(start)
+	}
+	at := uint32(len(b.extra))
+	off, length := b.textWords(end, text)
+	b.extra = append(b.extra, off, length)
+	return textInTexts | at
+}
+
+// textWords is the [offset, length] pair of a text member: the source offset
+// when the text ends at end, else the offset in texts with textInTexts set.
+func (b *Builder) textWords(end int32, text string) (off, length uint32) {
+	if start := int(end) - len(text); start >= 0 && int(end) <= len(b.src) && b.src[start:end] == text {
+		return uint32(start), uint32(len(text))
+	}
+	off = textInTexts | uint32(len(b.texts))
+	b.texts = append(b.texts, text...)
+	return off, uint32(len(text))
+}
+
+func boolWord(v bool) uint32 {
+	if v {
+		return 1
+	}
+	return 0
+}
+
+func (b *Builder) adopt(child, parent NodeRef) {
+	if child != 0 {
+		b.nodes[child].parent = parent
+	}
+}
+
+func (b *Builder) adoptList(at uint32, parent NodeRef) {
+	for _, elem := range b.extra[at+3 : at+3+b.extra[at]] {
+		b.nodes[elem].parent = parent
+	}
+}
+
+// modifierFlags folds the kinds of the elements of a modifier block, like
+// ast.ModifiersToFlags. Block 0 is empty.
+func (b *Builder) modifierFlags(at uint32) ast.ModifierFlags {
+	var flags ast.ModifierFlags
+	for _, elem := range b.extra[at+3 : at+3+b.extra[at]] {
+		flags |= ast.ModifierToFlag(b.nodes[elem].kind)
+	}
+	return flags
 }
 
 // Finish copies to the exact size. It does not renumber.

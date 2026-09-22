@@ -1,0 +1,96 @@
+// 一時的に internal/ast/store/zz_reverse_test.go として置いて実行し (reverse-roles.txt)、削除した。
+// compareRoles の逆方向: Store の役割表が 0xFF の kind でも、Pointer の同名 accessor が
+// 値を返すなら不一致として数える。Pointer が panic する kind/役割は skip。
+package store_test
+
+import (
+	"fmt"
+	"sort"
+	"strings"
+	"testing"
+
+	"github.com/microsoft/TypeScript/tsc/internal/ast"
+	"github.com/microsoft/TypeScript/tsc/internal/ast/store"
+	"github.com/microsoft/TypeScript/tsc/internal/ast/store/convert"
+)
+
+func TestZZReverseRoles(t *testing.T) {
+	files := corpus(t)
+	all := map[string]int{}
+	skipped := map[string]int{}
+	var nodes int
+	for _, f := range files {
+		file := parseSource(f.name, f.text)
+		s := convert.Convert(file, 0)
+		ps := preorderPointer(file.AsNode())
+		ns := preorderStore(s.Root())
+		if len(ps) != len(ns) {
+			t.Fatalf("%s: %d vs %d", f.name, len(ps), len(ns))
+		}
+		for i, p := range ps {
+			nodes++
+			n := ns[i]
+			check := func(role string, pv func() *ast.Node, sv store.Node) {
+				var got *ast.Node
+				panicked := false
+				func() {
+					defer func() {
+						if recover() != nil {
+							panicked = true
+						}
+					}()
+					got = pv()
+				}()
+				if panicked {
+					skipped[p.Kind.String()+" "+role]++
+					return
+				}
+				if got == nil && sv.IsNil() {
+					return
+				}
+				if got == nil || sv.IsNil() || got.Kind != sv.Kind() || got.Pos() != int(sv.Pos()) {
+					all[p.Kind.String()+" "+role]++
+				}
+			}
+			check("Name", p.Name, n.Name())
+			check("Expression", p.Expression, n.Expression())
+			check("Type", p.Type, n.Type())
+			check("Initializer", p.Initializer, n.Initializer())
+			check("Body", p.Body, n.Body())
+			func() {
+				defer func() { recover() }()
+				pm := p.Modifiers()
+				sm := n.Modifiers()
+				if (pm == nil) != sm.IsNil() || (pm != nil && len(pm.Nodes) != sm.Len()) {
+					all[p.Kind.String()+" Modifiers"]++
+				}
+			}()
+			func() {
+				defer func() {
+					if recover() != nil {
+						skipped[p.Kind.String()+" Text"]++
+					}
+				}()
+				if p.Text() != n.Text() {
+					all[p.Kind.String()+" Text"]++
+				}
+			}()
+		}
+	}
+	var lines []string
+	for k, v := range all {
+		lines = append(lines, fmt.Sprintf("%s: %d", k, v))
+	}
+	sort.Strings(lines)
+	var sk []string
+	for k, v := range skipped {
+		sk = append(sk, fmt.Sprintf("%s: %d", k, v))
+	}
+	sort.Strings(sk)
+	fmt.Printf("REVERSE %d files %d nodes, mismatches %d kinds\n", len(files), nodes, len(lines))
+	fmt.Printf("MISMATCH\n%s\n", strings.Join(lines, "\n"))
+	fmt.Printf("SKIPPED (Pointer panics) %d kind/role pairs\n%s\n", len(sk), strings.Join(sk, "\n"))
+	if len(lines) > 0 {
+		t.Errorf("reverse role mismatches:\n%s", strings.Join(lines, "\n"))
+	}
+}

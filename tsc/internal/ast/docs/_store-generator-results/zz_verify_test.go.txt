@@ -1,0 +1,102 @@
+// 一時的に internal/ast/store/zz_verify_test.go として置き、store.verify.test を作って objdump し、
+// TestZZHistogram で histogram.txt を出した後に削除した。
+package store_test
+
+import (
+	"fmt"
+	"sort"
+	"testing"
+
+	"github.com/microsoft/TypeScript/tsc/internal/ast"
+	"github.com/microsoft/TypeScript/tsc/internal/ast/store"
+	"github.com/microsoft/TypeScript/tsc/internal/ast/store/convert"
+	"github.com/microsoft/TypeScript/tsc/internal/testutil/fixtures"
+)
+
+//go:noinline
+func asmName(n store.Node) store.Node { return n.Name() }
+
+//go:noinline
+func asmExpression(n store.Node) store.Node { return n.Expression() }
+
+//go:noinline
+func asmModifiers(n store.Node) store.List { return n.Modifiers() }
+
+//go:noinline
+func asmParent(n store.Node) store.Node { return n.Parent() }
+
+//go:noinline
+func asmRef(n store.Node) store.NodeRef { return n.Ref() }
+
+//go:noinline
+func asmRefs(l store.List) []store.NodeRef { return l.Refs() }
+
+//go:noinline
+func asmBinaryOperator(n store.Node) ast.Kind { return n.AsBinaryExpression().OperatorToken().Kind() }
+
+//go:noinline
+func asmStringText(n store.Node) string { return n.AsStringLiteral().Text() }
+
+//go:noinline
+func asmMultiLine(n store.Node) bool { return n.AsBlock().MultiLine() }
+
+//go:noinline
+func asmParentChain(n store.Node) int {
+	depth := 0
+	for !n.IsNil() {
+		n = n.Parent()
+		depth++
+	}
+	return depth
+}
+
+func TestZZAsmAnchors(t *testing.T) {
+	s := convert.Convert(parseSource("/a.ts", "a.b = 1; 'x'; {}"), 0)
+	r := s.Root()
+	_ = asmName(r)
+	_ = asmExpression(r)
+	_ = asmModifiers(r)
+	_ = asmParent(r)
+	_ = asmRef(r)
+	_ = asmRefs(r.AsSourceFile().Statements())
+	_ = asmParentChain(r)
+	for _, n := range preorderStore(r) {
+		switch n.Kind() {
+		case ast.KindBinaryExpression:
+			_ = asmBinaryOperator(n)
+		case ast.KindStringLiteral:
+			_ = asmStringText(n)
+		case ast.KindBlock:
+			_ = asmMultiLine(n)
+		}
+	}
+}
+
+func TestZZHistogram(t *testing.T) {
+	for _, fixture := range fixtures.ASTBenchFixtures {
+		s := convert.Convert(parseFixture(t, fixture), 0)
+		counts := map[ast.Kind]int{}
+		idEscape := 0
+		for _, n := range preorderStore(s.Root()) {
+			counts[n.Kind()]++
+			if (n.Kind() == ast.KindIdentifier || n.Kind() == ast.KindPrivateIdentifier) && store.IdentifierTextInTexts(n) {
+				idEscape++
+			}
+		}
+		payload := 0
+		for kind, c := range counts {
+			words, _ := store.Shape(kind)
+			payload += int(words) * c
+		}
+		_, extra, _ := s.Footprint()
+		fmt.Printf("HIST %s nodes=%d payloadWords=%d extraWords=%d idEscape=%d\n", fixture.Name(), s.NodeCount(), payload, extra/4, idEscape)
+		keys := make([]ast.Kind, 0, len(counts))
+		for k := range counts {
+			keys = append(keys, k)
+		}
+		sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+		for _, k := range keys {
+			fmt.Printf("KIND %s %s %d\n", fixture.Name(), k, counts[k])
+		}
+	}
+}

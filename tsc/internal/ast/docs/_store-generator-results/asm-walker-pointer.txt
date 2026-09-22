@@ -1,0 +1,29 @@
+TEXT github.com/microsoft/TypeScript/tsc/internal/ast/store_test.(*pointerWalker).walk(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/ast/store/bench_test.go
+  bench_test.go:30	0x1003083d0		f9400b90		MOVD 16(R28), R16										
+  bench_test.go:30	0x1003083d4		eb3063ff		CMP R16, RSP											
+  bench_test.go:30	0x1003083d8		54000249		BLS 18(PC)											
+  bench_test.go:30	0x1003083dc		f81e0ffe		MOVD.W R30, -32(RSP)										
+  bench_test.go:30	0x1003083e0		f81f83fd		MOVD R29, -8(RSP)										
+  bench_test.go:30	0x1003083e4		d10023fd		SUB $8, RSP, R29										
+  bench_test.go:31	0x1003083e8		b4000161		CBZ R1, 11(PC)											
+  bench_test.go:34	0x1003083ec		f9400402		MOVD 8(R0), R2											
+  bench_test.go:34	0x1003083f0		91000442		ADD $1, R2, R2											
+  bench_test.go:34	0x1003083f4		f9000402		MOVD R2, 8(R0)											
+  bench_test.go:35	0x1003083f8		f9400002		MOVD (R0), R2											
+  bench_test.go:35	0x1003083fc		aa0103e0		MOVD R1, R0											
+  bench_test.go:35	0x100308400		aa0203e1		MOVD R2, R1											
+  bench_test.go:35	0x100308404		97fb890f		CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*Node).ForEachChild(SB)			
+  bench_test.go:36	0x100308408		f85f83fd		MOVD -8(RSP), R29										
+  bench_test.go:36	0x10030840c		f84207fe		MOVD.P 32(RSP), R30										
+  bench_test.go:36	0x100308410		d65f03c0		RET												
+  bench_test.go:32	0x100308414		f85f83fd		MOVD -8(RSP), R29										
+  bench_test.go:32	0x100308418		f84207fe		MOVD.P 32(RSP), R30										
+  bench_test.go:32	0x10030841c		d65f03c0		RET												
+  bench_test.go:30	0x100308420		a90087e0		STP (R0, R1), 8(RSP)										
+  bench_test.go:30	0x100308424		aa1e03e3		MOVD R30, R3											
+  bench_test.go:30	0x100308428		97f5f36e		CALL runtime.morestack_noctxt.abi0(SB)								
+  bench_test.go:30	0x10030842c		a94087e0		LDP 8(RSP), (R0, R1)										
+  bench_test.go:30	0x100308430		17ffffe8		JMP github.com/microsoft/TypeScript/tsc/internal/ast/store_test.(*pointerWalker).walk(SB)	
+  bench_test.go:30	0x100308434		00000000		?												
+  bench_test.go:30	0x100308438		00000000		?												
+  bench_test.go:30	0x10030843c		00000000		?												
