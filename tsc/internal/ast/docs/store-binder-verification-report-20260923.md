@@ -4,7 +4,9 @@
 
 ## 1. 結論
 
-**合格。** 正しさは corpus 17,085 file で mismatch 0、Bind ゲート (cycles/node ≤ 1.10 × Pointer) は **1.025**、32B header の Walk / Parse は 24B と同等以上、retained は提案線の内側。次は 7d (checker の設計) に進める。ユーザーの決定 (2026-09-23): **JS の除外 330 file は受け入れ、7d で storeparser に JSDoc reparse を足して解消する** (§3.2 / §3.4 の緩めも同じ原因で、同時に消える)。`bindChildren` の kind switch の表化は 7c では行わない (§5)。残る判断待ちは slab の成長方式と GC 線 (§9)。
+**合格。** 正しさは corpus 17,085 file で mismatch 0、Bind ゲート (cycles/node ≤ 1.10 × Pointer) は **1.025**、32B header の Walk / Parse は 24B と同等以上、retained と GC (CPU) は提案線の内側。次は 7d (checker の設計) に進める。ユーザーの決定 (2026-09-23): **JS の除外 330 file は受け入れ、7d で storeparser に JSDoc reparse を足して解消する** (§3.2 / §3.4 の緩めも同じ原因で、同時に消える)。`bindChildren` の kind switch の表化は 7c では行わない (§5)。GC の線は mark の CPU で引く。slab の成長は `Bound` の scratch + Compact (e9a5942778) で決着。
+
+**計測の時点 (2026-09-23 追記)**: §6 と §7 の数字は e9a5942778 (Bound の scratch + Compact) の**前**のバイナリで取った。Compact は bind の末尾に slab を exact に copy するので Bind の cycles がわずかに動きうる。Bind KPC の取り直しはユーザーに依頼済みで、結果はこの節に追記する。Compact のコミットの計測では B/op は GOGC=off で 13.56 → 7.18 MiB (Pointer 7.08)、GC ありでは pool が消えて +14%、retained は −1.6%。
 
 | 指標 | 線 | 実測 (store / pointer) | 判定 |
 | --- | --- | ---: | --- |
@@ -12,9 +14,9 @@
 | Parse cycles/op (32B) | ≤ 1.00 | **0.824** (55.93M / 67.85M)。24B の before は 0.822 | 合格。不変 |
 | **Bind cycles/node** | **≤ 1.10** | **1.025** (115.3 / 112.5) | **合格** |
 | Bind inst/node、IPC | 報告 | 418.8 / 370.8 = 1.129、IPC 3.63 / 3.30 | inst +12.9% を IPC が吸収 |
-| Bind B/op、allocs/op | 報告 | 14.22 MB / 7.42 MB (1.92×)、12,754 / 13,952 | slab の append 成長 (§9) |
+| Bind B/op、allocs/op | 報告 | 14.22 MB / 7.42 MB (1.92×)、12,754 / 13,952 (Compact 前) | slab の append 成長。Compact 後は GOGC=off で Pointer 並み (上の追記) |
 | retained B/node (parse+bind) | checker.ts ≤ 0.60、fixtures ≤ 0.70 (提案線) | checker.ts **0.561** (61.4 / 109.4)、fixtures **0.583** (72.6 / 124.6)、dom 0.696 (89.4 / 128.4) | 提案線に対して合格 |
-| 保持中の GC 1 回の ms | checker.ts ≤ 0.25、fixtures ≤ 0.35 (提案線) | checker.ts **0.263** (0.794 / 3.017)、fixtures **0.231** (2.82 / 12.17)、dom 0.654 | fixtures は合格、checker.ts は提案線を 0.013 超 (§7 の CPU 換算では 0.10) |
+| 保持中の GC 1 回、store / pointer | **mark の CPU で引く (ユーザー決定)**。checker.ts ≤ 0.25、fixtures ≤ 0.35 | CPU: checker.ts **0.10** (1.9 / 19.2 ms)、fixtures **0.16** (13 / 82 ms)。wall (`gc-ms`) は checker.ts 0.263、fixtures 0.231、dom 0.654 | 合格 |
 
 Pointer の inst の幅は Bind 5 run で 0.8% (110.30〜111.16M)、線の 1.5% 以内なので測り直しは不要。
 
@@ -115,7 +117,7 @@ TS 15,959 file は mask なし (`Options{}`) で厳密。どちらの緩めも�
 | `bindContainer` | save / restore が 2 word | save は `LDP` + `MOVD` ×2、restore は `MOVD` ×2 + `STP` (Binder は heap にあり `Node` が pointer を持つので write barrier 付き。Pointer の `*ast.Node` と同じ) |
 | `addAntecedent` | ループが base + index、growslice は append だけ | ループは `LSL $3` (FlowList 8B)、`growslice` は `NewFlowList` (bound.go:89) の 1 箇所 |
 | `nameSlot` 型の表引き | check_bce の報告に無い | 役割表 5 本 + `nameSlot` の 53 行に bounds check の報告なし |
-| 7a の accessor の inline 判定 | 7a / 7b と同じ、cannot が増えていない | `Node.*` accessor の cost は 7b の `_store-parser-results/inline-store.txt` と全て同じ。**ただし `Builder` の constructor 40 本** (`NewReturnStatement`、`NewExpressionStatement`、`NewPrefixUnaryExpression`、`NewParenthesizedExpression`、`NewSpreadElement` 等) **と `NewBuilder` が 7b の can から cannot に変わった**。`NewReturnStatement` は cost 81 (予算 80)。header の struct literal に flow / symbol の零 field が増えた分で、bound slot の 0 埋めではない (この constructor は bound slot を持たない)。Parse の inst は 24B と同じ (214.32M vs 214.43M) なので測定に出ていない |
+| 7a の accessor の inline 判定 | 7a / 7b と同じ、cannot が増えていない | `Node.*` accessor の cost は 7b の `_store-parser-results/inline-store.txt` と全て同じ。`Builder` の constructor 40 本と `NewBuilder` は 7b の一覧では can、今は cannot (`NewReturnStatement` は cost 81、予算 80) だが、**原因は 32B ではなく S1 (205b6bb15b、Builder に Store を埋め込み `b.nodes` → `b.s.nodes`)**。7b の一覧は S1 の前に取ったもので、`b.s.` の ODOT 1 段が constructor 内 3〜7 箇所で効き 1-child 形が 74 → 81 になった。24B の HEAD でも同じで、header に列を足しても複合リテラルに書かない限り cost は変わらない (2026-09-23 訂正。初版は「header の零 field が増えた分」としていた)。Parse の inst は 24B と同じ (214.32M vs 214.43M) |
 
 ## 6. bind の費用 (検証指示 §4)
 
@@ -153,7 +155,7 @@ gctrace (テストバイナリ直接実行、最後の forced GC):
 | fixtures | Pointer | 143 MB | 10 ms | 0 / 20 / 62 ms |
 | fixtures | Store | 87 MB | 2.3 ms | 0 / 4.1 / 8.9 ms |
 
-GC の wall (`gc-ms`) は 8 P の並列 mark の時間で、checker.ts の 0.263 は提案線 0.25 をわずかに超えるが、mark の CPU では 1.9 / 19.2 ms = **0.10** (fixtures 13 / 82 = 0.16)。見積り (0.14〜0.16) に合うのは CPU の方。線を wall で引くか CPU で引くかはユーザーの決定。
+GC の wall (`gc-ms`) は 8 P の並列 mark の時間で、checker.ts の 0.263 は提案線 0.25 をわずかに超えるが、mark の CPU では 1.9 / 19.2 ms = **0.10** (fixtures 13 / 82 = 0.16)。見積り (0.14〜0.16) に合うのは CPU の方。線は CPU で引く (ユーザー決定) ので合格。
 
 Footprint との照合 (checker.ts、Store 側): Store 12.34 MB (headers 9.54 + extra 2.79 + texts 0.01) + `Bound` の slab 1.93 MB + symbol 18,444 × 96 = 1.77 MB + SymbolTable 5,917 個 / 17,305 entry ≈ 0.90 MB + `Declarations` の cap 0.15 MB = 17.09 MB。retained 18.34 MB との差 1.25 MB (6.8%) は size class、map の内部、Arena chunk の余り、`File`。B/node で書くと 41.3 (Store) + 6.4 (Bound) + 5.9 (symbol) + 3.0 (表) + 0.5 (宣言) + 4.2 (残差) = 61.4 で、7c 設計 §5 の見積り 52.8 + T (10〜15) の内側。dom は 8.78 MB に対し retained 9.87 MB (差 11%)。
 
@@ -168,12 +170,12 @@ corpus 17,085 file で `ExternalModuleIndicator`、`Imports`、`ModuleAugmentati
 7c 設計:
 - §2.1 の除外規則は実装の 4 理由 (330 file) に広げる (決定)。7d で storeparser に JSDoc reparse を足し (JSDoc ノードを parse の Store 本体に持つ形)、除外と JS の mask を無くす。`@import` の specifier、`@type` の expando / require、JSDoc cast、`@implements` がその対象。
 - §2.2 の「`Ref()` は 0.25〜0.3 回/node」は未計測。ゲートを通ったので実測は不要だが、命令列上 `Ref()` の site は 16。
-- §2.3 の flow slab: append 成長で B/op 1.92× (時間は不変)。事前確保 / chunk / Seal 時の詰め直しの選択 (実装報告 §9-2)。
+- §2.3 の flow slab: append 成長で B/op 1.92× だった (時間は不変)。`Bound` の scratch を pool の Binder が持ち、bind の末尾に exact copy する形 (e9a5942778) に決めた。GC ありでは pool が 2 GC で消えるので効果は GOGC に依存する。
 - §5 の見積り: retained 0.54 → 実測 0.56 (checker.ts)、0.63 → 0.70 (dom)。GC は wall で 0.26 / 0.65、CPU で 0.10。
 
 store-ast-design:
 - 32B header の実測: Walk 1.137 (24B 1.167)、Parse 0.824 (不変)、Bind 1.025。`node()` の index が shift 1 本になり Walk の inst が −3.2%。
-- `Builder` の constructor 40 本が inline 予算 80 の縁 (81) に乗った。Parse の inst には出ていないが、header に field を足すたびに cost が 1 増えるので次に何か足すと constructor 全体が cannot に傾く。
+- `Builder` の constructor の inline 喪失は S1 が原因で、32B とは無関係 (§5)。generator の `data :=` ローカルをやめると 41 本が戻る (cost 76) が、7c の範囲外。
 - (f) の header 読み回数の表 (実装報告 §2) は現物と合う。`bind` に inline された親 1 段の `node()` は `IsObjectLiteralMethod` (MethodDeclaration の経路) と `IsPartOfTypeQuery` (QualifiedName の経路) の 2 つで、Identifier の経路 (`IsIdentifierName`) は `checkContextualIdentifier` の CALL の先。
 - `bindChildren` の kind switch は Pointer / Store とも二分探索の比較連鎖で、ジャンプテーブルではない。`[256]uint8` の表で解決できるが 7c では行わない (ユーザー決定)。
 
