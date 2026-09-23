@@ -5897,24 +5897,6 @@ func (n Node) PostfixToken() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
 }
 
-func (n Node) Text() string {
-	// TODO(store): Text is the one role accessor that does not inline (cost
-	// 157, budget 80): identifierText (72) plus text (42) plus the table lookup.
-	// Every call pays a call and its prologue, and the Identifier path, which
-	// hot paths hit repeatedly, cannot be folded into the caller. Left as is for
-	// now (2026-09-22); a hot call site with a known kind uses the typed
-	// Identifier.Text, which inlines. Measure once the Store is wired in, then
-	// decide whether to split it into an inline Identifier path and a slow path.
-	if n.h.kind == ast.KindIdentifier || n.h.kind == ast.KindPrivateIdentifier {
-		return n.identifierText()
-	}
-	slot := textSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return ""
-	}
-	return n.s.text(int(n.h.data) + int(slot))
-}
-
 func (n Node) Operand() Node {
 	slot := operandSlot[n.h.kind&511]
 	if slot == 0xFF {

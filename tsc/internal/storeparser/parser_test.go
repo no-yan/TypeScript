@@ -497,3 +497,34 @@ func TestTexts(t *testing.T) {
 		t.Errorf("texts holds %d bytes, want %d", texts, len("abc")+len("a\nb")+len("cd"))
 	}
 }
+
+// TestComposedText: the Text role of the kinds without a text slot whose
+// Pointer Text is built from the children (MetaProperty, JsxNamespacedName).
+// The generated role comparison covers only the kinds with a text slot.
+func TestComposedText(t *testing.T) {
+	sources := map[string]string{
+		"/a.tsx": `function f() { return [import.meta, new.target, <a ns:tag x:y="1"/>, <p:q></p:q>] }`,
+		"/b.ts":  `const u = import.meta.url; function g() { new.target }`,
+	}
+	for name, source := range sources {
+		opts, text, kind := sourceInput(name, source)
+		pointer, file := parseBoth(opts, text, kind)
+		pairs, mismatches := storetest.Pairs(pointer, file.Store, storetest.Options{})
+		if pairs == nil {
+			t.Fatalf("%s: the walks do not line up: %v", name, mismatches)
+		}
+		seen := 0
+		for _, pair := range pairs {
+			if pair.P.Kind != ast.KindMetaProperty && pair.P.Kind != ast.KindJsxNamespacedName {
+				continue
+			}
+			seen++
+			if got, want := pair.N.Text(), pair.P.Text(); got != want {
+				t.Errorf("%s: %v Text = %q, want %q", name, pair.P.Kind, got, want)
+			}
+		}
+		if seen == 0 {
+			t.Errorf("%s: no MetaProperty or JsxNamespacedName", name)
+		}
+	}
+}

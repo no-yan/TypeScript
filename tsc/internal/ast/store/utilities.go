@@ -911,7 +911,7 @@ func IsImportCall(node Node) bool {
 		return false
 	}
 	e := node.Expression()
-	return e.Kind() == ast.KindImportKeyword || IsMetaProperty(e) && e.AsMetaProperty().KeywordToken() == ast.KindImportKeyword && e.AsMetaProperty().Name().Text() == "defer"
+	return e.Kind() == ast.KindImportKeyword || IsMetaProperty(e) && e.AsMetaProperty().KeywordToken() == ast.KindImportKeyword && e.Text() == "defer"
 }
 
 // Push a virtual parent pointer onto `ancestors` and return it.

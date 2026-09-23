@@ -129,6 +129,33 @@ func (n Node) identifierText() string {
 	return n.s.src[d:n.h.end]
 }
 
+// Text is (*ast.Node).Text: the header for an identifier, the text slot of the
+// kinds that have one (textSlot, generated), and the composed text of
+// MetaProperty and JsxNamespacedName. Other kinds have no text.
+//
+// TODO(store): Text does not inline (cost over the budget of 80), so every
+// call pays a call and its prologue, and the Identifier path, which hot paths
+// hit repeatedly, cannot be folded into the caller. Left as is for now
+// (2026-09-22); a hot call site with a known kind uses the typed
+// Identifier.Text, which inlines. Measure once the Store is wired in, then
+// decide whether to split it into an inline Identifier path and a slow path.
+func (n Node) Text() string {
+	switch n.h.kind {
+	case ast.KindIdentifier, ast.KindPrivateIdentifier:
+		return n.identifierText()
+	case ast.KindMetaProperty:
+		return n.AsMetaProperty().Name().Text()
+	case ast.KindJsxNamespacedName:
+		ns := n.AsJsxNamespacedName()
+		return ns.Namespace().Text() + ":" + ns.Name().Text()
+	}
+	slot := textSlot[n.h.kind&511]
+	if slot == 0xFF {
+		return ""
+	}
+	return n.s.text(int(n.h.data) + int(slot))
+}
+
 // text reads the [offset, length] pair at extra[at]. The offset's top bit
 // selects texts over src.
 func (s *Store) text(at int) string {

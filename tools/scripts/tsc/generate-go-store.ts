@@ -556,22 +556,12 @@ function generateViews(): string {
     w.write("// so the code is the same for every kind: no switch, no jump table. A kind");
     w.write("// without the role returns the nil node, the nil list or the empty string.");
     for (const r of roles) {
+        // Text is hand-written in store.go: it reads the header for identifiers
+        // and composes the text of kinds without a slot. It still uses textSlot.
+        if (r.name === "Text") continue;
         w.write();
         const index = `int(n.h.data)+int(slot)`;
         w.write(`func (n Node) ${r.name}() ${r.class === "child" ? "Node" : r.class === "list" ? "List" : "string"} {`);
-        if (r.name === "Text") {
-            // Identifier and PrivateIdentifier keep their text in the header.
-            w.write("\t// TODO(store): Text is the one role accessor that does not inline (cost");
-            w.write("\t// 157, budget 80): identifierText (72) plus text (42) plus the table lookup.");
-            w.write("\t// Every call pays a call and its prologue, and the Identifier path, which");
-            w.write("\t// hot paths hit repeatedly, cannot be folded into the caller. Left as is for");
-            w.write("\t// now (2026-09-22); a hot call site with a known kind uses the typed");
-            w.write("\t// Identifier.Text, which inlines. Measure once the Store is wired in, then");
-            w.write("\t// decide whether to split it into an inline Identifier path and a slow path.");
-            w.write("\tif n.h.kind == ast.KindIdentifier || n.h.kind == ast.KindPrivateIdentifier {");
-            w.write("\t\treturn n.identifierText()");
-            w.write("\t}");
-        }
         w.write(`\tslot := ${r.table}[n.h.kind&511]`);
         w.write("\tif slot == 0xFF {");
         switch (r.class) {

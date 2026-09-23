@@ -151,10 +151,3 @@ func declarationNameToString(file *store.File, name store.Node) string {
 	}
 	return getSourceTextOfNodeFromSourceFile(file, name, false /*includeTrivia*/)
 }
-
-// jsxNamespacedNameText is the JsxNamespacedName case of (*ast.Node).Text,
-// which the Store's Text role does not have.
-func jsxNamespacedNameText(name store.Node) string {
-	n := name.AsJsxNamespacedName()
-	return n.Namespace().Text() + ":" + n.Name().Text()
-}

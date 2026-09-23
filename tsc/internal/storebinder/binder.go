@@ -362,12 +362,8 @@ func (b *Binder) getDeclarationName(node store.Node) string {
 			}
 			return GetSymbolNameForPrivateIdentifier(b.symbolOf(containingClass), name.Text())
 		}
-		if store.IsPropertyNameLiteral(name) {
+		if store.IsPropertyNameLiteral(name) || store.IsJsxNamespacedName(name) {
 			return name.Text()
-		}
-		if store.IsJsxNamespacedName(name) {
-			// store.Node.Text has no JsxNamespacedName case (the Pointer Text joins the two names).
-			return jsxNamespacedNameText(name)
 		}
 		if store.IsComputedPropertyName(name) {
 			nameExpression := name.Expression()
