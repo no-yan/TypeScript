@@ -80,6 +80,7 @@ type Binder struct {
 	symbolArena             core.Arena[store.Symbol]
 	singleDeclarationsArena core.Arena[store.Ref]
 	expandoAssignments      []ExpandoAssignmentInfo
+	scratch                 *store.BoundScratch // kept by putBinder
 }
 
 type ActiveLabel struct {
@@ -114,7 +115,7 @@ func getBinder() *Binder {
 }
 
 func putBinder(b *Binder) {
-	*b = Binder{bindFunc: b.bindFunc}
+	*b = Binder{bindFunc: b.bindFunc, scratch: b.scratch}
 	binderPool.Put(b)
 }
 
@@ -124,7 +125,14 @@ func bindSourceFile(file *store.File) {
 		defer putBinder(b)
 		b.file = file
 		b.s = file.Store
-		b.bound = store.NewBound()
+		// The scratch goes back to the Binder only after Compact: if the bind
+		// panics, file.Bound still aliases it and it must not be reused.
+		scratch := b.scratch
+		b.scratch = nil
+		if scratch == nil {
+			scratch = &store.BoundScratch{}
+		}
+		b.bound = store.NewBoundIn(scratch)
 		file.Bound = b.bound
 		// The container locals start as the nil node, not the zero Node,
 		// so that IsNil reads a header.
@@ -136,6 +144,8 @@ func bindSourceFile(file *store.File) {
 		b.bind(file.Root())
 		b.bindDeferredExpandoAssignments()
 		b.bound.SymbolCount = b.symbolCount
+		b.bound.Compact(scratch)
+		b.scratch = scratch
 		b.s.Seal()
 	})
 }

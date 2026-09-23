@@ -65,6 +65,54 @@ func NewBound() *Bound {
 	}
 }
 
+// BoundScratch holds the grown arrays of the Bound slabs from one file to
+// the next. The binder writes a file's slabs into it and Compact copies them
+// to their exact size, as Builder.Finish does for the nodes: append grows a
+// slab by 1.25 past 256 elements, so a slab grown from empty allocates about
+// 5 times its final length and keeps up to a quarter of it as slack.
+type BoundScratch struct {
+	symbols    []*Symbol
+	flows      []FlowNode
+	flowLists  []FlowList
+	flowData   []FlowData
+	locals     []SymbolTable
+	containers []NodeRef
+}
+
+// NewBoundIn is NewBound on the arrays of s. The Bound must be compacted
+// into s before s starts another file.
+func NewBoundIn(s *BoundScratch) *Bound {
+	return &Bound{
+		symbols:    append(s.symbols[:0], nil),
+		flows:      append(s.flows[:0], FlowNode{}),
+		flowLists:  append(s.flowLists[:0], FlowList{}),
+		flowData:   append(s.flowData[:0], FlowData{}),
+		locals:     append(s.locals[:0], nil),
+		containers: s.containers[:0],
+	}
+}
+
+// Compact gives b slabs of the exact size and s the grown arrays back. The
+// pointers in s are cleared so that the scratch does not keep the file's
+// symbols and tables alive.
+func (b *Bound) Compact(s *BoundScratch) {
+	s.symbols, b.symbols = b.symbols, exact(b.symbols)
+	s.flows, b.flows = b.flows, exact(b.flows)
+	s.flowLists, b.flowLists = b.flowLists, exact(b.flowLists)
+	s.flowData, b.flowData = b.flowData, exact(b.flowData)
+	s.locals, b.locals = b.locals, exact(b.locals)
+	s.containers, b.containers = b.containers, exact(b.containers)
+	clear(s.symbols)
+	clear(s.locals)
+}
+
+func exact[T any](x []T) []T {
+	if len(x) == 0 {
+		return nil
+	}
+	return append(make([]T, 0, len(x)), x...)
+}
+
 // Reads. A *FlowNode, *FlowList or *FlowData is valid only until the next
 // append to its slab, so the binder does not hold one across a New call.
 
