@@ -6,13 +6,23 @@
 
 **合格。** 正しさは corpus 17,085 file で mismatch 0、Bind ゲート (cycles/node ≤ 1.10 × Pointer) は **1.025**、32B header の Walk / Parse は 24B と同等以上、retained と GC (CPU) は提案線の内側。次は 7d (checker の設計) に進める。ユーザーの決定 (2026-09-23): **JS の除外 330 file は受け入れ、7d で storeparser に JSDoc reparse を足して解消する** (§3.2 / §3.4 の緩めも同じ原因で、同時に消える)。`bindChildren` の kind switch の表化は 7c では行わない (§5)。GC の線は mark の CPU で引く。slab の成長は `Bound` の scratch + Compact (e9a5942778) で決着。
 
-**計測の時点 (2026-09-23 追記)**: §6 と §7 の数字は e9a5942778 (Bound の scratch + Compact) の**前**のバイナリで取った。Compact は bind の末尾に slab を exact に copy するので Bind の cycles がわずかに動きうる。Bind KPC の取り直しはユーザーに依頼済みで、結果はこの節に追記する。Compact のコミットの計測では B/op は GOGC=off で 13.56 → 7.18 MiB (Pointer 7.08)、GC ありでは pool が消えて +14%、retained は −1.6%。
+**計測の時点 (2026-09-23 追記)**: §6 と §7 の数字は e9a5942778 (Bound の scratch + Compact) の**前**のバイナリで取った。Compact は bind の末尾に slab を exact に copy するので Bind の cycles がわずかに動きうる。Compact 後の Bind KPC (HEAD 225f56d491、`kpc-bind-compact-20260923-1904.txt`、5 run 平均):
+
+| | pointer | store | 比 | Compact 前の比 |
+| --- | ---: | ---: | ---: | ---: |
+| cycles/node | 112.84 | 111.06 | **0.984** | 1.025 |
+| inst/node | 372.0 | 405.5 | 1.090 | 1.129 |
+| IPC | 3.30 | 3.65 | | |
+| B/op | 7.42 MB | 6.51 MB | 0.88 | 1.92 |
+| allocs/op | 13,952 | 12,646 | 0.91 | 0.91 |
+
+Pointer は Compact 前と同じ (cycles 112.5 → 112.8、inst の run 幅 0.46%)。Store は cycles −3.7%、inst −13 inst/node で、append 成長の `growslice` / copy が消えた分。KPC の Session は GC オフで pool の scratch が温存される契約なので、GC ありで pool が消える経路 (Compact のコミットで B/op +14%) はこの数字に出ない。**Bind ゲートは Compact 後も合格 (0.984)。**Compact のコミットの計測では B/op は GOGC=off で 13.56 → 7.18 MiB (Pointer 7.08)、GC ありでは pool が消えて +14%、retained は −1.6%。
 
 | 指標 | 線 | 実測 (store / pointer) | 判定 |
 | --- | --- | ---: | --- |
 | Walk cycles/visit (32B) | ≤ 1.15、24B の同時測定と並べる | **1.137** (29.28 / 25.75)。同セッションの 24B は 1.167 | 合格。24B より良い |
 | Parse cycles/op (32B) | ≤ 1.00 | **0.824** (55.93M / 67.85M)。24B の before は 0.822 | 合格。不変 |
-| **Bind cycles/node** | **≤ 1.10** | **1.025** (115.3 / 112.5) | **合格** |
+| **Bind cycles/node** | **≤ 1.10** | **1.025** (115.3 / 112.5)。Compact 後 **0.984** (111.1 / 112.8) | **合格** |
 | Bind inst/node、IPC | 報告 | 418.8 / 370.8 = 1.129、IPC 3.63 / 3.30 | inst +12.9% を IPC が吸収 |
 | Bind B/op、allocs/op | 報告 | 14.22 MB / 7.42 MB (1.92×)、12,754 / 13,952 (Compact 前) | slab の append 成長。Compact 後は GOGC=off で Pointer 並み (上の追記) |
 | retained B/node (parse+bind) | checker.ts ≤ 0.60、fixtures ≤ 0.70 (提案線) | checker.ts **0.561** (61.4 / 109.4)、fixtures **0.583** (72.6 / 124.6)、dom 0.696 (89.4 / 128.4) | 提案線に対して合格 |
