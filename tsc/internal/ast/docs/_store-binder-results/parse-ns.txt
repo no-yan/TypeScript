@@ -1,0 +1,27 @@
+ 0:58  up 2 days,  3:47, 8 users, load averages: 3.53 2.72 2.68
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/storeparser
+cpu: Apple M1
+BenchmarkStoreParseV1/checker.ts/pointer-8 	      98	  24065327 ns/op	26138296 B/op	   11931 allocs/op
+BenchmarkStoreParseV1/checker.ts/pointer-8 	      90	  24750150 ns/op	26138290 B/op	   11931 allocs/op
+BenchmarkStoreParseV1/checker.ts/pointer-8 	      91	  25201591 ns/op	26138300 B/op	   11931 allocs/op
+BenchmarkStoreParseV1/checker.ts/pointer-8 	      92	  24005565 ns/op	26138394 B/op	   11931 allocs/op
+BenchmarkStoreParseV1/checker.ts/pointer-8 	      93	  24034619 ns/op	26138298 B/op	   11931 allocs/op
+BenchmarkStoreParseV1/checker.ts/store-8   	     133	  18141167 ns/op	12988616 B/op	     580 allocs/op
+BenchmarkStoreParseV1/checker.ts/store-8   	     132	  18742815 ns/op	12992628 B/op	     580 allocs/op
+BenchmarkStoreParseV1/checker.ts/store-8   	     133	  17906703 ns/op	12460118 B/op	     579 allocs/op
+BenchmarkStoreParseV1/checker.ts/store-8   	     134	  17681608 ns/op	12984664 B/op	     580 allocs/op
+BenchmarkStoreParseV1/checker.ts/store-8   	     134	  17770583 ns/op	12984667 B/op	     580 allocs/op
+BenchmarkStoreParseV1/dom.generated.d.ts/pointer-8         	     228	  10710492 ns/op	 9896326 B/op	    2787 allocs/op
+BenchmarkStoreParseV1/dom.generated.d.ts/pointer-8         	     229	  11107037 ns/op	 9896318 B/op	    2787 allocs/op
+BenchmarkStoreParseV1/dom.generated.d.ts/pointer-8         	     228	  10463702 ns/op	 9895233 B/op	    2787 allocs/op
+BenchmarkStoreParseV1/dom.generated.d.ts/pointer-8         	     228	  10453661 ns/op	 9895281 B/op	    2787 allocs/op
+BenchmarkStoreParseV1/dom.generated.d.ts/pointer-8         	     229	  10650374 ns/op	 9896312 B/op	    2787 allocs/op
+BenchmarkStoreParseV1/dom.generated.d.ts/store-8           	     268	   8971750 ns/op	 4942171 B/op	    1528 allocs/op
+BenchmarkStoreParseV1/dom.generated.d.ts/store-8           	     282	   8435205 ns/op	 4937781 B/op	    1528 allocs/op
+BenchmarkStoreParseV1/dom.generated.d.ts/store-8           	     284	   8435510 ns/op	 4937185 B/op	    1528 allocs/op
+BenchmarkStoreParseV1/dom.generated.d.ts/store-8           	     283	   8442600 ns/op	 4937483 B/op	    1528 allocs/op
+BenchmarkStoreParseV1/dom.generated.d.ts/store-8           	     282	   8479612 ns/op	 4937781 B/op	    1528 allocs/op
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/storeparser	48.104s

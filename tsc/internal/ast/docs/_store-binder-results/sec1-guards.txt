@@ -1,0 +1,26 @@
+## generate
+Formatted [0m[1m1[0m file.
+Generated /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/packages/typescript/src/ast/factory.generated.ts
+Formatted [0m[1m1[0m file.
+Generated /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/packages/typescript/src/ast/is.generated.ts
+Generated /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/packages/typescript/src/ast/visitor.generated.ts
+ M tools/scripts/tsc/generate-go-store.ts
+ M tsc/internal/ast/store/builder_generated.go
+ M tsc/internal/ast/store/doc.go
+ M tsc/internal/ast/store/file.go
+ M tsc/internal/ast/store/inspect.go
+ M tsc/internal/ast/store/shapes_generated.go
+ M tsc/internal/ast/store/store.go
+ M tsc/internal/ast/store/store_test.go
+ M tsc/internal/ast/store/storetest/equivalence.go
+ M tsc/internal/ast/store/views_generated.go
+ M tsc/internal/storeparser/doc.go
+ M tsc/internal/storeparser/parser.go
+ M tsc/internal/storeparser/parser_test.go
+ M tsc/internal/testutil/kperf/session.go
+## build+vet
+vet exit: 0
+## diff-stat vs 326bc57b8a (expect empty)
+## import guard (expect empty)
+## sha after generate
+sha unchanged

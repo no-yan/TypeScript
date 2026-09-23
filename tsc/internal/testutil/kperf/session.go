@@ -77,6 +77,10 @@ func (s *Session) Measure(fn func()) {
 	}
 }
 
+// Totals is what Measure has accumulated so far, for a benchmark that
+// reports the counters per unit of work as well as per op.
+func (s *Session) Totals() Totals { return s.totals }
+
 func (s *Session) Report() {
 	s.b.Helper()
 	instPerOp, cyclesPerOp, ipc, err := metrics(s.totals, s.b.N)

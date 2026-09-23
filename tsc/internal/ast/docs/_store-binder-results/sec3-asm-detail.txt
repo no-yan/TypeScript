@@ -1,0 +1,295 @@
+## bind node() contexts
+binder.go:704 CALL github.com/microsoft/TypeScript/tsc/internal/storebinder.getOptionalSymbolFlagForNode(SB)  
+store.go:85 MOVD 208(RSP), R2 
+store.go:85 MOVH (R2), R3 
+store.go:85 UBFX $0, R3, $16,
+utilities.go:339 CBZW R3, 14(PC) 
+utilities.go:339 CMPW $175, R3 
+utilities.go:339 BNE 12(PC)  
+store.go:84 MOVWU 16(R2), R5 
+store.go:68 MOVD 200(RSP), R1 
+store.go:68 LDP (R1), (R6, R7)
+---
+store.go:85 MOVD 208(RSP), R2 
+store.go:85 MOVH (R2), R3 
+store.go:85 UBFX $0, R3, $16,
+utilities.go:339 CBZW R3, 14(PC) 
+utilities.go:339 CMPW $175, R3 
+utilities.go:339 BNE 12(PC)  
+store.go:84 MOVWU 16(R2), R5 
+store.go:68 MOVD 200(RSP), R1 
+store.go:68 LDP (R1), (R6, R7)
+store.go:68 CMP R7, R5 
+---
+store.go:85 MOVH (R2), R3 
+store.go:85 UBFX $0, R3, $16,
+utilities.go:339 CBZW R3, 14(PC) 
+utilities.go:339 CMPW $175, R3 
+utilities.go:339 BNE 12(PC)  
+store.go:84 MOVWU 16(R2), R5 
+store.go:68 MOVD 200(RSP), R1 
+store.go:68 LDP (R1), (R6, R7)
+store.go:68 CMP R7, R5 
+store.go:68 BCS 714(PC)  
+---
+store.go:85 UBFX $0, R3, $16,
+utilities.go:339 CBZW R3, 14(PC) 
+utilities.go:339 CMPW $175, R3 
+utilities.go:339 BNE 12(PC)  
+store.go:84 MOVWU 16(R2), R5 
+store.go:68 MOVD 200(RSP), R1 
+store.go:68 LDP (R1), (R6, R7)
+store.go:68 CMP R7, R5 
+store.go:68 BCS 714(PC)  
+store.go:68 ADD R5<<5, R6, R5
+---
+utilities.go:339 CBZW R3, 14(PC) 
+utilities.go:339 CMPW $175, R3 
+utilities.go:339 BNE 12(PC)  
+store.go:84 MOVWU 16(R2), R5 
+store.go:68 MOVD 200(RSP), R1 
+store.go:68 LDP (R1), (R6, R7)
+store.go:68 CMP R7, R5 
+store.go:68 BCS 714(PC)  
+store.go:68 ADD R5<<5, R6, R5
+store.go:80 MOVH (R5), R5 
+---
+store.go:97 ORR $131072, R1, R1
+binder.go:784 NOOP   
+store.go:97 MOVW R1, 4(R2) 
+binder.go:785 MOVB R3, 152(R0) 
+binder.go:787 MOVD ZR, R0 
+binder.go:787 MOVD -8(RSP), R29 
+binder.go:787 MOVD.P 224(RSP), R30 
+binder.go:787 RET   
+store.go:68 CALL runtime.panicBounds(SB)  
+binder.go:649 ORR $1, ZR, R3
+---
+binder.go:785 MOVB R3, 152(R0) 
+binder.go:787 MOVD ZR, R0 
+binder.go:787 MOVD -8(RSP), R29 
+binder.go:787 MOVD.P 224(RSP), R30 
+binder.go:787 RET   
+store.go:68 CALL runtime.panicBounds(SB)  
+binder.go:649 ORR $1, ZR, R3
+binder.go:649 JMP -44(PC)  
+store.go:68 ADD R2<<5, R5, R2
+store.go:80 MOVH (R2), R5 
+---
+store.go:68 ADD R2<<5, R5, R2
+store.go:80 MOVH (R2), R5 
+utilities.go:772 UBFX $0, R5, $16,
+utilities.go:772 CMPW $167, R5 
+utilities.go:772 BEQ 3(PC)  
+utilities.go:772 CMPW $79, R5 
+utilities.go:772 BNE 7(PC)  
+store.go:84 MOVWU 16(R2), R2 
+store.go:68 LDP (R1), (R5, R6)
+utilities.go:773 NOOP   
+---
+utilities.go:772 UBFX $0, R5, $16,
+utilities.go:772 CMPW $167, R5 
+utilities.go:772 BEQ 3(PC)  
+utilities.go:772 CMPW $79, R5 
+utilities.go:772 BNE 7(PC)  
+store.go:84 MOVWU 16(R2), R2 
+store.go:68 LDP (R1), (R5, R6)
+utilities.go:773 NOOP   
+store.go:68 CMP R6, R2 
+store.go:68 BCC -11(PC)  
+---
+utilities.go:772 CMPW $167, R5 
+utilities.go:772 BEQ 3(PC)  
+utilities.go:772 CMPW $79, R5 
+utilities.go:772 BNE 7(PC)  
+store.go:84 MOVWU 16(R2), R2 
+store.go:68 LDP (R1), (R5, R6)
+utilities.go:773 NOOP   
+store.go:68 CMP R6, R2 
+store.go:68 BCC -11(PC)  
+store.go:68 JMP 9(PC)  
+---
+utilities.go:772 BEQ 3(PC)  
+utilities.go:772 CMPW $79, R5 
+utilities.go:772 BNE 7(PC)  
+store.go:84 MOVWU 16(R2), R2 
+store.go:68 LDP (R1), (R5, R6)
+utilities.go:773 NOOP   
+store.go:68 CMP R6, R2 
+store.go:68 BCC -11(PC)  
+store.go:68 JMP 9(PC)  
+utilities.go:775 CMPW $187, R5 
+---
+utilities.go:775 CMPW $187, R5 
+binder.go:649 BNE 5(PC)  
+binder.go:650 NOOP   
+store.go:99 MOVW R3, 24(R4) 
+store.go:81 MOVD R4, R2 
+binder.go:649 JMP -20(PC)  
+store.go:81 MOVD R4, R2 
+binder.go:649 JMP -22(PC)  
+store.go:68 CALL runtime.panicBounds(SB)  
+store.go:68 NOOP   
+---
+binder.go:649 BNE 5(PC)  
+binder.go:650 NOOP   
+store.go:99 MOVW R3, 24(R4) 
+store.go:81 MOVD R4, R2 
+binder.go:649 JMP -20(PC)  
+store.go:81 MOVD R4, R2 
+binder.go:649 JMP -22(PC)  
+store.go:68 CALL runtime.panicBounds(SB)  
+store.go:68 NOOP   
+binder.go:614 STP (R0, R1), 8(RSP)
+---
+## views_generated.go:5194
+	return List{n.s, ListRef(n.s.extra[int(n.h.data)+sourceFileStatementsSlot])}
+}
+
+func (n SourceFile) EndOfFileToken() Node {
+	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+sourceFileEndOfFileTokenSlot]))
+}
+
+## binder.go 1721-1722, 1790
+		}
+		b.bindEachChild(node)
+		b.inAssignmentPattern = saveInAssignmentPattern
+		return
+	}
+		sourceFile := node.AsSourceFile()
+		b.bindEachStatementFunctionsFirst(sourceFile.Statements())
+		b.bind(sourceFile.EndOfFileToken())
+	case ast.KindBlock, ast.KindModuleBlock:
+## bindContainer saves (abs lines)
+func at 1538
+	saveContainer := b.container
+binder.go:1542 LDP 40(R0), (R5, R6)
+binder.go:1542 MOVD R5, 256(RSP) 
+binder.go:1542 MOVD R6, 248(RSP) 
+	saveThisContainer := b.thisContainer
+binder.go:1543 LDP 56(R0), (R7, R8)
+binder.go:1543 MOVD R7, 240(RSP) 
+binder.go:1543 MOVD R8, 232(RSP) 
+	savedBlockScopeContainer := b.blockScopeContainer
+binder.go:1544 LDP 72(R0), (R9, R10)
+binder.go:1544 MOVD R9, 224(RSP) 
+binder.go:1544 MOVD R10, 216(RSP) 
+## restore lines
+1685: 	b.container = saveContainer
+binder.go:1685 MOVD 248(RSP), R6 
+binder.go:1685 MOVD 256(RSP), R5 
+binder.go:1685 MOVD 248(RSP), R6 
+binder.go:1685 MOVD 256(RSP), R5 
+binder.go:1685 MOVD 256(RSP), R5 
+binder.go:1685 MOVD 248(RSP), R6 
+binder.go:1685 MOVD 256(RSP), R5 
+binder.go:1685 MOVD 248(RSP), R6 
+binder.go:1685 MOVD 248(RSP), R6 
+binder.go:1685 MOVD 256(RSP), R5 
+binder.go:1685 MOVD 248(RSP), R6 
+binder.go:1685 MOVD 256(RSP), R5 
+binder.go:1685 ADRP 8757248(PC), R27 
+binder.go:1685 MOVWU 1440(R27), R1 
+binder.go:1685 CBNZW R1, 8(PC) 
+binder.go:1685 MOVD 248(RSP), R1 
+binder.go:1685 MOVD 256(RSP), R5 
+binder.go:1685 JMP 18(PC)  
+binder.go:1685 LDP 40(R0), (R1, R2)
+binder.go:1685 CALL runtime.gcWriteBarrier8(SB)  
+binder.go:1685 MOVD 256(RSP), R5 
+binder.go:1685 STP (R5, R1), (R25)
+binder.go:1685 MOVD 248(RSP), R1 
+binder.go:1685 STP (R1, R2), 16(R25)
+binder.go:1685 CALL runtime.gcWriteBarrier4(SB)  
+binder.go:1685 STP (R5, R1), 40(R0)
+binder.go:1685 MOVD 392(RSP), R0 
+1686: 	b.thisContainer = saveThisContainer
+binder.go:1686 MOVD 240(RSP), R7 
+binder.go:1686 MOVD 232(RSP), R8 
+binder.go:1686 MOVD 240(RSP), R7 
+binder.go:1686 MOVD 232(RSP), R8 
+binder.go:1686 MOVD 240(RSP), R7 
+binder.go:1686 MOVD 232(RSP), R8 
+binder.go:1686 MOVD 240(RSP), R7 
+binder.go:1686 MOVD 232(RSP), R8 
+binder.go:1686 MOVD 240(RSP), R7 
+binder.go:1686 MOVD 232(RSP), R8 
+binder.go:1686 MOVD 240(RSP), R7 
+binder.go:1686 MOVD 232(RSP), R8 
+binder.go:1686 MOVD 240(RSP), R2 
+binder.go:1686 MOVD 232(RSP), R3 
+binder.go:1686 LDP 56(R0), (R3, R4)
+binder.go:1686 MOVD 240(RSP), R2 
+binder.go:1686 STP (R2, R3), 32(R25)
+binder.go:1686 MOVD 232(RSP), R3 
+binder.go:1686 STP (R3, R4), 48(R25)
+binder.go:1686 STP (R2, R3), 56(R0)
+1687: 	b.blockScopeContainer = savedBlockScopeContainer
+binder.go:1687 MOVD 224(RSP), R9 
+binder.go:1687 MOVD 216(RSP), R10 
+binder.go:1687 MOVD 224(RSP), R9 
+binder.go:1687 MOVD 216(RSP), R10 
+binder.go:1687 MOVD 224(RSP), R9 
+binder.go:1687 MOVD 216(RSP), R10 
+binder.go:1687 MOVD 224(RSP), R9 
+binder.go:1687 MOVD 216(RSP), R10 
+binder.go:1687 MOVD 224(RSP), R9 
+binder.go:1687 MOVD 216(RSP), R10 
+binder.go:1687 MOVD 224(RSP), R9 
+binder.go:1687 MOVD 216(RSP), R10 
+binder.go:1687 MOVD 216(RSP), R4 
+binder.go:1687 MOVD 224(RSP), R7 
+binder.go:1687 LDP 72(R0), (R4, R6)
+binder.go:1687 MOVD 224(RSP), R7 
+binder.go:1687 STP (R7, R4), (R25)
+binder.go:1687 MOVD 216(RSP), R4 
+binder.go:1687 STP (R4, R6), 16(R25)
+binder.go:1687 STP (R7, R4), 72(R0)
+## bce: role tables
+5765:	slot := nameSlot[n.h.kind&511]
+6052:	slot := localSymbolSlot[n.h.kind&511]
+6061:	slot := localSymbolSlot[n.h.kind&511]
+6069:	slot := localsSlot[n.h.kind&511]
+6078:	slot := localsSlot[n.h.kind&511]
+6086:	slot := endFlowNodeSlot[n.h.kind&511]
+6095:	slot := endFlowNodeSlot[n.h.kind&511]
+6103:	slot := returnFlowNodeSlot[n.h.kind&511]
+6112:	slot := returnFlowNodeSlot[n.h.kind&511]
+6120:	slot := fallthroughFlowNodeSlot[n.h.kind&511]
+6129:	slot := fallthroughFlowNodeSlot[n.h.kind&511]
+2638
+  53 0
+## inline: key accessors
+method(*Bound) func() uint32 { i := uint32(len(b.locals)); b.locals = append(b.locals, make(SymbolTable)); return i }
+method(*Bound) func(*Symbol) SymbolId { s.id = SymbolId(len(b.symbols)); b.symbols = append(b.symbols, s); return s.id }
+method(*Bound) func(ast.FlowFlags, NodeRef, FlowRef) FlowRef { r := FlowRef(len(b.flows)); b.flows = append(b.flows, FlowNode{...}); return r }
+method(*Bound) func(FlowListRef) *FlowList { return &b.flowLists[r] }
+method(*Bound) func(FlowRef, FlowListRef) FlowListRef { r := FlowListRef(len(b.flowLists)); b.flowLists = append(b.flowLists, FlowList{...}); return r }
+method(*Bound) func(FlowRef) *FlowNode { return &b.flows[r] }
+method(*Bound) func(NodeRef) { b.containers = append(b.containers, ref) }
+method(*Bound) func(SymbolId) *Symbol { return b.symbols[id] }
+method(*Bound) func(uint32, uint32, uint32) uint32 { i := uint32(len(b.flowData)); b.flowData = append(b.flowData, FlowData{...}); return i }
+method(*Bound) func(uint32) *FlowData { return &b.flowData[i] }
+method(*Bound) func(uint32) SymbolTable { return b.locals[i] }
+method(*Store) func(NodeRef) Node { return (*Store).node(s, ref) }
+method(Node) func() (uint32, bool) { slot := localsSlot[n.h.kind & ast.Kind(511)]; if slot == uint8(255) { return uint32(0), false }; return uint32(n.s.extra[int(n.h.data) + int(slot)]), true }
+method(Node) func() {  }
+method(Node) func() FlowRef { return n.h.flow }
+method(Node) func() FlowRef { slot := endFlowNodeSlot[n.h.kind & ast.Kind(511)]; if slot == uint8(255) { return FlowRef(0) }; return FlowRef(n.s.extra[int(n.h.data) + int(slot)]) }
+method(Node) func() FlowRef { slot := fallthroughFlowNodeSlot[n.h.kind & ast.Kind(511)]; if slot == uint8(255) { return FlowRef(0) }; return FlowRef(n.s.extra[int(n.h.data) + int(slot)]) }
+method(Node) func() FlowRef { slot := returnFlowNodeSlot[n.h.kind & ast.Kind(511)]; if slot == uint8(255) { return FlowRef(0) }; return FlowRef(n.s.extra[int(n.h.data) + int(slot)]) }
+method(Node) func() NodeRef { base := uintptr(unsafe.Pointer(<node unsafe.SliceData>)); return NodeRef((uintptr(unsafe.Pointer(n.h)) - base) / uintptr(32)) }
+method(Node) func() Ref { return Ref{...} }
+method(Node) func() SymbolId { return n.h.symbol }
+method(Node) func() SymbolId { slot := localSymbolSlot[n.h.kind & ast.Kind(511)]; if slot == uint8(255) { return SymbolId(0) }; return SymbolId(n.s.extra[int(n.h.data) + int(slot)]) }
+method(Node) func(ast.NodeFlags) { Node.checkUnsealed(n); n.h.flags &^= f }
+method(Node) func(ast.NodeFlags) { Node.checkUnsealed(n); n.h.flags |= f }
+method(Node) func(FlowRef) { Node.checkUnsealed(n); n.h.flow = f }
+method(Node) func(FlowRef) { Node.checkUnsealed(n); slot := endFlowNodeSlot[n.h.kind & ast.Kind(511)]; if slot == uint8(255) { return  }; n.s.extra[int(n.h.data) + int(slot)] = uint32(v) }
+method(Node) func(FlowRef) { Node.checkUnsealed(n); slot := fallthroughFlowNodeSlot[n.h.kind & ast.Kind(511)]; if slot == uint8(255) { return  }; n.s.extra[int(n.h.data) + int(slot)] = uint32(v) }
+method(Node) func(FlowRef) { Node.checkUnsealed(n); slot := returnFlowNodeSlot[n.h.kind & ast.Kind(511)]; if slot == uint8(255) { return  }; n.s.extra[int(n.h.data) + int(slot)] = uint32(v) }
+method(Node) func(SymbolId) { Node.checkUnsealed(n); n.h.symbol = id }
+method(Node) func(SymbolId) { Node.checkUnsealed(n); slot := localSymbolSlot[n.h.kind & ast.Kind(511)]; if slot == uint8(255) { return  }; n.s.extra[int(n.h.data) + int(slot)] = uint32(v) }
+method(Node) func(uint32) { Node.checkUnsealed(n); slot := localsSlot[n.h.kind & ast.Kind(511)]; if slot == uint8(255) { return  }; n.s.extra[int(n.h.data) + int(slot)] = uint32(v) }
+## cannot inline (store)
+cost 181 exceeds budget 80

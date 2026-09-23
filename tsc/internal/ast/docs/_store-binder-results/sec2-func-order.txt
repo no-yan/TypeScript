@@ -1,0 +1,61 @@
+## binder func order
+11a12,13
+> func 
+> func 
+29d30
+< func setFlowNodeReferenced
+57a59,60
+> func 
+> func 
+60c63
+< func getInitializerSymbol
+---
+> func 
+## with receivers+names
+6a7,8
+> nilNode
+> symbolOf
+28a31
+> newFlowData
+## references
+2a3,12
+> findImportOrRequire
+> forEachDynamicImportOrRequireCall
+> setExternalModuleIndicator
+> getExternalModuleIndicator
+> isFileProbablyExternalModule
+> isAnExternalModuleIndicatorNode
+> getImportMetaIfNecessary
+> findChildNode
+> isFileModuleFromUsingJSXTag
+> walkTreeForJSXTags
+## symbol
+0a1
+> Id
+7a9,12
+> GetSymbolTable
+> GetMembers
+> GetExports
+> GetLocals
+## line counts
+    2802 internal/binder/binder.go
+     163 internal/storebinder/bench_test.go
+     442 internal/storebinder/bindequiv_test.go
+     312 internal/storebinder/binder_test.go
+    2895 internal/storebinder/binder.go
+      43 internal/storebinder/doc.go
+      36 internal/storebinder/seal_checks_test.go
+     160 internal/storebinder/utilities.go
+    1261 internal/ast/store/utilities.go
+     128 internal/ast/store/bound.go
+     129 internal/ast/store/symbol.go
+      29 internal/ast/store/position.go
+     238 internal/storeparser/references.go
+    8638 total
+## diffs regenerate check
+Files - and internal/ast/docs/_store-binder-results/binder.diff differ
+Files - and internal/ast/docs/_store-binder-results/references.diff differ
+Files - and internal/ast/docs/_store-binder-results/symbol.diff differ
+internal/ast/docs/_store-binder-results/binder.diff:64
+internal/ast/docs/_store-binder-results/binder-fold.diff:41
+internal/ast/docs/_store-binder-results/binder-verbatim.diff:64

@@ -1,0 +1,15 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/storebinder
+cpu: Apple M1
+BenchmarkStoreBindKPCV1/pointer-8         	      20	  10656188 ns/op	         3.299 IPC	       112.3 cycles/node	  33481302 cycles/op	       370.5 inst/node	 110439435 inst/op	 7423983 B/op	   13952 allocs/op
+BenchmarkStoreBindKPCV1/pointer-8         	      20	  10705117 ns/op	         3.313 IPC	       112.6 cycles/node	  33552143 cycles/op	       373.0 inst/node	 111161919 inst/op	 7423983 B/op	   13952 allocs/op
+BenchmarkStoreBindKPCV1/pointer-8         	      20	  10597219 ns/op	         3.312 IPC	       111.8 cycles/node	  33333791 cycles/op	       370.4 inst/node	 110398108 inst/op	 7423983 B/op	   13952 allocs/op
+BenchmarkStoreBindKPCV1/pointer-8         	      20	  10852956 ns/op	         3.254 IPC	       113.7 cycles/node	  33892691 cycles/op	       370.1 inst/node	 110297215 inst/op	 7423983 B/op	   13952 allocs/op
+BenchmarkStoreBindKPCV1/pointer-8         	      20	  10659711 ns/op	         3.297 IPC	       112.3 cycles/node	  33461348 cycles/op	       370.2 inst/node	 110332030 inst/op	 7423983 B/op	   13952 allocs/op
+BenchmarkStoreBindKPCV1/store-8           	      20	  10924935 ns/op	         3.639 IPC	       115.0 cycles/node	  34270208 cycles/op	       418.4 inst/node	 124698091 inst/op	14219229 B/op	   12754 allocs/op
+BenchmarkStoreBindKPCV1/store-8           	      20	  10950432 ns/op	         3.637 IPC	       115.3 cycles/node	  34363839 cycles/op	       419.3 inst/node	 124988157 inst/op	14219229 B/op	   12754 allocs/op
+BenchmarkStoreBindKPCV1/store-8           	      20	  10960725 ns/op	         3.636 IPC	       115.4 cycles/node	  34399311 cycles/op	       419.6 inst/node	 125068766 inst/op	14219229 B/op	   12754 allocs/op
+BenchmarkStoreBindKPCV1/store-8           	      20	  10992773 ns/op	         3.614 IPC	       115.6 cycles/node	  34444510 cycles/op	       417.7 inst/node	 124492110 inst/op	14219229 B/op	   12754 allocs/op
+BenchmarkStoreBindKPCV1/store-8           	      20	  10960785 ns/op	         3.628 IPC	       115.4 cycles/node	  34401580 cycles/op	       418.8 inst/node	 124816566 inst/op	14219229 B/op	   12754 allocs/op
+PASS

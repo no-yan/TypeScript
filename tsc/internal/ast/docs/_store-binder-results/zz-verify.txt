@@ -1,0 +1,20 @@
+=== RUN   TestZZVerify
+    zz_verify_test.go:38: await file #713 /index.ts kind=ScriptKindTS excluded=false reasons=[]
+    zz_verify_test.go:38: await file #714 /index.ts kind=ScriptKindTS excluded=false reasons=[]
+    zz_verify_test.go:38: await file #3037 /index.ts kind=ScriptKindTS excluded=false reasons=[]
+    zz_verify_test.go:38: await file #5255 /index.js kind=ScriptKindJS excluded=true reasons=[a JSDoc type cast a reparsed node with a symbol another reparsed node]
+    zz_verify_test.go:38: await file #7521 /index.ts kind=ScriptKindTS excluded=false reasons=[]
+    zz_verify_test.go:38: await file #8555 /index.js kind=ScriptKindJS excluded=true reasons=[a reparsed node with a symbol another reparsed node]
+    zz_verify_test.go:38: await file #12580 /index.ts kind=ScriptKindTS excluded=false reasons=[]
+    zz_verify_test.go:38: await file #12584 /index.ts kind=ScriptKindTS excluded=false reasons=[]
+    zz_verify_test.go:108: compared TS 15959, JS 1126
+    zz_verify_test.go:109: loosening: ExternalModuleIndicator comparison skipped (JSDoc-origin) in 0 files []; Imports elements dropped 31; ModuleAugmentations dropped 0
+    zz_verify_test.go:110: JS files with a Flags mismatch when ThisNodeOrAnySubNodesHasError is not masked: 3 (e.g. [#5083 #13393 #13522]); also without the PossiblyContainsDynamicImport mask: 18
+    zz_verify_test.go:111: TSX/JSX files compared 486, of them without an external module indicator 214
+    zz_verify_test.go:112: coverage: Imports>0 2542, ModuleAugmentations>0 213, AmbientModuleNames>0 244, ExternalModuleIndicator!=0 5572, UsesUriStyleNodeCoreModules!=unknown 41, CommonJSModuleIndicator!=0 261
+    zz_verify_test.go:152: checker.ts: SymbolCount 18444, symbols reached 18444 (x96 = 1770624 B), tables 5917 with 17305 entries (~897838 B at 24 B/entry / 0.8 load + 64 B/table), Declarations 18493 refs, cap bytes 148160, Bound.Footprint 1925676 (flows 79991 lists 49789 data 879), bind diagnostics 0
+    zz_verify_test.go:152: dom.generated.d.ts: SymbolCount 25112, symbols reached 25112 (x96 = 2410752 B), tables 6810 with 23438 entries (~1138980 B at 24 B/entry / 0.8 load + 64 B/table), Declarations 26752 refs, cap bytes 215584, Bound.Footprint 329888 (flows 4846 lists 1 data 1), bind diagnostics 0
+--- PASS: TestZZVerify (3.66s)
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/storebinder	4.265s
+exit=0

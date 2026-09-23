@@ -1,0 +1,16 @@
+gc 1 @0.001s 2%: 0.006+0.10+0.002 ms clock, 0.051+0/0.19/0.065+0.017 ms cpu, 1->1->0 MB, 4 MB goal, 0 MB stacks, 0 MB globals, 8 P (forced)
+gc 2 @0.001s 3%: 0.014+0.093+0.001 ms clock, 0.11+0/0.17/0.062+0.012 ms cpu, 0->0->0 MB, 4 MB goal, 0 MB stacks, 0 MB globals, 8 P (forced)
+gc 3 @0.001s 4%: 0.021+0.12+0.001 ms clock, 0.17+0/0.15/0.099+0.013 ms cpu, 0->0->0 MB, 4 MB goal, 0 MB stacks, 0 MB globals, 8 P (forced)
+gc 4 @0.002s 4%: 0.022+0.49+0.006 ms clock, 0.18+0/0.43/0.10+0.051 ms cpu, 6->6->3 MB, 6 MB goal, 0 MB stacks, 0 MB globals, 8 P
+gc 5 @0.003s 5%: 0.022+0.11+0.006 ms clock, 0.17+0/0.12/0.11+0.051 ms cpu, 3->3->3 MB, 7 MB goal, 0 MB stacks, 0 MB globals, 8 P (forced)
+gc 6 @0.003s 5%: 0.023+0.11+0.001 ms clock, 0.18+0/0.12/0.11+0.010 ms cpu, 3->3->3 MB, 7 MB goal, 0 MB stacks, 0 MB globals, 8 P (forced)
+gc 7 @0.005s 4%: 0.024+0.19+0.008 ms clock, 0.19+0/0.20/0.091+0.065 ms cpu, 7->7->4 MB, 7 MB goal, 0 MB stacks, 0 MB globals, 8 P
+gc 8 @0.007s 3%: 0.018+0.42+0.012 ms clock, 0.14+0/0.19/0.25+0.098 ms cpu, 11->11->7 MB, 11 MB goal, 0 MB stacks, 0 MB globals, 8 P
+gc 9 @0.010s 2%: 0.019+0.19+0.008 ms clock, 0.15+0/0.20/0.088+0.070 ms cpu, 14->14->7 MB, 14 MB goal, 0 MB stacks, 0 MB globals, 8 P
+gc 10 @0.012s 2%: 0.019+0.88+0.017 ms clock, 0.15+0/0.17/0.55+0.14 ms cpu, 17->17->12 MB, 17 MB goal, 0 MB stacks, 0 MB globals, 8 P
+gc 11 @0.017s 2%: 0.029+0.87+0.018 ms clock, 0.23+0/0.22/0.70+0.15 ms cpu, 28->28->17 MB, 28 MB goal, 0 MB stacks, 0 MB globals, 8 P
+gc 12 @0.025s 1%: 0.035+1.3+0.014 ms clock, 0.28+0/0.27/1.2+0.11 ms cpu, 42->42->25 MB, 42 MB goal, 0 MB stacks, 0 MB globals, 8 P
+gc 13 @0.038s 1%: 0.037+0.74+0.009 ms clock, 0.30+0.033/0.94/0.78+0.077 ms cpu, 51->51->35 MB, 52 MB goal, 0 MB stacks, 0 MB globals, 8 P
+gc 14 @0.040s 1%: 0.022+0.62+0.001 ms clock, 0.17+0/0.79/1.0+0.012 ms cpu, 36->36->21 MB, 71 MB goal, 0 MB stacks, 0 MB globals, 8 P (forced)
+gc 15 @0.040s 2%: 0.022+0.76+0.010 ms clock, 0.18+0/1.0/0.95+0.083 ms cpu, 21->21->21 MB, 42 MB goal, 0 MB stacks, 0 MB globals, 8 P (forced)
+gc 16 @0.041s 2%: 0.020+0.75+0.001 ms clock, 0.16+0/0.93/0.95+0.009 ms cpu, 21->21->21 MB, 42 MB goal, 0 MB stacks, 0 MB globals, 8 P (forced)

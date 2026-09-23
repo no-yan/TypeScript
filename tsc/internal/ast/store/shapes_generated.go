@@ -26,19 +26,19 @@ var shapes = [512]shape{
 	ast.KindDecorator:                     {1, 0b0},
 	ast.KindPropertySignature:             {5, 0b1},
 	ast.KindPropertyDeclaration:           {5, 0b1},
-	ast.KindMethodSignature:               {6, 0b11001},
-	ast.KindMethodDeclaration:             {9, 0b110001},
-	ast.KindClassStaticBlockDeclaration:   {2, 0b1},
-	ast.KindConstructor:                   {6, 0b111},
-	ast.KindGetAccessor:                   {7, 0b1101},
-	ast.KindSetAccessor:                   {7, 0b1101},
-	ast.KindCallSignature:                 {3, 0b11},
-	ast.KindConstructSignature:            {3, 0b11},
-	ast.KindIndexSignature:                {3, 0b11},
+	ast.KindMethodSignature:               {7, 0b11001},
+	ast.KindMethodDeclaration:             {11, 0b110001},
+	ast.KindClassStaticBlockDeclaration:   {4, 0b1},
+	ast.KindConstructor:                   {9, 0b111},
+	ast.KindGetAccessor:                   {9, 0b1101},
+	ast.KindSetAccessor:                   {9, 0b1101},
+	ast.KindCallSignature:                 {4, 0b11},
+	ast.KindConstructSignature:            {4, 0b11},
+	ast.KindIndexSignature:                {4, 0b11},
 	ast.KindTypePredicate:                 {3, 0b0},
 	ast.KindTypeReference:                 {2, 0b10},
-	ast.KindFunctionType:                  {3, 0b11},
-	ast.KindConstructorType:               {4, 0b111},
+	ast.KindFunctionType:                  {4, 0b11},
+	ast.KindConstructorType:               {5, 0b111},
 	ast.KindTypeQuery:                     {2, 0b10},
 	ast.KindTypeLiteral:                   {1, 0b1},
 	ast.KindArrayType:                     {1, 0b0},
@@ -47,12 +47,12 @@ var shapes = [512]shape{
 	ast.KindRestType:                      {1, 0b0},
 	ast.KindUnionType:                     {1, 0b1},
 	ast.KindIntersectionType:              {1, 0b1},
-	ast.KindConditionalType:               {4, 0b0},
+	ast.KindConditionalType:               {5, 0b0},
 	ast.KindInferType:                     {1, 0b0},
 	ast.KindParenthesizedType:             {1, 0b0},
 	ast.KindTypeOperator:                  {2, 0b0},
 	ast.KindIndexedAccessType:             {2, 0b0},
-	ast.KindMappedType:                    {6, 0b100000},
+	ast.KindMappedType:                    {7, 0b100000},
 	ast.KindLiteralType:                   {1, 0b0},
 	ast.KindNamedTupleMember:              {4, 0b0},
 	ast.KindTemplateLiteralType:           {2, 0b10},
@@ -60,7 +60,7 @@ var shapes = [512]shape{
 	ast.KindImportType:                    {5, 0b10000},
 	ast.KindObjectBindingPattern:          {1, 0b1},
 	ast.KindArrayBindingPattern:           {1, 0b1},
-	ast.KindBindingElement:                {4, 0b0},
+	ast.KindBindingElement:                {5, 0b0},
 	ast.KindArrayLiteralExpression:        {2, 0b1},
 	ast.KindObjectLiteralExpression:       {2, 0b1},
 	ast.KindPropertyAccessExpression:      {3, 0b0},
@@ -70,8 +70,8 @@ var shapes = [512]shape{
 	ast.KindTaggedTemplateExpression:      {4, 0b100},
 	ast.KindTypeAssertionExpression:       {2, 0b0},
 	ast.KindParenthesizedExpression:       {1, 0b0},
-	ast.KindFunctionExpression:            {8, 0b11001},
-	ast.KindArrowFunction:                 {7, 0b111},
+	ast.KindFunctionExpression:            {11, 0b11001},
+	ast.KindArrowFunction:                 {9, 0b111},
 	ast.KindDeleteExpression:              {1, 0b0},
 	ast.KindTypeOfExpression:              {1, 0b0},
 	ast.KindVoidExpression:                {1, 0b0},
@@ -83,7 +83,7 @@ var shapes = [512]shape{
 	ast.KindTemplateExpression:            {2, 0b10},
 	ast.KindYieldExpression:               {2, 0b0},
 	ast.KindSpreadElement:                 {1, 0b0},
-	ast.KindClassExpression:               {5, 0b11101},
+	ast.KindClassExpression:               {7, 0b11101},
 	ast.KindExpressionWithTypeArguments:   {2, 0b10},
 	ast.KindAsExpression:                  {2, 0b0},
 	ast.KindNonNullExpression:             {1, 0b0},
@@ -91,15 +91,15 @@ var shapes = [512]shape{
 	ast.KindSyntheticExpression:           {2, 0b0},
 	ast.KindSatisfiesExpression:           {2, 0b0},
 	ast.KindTemplateSpan:                  {2, 0b0},
-	ast.KindBlock:                         {2, 0b1},
+	ast.KindBlock:                         {3, 0b1},
 	ast.KindVariableStatement:             {2, 0b1},
 	ast.KindExpressionStatement:           {1, 0b0},
 	ast.KindIfStatement:                   {3, 0b0},
 	ast.KindDoStatement:                   {2, 0b0},
 	ast.KindWhileStatement:                {2, 0b0},
-	ast.KindForStatement:                  {4, 0b0},
-	ast.KindForInStatement:                {4, 0b0},
-	ast.KindForOfStatement:                {4, 0b0},
+	ast.KindForStatement:                  {5, 0b0},
+	ast.KindForInStatement:                {5, 0b0},
+	ast.KindForOfStatement:                {5, 0b0},
 	ast.KindContinueStatement:             {1, 0b0},
 	ast.KindBreakStatement:                {1, 0b0},
 	ast.KindReturnStatement:               {1, 0b0},
@@ -108,28 +108,28 @@ var shapes = [512]shape{
 	ast.KindLabeledStatement:              {2, 0b0},
 	ast.KindThrowStatement:                {1, 0b0},
 	ast.KindTryStatement:                  {3, 0b0},
-	ast.KindVariableDeclaration:           {4, 0b0},
+	ast.KindVariableDeclaration:           {5, 0b0},
 	ast.KindVariableDeclarationList:       {1, 0b1},
-	ast.KindFunctionDeclaration:           {8, 0b11001},
-	ast.KindClassDeclaration:              {5, 0b11101},
-	ast.KindInterfaceDeclaration:          {5, 0b11101},
-	ast.KindTypeAliasDeclaration:          {4, 0b101},
-	ast.KindEnumDeclaration:               {3, 0b101},
-	ast.KindModuleDeclaration:             {5, 0b1},
+	ast.KindFunctionDeclaration:           {12, 0b11001},
+	ast.KindClassDeclaration:              {7, 0b11101},
+	ast.KindInterfaceDeclaration:          {6, 0b11101},
+	ast.KindTypeAliasDeclaration:          {6, 0b101},
+	ast.KindEnumDeclaration:               {4, 0b101},
+	ast.KindModuleDeclaration:             {8, 0b1},
 	ast.KindModuleBlock:                   {1, 0b1},
-	ast.KindCaseBlock:                     {1, 0b1},
+	ast.KindCaseBlock:                     {2, 0b1},
 	ast.KindNamespaceExportDeclaration:    {2, 0b1},
-	ast.KindImportEqualsDeclaration:       {4, 0b1},
+	ast.KindImportEqualsDeclaration:       {5, 0b1},
 	ast.KindImportDeclaration:             {4, 0b1},
-	ast.KindImportClause:                  {3, 0b0},
-	ast.KindNamespaceImport:               {1, 0b0},
+	ast.KindImportClause:                  {4, 0b0},
+	ast.KindNamespaceImport:               {2, 0b0},
 	ast.KindNamedImports:                  {1, 0b1},
-	ast.KindImportSpecifier:               {3, 0b0},
+	ast.KindImportSpecifier:               {4, 0b0},
 	ast.KindExportAssignment:              {4, 0b1},
 	ast.KindExportDeclaration:             {5, 0b1},
 	ast.KindNamedExports:                  {1, 0b1},
 	ast.KindNamespaceExport:               {1, 0b0},
-	ast.KindExportSpecifier:               {3, 0b0},
+	ast.KindExportSpecifier:               {4, 0b0},
 	ast.KindMissingDeclaration:            {1, 0b1},
 	ast.KindExternalModuleReference:       {1, 0b0},
 	ast.KindJsxElement:                    {3, 0b10},
@@ -142,17 +142,17 @@ var shapes = [512]shape{
 	ast.KindJsxSpreadAttribute:            {1, 0b0},
 	ast.KindJsxExpression:                 {2, 0b0},
 	ast.KindJsxNamespacedName:             {2, 0b0},
-	ast.KindCaseClause:                    {2, 0b10},
-	ast.KindDefaultClause:                 {2, 0b10},
+	ast.KindCaseClause:                    {3, 0b10},
+	ast.KindDefaultClause:                 {3, 0b10},
 	ast.KindHeritageClause:                {2, 0b10},
-	ast.KindCatchClause:                   {2, 0b0},
+	ast.KindCatchClause:                   {3, 0b0},
 	ast.KindImportAttributes:              {3, 0b10},
 	ast.KindImportAttribute:               {2, 0b0},
 	ast.KindPropertyAssignment:            {5, 0b1},
 	ast.KindShorthandPropertyAssignment:   {6, 0b1},
 	ast.KindSpreadAssignment:              {1, 0b0},
 	ast.KindEnumMember:                    {2, 0b0},
-	ast.KindSourceFile:                    {2, 0b1},
+	ast.KindSourceFile:                    {3, 0b1},
 	ast.KindJSDocTypeExpression:           {1, 0b0},
 	ast.KindJSDocNameReference:            {1, 0b0},
 	ast.KindJSDocNullableType:             {1, 0b0},
@@ -161,7 +161,7 @@ var shapes = [512]shape{
 	ast.KindJSDocVariadicType:             {1, 0b0},
 	ast.KindJSDoc:                         {2, 0b11},
 	ast.KindJSDocTypeLiteral:              {2, 0b1},
-	ast.KindJSDocSignature:                {3, 0b11},
+	ast.KindJSDocSignature:                {4, 0b11},
 	ast.KindJSDocLink:                     {1, 0b0},
 	ast.KindJSDocLinkCode:                 {1, 0b0},
 	ast.KindJSDocLinkPlain:                {1, 0b0},
@@ -188,7 +188,7 @@ var shapes = [512]shape{
 	ast.KindJSDocSatisfiesTag:             {3, 0b100},
 	ast.KindJSDocImportTag:                {5, 0b10000},
 	ast.KindSyntaxList:                    {1, 0b1},
-	ast.KindJSTypeAliasDeclaration:        {4, 0b101},
+	ast.KindJSTypeAliasDeclaration:        {6, 0b101},
 	ast.KindJSImportDeclaration:           {4, 0b1},
 	ast.KindPartiallyEmittedExpression:    {1, 0b0},
 	ast.KindSyntheticReferenceExpression:  {2, 0b0},
@@ -244,8 +244,19 @@ var (
 	classNameSlot        [512]uint8
 )
 
+// Payload word of each reserved slot of the binder; 0xFF = the kind does not
+// have it. The binder's role accessors (LocalsSlot, LocalSymbol, EndFlowNode,
+// ReturnFlowNode, FallthroughFlowNode) read these.
+var (
+	localSymbolSlot         [512]uint8
+	localsSlot              [512]uint8
+	endFlowNodeSlot         [512]uint8
+	returnFlowNodeSlot      [512]uint8
+	fallthroughFlowNodeSlot [512]uint8
+)
+
 func init() {
-	for _, t := range []*[512]uint8{&leftSlot, &rightSlot, &expressionSlot, &statementSlot, &initializerSlot, &conditionSlot, &labelSlot, &statementsSlot, &modifiersSlot, &nameSlot, &typeSlot, &elementsSlot, &dotDotDotTokenSlot, &questionTokenSlot, &propertyNameSlot, &asteriskTokenSlot, &typeParametersSlot, &parametersSlot, &fullSignatureSlot, &bodySlot, &heritageClausesSlot, &membersSlot, &typesSlot, &importClauseSlot, &moduleSpecifierSlot, &postfixTokenSlot, &textSlot, &operandSlot, &questionDotTokenSlot, &typeArgumentsSlot, &argumentsSlot, &headSlot, &templateSpansSlot, &literalSlot, &propertiesSlot, &typeParameterSlot, &rawTextSlot, &childrenSlot, &tagNameSlot, &commentSlot, &typeExpressionSlot, &constraintSlot, &classNameSlot} {
+	for _, t := range []*[512]uint8{&leftSlot, &rightSlot, &expressionSlot, &statementSlot, &initializerSlot, &conditionSlot, &labelSlot, &statementsSlot, &modifiersSlot, &nameSlot, &typeSlot, &elementsSlot, &dotDotDotTokenSlot, &questionTokenSlot, &propertyNameSlot, &asteriskTokenSlot, &typeParametersSlot, &parametersSlot, &fullSignatureSlot, &bodySlot, &heritageClausesSlot, &membersSlot, &typesSlot, &importClauseSlot, &moduleSpecifierSlot, &postfixTokenSlot, &textSlot, &operandSlot, &questionDotTokenSlot, &typeArgumentsSlot, &argumentsSlot, &headSlot, &templateSpansSlot, &literalSlot, &propertiesSlot, &typeParameterSlot, &rawTextSlot, &childrenSlot, &tagNameSlot, &commentSlot, &typeExpressionSlot, &constraintSlot, &classNameSlot, &localSymbolSlot, &localsSlot, &endFlowNodeSlot, &returnFlowNodeSlot, &fallthroughFlowNodeSlot} {
 		for i := range t {
 			t[i] = 0xFF
 		}
@@ -631,4 +642,62 @@ func init() {
 	constraintSlot[ast.KindJSDocTemplateTag] = 1
 	classNameSlot[ast.KindJSDocAugmentsTag] = 1
 	classNameSlot[ast.KindJSDocImplementsTag] = 1
+	localSymbolSlot[ast.KindBindingElement] = 4
+	localSymbolSlot[ast.KindClassExpression] = 5
+	localSymbolSlot[ast.KindVariableDeclaration] = 4
+	localSymbolSlot[ast.KindFunctionDeclaration] = 8
+	localSymbolSlot[ast.KindClassDeclaration] = 5
+	localSymbolSlot[ast.KindInterfaceDeclaration] = 5
+	localSymbolSlot[ast.KindTypeAliasDeclaration] = 4
+	localSymbolSlot[ast.KindEnumDeclaration] = 3
+	localSymbolSlot[ast.KindModuleDeclaration] = 5
+	localSymbolSlot[ast.KindImportEqualsDeclaration] = 4
+	localSymbolSlot[ast.KindImportClause] = 3
+	localSymbolSlot[ast.KindNamespaceImport] = 1
+	localSymbolSlot[ast.KindImportSpecifier] = 3
+	localSymbolSlot[ast.KindExportSpecifier] = 3
+	localSymbolSlot[ast.KindJSTypeAliasDeclaration] = 4
+	localsSlot[ast.KindMethodSignature] = 6
+	localsSlot[ast.KindMethodDeclaration] = 9
+	localsSlot[ast.KindClassStaticBlockDeclaration] = 2
+	localsSlot[ast.KindConstructor] = 6
+	localsSlot[ast.KindGetAccessor] = 7
+	localsSlot[ast.KindSetAccessor] = 7
+	localsSlot[ast.KindCallSignature] = 3
+	localsSlot[ast.KindConstructSignature] = 3
+	localsSlot[ast.KindIndexSignature] = 3
+	localsSlot[ast.KindFunctionType] = 3
+	localsSlot[ast.KindConstructorType] = 4
+	localsSlot[ast.KindConditionalType] = 4
+	localsSlot[ast.KindMappedType] = 6
+	localsSlot[ast.KindFunctionExpression] = 8
+	localsSlot[ast.KindArrowFunction] = 7
+	localsSlot[ast.KindClassExpression] = 6
+	localsSlot[ast.KindBlock] = 2
+	localsSlot[ast.KindForStatement] = 4
+	localsSlot[ast.KindForInStatement] = 4
+	localsSlot[ast.KindForOfStatement] = 4
+	localsSlot[ast.KindFunctionDeclaration] = 9
+	localsSlot[ast.KindClassDeclaration] = 6
+	localsSlot[ast.KindTypeAliasDeclaration] = 5
+	localsSlot[ast.KindModuleDeclaration] = 6
+	localsSlot[ast.KindCaseBlock] = 1
+	localsSlot[ast.KindCatchClause] = 2
+	localsSlot[ast.KindSourceFile] = 2
+	localsSlot[ast.KindJSDocSignature] = 3
+	localsSlot[ast.KindJSTypeAliasDeclaration] = 5
+	endFlowNodeSlot[ast.KindMethodDeclaration] = 10
+	endFlowNodeSlot[ast.KindConstructor] = 7
+	endFlowNodeSlot[ast.KindGetAccessor] = 8
+	endFlowNodeSlot[ast.KindSetAccessor] = 8
+	endFlowNodeSlot[ast.KindFunctionExpression] = 9
+	endFlowNodeSlot[ast.KindArrowFunction] = 8
+	endFlowNodeSlot[ast.KindFunctionDeclaration] = 10
+	endFlowNodeSlot[ast.KindModuleDeclaration] = 7
+	returnFlowNodeSlot[ast.KindClassStaticBlockDeclaration] = 3
+	returnFlowNodeSlot[ast.KindConstructor] = 8
+	returnFlowNodeSlot[ast.KindFunctionExpression] = 10
+	returnFlowNodeSlot[ast.KindFunctionDeclaration] = 11
+	fallthroughFlowNodeSlot[ast.KindCaseClause] = 2
+	fallthroughFlowNodeSlot[ast.KindDefaultClause] = 2
 }

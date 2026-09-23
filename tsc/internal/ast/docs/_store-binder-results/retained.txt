@@ -1,0 +1,37 @@
+ 0:59  up 2 days,  3:48, 8 users, load averages: 4.23 3.14 2.84
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/storebinder
+cpu: Apple M1
+BenchmarkStoreBindRetainedV1/fixtures/pointer-8 	       1	 184118709 ns/op	        11.42 gc-ms	   1097788 nodes	       124.6 retained-B/node	       136.8 retained-MB
+BenchmarkStoreBindRetainedV1/fixtures/pointer-8 	       1	 179180583 ns/op	        11.76 gc-ms	   1097788 nodes	       124.6 retained-B/node	       136.8 retained-MB
+BenchmarkStoreBindRetainedV1/fixtures/pointer-8 	       1	 181963250 ns/op	        12.49 gc-ms	   1097788 nodes	       124.6 retained-B/node	       136.8 retained-MB
+BenchmarkStoreBindRetainedV1/fixtures/pointer-8 	       1	 239039916 ns/op	        13.39 gc-ms	   1097788 nodes	       124.6 retained-B/node	       136.8 retained-MB
+BenchmarkStoreBindRetainedV1/fixtures/pointer-8 	       1	 177557375 ns/op	        11.79 gc-ms	   1097788 nodes	       124.6 retained-B/node	       136.8 retained-MB
+BenchmarkStoreBindRetainedV1/fixtures/store-8   	       1	 132343167 ns/op	         2.728 gc-ms	   1075673 nodes	        72.62 retained-B/node	        78.12 retained-MB
+BenchmarkStoreBindRetainedV1/fixtures/store-8   	       1	 131475875 ns/op	         2.700 gc-ms	   1075673 nodes	        72.62 retained-B/node	        78.12 retained-MB
+BenchmarkStoreBindRetainedV1/fixtures/store-8   	       1	 131001500 ns/op	         2.650 gc-ms	   1075673 nodes	        72.62 retained-B/node	        78.12 retained-MB
+BenchmarkStoreBindRetainedV1/fixtures/store-8   	       1	 131724334 ns/op	         3.223 gc-ms	   1075673 nodes	        72.62 retained-B/node	        78.12 retained-MB
+BenchmarkStoreBindRetainedV1/fixtures/store-8   	       1	 131385792 ns/op	         2.786 gc-ms	   1075673 nodes	        72.62 retained-B/node	        78.12 retained-MB
+BenchmarkStoreBindRetainedV1/checker.ts/pointer-8         	       1	  45255625 ns/op	         2.977 gc-ms	    302587 nodes	       109.4 retained-B/node	        33.09 retained-MB
+BenchmarkStoreBindRetainedV1/checker.ts/pointer-8         	       1	  46102042 ns/op	         3.138 gc-ms	    302587 nodes	       109.4 retained-B/node	        33.09 retained-MB
+BenchmarkStoreBindRetainedV1/checker.ts/pointer-8         	       1	  46037917 ns/op	         2.939 gc-ms	    302587 nodes	       109.4 retained-B/node	        33.09 retained-MB
+BenchmarkStoreBindRetainedV1/checker.ts/pointer-8         	       1	  46489000 ns/op	         2.996 gc-ms	    302587 nodes	       109.4 retained-B/node	        33.09 retained-MB
+BenchmarkStoreBindRetainedV1/checker.ts/pointer-8         	       1	  45754291 ns/op	         3.037 gc-ms	    302587 nodes	       109.4 retained-B/node	        33.09 retained-MB
+BenchmarkStoreBindRetainedV1/checker.ts/store-8           	       1	  37055792 ns/op	         0.7980 gc-ms	    298884 nodes	        61.36 retained-B/node	        18.34 retained-MB
+BenchmarkStoreBindRetainedV1/checker.ts/store-8           	       1	  38512125 ns/op	         0.8470 gc-ms	    298884 nodes	        61.36 retained-B/node	        18.34 retained-MB
+BenchmarkStoreBindRetainedV1/checker.ts/store-8           	       1	  37472750 ns/op	         0.9100 gc-ms	    298884 nodes	        61.36 retained-B/node	        18.34 retained-MB
+BenchmarkStoreBindRetainedV1/checker.ts/store-8           	       1	  37004041 ns/op	         0.7130 gc-ms	    298884 nodes	        61.36 retained-B/node	        18.34 retained-MB
+BenchmarkStoreBindRetainedV1/checker.ts/store-8           	       1	  37013916 ns/op	         0.7040 gc-ms	    298884 nodes	        61.36 retained-B/node	        18.34 retained-MB
+BenchmarkStoreBindRetainedV1/dom.generated.d.ts/pointer-8 	       1	  19727709 ns/op	         1.391 gc-ms	    113504 nodes	       128.4 retained-B/node	        14.57 retained-MB
+BenchmarkStoreBindRetainedV1/dom.generated.d.ts/pointer-8 	       1	  20015750 ns/op	         1.409 gc-ms	    113504 nodes	       128.4 retained-B/node	        14.57 retained-MB
+BenchmarkStoreBindRetainedV1/dom.generated.d.ts/pointer-8 	       1	  20471041 ns/op	         1.417 gc-ms	    113504 nodes	       128.4 retained-B/node	        14.57 retained-MB
+BenchmarkStoreBindRetainedV1/dom.generated.d.ts/pointer-8 	       1	  20376958 ns/op	         1.385 gc-ms	    113504 nodes	       128.4 retained-B/node	        14.57 retained-MB
+BenchmarkStoreBindRetainedV1/dom.generated.d.ts/pointer-8 	       1	  20523625 ns/op	         1.373 gc-ms	    113504 nodes	       128.4 retained-B/node	        14.57 retained-MB
+BenchmarkStoreBindRetainedV1/dom.generated.d.ts/store-8   	       1	  17562708 ns/op	         0.9240 gc-ms	    110435 nodes	        89.38 retained-B/node	         9.871 retained-MB
+BenchmarkStoreBindRetainedV1/dom.generated.d.ts/store-8   	       1	  17369458 ns/op	         0.9560 gc-ms	    110435 nodes	        89.38 retained-B/node	         9.871 retained-MB
+BenchmarkStoreBindRetainedV1/dom.generated.d.ts/store-8   	       1	  17119667 ns/op	         0.7790 gc-ms	    110435 nodes	        89.38 retained-B/node	         9.871 retained-MB
+BenchmarkStoreBindRetainedV1/dom.generated.d.ts/store-8   	       1	  17845583 ns/op	         1.039 gc-ms	    110435 nodes	        89.38 retained-B/node	         9.871 retained-MB
+BenchmarkStoreBindRetainedV1/dom.generated.d.ts/store-8   	       1	  19052333 ns/op	         0.8600 gc-ms	    110435 nodes	        89.38 retained-B/node	         9.871 retained-MB
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/storebinder	2.918s

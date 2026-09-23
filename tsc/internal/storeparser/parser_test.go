@@ -48,21 +48,9 @@ func sourceInput(name, source string) (ast.SourceFileParseOptions, string, core.
 }
 
 // parseBoth parses the same input with the Pointer parser (its defaults) and
-// the Store parser. reparsed reports whether the Pointer parser reparsed
-// top-level await statements, which needs the external module indicator and
-// is 7c: those files are compared but not required to match.
-func parseBoth(opts ast.SourceFileParseOptions, text string, kind core.ScriptKind) (pointer *ast.SourceFile, file *store.File, reparsed bool) {
-	pointer = parser.ParseSourceFile(opts, text, kind)
-	p := getParser()
-	defer putParser(p)
-	p.initializeState(opts, text, kind)
-	p.nextToken()
-	if kind == core.ScriptKindJSON {
-		return pointer, p.parseJSONText(), false
-	}
-	file = p.parseSourceFileWorker()
-	reparsed = !pointer.IsDeclarationFile && pointer.ExternalModuleIndicator != nil && len(p.possibleAwaitSpans) > 0
-	return pointer, file, reparsed
+// the Store parser.
+func parseBoth(opts ast.SourceFileParseOptions, text string, kind core.ScriptKind) (pointer *ast.SourceFile, file *store.File) {
+	return parser.ParseSourceFile(opts, text, kind), ParseSourceFile(opts, text, kind)
 }
 
 // options are the equivalence options for a file: JS files get their JSDoc
@@ -115,18 +103,18 @@ func TestEquivalence(t *testing.T) {
 	}
 	for name, in := range inputs {
 		t.Run(name, func(t *testing.T) {
-			pointer, file, _ := parseBoth(in.opts, in.text, in.kind)
+			pointer, file := parseBoth(in.opts, in.text, in.kind)
 			m, _ := storetest.Equivalent(pointer, file.Store, storetest.Options{})
 			m.Report(t)
-			compareFields(t, pointer, file)
+			compareFields(t, pointer, file, storetest.Options{})
 		})
 	}
 }
 
 // compareFields checks the fields of store.File against ast.SourceFile.
-func compareFields(t *testing.T, pointer *ast.SourceFile, file *store.File) {
+func compareFields(t *testing.T, pointer *ast.SourceFile, file *store.File, opts storetest.Options) {
 	t.Helper()
-	for label, differs := range fieldMismatches(pointer, file) {
+	for label, differs := range fieldMismatches(pointer, file, opts) {
 		if differs && !(label == "IdentifierCount" && eagerJSDoc(pointer)) {
 			t.Errorf("%s differs from the Pointer file", label)
 		}
@@ -144,25 +132,56 @@ func eagerJSDoc(pointer *ast.SourceFile) bool {
 		strings.Contains(pointer.Text(), "@see") || strings.Contains(pointer.Text(), "@link")
 }
 
-func fieldMismatches(pointer *ast.SourceFile, file *store.File) map[string]bool {
+// fieldMismatches compares the fields of store.File with ast.SourceFile. With
+// opts.SkipReparsed, the module references that the Pointer parser found in
+// JSDoc (an import type in a comment, a reparsed declaration) are left out,
+// as the Store has no JSDoc.
+func fieldMismatches(pointer *ast.SourceFile, file *store.File, opts storetest.Options) map[string]bool {
 	refs := func(a, b []*ast.FileReference) bool {
 		return !slices.EqualFunc(a, b, func(x, y *ast.FileReference) bool { return *x == *y })
 	}
+	fromJSDoc := func(p *ast.Node) bool {
+		return opts.SkipReparsed && p != nil && p.Flags&(ast.NodeFlagsJSDoc|ast.NodeFlagsReparsed) != 0
+	}
+	node := func(p *ast.Node, r store.NodeRef) bool {
+		if p == nil || r == store.NoNodeRef {
+			return (p == nil) != (r == store.NoNodeRef)
+		}
+		n := file.Store.Node(r)
+		return n.Kind() != p.Kind || int(n.Pos()) != p.Pos()
+	}
+	nodes := func(ps []*ast.Node, rs []store.NodeRef) bool {
+		ps = slices.DeleteFunc(slices.Clone(ps), fromJSDoc)
+		if len(ps) != len(rs) {
+			return true
+		}
+		for i := range ps {
+			if node(ps[i], rs[i]) {
+				return true
+			}
+		}
+		return false
+	}
 	m := map[string]bool{
-		"FileName":                file.FileName != pointer.FileName(),
-		"Path":                    file.Path != pointer.Path(),
-		"Text":                    file.Text != pointer.Text(),
-		"ScriptKind":              file.ScriptKind != pointer.ScriptKind,
-		"LanguageVariant":         file.LanguageVariant != pointer.LanguageVariant,
-		"IsDeclarationFile":       file.IsDeclarationFile != pointer.IsDeclarationFile,
-		"Flags":                   file.Flags != pointer.Flags || file.Flags != file.Root().Flags(),
-		"IdentifierCount":         file.IdentifierCount != pointer.IdentifierCount,
-		"CommentDirectives":       !slices.Equal(file.CommentDirectives, pointer.CommentDirectives),
-		"Pragmas":                 len(file.Pragmas) != len(pointer.Pragmas),
-		"ReferencedFiles":         refs(file.ReferencedFiles, pointer.ReferencedFiles),
-		"TypeReferenceDirectives": refs(file.TypeReferenceDirectives, pointer.TypeReferenceDirectives),
-		"LibReferenceDirectives":  refs(file.LibReferenceDirectives, pointer.LibReferenceDirectives),
-		"CheckJsDirective":        (file.CheckJsDirective == nil) != (pointer.CheckJsDirective == nil) || file.CheckJsDirective != nil && *file.CheckJsDirective != *pointer.CheckJsDirective,
+		"FileName":                    file.FileName != pointer.FileName(),
+		"Path":                        file.Path != pointer.Path(),
+		"Text":                        file.Text != pointer.Text(),
+		"ScriptKind":                  file.ScriptKind != pointer.ScriptKind,
+		"LanguageVariant":             file.LanguageVariant != pointer.LanguageVariant,
+		"IsDeclarationFile":           file.IsDeclarationFile != pointer.IsDeclarationFile,
+		"Flags":                       file.Flags != pointer.Flags || file.Flags != file.Root().Flags(),
+		"IdentifierCount":             file.IdentifierCount != pointer.IdentifierCount,
+		"CommentDirectives":           !slices.Equal(file.CommentDirectives, pointer.CommentDirectives),
+		"Pragmas":                     len(file.Pragmas) != len(pointer.Pragmas),
+		"ReferencedFiles":             refs(file.ReferencedFiles, pointer.ReferencedFiles),
+		"TypeReferenceDirectives":     refs(file.TypeReferenceDirectives, pointer.TypeReferenceDirectives),
+		"LibReferenceDirectives":      refs(file.LibReferenceDirectives, pointer.LibReferenceDirectives),
+		"CheckJsDirective":            (file.CheckJsDirective == nil) != (pointer.CheckJsDirective == nil) || file.CheckJsDirective != nil && *file.CheckJsDirective != *pointer.CheckJsDirective,
+		"ExternalModuleIndicator":     !fromJSDoc(pointer.ExternalModuleIndicator) && node(pointer.ExternalModuleIndicator, file.ExternalModuleIndicator),
+		"Imports":                     nodes(pointer.Imports(), file.Imports),
+		"ModuleAugmentations":         nodes(pointer.ModuleAugmentations, file.ModuleAugmentations),
+		"AmbientModuleNames":          !slices.Equal(pointer.AmbientModuleNames, file.AmbientModuleNames),
+		"UsesUriStyleNodeCoreModules": pointer.UsesUriStyleNodeCoreModules != file.UsesUriStyleNodeCoreModules,
 	}
 	for i := range min(len(file.Pragmas), len(pointer.Pragmas)) {
 		a, b := file.Pragmas[i], pointer.Pragmas[i]
@@ -285,24 +304,15 @@ func TestCorpus(t *testing.T) {
 	all := storetest.Mismatches{}
 	example := map[string]int{}
 	fields := map[string]int{}
-	var visits, pointerNodes, storeNodes, excluded, excludedMismatches int
-	var excludedNames []string
+	var visits, pointerNodes, storeNodes int
 	diagnosticsSame, diagnosticsSubset, diagnosticsDiffer := 0, 0, 0
 	jsMissing := map[string]int{}
 	var jsMissingExample []string
 	rootFlagDiffs := map[ast.NodeFlags]int{}
 	for i, f := range files {
 		opts, text, kind := sourceInput(f.name, f.text)
-		pointer, file, reparsed := parseBoth(opts, text, kind)
+		pointer, file := parseBoth(opts, text, kind)
 		m, n := storetest.Equivalent(pointer, file.Store, options(kind))
-		if reparsed {
-			excluded++
-			excludedMismatches += len(m)
-			if len(excludedNames) < 20 {
-				excludedNames = append(excludedNames, fmt.Sprintf("#%d %s", i, f.name))
-			}
-			continue
-		}
 		visits += n
 		pointerNodes += pointer.NodeCount
 		storeNodes += file.NodeCount
@@ -312,7 +322,7 @@ func TestCorpus(t *testing.T) {
 			}
 			all[label] += count
 		}
-		for label, differs := range fieldMismatches(pointer, file) {
+		for label, differs := range fieldMismatches(pointer, file, options(kind)) {
 			if label == "Flags" && options(kind).SkipReparsed {
 				// The Pointer parser's JSDoc reparse can set flags on the root too
 				// (PossiblyContainsDynamicImport from an import type in a comment).
@@ -350,7 +360,6 @@ func TestCorpus(t *testing.T) {
 	}
 	t.Logf("%d files, %d nodes visited; Pointer NodeCount %d, Store NodeCount %d (dead %d = %.2f%%)",
 		len(files), visits, pointerNodes, storeNodes, storeNodes-visits, 100*float64(storeNodes-visits)/float64(visits))
-	t.Logf("%d files excluded (top-level await reparse, 7c) with %d mismatches; first: %s", excluded, excludedMismatches, strings.Join(excludedNames, ", "))
 	t.Logf("diagnostics: %d files same, %d JS files with a subset, %d differ", diagnosticsSame, diagnosticsSubset, diagnosticsDiffer)
 	if len(jsMissing) != 0 {
 		var lines []string
@@ -404,6 +413,12 @@ func TestDeadNodes(t *testing.T) {
 		{"interface I extends A.B {}", 2}, // ExpressionWithTypeArguments and PropertyAccessExpression become a TypeReference
 		{"type T = [a?]", 1},              // JSDocNullableType becomes an OptionalTypeNode
 		{"<div><span></div>", 1},          // the mismatched JsxElement is rebuilt
+		// The top-level await reparse (await is an identifier here, so the
+		// module's statements are reparsed in an await context): the old root
+		// and the two old statements (ExpressionStatement + Identifier,
+		// ExpressionStatement + NumericLiteral) stay; the rewinds that keep
+		// the reparsed nodes leave nothing extra.
+		{"export {};\nawait\n1;", 5},
 	} {
 		name := "/a.ts"
 		if strings.HasPrefix(c.source, "<") {

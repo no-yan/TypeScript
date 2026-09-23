@@ -257,8 +257,17 @@ func TestTexts(t *testing.T) {
 }
 
 func TestLayout(t *testing.T) {
-	if size := unsafe.Sizeof(store.NodeHeader{}); size != 24 {
-		t.Errorf("NodeHeader is %d bytes, want 24", size)
+	if size := unsafe.Sizeof(store.NodeHeader{}); size != 32 {
+		t.Errorf("NodeHeader is %d bytes, want 32", size)
+	}
+	if size := unsafe.Sizeof(store.Symbol{}); size != unsafe.Sizeof(ast.Symbol{}) {
+		t.Errorf("Symbol is %d bytes, want %d (ast.Symbol)", size, unsafe.Sizeof(ast.Symbol{}))
+	}
+	if size := unsafe.Sizeof(store.FlowNode{}); size != 16 {
+		t.Errorf("FlowNode is %d bytes, want 16", size)
+	}
+	if size := unsafe.Sizeof(store.FlowList{}); size != 8 {
+		t.Errorf("FlowList is %d bytes, want 8", size)
 	}
 	if ast.KindCount > 512 {
 		t.Errorf("KindCount = %d does not fit the 512-entry tables", ast.KindCount)

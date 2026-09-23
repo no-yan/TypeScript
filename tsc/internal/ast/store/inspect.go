@@ -7,7 +7,7 @@ import "github.com/microsoft/TypeScript/tsc/internal/ast"
 
 // Footprint is the size of each column in bytes.
 func (s *Store) Footprint() (nodes, extra, texts int) {
-	return len(s.nodes) * 24, len(s.extra) * 4, len(s.texts)
+	return len(s.nodes) * 32, len(s.extra) * 4, len(s.texts)
 }
 
 // NodeCount is the number of nodes, dead nodes included.

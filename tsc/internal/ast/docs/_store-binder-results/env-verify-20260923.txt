@@ -1,0 +1,28 @@
+date: Wed Sep 23 00:50:45 JST 2026
+go version go1.27.1 darwin/arm64
+2dfabb31e62ee5fba8a227444c4eff1c3fda8fb0
+ M ../tools/scripts/tsc/generate-go-store.ts
+ M internal/ast/store/builder_generated.go
+ M internal/ast/store/doc.go
+ M internal/ast/store/file.go
+ M internal/ast/store/inspect.go
+ M internal/ast/store/shapes_generated.go
+ M internal/ast/store/store.go
+ M internal/ast/store/store_test.go
+ M internal/ast/store/storetest/equivalence.go
+ M internal/ast/store/views_generated.go
+ M internal/storeparser/doc.go
+ M internal/storeparser/parser.go
+ M internal/storeparser/parser_test.go
+ M internal/testutil/kperf/session.go
+?? internal/ast/docs/_store-binder-results/
+?? internal/ast/docs/store-binder-implementation-report-20260923.md
+?? internal/ast/store/bound.go
+?? internal/ast/store/position.go
+?? internal/ast/store/symbol.go
+?? internal/ast/store/utilities.go
+?? internal/storebinder/
+?? internal/storeparser/references.go
+ 0:50  up 2 days,  3:40, 8 users, load averages: 1.76 2.12 2.64
+MacBookAir10,1
+Apple M1

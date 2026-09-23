@@ -1,0 +1,4 @@
+ok  	github.com/microsoft/TypeScript/tsc/internal/ast	1.819s
+ok  	github.com/microsoft/TypeScript/tsc/internal/parser	2.526s
+ok  	github.com/microsoft/TypeScript/tsc/internal/binder	0.542s
+exit=0

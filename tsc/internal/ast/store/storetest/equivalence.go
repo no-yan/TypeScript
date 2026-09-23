@@ -191,20 +191,42 @@ func preorderPointer(root *ast.Node, skipReparsed bool) []*ast.Node {
 	return nodes
 }
 
-// Equivalent walks the Pointer AST and the Store in preorder together and
-// compares every node: header, parent, then every member of its definition
-// and every role accessor. The second result is the number of Store nodes
-// visited.
-func Equivalent(file *ast.SourceFile, s *store.Store, opts Options) (Mismatches, int) {
-	m := &comparer{Mismatches{}, opts}
+// Pair is a Pointer node and the Store node at the same preorder position.
+type Pair struct {
+	P *ast.Node
+	N store.Node
+}
+
+// Pairs walks the Pointer AST and the Store in preorder together (reparsed
+// nodes and JSDoc casts skipped as opts says) and pairs the nodes up. When the
+// two walks visit a different number of nodes, the mismatch is reported and
+// no pairs are returned.
+func Pairs(file *ast.SourceFile, s *store.Store, opts Options) ([]Pair, Mismatches) {
+	m := Mismatches{}
 	pointers := preorderPointer(file.AsNode(), opts.SkipReparsed)
 	nodes := Preorder(s.Root())
 	if len(pointers) != len(nodes) {
-		m.Mismatches[fmt.Sprintf("visits %d, want %d", len(nodes), len(pointers))]++
-		return m.Mismatches, len(nodes)
+		m[fmt.Sprintf("visits %d, want %d", len(nodes), len(pointers))]++
+		return nil, m
 	}
-	for i, p := range pointers {
-		n := nodes[i]
+	pairs := make([]Pair, len(nodes))
+	for i, n := range nodes {
+		pairs[i] = Pair{pointers[i], n}
+	}
+	return pairs, m
+}
+
+// Equivalent compares every pair of Pairs: header, parent, then every member
+// of its definition and every role accessor. The second result is the number
+// of Store nodes visited.
+func Equivalent(file *ast.SourceFile, s *store.Store, opts Options) (Mismatches, int) {
+	pairs, mismatches := Pairs(file, s, opts)
+	if pairs == nil {
+		return mismatches, len(Preorder(s.Root()))
+	}
+	m := &comparer{mismatches, opts}
+	for _, pair := range pairs {
+		p, n := pair.P, pair.N
 		m.node("self", p, p, n)
 		m.node("Parent", p, m.parentOf(p), n.Parent())
 		if (n.Flags()^p.Flags)&^opts.MaskFlags != 0 {
@@ -220,5 +242,5 @@ func Equivalent(file *ast.SourceFile, s *store.Store, opts Options) (Mismatches,
 			compareRoles(m, p, n)
 		}
 	}
-	return m.Mismatches, len(nodes)
+	return m.Mismatches, len(pairs)
 }

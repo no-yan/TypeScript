@@ -6,7 +6,8 @@
  * Usage: node tools/scripts/tsc/generate-go-store.ts
  *
  * Generates:
- *   - shapes_generated.go: payload words and list mask per kind, role slot tables
+ *   - shapes_generated.go: payload words and list mask per kind, role slot tables,
+ *     the binder's reserved slot tables
  *   - views_generated.go: slot constants, typed views, member and role accessors
  *   - foreach_generated.go: ForEachChild
  *   - builder_generated.go: one constructor per definition
@@ -15,7 +16,8 @@
  *
  * A member takes payload words in declaration order: a child or list is one
  * word, a text is two ([offset, length]), a bool, TokenFlags or kind is one.
- * Identifier and PrivateIdentifier keep their text in the header instead.
+ * Identifier and PrivateIdentifier keep their text in the header instead. The
+ * binder's reserved slots (boundSlots) follow the members, one word each.
  */
 
 import * as fs from "node:fs";
@@ -74,9 +76,41 @@ const testedRoles = ["Name", "Expression", "Type", "Initializer", "Body", "Text"
 // Schema to slots
 // ────────────────────────────────────────────────────────────────────────────
 
-type SlotClass = "child" | "list" | "text" | "bool" | "tokenFlags" | "kind";
+type SlotClass = "child" | "list" | "text" | "bool" | "tokenFlags" | "kind" | "bound";
 
-const slotWords: Record<SlotClass, number> = { child: 1, list: 1, text: 2, bool: 1, tokenFlags: 1, kind: 1 };
+const slotWords: Record<SlotClass, number> = { child: 1, list: 1, text: 2, bool: 1, tokenFlags: 1, kind: 1, bound: 1 };
+
+// The reserved slots of the binder (store-binder-design-20260922.md 2.3): the
+// goOnly members that the Pointer binder writes and that are neither in the
+// header (Symbol, FlowNode) nor in Bound (NextContainer). Each is one uint32
+// word at the end of the payload, 0 after the parse; the binder writes it
+// through the generated setter. Keyed by member name, in slot order; the value
+// is the Go type of the word and the accessor name.
+const boundSlots: { name: string; accessor: string; type: string; }[] = [
+    { name: "LocalSymbol", accessor: "LocalSymbol", type: "SymbolId" },
+    { name: "Locals", accessor: "LocalsSlot", type: "uint32" },
+    { name: "EndFlowNode", accessor: "EndFlowNode", type: "FlowRef" },
+    { name: "ReturnFlowNode", accessor: "ReturnFlowNode", type: "FlowRef" },
+    { name: "FallthroughFlowNode", accessor: "FallthroughFlowNode", type: "FlowRef" },
+];
+
+function boundSlot(name: string) {
+    return boundSlots.find(b => b.name === name);
+}
+
+/** The goOnly fields of every base the definition embeds, transitively. */
+function baseFields(node: NodeType): MemberInfo[] {
+    const fields: MemberInfo[] = [];
+    const seen = new Set<NodeType>();
+    const visit = (base: NodeType) => {
+        if (seen.has(base)) return;
+        seen.add(base);
+        fields.push(...base.fields);
+        for (const b of base.extends) visit(b);
+    };
+    for (const base of node.extends) visit(base);
+    return fields;
+}
 
 interface Slot {
     member: MemberInfo;
@@ -188,6 +222,16 @@ function buildDefinition(node: NodeType): Definition {
         def.slots.push({ member: m, name: api.capitalize(m.name), class: c.slot, word: def.words });
         def.words += slotWords[c.slot];
     }
+    // The reserved slots come last, so that the child and list words and the
+    // ForEachChild order are what they were. A slot is present when the
+    // definition declares the member or embeds a base that declares it.
+    const declared = [...node.members, ...baseFields(node)].filter(m => m.goOnly).map(m => m.name);
+    for (const b of boundSlots) {
+        if (!declared.includes(b.name)) continue;
+        const m = node.members.find(m => m.name === b.name) ?? baseFields(node).find(m => m.name === b.name)!;
+        def.slots.push({ member: m, name: b.accessor, class: "bound", word: def.words });
+        def.words += slotWords.bound;
+    }
     if (def.words > 16) {
         problems.push(`${node.name}: ${def.words} payload words do not fit the 16-bit list mask`);
     }
@@ -289,6 +333,26 @@ function role(name: string): Role {
     return r;
 }
 
+// ── Bound roles ──
+
+interface BoundRole {
+    name: string;
+    type: string;
+    table: string;
+    /** kind value → payload word */
+    slots: Map<number, number>;
+}
+
+// One role per reserved slot, whatever the number of definitions that have it.
+const boundRoles: BoundRole[] = boundSlots.map(b => {
+    const role: BoundRole = { name: b.accessor, type: b.type, table: `${api.uncapitalize(b.name)}Slot`, slots: new Map() };
+    for (const { kind, def } of payloadKinds) {
+        const slot = def.slots.find(s => s.class === "bound" && s.name === b.accessor);
+        if (slot) role.slots.set(kind.value, slot.word);
+    }
+    return role;
+});
+
 // ────────────────────────────────────────────────────────────────────────────
 // Code generation
 // ────────────────────────────────────────────────────────────────────────────
@@ -306,7 +370,10 @@ class CodeWriter {
 }
 
 function slotConst(def: Definition, slot: Slot): string {
-    return `${api.uncapitalize(def.name)}${slot.name}Slot`;
+    // A reserved slot's constant is named after the member (Locals), not the
+    // accessor (LocalsSlot).
+    const name = slot.class === "bound" ? api.capitalize(slot.member.name) : slot.name;
+    return `${api.uncapitalize(def.name)}${name}Slot`;
 }
 
 function goType(slot: Slot): string {
@@ -323,6 +390,8 @@ function goType(slot: Slot): string {
             return "ast.TokenFlags";
         case "kind":
             return "ast.Kind";
+        case "bound":
+            return boundSlot(slot.member.name)!.type;
     }
 }
 
@@ -375,13 +444,22 @@ function generateShapes(): string {
     }
     w.write(")");
     w.write();
+    w.write("// Payload word of each reserved slot of the binder; 0xFF = the kind does not");
+    w.write("// have it. The binder's role accessors (LocalsSlot, LocalSymbol, EndFlowNode,");
+    w.write("// ReturnFlowNode, FallthroughFlowNode) read these.");
+    w.write("var (");
+    for (const b of boundRoles) {
+        w.write(`\t${b.table} [512]uint8`);
+    }
+    w.write(")");
+    w.write();
     w.write("func init() {");
-    w.write(`\tfor _, t := range []*[512]uint8{${roles.map(r => `&${r.table}`).join(", ")}} {`);
+    w.write(`\tfor _, t := range []*[512]uint8{${[...roles, ...boundRoles].map(r => `&${r.table}`).join(", ")}} {`);
     w.write("\t\tfor i := range t {");
     w.write("\t\t\tt[i] = 0xFF");
     w.write("\t\t}");
     w.write("\t}");
-    for (const r of roles) {
+    for (const r of [...roles, ...boundRoles]) {
         for (const { kind } of payloadKinds) {
             const word = r.slots.get(kind.value);
             if (word !== undefined) w.write(`\t${r.table}[ast.Kind${kind.name}] = ${word}`);
@@ -408,6 +486,8 @@ function memberAccessor(def: Definition, slot: Slot): string {
             return `return ast.TokenFlags(n.s.extra[${index}])`;
         case "kind":
             return `return ast.Kind(n.s.extra[${index}])`;
+        case "bound":
+            return `return ${goType(slot)}(n.s.extra[${index}])`;
     }
 }
 
@@ -461,6 +541,13 @@ function generateViews(): string {
         for (const slot of def.slots) {
             w.write();
             w.write(`func (n ${def.name}) ${slot.name}() ${goType(slot)} { ${memberAccessor(def, slot)} }`);
+            if (slot.class === "bound") {
+                w.write();
+                w.write(`func (n ${def.name}) Set${slot.name}(v ${goType(slot)}) {`);
+                w.write("\tNode(n).checkUnsealed()");
+                w.write(`\tn.s.extra[int(n.h.data)+${slotConst(def, slot)}] = uint32(v)`);
+                w.write("}");
+            }
         }
     }
 
@@ -510,6 +597,43 @@ function generateViews(): string {
                 w.write(`\treturn n.s.text(${index})`);
                 break;
         }
+        w.write("}");
+    }
+
+    w.write();
+    w.write("// The binder's role accessors: the reserved slot of the kind, or 0 and false");
+    w.write("// when the kind does not have it (one table lookup and one compare, no");
+    w.write("// switch). The setter is a no-op on a kind without the slot, like the Pointer");
+    w.write("// binder's setReturnFlowNode, and panics after Seal in a storeChecks build.");
+    for (const r of boundRoles) {
+        const index = `int(n.h.data)+int(slot)`;
+        w.write();
+        if (r.name === "LocalsSlot") {
+            w.write(`func (n Node) ${r.name}() (${r.type}, bool) {`);
+            w.write(`\tslot := ${r.table}[n.h.kind&511]`);
+            w.write("\tif slot == 0xFF {");
+            w.write("\t\treturn 0, false");
+            w.write("\t}");
+            w.write(`\treturn ${r.type}(n.s.extra[${index}]), true`);
+            w.write("}");
+        }
+        else {
+            w.write(`func (n Node) ${r.name}() ${r.type} {`);
+            w.write(`\tslot := ${r.table}[n.h.kind&511]`);
+            w.write("\tif slot == 0xFF {");
+            w.write("\t\treturn 0");
+            w.write("\t}");
+            w.write(`\treturn ${r.type}(n.s.extra[${index}])`);
+            w.write("}");
+        }
+        w.write();
+        w.write(`func (n Node) Set${r.name}(v ${r.type}) {`);
+        w.write("\tn.checkUnsealed()");
+        w.write(`\tslot := ${r.table}[n.h.kind&511]`);
+        w.write("\tif slot == 0xFF {");
+        w.write("\t\treturn");
+        w.write("\t}");
+        w.write(`\tn.s.extra[${index}] = uint32(v)`);
         w.write("}");
     }
     return w.toString();
@@ -579,6 +703,7 @@ function generateBuilder(): string {
         if (isMultiKind(def)) params.unshift("kind ast.Kind");
         if (def.headerText) params.push("text string");
         for (const slot of def.slots) {
+            if (slot.class === "bound") continue;
             params.push(`${slot.member.goParamName()} ${paramType(slot)}`);
         }
         const kind = isMultiKind(def) ? "kind" : goKinds(def);
@@ -609,6 +734,9 @@ function generateBuilder(): string {
                 case "tokenFlags":
                 case "kind":
                     words.push(`uint32(${p})`);
+                    break;
+                case "bound":
+                    words.push("0");
                     break;
             }
         }
@@ -731,7 +859,9 @@ function generateConvert(): string {
         w.write(`\t\td := n.As${def.name}()`);
         const args = ["n.Flags", "pos", "end"];
         if (isMultiKind(def)) args.unshift("n.Kind");
-        for (const slot of def.slots) args.push(convertArg(slot));
+        for (const slot of def.slots) {
+            if (slot.class !== "bound") args.push(convertArg(slot));
+        }
         if (def.headerText) args.push("d.Text");
         w.write(`\t\treturn c.b.New${def.name}(${args.join(", ")})`);
     }
@@ -771,6 +901,9 @@ function generateEquivalenceTest(): string {
             members++;
         }
         for (const slot of def.slots) {
+            // A reserved slot is 0 after the parse and the Pointer field is
+            // nil; the binder's equivalence test compares them.
+            if (slot.class === "bound") continue;
             const label = `"${def.name}.${slot.name}"`;
             const read = pointerRead("pv", slot);
             members++;

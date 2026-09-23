@@ -1,0 +1,27 @@
+ 0:53  up 2 days,  3:43, 8 users, load averages: 2.29 2.25 2.59
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/storebinder
+cpu: Apple M1
+BenchmarkStoreBindV1/checker.ts/pointer-8 	     201	  12152821 ns/op	 7425580 B/op	   13954 allocs/op
+BenchmarkStoreBindV1/checker.ts/pointer-8 	     194	  12082167 ns/op	 7425546 B/op	   13954 allocs/op
+BenchmarkStoreBindV1/checker.ts/pointer-8 	     201	  11966836 ns/op	 7425545 B/op	   13954 allocs/op
+BenchmarkStoreBindV1/checker.ts/pointer-8 	     200	  11957662 ns/op	 7425551 B/op	   13954 allocs/op
+BenchmarkStoreBindV1/checker.ts/pointer-8 	     200	  12004237 ns/op	 7425506 B/op	   13954 allocs/op
+BenchmarkStoreBindV1/checker.ts/store-8   	     211	  11215434 ns/op	14220615 B/op	   12756 allocs/op
+BenchmarkStoreBindV1/checker.ts/store-8   	     213	  11325912 ns/op	14220672 B/op	   12756 allocs/op
+BenchmarkStoreBindV1/checker.ts/store-8   	     213	  11282280 ns/op	14220673 B/op	   12756 allocs/op
+BenchmarkStoreBindV1/checker.ts/store-8   	     212	  11243844 ns/op	14220606 B/op	   12756 allocs/op
+BenchmarkStoreBindV1/checker.ts/store-8   	     212	  11306204 ns/op	14220603 B/op	   12756 allocs/op
+BenchmarkStoreBindV1/dom.generated.d.ts/pointer-8         	     520	   4625578 ns/op	 5287305 B/op	   16561 allocs/op
+BenchmarkStoreBindV1/dom.generated.d.ts/pointer-8         	     526	   4600337 ns/op	 5287293 B/op	   16561 allocs/op
+BenchmarkStoreBindV1/dom.generated.d.ts/pointer-8         	     517	   4834498 ns/op	 5287304 B/op	   16561 allocs/op
+BenchmarkStoreBindV1/dom.generated.d.ts/pointer-8         	     518	   4405627 ns/op	 5287289 B/op	   16561 allocs/op
+BenchmarkStoreBindV1/dom.generated.d.ts/pointer-8         	     518	   4582677 ns/op	 5287296 B/op	   16561 allocs/op
+BenchmarkStoreBindV1/dom.generated.d.ts/store-8           	     564	   3953890 ns/op	 6561771 B/op	   16621 allocs/op
+BenchmarkStoreBindV1/dom.generated.d.ts/store-8           	     608	   3956564 ns/op	 6561761 B/op	   16621 allocs/op
+BenchmarkStoreBindV1/dom.generated.d.ts/store-8           	     607	   3959892 ns/op	 6561753 B/op	   16620 allocs/op
+BenchmarkStoreBindV1/dom.generated.d.ts/store-8           	     534	   3997334 ns/op	 6561773 B/op	   16621 allocs/op
+BenchmarkStoreBindV1/dom.generated.d.ts/store-8           	     595	   3968189 ns/op	 6561740 B/op	   16620 allocs/op
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/storebinder	210.712s

@@ -19,7 +19,7 @@ type ListRef uint32 // index of a list block in Store.extra
 // NoListRef is the nil list: extra[0:3] is a sentinel block of length 0.
 const NoListRef ListRef = 0
 
-type NodeHeader struct { // 24 bytes, no pointers
+type NodeHeader struct { // 32 bytes, no pointers
 	kind ast.Kind
 	// TODO(store): only the syntactic ModifierFlags, bits 0-15, live here.
 	// Bit 16 and up (Deprecated, the JSDoc cache bits 23-27,
@@ -31,7 +31,9 @@ type NodeHeader struct { // 24 bytes, no pointers
 	flags         ast.NodeFlags
 	pos, end      int32
 	parent        NodeRef
-	data          uint32 // start of the payload in Store.extra; Identifier: see identifierText
+	data          uint32   // start of the payload in Store.extra; Identifier: see identifierText
+	flow          FlowRef  // written by the binder; 0 = nil. Every kind.
+	symbol        SymbolId // written by the binder; 0 = nil. Every kind.
 }
 
 type Store struct {
@@ -42,6 +44,9 @@ type Store struct {
 	src   string
 	texts string // texts that are not a substring of src
 	file  uint32
+	// sealed is set by Seal once the binder is done. Only a storeChecks build
+	// reads it: every write API panics after Seal.
+	sealed bool
 }
 
 // Node is the currency for arguments and locals. Store a Ref on the heap.
@@ -50,12 +55,24 @@ type Node struct {
 	h *NodeHeader
 }
 
+// Ref is the form of a node that is stored on the heap: in Symbol, Bound and
+// SymbolTable (store-binder-design-20260922.md 4, invariant 9).
 type Ref struct {
 	file uint32
 	id   NodeRef
 }
 
+func (r Ref) File() uint32 { return r.file }
+func (r Ref) Id() NodeRef  { return r.id }
+
 func (s *Store) node(ref NodeRef) Node { return Node{s, &s.nodes[ref]} }
+
+// Node resolves a NodeRef: the elements of a List and the Id of a Ref.
+func (s *Store) Node(ref NodeRef) Node { return s.node(ref) }
+
+// Seal ends the writes of the binder. A storeChecks build panics on any write
+// API call after it.
+func (s *Store) Seal() { s.sealed = true }
 
 // Root relies on post-order construction: the root is the last node.
 func (s *Store) Root() Node { return s.node(NodeRef(len(s.nodes) - 1)) }
@@ -68,6 +85,24 @@ func (n Node) Parent() Node         { return n.s.node(n.h.parent) }
 func (n Node) IsNil() bool          { return n.h.kind == ast.KindUnknown }
 func (n Node) ModifierFlags() ast.ModifierFlags {
 	return ast.ModifierFlags(n.h.modifierFlags)
+}
+func (n Node) FlowNode() FlowRef { return n.h.flow }
+func (n Node) Symbol() SymbolId  { return n.h.symbol }
+
+// FileRef is the form of n that Symbol.Declarations and Bound hold.
+func (n Node) FileRef() Ref { return Ref{n.s.file, n.Ref()} }
+
+// The write API of the binder. Each call panics in a storeChecks build once
+// the Store is sealed; a build without storeChecks does not read sealed.
+func (n Node) AddFlags(f ast.NodeFlags)   { n.checkUnsealed(); n.h.flags |= f }
+func (n Node) ClearFlags(f ast.NodeFlags) { n.checkUnsealed(); n.h.flags &^= f }
+func (n Node) SetFlow(f FlowRef)          { n.checkUnsealed(); n.h.flow = f }
+func (n Node) SetSymbol(id SymbolId)      { n.checkUnsealed(); n.h.symbol = id }
+
+func (n Node) checkUnsealed() {
+	if storeChecks && n.s.sealed {
+		panic("store: write after Seal")
+	}
 }
 
 // Ref recovers the index from the header's address. Apart from the slice
@@ -199,8 +234,6 @@ func (b *Builder) View(id NodeRef) Node { return b.s.node(id) }
 func (b *Builder) ViewList(at ListRef) List { return List{&b.s, at} }
 
 func (b *Builder) AddFlags(id NodeRef, flags ast.NodeFlags) { b.s.nodes[id].flags |= flags }
-func (b *Builder) SetFlags(id NodeRef, flags ast.NodeFlags) { b.s.nodes[id].flags = flags }
-func (b *Builder) SetLoc(id NodeRef, pos, end int32)        { b.s.nodes[id].pos, b.s.nodes[id].end = pos, end }
 
 // Mark and Truncate are the speculation pair: Truncate drops every node and
 // payload word made since Mark. texts is not truncated (strings.Builder has no
@@ -299,7 +332,8 @@ func (b *Builder) modifierFlags(at ListRef) ast.ModifierFlags {
 
 // Finish copies to the exact size (Compact). It does not renumber. The
 // scratch may be reused for the next file afterwards; texts is cloned so that
-// the Store never aliases the builder (store-ast-design-20260922.md 2.4).
+// the Store never aliases the builder (store-ast-design-20260922.md 2.4). The
+// flow and symbol words of every header are 0: the parser never writes them.
 func (b *Builder) Finish() *Store {
 	return &Store{
 		nodes: append(make([]NodeHeader, 0, len(b.s.nodes)), b.s.nodes...),

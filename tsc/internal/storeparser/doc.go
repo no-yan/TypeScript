@@ -29,13 +29,16 @@
 //   - A file is parsed into the builder's reusable scratch and copied to its
 //     exact size by Builder.Finish.
 //
-// # Not ported (7c and later)
+// The external module indicator (internal/ast/parseoptions.go) and the module
+// references (internal/parser/references.go) are in references.go: the
+// indicator is computed on the scratch before the top-level await reparse
+// that depends on it, the references on the finished Store.
+//
+// # Not ported (7d and later)
 //
 // JSDoc nodes and the JS reparse (jsdoc.go, reparser.go): every file only gets
 // the HasJSDoc and PossiblyContainsDeprecatedTag flags, as TS files do in the
-// Pointer parser. The external module indicator and the module references
-// (references.go), and with them the top-level await reparse that depends on
-// the indicator. Incremental parsing, the language service and the api
+// Pointer parser. Incremental parsing, the language service and the api
 // encoder.
 //
 // getCommentPragmas needs an ast.NodeFactory because

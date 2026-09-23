@@ -1,0 +1,6 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/storebinder
+cpu: Apple M1
+BenchmarkStoreBindRetainedV1/fixtures/pointer-8 	       1	 238681458 ns/op	        11.62 gc-ms	   1097788 nodes	       124.6 retained-B/node	       136.8 retained-MB
+PASS

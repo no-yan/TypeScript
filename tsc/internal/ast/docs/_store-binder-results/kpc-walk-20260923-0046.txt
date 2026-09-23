@@ -1,0 +1,15 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast/store
+cpu: Apple M1
+BenchmarkStoreWalkKPCV1/pointer-8         	      20	   2444394 ns/op	         2.807 IPC	   7686410 cycles/op	  21575748 inst/op	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkKPCV1/pointer-8         	      20	   2438556 ns/op	         2.813 IPC	   7673442 cycles/op	  21582681 inst/op	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkKPCV1/pointer-8         	      20	   2442856 ns/op	         2.815 IPC	   7668865 cycles/op	  21587479 inst/op	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkKPCV1/pointer-8         	      20	   2436367 ns/op	         2.820 IPC	   7645530 cycles/op	  21563810 inst/op	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkKPCV1/pointer-8         	      20	   2453621 ns/op	         2.805 IPC	   7698884 cycles/op	  21597431 inst/op	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkKPCV1/store-8           	      20	   2788975 ns/op	         3.006 IPC	   8748307 cycles/op	  26300773 inst/op	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkKPCV1/store-8           	      20	   2781344 ns/op	         3.017 IPC	   8715046 cycles/op	  26293830 inst/op	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkKPCV1/store-8           	      20	   2781762 ns/op	         3.020 IPC	   8710182 cycles/op	  26303593 inst/op	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkKPCV1/store-8           	      20	   2780990 ns/op	         3.018 IPC	   8717270 cycles/op	  26309460 inst/op	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkKPCV1/store-8           	      20	   2786867 ns/op	         3.009 IPC	   8742992 cycles/op	  26309372 inst/op	       0 B/op	       0 allocs/op
+PASS

@@ -1,0 +1,125 @@
+TEXT github.com/microsoft/TypeScript/tsc/internal/storebinder.(*Binder).addAntecedent(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/storebinder/binder.go
+  binder.go:581		0x100266c20		f9400b90		MOVD 16(R28), R16										
+  binder.go:581		0x100266c24		eb3063ff		CMP R16, RSP											
+  binder.go:581		0x100266c28		54000e29		BLS 113(PC)											
+  binder.go:581		0x100266c2c		f8180ffe		MOVD.W R30, -128(RSP)										
+  binder.go:581		0x100266c30		f81f83fd		MOVD R29, -8(RSP)										
+  binder.go:581		0x100266c34		d10023fd		SUB $8, RSP, R29										
+  binder.go:582		0x100266c38		f9400805		MOVD 16(R0), R5											
+  bound.go:71		0x100266c3c		a9461ca6		LDP 96(R5), (R6, R7)										
+  bound.go:71		0x100266c40		2a0203e8		MOVW R2, R8											
+  bound.go:71		0x100266c44		eb07011f		CMP R7, R8											
+  bound.go:71		0x100266c48		54000ce2		BCS 103(PC)											
+  bound.go:71		0x100266c4c		8b0810c9		ADD R8<<4, R6, R9										
+  binder.go:582		0x100266c50		b9400129		MOVWU (R9), R9											
+  binder.go:582		0x100266c54		37000109		TBNZ $0, R9, 8(PC)										
+  bound.go:71		0x100266c58		2a0103e9		MOVW R1, R9											
+  bound.go:71		0x100266c5c		eb07013f		CMP R7, R9											
+  bound.go:71		0x100266c60		54000c02		BCS 96(PC)											
+  bound.go:71		0x100266c64		8b0910c6		ADD R9<<4, R6, R6										
+  binder.go:587		0x100266c68		b9400cc6		MOVWU 12(R6), R6										
+  binder.go:587		0x100266c6c		aa1f03e7		MOVD ZR, R7											
+  binder.go:587		0x100266c70		14000006		JMP 6(PC)											
+  binder.go:583		0x100266c74		f85f83fd		MOVD -8(RSP), R29										
+  binder.go:583		0x100266c78		f84807fe		MOVD.P 128(RSP), R30										
+  binder.go:583		0x100266c7c		d65f03c0		RET												
+  binder.go:587		0x100266c80		aa0603e7		MOVD R6, R7											
+  binder.go:587		0x100266c84		aa0a03e6		MOVD R10, R6											
+  binder.go:587		0x100266c88		34000186		CBZW R6, 12(PC)											
+  bound.go:72		0x100266c8c		a947a8a7		LDP 120(R5), (R7, R10)										
+  bound.go:72		0x100266c90		2a0603eb		MOVW R6, R11											
+  bound.go:72		0x100266c94		eb0a017f		CMP R10, R11											
+  bound.go:72		0x100266c98		54000a22		BCS 81(PC)											
+  bound.go:72		0x100266c9c		8b0b0ce7		ADD R11<<3, R7, R7										
+  binder.go:588		0x100266ca0		294028e7		LDPW (R7), (R7, R10)										
+  binder.go:588		0x100266ca4		6b07005f		CMPW R7, R2											
+  binder.go:588		0x100266ca8		54fffec1		BNE -10(PC)											
+  binder.go:589		0x100266cac		f85f83fd		MOVD -8(RSP), R29										
+  binder.go:589		0x100266cb0		f84807fe		MOVD.P 128(RSP), R30										
+  binder.go:589		0x100266cb4		d65f03c0		RET												
+  bound.go:88		0x100266cb8		a947a8a6		LDP 120(R5), (R6, R10)										
+  bound.go:88		0x100266cbc		f94044ab		MOVD 136(R5), R11										
+  bound.go:89		0x100266cc0		91000541		ADD $1, R10, R1											
+  binder.go:594		0x100266cc4		d503201f		NOOP												
+  bound.go:89		0x100266cc8		eb01017f		CMP R1, R11											
+  bound.go:89		0x100266ccc		540003c2		BCS 30(PC)											
+  bound.go:71		0x100266cd0		f90047e0		MOVD R0, 136(RSP)										
+  bound.go:71		0x100266cd4		b90097e2		MOVW R2, 148(RSP)										
+  binder.go:582		0x100266cd8		f9003be5		MOVD R5, 112(RSP)										
+  bound.go:71		0x100266cdc		f90037e8		MOVD R8, 104(RSP)										
+  bound.go:88		0x100266ce0		f90033ea		MOVD R10, 96(RSP)										
+  bound.go:71		0x100266ce4		f9002fe9		MOVD R9, 88(RSP)										
+  binder.go:587		0x100266ce8		b90057e7		MOVW R7, 84(RSP)										
+  bound.go:89		0x100266cec		aa0603e0		MOVD R6, R0											
+  bound.go:89		0x100266cf0		aa0b03e2		MOVD R11, R2											
+  bound.go:89		0x100266cf4		b24003e3		ORR $1, ZR, R3											
+  bound.go:89		0x100266cf8		b0003d04		ADRP 7999488(PC), R4										
+  bound.go:89		0x100266cfc		91248084		ADD $2336, R4, R4										
+  bound.go:89		0x100266d00		97f86da8		CALL runtime.growslice(SB)									
+  bound.go:89		0x100266d04		f9403be5		MOVD 112(RSP), R5										
+  bound.go:89		0x100266d08		f90044a2		MOVD R2, 136(R5)										
+  bound.go:89		0x100266d0c		b000431b		ADRP 8785920(PC), R27										
+  bound.go:89		0x100266d10		b945a366		MOVWU 1440(R27), R6										
+  bound.go:89		0x100266d14		34000086		CBZW R6, 4(PC)											
+  bound.go:89		0x100266d18		f9403ca2		MOVD 120(R5), R2										
+  bound.go:89		0x100266d1c		97f880c1		CALL runtime.gcWriteBarrier2(SB)								
+  bound.go:89		0x100266d20		a9000b20		STP (R0, R2), (R25)										
+  bound.go:89		0x100266d24		f9003ca0		MOVD R0, 120(R5)										
+  bound.go:89		0x100266d28		b94097e2		MOVWU 148(RSP), R2										
+  binder.go:595		0x100266d2c		b94057e7		MOVWU 84(RSP), R7										
+  bound.go:71		0x100266d30		f94037e8		MOVD 104(RSP), R8										
+  bound.go:71		0x100266d34		f9402fe9		MOVD 88(RSP), R9										
+  binder.go:596		0x100266d38		f94033ea		MOVD 96(RSP), R10										
+  binder.go:549		0x100266d3c		aa0003e6		MOVD R0, R6											
+  binder.go:596		0x100266d40		f94047e0		MOVD 136(RSP), R0										
+  bound.go:89		0x100266d44		f90040a1		MOVD R1, 128(R5)										
+  bound.go:89		0x100266d48		d1000421		SUB $1, R1, R1											
+  bound.go:89		0x100266d4c		8b010cc1		ADD R1<<3, R6, R1										
+  bound.go:89		0x100266d50		29007c22		STPW (R2, ZR), (R1)										
+  binder.go:595		0x100266d54		35000107		CBNZW R7, 8(PC)											
+  binder.go:596		0x100266d58		f9400801		MOVD 16(R0), R1											
+  bound.go:71		0x100266d5c		a9460821		LDP 96(R1), (R1, R2)										
+  bound.go:71		0x100266d60		eb02013f		CMP R2, R9											
+  bound.go:71		0x100266d64		540003a2		BCS 29(PC)											
+  bound.go:71		0x100266d68		8b091021		ADD R9<<4, R1, R1										
+  binder.go:596		0x100266d6c		b9000c2a		MOVW R10, 12(R1)										
+  binder.go:596		0x100266d70		14000008		JMP 8(PC)											
+  binder.go:598		0x100266d74		f9400801		MOVD 16(R0), R1											
+  bound.go:72		0x100266d78		a9478821		LDP 120(R1), (R1, R2)										
+  bound.go:72		0x100266d7c		2a0703e3		MOVW R7, R3											
+  bound.go:72		0x100266d80		eb02007f		CMP R2, R3											
+  bound.go:72		0x100266d84		54000282		BCS 20(PC)											
+  bound.go:72		0x100266d88		8b030c21		ADD R3<<3, R1, R1										
+  binder.go:598		0x100266d8c		b900042a		MOVW R10, 4(R1)											
+  binder.go:573		0x100266d90		f9400800		MOVD 16(R0), R0											
+  bound.go:71		0x100266d94		a9460400		LDP 96(R0), (R0, R1)										
+  binder.go:600		0x100266d98		d503201f		NOOP												
+  bound.go:71		0x100266d9c		eb01011f		CMP R1, R8											
+  bound.go:71		0x100266da0		54000182		BCS 12(PC)											
+  bound.go:71		0x100266da4		8b081000		ADD R8<<4, R0, R0										
+  binder.go:574		0x100266da8		b9400001		MOVWU (R0), R1											
+  binder.go:574		0x100266dac		37580081		TBNZ $11, R1, 4(PC)										
+  binder.go:575		0x100266db0		b2750021		ORR $2048, R1, R1										
+  binder.go:575		0x100266db4		b9000001		MOVW R1, (R0)											
+  binder.go:575		0x100266db8		14000003		JMP 3(PC)											
+  binder.go:577		0x100266dbc		b2740021		ORR $4096, R1, R1										
+  binder.go:577		0x100266dc0		b9000001		MOVW R1, (R0)											
+  binder.go:601		0x100266dc4		f85f83fd		MOVD -8(RSP), R29										
+  binder.go:601		0x100266dc8		f84807fe		MOVD.P 128(RSP), R30										
+  binder.go:601		0x100266dcc		d65f03c0		RET												
+  bound.go:71		0x100266dd0		97f88148		CALL runtime.panicBounds(SB)									
+  bound.go:72		0x100266dd4		97f88147		CALL runtime.panicBounds(SB)									
+  bound.go:71		0x100266dd8		97f88146		CALL runtime.panicBounds(SB)									
+  bound.go:72		0x100266ddc		97f88145		CALL runtime.panicBounds(SB)									
+  bound.go:71		0x100266de0		97f88144		CALL runtime.panicBounds(SB)									
+  bound.go:71		0x100266de4		97f88143		CALL runtime.panicBounds(SB)									
+  bound.go:71		0x100266de8		d503201f		NOOP												
+  binder.go:581		0x100266dec		f90007e0		MOVD R0, 8(RSP)											
+  binder.go:581		0x100266df0		29020be1		STPW (R1, R2), 16(RSP)										
+  binder.go:581		0x100266df4		aa1e03e3		MOVD R30, R3											
+  binder.go:581		0x100266df8		97f878fa		CALL runtime.morestack_noctxt.abi0(SB)								
+  binder.go:581		0x100266dfc		f94007e0		MOVD 8(RSP), R0											
+  binder.go:581		0x100266e00		29420be1		LDPW 16(RSP), (R1, R2)										
+  binder.go:581		0x100266e04		17ffff87		JMP github.com/microsoft/TypeScript/tsc/internal/storebinder.(*Binder).addAntecedent(SB)	
+  binder.go:581		0x100266e08		00000000		?												
+  binder.go:581		0x100266e0c		00000000		?												

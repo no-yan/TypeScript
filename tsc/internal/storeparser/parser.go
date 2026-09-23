@@ -201,7 +201,9 @@ func (p *Parser) parseJSONText() *store.File {
 	if p.b.ViewList(statements).Len() > 0 {
 		p.validateJsonValue(p.b.ViewList(statements).At(0).Expression())
 	}
-	return p.finishSourceFile(node, false)
+	result := p.finishSourceFile(node, false)
+	result.Store = p.b.Finish()
+	return result
 }
 
 func getErrorSpanForNode(sourceText string, node store.Node) core.TextRange {
@@ -455,20 +457,26 @@ func (p *Parser) parseSourceFileWorker() *store.File {
 	statements := p.b.List(int32(pos), int32(end), p.elems[mark:])
 	p.elems = p.elems[:mark]
 	node := p.b.NewSourceFile(p.flags(), int32(pos), int32(p.nodePos()), statements, eof)
-	// TODO(7c): the top-level await reparse needs the external module
-	// indicator, which is not computed yet (ast.SetExternalModuleIndicator and
-	// collectExternalModuleReferences walk the tree). reparseTopLevelAwait is
-	// ported below and not called.
 	result := p.finishSourceFile(node, isDeclarationFile)
+	if !result.IsDeclarationFile && result.ExternalModuleIndicator != store.NoNodeRef && len(p.possibleAwaitSpans) > 0 {
+		reparse := p.reparseTopLevelAwait(node)
+		if node != reparse {
+			result = p.finishSourceFile(reparse, isDeclarationFile)
+		}
+	}
+	result.Store = p.b.Finish()
+	collectExternalModuleReferences(result)
 	if result.Flags&ast.NodeFlagsJavaScriptFile != 0 {
 		result.SetJSDiagnostics(p.jsDiagnostics)
 	}
 	return result
 }
 
-// finishSourceFile compacts the scratch into the Store and fills the fields
-// of store.File. The JSDoc cache, the reparsed clones and the external module
-// indicator are 7c.
+// finishSourceFile fills the fields of store.File from the scratch, the
+// external module indicator included; the caller compacts the scratch into
+// result.Store afterwards (Finish), because the top-level await reparse may
+// still rewrite the tree. The JSDoc cache and the reparsed clones are not
+// ported (store-ast-design-20260922.md 5).
 func (p *Parser) finishSourceFile(root store.NodeRef, isDeclarationFile bool) *store.File {
 	result := &store.File{FileName: p.opts.FileName, Path: p.opts.Path, Text: p.sourceText}
 	result.CommentDirectives = p.scanner.CommentDirectives()
@@ -482,7 +490,7 @@ func (p *Parser) finishSourceFile(root store.NodeRef, isDeclarationFile bool) *s
 	result.Flags = p.b.View(root).Flags()
 	result.NodeCount = p.b.Len() - 1
 	result.IdentifierCount = p.identifierCount
-	result.Store = p.b.Finish()
+	p.setExternalModuleIndicator(result, root, p.opts.ExternalModuleIndicatorOptions)
 	return result
 }
 
@@ -499,10 +507,11 @@ func (p *Parser) parseToplevelStatement(i int) store.NodeRef {
 	return statement
 }
 
-// reparseTopLevelAwait is ported for 7c and not called in 7b (see
-// parseSourceFileWorker). The old statements are copied out of the list block
-// first: the reparse appends nodes, so a view of the block must not be held
-// across it. The rewinds keep the reparsed nodes, like they keep the
+// reparseTopLevelAwait rebuilds the source file with the statements of the
+// await spans reparsed in an await context; the old statements and the old
+// root stay as dead nodes. The old statements are copied out of the list
+// block first: the reparse appends nodes, so a view of the block must not be
+// held across it. The rewinds keep the reparsed nodes, like they keep the
 // diagnostics, by moving the mark forward before each rewind.
 func (p *Parser) reparseTopLevelAwait(sourceFile store.NodeRef) store.NodeRef {
 	if len(p.possibleAwaitSpans)%2 == 1 {

@@ -1,0 +1,285 @@
+TEXT github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindChildren(SB) /Volumes/SanDisk1TB/ghq/github.com/no-yan/TypeScript/tsc/internal/binder/binder.go
+  binder.go:1646	0x100260610		f9400b90		MOVD 16(R28), R16											
+  binder.go:1646	0x100260614		eb3063ff		CMP R16, RSP												
+  binder.go:1646	0x100260618		54002249		BLS 274(PC)												
+  binder.go:1646	0x10026061c		f81c0ffe		MOVD.W R30, -64(RSP)											
+  binder.go:1646	0x100260620		f81f83fd		MOVD R29, -8(RSP)											
+  binder.go:1646	0x100260624		d10023fd		SUB $8, RSP, R29											
+  binder.go:1652	0x100260628		f90027e0		MOVD R0, 72(RSP)											
+  binder.go:1652	0x10026062c		f9002be1		MOVD R1, 80(RSP)											
+  binder.go:1647	0x100260630		39421c03		MOVBU 135(R0), R3											
+  binder.go:1647	0x100260634		3900bfe3		MOVB R3, 47(RSP)											
+  binder.go:1650	0x100260638		39021c1f		MOVB ZR, 135(R0)											
+  binder.go:1652	0x10026063c		f9401c04		MOVD 56(R0), R4												
+  binder.go:1652	0x100260640		f9400805		MOVD 16(R0), R5												
+  binder.go:1652	0x100260644		eb0400bf		CMP R4, R5												
+  binder.go:1652	0x100260648		54001c20		BEQ 225(PC)												
+  binder.go:1664	0x10026064c		79800024		MOVH (R1), R4												
+  binder.go:1664	0x100260650		d103d084		SUB $244, R4, R4											
+  binder.go:1664	0x100260654		d3403c84		UBFX $0, R4, $16, R4											
+  binder.go:1664	0x100260658		7100409f		CMPW $16, R4												
+  binder.go:1664	0x10026065c		54000268		BHI 19(PC)												
+  ast.go:212		0x100260660		a9420021		LDP 32(R1), (R1, R0)											
+  ast.go:212		0x100260664		f9402421		MOVD 72(R1), R1												
+  ast.go:212		0x100260668		d63f0020		CALL (R1)												
+  binder.go:1665	0x10026066c		b4000160		CBZ R0, 11(PC)												
+  binder.go:1666	0x100260670		f94027e3		MOVD 72(RSP), R3											
+  binder.go:1666	0x100260674		f9401c64		MOVD 56(R3), R4												
+  binder.go:1666	0x100260678		f000319b		ADRP 6500352(PC), R27											
+  binder.go:1666	0x10026067c		b948f365		MOVWU 2288(R27), R5											
+  binder.go:1666	0x100260680		34000085		CBZW R5, 4(PC)												
+  binder.go:1666	0x100260684		f9400005		MOVD (R0), R5												
+  binder.go:1666	0x100260688		97f8943a		CALL runtime.gcWriteBarrier2(SB)									
+  binder.go:1666	0x10026068c		a9001724		STP (R4, R5), (R25)											
+  binder.go:1666	0x100260690		f9000004		MOVD R4, (R0)												
+  binder.go:1666	0x100260694		14000002		JMP 2(PC)												
+  binder.go:1737	0x100260698		f94027e3		MOVD 72(RSP), R3											
+  binder.go:1737	0x10026069c		aa0303e0		MOVD R3, R0												
+  binder.go:1670	0x1002606a0		f9402be1		MOVD 80(RSP), R1											
+  binder.go:1737	0x1002606a4		3940bfe3		MOVBU 47(RSP), R3											
+  binder.go:1670	0x1002606a8		79800024		MOVH (R1), R4												
+  binder.go:1670	0x1002606ac		aa0403e5		MOVD R4, R5												
+  binder.go:1670	0x1002606b0		7103dcbf		CMPW $247, R5												
+  binder.go:1673	0x1002606b4		54000aec		BGT 87(PC)												
+  binder.go:1670	0x1002606b8		710388bf		CMPW $226, R5												
+  binder.go:1703	0x1002606bc		540004cc		BGT 38(PC)												
+  binder.go:1670	0x1002606c0		710354bf		CMPW $213, R5												
+  binder.go:1720	0x1002606c4		5400020c		BGT 16(PC)												
+  binder.go:1670	0x1002606c8		710344bf		CMPW $209, R5												
+  binder.go:1732	0x1002606cc		5400014c		BGT 10(PC)												
+  binder.go:1734	0x1002606d0		d3403c82		UBFX $0, R4, $16, R2											
+  binder.go:1734	0x1002606d4		7102a85f		CMPW $170, R2												
+  binder.go:1734	0x1002606d8		540000a0		BEQ 5(PC)												
+  binder.go:1732	0x1002606dc		7103445f		CMPW $209, R2												
+  binder.go:1732	0x1002606e0		54001601		BNE 176(PC)												
+  binder.go:1733	0x1002606e4		94001013		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindBindingElementFlow(SB)		
+  binder.go:1733	0x1002606e8		140000b3		JMP 179(PC)												
+  binder.go:1735	0x1002606ec		9400103d		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindParameterFlow(SB)		
+  binder.go:1735	0x1002606f0		140000b1		JMP 177(PC)												
+  binder.go:1736	0x1002606f4		71034cbf		CMPW $211, R5												
+  binder.go:1736	0x1002606f8		5400128d		BLE 148(PC)												
+  binder.go:1721	0x1002606fc		94000d85		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindAccessExpressionFlow(SB)		
+  binder.go:1721	0x100260700		140000ad		JMP 173(PC)												
+  binder.go:1670	0x100260704		710374bf		CMPW $221, R5												
+  binder.go:1714	0x100260708		5400014c		BGT 10(PC)												
+  binder.go:1722	0x10026070c		d3403c82		UBFX $0, R4, $16, R2											
+  binder.go:1722	0x100260710		7103585f		CMPW $214, R2												
+  binder.go:1722	0x100260714		540000a0		BEQ 5(PC)												
+  binder.go:1714	0x100260718		7103745f		CMPW $221, R2												
+  binder.go:1714	0x10026071c		54001421		BNE 161(PC)												
+  binder.go:1715	0x100260720		94000c28		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindDeleteExpressionFlow(SB)		
+  binder.go:1715	0x100260724		140000a4		JMP 164(PC)												
+  binder.go:1723	0x100260728		94000f26		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindCallExpressionFlow(SB)		
+  binder.go:1723	0x10026072c		140000a2		JMP 162(PC)												
+  binder.go:1701	0x100260730		d3403c82		UBFX $0, R4, $16, R2											
+  binder.go:1701	0x100260734		7103845f		CMPW $225, R2												
+  binder.go:1701	0x100260738		540000a0		BEQ 5(PC)												
+  binder.go:1703	0x10026073c		7103885f		CMPW $226, R2												
+  binder.go:1703	0x100260740		54001301		BNE 152(PC)												
+  binder.go:1704	0x100260744		94000a4b		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindPostfixUnaryExpressionFlow(SB)	
+  binder.go:1704	0x100260748		1400009b		JMP 155(PC)												
+  binder.go:1702	0x10026074c		940009f9		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindPrefixUnaryExpressionFlow(SB)	
+  binder.go:1702	0x100260750		14000099		JMP 153(PC)												
+  binder.go:1670	0x100260754		7103b0bf		CMPW $236, R5												
+  binder.go:1724	0x100260758		540003cc		BGT 30(PC)												
+  binder.go:1670	0x10026075c		710390bf		CMPW $228, R5												
+  binder.go:1716	0x100260760		540002ac		BGT 21(PC)												
+  binder.go:1705	0x100260764		d3403c82		UBFX $0, R4, $16, R2											
+  binder.go:1705	0x100260768		71038c5f		CMPW $227, R2												
+  binder.go:1705	0x10026076c		54000201		BNE 16(PC)												
+  binder.go:1706	0x100260770		aa0103e0		MOVD R1, R0												
+  binder.go:1706	0x100260774		97fe1407		CALL github.com/microsoft/TypeScript/tsc/internal/ast.IsDestructuringAssignment(SB)			
+  binder.go:1706	0x100260778		370000a0		TBNZ $0, R0, 5(PC)											
+  binder.go:1713	0x10026077c		f94027e0		MOVD 72(RSP), R0											
+  binder.go:1713	0x100260780		f9402be1		MOVD 80(RSP), R1											
+  binder.go:1713	0x100260784		94000aaf		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindBinaryExpressionFlow(SB)		
+  binder.go:1713	0x100260788		1400008b		JMP 139(PC)												
+  binder.go:1709	0x10026078c		3940bfe2		MOVBU 47(RSP), R2											
+  binder.go:1709	0x100260790		f94027e0		MOVD 72(RSP), R0											
+  binder.go:1709	0x100260794		39021c02		MOVB R2, 135(R0)											
+  binder.go:1710	0x100260798		f9402be1		MOVD 80(RSP), R1											
+  binder.go:1710	0x10026079c		94000a61		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindDestructuringAssignmentFlow(SB)	
+  binder.go:1711	0x1002607a0		f85f83fd		MOVD -8(RSP), R29											
+  binder.go:1711	0x1002607a4		f84407fe		MOVD.P 64(RSP), R30											
+  binder.go:1711	0x1002607a8		d65f03c0		RET													
+  binder.go:1717	0x1002607ac		94000c31		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindConditionalExpressionFlow(SB)	
+  binder.go:1717	0x1002607b0		14000081		JMP 129(PC)												
+  binder.go:1736	0x1002607b4		d3403c82		UBFX $0, R4, $16, R2											
+  binder.go:1736	0x1002607b8		71039c5f		CMPW $231, R2												
+  binder.go:1736	0x1002607bc		54000c60		BEQ 99(PC)												
+  binder.go:1724	0x1002607c0		7103b05f		CMPW $236, R2												
+  binder.go:1724	0x1002607c4		54000ee1		BNE 119(PC)												
+  binder.go:1725	0x1002607c8		94000fba		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindNonNullExpressionFlow(SB)	
+  binder.go:1725	0x1002607cc		1400007a		JMP 122(PC)												
+  binder.go:1670	0x1002607d0		7103d4bf		CMPW $245, R5												
+  binder.go:1697	0x1002607d4		5400010c		BGT 8(PC)												
+  binder.go:1730	0x1002607d8		d3403c82		UBFX $0, R4, $16, R2											
+  binder.go:1730	0x1002607dc		7103c85f		CMPW $242, R2												
+  binder.go:1730	0x1002607e0		54000880		BEQ 68(PC)												
+  binder.go:1697	0x1002607e4		7103d45f		CMPW $245, R2												
+  binder.go:1697	0x1002607e8		54000dc1		BNE 110(PC)												
+  binder.go:1698	0x1002607ec		94000909		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindExpressionStatement(SB)		
+  binder.go:1698	0x1002607f0		14000071		JMP 113(PC)												
+  binder.go:1679	0x1002607f4		d3403c82		UBFX $0, R4, $16, R2											
+  binder.go:1679	0x1002607f8		7103d85f		CMPW $246, R2												
+  binder.go:1679	0x1002607fc		54000061		BNE 3(PC)												
+  binder.go:1680	0x100260800		940004dc		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindIfStatement(SB)			
+  binder.go:1680	0x100260804		1400006c		JMP 108(PC)												
+  binder.go:1674	0x100260808		940002da		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindDoStatement(SB)			
+  binder.go:1674	0x10026080c		1400006a		JMP 106(PC)												
+  binder.go:1670	0x100260810		710404bf		CMPW $257, R5												
+  binder.go:1699	0x100260814		540004ec		BGT 39(PC)												
+  binder.go:1670	0x100260818		7103f0bf		CMPW $252, R5												
+  binder.go:1687	0x10026081c		5400026c		BGT 19(PC)												
+  binder.go:1670	0x100260820		7103e4bf		CMPW $249, R5												
+  binder.go:1675	0x100260824		5400010c		BGT 8(PC)												
+  binder.go:1671	0x100260828		d3403c82		UBFX $0, R4, $16, R2											
+  binder.go:1671	0x10026082c		7103e05f		CMPW $248, R2												
+  binder.go:1671	0x100260830		54000061		BNE 3(PC)												
+  binder.go:1672	0x100260834		9400023b		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindWhileStatement(SB)		
+  binder.go:1672	0x100260838		1400005f		JMP 95(PC)												
+  binder.go:1676	0x10026083c		94000361		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindForStatement(SB)			
+  binder.go:1676	0x100260840		1400005d		JMP 93(PC)												
+  binder.go:1677	0x100260844		7103ecbf		CMPW $251, R5												
+  binder.go:1677	0x100260848		540000cd		BLE 6(PC)												
+  binder.go:1687	0x10026084c		d3403c82		UBFX $0, R4, $16, R2											
+  binder.go:1687	0x100260850		7103f05f		CMPW $252, R2												
+  binder.go:1687	0x100260854		54000a61		BNE 83(PC)												
+  binder.go:1688	0x100260858		940005ae		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindContinueStatement(SB)		
+  binder.go:1688	0x10026085c		14000056		JMP 86(PC)												
+  binder.go:1678	0x100260860		94000424		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindForInOrForOfStatement(SB)	
+  binder.go:1678	0x100260864		14000054		JMP 84(PC)												
+  binder.go:1670	0x100260868		7103f8bf		CMPW $254, R5												
+  binder.go:1681	0x10026086c		5400010c		BGT 8(PC)												
+  binder.go:1685	0x100260870		d3403c82		UBFX $0, R4, $16, R2											
+  binder.go:1685	0x100260874		7103f45f		CMPW $253, R2												
+  binder.go:1685	0x100260878		54000061		BNE 3(PC)												
+  binder.go:1686	0x10026087c		94000589		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindBreakStatement(SB)		
+  binder.go:1686	0x100260880		1400004d		JMP 77(PC)												
+  binder.go:1682	0x100260884		94000543		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindReturnStatement(SB)		
+  binder.go:1682	0x100260888		1400004b		JMP 75(PC)												
+  binder.go:1691	0x10026088c		d3403c82		UBFX $0, R4, $16, R2											
+  binder.go:1691	0x100260890		7104005f		CMPW $256, R2												
+  binder.go:1691	0x100260894		540000a0		BEQ 5(PC)												
+  binder.go:1699	0x100260898		7104045f		CMPW $257, R2												
+  binder.go:1699	0x10026089c		54000821		BNE 65(PC)												
+  binder.go:1700	0x1002608a0		9400092c		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindLabeledStatement(SB)		
+  binder.go:1700	0x1002608a4		14000044		JMP 68(PC)												
+  binder.go:1692	0x1002608a8		94000742		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindSwitchStatement(SB)		
+  binder.go:1692	0x1002608ac		14000042		JMP 66(PC)												
+  binder.go:1670	0x1002608b0		710434bf		CMPW $269, R5												
+  binder.go:1730	0x1002608b4		540002ec		BGT 23(PC)												
+  binder.go:1670	0x1002608b8		71040cbf		CMPW $259, R5												
+  binder.go:1689	0x1002608bc		5400010c		BGT 8(PC)												
+  binder.go:1683	0x1002608c0		d3403c82		UBFX $0, R4, $16, R2											
+  binder.go:1683	0x1002608c4		7104085f		CMPW $258, R2												
+  binder.go:1683	0x1002608c8		54000061		BNE 3(PC)												
+  binder.go:1684	0x1002608cc		94000555		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindThrowStatement(SB)		
+  binder.go:1684	0x1002608d0		14000039		JMP 57(PC)												
+  binder.go:1690	0x1002608d4		94000607		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindTryStatement(SB)			
+  binder.go:1690	0x1002608d8		14000037		JMP 55(PC)												
+  binder.go:1718	0x1002608dc		d3403c82		UBFX $0, R4, $16, R2											
+  binder.go:1718	0x1002608e0		7104145f		CMPW $261, R2												
+  binder.go:1718	0x1002608e4		54000120		BEQ 9(PC)												
+  binder.go:1730	0x1002608e8		7104345f		CMPW $269, R2												
+  binder.go:1730	0x1002608ec		540005a1		BNE 45(PC)												
+  binder.go:1731	0x1002608f0		aa0103e0		MOVD R1, R0												
+  binder.go:1731	0x1002608f4		97fd463f		CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*Node).StatementList(SB)				
+  binder.go:1731	0x1002608f8		aa0003e1		MOVD R0, R1												
+  binder.go:1731	0x1002608fc		f94027e0		MOVD 72(RSP), R0											
+  binder.go:1731	0x100260900		94000060		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindEachStatementFunctionsFirst(SB)	
+  binder.go:1731	0x100260904		1400002c		JMP 44(PC)												
+  binder.go:1719	0x100260908		94000c7e		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindVariableDeclarationFlow(SB)	
+  binder.go:1719	0x10026090c		1400002a		JMP 42(PC)												
+  binder.go:1670	0x100260910		7104a8bf		CMPW $298, R5												
+  binder.go:1695	0x100260914		5400014c		BGT 10(PC)												
+  binder.go:1693	0x100260918		d3403c82		UBFX $0, R4, $16, R2											
+  binder.go:1693	0x10026091c		7104385f		CMPW $270, R2												
+  binder.go:1693	0x100260920		540000a0		BEQ 5(PC)												
+  binder.go:1695	0x100260924		7104a4bf		CMPW $297, R5												
+  binder.go:1695	0x100260928		540003cb		BLT 30(PC)												
+  binder.go:1696	0x10026092c		94000871		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindCaseOrDefaultClause(SB)		
+  binder.go:1696	0x100260930		14000021		JMP 33(PC)												
+  binder.go:1694	0x100260934		940007af		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindCaseBlock(SB)			
+  binder.go:1694	0x100260938		1400001f		JMP 31(PC)												
+  binder.go:1736	0x10026093c		d3403c84		UBFX $0, R4, $16, R4											
+  binder.go:1736	0x100260940		7104bc9f		CMPW $303, R4												
+  binder.go:1736	0x100260944		540000e1		BNE 7(PC)												
+  binder.go:1737	0x100260948		39021c03		MOVB R3, 135(R0)											
+  binder.go:1746	0x10026094c		f9400402		MOVD 8(R0), R2												
+  binder.go:1746	0x100260950		aa0103e0		MOVD R1, R0												
+  binder.go:1746	0x100260954		aa0203e1		MOVD R2, R1												
+  binder.go:1746	0x100260958		97fe0152		CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*Node).ForEachChild(SB)				
+  binder.go:1738	0x10026095c		14000016		JMP 22(PC)												
+  binder.go:1726	0x100260960		7104cc9f		CMPW $307, R4												
+  binder.go:1726	0x100260964		540001e1		BNE 15(PC)												
+  ast_generated.go:9745	0x100260968		a9421424		LDP 32(R1), (R4, R5)											
+  binder.go:1727	0x10026096c		d503201f		NOOP													
+  ast_generated.go:9745	0x100260970		d0002d86		ADRP 5971968(PC), R6											
+  ast_generated.go:9745	0x100260974		912920c6		ADD $2632, R6, R6											
+  ast_generated.go:9745	0x100260978		eb06009f		CMP R6, R4												
+  ast_generated.go:9745	0x10026097c		54000641		BNE 50(PC)												
+  ast_generated.go:9745	0x100260980		f9001be5		MOVD R5, 48(RSP)											
+  binder.go:1728	0x100260984		f94050a1		MOVD 160(R5), R1											
+  binder.go:1728	0x100260988		9400003e		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindEachStatementFunctionsFirst(SB)	
+  binder.go:1729	0x10026098c		f9401be2		MOVD 48(RSP), R2											
+  binder.go:1729	0x100260990		f9405441		MOVD 168(R2), R1											
+  binder.go:1729	0x100260994		f94027e0		MOVD 72(RSP), R0											
+  binder.go:1729	0x100260998		97ffe8a6		CALL github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bind(SB)				
+  binder.go:1729	0x10026099c		14000006		JMP 6(PC)												
+  binder.go:1746	0x1002609a0		f9400402		MOVD 8(R0), R2												
+  binder.go:1740	0x1002609a4		d503201f		NOOP													
+  binder.go:1746	0x1002609a8		aa0103e0		MOVD R1, R0												
+  binder.go:1746	0x1002609ac		aa0203e1		MOVD R2, R1												
+  binder.go:1746	0x1002609b0		97fe013c		CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*Node).ForEachChild(SB)				
+  binder.go:1742	0x1002609b4		3940bfe0		MOVBU 47(RSP), R0											
+  binder.go:1742	0x1002609b8		f94027e1		MOVD 72(RSP), R1											
+  binder.go:1742	0x1002609bc		39021c20		MOVB R0, 135(R1)											
+  binder.go:1743	0x1002609c0		f85f83fd		MOVD -8(RSP), R29											
+  binder.go:1743	0x1002609c4		f84407fe		MOVD.P 64(RSP), R30											
+  binder.go:1743	0x1002609c8		d65f03c0		RET													
+  ast.go:212		0x1002609cc		a9420021		LDP 32(R1), (R1, R0)											
+  ast.go:212		0x1002609d0		f9402421		MOVD 72(R1), R1												
+  ast.go:212		0x1002609d4		d63f0020		CALL (R1)												
+  binder.go:1653	0x1002609d8		b4000100		CBZ R0, 8(PC)												
+  binder.go:1654	0x1002609dc		f000319b		ADRP 6500352(PC), R27											
+  binder.go:1654	0x1002609e0		b948f361		MOVWU 2288(R27), R1											
+  binder.go:1654	0x1002609e4		34000081		CBZW R1, 4(PC)												
+  binder.go:1654	0x1002609e8		f9400001		MOVD (R0), R1												
+  binder.go:1654	0x1002609ec		97f8935d		CALL runtime.gcWriteBarrier1(SB)									
+  binder.go:1654	0x1002609f0		f9000321		MOVD R1, (R25)												
+  binder.go:1654	0x1002609f4		f900001f		MOVD ZR, (R0)												
+  binder.go:1656	0x1002609f8		f9402be0		MOVD 80(RSP), R0											
+  binder.go:1656	0x1002609fc		97fe25f1		CALL github.com/microsoft/TypeScript/tsc/internal/ast.IsPotentiallyExecutableNode(SB)			
+  binder.go:1656	0x100260a00		360000c0		TBZ $0, R0, 6(PC)											
+  binder.go:1657	0x100260a04		f9402be0		MOVD 80(RSP), R0											
+  binder.go:1657	0x100260a08		b9400402		MOVWU 4(R0), R2												
+  binder.go:1657	0x100260a0c		b2650042		ORR $134217728, R2, R2											
+  binder.go:1657	0x100260a10		b9000402		MOVW R2, 4(R0)												
+  binder.go:1657	0x100260a14		14000002		JMP 2(PC)												
+  binder.go:1746	0x100260a18		f9402be0		MOVD 80(RSP), R0											
+  binder.go:1746	0x100260a1c		f94027e2		MOVD 72(RSP), R2											
+  binder.go:1746	0x100260a20		f9400441		MOVD 8(R2), R1												
+  binder.go:1659	0x100260a24		d503201f		NOOP													
+  binder.go:1746	0x100260a28		97fe011e		CALL github.com/microsoft/TypeScript/tsc/internal/ast.(*Node).ForEachChild(SB)				
+  binder.go:1660	0x100260a2c		3940bfe2		MOVBU 47(RSP), R2											
+  binder.go:1660	0x100260a30		f94027e3		MOVD 72(RSP), R3											
+  binder.go:1660	0x100260a34		39021c62		MOVB R2, 135(R3)											
+  binder.go:1661	0x100260a38		f85f83fd		MOVD -8(RSP), R29											
+  binder.go:1661	0x100260a3c		f84407fe		MOVD.P 64(RSP), R30											
+  binder.go:1661	0x100260a40		d65f03c0		RET													
+  ast_generated.go:9745	0x100260a44		aa0403e0		MOVD R4, R0												
+  ast_generated.go:9745	0x100260a48		b00027e1		ADRP 5230592(PC), R1											
+  ast_generated.go:9745	0x100260a4c		91290021		ADD $2624, R1, R1											
+  ast_generated.go:9745	0x100260a50		d0002ce2		ADRP 5890048(PC), R2											
+  ast_generated.go:9745	0x100260a54		911ea042		ADD $1960, R2, R2											
+  ast_generated.go:9745	0x100260a58		97f6d612		CALL runtime.panicdottypeI(SB)										
+  ast_generated.go:9745	0x100260a5c		d503201f		NOOP													
+  binder.go:1646	0x100260a60		a90087e0		STP (R0, R1), 8(RSP)											
+  binder.go:1646	0x100260a64		aa1e03e3		MOVD R30, R3												
+  binder.go:1646	0x100260a68		97f88bb2		CALL runtime.morestack_noctxt.abi0(SB)									
+  binder.go:1646	0x100260a6c		a94087e0		LDP 8(RSP), (R0, R1)											
+  binder.go:1646	0x100260a70		17fffee8		JMP github.com/microsoft/TypeScript/tsc/internal/binder.(*Binder).bindChildren(SB)			
+  binder.go:1646	0x100260a74		00000000		?													
+  binder.go:1646	0x100260a78		00000000		?													
+  binder.go:1646	0x100260a7c		00000000		?													

@@ -196,6 +196,7 @@ const (
 	forStatementConditionSlot   = 1
 	forStatementIncrementorSlot = 2
 	forStatementStatementSlot   = 3
+	forStatementLocalsSlot      = 4
 )
 
 type ForStatement struct {
@@ -226,12 +227,22 @@ func (n ForStatement) Statement() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+forStatementStatementSlot]))
 }
 
+func (n ForStatement) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+forStatementLocalsSlot])
+}
+
+func (n ForStatement) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+forStatementLocalsSlot] = uint32(v)
+}
+
 // ForInOrOfStatement: ast.KindForInStatement, ast.KindForOfStatement
 const (
 	forInOrOfStatementAwaitModifierSlot = 0
 	forInOrOfStatementInitializerSlot   = 1
 	forInOrOfStatementExpressionSlot    = 2
 	forInOrOfStatementStatementSlot     = 3
+	forInOrOfStatementLocalsSlot        = 4
 )
 
 type ForInOrOfStatement struct {
@@ -260,6 +271,15 @@ func (n ForInOrOfStatement) Expression() Node {
 
 func (n ForInOrOfStatement) Statement() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+forInOrOfStatementStatementSlot]))
+}
+
+func (n ForInOrOfStatement) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+forInOrOfStatementLocalsSlot])
+}
+
+func (n ForInOrOfStatement) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+forInOrOfStatementLocalsSlot] = uint32(v)
 }
 
 // BreakStatement: ast.KindBreakStatement
@@ -380,6 +400,7 @@ func (n SwitchStatement) CaseBlock() Node {
 // CaseBlock: ast.KindCaseBlock
 const (
 	caseBlockClausesSlot = 0
+	caseBlockLocalsSlot  = 1
 )
 
 type CaseBlock struct {
@@ -398,10 +419,18 @@ func (n CaseBlock) Clauses() List {
 	return List{n.s, ListRef(n.s.extra[int(n.h.data)+caseBlockClausesSlot])}
 }
 
+func (n CaseBlock) LocalsSlot() uint32 { return uint32(n.s.extra[int(n.h.data)+caseBlockLocalsSlot]) }
+
+func (n CaseBlock) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+caseBlockLocalsSlot] = uint32(v)
+}
+
 // CaseOrDefaultClause: ast.KindCaseClause, ast.KindDefaultClause
 const (
-	caseOrDefaultClauseExpressionSlot = 0
-	caseOrDefaultClauseStatementsSlot = 1
+	caseOrDefaultClauseExpressionSlot          = 0
+	caseOrDefaultClauseStatementsSlot          = 1
+	caseOrDefaultClauseFallthroughFlowNodeSlot = 2
 )
 
 type CaseOrDefaultClause struct {
@@ -422,6 +451,15 @@ func (n CaseOrDefaultClause) Expression() Node {
 
 func (n CaseOrDefaultClause) Statements() List {
 	return List{n.s, ListRef(n.s.extra[int(n.h.data)+caseOrDefaultClauseStatementsSlot])}
+}
+
+func (n CaseOrDefaultClause) FallthroughFlowNode() FlowRef {
+	return FlowRef(n.s.extra[int(n.h.data)+caseOrDefaultClauseFallthroughFlowNodeSlot])
+}
+
+func (n CaseOrDefaultClause) SetFallthroughFlowNode(v FlowRef) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+caseOrDefaultClauseFallthroughFlowNodeSlot] = uint32(v)
 }
 
 // ThrowStatement: ast.KindThrowStatement
@@ -480,6 +518,7 @@ func (n TryStatement) FinallyBlock() Node {
 const (
 	catchClauseVariableDeclarationSlot = 0
 	catchClauseBlockSlot               = 1
+	catchClauseLocalsSlot              = 2
 )
 
 type CatchClause struct {
@@ -500,6 +539,15 @@ func (n CatchClause) VariableDeclaration() Node {
 
 func (n CatchClause) Block() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+catchClauseBlockSlot]))
+}
+
+func (n CatchClause) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+catchClauseLocalsSlot])
+}
+
+func (n CatchClause) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+catchClauseLocalsSlot] = uint32(v)
 }
 
 // LabeledStatement: ast.KindLabeledStatement
@@ -553,6 +601,7 @@ func (n ExpressionStatement) Expression() Node {
 const (
 	blockStatementsSlot = 0
 	blockMultiLineSlot  = 1
+	blockLocalsSlot     = 2
 )
 
 type Block struct {
@@ -572,6 +621,13 @@ func (n Block) Statements() List {
 }
 
 func (n Block) MultiLine() bool { return n.s.extra[int(n.h.data)+blockMultiLineSlot] != 0 }
+
+func (n Block) LocalsSlot() uint32 { return uint32(n.s.extra[int(n.h.data)+blockLocalsSlot]) }
+
+func (n Block) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+blockLocalsSlot] = uint32(v)
+}
 
 // VariableStatement: ast.KindVariableStatement
 const (
@@ -605,6 +661,7 @@ const (
 	variableDeclarationExclamationTokenSlot = 1
 	variableDeclarationTypeSlot             = 2
 	variableDeclarationInitializerSlot      = 3
+	variableDeclarationLocalSymbolSlot      = 4
 )
 
 type VariableDeclaration struct {
@@ -633,6 +690,15 @@ func (n VariableDeclaration) Type() Node {
 
 func (n VariableDeclaration) Initializer() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+variableDeclarationInitializerSlot]))
+}
+
+func (n VariableDeclaration) LocalSymbol() SymbolId {
+	return SymbolId(n.s.extra[int(n.h.data)+variableDeclarationLocalSymbolSlot])
+}
+
+func (n VariableDeclaration) SetLocalSymbol(v SymbolId) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+variableDeclarationLocalSymbolSlot] = uint32(v)
 }
 
 // VariableDeclarationList: ast.KindVariableDeclarationList
@@ -729,6 +795,7 @@ const (
 	bindingElementPropertyNameSlot   = 1
 	bindingElementNameSlot           = 2
 	bindingElementInitializerSlot    = 3
+	bindingElementLocalSymbolSlot    = 4
 )
 
 type BindingElement struct {
@@ -757,6 +824,15 @@ func (n BindingElement) Name() Node {
 
 func (n BindingElement) Initializer() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+bindingElementInitializerSlot]))
+}
+
+func (n BindingElement) LocalSymbol() SymbolId {
+	return SymbolId(n.s.extra[int(n.h.data)+bindingElementLocalSymbolSlot])
+}
+
+func (n BindingElement) SetLocalSymbol(v SymbolId) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+bindingElementLocalSymbolSlot] = uint32(v)
 }
 
 // MissingDeclaration: ast.KindMissingDeclaration
@@ -790,6 +866,10 @@ const (
 	functionDeclarationTypeSlot           = 5
 	functionDeclarationFullSignatureSlot  = 6
 	functionDeclarationBodySlot           = 7
+	functionDeclarationLocalSymbolSlot    = 8
+	functionDeclarationLocalsSlot         = 9
+	functionDeclarationEndFlowNodeSlot    = 10
+	functionDeclarationReturnFlowNodeSlot = 11
 )
 
 type FunctionDeclaration struct {
@@ -836,6 +916,42 @@ func (n FunctionDeclaration) Body() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+functionDeclarationBodySlot]))
 }
 
+func (n FunctionDeclaration) LocalSymbol() SymbolId {
+	return SymbolId(n.s.extra[int(n.h.data)+functionDeclarationLocalSymbolSlot])
+}
+
+func (n FunctionDeclaration) SetLocalSymbol(v SymbolId) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+functionDeclarationLocalSymbolSlot] = uint32(v)
+}
+
+func (n FunctionDeclaration) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+functionDeclarationLocalsSlot])
+}
+
+func (n FunctionDeclaration) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+functionDeclarationLocalsSlot] = uint32(v)
+}
+
+func (n FunctionDeclaration) EndFlowNode() FlowRef {
+	return FlowRef(n.s.extra[int(n.h.data)+functionDeclarationEndFlowNodeSlot])
+}
+
+func (n FunctionDeclaration) SetEndFlowNode(v FlowRef) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+functionDeclarationEndFlowNodeSlot] = uint32(v)
+}
+
+func (n FunctionDeclaration) ReturnFlowNode() FlowRef {
+	return FlowRef(n.s.extra[int(n.h.data)+functionDeclarationReturnFlowNodeSlot])
+}
+
+func (n FunctionDeclaration) SetReturnFlowNode(v FlowRef) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+functionDeclarationReturnFlowNodeSlot] = uint32(v)
+}
+
 // ClassDeclaration: ast.KindClassDeclaration
 const (
 	classDeclarationModifiersSlot       = 0
@@ -843,6 +959,8 @@ const (
 	classDeclarationTypeParametersSlot  = 2
 	classDeclarationHeritageClausesSlot = 3
 	classDeclarationMembersSlot         = 4
+	classDeclarationLocalSymbolSlot     = 5
+	classDeclarationLocalsSlot          = 6
 )
 
 type ClassDeclaration struct {
@@ -877,6 +995,24 @@ func (n ClassDeclaration) Members() List {
 	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classDeclarationMembersSlot])}
 }
 
+func (n ClassDeclaration) LocalSymbol() SymbolId {
+	return SymbolId(n.s.extra[int(n.h.data)+classDeclarationLocalSymbolSlot])
+}
+
+func (n ClassDeclaration) SetLocalSymbol(v SymbolId) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+classDeclarationLocalSymbolSlot] = uint32(v)
+}
+
+func (n ClassDeclaration) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+classDeclarationLocalsSlot])
+}
+
+func (n ClassDeclaration) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+classDeclarationLocalsSlot] = uint32(v)
+}
+
 // ClassExpression: ast.KindClassExpression
 const (
 	classExpressionModifiersSlot       = 0
@@ -884,6 +1020,8 @@ const (
 	classExpressionTypeParametersSlot  = 2
 	classExpressionHeritageClausesSlot = 3
 	classExpressionMembersSlot         = 4
+	classExpressionLocalSymbolSlot     = 5
+	classExpressionLocalsSlot          = 6
 )
 
 type ClassExpression struct {
@@ -916,6 +1054,24 @@ func (n ClassExpression) HeritageClauses() List {
 
 func (n ClassExpression) Members() List {
 	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classExpressionMembersSlot])}
+}
+
+func (n ClassExpression) LocalSymbol() SymbolId {
+	return SymbolId(n.s.extra[int(n.h.data)+classExpressionLocalSymbolSlot])
+}
+
+func (n ClassExpression) SetLocalSymbol(v SymbolId) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+classExpressionLocalSymbolSlot] = uint32(v)
+}
+
+func (n ClassExpression) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+classExpressionLocalsSlot])
+}
+
+func (n ClassExpression) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+classExpressionLocalsSlot] = uint32(v)
 }
 
 // HeritageClause: ast.KindHeritageClause
@@ -951,6 +1107,7 @@ const (
 	interfaceDeclarationTypeParametersSlot  = 2
 	interfaceDeclarationHeritageClausesSlot = 3
 	interfaceDeclarationMembersSlot         = 4
+	interfaceDeclarationLocalSymbolSlot     = 5
 )
 
 type InterfaceDeclaration struct {
@@ -985,12 +1142,23 @@ func (n InterfaceDeclaration) Members() List {
 	return List{n.s, ListRef(n.s.extra[int(n.h.data)+interfaceDeclarationMembersSlot])}
 }
 
+func (n InterfaceDeclaration) LocalSymbol() SymbolId {
+	return SymbolId(n.s.extra[int(n.h.data)+interfaceDeclarationLocalSymbolSlot])
+}
+
+func (n InterfaceDeclaration) SetLocalSymbol(v SymbolId) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+interfaceDeclarationLocalSymbolSlot] = uint32(v)
+}
+
 // TypeAliasDeclaration: ast.KindTypeAliasDeclaration, ast.KindJSTypeAliasDeclaration
 const (
 	typeAliasDeclarationModifiersSlot      = 0
 	typeAliasDeclarationNameSlot           = 1
 	typeAliasDeclarationTypeParametersSlot = 2
 	typeAliasDeclarationTypeSlot           = 3
+	typeAliasDeclarationLocalSymbolSlot    = 4
+	typeAliasDeclarationLocalsSlot         = 5
 )
 
 type TypeAliasDeclaration struct {
@@ -1021,6 +1189,24 @@ func (n TypeAliasDeclaration) Type() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+typeAliasDeclarationTypeSlot]))
 }
 
+func (n TypeAliasDeclaration) LocalSymbol() SymbolId {
+	return SymbolId(n.s.extra[int(n.h.data)+typeAliasDeclarationLocalSymbolSlot])
+}
+
+func (n TypeAliasDeclaration) SetLocalSymbol(v SymbolId) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+typeAliasDeclarationLocalSymbolSlot] = uint32(v)
+}
+
+func (n TypeAliasDeclaration) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+typeAliasDeclarationLocalsSlot])
+}
+
+func (n TypeAliasDeclaration) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+typeAliasDeclarationLocalsSlot] = uint32(v)
+}
+
 // EnumMember: ast.KindEnumMember
 const (
 	enumMemberNameSlot        = 0
@@ -1049,9 +1235,10 @@ func (n EnumMember) Initializer() Node {
 
 // EnumDeclaration: ast.KindEnumDeclaration
 const (
-	enumDeclarationModifiersSlot = 0
-	enumDeclarationNameSlot      = 1
-	enumDeclarationMembersSlot   = 2
+	enumDeclarationModifiersSlot   = 0
+	enumDeclarationNameSlot        = 1
+	enumDeclarationMembersSlot     = 2
+	enumDeclarationLocalSymbolSlot = 3
 )
 
 type EnumDeclaration struct {
@@ -1076,6 +1263,15 @@ func (n EnumDeclaration) Name() Node {
 
 func (n EnumDeclaration) Members() List {
 	return List{n.s, ListRef(n.s.extra[int(n.h.data)+enumDeclarationMembersSlot])}
+}
+
+func (n EnumDeclaration) LocalSymbol() SymbolId {
+	return SymbolId(n.s.extra[int(n.h.data)+enumDeclarationLocalSymbolSlot])
+}
+
+func (n EnumDeclaration) SetLocalSymbol(v SymbolId) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+enumDeclarationLocalSymbolSlot] = uint32(v)
 }
 
 // ModuleBlock: ast.KindModuleBlock
@@ -1158,7 +1354,8 @@ func (n ExternalModuleReference) Expression() Node {
 
 // NamespaceImport: ast.KindNamespaceImport
 const (
-	namespaceImportNameSlot = 0
+	namespaceImportNameSlot        = 0
+	namespaceImportLocalSymbolSlot = 1
 )
 
 type NamespaceImport struct {
@@ -1175,6 +1372,15 @@ func (n Node) AsNamespaceImport() NamespaceImport {
 
 func (n NamespaceImport) Name() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+namespaceImportNameSlot]))
+}
+
+func (n NamespaceImport) LocalSymbol() SymbolId {
+	return SymbolId(n.s.extra[int(n.h.data)+namespaceImportLocalSymbolSlot])
+}
+
+func (n NamespaceImport) SetLocalSymbol(v SymbolId) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+namespaceImportLocalSymbolSlot] = uint32(v)
 }
 
 // NamedImports: ast.KindNamedImports
@@ -1307,6 +1513,7 @@ const (
 	exportSpecifierIsTypeOnlySlot   = 0
 	exportSpecifierPropertyNameSlot = 1
 	exportSpecifierNameSlot         = 2
+	exportSpecifierLocalSymbolSlot  = 3
 )
 
 type ExportSpecifier struct {
@@ -1333,11 +1540,21 @@ func (n ExportSpecifier) Name() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+exportSpecifierNameSlot]))
 }
 
+func (n ExportSpecifier) LocalSymbol() SymbolId {
+	return SymbolId(n.s.extra[int(n.h.data)+exportSpecifierLocalSymbolSlot])
+}
+
+func (n ExportSpecifier) SetLocalSymbol(v SymbolId) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+exportSpecifierLocalSymbolSlot] = uint32(v)
+}
+
 // CallSignatureDeclaration: ast.KindCallSignature
 const (
 	callSignatureDeclarationTypeParametersSlot = 0
 	callSignatureDeclarationParametersSlot     = 1
 	callSignatureDeclarationTypeSlot           = 2
+	callSignatureDeclarationLocalsSlot         = 3
 )
 
 type CallSignatureDeclaration struct {
@@ -1364,11 +1581,21 @@ func (n CallSignatureDeclaration) Type() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+callSignatureDeclarationTypeSlot]))
 }
 
+func (n CallSignatureDeclaration) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+callSignatureDeclarationLocalsSlot])
+}
+
+func (n CallSignatureDeclaration) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+callSignatureDeclarationLocalsSlot] = uint32(v)
+}
+
 // ConstructSignatureDeclaration: ast.KindConstructSignature
 const (
 	constructSignatureDeclarationTypeParametersSlot = 0
 	constructSignatureDeclarationParametersSlot     = 1
 	constructSignatureDeclarationTypeSlot           = 2
+	constructSignatureDeclarationLocalsSlot         = 3
 )
 
 type ConstructSignatureDeclaration struct {
@@ -1395,6 +1622,15 @@ func (n ConstructSignatureDeclaration) Type() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+constructSignatureDeclarationTypeSlot]))
 }
 
+func (n ConstructSignatureDeclaration) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+constructSignatureDeclarationLocalsSlot])
+}
+
+func (n ConstructSignatureDeclaration) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+constructSignatureDeclarationLocalsSlot] = uint32(v)
+}
+
 // ConstructorDeclaration: ast.KindConstructor
 const (
 	constructorDeclarationModifiersSlot      = 0
@@ -1403,6 +1639,9 @@ const (
 	constructorDeclarationTypeSlot           = 3
 	constructorDeclarationFullSignatureSlot  = 4
 	constructorDeclarationBodySlot           = 5
+	constructorDeclarationLocalsSlot         = 6
+	constructorDeclarationEndFlowNodeSlot    = 7
+	constructorDeclarationReturnFlowNodeSlot = 8
 )
 
 type ConstructorDeclaration struct {
@@ -1441,6 +1680,33 @@ func (n ConstructorDeclaration) Body() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+constructorDeclarationBodySlot]))
 }
 
+func (n ConstructorDeclaration) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+constructorDeclarationLocalsSlot])
+}
+
+func (n ConstructorDeclaration) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+constructorDeclarationLocalsSlot] = uint32(v)
+}
+
+func (n ConstructorDeclaration) EndFlowNode() FlowRef {
+	return FlowRef(n.s.extra[int(n.h.data)+constructorDeclarationEndFlowNodeSlot])
+}
+
+func (n ConstructorDeclaration) SetEndFlowNode(v FlowRef) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+constructorDeclarationEndFlowNodeSlot] = uint32(v)
+}
+
+func (n ConstructorDeclaration) ReturnFlowNode() FlowRef {
+	return FlowRef(n.s.extra[int(n.h.data)+constructorDeclarationReturnFlowNodeSlot])
+}
+
+func (n ConstructorDeclaration) SetReturnFlowNode(v FlowRef) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+constructorDeclarationReturnFlowNodeSlot] = uint32(v)
+}
+
 // GetAccessorDeclaration: ast.KindGetAccessor
 const (
 	getAccessorDeclarationModifiersSlot      = 0
@@ -1450,6 +1716,8 @@ const (
 	getAccessorDeclarationTypeSlot           = 4
 	getAccessorDeclarationFullSignatureSlot  = 5
 	getAccessorDeclarationBodySlot           = 6
+	getAccessorDeclarationLocalsSlot         = 7
+	getAccessorDeclarationEndFlowNodeSlot    = 8
 )
 
 type GetAccessorDeclaration struct {
@@ -1492,6 +1760,24 @@ func (n GetAccessorDeclaration) Body() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+getAccessorDeclarationBodySlot]))
 }
 
+func (n GetAccessorDeclaration) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+getAccessorDeclarationLocalsSlot])
+}
+
+func (n GetAccessorDeclaration) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+getAccessorDeclarationLocalsSlot] = uint32(v)
+}
+
+func (n GetAccessorDeclaration) EndFlowNode() FlowRef {
+	return FlowRef(n.s.extra[int(n.h.data)+getAccessorDeclarationEndFlowNodeSlot])
+}
+
+func (n GetAccessorDeclaration) SetEndFlowNode(v FlowRef) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+getAccessorDeclarationEndFlowNodeSlot] = uint32(v)
+}
+
 // SetAccessorDeclaration: ast.KindSetAccessor
 const (
 	setAccessorDeclarationModifiersSlot      = 0
@@ -1501,6 +1787,8 @@ const (
 	setAccessorDeclarationTypeSlot           = 4
 	setAccessorDeclarationFullSignatureSlot  = 5
 	setAccessorDeclarationBodySlot           = 6
+	setAccessorDeclarationLocalsSlot         = 7
+	setAccessorDeclarationEndFlowNodeSlot    = 8
 )
 
 type SetAccessorDeclaration struct {
@@ -1543,11 +1831,30 @@ func (n SetAccessorDeclaration) Body() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+setAccessorDeclarationBodySlot]))
 }
 
+func (n SetAccessorDeclaration) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+setAccessorDeclarationLocalsSlot])
+}
+
+func (n SetAccessorDeclaration) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+setAccessorDeclarationLocalsSlot] = uint32(v)
+}
+
+func (n SetAccessorDeclaration) EndFlowNode() FlowRef {
+	return FlowRef(n.s.extra[int(n.h.data)+setAccessorDeclarationEndFlowNodeSlot])
+}
+
+func (n SetAccessorDeclaration) SetEndFlowNode(v FlowRef) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+setAccessorDeclarationEndFlowNodeSlot] = uint32(v)
+}
+
 // IndexSignatureDeclaration: ast.KindIndexSignature
 const (
 	indexSignatureDeclarationModifiersSlot  = 0
 	indexSignatureDeclarationParametersSlot = 1
 	indexSignatureDeclarationTypeSlot       = 2
+	indexSignatureDeclarationLocalsSlot     = 3
 )
 
 type IndexSignatureDeclaration struct {
@@ -1574,6 +1881,15 @@ func (n IndexSignatureDeclaration) Type() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+indexSignatureDeclarationTypeSlot]))
 }
 
+func (n IndexSignatureDeclaration) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+indexSignatureDeclarationLocalsSlot])
+}
+
+func (n IndexSignatureDeclaration) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+indexSignatureDeclarationLocalsSlot] = uint32(v)
+}
+
 // MethodSignatureDeclaration: ast.KindMethodSignature
 const (
 	methodSignatureDeclarationModifiersSlot      = 0
@@ -1582,6 +1898,7 @@ const (
 	methodSignatureDeclarationTypeParametersSlot = 3
 	methodSignatureDeclarationParametersSlot     = 4
 	methodSignatureDeclarationTypeSlot           = 5
+	methodSignatureDeclarationLocalsSlot         = 6
 )
 
 type MethodSignatureDeclaration struct {
@@ -1620,6 +1937,15 @@ func (n MethodSignatureDeclaration) Type() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+methodSignatureDeclarationTypeSlot]))
 }
 
+func (n MethodSignatureDeclaration) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+methodSignatureDeclarationLocalsSlot])
+}
+
+func (n MethodSignatureDeclaration) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+methodSignatureDeclarationLocalsSlot] = uint32(v)
+}
+
 // MethodDeclaration: ast.KindMethodDeclaration
 const (
 	methodDeclarationModifiersSlot      = 0
@@ -1631,6 +1957,8 @@ const (
 	methodDeclarationTypeSlot           = 6
 	methodDeclarationFullSignatureSlot  = 7
 	methodDeclarationBodySlot           = 8
+	methodDeclarationLocalsSlot         = 9
+	methodDeclarationEndFlowNodeSlot    = 10
 )
 
 type MethodDeclaration struct {
@@ -1679,6 +2007,24 @@ func (n MethodDeclaration) FullSignature() Node {
 
 func (n MethodDeclaration) Body() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+methodDeclarationBodySlot]))
+}
+
+func (n MethodDeclaration) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+methodDeclarationLocalsSlot])
+}
+
+func (n MethodDeclaration) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+methodDeclarationLocalsSlot] = uint32(v)
+}
+
+func (n MethodDeclaration) EndFlowNode() FlowRef {
+	return FlowRef(n.s.extra[int(n.h.data)+methodDeclarationEndFlowNodeSlot])
+}
+
+func (n MethodDeclaration) SetEndFlowNode(v FlowRef) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+methodDeclarationEndFlowNodeSlot] = uint32(v)
 }
 
 // PropertySignatureDeclaration: ast.KindPropertySignature
@@ -1765,8 +2111,10 @@ func (n PropertyDeclaration) Initializer() Node {
 
 // ClassStaticBlockDeclaration: ast.KindClassStaticBlockDeclaration
 const (
-	classStaticBlockDeclarationModifiersSlot = 0
-	classStaticBlockDeclarationBodySlot      = 1
+	classStaticBlockDeclarationModifiersSlot      = 0
+	classStaticBlockDeclarationBodySlot           = 1
+	classStaticBlockDeclarationLocalsSlot         = 2
+	classStaticBlockDeclarationReturnFlowNodeSlot = 3
 )
 
 type ClassStaticBlockDeclaration struct {
@@ -1787,6 +2135,24 @@ func (n ClassStaticBlockDeclaration) Modifiers() List {
 
 func (n ClassStaticBlockDeclaration) Body() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+classStaticBlockDeclarationBodySlot]))
+}
+
+func (n ClassStaticBlockDeclaration) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+classStaticBlockDeclarationLocalsSlot])
+}
+
+func (n ClassStaticBlockDeclaration) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+classStaticBlockDeclarationLocalsSlot] = uint32(v)
+}
+
+func (n ClassStaticBlockDeclaration) ReturnFlowNode() FlowRef {
+	return FlowRef(n.s.extra[int(n.h.data)+classStaticBlockDeclarationReturnFlowNodeSlot])
+}
+
+func (n ClassStaticBlockDeclaration) SetReturnFlowNode(v FlowRef) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+classStaticBlockDeclarationReturnFlowNodeSlot] = uint32(v)
 }
 
 // StringLiteral: ast.KindStringLiteral
@@ -2041,6 +2407,8 @@ const (
 	arrowFunctionFullSignatureSlot          = 4
 	arrowFunctionEqualsGreaterThanTokenSlot = 5
 	arrowFunctionBodySlot                   = 6
+	arrowFunctionLocalsSlot                 = 7
+	arrowFunctionEndFlowNodeSlot            = 8
 )
 
 type ArrowFunction struct {
@@ -2083,6 +2451,24 @@ func (n ArrowFunction) Body() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+arrowFunctionBodySlot]))
 }
 
+func (n ArrowFunction) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+arrowFunctionLocalsSlot])
+}
+
+func (n ArrowFunction) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+arrowFunctionLocalsSlot] = uint32(v)
+}
+
+func (n ArrowFunction) EndFlowNode() FlowRef {
+	return FlowRef(n.s.extra[int(n.h.data)+arrowFunctionEndFlowNodeSlot])
+}
+
+func (n ArrowFunction) SetEndFlowNode(v FlowRef) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+arrowFunctionEndFlowNodeSlot] = uint32(v)
+}
+
 // FunctionExpression: ast.KindFunctionExpression
 const (
 	functionExpressionModifiersSlot      = 0
@@ -2093,6 +2479,9 @@ const (
 	functionExpressionTypeSlot           = 5
 	functionExpressionFullSignatureSlot  = 6
 	functionExpressionBodySlot           = 7
+	functionExpressionLocalsSlot         = 8
+	functionExpressionEndFlowNodeSlot    = 9
+	functionExpressionReturnFlowNodeSlot = 10
 )
 
 type FunctionExpression struct {
@@ -2137,6 +2526,33 @@ func (n FunctionExpression) FullSignature() Node {
 
 func (n FunctionExpression) Body() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+functionExpressionBodySlot]))
+}
+
+func (n FunctionExpression) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+functionExpressionLocalsSlot])
+}
+
+func (n FunctionExpression) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+functionExpressionLocalsSlot] = uint32(v)
+}
+
+func (n FunctionExpression) EndFlowNode() FlowRef {
+	return FlowRef(n.s.extra[int(n.h.data)+functionExpressionEndFlowNodeSlot])
+}
+
+func (n FunctionExpression) SetEndFlowNode(v FlowRef) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+functionExpressionEndFlowNodeSlot] = uint32(v)
+}
+
+func (n FunctionExpression) ReturnFlowNode() FlowRef {
+	return FlowRef(n.s.extra[int(n.h.data)+functionExpressionReturnFlowNodeSlot])
+}
+
+func (n FunctionExpression) SetReturnFlowNode(v FlowRef) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+functionExpressionReturnFlowNodeSlot] = uint32(v)
 }
 
 // AsExpression: ast.KindAsExpression
@@ -2856,6 +3272,7 @@ const (
 	conditionalTypeNodeExtendsTypeSlot = 1
 	conditionalTypeNodeTrueTypeSlot    = 2
 	conditionalTypeNodeFalseTypeSlot   = 3
+	conditionalTypeNodeLocalsSlot      = 4
 )
 
 type ConditionalTypeNode struct {
@@ -2884,6 +3301,15 @@ func (n ConditionalTypeNode) TrueType() Node {
 
 func (n ConditionalTypeNode) FalseType() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+conditionalTypeNodeFalseTypeSlot]))
+}
+
+func (n ConditionalTypeNode) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+conditionalTypeNodeLocalsSlot])
+}
+
+func (n ConditionalTypeNode) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+conditionalTypeNodeLocalsSlot] = uint32(v)
 }
 
 // TypeOperatorNode: ast.KindTypeOperator
@@ -3175,6 +3601,7 @@ const (
 	mappedTypeNodeQuestionTokenSlot = 3
 	mappedTypeNodeTypeSlot          = 4
 	mappedTypeNodeMembersSlot       = 5
+	mappedTypeNodeLocalsSlot        = 6
 )
 
 type MappedTypeNode struct {
@@ -3211,6 +3638,15 @@ func (n MappedTypeNode) Type() Node {
 
 func (n MappedTypeNode) Members() List {
 	return List{n.s, ListRef(n.s.extra[int(n.h.data)+mappedTypeNodeMembersSlot])}
+}
+
+func (n MappedTypeNode) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+mappedTypeNodeLocalsSlot])
+}
+
+func (n MappedTypeNode) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+mappedTypeNodeLocalsSlot] = uint32(v)
 }
 
 // TypeLiteralNode: ast.KindTypeLiteral
@@ -3359,6 +3795,7 @@ const (
 	functionTypeNodeTypeParametersSlot = 0
 	functionTypeNodeParametersSlot     = 1
 	functionTypeNodeTypeSlot           = 2
+	functionTypeNodeLocalsSlot         = 3
 )
 
 type FunctionTypeNode struct {
@@ -3385,12 +3822,22 @@ func (n FunctionTypeNode) Type() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+functionTypeNodeTypeSlot]))
 }
 
+func (n FunctionTypeNode) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+functionTypeNodeLocalsSlot])
+}
+
+func (n FunctionTypeNode) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+functionTypeNodeLocalsSlot] = uint32(v)
+}
+
 // ConstructorTypeNode: ast.KindConstructorType
 const (
 	constructorTypeNodeModifiersSlot      = 0
 	constructorTypeNodeTypeParametersSlot = 1
 	constructorTypeNodeParametersSlot     = 2
 	constructorTypeNodeTypeSlot           = 3
+	constructorTypeNodeLocalsSlot         = 4
 )
 
 type ConstructorTypeNode struct {
@@ -3419,6 +3866,15 @@ func (n ConstructorTypeNode) Parameters() List {
 
 func (n ConstructorTypeNode) Type() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+constructorTypeNodeTypeSlot]))
+}
+
+func (n ConstructorTypeNode) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+constructorTypeNodeLocalsSlot])
+}
+
+func (n ConstructorTypeNode) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+constructorTypeNodeLocalsSlot] = uint32(v)
 }
 
 // TemplateHead: ast.KindTemplateHead
@@ -4654,6 +5110,7 @@ const (
 	jsdocSignatureTypeParametersSlot = 0
 	jsdocSignatureParametersSlot     = 1
 	jsdocSignatureTypeSlot           = 2
+	jsdocSignatureLocalsSlot         = 3
 )
 
 type JSDocSignature struct {
@@ -4678,6 +5135,15 @@ func (n JSDocSignature) Parameters() List {
 
 func (n JSDocSignature) Type() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+jsdocSignatureTypeSlot]))
+}
+
+func (n JSDocSignature) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+jsdocSignatureLocalsSlot])
+}
+
+func (n JSDocSignature) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+jsdocSignatureLocalsSlot] = uint32(v)
 }
 
 // JSDocNameReference: ast.KindJSDocNameReference
@@ -4705,6 +5171,7 @@ func (n JSDocNameReference) Name() Node {
 const (
 	sourceFileStatementsSlot     = 0
 	sourceFileEndOfFileTokenSlot = 1
+	sourceFileLocalsSlot         = 2
 )
 
 type SourceFile struct {
@@ -4727,13 +5194,23 @@ func (n SourceFile) EndOfFileToken() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+sourceFileEndOfFileTokenSlot]))
 }
 
+func (n SourceFile) LocalsSlot() uint32 { return uint32(n.s.extra[int(n.h.data)+sourceFileLocalsSlot]) }
+
+func (n SourceFile) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+sourceFileLocalsSlot] = uint32(v)
+}
+
 // ModuleDeclaration: ast.KindModuleDeclaration
 const (
-	moduleDeclarationModifiersSlot  = 0
-	moduleDeclarationKeywordSlot    = 1
-	moduleDeclarationNameSlot       = 2
-	moduleDeclarationAttributesSlot = 3
-	moduleDeclarationBodySlot       = 4
+	moduleDeclarationModifiersSlot   = 0
+	moduleDeclarationKeywordSlot     = 1
+	moduleDeclarationNameSlot        = 2
+	moduleDeclarationAttributesSlot  = 3
+	moduleDeclarationBodySlot        = 4
+	moduleDeclarationLocalSymbolSlot = 5
+	moduleDeclarationLocalsSlot      = 6
+	moduleDeclarationEndFlowNodeSlot = 7
 )
 
 type ModuleDeclaration struct {
@@ -4768,12 +5245,40 @@ func (n ModuleDeclaration) Body() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+moduleDeclarationBodySlot]))
 }
 
+func (n ModuleDeclaration) LocalSymbol() SymbolId {
+	return SymbolId(n.s.extra[int(n.h.data)+moduleDeclarationLocalSymbolSlot])
+}
+
+func (n ModuleDeclaration) SetLocalSymbol(v SymbolId) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+moduleDeclarationLocalSymbolSlot] = uint32(v)
+}
+
+func (n ModuleDeclaration) LocalsSlot() uint32 {
+	return uint32(n.s.extra[int(n.h.data)+moduleDeclarationLocalsSlot])
+}
+
+func (n ModuleDeclaration) SetLocalsSlot(v uint32) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+moduleDeclarationLocalsSlot] = uint32(v)
+}
+
+func (n ModuleDeclaration) EndFlowNode() FlowRef {
+	return FlowRef(n.s.extra[int(n.h.data)+moduleDeclarationEndFlowNodeSlot])
+}
+
+func (n ModuleDeclaration) SetEndFlowNode(v FlowRef) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+moduleDeclarationEndFlowNodeSlot] = uint32(v)
+}
+
 // ImportEqualsDeclaration: ast.KindImportEqualsDeclaration
 const (
 	importEqualsDeclarationModifiersSlot       = 0
 	importEqualsDeclarationIsTypeOnlySlot      = 1
 	importEqualsDeclarationNameSlot            = 2
 	importEqualsDeclarationModuleReferenceSlot = 3
+	importEqualsDeclarationLocalSymbolSlot     = 4
 )
 
 type ImportEqualsDeclaration struct {
@@ -4802,6 +5307,15 @@ func (n ImportEqualsDeclaration) Name() Node {
 
 func (n ImportEqualsDeclaration) ModuleReference() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+importEqualsDeclarationModuleReferenceSlot]))
+}
+
+func (n ImportEqualsDeclaration) LocalSymbol() SymbolId {
+	return SymbolId(n.s.extra[int(n.h.data)+importEqualsDeclarationLocalSymbolSlot])
+}
+
+func (n ImportEqualsDeclaration) SetLocalSymbol(v SymbolId) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+importEqualsDeclarationLocalSymbolSlot] = uint32(v)
 }
 
 // ExportDeclaration: ast.KindExportDeclaration
@@ -4891,6 +5405,7 @@ const (
 	importClausePhaseModifierSlot = 0
 	importClauseNameSlot          = 1
 	importClauseNamedBindingsSlot = 2
+	importClauseLocalSymbolSlot   = 3
 )
 
 type ImportClause struct {
@@ -4917,11 +5432,21 @@ func (n ImportClause) NamedBindings() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+importClauseNamedBindingsSlot]))
 }
 
+func (n ImportClause) LocalSymbol() SymbolId {
+	return SymbolId(n.s.extra[int(n.h.data)+importClauseLocalSymbolSlot])
+}
+
+func (n ImportClause) SetLocalSymbol(v SymbolId) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+importClauseLocalSymbolSlot] = uint32(v)
+}
+
 // ImportSpecifier: ast.KindImportSpecifier
 const (
 	importSpecifierIsTypeOnlySlot   = 0
 	importSpecifierPropertyNameSlot = 1
 	importSpecifierNameSlot         = 2
+	importSpecifierLocalSymbolSlot  = 3
 )
 
 type ImportSpecifier struct {
@@ -4946,6 +5471,15 @@ func (n ImportSpecifier) PropertyName() Node {
 
 func (n ImportSpecifier) Name() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+importSpecifierNameSlot]))
+}
+
+func (n ImportSpecifier) LocalSymbol() SymbolId {
+	return SymbolId(n.s.extra[int(n.h.data)+importSpecifierLocalSymbolSlot])
+}
+
+func (n ImportSpecifier) SetLocalSymbol(v SymbolId) {
+	Node(n).checkUnsealed()
+	n.s.extra[int(n.h.data)+importSpecifierLocalSymbolSlot] = uint32(v)
 }
 
 // JSDocLink: ast.KindJSDocLink
@@ -5507,4 +6041,94 @@ func (n Node) ClassName() Node {
 		return n.s.node(0)
 	}
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+}
+
+// The binder's role accessors: the reserved slot of the kind, or 0 and false
+// when the kind does not have it (one table lookup and one compare, no
+// switch). The setter is a no-op on a kind without the slot, like the Pointer
+// binder's setReturnFlowNode, and panics after Seal in a storeChecks build.
+
+func (n Node) LocalSymbol() SymbolId {
+	slot := localSymbolSlot[n.h.kind&511]
+	if slot == 0xFF {
+		return 0
+	}
+	return SymbolId(n.s.extra[int(n.h.data)+int(slot)])
+}
+
+func (n Node) SetLocalSymbol(v SymbolId) {
+	n.checkUnsealed()
+	slot := localSymbolSlot[n.h.kind&511]
+	if slot == 0xFF {
+		return
+	}
+	n.s.extra[int(n.h.data)+int(slot)] = uint32(v)
+}
+
+func (n Node) LocalsSlot() (uint32, bool) {
+	slot := localsSlot[n.h.kind&511]
+	if slot == 0xFF {
+		return 0, false
+	}
+	return uint32(n.s.extra[int(n.h.data)+int(slot)]), true
+}
+
+func (n Node) SetLocalsSlot(v uint32) {
+	n.checkUnsealed()
+	slot := localsSlot[n.h.kind&511]
+	if slot == 0xFF {
+		return
+	}
+	n.s.extra[int(n.h.data)+int(slot)] = uint32(v)
+}
+
+func (n Node) EndFlowNode() FlowRef {
+	slot := endFlowNodeSlot[n.h.kind&511]
+	if slot == 0xFF {
+		return 0
+	}
+	return FlowRef(n.s.extra[int(n.h.data)+int(slot)])
+}
+
+func (n Node) SetEndFlowNode(v FlowRef) {
+	n.checkUnsealed()
+	slot := endFlowNodeSlot[n.h.kind&511]
+	if slot == 0xFF {
+		return
+	}
+	n.s.extra[int(n.h.data)+int(slot)] = uint32(v)
+}
+
+func (n Node) ReturnFlowNode() FlowRef {
+	slot := returnFlowNodeSlot[n.h.kind&511]
+	if slot == 0xFF {
+		return 0
+	}
+	return FlowRef(n.s.extra[int(n.h.data)+int(slot)])
+}
+
+func (n Node) SetReturnFlowNode(v FlowRef) {
+	n.checkUnsealed()
+	slot := returnFlowNodeSlot[n.h.kind&511]
+	if slot == 0xFF {
+		return
+	}
+	n.s.extra[int(n.h.data)+int(slot)] = uint32(v)
+}
+
+func (n Node) FallthroughFlowNode() FlowRef {
+	slot := fallthroughFlowNodeSlot[n.h.kind&511]
+	if slot == 0xFF {
+		return 0
+	}
+	return FlowRef(n.s.extra[int(n.h.data)+int(slot)])
+}
+
+func (n Node) SetFallthroughFlowNode(v FlowRef) {
+	n.checkUnsealed()
+	slot := fallthroughFlowNodeSlot[n.h.kind&511]
+	if slot == 0xFF {
+		return
+	}
+	n.s.extra[int(n.h.data)+int(slot)] = uint32(v)
 }

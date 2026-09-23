@@ -1,0 +1,114 @@
+=== RUN   TestFingerprint
+=== RUN   TestFingerprint/checker.ts
+=== RUN   TestFingerprint/dom.generated.d.ts
+--- PASS: TestFingerprint (0.16s)
+    --- PASS: TestFingerprint/checker.ts (0.12s)
+    --- PASS: TestFingerprint/dom.generated.d.ts (0.04s)
+=== RUN   TestSmallWalk
+--- PASS: TestSmallWalk (0.00s)
+=== RUN   TestEquivalence
+    store_test.go:126: comparing 466 members and 180 roles per kind
+=== RUN   TestEquivalence/small
+=== RUN   TestEquivalence/checker.ts
+=== RUN   TestEquivalence/dom.generated.d.ts
+--- PASS: TestEquivalence (0.11s)
+    --- PASS: TestEquivalence/small (0.00s)
+    --- PASS: TestEquivalence/checker.ts (0.05s)
+    --- PASS: TestEquivalence/dom.generated.d.ts (0.01s)
+=== RUN   TestCorpus
+    store_test.go:222: 17415 files, 2584467 nodes
+--- PASS: TestCorpus (4.16s)
+=== RUN   TestTexts
+--- PASS: TestTexts (0.00s)
+=== RUN   TestLayout
+--- PASS: TestLayout (0.00s)
+=== RUN   TestStoreFootprint
+    store_test.go:287: checker.ts: 298054 nodes, headers 9537760 B, extra 2794320 B, texts 11265 B, total 41.38 B/node
+    store_test.go:287: dom.generated.d.ts: 109605 nodes, headers 3507392 B, extra 1149572 B, texts 24269 B, total 42.49 B/node
+--- PASS: TestStoreFootprint (0.07s)
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/ast/store	5.123s
+?   	github.com/microsoft/TypeScript/tsc/internal/ast/store/convert	[no test files]
+?   	github.com/microsoft/TypeScript/tsc/internal/ast/store/storetest	[no test files]
+=== RUN   TestFingerprint
+=== RUN   TestFingerprint/checker.ts
+    parser_test.go:85: checker.ts: 298884 nodes, 830 dead
+=== RUN   TestFingerprint/dom.generated.d.ts
+    parser_test.go:85: dom.generated.d.ts: 110435 nodes, 830 dead
+--- PASS: TestFingerprint (0.11s)
+    --- PASS: TestFingerprint/checker.ts (0.08s)
+    --- PASS: TestFingerprint/dom.generated.d.ts (0.03s)
+=== RUN   TestEquivalence
+    parser_test.go:91: comparing 466 members and 180 roles per kind
+=== RUN   TestEquivalence/small
+=== RUN   TestEquivalence/checker.ts
+    parser_test.go:109: IdentifierCount: Store 126455, Pointer 126477 (the Pointer parser counts the identifiers of the JSDoc it parses eagerly)
+=== RUN   TestEquivalence/dom.generated.d.ts
+--- PASS: TestEquivalence (0.11s)
+    --- PASS: TestEquivalence/small (0.00s)
+    --- PASS: TestEquivalence/checker.ts (0.08s)
+    --- PASS: TestEquivalence/dom.generated.d.ts (0.03s)
+=== RUN   TestCorpus
+    parser_test.go:361: 17415 files, 2576310 nodes visited; Pointer NodeCount 2823478, Store NodeCount 2598774 (dead 22464 = 0.87%)
+    parser_test.go:363: diagnostics: 17405 files same, 10 JS files with a subset, 0 differ
+    parser_test.go:370: JS diagnostics the Store parser does not report (Pointer reports them from JSDoc):
+            10  code 1003 ""
+        examples:
+          /index.js #5281: code 1003 "" at 263
+--- PASS: TestCorpus (3.63s)
+=== RUN   TestDeadNodes
+    parser_test.go:435: checker.ts: Store NodeCount 298884, visits 298054, dead 830; Pointer NodeCount 302587, dead 4533
+    parser_test.go:435: dom.generated.d.ts: Store NodeCount 110435, visits 109605, dead 830; Pointer NodeCount 113504, dead 3899
+--- PASS: TestDeadNodes (0.13s)
+=== RUN   TestScratchReuse
+    parser_test.go:466: checker.ts: allocations per parse: first 656, second 579, third 579 (298884 nodes, 0 diagnostics, 0 pragmas)
+--- PASS: TestScratchReuse (0.07s)
+=== RUN   TestTexts
+--- PASS: TestTexts (0.00s)
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/storeparser	5.121s
+=== RUN   TestEquivalence
+=== RUN   TestEquivalence//private.ts
+=== RUN   TestEquivalence//module.ts
+=== RUN   TestEquivalence//enums.ts
+=== RUN   TestEquivalence/checker.ts
+=== RUN   TestEquivalence/dom.generated.d.ts
+=== RUN   TestEquivalence//json.json
+=== RUN   TestEquivalence//pattern.d.ts
+=== RUN   TestEquivalence//flow.ts
+=== RUN   TestEquivalence//commonjs.js
+=== RUN   TestEquivalence//jsx.tsx
+=== RUN   TestEquivalence//strict.ts
+--- PASS: TestEquivalence (0.22s)
+    --- PASS: TestEquivalence//private.ts (0.00s)
+    --- PASS: TestEquivalence//module.ts (0.00s)
+    --- PASS: TestEquivalence//enums.ts (0.00s)
+    --- PASS: TestEquivalence/checker.ts (0.15s)
+    --- PASS: TestEquivalence/dom.generated.d.ts (0.07s)
+    --- PASS: TestEquivalence//json.json (0.00s)
+    --- PASS: TestEquivalence//pattern.d.ts (0.00s)
+    --- PASS: TestEquivalence//flow.ts (0.00s)
+    --- PASS: TestEquivalence//commonjs.js (0.00s)
+    --- PASS: TestEquivalence//jsx.tsx (0.00s)
+    --- PASS: TestEquivalence//strict.ts (0.00s)
+=== RUN   TestCorpus
+    binder_test.go:225: 17415 files: 17085 compared, 330 excluded (JS with a reparsed node the bind depends on), 0 with a parse mismatch; 708382 Refs checked
+    binder_test.go:232: files with a JSDoc type cast: 48; excluded among them: #86 #497 #498 #957 #1835 #1837 #2060 #3688 #5255 #5402 #5403 #5449 #5469 #5471 #7057 #7089 #7090 #7873 #8211 #10158 #13224 #13225 #13226 #13227 #13228 #13229 #13230 #13231 #13232 #13233 #13234 #13235 #13236 #13237 #13238 #13239 #13253 #13255 #13275 #13286 #13287 #13310 #13347 #13348 #13584 #13621 #13663 #16581
+    binder_test.go:232: files with a reparsed node with a symbol: 293; excluded among them: #86 #497 #498 #957 #959 #966 #969 #971 #974 #977 #980 #1036 #1037 #1805 #1835 #1837 #2060 #2071 #2072 #2261 #2273 #3074 #3075 #3539 #3601 #3603 #3686 #3688 #4638 #5220 #5227 #5229 #5246 #5249 #5255 #5256 #5257 #5267 #5268 #5269 #5270 #5272 #5273 #5274 #5275 #5277 #5281 #5284 #5285 #5302 #5402 #5403 #5411 #5412 #5413 #5425 #5426 #5433 #5434 #5435 #5437 #5446 #5447 #5451 #5455 #5456 #5461 #5466 #5469 #5473 #5474 #5475 #5476 #5477 #5478 #5479 #5482 #5483 #5484 #5485 #5486 #5921 #6119 #6555 #7089 #7645 #7744 #7889 #8210 #8211 #8518 #8555 #8557 #8894 #8895 #9046 #9062 #9063 #9252 #9253 #9527 #9803 #10158 #11084 #11176 #11177 #13200 #13202 #13204 #13205 #13206 #13207 #13208 #13209 #13210 #13211 #13218 #13224 #13225 #13226 #13227 #13228 #13229 #13230 #13231 #13232 #13233 #13234 #13235 #13236 #13237 #13238 #13239 #13244 #13245 #13246 #13247 #13251 #13252 #13253 #13260 #13267 #13271 #13275 #13288 #13289 #13290 #13291 #13292 #13293 #13295 #13310 #13336 #13337 #13345 #13347 #13348 #13350 #13351 #13352 #13353 #13355 #13367 #13369 #13370 #13374 #13376 #13381 #13397 #13398 #13411 #13412 #13414 #13415 #13416 #13417 #13418 #13419 #13421 #13423 #13430 #13434 #13438 #13443 #13447 #13448 #13450 #13455 #13483 #13496 #13497 #13510 #13512 #13514 #13516 #13530 #13533 #13535 #13564 #13565 #13566 #13567 #13579 #13584 #13585 #13586 #13587 #13588 #13589 #13590 #13591 #13592 #13593 #13594 #13595 #13596 #13597 #13599 #13601 #13607 #13611 #13612 #13613 #13614 #13618 #13623 #13624 #13626 #13630 #13635 #13637 #13638 #13639 #13649 #13651 #13656 #13660 #13663 #13665 #13666 #13667 #13668 #13675 #13676 #13678 #13680 #13681 #13682 #13684 #13686 #13687 #13688 #13690 #13691 #13692 #13694 #13695 #13696 #13697 #13698 #13699 #13700 #13701 #13702 #13703 #13704 #13705 #13706 #15962 #15974 #15990 #16000 #16001 #16023 #16048 #16091 #16138 #16144 #16152 #16170 #16173 #16175 #16176 #16177 #16270 #16271 #16272 #16273 #16274 #16275 #16276 #16581 #17193
+    binder_test.go:232: files with a reparsed type annotation on a declaration: 11; excluded among them: #5434 #6817 #13240 #13350 #13351 #13352 #13353 #13417 #13591 #13592 #13614
+    binder_test.go:232: files with a symbol below a reparsed node: 57; excluded among them: #2060 #4478 #4486 #5227 #5272 #5273 #5274 #5275 #5281 #5298 #5433 #5487 #5488 #5921 #8894 #10031 #10158 #13206 #13209 #13231 #13232 #13350 #13351 #13352 #13353 #13355 #13380 #13397 #13398 #13443 #13445 #13447 #13448 #13450 #13451 #13453 #13455 #13459 #13461 #13463 #13465 #13467 #13471 #13477 #13479 #13481 #13483 #13485 #13487 #13489 #13491 #13493 #13495 #13566 #13692 #16555 #17193
+    binder_test.go:232: files with another reparsed node: 638; excluded among them: #86 #497 #498 #957 #959 #966 #969 #971 #974 #977 #980 #1036 #1037 #1805 #1835 #1837 #2060 #2273 #3074 #3075 #3539 #3601 #3603 #3686 #3688 #4478 #4486 #4638 #5220 #5227 #5229 #5246 #5249 #5255 #5256 #5257 #5267 #5268 #5270 #5272 #5273 #5274 #5275 #5277 #5281 #5284 #5285 #5298 #5302 #5402 #5403 #5411 #5412 #5413 #5425 #5426 #5434 #5435 #5437 #5447 #5449 #5451 #5455 #5456 #5461 #5466 #5469 #5471 #5482 #5483 #5484 #5485 #5486 #5487 #5488 #5921 #6119 #6555 #7057 #7089 #7090 #7645 #7873 #7889 #8210 #8211 #8518 #8555 #8557 #8894 #8895 #9046 #9062 #9063 #9527 #9803 #10158 #11084 #11176 #11177 #13200 #13202 #13204 #13205 #13206 #13207 #13208 #13209 #13210 #13211 #13218 #13224 #13225 #13226 #13227 #13229 #13230 #13231 #13233 #13234 #13235 #13236 #13237 #13238 #13239 #13240 #13244 #13245 #13246 #13247 #13251 #13252 #13253 #13255 #13267 #13271 #13275 #13286 #13287 #13288 #13289 #13290 #13291 #13292 #13293 #13295 #13310 #13336 #13337 #13345 #13347 #13348 #13350 #13351 #13352 #13353 #13355 #13367 #13369 #13370 #13374 #13376 #13397 #13398 #13411 #13412 #13414 #13415 #13416 #13417 #13418 #13419 #13421 #13423 #13430 #13434 #13438 #13443 #13445 #13447 #13448 #13450 #13451 #13453 #13455 #13459 #13461 #13463 #13465 #13467 #13471 #13477 #13479 #13481 #13483 #13485 #13487 #13489 #13491 #13493 #13495 #13496 #13497 #13510 #13514 #13516 #13530 #13533 #13535 #13564 #13566 #13567 #13579 #13584 #13585 #13586 #13587 #13588 #13589 #13590 #13591 #13592 #13593 #13594 #13595 #13596 #13597 #13599 #13601 #13607 #13611 #13612 #13613 #13614 #13618 #13621 #13623 #13624 #13626 #13630 #13635 #13637 #13638 #13639 #13649 #13651 #13656 #13660 #13663 #13665 #13666 #13667 #13668 #13675 #13676 #13680 #13681 #13682 #13684 #13686 #13687 #13688 #13690 #13691 #13692 #13694 #13695 #13696 #13697 #13698 #13699 #13700 #13701 #13702 #13703 #13704 #13705 #13706 #15974 #15990 #16000 #16023 #16048 #16091 #16138 #16144 #16170 #16175 #16270 #16271 #16272 #16273 #16274 #16275 #16276 #16581 #17193
+--- PASS: TestCorpus (4.22s)
+=== RUN   TestFlowSlabs
+=== RUN   TestFlowSlabs/checker.ts
+    binder_test.go:291: checker.ts: flows 79991, flowLists 49789, flowData 879 (sentinels included); reachable in the Pointer binder: 45694 / 15402 / 878; Bound slabs 1925676 B
+=== RUN   TestFlowSlabs/dom.generated.d.ts
+    binder_test.go:291: dom.generated.d.ts: flows 4846, flowLists 1, flowData 1 (sentinels included); reachable in the Pointer binder: 4841 / 0 / 0; Bound slabs 329888 B
+--- PASS: TestFlowSlabs (0.06s)
+    --- PASS: TestFlowSlabs/checker.ts (0.04s)
+    --- PASS: TestFlowSlabs/dom.generated.d.ts (0.01s)
+=== RUN   TestBindOnce
+--- PASS: TestBindOnce (0.00s)
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/storebinder	6.022s
+exit=0

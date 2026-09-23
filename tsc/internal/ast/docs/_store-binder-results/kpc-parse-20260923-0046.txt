@@ -1,0 +1,15 @@
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/storeparser
+cpu: Apple M1
+BenchmarkStoreParseKPCV1/pointer-8         	      20	  21920777 ns/op	         3.839 IPC	  68246132 cycles/op	 262025192 inst/op	26137522 B/op	   11931 allocs/op
+BenchmarkStoreParseKPCV1/pointer-8         	      20	  21575106 ns/op	         3.856 IPC	  67800025 cycles/op	 261406760 inst/op	26137522 B/op	   11931 allocs/op
+BenchmarkStoreParseKPCV1/pointer-8         	      20	  21511865 ns/op	         3.862 IPC	  67732112 cycles/op	 261569505 inst/op	26137522 B/op	   11931 allocs/op
+BenchmarkStoreParseKPCV1/pointer-8         	      20	  21515533 ns/op	         3.866 IPC	  67688503 cycles/op	 261663586 inst/op	26137522 B/op	   11931 allocs/op
+BenchmarkStoreParseKPCV1/pointer-8         	      20	  21526590 ns/op	         3.861 IPC	  67783324 cycles/op	 261689414 inst/op	26137522 B/op	   11931 allocs/op
+BenchmarkStoreParseKPCV1/store-8           	      20	  18004465 ns/op	         3.800 IPC	  56416006 cycles/op	 214395569 inst/op	15974201 B/op	     584 allocs/op
+BenchmarkStoreParseKPCV1/store-8           	      20	  17867806 ns/op	         3.822 IPC	  56090014 cycles/op	 214352370 inst/op	15974201 B/op	     584 allocs/op
+BenchmarkStoreParseKPCV1/store-8           	      20	  17720973 ns/op	         3.851 IPC	  55633563 cycles/op	 214261853 inst/op	15974201 B/op	     584 allocs/op
+BenchmarkStoreParseKPCV1/store-8           	      20	  17788327 ns/op	         3.838 IPC	  55844139 cycles/op	 214314593 inst/op	15974201 B/op	     584 allocs/op
+BenchmarkStoreParseKPCV1/store-8           	      20	  17772981 ns/op	         3.850 IPC	  55664329 cycles/op	 214287654 inst/op	15974201 B/op	     584 allocs/op
+PASS

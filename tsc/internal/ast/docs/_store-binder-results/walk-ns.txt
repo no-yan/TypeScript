@@ -1,0 +1,27 @@
+ 0:57  up 2 days,  3:47, 8 users, load averages: 3.06 2.49 2.61
+goos: darwin
+goarch: arm64
+pkg: github.com/microsoft/TypeScript/tsc/internal/ast/store
+cpu: Apple M1
+BenchmarkStoreWalkV1/checker.ts/pointer-8 	    1003	   2378501 ns/op	         7.980 ns/visit	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkV1/checker.ts/pointer-8 	    1011	   2368268 ns/op	         7.946 ns/visit	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkV1/checker.ts/pointer-8 	    1010	   2586635 ns/op	         8.678 ns/visit	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkV1/checker.ts/pointer-8 	    1010	   2375019 ns/op	         7.968 ns/visit	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkV1/checker.ts/pointer-8 	    1003	   2376805 ns/op	         7.974 ns/visit	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkV1/checker.ts/store-8   	     883	   2719165 ns/op	         9.123 ns/visit	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkV1/checker.ts/store-8   	     876	   2726640 ns/op	         9.148 ns/visit	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkV1/checker.ts/store-8   	     883	   2724673 ns/op	         9.142 ns/visit	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkV1/checker.ts/store-8   	     868	   2728783 ns/op	         9.155 ns/visit	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkV1/checker.ts/store-8   	     874	   2771214 ns/op	         9.298 ns/visit	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkV1/dom.generated.d.ts/pointer-8         	    4182	    578901 ns/op	         5.282 ns/visit	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkV1/dom.generated.d.ts/pointer-8         	    4208	    578308 ns/op	         5.276 ns/visit	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkV1/dom.generated.d.ts/pointer-8         	    4179	    580714 ns/op	         5.298 ns/visit	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkV1/dom.generated.d.ts/pointer-8         	    3975	    582096 ns/op	         5.311 ns/visit	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkV1/dom.generated.d.ts/pointer-8         	    4185	    602992 ns/op	         5.502 ns/visit	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkV1/dom.generated.d.ts/store-8           	    3925	    655655 ns/op	         5.982 ns/visit	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkV1/dom.generated.d.ts/store-8           	    4040	    603207 ns/op	         5.503 ns/visit	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkV1/dom.generated.d.ts/store-8           	    3826	    609702 ns/op	         5.563 ns/visit	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkV1/dom.generated.d.ts/store-8           	    4023	    606395 ns/op	         5.533 ns/visit	       0 B/op	       0 allocs/op
+BenchmarkStoreWalkV1/dom.generated.d.ts/store-8           	    4128	    616045 ns/op	         5.621 ns/visit	       0 B/op	       0 allocs/op
+PASS
+ok  	github.com/microsoft/TypeScript/tsc/internal/ast/store	49.389s

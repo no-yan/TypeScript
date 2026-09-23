@@ -1,4 +1,4 @@
-// Package store is the Store AST: a flat arena of 24-byte node headers plus a
+// Package store is the Store AST: a flat arena of 32-byte node headers plus a
 // uniformly laid out uint32 payload column, replacing the pointer-linked
 // *ast.Node graph one file at a time.
 //
@@ -10,17 +10,22 @@
 // kind, and a Pointer-AST-to-Store converter (./convert) exercises the
 // generated Builder API end to end.
 //
-// # Scope (7a)
+// # Scope (7a to 7c)
 //
-// This package is not wired into anything: the parser, binder, checker,
-// emitter and language service are untouched, and nothing outside this
-// package and its own tests imports it. The only way to obtain a Store is
-// ./convert, which walks an already-parsed *ast.SourceFile. Not yet built
-// (left to TODO 7b and later):
+// This package is not wired into anything: the checker, emitter and language
+// service are untouched, and nothing outside this package, internal/storeparser
+// (7b), internal/storebinder (7c) and their tests imports it. A Store comes
+// from the Store parser, or from ./convert, which walks an already-parsed
+// *ast.SourceFile.
 //
-//   - constructing a Store directly from the parser (id writes, scratch
-//     buffers, Compact);
-//   - symbol, locals and flow-node columns (section 5 of the design);
+// The binder's output (7c, internal/ast/docs/store-binder-design-20260922.md)
+// lives in the header (flow and symbol, 32 bytes), in the reserved slots of
+// the kinds that have them (Locals, LocalSymbol, EndFlowNode, ReturnFlowNode,
+// FallthroughFlowNode; generated with the payload) and in Bound (bound.go:
+// the flow slabs, the symbols, the locals tables, the file's fields). Symbol
+// is symbol.go; the predicates of internal/ast that read a node's contents
+// are utilities.go. Not yet built (7d and later):
+//
 //   - a synthetic Store for checker/emitter-created nodes;
 //   - JSDoc node placement (JSDoc is not converted at all: Convert follows
 //     exactly the children (*ast.Node).ForEachChild visits).
