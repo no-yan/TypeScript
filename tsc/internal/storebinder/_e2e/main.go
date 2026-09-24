@@ -21,6 +21,8 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"runtime/metrics"
+	"runtime/pprof"
 	"slices"
 	"syscall"
 	"time"
@@ -71,6 +73,8 @@ func main() {
 	project := flag.String("project", "", "tsconfig.json of the project")
 	runs := flag.Int("runs", 5, "number of runs")
 	singleThreaded := flag.Bool("singleThreaded", false, "parse and bind on one goroutine")
+	cpuprofile := flag.String("cpuprofile", "", "write a CPU profile of the runs")
+	gap := flag.Duration("gap", 0, "idle time before each run, to find the runs in a trace")
 	flag.Parse()
 
 	fe, ok := frontEnds[*mode]
@@ -91,14 +95,29 @@ func main() {
 	if jsFiles > 0 {
 		fmt.Println("# warning: the Store parser does not parse the JSDoc of JS files, which the Pointer parser does")
 	}
-	fmt.Println("mode\trun\tparse_ms\tbind_ms\ttotal_ms\tuser_ms\tsys_ms\talloc_MB\tmallocs_k\tgcs\tretained_MB\tnodes")
+	fmt.Println("mode\trun\tparse_ms\tbind_ms\ttotal_ms\tuser_ms\tsys_ms\talloc_MB\tmallocs_k\tgcs\tretained_MB\tscan_MB\tobjects_k\tgc_ms\tgc_cpu_ms\tnodes")
 
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			fatal(err)
+		}
+		if err := pprof.StartCPUProfile(f); err != nil {
+			fatal(err)
+		}
+		defer pprof.StopCPUProfile()
+	}
 	var parseMs, bindMs, totalMs, userMs, allocMB, retainedMB []float64
 	for run := range *runs {
-		r := measure(fe, inputs, *singleThreaded)
-		fmt.Printf("%s\t%d\t%.1f\t%.1f\t%.1f\t%.0f\t%.0f\t%.0f\t%.0f\t%d\t%.0f\t%d\n",
+		r := measure(fe, inputs, *singleThreaded, *gap)
+		// The offsets from the start of the process, to select the phases in a
+		// trace of the whole process.
+		fmt.Fprintf(os.Stderr, "# run %d: parse %.3f-%.3f s, bind %.3f-%.3f s\n", run,
+			r.start.Sub(processStart).Seconds(), r.parseDone.Sub(processStart).Seconds(),
+			r.parseDone.Sub(processStart).Seconds(), r.bindDone.Sub(processStart).Seconds())
+		fmt.Printf("%s\t%d\t%.1f\t%.1f\t%.1f\t%.0f\t%.0f\t%.0f\t%.0f\t%d\t%.0f\t%.0f\t%.0f\t%.1f\t%.1f\t%d\n",
 			*mode, run, r.parseMs, r.bindMs, r.parseMs+r.bindMs, r.userMs, r.sysMs,
-			r.allocMB, r.mallocsK, r.gcs, r.retainedMB, r.nodes)
+			r.allocMB, r.mallocsK, r.gcs, r.retainedMB, r.scanMB, r.objectsK, r.gcMs, r.gcCPUMs, r.nodes)
 		parseMs = append(parseMs, r.parseMs)
 		bindMs = append(bindMs, r.bindMs)
 		totalMs = append(totalMs, r.parseMs+r.bindMs)
@@ -133,23 +152,31 @@ func collect(project string) []input {
 	return inputs
 }
 
+var processStart = time.Now()
+
 type result struct {
-	parseMs, bindMs, userMs, sysMs float64
-	allocMB, mallocsK, retainedMB  float64
-	gcs                            uint32
-	nodes                          int
+	start, parseDone, bindDone      time.Time
+	parseMs, bindMs, userMs, sysMs  float64
+	allocMB, mallocsK, retainedMB   float64
+	scanMB, objectsK, gcMs, gcCPUMs float64
+	gcs                             uint32
+	nodes                           int
 }
 
-func measure(fe frontEnd, inputs []input, singleThreaded bool) result {
+func measure(fe frontEnd, inputs []input, singleThreaded bool, gap time.Duration) result {
 	// Twice: the first collection only moves the pooled scratch of the
 	// previous run (sync.Pool) to the victim cache.
 	runtime.GC()
 	runtime.GC()
 	var before, after runtime.MemStats
 	runtime.ReadMemStats(&before)
+	gcBefore := readGCMetrics()
 	ruBefore := rusage()
 
 	parsed := make([]any, len(inputs))
+	// After the collections, so the end of the idle time in a trace is the
+	// start of the parse.
+	time.Sleep(gap)
 	start := time.Now()
 	wg := core.NewWorkGroup(singleThreaded)
 	for i, in := range inputs {
@@ -167,13 +194,16 @@ func measure(fe frontEnd, inputs []input, singleThreaded bool) result {
 	ruAfter := rusage()
 	runtime.ReadMemStats(&after)
 	r := result{
-		parseMs:  ms(parseDone.Sub(start)),
-		bindMs:   ms(bindDone.Sub(parseDone)),
-		userMs:   ms(time.Duration(ruAfter.Utime.Nano() - ruBefore.Utime.Nano())),
-		sysMs:    ms(time.Duration(ruAfter.Stime.Nano() - ruBefore.Stime.Nano())),
-		allocMB:  float64(after.TotalAlloc-before.TotalAlloc) / 1e6,
-		mallocsK: float64(after.Mallocs-before.Mallocs) / 1e3,
-		gcs:      after.NumGC - before.NumGC,
+		start:     start,
+		parseDone: parseDone,
+		bindDone:  bindDone,
+		parseMs:   ms(parseDone.Sub(start)),
+		bindMs:    ms(bindDone.Sub(parseDone)),
+		userMs:    ms(time.Duration(ruAfter.Utime.Nano() - ruBefore.Utime.Nano())),
+		sysMs:     ms(time.Duration(ruAfter.Stime.Nano() - ruBefore.Stime.Nano())),
+		allocMB:   float64(after.TotalAlloc-before.TotalAlloc) / 1e6,
+		mallocsK:  float64(after.Mallocs-before.Mallocs) / 1e3,
+		gcs:       after.NumGC - before.NumGC,
 	}
 	for _, p := range parsed {
 		r.nodes += fe.nodes(p)
@@ -182,8 +212,36 @@ func measure(fe frontEnd, inputs []input, singleThreaded bool) result {
 	runtime.GC()
 	runtime.ReadMemStats(&after)
 	r.retainedMB = (float64(after.HeapAlloc) - float64(before.HeapAlloc)) / 1e6
+	// One more collection with the results live: what they cost each cycle
+	// of the collector, which is what every collection of a check would pay.
+	live := readGCMetrics()
+	gcStart := time.Now()
+	runtime.GC()
+	r.gcMs = ms(time.Since(gcStart))
+	final := readGCMetrics()
+	r.gcCPUMs = (final.cpu - live.cpu) * 1e3
+	r.scanMB = float64(final.scanHeap-gcBefore.scanHeap) / 1e6
+	r.objectsK = float64(final.objects-gcBefore.objects) / 1e3
 	runtime.KeepAlive(parsed)
 	return r
+}
+
+type gcMetrics struct {
+	scanHeap, objects int64   // as of the last collection
+	cpu               float64 // seconds, cumulative
+}
+
+// readGCMetrics reads the scannable heap (the bytes of the objects that hold
+// pointers, which the collector has to scan), the objects of the heap and
+// the CPU time the collector has spent.
+func readGCMetrics() gcMetrics {
+	samples := []metrics.Sample{
+		{Name: "/gc/scan/heap:bytes"},
+		{Name: "/gc/heap/objects:objects"},
+		{Name: "/cpu/classes/gc/total:cpu-seconds"},
+	}
+	metrics.Read(samples)
+	return gcMetrics{int64(samples[0].Value.Uint64()), int64(samples[1].Value.Uint64()), samples[2].Value.Float64()}
 }
 
 func rusage() syscall.Rusage {
