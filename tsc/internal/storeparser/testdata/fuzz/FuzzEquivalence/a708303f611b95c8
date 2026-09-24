@@ -1,0 +1,5 @@
+go test fuzz v1
+string(".tsx")
+string("declare namespace A{<A0")
+bool(true)
+bool(false)

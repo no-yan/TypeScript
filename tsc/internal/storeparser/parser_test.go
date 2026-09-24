@@ -281,10 +281,9 @@ func diagnosticKeys(ds []*ast.Diagnostic) []diagnosticKey {
 	return keys
 }
 
-// missingFrom returns the elements of want that are not in got in order, or
-// nil when got is a subsequence of want.
-func missingFrom(want, got []diagnosticKey) []diagnosticKey {
-	var missing []diagnosticKey
+// missingFrom returns the elements of want that are not in got in order;
+// ok is false when got is not a subsequence of want.
+func missingFrom(want, got []diagnosticKey) (missing []diagnosticKey, ok bool) {
 	j := 0
 	for _, w := range want {
 		if j < len(got) && got[j] == w {
@@ -293,10 +292,12 @@ func missingFrom(want, got []diagnosticKey) []diagnosticKey {
 			missing = append(missing, w)
 		}
 	}
-	if j != len(got) {
-		return want // got has something want does not: not a subsequence
-	}
-	return missing
+	return missing, j == len(got)
+}
+
+func subsequence(want, got []diagnosticKey) bool {
+	_, ok := missingFrom(want, got)
+	return ok
 }
 
 func TestCorpus(t *testing.T) {
@@ -342,9 +343,10 @@ func TestCorpus(t *testing.T) {
 		switch {
 		case slices.Equal(want, got):
 			diagnosticsSame++
-		case options(kind).SkipReparsed && missingFrom(want, got) != nil:
+		case options(kind).SkipReparsed && subsequence(want, got):
 			diagnosticsSubset++
-			for _, d := range missingFrom(want, got) {
+			missing, _ := missingFrom(want, got)
+			for _, d := range missing {
 				key := fmt.Sprintf("code %d %q", d.code, d.message)
 				if jsMissing[key] == 0 && len(jsMissingExample) < 40 {
 					jsMissingExample = append(jsMissingExample, fmt.Sprintf("%s #%d: %s at %d", f.name, i, key, d.pos))
@@ -380,6 +382,41 @@ func TestCorpus(t *testing.T) {
 		located[fmt.Sprintf("%s (first in %s #%d)", label, files[example[label]].name, example[label])] = count
 	}
 	located.Report(t)
+}
+
+// FuzzEquivalence parses each input with both parsers and holds it to the
+// rules of TestCorpus. The seed corpus is TestCorpus's; the arguments are
+// FuzzParser's in internal/parser/parser_test.go.
+func FuzzEquivalence(f *testing.F) {
+	for _, file := range corpus(f) {
+		f.Add(tspath.TryGetExtensionFromPath(file.name), file.text, false, false)
+	}
+	var extensions []string
+	for _, es := range tspath.AllSupportedExtensionsWithJson {
+		extensions = append(extensions, es...)
+	}
+	f.Fuzz(func(t *testing.T, extension string, text string, jsx bool, force bool) {
+		if !slices.Contains(extensions, extension) {
+			t.Skip()
+		}
+		opts, _, kind := sourceInput("/index"+extension, "")
+		opts.ExternalModuleIndicatorOptions = ast.ExternalModuleIndicatorOptions{JSX: jsx, Force: force}
+		pointer, file := parseBoth(opts, text, kind)
+		m, _ := storetest.Equivalent(pointer, file.Store, options(kind))
+		m.Report(t)
+		for label, differs := range fieldMismatches(pointer, file, options(kind)) {
+			if label == "Flags" && options(kind).SkipReparsed {
+				continue // see TestCorpus
+			}
+			if differs && !(label == "IdentifierCount" && eagerJSDoc(pointer)) {
+				t.Errorf("%s differs from the Pointer file", label)
+			}
+		}
+		want, got := diagnosticKeys(pointer.Diagnostics()), diagnosticKeys(file.Diagnostics())
+		if !slices.Equal(want, got) && !(options(kind).SkipReparsed && subsequence(want, got)) {
+			t.Errorf("diagnostics differ:\n  pointer: %v\n  store:   %v", want, got)
+		}
+	})
 }
 
 // TestDeadNodes checks that a rewound speculation leaves no node behind, and
