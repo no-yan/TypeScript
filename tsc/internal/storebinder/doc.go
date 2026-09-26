@@ -1,9 +1,7 @@
 // Package storebinder binds a Store AST (internal/ast/store) as
 // internal/binder binds the Pointer AST. It is TODO 7c of
 // internal/ast/docs/store-ast-design-20260922.md (section 6); its design is
-// internal/ast/docs/store-binder-design-20260922.md and the instructions it
-// was written to are
-// internal/ast/docs/store-binder-implementation-instructions-20260922.md.
+// internal/ast/docs/store-binder-design-20260922.md.
 //
 // # A mechanical port
 //

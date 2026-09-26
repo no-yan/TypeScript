@@ -11,7 +11,7 @@ import (
 )
 
 // The driver that compares the output of the two binders on the node pairs of
-// storetest.Pairs (store-binder-implementation-instructions-20260922.md 6.1):
+// storetest.Pairs:
 // the flags after the bind, the symbol, LocalSymbol and Locals of every node,
 // the flow graph from every node's flow, EndFlowNode, ReturnFlowNode and
 // FallthroughFlowNode, and the file's fields. Symbols and flows are paired

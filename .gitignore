@@ -139,3 +139,6 @@ tools/gotestsum.exe.hash
 !packages/typescript/vendor/**/*.txt
 !tsc/testdata/submoduleAccepted.txt
 !tsc/testdata/submoduleTriaged.txt
+
+# Local-only raw measurement output (objdump, KPC, diffs) of the Store AST experiments
+/tsc/internal/ast/docs/_*/

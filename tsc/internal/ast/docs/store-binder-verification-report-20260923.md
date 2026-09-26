@@ -1,6 +1,6 @@
 # Store binder (TODO 7c) 検証報告
 
-作成日: 2026-09-23。指示書は [store-binder-verification-instructions-20260922.md](store-binder-verification-instructions-20260922.md) (以下「検証指示」)、対象は [store-binder-implementation-report-20260923.md](store-binder-implementation-report-20260923.md) (以下「実装報告」) の実装 (commit 2dfabb31e6 + 未コミットの 7c 差分)。設計は [store-binder-design-20260922.md](store-binder-design-20260922.md) (「7c 設計」)。生の出力は `_store-binder-results/` (§10)。
+作成日: 2026-09-23。指示書は `store-binder-verification-instructions-20260922.md` (以下「検証指示」)、対象は [store-binder-implementation-report-20260923.md](store-binder-implementation-report-20260923.md) (以下「実装報告」) の実装 (commit 2dfabb31e6 + 未コミットの 7c 差分)。設計は [store-binder-design-20260922.md](store-binder-design-20260922.md) (「7c 設計」)。生の出力は `_store-binder-results/` (§10)。
 
 ## 1. 結論
 

@@ -1,6 +1,6 @@
 # Store parser (TODO 7b) 検証レポート
 
-作成日: 2026-09-22。手順は [store-parser-verification-instructions-20260922.md](store-parser-verification-instructions-20260922.md) (以下「検証指示」)、実装は [store-parser-implementation-instructions-20260922.md](store-parser-implementation-instructions-20260922.md) (以下「実装指示書」) に従った `tsc/internal/storeparser/` と `tsc/internal/ast/store/` の追加分。設計は [store-ast-design-20260922.md](store-ast-design-20260922.md) §2.7。前段は [store-generator-verification-report-20260922.md](store-generator-verification-report-20260922.md) (以下「7a」)。
+作成日: 2026-09-22。手順は `store-parser-verification-instructions-20260922.md` (以下「検証指示」)、実装は `store-parser-implementation-instructions-20260922.md` (以下「実装指示書」) に従った `tsc/internal/storeparser/` と `tsc/internal/ast/store/` の追加分。設計は [store-ast-design-20260922.md](store-ast-design-20260922.md) §2.7。前段は [store-generator-verification-report-20260922.md](store-generator-verification-report-20260922.md) (以下「7a」)。
 
 実装と検証を同じセッションで行った。計測前に source を確定し (`_store-parser-results/sha256.txt`、計測後に取得したが計測以降に編集していない)、計測のために実装を変えていない。正しさのために直したのは実装中の 2 点 (§3.5) で、いずれも計測前。
 
@@ -314,7 +314,7 @@ gctrace (強制 GC、`gctrace-{store,pointer}.txt`): pointer は live 111 MB で
 
 ## 11. 追記 (同日 19:13): `View` の除去 (S1) と IPC 低下の帰属
 
-§6.2 の候補 (5) を単独で消して測った。実装は [store-builder-embed-implementation-instructions-20260922.md](store-builder-embed-implementation-instructions-20260922.md) (S1)。`Builder` の列 (`nodes` / `extra` / `src` / `texts` / `file`) を `View` が返す `Store` そのもの (`s Store`) にし、`View` を `b.s.node(id)` だけにした。generator は 2 行、`storeparser` は無変更、等価テスト (`storechecks` あり / なし) は無変更で通過。
+§6.2 の候補 (5) を単独で消して測った。実装は `store-builder-embed-implementation-instructions-20260922.md` (S1)。`Builder` の列 (`nodes` / `extra` / `src` / `texts` / `file`) を `View` が返す `Store` そのもの (`s Store`) にし、`View` を `b.s.node(id)` だけにした。generator は 2 行、`storeparser` は無変更、等価テスト (`storechecks` あり / なし) は無変更で通過。
 
 ### 11.1 変更前の `View` の費用
 

@@ -1,6 +1,6 @@
 # Store generator (TODO 7a) 検証レポート
 
-作成日: 2026-09-22。手順は [store-generator-verification-instructions-20260922.md](store-generator-verification-instructions-20260922.md) (以下「検証指示」)、対象は `tsc/internal/ast/store/` と `tools/scripts/tsc/generate-go-store.ts`。比較対象は [storeexp-verification-report-20260922.md](storeexp-verification-report-20260922.md) (以下「前回」) の §12 (nil ガード後) の数字。
+作成日: 2026-09-22。手順は `store-generator-verification-instructions-20260922.md` (以下「検証指示」)、対象は `tsc/internal/ast/store/` と `tools/scripts/tsc/generate-go-store.ts`。比較対象は [storeexp-verification-report-20260922.md](storeexp-verification-report-20260922.md) (以下「前回」) の §12 (nil ガード後) の数字。
 
 source は計測前に sha256 で固定し (`_store-generator-results/sha256-before.txt`)、終了時に不変を確認した。一時的に package に置いたテスト 2 本 (§10) は削除済みで、写しを `.txt` で残した。
 

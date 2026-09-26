@@ -1,8 +1,6 @@
 // Package storeparser parses TypeScript into a Store AST (internal/ast/store)
 // without building the Pointer AST first. It is TODO 7b of
-// internal/ast/docs/store-ast-design-20260922.md (sections 2.7 and 6); the
-// instructions it was written to are
-// internal/ast/docs/store-parser-implementation-instructions-20260922.md.
+// internal/ast/docs/store-ast-design-20260922.md (sections 2.7 and 6).
 //
 // # A mechanical port
 //

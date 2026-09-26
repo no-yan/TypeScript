@@ -29,13 +29,4 @@
 //   - a synthetic Store for checker/emitter-created nodes;
 //   - JSDoc node placement (JSDoc is not converted at all: Convert follows
 //     exactly the children (*ast.Node).ForEachChild visits).
-//
-// # Relationship to storeexp
-//
-// internal/ast/storeexp was the hand-written, build-tagged experiment that
-// this package replaces; it was deleted once this package reproduced its
-// numbers (internal/ast/docs/store-generator-verification-report-20260922.md).
-// storeexp covered only seven representative kinds and only Identifier's text
-// as payload; this package covers every kind and every non-child member,
-// generated from tools/scripts/tsc/ast.json.
 package store

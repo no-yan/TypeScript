@@ -1,6 +1,6 @@
 # Store binder (TODO 7c) 実装報告
 
-作成日: 2026-09-23。指示書は [store-binder-implementation-instructions-20260922.md](store-binder-implementation-instructions-20260922.md)、設計は [store-binder-design-20260922.md](store-binder-design-20260922.md)。生の出力と diff は `_store-binder-results/` (`binder.diff` = Pointer → まとめ版、`binder-verbatim.diff` = Pointer → 逐語版、`binder-fold.diff` = 逐語版 → まとめ版、`references.diff`、`symbol.diff`)。KPC は取っていない (sudo が要る。検証指示 §4 のコマンドをそのまま使える)。
+作成日: 2026-09-23。指示書は `store-binder-implementation-instructions-20260922.md`、設計は [store-binder-design-20260922.md](store-binder-design-20260922.md)。生の出力と diff は `_store-binder-results/` (`binder.diff` = Pointer → まとめ版、`binder-verbatim.diff` = Pointer → 逐語版、`binder-fold.diff` = 逐語版 → まとめ版、`references.diff`、`symbol.diff`)。KPC は取っていない (sudo が要る。検証指示 §4 のコマンドをそのまま使える)。
 
 ## 0. 結論
 

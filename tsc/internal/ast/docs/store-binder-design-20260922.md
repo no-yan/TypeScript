@@ -2,7 +2,7 @@
 
 作成日: 2026-09-22。設計ドキュメントのみ。コードは変更しない。
 
-Store AST ([store-ast-design-20260922.md](store-ast-design-20260922.md)、以下「設計文書」) の上で binder を動かす TODO 7c (設計文書 §6 の 8) の設計。7b ([store-parser-verification-report-20260922.md](store-parser-verification-report-20260922.md)) が作る `store.File` を入力に、bind の出力をどこに置くかと、それをどう検証するかを決める。決定の順序と問いは [store-binder-design-prompt-20260922.md](store-binder-design-prompt-20260922.md)。
+Store AST ([store-ast-design-20260922.md](store-ast-design-20260922.md)、以下「設計文書」) の上で binder を動かす TODO 7c (設計文書 §6 の 8) の設計。7b ([store-parser-verification-report-20260922.md](store-parser-verification-report-20260922.md)) が作る `store.File` を入力に、bind の出力をどこに置くかと、それをどう検証するかを決める。決定の順序と問いは `store-binder-design-prompt-20260922.md`。
 
 数字の出所: 断りが無ければ 2026-09-22 に Pointer の binder で checker.ts (298,054 node) と dom.generated.d.ts (109,605 node) を bind して数えたもの、および corpus (7b と同じ 17,415 file) の JS 1,456 file。手順は §6。
 
@@ -197,7 +197,7 @@ type NodeHeader struct {            // 32B、noscan
 
 ## 5. 検証計画
 
-手順と判定は [store-binder-verification-instructions-20260922.md](store-binder-verification-instructions-20260922.md)。要点:
+手順と判定は `store-binder-verification-instructions-20260922.md`。要点:
 
 | 項目 | 方法 | 線 |
 | --- | --- | --- |

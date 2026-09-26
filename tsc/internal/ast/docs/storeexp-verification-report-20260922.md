@@ -1,6 +1,6 @@
 # storeexp 検証レポート
 
-作成日: 2026-09-22。手順は [storeexp-verification-instructions-20260922.md](storeexp-verification-instructions-20260922.md)、対象は `tsc/internal/ast/storeexp/`。
+作成日: 2026-09-22。手順は `storeexp-verification-instructions-20260922.md`、対象は `tsc/internal/ast/storeexp/`。
 
 KPC (inst / cycles) は `_storeexp-results/kpc-20260922-0310.txt` (ユーザーが実行、20x × 5 run)。source は sha256 で固定したものと同一であることを、KPC の後にも確認した。inst の幅は全条件で ≤ 0.14% で、判定に使える。
 

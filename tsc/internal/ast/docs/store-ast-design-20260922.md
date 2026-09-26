@@ -206,7 +206,7 @@ E1〜E6 は手書きの代表 kind に対して 1 回、generator の出力に�
 
 storeexp の出口 (2026-09-22、ユーザー): §6 の 7 で本物の generator ができるまで参照用に残し、その時点で削除する。
 
-検証用の実装は [storeexp-implementation-instructions-20260922.md](storeexp-implementation-instructions-20260922.md)、測り方と判定は [storeexp-verification-instructions-20260922.md](storeexp-verification-instructions-20260922.md)。実装は `internal/ast/storeexp` に build tag 付きで置く書き捨てで、本番の配置や generator を先取りしない。
+検証用の実装は `storeexp-implementation-instructions-20260922.md`、測り方と判定は `storeexp-verification-instructions-20260922.md`。実装は `internal/ast/storeexp` に build tag 付きで置く書き捨てで、本番の配置や generator を先取りしない。
 
 ## 5. 後回しにしたもの
 

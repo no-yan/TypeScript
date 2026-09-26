@@ -28,9 +28,9 @@ func isKeywordOrPunctuation(token ast.Kind) bool {
 	return ast.IsKeywordKind(token) || ast.IsPunctuationKind(token)
 }
 
-// The View versions of what the Pointer parser reads off *ast.Node
-// (store-parser-implementation-instructions-20260922.md 4.6). Each one reads
-// the scratch through Builder.View and is valid only until the next append.
+// The View versions of what the Pointer parser reads off *ast.Node. Each one
+// reads the scratch through Builder.View and is valid only until the next
+// append.
 
 func (p *Parser) pos(id store.NodeRef) int { return int(p.b.View(id).Pos()) }
 func (p *Parser) end(id store.NodeRef) int { return int(p.b.View(id).End()) }
