@@ -121,10 +121,18 @@ func putParser(p *Parser) {
 	parserPool.Put(p)
 }
 
+// ParseSourceFile parses a file outside any program: its Store has StoreID 0
+// and no IDSpace, so no Factory takes its nodes.
 func ParseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptKind core.ScriptKind) *store.File {
+	return ParseSourceFileIn(nil, 0, opts, sourceText, scriptKind)
+}
+
+// ParseSourceFileIn parses a source file of the program whose StoreIDs are
+// space; id is the file's StoreID, 0..nFiles-1 of NewIDSpace(nFiles).
+func ParseSourceFileIn(space *store.IDSpace, id store.StoreID, opts ast.SourceFileParseOptions, sourceText string, scriptKind core.ScriptKind) *store.File {
 	p := getParser()
 	defer putParser(p)
-	p.initializeState(opts, sourceText, scriptKind)
+	p.initializeState(space, id, opts, sourceText, scriptKind)
 	p.nextToken()
 	if p.scriptKind == core.ScriptKindJSON {
 		return p.parseJSONText()
@@ -202,7 +210,7 @@ func (p *Parser) parseJSONText() *store.File {
 		p.validateJsonValue(p.b.ViewList(statements).At(0).Expression())
 	}
 	result := p.finishSourceFile(node, false)
-	result.Store = p.b.Finish()
+	p.b.FinishFile(result)
 	return result
 }
 
@@ -269,7 +277,7 @@ func (p *Parser) validateJsonObjectLiteral(node store.ObjectLiteralExpression) {
 // ParseIsolatedEntityName is not ported: a NodeRef is meaningless without its
 // Store, and nothing in 7b needs the entry point.
 
-func (p *Parser) initializeState(opts ast.SourceFileParseOptions, sourceText string, scriptKind core.ScriptKind) {
+func (p *Parser) initializeState(space *store.IDSpace, id store.StoreID, opts ast.SourceFileParseOptions, sourceText string, scriptKind core.ScriptKind) {
 	if scriptKind == core.ScriptKindUnknown {
 		panic("ScriptKind must be specified when parsing source file: " + opts.FileName)
 	}
@@ -280,9 +288,9 @@ func (p *Parser) initializeState(opts ast.SourceFileParseOptions, sourceText str
 		p.scanner.Reset()
 	}
 	if p.b == nil {
-		p.b = store.NewBuilder(sourceText, 0)
+		p.b = store.NewBuilder(sourceText, space, id)
 	} else {
-		p.b.Reset(sourceText, 0)
+		p.b.Reset(sourceText, space, id)
 	}
 	p.opts = opts
 	p.sourceText = sourceText
@@ -464,7 +472,7 @@ func (p *Parser) parseSourceFileWorker() *store.File {
 			result = p.finishSourceFile(reparse, isDeclarationFile)
 		}
 	}
-	result.Store = p.b.Finish()
+	p.b.FinishFile(result)
 	collectExternalModuleReferences(result)
 	if result.Flags&ast.NodeFlagsJavaScriptFile != 0 {
 		result.SetJSDiagnostics(p.jsDiagnostics)

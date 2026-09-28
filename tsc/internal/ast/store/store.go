@@ -6,7 +6,13 @@ import (
 	"unsafe"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
+	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
+
+// The node, the list and their edges. The ids and owners are
+// internal/ast/docs/store-checker-design-20260923.md 2.3 and 2.4 (Y3, N1',
+// E1, F1), the foreign edges 2.6 (FR1, K3), the zero value
+// store-node-zero-design-20260926.md (Z1).
 
 type NodeRef uint32 // index into Store.nodes; dense
 
@@ -19,6 +25,13 @@ type ListRef uint32 // index of a list block in Store.extra
 // NoListRef is the nil list: extra[0:3] is a sentinel block of length 0.
 const NoListRef ListRef = 0
 
+// foreignBit marks an edge (a child or list slot in extra, a header's parent,
+// a list element) that is not a row of the Store it is read in but the index
+// of an entry of the Store's foreignNodes or foreignLists. Only a synthetic
+// Store (Factory) and a lazy JSDoc Store have foreign entries; the edges of a
+// source Store are all local (invariants 2.8.3 and 16 of the 7d design).
+const foreignBit = 1 << 31
+
 type NodeHeader struct { // 32 bytes, no pointers
 	kind ast.Kind
 	// TODO(store): only the syntactic ModifierFlags, bits 0-15, live here.
@@ -30,11 +43,19 @@ type NodeHeader struct { // 32 bytes, no pointers
 	modifierFlags uint16
 	flags         ast.NodeFlags
 	pos, end      int32
-	parent        NodeRef
-	data          uint32   // start of the payload in Store.extra; Identifier: see identifierText
-	flow          FlowRef  // written by the binder; 0 = nil. Every kind.
-	symbol        SymbolId // written by the binder; 0 = nil. Every kind.
+	parent        NodeRef // an edge: local, or foreignBit and a foreignNodes index
+	data          uint32  // start of the payload in Store.extra; Identifier: see identifierText
+	// flow and symbol: in a source Store the FlowRef and SymbolId of its
+	// Bound, written by the binder; in a synthetic Store a slot of its private
+	// tables, written by the Factory (V1). 0 = nil. Every kind.
+	flow   FlowRef
+	symbol SymbolId
 }
+
+// StoreID names a Store within a program: the source Stores are 0..nFiles-1,
+// given by the program; every other Store (lazy JSDoc, synthetic) takes the
+// next number of the program's IDSpace. A number is never reused (Y3).
+type StoreID uint32
 
 type Store struct {
 	nodes []NodeHeader // nodes[0] is a sentinel: kind Unknown, parent 0
@@ -43,35 +64,84 @@ type Store struct {
 	extra []uint32
 	src   string
 	texts string // texts that are not a substring of src
-	file  uint32
-	// sealed is set by Seal once the binder is done. Only a storeChecks build
-	// reads it: every write API panics after Seal.
+	id    StoreID
+	file  *File  // a source or lazy JSDoc Store; nil in a synthetic Store
+	bound *Bound // a source Store once its bind has started; nil otherwise
+	// The canonical Node and List of each foreign edge, by index. Only a
+	// synthetic or lazy JSDoc Store has any; an entry never refers to another
+	// entry, and entries are not deduplicated.
+	foreignNodes []Node
+	foreignLists []List
+	private      *privateTables // a synthetic Store's flows, symbols and locals (factory.go)
+	// sealed is set by Seal once the binder is done. The binder's write API
+	// panics after it in a storeChecks build; the Factory's writers check it
+	// in every build.
 	sealed bool
+	owner  *regionToken // the region of a synthetic Store; nil otherwise (factory.go)
+	space  *IDSpace     // the program; nil for a Store made outside one
 }
 
-// Node is the currency for arguments and locals. Store a Ref on the heap.
+// Node is the currency for arguments, locals and the fields of the checker's
+// structs (N1'). A map key or a link is its NodeKey, never the Node: Node is
+// not comparable (Z1), so == and map[Node] do not compile. Compare with
+// SameNode.
+//
+// The zero Node and the sentinel row of any Store are the same nil: IsNil,
+// SameNode, Key and File treat them alike. Reading the contents of a nil node
+// (Kind, Parent, a member) is outside the contract, as it is for a nil
+// *ast.Node.
 type Node struct {
+	_ [0]func() // not comparable; first, so that it adds no padding
 	s *Store
 	h *NodeHeader
 }
 
-// Ref is the form of a node that is stored on the heap: in Symbol, Bound and
-// SymbolTable (store-binder-design-20260922.md 4, invariant 9).
-type Ref struct {
-	file uint32
-	id   NodeRef
+// NodeKey is a node's identity within a program: the key of a map or a link
+// (Y3, L1). There is no way back from a NodeKey to a Node; a cache that reads
+// the node later holds the Node.
+type NodeKey struct {
+	store StoreID
+	id    NodeRef
 }
 
-func (r Ref) File() uint32 { return r.file }
-func (r Ref) Id() NodeRef  { return r.id }
+func (k NodeKey) StoreID() StoreID { return k.store }
+func (k NodeKey) ID() NodeRef      { return k.id }
 
-func (s *Store) node(ref NodeRef) Node { return Node{s, &s.nodes[ref]} }
+func (s *Store) ID() StoreID { return s.id }
 
-// Node resolves a NodeRef: the elements of a List and the Id of a Ref.
+// node resolves an edge. The foreign side is written out here rather than
+// called: as a call, Parent() went over the inline budget (7d design 2.6).
+// An out-of-range value without foreignBit panics in every build, so that a
+// corrupt small value cannot silently name a foreign entry.
+func (s *Store) node(e NodeRef) Node {
+	if i := int(e); i < len(s.nodes) {
+		return Node{s: s, h: &s.nodes[i]}
+	}
+	if e&foreignBit == 0 {
+		panic("store: invalid node edge")
+	}
+	return s.foreignNodes[e&^foreignBit]
+}
+
+// list resolves a list edge (a list slot) to the canonical List: the elements
+// are read in the list's owner, not in the Store of the node that holds the
+// slot.
+func (s *Store) list(e ListRef) List {
+	if int(e) < len(s.extra) {
+		return List{s, e}
+	}
+	if e&foreignBit == 0 {
+		panic("store: invalid list edge")
+	}
+	return s.foreignLists[e&^foreignBit]
+}
+
+// Node resolves a NodeRef: the elements of a raw List and the rows of a
+// Bound's NodeRefs.
 func (s *Store) Node(ref NodeRef) Node { return s.node(ref) }
 
 // Seal ends the writes of the binder. A storeChecks build panics on any write
-// API call after it.
+// API call of the binder after it; a Factory writer refuses it in any build.
 func (s *Store) Seal() { s.sealed = true }
 
 // Root relies on post-order construction: the root is the last node.
@@ -81,32 +151,100 @@ func (n Node) Kind() ast.Kind       { return n.h.kind }
 func (n Node) Flags() ast.NodeFlags { return n.h.flags }
 func (n Node) Pos() int32           { return n.h.pos }
 func (n Node) End() int32           { return n.h.end }
-func (n Node) Parent() Node         { return n.s.node(n.h.parent) }
-func (n Node) IsNil() bool          { return n.h.kind == ast.KindUnknown }
+func (n Node) Loc() core.TextRange {
+	return core.NewTextRange(int(n.h.pos), int(n.h.end))
+}
+func (n Node) Parent() Node { return n.s.node(n.h.parent) }
+
+// IsNil is true for the zero Node and for the sentinel of every Store. Kind
+// Unknown is the sentinel's alone: no API makes a real row of kind Unknown.
+func (n Node) IsNil() bool { return n.h == nil || n.h.kind == ast.KindUnknown }
+
 func (n Node) ModifierFlags() ast.ModifierFlags {
 	return ast.ModifierFlags(n.h.modifierFlags)
 }
-func (n Node) FlowNode() FlowRef { return n.h.flow }
-func (n Node) Symbol() SymbolId  { return n.h.symbol }
 
-// FileRef is the form of n that Symbol.Declarations and Bound hold.
-func (n Node) FileRef() Ref { return Ref{n.s.file, n.Ref()} }
+// SameNode is == of two *ast.Node (E1). A live header belongs to one Store,
+// and a foreign edge resolves to the canonical Node, so equal headers are the
+// same node; two nils are the same whatever Store they come from.
+func SameNode(a, b Node) bool { return a.h == b.h || a.IsNil() && b.IsNil() }
 
-// The write API of the binder. Each call panics in a storeChecks build once
-// the Store is sealed; a build without storeChecks does not read sealed.
-func (n Node) AddFlags(f ast.NodeFlags)   { n.checkUnsealed(); n.h.flags |= f }
-func (n Node) ClearFlags(f ast.NodeFlags) { n.checkUnsealed(); n.h.flags &^= f }
-func (n Node) SetFlow(f FlowRef)          { n.checkUnsealed(); n.h.flow = f }
-func (n Node) SetSymbol(id SymbolId)      { n.checkUnsealed(); n.h.symbol = id }
+// Key is the node's NodeKey; every nil is NodeKey{}.
+func (n Node) Key() NodeKey {
+	if n.IsNil() {
+		return NodeKey{}
+	}
+	return NodeKey{n.s.id, n.Ref()}
+}
 
-func (n Node) checkUnsealed() {
-	if storeChecks && n.s.sealed {
-		panic("store: write after Seal")
+// File is ast.GetSourceFileOfNode (F1, invariant 25). A source or lazy JSDoc
+// Store knows its file; a synthetic node walks its parents to one, or to nil.
+// It never guesses from the file being checked or from an Original.
+func (n Node) File() *File {
+	if n.IsNil() {
+		return nil
+	}
+	if f := n.s.file; f != nil {
+		return f
+	}
+	return n.parentFile()
+}
+
+func (n Node) parentFile() *File {
+	for {
+		n = n.Parent()
+		if n.IsNil() {
+			return nil
+		}
+		if f := n.s.file; f != nil {
+			return f
+		}
 	}
 }
 
-// Ref recovers the index from the header's address. Apart from the slice
-// conversion in List.Refs, this is the only place that may use unsafe.
+// PropertyNameOrName is (*ast.Node).PropertyNameOrName.
+func (n Node) PropertyNameOrName() Node {
+	name := n.PropertyName()
+	if name.IsNil() {
+		name = n.Name()
+	}
+	return name
+}
+
+// The id layer of what the binder writes in the header (A1): the raw words.
+// The binder writes and reads these; everything else reads the resolving
+// layer (Symbol, FlowNode, bound.go), which knows the owner.
+
+func (n Node) FlowRef() FlowRef   { return n.h.flow }
+func (n Node) SymbolId() SymbolId { return n.h.symbol }
+
+// The write API of the binder. None writes the sentinel row, in any build
+// (Z1); each panics in a storeChecks build once the Store is sealed or when
+// it is a synthetic Store, whose writer is the Factory.
+func (n Node) AddFlags(f ast.NodeFlags)   { n.checkBinderWrite(); n.h.flags |= f }
+func (n Node) ClearFlags(f ast.NodeFlags) { n.checkBinderWrite(); n.h.flags &^= f }
+func (n Node) SetFlowRef(f FlowRef)       { n.checkBinderWrite(); n.h.flow = f }
+func (n Node) SetSymbolId(id SymbolId)    { n.checkBinderWrite(); n.h.symbol = id }
+
+func (n Node) checkBinderWrite() {
+	if n.h.kind == ast.KindUnknown {
+		panic("store: write to the nil node")
+	}
+	n.checkUnsealed()
+}
+
+// checkUnsealed is the storeChecks guard of the binder's writes. The
+// generated slot setters call it; they cannot write the sentinel, whose kind
+// has no slot.
+func (n Node) checkUnsealed() {
+	if storeChecks && (n.s.sealed || n.s.owner != nil) {
+		panic("store: binder write after Seal or to a synthetic Store")
+	}
+}
+
+// Ref recovers the index from the header's address. Apart from the element
+// slice of a List (List.Refs, List.edges), this is the only place that may
+// use unsafe.
 func (n Node) Ref() NodeRef {
 	base := uintptr(unsafe.Pointer(unsafe.SliceData(n.s.nodes)))
 	return NodeRef((uintptr(unsafe.Pointer(n.h)) - base) / unsafe.Sizeof(NodeHeader{}))
@@ -182,62 +320,77 @@ func (n Node) assertKinds(view string, kinds ...ast.Kind) {
 	panic(fmt.Sprintf("store: %v is not a %s", n.h.kind, view))
 }
 
-// List is a view of a block in extra: [len, pos, end, elem0 ... elem(len-1)].
+// List is a view of a block in its owner's extra: [len, pos, end, elem0 ...
+// elem(len-1)]. A List is always canonical: s is the Store that holds the
+// block, and each element is an edge of s.
 type List struct {
 	s  *Store
 	at ListRef // NoListRef = nil list
 }
 
+// IsNil is true for the zero List and for block 0 of any Store.
 func (l List) IsNil() bool  { return l.at == NoListRef }
 func (l List) Ref() ListRef { return l.at }
 func (l List) Len() int     { return int(l.s.extra[l.at]) }
 func (l List) Pos() int32   { return int32(l.s.extra[l.at+1]) }
 func (l List) End() int32   { return int32(l.s.extra[l.at+2]) }
 
-// Refs is a contiguous view of the elements. It does not allocate.
+// SameList is == of two *ast.NodeList: the same block of the same owner, or
+// two nils.
+func SameList(a, b List) bool {
+	return a.s == b.s && a.at == b.at || a.IsNil() && b.IsNil()
+}
+
+// Refs is a contiguous view of the elements as NodeRefs. It does not
+// allocate. Only the parse and bind of a source Store may use it: the
+// elements of a list with foreign edges are not NodeRefs of anything, and a
+// storeChecks build panics on such a Store. Everything else reads Len and At.
 func (l List) Refs() []NodeRef {
+	if storeChecks && l.s.hasForeign() {
+		panic("store: Refs on a Store with foreign edges")
+	}
+	return l.edges()
+}
+
+// edges is the raw element slice: each value is an edge of l.s.
+func (l List) edges() []NodeRef {
 	extra := l.s.extra
 	elems := extra[l.at+3 : l.at+3+ListRef(extra[l.at])]
 	return unsafe.Slice((*NodeRef)(unsafe.Pointer(unsafe.SliceData(elems))), len(elems))
 }
 
-func (l List) At(i int) Node { return l.s.node(l.Refs()[i]) }
+// At resolves the element in the list's owner.
+func (l List) At(i int) Node { return l.s.node(l.edges()[i]) }
+
+func (s *Store) hasForeign() bool {
+	return s.owner != nil || s.foreignNodes != nil || s.foreignLists != nil
+}
 
 // Visitor returns true to stop the walk, like ast.Visitor.
 type Visitor func(Node) bool
-
-// Callers skip the nil list (at == NoListRef) before calling: 60% of the list slots in
-// a walk are nil, and Refs() costs 25 instructions (store-ast-design-20260922.md
-// 2.3). The check lives at the call site so that visitList stays within the
-// inline budget (cost 80).
-func visitList(s *Store, at ListRef, v Visitor) bool {
-	for _, ref := range (List{s, at}).Refs() {
-		if v(s.node(ref)) {
-			return true
-		}
-	}
-	return false
-}
 
 // Builder writes by id and never holds a *NodeHeader, because append moves the
 // headers. The columns under construction are s, the Store that View reads;
 // nothing is copied or re-synced on a View. Builder is used only by pointer:
 // Node values from View point into s. (strings.Builder panics on a copy after
-// the first write, so a copied Builder fails at the first text.)
+// the first write, so a copied Builder fails at the first text.) A Builder
+// makes a source Store: every edge it writes is local. space and id are the
+// program and the file's StoreID (0..nFiles-1); a nil space makes a Store
+// outside any program, which no Factory takes.
 type Builder struct {
-	s       Store           // nodes, extra, src, texts, file: the columns under construction
+	s       Store           // nodes, extra, src, texts, id, space: the columns under construction
 	textBuf strings.Builder // s.texts is textBuf.String(), re-set after every write (textWords)
 }
 
-func NewBuilder(src string, file uint32) *Builder {
+func NewBuilder(src string, space *IDSpace, id StoreID) *Builder {
 	b := &Builder{}
-	b.Reset(src, file)
+	b.Reset(src, space, id)
 	return b
 }
 
 // Reset starts a file on the same scratch: the sentinel rows are rewritten,
 // the capacity is kept, texts is emptied.
-func (b *Builder) Reset(src string, file uint32) {
+func (b *Builder) Reset(src string, space *IDSpace, id StoreID) {
 	if cap(b.s.nodes) == 0 {
 		b.s.nodes = make([]NodeHeader, 1, 1024)
 		b.s.extra = make([]uint32, 3, 1024)
@@ -250,7 +403,8 @@ func (b *Builder) Reset(src string, file uint32) {
 	b.textBuf.Reset()
 	b.s.texts = ""
 	b.s.src = src
-	b.s.file = file
+	b.s.id = id
+	b.s.space = space
 }
 
 // View is the Node of id in the scratch. It points into s.nodes, so it is valid
@@ -273,9 +427,13 @@ func (b *Builder) Truncate(nodes, extra int) {
 // Len is the number of rows including the sentinel and any dead node.
 func (b *Builder) Len() int { return len(b.s.nodes) }
 
-// List returns the index of the new block.
+// List returns the index of the new block. A block index is an edge, so it
+// stays below foreignBit.
 func (b *Builder) List(pos, end int32, elems []NodeRef) ListRef {
 	at := ListRef(len(b.s.extra))
+	if at >= foreignBit {
+		panic("store: extra is full")
+	}
 	b.s.extra = append(b.s.extra, uint32(len(elems)), uint32(pos), uint32(end))
 	for _, elem := range elems {
 		b.s.extra = append(b.s.extra, uint32(elem))
@@ -286,11 +444,18 @@ func (b *Builder) List(pos, end int32, elems []NodeRef) ListRef {
 // NewToken is the constructor of every kind without a payload: tokens,
 // keywords and the definitions without members.
 func (b *Builder) NewToken(kind ast.Kind, flags ast.NodeFlags, pos, end int32) NodeRef {
+	if storeChecks && kind == ast.KindUnknown {
+		panic("store: a node of kind Unknown")
+	}
 	return b.header(kind, flags, 0, pos, end, 0)
 }
 
+// header appends a row. A row index is an edge, so it stays below foreignBit.
 func (b *Builder) header(kind ast.Kind, flags ast.NodeFlags, mod ast.ModifierFlags, pos, end int32, data uint32) NodeRef {
 	id := NodeRef(len(b.s.nodes))
+	if id >= foreignBit {
+		panic("store: nodes is full")
+	}
 	b.s.nodes = append(b.s.nodes, NodeHeader{
 		kind: kind,
 		// TODO(store): truncates ModifierFlags to bits 0-15. See the TODO on
@@ -367,6 +532,15 @@ func (b *Builder) Finish() *Store {
 		extra: append(make([]uint32, 0, len(b.s.extra)), b.s.extra...),
 		src:   b.s.src,
 		texts: strings.Clone(b.textBuf.String()),
-		file:  b.s.file,
+		id:    b.s.id,
+		space: b.s.space,
 	}
+}
+
+// FinishFile is Finish for a parsed file: f and its Store point at each other
+// (F1). File <-> Store is a cycle, which the GC handles.
+func (b *Builder) FinishFile(f *File) {
+	s := b.Finish()
+	s.file = f
+	f.Store = s
 }

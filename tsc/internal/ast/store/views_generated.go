@@ -4,16 +4,17 @@ package store
 
 import "github.com/microsoft/TypeScript/tsc/internal/ast"
 
-// A typed view is the same two words as Node under another type: creating one
-// loads nothing, and each accessor reads only its own payload word. Accessors
-// have no nil guard (nodes[0] and list block 0 are sentinels) and no kind check
-// outside storeChecks. Slot constants are payload words in declaration order.
+// A typed view is Node under another type (the same underlying struct, so the
+// same two words and not comparable either): creating one loads nothing, and
+// each accessor reads only its own payload word. Accessors have no nil guard
+// (nodes[0] and list block 0 are sentinels) and no kind check outside
+// storeChecks. A child or list word is an edge, resolved in the node's Store:
+// a foreign edge gives the canonical Node or List (FR1, K3 in
+// internal/ast/docs/store-checker-design-20260923.md 2.6). Slot constants
+// are payload words in declaration order.
 
 // Identifier: ast.KindIdentifier
-type Identifier struct {
-	s *Store
-	h *NodeHeader
-}
+type Identifier Node
 
 func (n Node) AsIdentifier() Identifier {
 	if storeChecks {
@@ -25,10 +26,7 @@ func (n Node) AsIdentifier() Identifier {
 func (n Identifier) Text() string { return Node(n).identifierText() }
 
 // PrivateIdentifier: ast.KindPrivateIdentifier
-type PrivateIdentifier struct {
-	s *Store
-	h *NodeHeader
-}
+type PrivateIdentifier Node
 
 func (n Node) AsPrivateIdentifier() PrivateIdentifier {
 	if storeChecks {
@@ -45,10 +43,7 @@ const (
 	qualifiedNameRightSlot = 1
 )
 
-type QualifiedName struct {
-	s *Store
-	h *NodeHeader
-}
+type QualifiedName Node
 
 func (n Node) AsQualifiedName() QualifiedName {
 	if storeChecks {
@@ -70,10 +65,7 @@ const (
 	computedPropertyNameExpressionSlot = 0
 )
 
-type ComputedPropertyName struct {
-	s *Store
-	h *NodeHeader
-}
+type ComputedPropertyName Node
 
 func (n Node) AsComputedPropertyName() ComputedPropertyName {
 	if storeChecks {
@@ -91,10 +83,7 @@ const (
 	decoratorExpressionSlot = 0
 )
 
-type Decorator struct {
-	s *Store
-	h *NodeHeader
-}
+type Decorator Node
 
 func (n Node) AsDecorator() Decorator {
 	if storeChecks {
@@ -114,10 +103,7 @@ const (
 	ifStatementElseStatementSlot = 2
 )
 
-type IfStatement struct {
-	s *Store
-	h *NodeHeader
-}
+type IfStatement Node
 
 func (n Node) AsIfStatement() IfStatement {
 	if storeChecks {
@@ -144,10 +130,7 @@ const (
 	doStatementExpressionSlot = 1
 )
 
-type DoStatement struct {
-	s *Store
-	h *NodeHeader
-}
+type DoStatement Node
 
 func (n Node) AsDoStatement() DoStatement {
 	if storeChecks {
@@ -170,10 +153,7 @@ const (
 	whileStatementStatementSlot  = 1
 )
 
-type WhileStatement struct {
-	s *Store
-	h *NodeHeader
-}
+type WhileStatement Node
 
 func (n Node) AsWhileStatement() WhileStatement {
 	if storeChecks {
@@ -199,10 +179,7 @@ const (
 	forStatementLocalsSlot      = 4
 )
 
-type ForStatement struct {
-	s *Store
-	h *NodeHeader
-}
+type ForStatement Node
 
 func (n Node) AsForStatement() ForStatement {
 	if storeChecks {
@@ -227,13 +204,17 @@ func (n ForStatement) Statement() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+forStatementStatementSlot]))
 }
 
-func (n ForStatement) LocalsSlot() uint32 {
+func (n ForStatement) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+forStatementLocalsSlot])
 }
 
-func (n ForStatement) SetLocalsSlot(v uint32) {
+func (n ForStatement) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+forStatementLocalsSlot] = uint32(v)
+}
+
+func (n ForStatement) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+forStatementLocalsSlot])
 }
 
 // ForInOrOfStatement: ast.KindForInStatement, ast.KindForOfStatement
@@ -245,10 +226,7 @@ const (
 	forInOrOfStatementLocalsSlot        = 4
 )
 
-type ForInOrOfStatement struct {
-	s *Store
-	h *NodeHeader
-}
+type ForInOrOfStatement Node
 
 func (n Node) AsForInOrOfStatement() ForInOrOfStatement {
 	if storeChecks {
@@ -273,13 +251,17 @@ func (n ForInOrOfStatement) Statement() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+forInOrOfStatementStatementSlot]))
 }
 
-func (n ForInOrOfStatement) LocalsSlot() uint32 {
+func (n ForInOrOfStatement) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+forInOrOfStatementLocalsSlot])
 }
 
-func (n ForInOrOfStatement) SetLocalsSlot(v uint32) {
+func (n ForInOrOfStatement) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+forInOrOfStatementLocalsSlot] = uint32(v)
+}
+
+func (n ForInOrOfStatement) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+forInOrOfStatementLocalsSlot])
 }
 
 // BreakStatement: ast.KindBreakStatement
@@ -287,10 +269,7 @@ const (
 	breakStatementLabelSlot = 0
 )
 
-type BreakStatement struct {
-	s *Store
-	h *NodeHeader
-}
+type BreakStatement Node
 
 func (n Node) AsBreakStatement() BreakStatement {
 	if storeChecks {
@@ -308,10 +287,7 @@ const (
 	continueStatementLabelSlot = 0
 )
 
-type ContinueStatement struct {
-	s *Store
-	h *NodeHeader
-}
+type ContinueStatement Node
 
 func (n Node) AsContinueStatement() ContinueStatement {
 	if storeChecks {
@@ -329,10 +305,7 @@ const (
 	returnStatementExpressionSlot = 0
 )
 
-type ReturnStatement struct {
-	s *Store
-	h *NodeHeader
-}
+type ReturnStatement Node
 
 func (n Node) AsReturnStatement() ReturnStatement {
 	if storeChecks {
@@ -351,10 +324,7 @@ const (
 	withStatementStatementSlot  = 1
 )
 
-type WithStatement struct {
-	s *Store
-	h *NodeHeader
-}
+type WithStatement Node
 
 func (n Node) AsWithStatement() WithStatement {
 	if storeChecks {
@@ -377,10 +347,7 @@ const (
 	switchStatementCaseBlockSlot  = 1
 )
 
-type SwitchStatement struct {
-	s *Store
-	h *NodeHeader
-}
+type SwitchStatement Node
 
 func (n Node) AsSwitchStatement() SwitchStatement {
 	if storeChecks {
@@ -403,10 +370,7 @@ const (
 	caseBlockLocalsSlot  = 1
 )
 
-type CaseBlock struct {
-	s *Store
-	h *NodeHeader
-}
+type CaseBlock Node
 
 func (n Node) AsCaseBlock() CaseBlock {
 	if storeChecks {
@@ -416,14 +380,18 @@ func (n Node) AsCaseBlock() CaseBlock {
 }
 
 func (n CaseBlock) Clauses() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+caseBlockClausesSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+caseBlockClausesSlot]))
 }
 
-func (n CaseBlock) LocalsSlot() uint32 { return uint32(n.s.extra[int(n.h.data)+caseBlockLocalsSlot]) }
+func (n CaseBlock) LocalsRef() uint32 { return uint32(n.s.extra[int(n.h.data)+caseBlockLocalsSlot]) }
 
-func (n CaseBlock) SetLocalsSlot(v uint32) {
+func (n CaseBlock) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+caseBlockLocalsSlot] = uint32(v)
+}
+
+func (n CaseBlock) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+caseBlockLocalsSlot])
 }
 
 // CaseOrDefaultClause: ast.KindCaseClause, ast.KindDefaultClause
@@ -433,10 +401,7 @@ const (
 	caseOrDefaultClauseFallthroughFlowNodeSlot = 2
 )
 
-type CaseOrDefaultClause struct {
-	s *Store
-	h *NodeHeader
-}
+type CaseOrDefaultClause Node
 
 func (n Node) AsCaseOrDefaultClause() CaseOrDefaultClause {
 	if storeChecks {
@@ -450,16 +415,20 @@ func (n CaseOrDefaultClause) Expression() Node {
 }
 
 func (n CaseOrDefaultClause) Statements() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+caseOrDefaultClauseStatementsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+caseOrDefaultClauseStatementsSlot]))
 }
 
-func (n CaseOrDefaultClause) FallthroughFlowNode() FlowRef {
+func (n CaseOrDefaultClause) FallthroughFlowRef() FlowRef {
 	return FlowRef(n.s.extra[int(n.h.data)+caseOrDefaultClauseFallthroughFlowNodeSlot])
 }
 
-func (n CaseOrDefaultClause) SetFallthroughFlowNode(v FlowRef) {
+func (n CaseOrDefaultClause) SetFallthroughFlowRef(v FlowRef) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+caseOrDefaultClauseFallthroughFlowNodeSlot] = uint32(v)
+}
+
+func (n CaseOrDefaultClause) FallthroughFlowNode() Flow {
+	return n.s.flowAt(n.s.extra[int(n.h.data)+caseOrDefaultClauseFallthroughFlowNodeSlot])
 }
 
 // ThrowStatement: ast.KindThrowStatement
@@ -467,10 +436,7 @@ const (
 	throwStatementExpressionSlot = 0
 )
 
-type ThrowStatement struct {
-	s *Store
-	h *NodeHeader
-}
+type ThrowStatement Node
 
 func (n Node) AsThrowStatement() ThrowStatement {
 	if storeChecks {
@@ -490,10 +456,7 @@ const (
 	tryStatementFinallyBlockSlot = 2
 )
 
-type TryStatement struct {
-	s *Store
-	h *NodeHeader
-}
+type TryStatement Node
 
 func (n Node) AsTryStatement() TryStatement {
 	if storeChecks {
@@ -521,10 +484,7 @@ const (
 	catchClauseLocalsSlot              = 2
 )
 
-type CatchClause struct {
-	s *Store
-	h *NodeHeader
-}
+type CatchClause Node
 
 func (n Node) AsCatchClause() CatchClause {
 	if storeChecks {
@@ -541,13 +501,17 @@ func (n CatchClause) Block() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+catchClauseBlockSlot]))
 }
 
-func (n CatchClause) LocalsSlot() uint32 {
+func (n CatchClause) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+catchClauseLocalsSlot])
 }
 
-func (n CatchClause) SetLocalsSlot(v uint32) {
+func (n CatchClause) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+catchClauseLocalsSlot] = uint32(v)
+}
+
+func (n CatchClause) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+catchClauseLocalsSlot])
 }
 
 // LabeledStatement: ast.KindLabeledStatement
@@ -556,10 +520,7 @@ const (
 	labeledStatementStatementSlot = 1
 )
 
-type LabeledStatement struct {
-	s *Store
-	h *NodeHeader
-}
+type LabeledStatement Node
 
 func (n Node) AsLabeledStatement() LabeledStatement {
 	if storeChecks {
@@ -581,10 +542,7 @@ const (
 	expressionStatementExpressionSlot = 0
 )
 
-type ExpressionStatement struct {
-	s *Store
-	h *NodeHeader
-}
+type ExpressionStatement Node
 
 func (n Node) AsExpressionStatement() ExpressionStatement {
 	if storeChecks {
@@ -604,10 +562,7 @@ const (
 	blockLocalsSlot     = 2
 )
 
-type Block struct {
-	s *Store
-	h *NodeHeader
-}
+type Block Node
 
 func (n Node) AsBlock() Block {
 	if storeChecks {
@@ -617,16 +572,20 @@ func (n Node) AsBlock() Block {
 }
 
 func (n Block) Statements() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+blockStatementsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+blockStatementsSlot]))
 }
 
 func (n Block) MultiLine() bool { return n.s.extra[int(n.h.data)+blockMultiLineSlot] != 0 }
 
-func (n Block) LocalsSlot() uint32 { return uint32(n.s.extra[int(n.h.data)+blockLocalsSlot]) }
+func (n Block) LocalsRef() uint32 { return uint32(n.s.extra[int(n.h.data)+blockLocalsSlot]) }
 
-func (n Block) SetLocalsSlot(v uint32) {
+func (n Block) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+blockLocalsSlot] = uint32(v)
+}
+
+func (n Block) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+blockLocalsSlot])
 }
 
 // VariableStatement: ast.KindVariableStatement
@@ -635,10 +594,7 @@ const (
 	variableStatementDeclarationListSlot = 1
 )
 
-type VariableStatement struct {
-	s *Store
-	h *NodeHeader
-}
+type VariableStatement Node
 
 func (n Node) AsVariableStatement() VariableStatement {
 	if storeChecks {
@@ -648,7 +604,7 @@ func (n Node) AsVariableStatement() VariableStatement {
 }
 
 func (n VariableStatement) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+variableStatementModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+variableStatementModifiersSlot]))
 }
 
 func (n VariableStatement) DeclarationList() Node {
@@ -664,10 +620,7 @@ const (
 	variableDeclarationLocalSymbolSlot      = 4
 )
 
-type VariableDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type VariableDeclaration Node
 
 func (n Node) AsVariableDeclaration() VariableDeclaration {
 	if storeChecks {
@@ -692,13 +645,17 @@ func (n VariableDeclaration) Initializer() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+variableDeclarationInitializerSlot]))
 }
 
-func (n VariableDeclaration) LocalSymbol() SymbolId {
+func (n VariableDeclaration) LocalSymbolId() SymbolId {
 	return SymbolId(n.s.extra[int(n.h.data)+variableDeclarationLocalSymbolSlot])
 }
 
-func (n VariableDeclaration) SetLocalSymbol(v SymbolId) {
+func (n VariableDeclaration) SetLocalSymbolId(v SymbolId) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+variableDeclarationLocalSymbolSlot] = uint32(v)
+}
+
+func (n VariableDeclaration) LocalSymbol() *Symbol {
+	return n.s.symbolAt(n.s.extra[int(n.h.data)+variableDeclarationLocalSymbolSlot])
 }
 
 // VariableDeclarationList: ast.KindVariableDeclarationList
@@ -706,10 +663,7 @@ const (
 	variableDeclarationListDeclarationsSlot = 0
 )
 
-type VariableDeclarationList struct {
-	s *Store
-	h *NodeHeader
-}
+type VariableDeclarationList Node
 
 func (n Node) AsVariableDeclarationList() VariableDeclarationList {
 	if storeChecks {
@@ -719,7 +673,7 @@ func (n Node) AsVariableDeclarationList() VariableDeclarationList {
 }
 
 func (n VariableDeclarationList) Declarations() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+variableDeclarationListDeclarationsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+variableDeclarationListDeclarationsSlot]))
 }
 
 // BindingPattern: ast.KindObjectBindingPattern, ast.KindArrayBindingPattern
@@ -727,10 +681,7 @@ const (
 	bindingPatternElementsSlot = 0
 )
 
-type BindingPattern struct {
-	s *Store
-	h *NodeHeader
-}
+type BindingPattern Node
 
 func (n Node) AsBindingPattern() BindingPattern {
 	if storeChecks {
@@ -740,7 +691,7 @@ func (n Node) AsBindingPattern() BindingPattern {
 }
 
 func (n BindingPattern) Elements() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+bindingPatternElementsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+bindingPatternElementsSlot]))
 }
 
 // ParameterDeclaration: ast.KindParameter
@@ -753,10 +704,7 @@ const (
 	parameterDeclarationInitializerSlot    = 5
 )
 
-type ParameterDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type ParameterDeclaration Node
 
 func (n Node) AsParameterDeclaration() ParameterDeclaration {
 	if storeChecks {
@@ -766,7 +714,7 @@ func (n Node) AsParameterDeclaration() ParameterDeclaration {
 }
 
 func (n ParameterDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+parameterDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+parameterDeclarationModifiersSlot]))
 }
 
 func (n ParameterDeclaration) DotDotDotToken() Node {
@@ -798,10 +746,7 @@ const (
 	bindingElementLocalSymbolSlot    = 4
 )
 
-type BindingElement struct {
-	s *Store
-	h *NodeHeader
-}
+type BindingElement Node
 
 func (n Node) AsBindingElement() BindingElement {
 	if storeChecks {
@@ -826,13 +771,17 @@ func (n BindingElement) Initializer() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+bindingElementInitializerSlot]))
 }
 
-func (n BindingElement) LocalSymbol() SymbolId {
+func (n BindingElement) LocalSymbolId() SymbolId {
 	return SymbolId(n.s.extra[int(n.h.data)+bindingElementLocalSymbolSlot])
 }
 
-func (n BindingElement) SetLocalSymbol(v SymbolId) {
+func (n BindingElement) SetLocalSymbolId(v SymbolId) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+bindingElementLocalSymbolSlot] = uint32(v)
+}
+
+func (n BindingElement) LocalSymbol() *Symbol {
+	return n.s.symbolAt(n.s.extra[int(n.h.data)+bindingElementLocalSymbolSlot])
 }
 
 // MissingDeclaration: ast.KindMissingDeclaration
@@ -840,10 +789,7 @@ const (
 	missingDeclarationModifiersSlot = 0
 )
 
-type MissingDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type MissingDeclaration Node
 
 func (n Node) AsMissingDeclaration() MissingDeclaration {
 	if storeChecks {
@@ -853,7 +799,7 @@ func (n Node) AsMissingDeclaration() MissingDeclaration {
 }
 
 func (n MissingDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+missingDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+missingDeclarationModifiersSlot]))
 }
 
 // FunctionDeclaration: ast.KindFunctionDeclaration
@@ -872,10 +818,7 @@ const (
 	functionDeclarationReturnFlowNodeSlot = 11
 )
 
-type FunctionDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type FunctionDeclaration Node
 
 func (n Node) AsFunctionDeclaration() FunctionDeclaration {
 	if storeChecks {
@@ -885,7 +828,7 @@ func (n Node) AsFunctionDeclaration() FunctionDeclaration {
 }
 
 func (n FunctionDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+functionDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+functionDeclarationModifiersSlot]))
 }
 
 func (n FunctionDeclaration) AsteriskToken() Node {
@@ -897,11 +840,11 @@ func (n FunctionDeclaration) Name() Node {
 }
 
 func (n FunctionDeclaration) TypeParameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+functionDeclarationTypeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+functionDeclarationTypeParametersSlot]))
 }
 
 func (n FunctionDeclaration) Parameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+functionDeclarationParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+functionDeclarationParametersSlot]))
 }
 
 func (n FunctionDeclaration) Type() Node {
@@ -916,40 +859,56 @@ func (n FunctionDeclaration) Body() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+functionDeclarationBodySlot]))
 }
 
-func (n FunctionDeclaration) LocalSymbol() SymbolId {
+func (n FunctionDeclaration) LocalSymbolId() SymbolId {
 	return SymbolId(n.s.extra[int(n.h.data)+functionDeclarationLocalSymbolSlot])
 }
 
-func (n FunctionDeclaration) SetLocalSymbol(v SymbolId) {
+func (n FunctionDeclaration) SetLocalSymbolId(v SymbolId) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+functionDeclarationLocalSymbolSlot] = uint32(v)
 }
 
-func (n FunctionDeclaration) LocalsSlot() uint32 {
+func (n FunctionDeclaration) LocalSymbol() *Symbol {
+	return n.s.symbolAt(n.s.extra[int(n.h.data)+functionDeclarationLocalSymbolSlot])
+}
+
+func (n FunctionDeclaration) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+functionDeclarationLocalsSlot])
 }
 
-func (n FunctionDeclaration) SetLocalsSlot(v uint32) {
+func (n FunctionDeclaration) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+functionDeclarationLocalsSlot] = uint32(v)
 }
 
-func (n FunctionDeclaration) EndFlowNode() FlowRef {
+func (n FunctionDeclaration) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+functionDeclarationLocalsSlot])
+}
+
+func (n FunctionDeclaration) EndFlowRef() FlowRef {
 	return FlowRef(n.s.extra[int(n.h.data)+functionDeclarationEndFlowNodeSlot])
 }
 
-func (n FunctionDeclaration) SetEndFlowNode(v FlowRef) {
+func (n FunctionDeclaration) SetEndFlowRef(v FlowRef) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+functionDeclarationEndFlowNodeSlot] = uint32(v)
 }
 
-func (n FunctionDeclaration) ReturnFlowNode() FlowRef {
+func (n FunctionDeclaration) EndFlowNode() Flow {
+	return n.s.flowAt(n.s.extra[int(n.h.data)+functionDeclarationEndFlowNodeSlot])
+}
+
+func (n FunctionDeclaration) ReturnFlowRef() FlowRef {
 	return FlowRef(n.s.extra[int(n.h.data)+functionDeclarationReturnFlowNodeSlot])
 }
 
-func (n FunctionDeclaration) SetReturnFlowNode(v FlowRef) {
+func (n FunctionDeclaration) SetReturnFlowRef(v FlowRef) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+functionDeclarationReturnFlowNodeSlot] = uint32(v)
+}
+
+func (n FunctionDeclaration) ReturnFlowNode() Flow {
+	return n.s.flowAt(n.s.extra[int(n.h.data)+functionDeclarationReturnFlowNodeSlot])
 }
 
 // ClassDeclaration: ast.KindClassDeclaration
@@ -963,10 +922,7 @@ const (
 	classDeclarationLocalsSlot          = 6
 )
 
-type ClassDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type ClassDeclaration Node
 
 func (n Node) AsClassDeclaration() ClassDeclaration {
 	if storeChecks {
@@ -976,7 +932,7 @@ func (n Node) AsClassDeclaration() ClassDeclaration {
 }
 
 func (n ClassDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+classDeclarationModifiersSlot]))
 }
 
 func (n ClassDeclaration) Name() Node {
@@ -984,33 +940,41 @@ func (n ClassDeclaration) Name() Node {
 }
 
 func (n ClassDeclaration) TypeParameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classDeclarationTypeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+classDeclarationTypeParametersSlot]))
 }
 
 func (n ClassDeclaration) HeritageClauses() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classDeclarationHeritageClausesSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+classDeclarationHeritageClausesSlot]))
 }
 
 func (n ClassDeclaration) Members() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classDeclarationMembersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+classDeclarationMembersSlot]))
 }
 
-func (n ClassDeclaration) LocalSymbol() SymbolId {
+func (n ClassDeclaration) LocalSymbolId() SymbolId {
 	return SymbolId(n.s.extra[int(n.h.data)+classDeclarationLocalSymbolSlot])
 }
 
-func (n ClassDeclaration) SetLocalSymbol(v SymbolId) {
+func (n ClassDeclaration) SetLocalSymbolId(v SymbolId) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+classDeclarationLocalSymbolSlot] = uint32(v)
 }
 
-func (n ClassDeclaration) LocalsSlot() uint32 {
+func (n ClassDeclaration) LocalSymbol() *Symbol {
+	return n.s.symbolAt(n.s.extra[int(n.h.data)+classDeclarationLocalSymbolSlot])
+}
+
+func (n ClassDeclaration) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+classDeclarationLocalsSlot])
 }
 
-func (n ClassDeclaration) SetLocalsSlot(v uint32) {
+func (n ClassDeclaration) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+classDeclarationLocalsSlot] = uint32(v)
+}
+
+func (n ClassDeclaration) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+classDeclarationLocalsSlot])
 }
 
 // ClassExpression: ast.KindClassExpression
@@ -1024,10 +988,7 @@ const (
 	classExpressionLocalsSlot          = 6
 )
 
-type ClassExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type ClassExpression Node
 
 func (n Node) AsClassExpression() ClassExpression {
 	if storeChecks {
@@ -1037,7 +998,7 @@ func (n Node) AsClassExpression() ClassExpression {
 }
 
 func (n ClassExpression) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classExpressionModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+classExpressionModifiersSlot]))
 }
 
 func (n ClassExpression) Name() Node {
@@ -1045,33 +1006,41 @@ func (n ClassExpression) Name() Node {
 }
 
 func (n ClassExpression) TypeParameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classExpressionTypeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+classExpressionTypeParametersSlot]))
 }
 
 func (n ClassExpression) HeritageClauses() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classExpressionHeritageClausesSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+classExpressionHeritageClausesSlot]))
 }
 
 func (n ClassExpression) Members() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classExpressionMembersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+classExpressionMembersSlot]))
 }
 
-func (n ClassExpression) LocalSymbol() SymbolId {
+func (n ClassExpression) LocalSymbolId() SymbolId {
 	return SymbolId(n.s.extra[int(n.h.data)+classExpressionLocalSymbolSlot])
 }
 
-func (n ClassExpression) SetLocalSymbol(v SymbolId) {
+func (n ClassExpression) SetLocalSymbolId(v SymbolId) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+classExpressionLocalSymbolSlot] = uint32(v)
 }
 
-func (n ClassExpression) LocalsSlot() uint32 {
+func (n ClassExpression) LocalSymbol() *Symbol {
+	return n.s.symbolAt(n.s.extra[int(n.h.data)+classExpressionLocalSymbolSlot])
+}
+
+func (n ClassExpression) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+classExpressionLocalsSlot])
 }
 
-func (n ClassExpression) SetLocalsSlot(v uint32) {
+func (n ClassExpression) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+classExpressionLocalsSlot] = uint32(v)
+}
+
+func (n ClassExpression) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+classExpressionLocalsSlot])
 }
 
 // HeritageClause: ast.KindHeritageClause
@@ -1080,10 +1049,7 @@ const (
 	heritageClauseTypesSlot = 1
 )
 
-type HeritageClause struct {
-	s *Store
-	h *NodeHeader
-}
+type HeritageClause Node
 
 func (n Node) AsHeritageClause() HeritageClause {
 	if storeChecks {
@@ -1097,7 +1063,7 @@ func (n HeritageClause) Token() ast.Kind {
 }
 
 func (n HeritageClause) Types() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+heritageClauseTypesSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+heritageClauseTypesSlot]))
 }
 
 // InterfaceDeclaration: ast.KindInterfaceDeclaration
@@ -1110,10 +1076,7 @@ const (
 	interfaceDeclarationLocalSymbolSlot     = 5
 )
 
-type InterfaceDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type InterfaceDeclaration Node
 
 func (n Node) AsInterfaceDeclaration() InterfaceDeclaration {
 	if storeChecks {
@@ -1123,7 +1086,7 @@ func (n Node) AsInterfaceDeclaration() InterfaceDeclaration {
 }
 
 func (n InterfaceDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+interfaceDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+interfaceDeclarationModifiersSlot]))
 }
 
 func (n InterfaceDeclaration) Name() Node {
@@ -1131,24 +1094,28 @@ func (n InterfaceDeclaration) Name() Node {
 }
 
 func (n InterfaceDeclaration) TypeParameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+interfaceDeclarationTypeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+interfaceDeclarationTypeParametersSlot]))
 }
 
 func (n InterfaceDeclaration) HeritageClauses() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+interfaceDeclarationHeritageClausesSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+interfaceDeclarationHeritageClausesSlot]))
 }
 
 func (n InterfaceDeclaration) Members() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+interfaceDeclarationMembersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+interfaceDeclarationMembersSlot]))
 }
 
-func (n InterfaceDeclaration) LocalSymbol() SymbolId {
+func (n InterfaceDeclaration) LocalSymbolId() SymbolId {
 	return SymbolId(n.s.extra[int(n.h.data)+interfaceDeclarationLocalSymbolSlot])
 }
 
-func (n InterfaceDeclaration) SetLocalSymbol(v SymbolId) {
+func (n InterfaceDeclaration) SetLocalSymbolId(v SymbolId) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+interfaceDeclarationLocalSymbolSlot] = uint32(v)
+}
+
+func (n InterfaceDeclaration) LocalSymbol() *Symbol {
+	return n.s.symbolAt(n.s.extra[int(n.h.data)+interfaceDeclarationLocalSymbolSlot])
 }
 
 // TypeAliasDeclaration: ast.KindTypeAliasDeclaration, ast.KindJSTypeAliasDeclaration
@@ -1161,10 +1128,7 @@ const (
 	typeAliasDeclarationLocalsSlot         = 5
 )
 
-type TypeAliasDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type TypeAliasDeclaration Node
 
 func (n Node) AsTypeAliasDeclaration() TypeAliasDeclaration {
 	if storeChecks {
@@ -1174,7 +1138,7 @@ func (n Node) AsTypeAliasDeclaration() TypeAliasDeclaration {
 }
 
 func (n TypeAliasDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+typeAliasDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+typeAliasDeclarationModifiersSlot]))
 }
 
 func (n TypeAliasDeclaration) Name() Node {
@@ -1182,29 +1146,37 @@ func (n TypeAliasDeclaration) Name() Node {
 }
 
 func (n TypeAliasDeclaration) TypeParameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+typeAliasDeclarationTypeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+typeAliasDeclarationTypeParametersSlot]))
 }
 
 func (n TypeAliasDeclaration) Type() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+typeAliasDeclarationTypeSlot]))
 }
 
-func (n TypeAliasDeclaration) LocalSymbol() SymbolId {
+func (n TypeAliasDeclaration) LocalSymbolId() SymbolId {
 	return SymbolId(n.s.extra[int(n.h.data)+typeAliasDeclarationLocalSymbolSlot])
 }
 
-func (n TypeAliasDeclaration) SetLocalSymbol(v SymbolId) {
+func (n TypeAliasDeclaration) SetLocalSymbolId(v SymbolId) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+typeAliasDeclarationLocalSymbolSlot] = uint32(v)
 }
 
-func (n TypeAliasDeclaration) LocalsSlot() uint32 {
+func (n TypeAliasDeclaration) LocalSymbol() *Symbol {
+	return n.s.symbolAt(n.s.extra[int(n.h.data)+typeAliasDeclarationLocalSymbolSlot])
+}
+
+func (n TypeAliasDeclaration) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+typeAliasDeclarationLocalsSlot])
 }
 
-func (n TypeAliasDeclaration) SetLocalsSlot(v uint32) {
+func (n TypeAliasDeclaration) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+typeAliasDeclarationLocalsSlot] = uint32(v)
+}
+
+func (n TypeAliasDeclaration) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+typeAliasDeclarationLocalsSlot])
 }
 
 // EnumMember: ast.KindEnumMember
@@ -1213,10 +1185,7 @@ const (
 	enumMemberInitializerSlot = 1
 )
 
-type EnumMember struct {
-	s *Store
-	h *NodeHeader
-}
+type EnumMember Node
 
 func (n Node) AsEnumMember() EnumMember {
 	if storeChecks {
@@ -1241,10 +1210,7 @@ const (
 	enumDeclarationLocalSymbolSlot = 3
 )
 
-type EnumDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type EnumDeclaration Node
 
 func (n Node) AsEnumDeclaration() EnumDeclaration {
 	if storeChecks {
@@ -1254,7 +1220,7 @@ func (n Node) AsEnumDeclaration() EnumDeclaration {
 }
 
 func (n EnumDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+enumDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+enumDeclarationModifiersSlot]))
 }
 
 func (n EnumDeclaration) Name() Node {
@@ -1262,16 +1228,20 @@ func (n EnumDeclaration) Name() Node {
 }
 
 func (n EnumDeclaration) Members() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+enumDeclarationMembersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+enumDeclarationMembersSlot]))
 }
 
-func (n EnumDeclaration) LocalSymbol() SymbolId {
+func (n EnumDeclaration) LocalSymbolId() SymbolId {
 	return SymbolId(n.s.extra[int(n.h.data)+enumDeclarationLocalSymbolSlot])
 }
 
-func (n EnumDeclaration) SetLocalSymbol(v SymbolId) {
+func (n EnumDeclaration) SetLocalSymbolId(v SymbolId) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+enumDeclarationLocalSymbolSlot] = uint32(v)
+}
+
+func (n EnumDeclaration) LocalSymbol() *Symbol {
+	return n.s.symbolAt(n.s.extra[int(n.h.data)+enumDeclarationLocalSymbolSlot])
 }
 
 // ModuleBlock: ast.KindModuleBlock
@@ -1279,10 +1249,7 @@ const (
 	moduleBlockStatementsSlot = 0
 )
 
-type ModuleBlock struct {
-	s *Store
-	h *NodeHeader
-}
+type ModuleBlock Node
 
 func (n Node) AsModuleBlock() ModuleBlock {
 	if storeChecks {
@@ -1292,7 +1259,7 @@ func (n Node) AsModuleBlock() ModuleBlock {
 }
 
 func (n ModuleBlock) Statements() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+moduleBlockStatementsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+moduleBlockStatementsSlot]))
 }
 
 // ImportDeclaration: ast.KindImportDeclaration, ast.KindJSImportDeclaration
@@ -1303,10 +1270,7 @@ const (
 	importDeclarationAttributesSlot      = 3
 )
 
-type ImportDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type ImportDeclaration Node
 
 func (n Node) AsImportDeclaration() ImportDeclaration {
 	if storeChecks {
@@ -1316,7 +1280,7 @@ func (n Node) AsImportDeclaration() ImportDeclaration {
 }
 
 func (n ImportDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+importDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+importDeclarationModifiersSlot]))
 }
 
 func (n ImportDeclaration) ImportClause() Node {
@@ -1336,10 +1300,7 @@ const (
 	externalModuleReferenceExpressionSlot = 0
 )
 
-type ExternalModuleReference struct {
-	s *Store
-	h *NodeHeader
-}
+type ExternalModuleReference Node
 
 func (n Node) AsExternalModuleReference() ExternalModuleReference {
 	if storeChecks {
@@ -1358,10 +1319,7 @@ const (
 	namespaceImportLocalSymbolSlot = 1
 )
 
-type NamespaceImport struct {
-	s *Store
-	h *NodeHeader
-}
+type NamespaceImport Node
 
 func (n Node) AsNamespaceImport() NamespaceImport {
 	if storeChecks {
@@ -1374,13 +1332,17 @@ func (n NamespaceImport) Name() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+namespaceImportNameSlot]))
 }
 
-func (n NamespaceImport) LocalSymbol() SymbolId {
+func (n NamespaceImport) LocalSymbolId() SymbolId {
 	return SymbolId(n.s.extra[int(n.h.data)+namespaceImportLocalSymbolSlot])
 }
 
-func (n NamespaceImport) SetLocalSymbol(v SymbolId) {
+func (n NamespaceImport) SetLocalSymbolId(v SymbolId) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+namespaceImportLocalSymbolSlot] = uint32(v)
+}
+
+func (n NamespaceImport) LocalSymbol() *Symbol {
+	return n.s.symbolAt(n.s.extra[int(n.h.data)+namespaceImportLocalSymbolSlot])
 }
 
 // NamedImports: ast.KindNamedImports
@@ -1388,10 +1350,7 @@ const (
 	namedImportsElementsSlot = 0
 )
 
-type NamedImports struct {
-	s *Store
-	h *NodeHeader
-}
+type NamedImports Node
 
 func (n Node) AsNamedImports() NamedImports {
 	if storeChecks {
@@ -1401,7 +1360,7 @@ func (n Node) AsNamedImports() NamedImports {
 }
 
 func (n NamedImports) Elements() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+namedImportsElementsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+namedImportsElementsSlot]))
 }
 
 // ExportAssignment: ast.KindExportAssignment
@@ -1412,10 +1371,7 @@ const (
 	exportAssignmentExpressionSlot     = 3
 )
 
-type ExportAssignment struct {
-	s *Store
-	h *NodeHeader
-}
+type ExportAssignment Node
 
 func (n Node) AsExportAssignment() ExportAssignment {
 	if storeChecks {
@@ -1425,7 +1381,7 @@ func (n Node) AsExportAssignment() ExportAssignment {
 }
 
 func (n ExportAssignment) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+exportAssignmentModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+exportAssignmentModifiersSlot]))
 }
 
 func (n ExportAssignment) IsExportEquals() bool {
@@ -1446,10 +1402,7 @@ const (
 	namespaceExportDeclarationNameSlot      = 1
 )
 
-type NamespaceExportDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type NamespaceExportDeclaration Node
 
 func (n Node) AsNamespaceExportDeclaration() NamespaceExportDeclaration {
 	if storeChecks {
@@ -1459,7 +1412,7 @@ func (n Node) AsNamespaceExportDeclaration() NamespaceExportDeclaration {
 }
 
 func (n NamespaceExportDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+namespaceExportDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+namespaceExportDeclarationModifiersSlot]))
 }
 
 func (n NamespaceExportDeclaration) Name() Node {
@@ -1471,10 +1424,7 @@ const (
 	namespaceExportNameSlot = 0
 )
 
-type NamespaceExport struct {
-	s *Store
-	h *NodeHeader
-}
+type NamespaceExport Node
 
 func (n Node) AsNamespaceExport() NamespaceExport {
 	if storeChecks {
@@ -1492,10 +1442,7 @@ const (
 	namedExportsElementsSlot = 0
 )
 
-type NamedExports struct {
-	s *Store
-	h *NodeHeader
-}
+type NamedExports Node
 
 func (n Node) AsNamedExports() NamedExports {
 	if storeChecks {
@@ -1505,7 +1452,7 @@ func (n Node) AsNamedExports() NamedExports {
 }
 
 func (n NamedExports) Elements() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+namedExportsElementsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+namedExportsElementsSlot]))
 }
 
 // ExportSpecifier: ast.KindExportSpecifier
@@ -1516,10 +1463,7 @@ const (
 	exportSpecifierLocalSymbolSlot  = 3
 )
 
-type ExportSpecifier struct {
-	s *Store
-	h *NodeHeader
-}
+type ExportSpecifier Node
 
 func (n Node) AsExportSpecifier() ExportSpecifier {
 	if storeChecks {
@@ -1540,13 +1484,17 @@ func (n ExportSpecifier) Name() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+exportSpecifierNameSlot]))
 }
 
-func (n ExportSpecifier) LocalSymbol() SymbolId {
+func (n ExportSpecifier) LocalSymbolId() SymbolId {
 	return SymbolId(n.s.extra[int(n.h.data)+exportSpecifierLocalSymbolSlot])
 }
 
-func (n ExportSpecifier) SetLocalSymbol(v SymbolId) {
+func (n ExportSpecifier) SetLocalSymbolId(v SymbolId) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+exportSpecifierLocalSymbolSlot] = uint32(v)
+}
+
+func (n ExportSpecifier) LocalSymbol() *Symbol {
+	return n.s.symbolAt(n.s.extra[int(n.h.data)+exportSpecifierLocalSymbolSlot])
 }
 
 // CallSignatureDeclaration: ast.KindCallSignature
@@ -1557,10 +1505,7 @@ const (
 	callSignatureDeclarationLocalsSlot         = 3
 )
 
-type CallSignatureDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type CallSignatureDeclaration Node
 
 func (n Node) AsCallSignatureDeclaration() CallSignatureDeclaration {
 	if storeChecks {
@@ -1570,24 +1515,28 @@ func (n Node) AsCallSignatureDeclaration() CallSignatureDeclaration {
 }
 
 func (n CallSignatureDeclaration) TypeParameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+callSignatureDeclarationTypeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+callSignatureDeclarationTypeParametersSlot]))
 }
 
 func (n CallSignatureDeclaration) Parameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+callSignatureDeclarationParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+callSignatureDeclarationParametersSlot]))
 }
 
 func (n CallSignatureDeclaration) Type() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+callSignatureDeclarationTypeSlot]))
 }
 
-func (n CallSignatureDeclaration) LocalsSlot() uint32 {
+func (n CallSignatureDeclaration) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+callSignatureDeclarationLocalsSlot])
 }
 
-func (n CallSignatureDeclaration) SetLocalsSlot(v uint32) {
+func (n CallSignatureDeclaration) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+callSignatureDeclarationLocalsSlot] = uint32(v)
+}
+
+func (n CallSignatureDeclaration) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+callSignatureDeclarationLocalsSlot])
 }
 
 // ConstructSignatureDeclaration: ast.KindConstructSignature
@@ -1598,10 +1547,7 @@ const (
 	constructSignatureDeclarationLocalsSlot         = 3
 )
 
-type ConstructSignatureDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type ConstructSignatureDeclaration Node
 
 func (n Node) AsConstructSignatureDeclaration() ConstructSignatureDeclaration {
 	if storeChecks {
@@ -1611,24 +1557,28 @@ func (n Node) AsConstructSignatureDeclaration() ConstructSignatureDeclaration {
 }
 
 func (n ConstructSignatureDeclaration) TypeParameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+constructSignatureDeclarationTypeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+constructSignatureDeclarationTypeParametersSlot]))
 }
 
 func (n ConstructSignatureDeclaration) Parameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+constructSignatureDeclarationParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+constructSignatureDeclarationParametersSlot]))
 }
 
 func (n ConstructSignatureDeclaration) Type() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+constructSignatureDeclarationTypeSlot]))
 }
 
-func (n ConstructSignatureDeclaration) LocalsSlot() uint32 {
+func (n ConstructSignatureDeclaration) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+constructSignatureDeclarationLocalsSlot])
 }
 
-func (n ConstructSignatureDeclaration) SetLocalsSlot(v uint32) {
+func (n ConstructSignatureDeclaration) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+constructSignatureDeclarationLocalsSlot] = uint32(v)
+}
+
+func (n ConstructSignatureDeclaration) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+constructSignatureDeclarationLocalsSlot])
 }
 
 // ConstructorDeclaration: ast.KindConstructor
@@ -1644,10 +1594,7 @@ const (
 	constructorDeclarationReturnFlowNodeSlot = 8
 )
 
-type ConstructorDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type ConstructorDeclaration Node
 
 func (n Node) AsConstructorDeclaration() ConstructorDeclaration {
 	if storeChecks {
@@ -1657,15 +1604,15 @@ func (n Node) AsConstructorDeclaration() ConstructorDeclaration {
 }
 
 func (n ConstructorDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+constructorDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+constructorDeclarationModifiersSlot]))
 }
 
 func (n ConstructorDeclaration) TypeParameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+constructorDeclarationTypeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+constructorDeclarationTypeParametersSlot]))
 }
 
 func (n ConstructorDeclaration) Parameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+constructorDeclarationParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+constructorDeclarationParametersSlot]))
 }
 
 func (n ConstructorDeclaration) Type() Node {
@@ -1680,31 +1627,43 @@ func (n ConstructorDeclaration) Body() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+constructorDeclarationBodySlot]))
 }
 
-func (n ConstructorDeclaration) LocalsSlot() uint32 {
+func (n ConstructorDeclaration) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+constructorDeclarationLocalsSlot])
 }
 
-func (n ConstructorDeclaration) SetLocalsSlot(v uint32) {
+func (n ConstructorDeclaration) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+constructorDeclarationLocalsSlot] = uint32(v)
 }
 
-func (n ConstructorDeclaration) EndFlowNode() FlowRef {
+func (n ConstructorDeclaration) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+constructorDeclarationLocalsSlot])
+}
+
+func (n ConstructorDeclaration) EndFlowRef() FlowRef {
 	return FlowRef(n.s.extra[int(n.h.data)+constructorDeclarationEndFlowNodeSlot])
 }
 
-func (n ConstructorDeclaration) SetEndFlowNode(v FlowRef) {
+func (n ConstructorDeclaration) SetEndFlowRef(v FlowRef) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+constructorDeclarationEndFlowNodeSlot] = uint32(v)
 }
 
-func (n ConstructorDeclaration) ReturnFlowNode() FlowRef {
+func (n ConstructorDeclaration) EndFlowNode() Flow {
+	return n.s.flowAt(n.s.extra[int(n.h.data)+constructorDeclarationEndFlowNodeSlot])
+}
+
+func (n ConstructorDeclaration) ReturnFlowRef() FlowRef {
 	return FlowRef(n.s.extra[int(n.h.data)+constructorDeclarationReturnFlowNodeSlot])
 }
 
-func (n ConstructorDeclaration) SetReturnFlowNode(v FlowRef) {
+func (n ConstructorDeclaration) SetReturnFlowRef(v FlowRef) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+constructorDeclarationReturnFlowNodeSlot] = uint32(v)
+}
+
+func (n ConstructorDeclaration) ReturnFlowNode() Flow {
+	return n.s.flowAt(n.s.extra[int(n.h.data)+constructorDeclarationReturnFlowNodeSlot])
 }
 
 // GetAccessorDeclaration: ast.KindGetAccessor
@@ -1720,10 +1679,7 @@ const (
 	getAccessorDeclarationEndFlowNodeSlot    = 8
 )
 
-type GetAccessorDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type GetAccessorDeclaration Node
 
 func (n Node) AsGetAccessorDeclaration() GetAccessorDeclaration {
 	if storeChecks {
@@ -1733,7 +1689,7 @@ func (n Node) AsGetAccessorDeclaration() GetAccessorDeclaration {
 }
 
 func (n GetAccessorDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+getAccessorDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+getAccessorDeclarationModifiersSlot]))
 }
 
 func (n GetAccessorDeclaration) Name() Node {
@@ -1741,11 +1697,11 @@ func (n GetAccessorDeclaration) Name() Node {
 }
 
 func (n GetAccessorDeclaration) TypeParameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+getAccessorDeclarationTypeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+getAccessorDeclarationTypeParametersSlot]))
 }
 
 func (n GetAccessorDeclaration) Parameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+getAccessorDeclarationParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+getAccessorDeclarationParametersSlot]))
 }
 
 func (n GetAccessorDeclaration) Type() Node {
@@ -1760,22 +1716,30 @@ func (n GetAccessorDeclaration) Body() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+getAccessorDeclarationBodySlot]))
 }
 
-func (n GetAccessorDeclaration) LocalsSlot() uint32 {
+func (n GetAccessorDeclaration) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+getAccessorDeclarationLocalsSlot])
 }
 
-func (n GetAccessorDeclaration) SetLocalsSlot(v uint32) {
+func (n GetAccessorDeclaration) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+getAccessorDeclarationLocalsSlot] = uint32(v)
 }
 
-func (n GetAccessorDeclaration) EndFlowNode() FlowRef {
+func (n GetAccessorDeclaration) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+getAccessorDeclarationLocalsSlot])
+}
+
+func (n GetAccessorDeclaration) EndFlowRef() FlowRef {
 	return FlowRef(n.s.extra[int(n.h.data)+getAccessorDeclarationEndFlowNodeSlot])
 }
 
-func (n GetAccessorDeclaration) SetEndFlowNode(v FlowRef) {
+func (n GetAccessorDeclaration) SetEndFlowRef(v FlowRef) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+getAccessorDeclarationEndFlowNodeSlot] = uint32(v)
+}
+
+func (n GetAccessorDeclaration) EndFlowNode() Flow {
+	return n.s.flowAt(n.s.extra[int(n.h.data)+getAccessorDeclarationEndFlowNodeSlot])
 }
 
 // SetAccessorDeclaration: ast.KindSetAccessor
@@ -1791,10 +1755,7 @@ const (
 	setAccessorDeclarationEndFlowNodeSlot    = 8
 )
 
-type SetAccessorDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type SetAccessorDeclaration Node
 
 func (n Node) AsSetAccessorDeclaration() SetAccessorDeclaration {
 	if storeChecks {
@@ -1804,7 +1765,7 @@ func (n Node) AsSetAccessorDeclaration() SetAccessorDeclaration {
 }
 
 func (n SetAccessorDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+setAccessorDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+setAccessorDeclarationModifiersSlot]))
 }
 
 func (n SetAccessorDeclaration) Name() Node {
@@ -1812,11 +1773,11 @@ func (n SetAccessorDeclaration) Name() Node {
 }
 
 func (n SetAccessorDeclaration) TypeParameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+setAccessorDeclarationTypeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+setAccessorDeclarationTypeParametersSlot]))
 }
 
 func (n SetAccessorDeclaration) Parameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+setAccessorDeclarationParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+setAccessorDeclarationParametersSlot]))
 }
 
 func (n SetAccessorDeclaration) Type() Node {
@@ -1831,22 +1792,30 @@ func (n SetAccessorDeclaration) Body() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+setAccessorDeclarationBodySlot]))
 }
 
-func (n SetAccessorDeclaration) LocalsSlot() uint32 {
+func (n SetAccessorDeclaration) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+setAccessorDeclarationLocalsSlot])
 }
 
-func (n SetAccessorDeclaration) SetLocalsSlot(v uint32) {
+func (n SetAccessorDeclaration) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+setAccessorDeclarationLocalsSlot] = uint32(v)
 }
 
-func (n SetAccessorDeclaration) EndFlowNode() FlowRef {
+func (n SetAccessorDeclaration) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+setAccessorDeclarationLocalsSlot])
+}
+
+func (n SetAccessorDeclaration) EndFlowRef() FlowRef {
 	return FlowRef(n.s.extra[int(n.h.data)+setAccessorDeclarationEndFlowNodeSlot])
 }
 
-func (n SetAccessorDeclaration) SetEndFlowNode(v FlowRef) {
+func (n SetAccessorDeclaration) SetEndFlowRef(v FlowRef) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+setAccessorDeclarationEndFlowNodeSlot] = uint32(v)
+}
+
+func (n SetAccessorDeclaration) EndFlowNode() Flow {
+	return n.s.flowAt(n.s.extra[int(n.h.data)+setAccessorDeclarationEndFlowNodeSlot])
 }
 
 // IndexSignatureDeclaration: ast.KindIndexSignature
@@ -1857,10 +1826,7 @@ const (
 	indexSignatureDeclarationLocalsSlot     = 3
 )
 
-type IndexSignatureDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type IndexSignatureDeclaration Node
 
 func (n Node) AsIndexSignatureDeclaration() IndexSignatureDeclaration {
 	if storeChecks {
@@ -1870,24 +1836,28 @@ func (n Node) AsIndexSignatureDeclaration() IndexSignatureDeclaration {
 }
 
 func (n IndexSignatureDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+indexSignatureDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+indexSignatureDeclarationModifiersSlot]))
 }
 
 func (n IndexSignatureDeclaration) Parameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+indexSignatureDeclarationParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+indexSignatureDeclarationParametersSlot]))
 }
 
 func (n IndexSignatureDeclaration) Type() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+indexSignatureDeclarationTypeSlot]))
 }
 
-func (n IndexSignatureDeclaration) LocalsSlot() uint32 {
+func (n IndexSignatureDeclaration) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+indexSignatureDeclarationLocalsSlot])
 }
 
-func (n IndexSignatureDeclaration) SetLocalsSlot(v uint32) {
+func (n IndexSignatureDeclaration) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+indexSignatureDeclarationLocalsSlot] = uint32(v)
+}
+
+func (n IndexSignatureDeclaration) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+indexSignatureDeclarationLocalsSlot])
 }
 
 // MethodSignatureDeclaration: ast.KindMethodSignature
@@ -1901,10 +1871,7 @@ const (
 	methodSignatureDeclarationLocalsSlot         = 6
 )
 
-type MethodSignatureDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type MethodSignatureDeclaration Node
 
 func (n Node) AsMethodSignatureDeclaration() MethodSignatureDeclaration {
 	if storeChecks {
@@ -1914,7 +1881,7 @@ func (n Node) AsMethodSignatureDeclaration() MethodSignatureDeclaration {
 }
 
 func (n MethodSignatureDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+methodSignatureDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+methodSignatureDeclarationModifiersSlot]))
 }
 
 func (n MethodSignatureDeclaration) Name() Node {
@@ -1926,24 +1893,28 @@ func (n MethodSignatureDeclaration) PostfixToken() Node {
 }
 
 func (n MethodSignatureDeclaration) TypeParameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+methodSignatureDeclarationTypeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+methodSignatureDeclarationTypeParametersSlot]))
 }
 
 func (n MethodSignatureDeclaration) Parameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+methodSignatureDeclarationParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+methodSignatureDeclarationParametersSlot]))
 }
 
 func (n MethodSignatureDeclaration) Type() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+methodSignatureDeclarationTypeSlot]))
 }
 
-func (n MethodSignatureDeclaration) LocalsSlot() uint32 {
+func (n MethodSignatureDeclaration) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+methodSignatureDeclarationLocalsSlot])
 }
 
-func (n MethodSignatureDeclaration) SetLocalsSlot(v uint32) {
+func (n MethodSignatureDeclaration) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+methodSignatureDeclarationLocalsSlot] = uint32(v)
+}
+
+func (n MethodSignatureDeclaration) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+methodSignatureDeclarationLocalsSlot])
 }
 
 // MethodDeclaration: ast.KindMethodDeclaration
@@ -1961,10 +1932,7 @@ const (
 	methodDeclarationEndFlowNodeSlot    = 10
 )
 
-type MethodDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type MethodDeclaration Node
 
 func (n Node) AsMethodDeclaration() MethodDeclaration {
 	if storeChecks {
@@ -1974,7 +1942,7 @@ func (n Node) AsMethodDeclaration() MethodDeclaration {
 }
 
 func (n MethodDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+methodDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+methodDeclarationModifiersSlot]))
 }
 
 func (n MethodDeclaration) AsteriskToken() Node {
@@ -1990,11 +1958,11 @@ func (n MethodDeclaration) PostfixToken() Node {
 }
 
 func (n MethodDeclaration) TypeParameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+methodDeclarationTypeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+methodDeclarationTypeParametersSlot]))
 }
 
 func (n MethodDeclaration) Parameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+methodDeclarationParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+methodDeclarationParametersSlot]))
 }
 
 func (n MethodDeclaration) Type() Node {
@@ -2009,22 +1977,30 @@ func (n MethodDeclaration) Body() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+methodDeclarationBodySlot]))
 }
 
-func (n MethodDeclaration) LocalsSlot() uint32 {
+func (n MethodDeclaration) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+methodDeclarationLocalsSlot])
 }
 
-func (n MethodDeclaration) SetLocalsSlot(v uint32) {
+func (n MethodDeclaration) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+methodDeclarationLocalsSlot] = uint32(v)
 }
 
-func (n MethodDeclaration) EndFlowNode() FlowRef {
+func (n MethodDeclaration) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+methodDeclarationLocalsSlot])
+}
+
+func (n MethodDeclaration) EndFlowRef() FlowRef {
 	return FlowRef(n.s.extra[int(n.h.data)+methodDeclarationEndFlowNodeSlot])
 }
 
-func (n MethodDeclaration) SetEndFlowNode(v FlowRef) {
+func (n MethodDeclaration) SetEndFlowRef(v FlowRef) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+methodDeclarationEndFlowNodeSlot] = uint32(v)
+}
+
+func (n MethodDeclaration) EndFlowNode() Flow {
+	return n.s.flowAt(n.s.extra[int(n.h.data)+methodDeclarationEndFlowNodeSlot])
 }
 
 // PropertySignatureDeclaration: ast.KindPropertySignature
@@ -2036,10 +2012,7 @@ const (
 	propertySignatureDeclarationInitializerSlot  = 4
 )
 
-type PropertySignatureDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type PropertySignatureDeclaration Node
 
 func (n Node) AsPropertySignatureDeclaration() PropertySignatureDeclaration {
 	if storeChecks {
@@ -2049,7 +2022,7 @@ func (n Node) AsPropertySignatureDeclaration() PropertySignatureDeclaration {
 }
 
 func (n PropertySignatureDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+propertySignatureDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+propertySignatureDeclarationModifiersSlot]))
 }
 
 func (n PropertySignatureDeclaration) Name() Node {
@@ -2077,10 +2050,7 @@ const (
 	propertyDeclarationInitializerSlot  = 4
 )
 
-type PropertyDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type PropertyDeclaration Node
 
 func (n Node) AsPropertyDeclaration() PropertyDeclaration {
 	if storeChecks {
@@ -2090,7 +2060,7 @@ func (n Node) AsPropertyDeclaration() PropertyDeclaration {
 }
 
 func (n PropertyDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+propertyDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+propertyDeclarationModifiersSlot]))
 }
 
 func (n PropertyDeclaration) Name() Node {
@@ -2117,10 +2087,7 @@ const (
 	classStaticBlockDeclarationReturnFlowNodeSlot = 3
 )
 
-type ClassStaticBlockDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type ClassStaticBlockDeclaration Node
 
 func (n Node) AsClassStaticBlockDeclaration() ClassStaticBlockDeclaration {
 	if storeChecks {
@@ -2130,29 +2097,37 @@ func (n Node) AsClassStaticBlockDeclaration() ClassStaticBlockDeclaration {
 }
 
 func (n ClassStaticBlockDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+classStaticBlockDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+classStaticBlockDeclarationModifiersSlot]))
 }
 
 func (n ClassStaticBlockDeclaration) Body() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+classStaticBlockDeclarationBodySlot]))
 }
 
-func (n ClassStaticBlockDeclaration) LocalsSlot() uint32 {
+func (n ClassStaticBlockDeclaration) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+classStaticBlockDeclarationLocalsSlot])
 }
 
-func (n ClassStaticBlockDeclaration) SetLocalsSlot(v uint32) {
+func (n ClassStaticBlockDeclaration) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+classStaticBlockDeclarationLocalsSlot] = uint32(v)
 }
 
-func (n ClassStaticBlockDeclaration) ReturnFlowNode() FlowRef {
+func (n ClassStaticBlockDeclaration) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+classStaticBlockDeclarationLocalsSlot])
+}
+
+func (n ClassStaticBlockDeclaration) ReturnFlowRef() FlowRef {
 	return FlowRef(n.s.extra[int(n.h.data)+classStaticBlockDeclarationReturnFlowNodeSlot])
 }
 
-func (n ClassStaticBlockDeclaration) SetReturnFlowNode(v FlowRef) {
+func (n ClassStaticBlockDeclaration) SetReturnFlowRef(v FlowRef) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+classStaticBlockDeclarationReturnFlowNodeSlot] = uint32(v)
+}
+
+func (n ClassStaticBlockDeclaration) ReturnFlowNode() Flow {
+	return n.s.flowAt(n.s.extra[int(n.h.data)+classStaticBlockDeclarationReturnFlowNodeSlot])
 }
 
 // StringLiteral: ast.KindStringLiteral
@@ -2161,10 +2136,7 @@ const (
 	stringLiteralTokenFlagsSlot = 2
 )
 
-type StringLiteral struct {
-	s *Store
-	h *NodeHeader
-}
+type StringLiteral Node
 
 func (n Node) AsStringLiteral() StringLiteral {
 	if storeChecks {
@@ -2185,10 +2157,7 @@ const (
 	numericLiteralTokenFlagsSlot = 2
 )
 
-type NumericLiteral struct {
-	s *Store
-	h *NodeHeader
-}
+type NumericLiteral Node
 
 func (n Node) AsNumericLiteral() NumericLiteral {
 	if storeChecks {
@@ -2209,10 +2178,7 @@ const (
 	bigIntLiteralTokenFlagsSlot = 2
 )
 
-type BigIntLiteral struct {
-	s *Store
-	h *NodeHeader
-}
+type BigIntLiteral Node
 
 func (n Node) AsBigIntLiteral() BigIntLiteral {
 	if storeChecks {
@@ -2233,10 +2199,7 @@ const (
 	regularExpressionLiteralTokenFlagsSlot = 2
 )
 
-type RegularExpressionLiteral struct {
-	s *Store
-	h *NodeHeader
-}
+type RegularExpressionLiteral Node
 
 func (n Node) AsRegularExpressionLiteral() RegularExpressionLiteral {
 	if storeChecks {
@@ -2259,10 +2222,7 @@ const (
 	noSubstitutionTemplateLiteralTemplateFlagsSlot = 2
 )
 
-type NoSubstitutionTemplateLiteral struct {
-	s *Store
-	h *NodeHeader
-}
+type NoSubstitutionTemplateLiteral Node
 
 func (n Node) AsNoSubstitutionTemplateLiteral() NoSubstitutionTemplateLiteral {
 	if storeChecks {
@@ -2288,10 +2248,7 @@ const (
 	binaryExpressionRightSlot         = 4
 )
 
-type BinaryExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type BinaryExpression Node
 
 func (n Node) AsBinaryExpression() BinaryExpression {
 	if storeChecks {
@@ -2301,7 +2258,7 @@ func (n Node) AsBinaryExpression() BinaryExpression {
 }
 
 func (n BinaryExpression) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+binaryExpressionModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+binaryExpressionModifiersSlot]))
 }
 
 func (n BinaryExpression) Left() Node {
@@ -2326,10 +2283,7 @@ const (
 	prefixUnaryExpressionOperandSlot  = 1
 )
 
-type PrefixUnaryExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type PrefixUnaryExpression Node
 
 func (n Node) AsPrefixUnaryExpression() PrefixUnaryExpression {
 	if storeChecks {
@@ -2352,10 +2306,7 @@ const (
 	postfixUnaryExpressionOperatorSlot = 1
 )
 
-type PostfixUnaryExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type PostfixUnaryExpression Node
 
 func (n Node) AsPostfixUnaryExpression() PostfixUnaryExpression {
 	if storeChecks {
@@ -2378,10 +2329,7 @@ const (
 	yieldExpressionExpressionSlot    = 1
 )
 
-type YieldExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type YieldExpression Node
 
 func (n Node) AsYieldExpression() YieldExpression {
 	if storeChecks {
@@ -2411,10 +2359,7 @@ const (
 	arrowFunctionEndFlowNodeSlot            = 8
 )
 
-type ArrowFunction struct {
-	s *Store
-	h *NodeHeader
-}
+type ArrowFunction Node
 
 func (n Node) AsArrowFunction() ArrowFunction {
 	if storeChecks {
@@ -2424,15 +2369,15 @@ func (n Node) AsArrowFunction() ArrowFunction {
 }
 
 func (n ArrowFunction) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+arrowFunctionModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+arrowFunctionModifiersSlot]))
 }
 
 func (n ArrowFunction) TypeParameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+arrowFunctionTypeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+arrowFunctionTypeParametersSlot]))
 }
 
 func (n ArrowFunction) Parameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+arrowFunctionParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+arrowFunctionParametersSlot]))
 }
 
 func (n ArrowFunction) Type() Node {
@@ -2451,22 +2396,30 @@ func (n ArrowFunction) Body() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+arrowFunctionBodySlot]))
 }
 
-func (n ArrowFunction) LocalsSlot() uint32 {
+func (n ArrowFunction) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+arrowFunctionLocalsSlot])
 }
 
-func (n ArrowFunction) SetLocalsSlot(v uint32) {
+func (n ArrowFunction) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+arrowFunctionLocalsSlot] = uint32(v)
 }
 
-func (n ArrowFunction) EndFlowNode() FlowRef {
+func (n ArrowFunction) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+arrowFunctionLocalsSlot])
+}
+
+func (n ArrowFunction) EndFlowRef() FlowRef {
 	return FlowRef(n.s.extra[int(n.h.data)+arrowFunctionEndFlowNodeSlot])
 }
 
-func (n ArrowFunction) SetEndFlowNode(v FlowRef) {
+func (n ArrowFunction) SetEndFlowRef(v FlowRef) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+arrowFunctionEndFlowNodeSlot] = uint32(v)
+}
+
+func (n ArrowFunction) EndFlowNode() Flow {
+	return n.s.flowAt(n.s.extra[int(n.h.data)+arrowFunctionEndFlowNodeSlot])
 }
 
 // FunctionExpression: ast.KindFunctionExpression
@@ -2484,10 +2437,7 @@ const (
 	functionExpressionReturnFlowNodeSlot = 10
 )
 
-type FunctionExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type FunctionExpression Node
 
 func (n Node) AsFunctionExpression() FunctionExpression {
 	if storeChecks {
@@ -2497,7 +2447,7 @@ func (n Node) AsFunctionExpression() FunctionExpression {
 }
 
 func (n FunctionExpression) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+functionExpressionModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+functionExpressionModifiersSlot]))
 }
 
 func (n FunctionExpression) AsteriskToken() Node {
@@ -2509,11 +2459,11 @@ func (n FunctionExpression) Name() Node {
 }
 
 func (n FunctionExpression) TypeParameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+functionExpressionTypeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+functionExpressionTypeParametersSlot]))
 }
 
 func (n FunctionExpression) Parameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+functionExpressionParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+functionExpressionParametersSlot]))
 }
 
 func (n FunctionExpression) Type() Node {
@@ -2528,31 +2478,43 @@ func (n FunctionExpression) Body() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+functionExpressionBodySlot]))
 }
 
-func (n FunctionExpression) LocalsSlot() uint32 {
+func (n FunctionExpression) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+functionExpressionLocalsSlot])
 }
 
-func (n FunctionExpression) SetLocalsSlot(v uint32) {
+func (n FunctionExpression) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+functionExpressionLocalsSlot] = uint32(v)
 }
 
-func (n FunctionExpression) EndFlowNode() FlowRef {
+func (n FunctionExpression) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+functionExpressionLocalsSlot])
+}
+
+func (n FunctionExpression) EndFlowRef() FlowRef {
 	return FlowRef(n.s.extra[int(n.h.data)+functionExpressionEndFlowNodeSlot])
 }
 
-func (n FunctionExpression) SetEndFlowNode(v FlowRef) {
+func (n FunctionExpression) SetEndFlowRef(v FlowRef) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+functionExpressionEndFlowNodeSlot] = uint32(v)
 }
 
-func (n FunctionExpression) ReturnFlowNode() FlowRef {
+func (n FunctionExpression) EndFlowNode() Flow {
+	return n.s.flowAt(n.s.extra[int(n.h.data)+functionExpressionEndFlowNodeSlot])
+}
+
+func (n FunctionExpression) ReturnFlowRef() FlowRef {
 	return FlowRef(n.s.extra[int(n.h.data)+functionExpressionReturnFlowNodeSlot])
 }
 
-func (n FunctionExpression) SetReturnFlowNode(v FlowRef) {
+func (n FunctionExpression) SetReturnFlowRef(v FlowRef) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+functionExpressionReturnFlowNodeSlot] = uint32(v)
+}
+
+func (n FunctionExpression) ReturnFlowNode() Flow {
+	return n.s.flowAt(n.s.extra[int(n.h.data)+functionExpressionReturnFlowNodeSlot])
 }
 
 // AsExpression: ast.KindAsExpression
@@ -2561,10 +2523,7 @@ const (
 	asExpressionTypeSlot       = 1
 )
 
-type AsExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type AsExpression Node
 
 func (n Node) AsAsExpression() AsExpression {
 	if storeChecks {
@@ -2587,10 +2546,7 @@ const (
 	satisfiesExpressionTypeSlot       = 1
 )
 
-type SatisfiesExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type SatisfiesExpression Node
 
 func (n Node) AsSatisfiesExpression() SatisfiesExpression {
 	if storeChecks {
@@ -2616,10 +2572,7 @@ const (
 	conditionalExpressionWhenFalseSlot     = 4
 )
 
-type ConditionalExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type ConditionalExpression Node
 
 func (n Node) AsConditionalExpression() ConditionalExpression {
 	if storeChecks {
@@ -2655,10 +2608,7 @@ const (
 	propertyAccessExpressionNameSlot             = 2
 )
 
-type PropertyAccessExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type PropertyAccessExpression Node
 
 func (n Node) AsPropertyAccessExpression() PropertyAccessExpression {
 	if storeChecks {
@@ -2686,10 +2636,7 @@ const (
 	elementAccessExpressionArgumentExpressionSlot = 2
 )
 
-type ElementAccessExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type ElementAccessExpression Node
 
 func (n Node) AsElementAccessExpression() ElementAccessExpression {
 	if storeChecks {
@@ -2718,10 +2665,7 @@ const (
 	callExpressionArgumentsSlot        = 3
 )
 
-type CallExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type CallExpression Node
 
 func (n Node) AsCallExpression() CallExpression {
 	if storeChecks {
@@ -2739,11 +2683,11 @@ func (n CallExpression) QuestionDotToken() Node {
 }
 
 func (n CallExpression) TypeArguments() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+callExpressionTypeArgumentsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+callExpressionTypeArgumentsSlot]))
 }
 
 func (n CallExpression) Arguments() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+callExpressionArgumentsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+callExpressionArgumentsSlot]))
 }
 
 // NewExpression: ast.KindNewExpression
@@ -2753,10 +2697,7 @@ const (
 	newExpressionArgumentsSlot     = 2
 )
 
-type NewExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type NewExpression Node
 
 func (n Node) AsNewExpression() NewExpression {
 	if storeChecks {
@@ -2770,11 +2711,11 @@ func (n NewExpression) Expression() Node {
 }
 
 func (n NewExpression) TypeArguments() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+newExpressionTypeArgumentsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+newExpressionTypeArgumentsSlot]))
 }
 
 func (n NewExpression) Arguments() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+newExpressionArgumentsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+newExpressionArgumentsSlot]))
 }
 
 // MetaProperty: ast.KindMetaProperty
@@ -2783,10 +2724,7 @@ const (
 	metaPropertyNameSlot         = 1
 )
 
-type MetaProperty struct {
-	s *Store
-	h *NodeHeader
-}
+type MetaProperty Node
 
 func (n Node) AsMetaProperty() MetaProperty {
 	if storeChecks {
@@ -2808,10 +2746,7 @@ const (
 	nonNullExpressionExpressionSlot = 0
 )
 
-type NonNullExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type NonNullExpression Node
 
 func (n Node) AsNonNullExpression() NonNullExpression {
 	if storeChecks {
@@ -2829,10 +2764,7 @@ const (
 	spreadElementExpressionSlot = 0
 )
 
-type SpreadElement struct {
-	s *Store
-	h *NodeHeader
-}
+type SpreadElement Node
 
 func (n Node) AsSpreadElement() SpreadElement {
 	if storeChecks {
@@ -2851,10 +2783,7 @@ const (
 	templateExpressionTemplateSpansSlot = 1
 )
 
-type TemplateExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type TemplateExpression Node
 
 func (n Node) AsTemplateExpression() TemplateExpression {
 	if storeChecks {
@@ -2868,7 +2797,7 @@ func (n TemplateExpression) Head() Node {
 }
 
 func (n TemplateExpression) TemplateSpans() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+templateExpressionTemplateSpansSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+templateExpressionTemplateSpansSlot]))
 }
 
 // TemplateSpan: ast.KindTemplateSpan
@@ -2877,10 +2806,7 @@ const (
 	templateSpanLiteralSlot    = 1
 )
 
-type TemplateSpan struct {
-	s *Store
-	h *NodeHeader
-}
+type TemplateSpan Node
 
 func (n Node) AsTemplateSpan() TemplateSpan {
 	if storeChecks {
@@ -2905,10 +2831,7 @@ const (
 	taggedTemplateExpressionTemplateSlot         = 3
 )
 
-type TaggedTemplateExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type TaggedTemplateExpression Node
 
 func (n Node) AsTaggedTemplateExpression() TaggedTemplateExpression {
 	if storeChecks {
@@ -2926,7 +2849,7 @@ func (n TaggedTemplateExpression) QuestionDotToken() Node {
 }
 
 func (n TaggedTemplateExpression) TypeArguments() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+taggedTemplateExpressionTypeArgumentsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+taggedTemplateExpressionTypeArgumentsSlot]))
 }
 
 func (n TaggedTemplateExpression) Template() Node {
@@ -2938,10 +2861,7 @@ const (
 	parenthesizedExpressionExpressionSlot = 0
 )
 
-type ParenthesizedExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type ParenthesizedExpression Node
 
 func (n Node) AsParenthesizedExpression() ParenthesizedExpression {
 	if storeChecks {
@@ -2960,10 +2880,7 @@ const (
 	arrayLiteralExpressionMultiLineSlot = 1
 )
 
-type ArrayLiteralExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type ArrayLiteralExpression Node
 
 func (n Node) AsArrayLiteralExpression() ArrayLiteralExpression {
 	if storeChecks {
@@ -2973,7 +2890,7 @@ func (n Node) AsArrayLiteralExpression() ArrayLiteralExpression {
 }
 
 func (n ArrayLiteralExpression) Elements() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+arrayLiteralExpressionElementsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+arrayLiteralExpressionElementsSlot]))
 }
 
 func (n ArrayLiteralExpression) MultiLine() bool {
@@ -2986,10 +2903,7 @@ const (
 	objectLiteralExpressionMultiLineSlot  = 1
 )
 
-type ObjectLiteralExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type ObjectLiteralExpression Node
 
 func (n Node) AsObjectLiteralExpression() ObjectLiteralExpression {
 	if storeChecks {
@@ -2999,7 +2913,7 @@ func (n Node) AsObjectLiteralExpression() ObjectLiteralExpression {
 }
 
 func (n ObjectLiteralExpression) Properties() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+objectLiteralExpressionPropertiesSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+objectLiteralExpressionPropertiesSlot]))
 }
 
 func (n ObjectLiteralExpression) MultiLine() bool {
@@ -3011,10 +2925,7 @@ const (
 	spreadAssignmentExpressionSlot = 0
 )
 
-type SpreadAssignment struct {
-	s *Store
-	h *NodeHeader
-}
+type SpreadAssignment Node
 
 func (n Node) AsSpreadAssignment() SpreadAssignment {
 	if storeChecks {
@@ -3036,10 +2947,7 @@ const (
 	propertyAssignmentInitializerSlot  = 4
 )
 
-type PropertyAssignment struct {
-	s *Store
-	h *NodeHeader
-}
+type PropertyAssignment Node
 
 func (n Node) AsPropertyAssignment() PropertyAssignment {
 	if storeChecks {
@@ -3049,7 +2957,7 @@ func (n Node) AsPropertyAssignment() PropertyAssignment {
 }
 
 func (n PropertyAssignment) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+propertyAssignmentModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+propertyAssignmentModifiersSlot]))
 }
 
 func (n PropertyAssignment) Name() Node {
@@ -3078,10 +2986,7 @@ const (
 	shorthandPropertyAssignmentObjectAssignmentInitializerSlot = 5
 )
 
-type ShorthandPropertyAssignment struct {
-	s *Store
-	h *NodeHeader
-}
+type ShorthandPropertyAssignment Node
 
 func (n Node) AsShorthandPropertyAssignment() ShorthandPropertyAssignment {
 	if storeChecks {
@@ -3091,7 +2996,7 @@ func (n Node) AsShorthandPropertyAssignment() ShorthandPropertyAssignment {
 }
 
 func (n ShorthandPropertyAssignment) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+shorthandPropertyAssignmentModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+shorthandPropertyAssignmentModifiersSlot]))
 }
 
 func (n ShorthandPropertyAssignment) Name() Node {
@@ -3119,10 +3024,7 @@ const (
 	deleteExpressionExpressionSlot = 0
 )
 
-type DeleteExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type DeleteExpression Node
 
 func (n Node) AsDeleteExpression() DeleteExpression {
 	if storeChecks {
@@ -3140,10 +3042,7 @@ const (
 	typeOfExpressionExpressionSlot = 0
 )
 
-type TypeOfExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type TypeOfExpression Node
 
 func (n Node) AsTypeOfExpression() TypeOfExpression {
 	if storeChecks {
@@ -3161,10 +3060,7 @@ const (
 	voidExpressionExpressionSlot = 0
 )
 
-type VoidExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type VoidExpression Node
 
 func (n Node) AsVoidExpression() VoidExpression {
 	if storeChecks {
@@ -3182,10 +3078,7 @@ const (
 	awaitExpressionExpressionSlot = 0
 )
 
-type AwaitExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type AwaitExpression Node
 
 func (n Node) AsAwaitExpression() AwaitExpression {
 	if storeChecks {
@@ -3204,10 +3097,7 @@ const (
 	typeAssertionExpressionSlot = 1
 )
 
-type TypeAssertion struct {
-	s *Store
-	h *NodeHeader
-}
+type TypeAssertion Node
 
 func (n Node) AsTypeAssertion() TypeAssertion {
 	if storeChecks {
@@ -3229,10 +3119,7 @@ const (
 	unionTypeNodeTypesSlot = 0
 )
 
-type UnionTypeNode struct {
-	s *Store
-	h *NodeHeader
-}
+type UnionTypeNode Node
 
 func (n Node) AsUnionTypeNode() UnionTypeNode {
 	if storeChecks {
@@ -3242,7 +3129,7 @@ func (n Node) AsUnionTypeNode() UnionTypeNode {
 }
 
 func (n UnionTypeNode) Types() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+unionTypeNodeTypesSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+unionTypeNodeTypesSlot]))
 }
 
 // IntersectionTypeNode: ast.KindIntersectionType
@@ -3250,10 +3137,7 @@ const (
 	intersectionTypeNodeTypesSlot = 0
 )
 
-type IntersectionTypeNode struct {
-	s *Store
-	h *NodeHeader
-}
+type IntersectionTypeNode Node
 
 func (n Node) AsIntersectionTypeNode() IntersectionTypeNode {
 	if storeChecks {
@@ -3263,7 +3147,7 @@ func (n Node) AsIntersectionTypeNode() IntersectionTypeNode {
 }
 
 func (n IntersectionTypeNode) Types() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+intersectionTypeNodeTypesSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+intersectionTypeNodeTypesSlot]))
 }
 
 // ConditionalTypeNode: ast.KindConditionalType
@@ -3275,10 +3159,7 @@ const (
 	conditionalTypeNodeLocalsSlot      = 4
 )
 
-type ConditionalTypeNode struct {
-	s *Store
-	h *NodeHeader
-}
+type ConditionalTypeNode Node
 
 func (n Node) AsConditionalTypeNode() ConditionalTypeNode {
 	if storeChecks {
@@ -3303,13 +3184,17 @@ func (n ConditionalTypeNode) FalseType() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+conditionalTypeNodeFalseTypeSlot]))
 }
 
-func (n ConditionalTypeNode) LocalsSlot() uint32 {
+func (n ConditionalTypeNode) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+conditionalTypeNodeLocalsSlot])
 }
 
-func (n ConditionalTypeNode) SetLocalsSlot(v uint32) {
+func (n ConditionalTypeNode) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+conditionalTypeNodeLocalsSlot] = uint32(v)
+}
+
+func (n ConditionalTypeNode) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+conditionalTypeNodeLocalsSlot])
 }
 
 // TypeOperatorNode: ast.KindTypeOperator
@@ -3318,10 +3203,7 @@ const (
 	typeOperatorNodeTypeSlot     = 1
 )
 
-type TypeOperatorNode struct {
-	s *Store
-	h *NodeHeader
-}
+type TypeOperatorNode Node
 
 func (n Node) AsTypeOperatorNode() TypeOperatorNode {
 	if storeChecks {
@@ -3343,10 +3225,7 @@ const (
 	inferTypeNodeTypeParameterSlot = 0
 )
 
-type InferTypeNode struct {
-	s *Store
-	h *NodeHeader
-}
+type InferTypeNode Node
 
 func (n Node) AsInferTypeNode() InferTypeNode {
 	if storeChecks {
@@ -3364,10 +3243,7 @@ const (
 	arrayTypeNodeElementTypeSlot = 0
 )
 
-type ArrayTypeNode struct {
-	s *Store
-	h *NodeHeader
-}
+type ArrayTypeNode Node
 
 func (n Node) AsArrayTypeNode() ArrayTypeNode {
 	if storeChecks {
@@ -3386,10 +3262,7 @@ const (
 	indexedAccessTypeNodeIndexTypeSlot  = 1
 )
 
-type IndexedAccessTypeNode struct {
-	s *Store
-	h *NodeHeader
-}
+type IndexedAccessTypeNode Node
 
 func (n Node) AsIndexedAccessTypeNode() IndexedAccessTypeNode {
 	if storeChecks {
@@ -3412,10 +3285,7 @@ const (
 	typeReferenceNodeTypeArgumentsSlot = 1
 )
 
-type TypeReferenceNode struct {
-	s *Store
-	h *NodeHeader
-}
+type TypeReferenceNode Node
 
 func (n Node) AsTypeReferenceNode() TypeReferenceNode {
 	if storeChecks {
@@ -3429,7 +3299,7 @@ func (n TypeReferenceNode) TypeName() Node {
 }
 
 func (n TypeReferenceNode) TypeArguments() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+typeReferenceNodeTypeArgumentsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+typeReferenceNodeTypeArgumentsSlot]))
 }
 
 // ExpressionWithTypeArguments: ast.KindExpressionWithTypeArguments
@@ -3438,10 +3308,7 @@ const (
 	expressionWithTypeArgumentsTypeArgumentsSlot = 1
 )
 
-type ExpressionWithTypeArguments struct {
-	s *Store
-	h *NodeHeader
-}
+type ExpressionWithTypeArguments Node
 
 func (n Node) AsExpressionWithTypeArguments() ExpressionWithTypeArguments {
 	if storeChecks {
@@ -3455,7 +3322,7 @@ func (n ExpressionWithTypeArguments) Expression() Node {
 }
 
 func (n ExpressionWithTypeArguments) TypeArguments() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+expressionWithTypeArgumentsTypeArgumentsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+expressionWithTypeArgumentsTypeArgumentsSlot]))
 }
 
 // LiteralTypeNode: ast.KindLiteralType
@@ -3463,10 +3330,7 @@ const (
 	literalTypeNodeLiteralSlot = 0
 )
 
-type LiteralTypeNode struct {
-	s *Store
-	h *NodeHeader
-}
+type LiteralTypeNode Node
 
 func (n Node) AsLiteralTypeNode() LiteralTypeNode {
 	if storeChecks {
@@ -3486,10 +3350,7 @@ const (
 	typePredicateNodeTypeSlot            = 2
 )
 
-type TypePredicateNode struct {
-	s *Store
-	h *NodeHeader
-}
+type TypePredicateNode Node
 
 func (n Node) AsTypePredicateNode() TypePredicateNode {
 	if storeChecks {
@@ -3516,10 +3377,7 @@ const (
 	importAttributeValueSlot = 1
 )
 
-type ImportAttribute struct {
-	s *Store
-	h *NodeHeader
-}
+type ImportAttribute Node
 
 func (n Node) AsImportAttribute() ImportAttribute {
 	if storeChecks {
@@ -3543,10 +3401,7 @@ const (
 	importAttributesMultiLineSlot  = 2
 )
 
-type ImportAttributes struct {
-	s *Store
-	h *NodeHeader
-}
+type ImportAttributes Node
 
 func (n Node) AsImportAttributes() ImportAttributes {
 	if storeChecks {
@@ -3560,7 +3415,7 @@ func (n ImportAttributes) Token() ast.Kind {
 }
 
 func (n ImportAttributes) Attributes() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+importAttributesAttributesSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+importAttributesAttributesSlot]))
 }
 
 func (n ImportAttributes) MultiLine() bool {
@@ -3573,10 +3428,7 @@ const (
 	typeQueryNodeTypeArgumentsSlot = 1
 )
 
-type TypeQueryNode struct {
-	s *Store
-	h *NodeHeader
-}
+type TypeQueryNode Node
 
 func (n Node) AsTypeQueryNode() TypeQueryNode {
 	if storeChecks {
@@ -3590,7 +3442,7 @@ func (n TypeQueryNode) ExprName() Node {
 }
 
 func (n TypeQueryNode) TypeArguments() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+typeQueryNodeTypeArgumentsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+typeQueryNodeTypeArgumentsSlot]))
 }
 
 // MappedTypeNode: ast.KindMappedType
@@ -3604,10 +3456,7 @@ const (
 	mappedTypeNodeLocalsSlot        = 6
 )
 
-type MappedTypeNode struct {
-	s *Store
-	h *NodeHeader
-}
+type MappedTypeNode Node
 
 func (n Node) AsMappedTypeNode() MappedTypeNode {
 	if storeChecks {
@@ -3637,16 +3486,20 @@ func (n MappedTypeNode) Type() Node {
 }
 
 func (n MappedTypeNode) Members() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+mappedTypeNodeMembersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+mappedTypeNodeMembersSlot]))
 }
 
-func (n MappedTypeNode) LocalsSlot() uint32 {
+func (n MappedTypeNode) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+mappedTypeNodeLocalsSlot])
 }
 
-func (n MappedTypeNode) SetLocalsSlot(v uint32) {
+func (n MappedTypeNode) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+mappedTypeNodeLocalsSlot] = uint32(v)
+}
+
+func (n MappedTypeNode) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+mappedTypeNodeLocalsSlot])
 }
 
 // TypeLiteralNode: ast.KindTypeLiteral
@@ -3654,10 +3507,7 @@ const (
 	typeLiteralNodeMembersSlot = 0
 )
 
-type TypeLiteralNode struct {
-	s *Store
-	h *NodeHeader
-}
+type TypeLiteralNode Node
 
 func (n Node) AsTypeLiteralNode() TypeLiteralNode {
 	if storeChecks {
@@ -3667,7 +3517,7 @@ func (n Node) AsTypeLiteralNode() TypeLiteralNode {
 }
 
 func (n TypeLiteralNode) Members() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+typeLiteralNodeMembersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+typeLiteralNodeMembersSlot]))
 }
 
 // TupleTypeNode: ast.KindTupleType
@@ -3675,10 +3525,7 @@ const (
 	tupleTypeNodeElementsSlot = 0
 )
 
-type TupleTypeNode struct {
-	s *Store
-	h *NodeHeader
-}
+type TupleTypeNode Node
 
 func (n Node) AsTupleTypeNode() TupleTypeNode {
 	if storeChecks {
@@ -3688,7 +3535,7 @@ func (n Node) AsTupleTypeNode() TupleTypeNode {
 }
 
 func (n TupleTypeNode) Elements() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+tupleTypeNodeElementsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+tupleTypeNodeElementsSlot]))
 }
 
 // NamedTupleMember: ast.KindNamedTupleMember
@@ -3699,10 +3546,7 @@ const (
 	namedTupleMemberTypeSlot           = 3
 )
 
-type NamedTupleMember struct {
-	s *Store
-	h *NodeHeader
-}
+type NamedTupleMember Node
 
 func (n Node) AsNamedTupleMember() NamedTupleMember {
 	if storeChecks {
@@ -3732,10 +3576,7 @@ const (
 	optionalTypeNodeTypeSlot = 0
 )
 
-type OptionalTypeNode struct {
-	s *Store
-	h *NodeHeader
-}
+type OptionalTypeNode Node
 
 func (n Node) AsOptionalTypeNode() OptionalTypeNode {
 	if storeChecks {
@@ -3753,10 +3594,7 @@ const (
 	restTypeNodeTypeSlot = 0
 )
 
-type RestTypeNode struct {
-	s *Store
-	h *NodeHeader
-}
+type RestTypeNode Node
 
 func (n Node) AsRestTypeNode() RestTypeNode {
 	if storeChecks {
@@ -3774,10 +3612,7 @@ const (
 	parenthesizedTypeNodeTypeSlot = 0
 )
 
-type ParenthesizedTypeNode struct {
-	s *Store
-	h *NodeHeader
-}
+type ParenthesizedTypeNode Node
 
 func (n Node) AsParenthesizedTypeNode() ParenthesizedTypeNode {
 	if storeChecks {
@@ -3798,10 +3633,7 @@ const (
 	functionTypeNodeLocalsSlot         = 3
 )
 
-type FunctionTypeNode struct {
-	s *Store
-	h *NodeHeader
-}
+type FunctionTypeNode Node
 
 func (n Node) AsFunctionTypeNode() FunctionTypeNode {
 	if storeChecks {
@@ -3811,24 +3643,28 @@ func (n Node) AsFunctionTypeNode() FunctionTypeNode {
 }
 
 func (n FunctionTypeNode) TypeParameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+functionTypeNodeTypeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+functionTypeNodeTypeParametersSlot]))
 }
 
 func (n FunctionTypeNode) Parameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+functionTypeNodeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+functionTypeNodeParametersSlot]))
 }
 
 func (n FunctionTypeNode) Type() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+functionTypeNodeTypeSlot]))
 }
 
-func (n FunctionTypeNode) LocalsSlot() uint32 {
+func (n FunctionTypeNode) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+functionTypeNodeLocalsSlot])
 }
 
-func (n FunctionTypeNode) SetLocalsSlot(v uint32) {
+func (n FunctionTypeNode) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+functionTypeNodeLocalsSlot] = uint32(v)
+}
+
+func (n FunctionTypeNode) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+functionTypeNodeLocalsSlot])
 }
 
 // ConstructorTypeNode: ast.KindConstructorType
@@ -3840,10 +3676,7 @@ const (
 	constructorTypeNodeLocalsSlot         = 4
 )
 
-type ConstructorTypeNode struct {
-	s *Store
-	h *NodeHeader
-}
+type ConstructorTypeNode Node
 
 func (n Node) AsConstructorTypeNode() ConstructorTypeNode {
 	if storeChecks {
@@ -3853,28 +3686,32 @@ func (n Node) AsConstructorTypeNode() ConstructorTypeNode {
 }
 
 func (n ConstructorTypeNode) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+constructorTypeNodeModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+constructorTypeNodeModifiersSlot]))
 }
 
 func (n ConstructorTypeNode) TypeParameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+constructorTypeNodeTypeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+constructorTypeNodeTypeParametersSlot]))
 }
 
 func (n ConstructorTypeNode) Parameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+constructorTypeNodeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+constructorTypeNodeParametersSlot]))
 }
 
 func (n ConstructorTypeNode) Type() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+constructorTypeNodeTypeSlot]))
 }
 
-func (n ConstructorTypeNode) LocalsSlot() uint32 {
+func (n ConstructorTypeNode) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+constructorTypeNodeLocalsSlot])
 }
 
-func (n ConstructorTypeNode) SetLocalsSlot(v uint32) {
+func (n ConstructorTypeNode) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+constructorTypeNodeLocalsSlot] = uint32(v)
+}
+
+func (n ConstructorTypeNode) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+constructorTypeNodeLocalsSlot])
 }
 
 // TemplateHead: ast.KindTemplateHead
@@ -3884,10 +3721,7 @@ const (
 	templateHeadTemplateFlagsSlot = 4
 )
 
-type TemplateHead struct {
-	s *Store
-	h *NodeHeader
-}
+type TemplateHead Node
 
 func (n Node) AsTemplateHead() TemplateHead {
 	if storeChecks {
@@ -3911,10 +3745,7 @@ const (
 	templateMiddleTemplateFlagsSlot = 4
 )
 
-type TemplateMiddle struct {
-	s *Store
-	h *NodeHeader
-}
+type TemplateMiddle Node
 
 func (n Node) AsTemplateMiddle() TemplateMiddle {
 	if storeChecks {
@@ -3938,10 +3769,7 @@ const (
 	templateTailTemplateFlagsSlot = 4
 )
 
-type TemplateTail struct {
-	s *Store
-	h *NodeHeader
-}
+type TemplateTail Node
 
 func (n Node) AsTemplateTail() TemplateTail {
 	if storeChecks {
@@ -3964,10 +3792,7 @@ const (
 	templateLiteralTypeNodeTemplateSpansSlot = 1
 )
 
-type TemplateLiteralTypeNode struct {
-	s *Store
-	h *NodeHeader
-}
+type TemplateLiteralTypeNode Node
 
 func (n Node) AsTemplateLiteralTypeNode() TemplateLiteralTypeNode {
 	if storeChecks {
@@ -3981,7 +3806,7 @@ func (n TemplateLiteralTypeNode) Head() Node {
 }
 
 func (n TemplateLiteralTypeNode) TemplateSpans() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+templateLiteralTypeNodeTemplateSpansSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+templateLiteralTypeNodeTemplateSpansSlot]))
 }
 
 // TemplateLiteralTypeSpan: ast.KindTemplateLiteralTypeSpan
@@ -3990,10 +3815,7 @@ const (
 	templateLiteralTypeSpanLiteralSlot = 1
 )
 
-type TemplateLiteralTypeSpan struct {
-	s *Store
-	h *NodeHeader
-}
+type TemplateLiteralTypeSpan Node
 
 func (n Node) AsTemplateLiteralTypeSpan() TemplateLiteralTypeSpan {
 	if storeChecks {
@@ -4017,10 +3839,7 @@ const (
 )
 
 // TODO(store): Type any has no slot: a checker type, kept in a side table.
-type SyntheticExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type SyntheticExpression Node
 
 func (n Node) AsSyntheticExpression() SyntheticExpression {
 	if storeChecks {
@@ -4042,10 +3861,7 @@ const (
 	partiallyEmittedExpressionExpressionSlot = 0
 )
 
-type PartiallyEmittedExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type PartiallyEmittedExpression Node
 
 func (n Node) AsPartiallyEmittedExpression() PartiallyEmittedExpression {
 	if storeChecks {
@@ -4065,10 +3881,7 @@ const (
 	jsxElementClosingElementSlot = 2
 )
 
-type JsxElement struct {
-	s *Store
-	h *NodeHeader
-}
+type JsxElement Node
 
 func (n Node) AsJsxElement() JsxElement {
 	if storeChecks {
@@ -4082,7 +3895,7 @@ func (n JsxElement) OpeningElement() Node {
 }
 
 func (n JsxElement) Children() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsxElementChildrenSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsxElementChildrenSlot]))
 }
 
 func (n JsxElement) ClosingElement() Node {
@@ -4094,10 +3907,7 @@ const (
 	jsxAttributesPropertiesSlot = 0
 )
 
-type JsxAttributes struct {
-	s *Store
-	h *NodeHeader
-}
+type JsxAttributes Node
 
 func (n Node) AsJsxAttributes() JsxAttributes {
 	if storeChecks {
@@ -4107,7 +3917,7 @@ func (n Node) AsJsxAttributes() JsxAttributes {
 }
 
 func (n JsxAttributes) Properties() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsxAttributesPropertiesSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsxAttributesPropertiesSlot]))
 }
 
 // JsxNamespacedName: ast.KindJsxNamespacedName
@@ -4116,10 +3926,7 @@ const (
 	jsxNamespacedNameNameSlot      = 1
 )
 
-type JsxNamespacedName struct {
-	s *Store
-	h *NodeHeader
-}
+type JsxNamespacedName Node
 
 func (n Node) AsJsxNamespacedName() JsxNamespacedName {
 	if storeChecks {
@@ -4143,10 +3950,7 @@ const (
 	jsxOpeningElementAttributesSlot    = 2
 )
 
-type JsxOpeningElement struct {
-	s *Store
-	h *NodeHeader
-}
+type JsxOpeningElement Node
 
 func (n Node) AsJsxOpeningElement() JsxOpeningElement {
 	if storeChecks {
@@ -4160,7 +3964,7 @@ func (n JsxOpeningElement) TagName() Node {
 }
 
 func (n JsxOpeningElement) TypeArguments() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsxOpeningElementTypeArgumentsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsxOpeningElementTypeArgumentsSlot]))
 }
 
 func (n JsxOpeningElement) Attributes() Node {
@@ -4174,10 +3978,7 @@ const (
 	jsxSelfClosingElementAttributesSlot    = 2
 )
 
-type JsxSelfClosingElement struct {
-	s *Store
-	h *NodeHeader
-}
+type JsxSelfClosingElement Node
 
 func (n Node) AsJsxSelfClosingElement() JsxSelfClosingElement {
 	if storeChecks {
@@ -4191,7 +3992,7 @@ func (n JsxSelfClosingElement) TagName() Node {
 }
 
 func (n JsxSelfClosingElement) TypeArguments() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsxSelfClosingElementTypeArgumentsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsxSelfClosingElementTypeArgumentsSlot]))
 }
 
 func (n JsxSelfClosingElement) Attributes() Node {
@@ -4205,10 +4006,7 @@ const (
 	jsxFragmentClosingFragmentSlot = 2
 )
 
-type JsxFragment struct {
-	s *Store
-	h *NodeHeader
-}
+type JsxFragment Node
 
 func (n Node) AsJsxFragment() JsxFragment {
 	if storeChecks {
@@ -4222,7 +4020,7 @@ func (n JsxFragment) OpeningFragment() Node {
 }
 
 func (n JsxFragment) Children() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsxFragmentChildrenSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsxFragmentChildrenSlot]))
 }
 
 func (n JsxFragment) ClosingFragment() Node {
@@ -4235,10 +4033,7 @@ const (
 	jsxAttributeInitializerSlot = 1
 )
 
-type JsxAttribute struct {
-	s *Store
-	h *NodeHeader
-}
+type JsxAttribute Node
 
 func (n Node) AsJsxAttribute() JsxAttribute {
 	if storeChecks {
@@ -4260,10 +4055,7 @@ const (
 	jsxSpreadAttributeExpressionSlot = 0
 )
 
-type JsxSpreadAttribute struct {
-	s *Store
-	h *NodeHeader
-}
+type JsxSpreadAttribute Node
 
 func (n Node) AsJsxSpreadAttribute() JsxSpreadAttribute {
 	if storeChecks {
@@ -4281,10 +4073,7 @@ const (
 	jsxClosingElementTagNameSlot = 0
 )
 
-type JsxClosingElement struct {
-	s *Store
-	h *NodeHeader
-}
+type JsxClosingElement Node
 
 func (n Node) AsJsxClosingElement() JsxClosingElement {
 	if storeChecks {
@@ -4303,10 +4092,7 @@ const (
 	jsxExpressionExpressionSlot     = 1
 )
 
-type JsxExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type JsxExpression Node
 
 func (n Node) AsJsxExpression() JsxExpression {
 	if storeChecks {
@@ -4329,10 +4115,7 @@ const (
 	jsxTextContainsOnlyTriviaWhiteSpacesSlot = 2
 )
 
-type JsxText struct {
-	s *Store
-	h *NodeHeader
-}
+type JsxText Node
 
 func (n Node) AsJsxText() JsxText {
 	if storeChecks {
@@ -4352,10 +4135,7 @@ const (
 	syntaxListChildrenSlot = 0
 )
 
-type SyntaxList struct {
-	s *Store
-	h *NodeHeader
-}
+type SyntaxList Node
 
 func (n Node) AsSyntaxList() SyntaxList {
 	if storeChecks {
@@ -4365,7 +4145,7 @@ func (n Node) AsSyntaxList() SyntaxList {
 }
 
 func (n SyntaxList) Children() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+syntaxListChildrenSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+syntaxListChildrenSlot]))
 }
 
 // JSDoc: ast.KindJSDoc
@@ -4374,10 +4154,7 @@ const (
 	jsdocTagsSlot    = 1
 )
 
-type JSDoc struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDoc Node
 
 func (n Node) AsJSDoc() JSDoc {
 	if storeChecks {
@@ -4386,19 +4163,16 @@ func (n Node) AsJSDoc() JSDoc {
 	return JSDoc(n)
 }
 
-func (n JSDoc) Comment() List { return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocCommentSlot])} }
+func (n JSDoc) Comment() List { return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocCommentSlot])) }
 
-func (n JSDoc) Tags() List { return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocTagsSlot])} }
+func (n JSDoc) Tags() List { return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocTagsSlot])) }
 
 // JSDocTypeExpression: ast.KindJSDocTypeExpression
 const (
 	jsdocTypeExpressionTypeSlot = 0
 )
 
-type JSDocTypeExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocTypeExpression Node
 
 func (n Node) AsJSDocTypeExpression() JSDocTypeExpression {
 	if storeChecks {
@@ -4416,10 +4190,7 @@ const (
 	jsdocNonNullableTypeTypeSlot = 0
 )
 
-type JSDocNonNullableType struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocNonNullableType Node
 
 func (n Node) AsJSDocNonNullableType() JSDocNonNullableType {
 	if storeChecks {
@@ -4437,10 +4208,7 @@ const (
 	jsdocNullableTypeTypeSlot = 0
 )
 
-type JSDocNullableType struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocNullableType Node
 
 func (n Node) AsJSDocNullableType() JSDocNullableType {
 	if storeChecks {
@@ -4458,10 +4226,7 @@ const (
 	jsdocVariadicTypeTypeSlot = 0
 )
 
-type JSDocVariadicType struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocVariadicType Node
 
 func (n Node) AsJSDocVariadicType() JSDocVariadicType {
 	if storeChecks {
@@ -4479,10 +4244,7 @@ const (
 	jsdocOptionalTypeTypeSlot = 0
 )
 
-type JSDocOptionalType struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocOptionalType Node
 
 func (n Node) AsJSDocOptionalType() JSDocOptionalType {
 	if storeChecks {
@@ -4502,10 +4264,7 @@ const (
 	jsdocTypeTagCommentSlot        = 2
 )
 
-type JSDocTypeTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocTypeTag Node
 
 func (n Node) AsJSDocTypeTag() JSDocTypeTag {
 	if storeChecks {
@@ -4523,7 +4282,7 @@ func (n JSDocTypeTag) TypeExpression() Node {
 }
 
 func (n JSDocTypeTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocTypeTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocTypeTagCommentSlot]))
 }
 
 // JSDocUnknownTag: ast.KindJSDocUnknownTag
@@ -4532,10 +4291,7 @@ const (
 	jsdocUnknownTagCommentSlot = 1
 )
 
-type JSDocUnknownTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocUnknownTag Node
 
 func (n Node) AsJSDocUnknownTag() JSDocUnknownTag {
 	if storeChecks {
@@ -4549,7 +4305,7 @@ func (n JSDocUnknownTag) TagName() Node {
 }
 
 func (n JSDocUnknownTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocUnknownTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocUnknownTagCommentSlot]))
 }
 
 // JSDocTemplateTag: ast.KindJSDocTemplateTag
@@ -4560,10 +4316,7 @@ const (
 	jsdocTemplateTagCommentSlot        = 3
 )
 
-type JSDocTemplateTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocTemplateTag Node
 
 func (n Node) AsJSDocTemplateTag() JSDocTemplateTag {
 	if storeChecks {
@@ -4581,11 +4334,11 @@ func (n JSDocTemplateTag) Constraint() Node {
 }
 
 func (n JSDocTemplateTag) TypeParameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocTemplateTagTypeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocTemplateTagTypeParametersSlot]))
 }
 
 func (n JSDocTemplateTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocTemplateTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocTemplateTagCommentSlot]))
 }
 
 // JSDocReturnTag: ast.KindJSDocReturnTag
@@ -4595,10 +4348,7 @@ const (
 	jsdocReturnTagCommentSlot        = 2
 )
 
-type JSDocReturnTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocReturnTag Node
 
 func (n Node) AsJSDocReturnTag() JSDocReturnTag {
 	if storeChecks {
@@ -4616,7 +4366,7 @@ func (n JSDocReturnTag) TypeExpression() Node {
 }
 
 func (n JSDocReturnTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocReturnTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocReturnTagCommentSlot]))
 }
 
 // JSDocPublicTag: ast.KindJSDocPublicTag
@@ -4625,10 +4375,7 @@ const (
 	jsdocPublicTagCommentSlot = 1
 )
 
-type JSDocPublicTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocPublicTag Node
 
 func (n Node) AsJSDocPublicTag() JSDocPublicTag {
 	if storeChecks {
@@ -4642,7 +4389,7 @@ func (n JSDocPublicTag) TagName() Node {
 }
 
 func (n JSDocPublicTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocPublicTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocPublicTagCommentSlot]))
 }
 
 // JSDocPrivateTag: ast.KindJSDocPrivateTag
@@ -4651,10 +4398,7 @@ const (
 	jsdocPrivateTagCommentSlot = 1
 )
 
-type JSDocPrivateTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocPrivateTag Node
 
 func (n Node) AsJSDocPrivateTag() JSDocPrivateTag {
 	if storeChecks {
@@ -4668,7 +4412,7 @@ func (n JSDocPrivateTag) TagName() Node {
 }
 
 func (n JSDocPrivateTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocPrivateTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocPrivateTagCommentSlot]))
 }
 
 // JSDocProtectedTag: ast.KindJSDocProtectedTag
@@ -4677,10 +4421,7 @@ const (
 	jsdocProtectedTagCommentSlot = 1
 )
 
-type JSDocProtectedTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocProtectedTag Node
 
 func (n Node) AsJSDocProtectedTag() JSDocProtectedTag {
 	if storeChecks {
@@ -4694,7 +4435,7 @@ func (n JSDocProtectedTag) TagName() Node {
 }
 
 func (n JSDocProtectedTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocProtectedTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocProtectedTagCommentSlot]))
 }
 
 // JSDocReadonlyTag: ast.KindJSDocReadonlyTag
@@ -4703,10 +4444,7 @@ const (
 	jsdocReadonlyTagCommentSlot = 1
 )
 
-type JSDocReadonlyTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocReadonlyTag Node
 
 func (n Node) AsJSDocReadonlyTag() JSDocReadonlyTag {
 	if storeChecks {
@@ -4720,7 +4458,7 @@ func (n JSDocReadonlyTag) TagName() Node {
 }
 
 func (n JSDocReadonlyTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocReadonlyTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocReadonlyTagCommentSlot]))
 }
 
 // JSDocOverrideTag: ast.KindJSDocOverrideTag
@@ -4729,10 +4467,7 @@ const (
 	jsdocOverrideTagCommentSlot = 1
 )
 
-type JSDocOverrideTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocOverrideTag Node
 
 func (n Node) AsJSDocOverrideTag() JSDocOverrideTag {
 	if storeChecks {
@@ -4746,7 +4481,7 @@ func (n JSDocOverrideTag) TagName() Node {
 }
 
 func (n JSDocOverrideTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocOverrideTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocOverrideTagCommentSlot]))
 }
 
 // JSDocDeprecatedTag: ast.KindJSDocDeprecatedTag
@@ -4755,10 +4490,7 @@ const (
 	jsdocDeprecatedTagCommentSlot = 1
 )
 
-type JSDocDeprecatedTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocDeprecatedTag Node
 
 func (n Node) AsJSDocDeprecatedTag() JSDocDeprecatedTag {
 	if storeChecks {
@@ -4772,7 +4504,7 @@ func (n JSDocDeprecatedTag) TagName() Node {
 }
 
 func (n JSDocDeprecatedTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocDeprecatedTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocDeprecatedTagCommentSlot]))
 }
 
 // JSDocSeeTag: ast.KindJSDocSeeTag
@@ -4782,10 +4514,7 @@ const (
 	jsdocSeeTagCommentSlot        = 2
 )
 
-type JSDocSeeTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocSeeTag Node
 
 func (n Node) AsJSDocSeeTag() JSDocSeeTag {
 	if storeChecks {
@@ -4803,7 +4532,7 @@ func (n JSDocSeeTag) NameExpression() Node {
 }
 
 func (n JSDocSeeTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocSeeTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocSeeTagCommentSlot]))
 }
 
 // JSDocImplementsTag: ast.KindJSDocImplementsTag
@@ -4813,10 +4542,7 @@ const (
 	jsdocImplementsTagCommentSlot   = 2
 )
 
-type JSDocImplementsTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocImplementsTag Node
 
 func (n Node) AsJSDocImplementsTag() JSDocImplementsTag {
 	if storeChecks {
@@ -4834,7 +4560,7 @@ func (n JSDocImplementsTag) ClassName() Node {
 }
 
 func (n JSDocImplementsTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocImplementsTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocImplementsTagCommentSlot]))
 }
 
 // JSDocAugmentsTag: ast.KindJSDocAugmentsTag
@@ -4844,10 +4570,7 @@ const (
 	jsdocAugmentsTagCommentSlot   = 2
 )
 
-type JSDocAugmentsTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocAugmentsTag Node
 
 func (n Node) AsJSDocAugmentsTag() JSDocAugmentsTag {
 	if storeChecks {
@@ -4865,7 +4588,7 @@ func (n JSDocAugmentsTag) ClassName() Node {
 }
 
 func (n JSDocAugmentsTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocAugmentsTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocAugmentsTagCommentSlot]))
 }
 
 // JSDocSatisfiesTag: ast.KindJSDocSatisfiesTag
@@ -4875,10 +4598,7 @@ const (
 	jsdocSatisfiesTagCommentSlot        = 2
 )
 
-type JSDocSatisfiesTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocSatisfiesTag Node
 
 func (n Node) AsJSDocSatisfiesTag() JSDocSatisfiesTag {
 	if storeChecks {
@@ -4896,7 +4616,7 @@ func (n JSDocSatisfiesTag) TypeExpression() Node {
 }
 
 func (n JSDocSatisfiesTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocSatisfiesTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocSatisfiesTagCommentSlot]))
 }
 
 // JSDocThrowsTag: ast.KindJSDocThrowsTag
@@ -4906,10 +4626,7 @@ const (
 	jsdocThrowsTagCommentSlot        = 2
 )
 
-type JSDocThrowsTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocThrowsTag Node
 
 func (n Node) AsJSDocThrowsTag() JSDocThrowsTag {
 	if storeChecks {
@@ -4927,7 +4644,7 @@ func (n JSDocThrowsTag) TypeExpression() Node {
 }
 
 func (n JSDocThrowsTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocThrowsTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocThrowsTagCommentSlot]))
 }
 
 // JSDocThisTag: ast.KindJSDocThisTag
@@ -4937,10 +4654,7 @@ const (
 	jsdocThisTagCommentSlot        = 2
 )
 
-type JSDocThisTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocThisTag Node
 
 func (n Node) AsJSDocThisTag() JSDocThisTag {
 	if storeChecks {
@@ -4958,7 +4672,7 @@ func (n JSDocThisTag) TypeExpression() Node {
 }
 
 func (n JSDocThisTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocThisTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocThisTagCommentSlot]))
 }
 
 // JSDocImportTag: ast.KindJSDocImportTag
@@ -4970,10 +4684,7 @@ const (
 	jsdocImportTagCommentSlot         = 4
 )
 
-type JSDocImportTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocImportTag Node
 
 func (n Node) AsJSDocImportTag() JSDocImportTag {
 	if storeChecks {
@@ -4999,7 +4710,7 @@ func (n JSDocImportTag) Attributes() Node {
 }
 
 func (n JSDocImportTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocImportTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocImportTagCommentSlot]))
 }
 
 // JSDocCallbackTag: ast.KindJSDocCallbackTag
@@ -5010,10 +4721,7 @@ const (
 	jsdocCallbackTagCommentSlot        = 3
 )
 
-type JSDocCallbackTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocCallbackTag Node
 
 func (n Node) AsJSDocCallbackTag() JSDocCallbackTag {
 	if storeChecks {
@@ -5035,7 +4743,7 @@ func (n JSDocCallbackTag) Name() Node {
 }
 
 func (n JSDocCallbackTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocCallbackTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocCallbackTagCommentSlot]))
 }
 
 // JSDocOverloadTag: ast.KindJSDocOverloadTag
@@ -5045,10 +4753,7 @@ const (
 	jsdocOverloadTagCommentSlot        = 2
 )
 
-type JSDocOverloadTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocOverloadTag Node
 
 func (n Node) AsJSDocOverloadTag() JSDocOverloadTag {
 	if storeChecks {
@@ -5066,7 +4771,7 @@ func (n JSDocOverloadTag) TypeExpression() Node {
 }
 
 func (n JSDocOverloadTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocOverloadTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocOverloadTagCommentSlot]))
 }
 
 // JSDocTypedefTag: ast.KindJSDocTypedefTag
@@ -5077,10 +4782,7 @@ const (
 	jsdocTypedefTagCommentSlot        = 3
 )
 
-type JSDocTypedefTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocTypedefTag Node
 
 func (n Node) AsJSDocTypedefTag() JSDocTypedefTag {
 	if storeChecks {
@@ -5102,7 +4804,7 @@ func (n JSDocTypedefTag) Name() Node {
 }
 
 func (n JSDocTypedefTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocTypedefTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocTypedefTagCommentSlot]))
 }
 
 // JSDocSignature: ast.KindJSDocSignature
@@ -5113,10 +4815,7 @@ const (
 	jsdocSignatureLocalsSlot         = 3
 )
 
-type JSDocSignature struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocSignature Node
 
 func (n Node) AsJSDocSignature() JSDocSignature {
 	if storeChecks {
@@ -5126,24 +4825,28 @@ func (n Node) AsJSDocSignature() JSDocSignature {
 }
 
 func (n JSDocSignature) TypeParameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocSignatureTypeParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocSignatureTypeParametersSlot]))
 }
 
 func (n JSDocSignature) Parameters() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocSignatureParametersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocSignatureParametersSlot]))
 }
 
 func (n JSDocSignature) Type() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+jsdocSignatureTypeSlot]))
 }
 
-func (n JSDocSignature) LocalsSlot() uint32 {
+func (n JSDocSignature) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+jsdocSignatureLocalsSlot])
 }
 
-func (n JSDocSignature) SetLocalsSlot(v uint32) {
+func (n JSDocSignature) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+jsdocSignatureLocalsSlot] = uint32(v)
+}
+
+func (n JSDocSignature) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+jsdocSignatureLocalsSlot])
 }
 
 // JSDocNameReference: ast.KindJSDocNameReference
@@ -5151,10 +4854,7 @@ const (
 	jsdocNameReferenceNameSlot = 0
 )
 
-type JSDocNameReference struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocNameReference Node
 
 func (n Node) AsJSDocNameReference() JSDocNameReference {
 	if storeChecks {
@@ -5174,10 +4874,7 @@ const (
 	sourceFileLocalsSlot         = 2
 )
 
-type SourceFile struct {
-	s *Store
-	h *NodeHeader
-}
+type SourceFile Node
 
 func (n Node) AsSourceFile() SourceFile {
 	if storeChecks {
@@ -5187,18 +4884,22 @@ func (n Node) AsSourceFile() SourceFile {
 }
 
 func (n SourceFile) Statements() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+sourceFileStatementsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+sourceFileStatementsSlot]))
 }
 
 func (n SourceFile) EndOfFileToken() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+sourceFileEndOfFileTokenSlot]))
 }
 
-func (n SourceFile) LocalsSlot() uint32 { return uint32(n.s.extra[int(n.h.data)+sourceFileLocalsSlot]) }
+func (n SourceFile) LocalsRef() uint32 { return uint32(n.s.extra[int(n.h.data)+sourceFileLocalsSlot]) }
 
-func (n SourceFile) SetLocalsSlot(v uint32) {
+func (n SourceFile) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+sourceFileLocalsSlot] = uint32(v)
+}
+
+func (n SourceFile) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+sourceFileLocalsSlot])
 }
 
 // ModuleDeclaration: ast.KindModuleDeclaration
@@ -5213,10 +4914,7 @@ const (
 	moduleDeclarationEndFlowNodeSlot = 7
 )
 
-type ModuleDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type ModuleDeclaration Node
 
 func (n Node) AsModuleDeclaration() ModuleDeclaration {
 	if storeChecks {
@@ -5226,7 +4924,7 @@ func (n Node) AsModuleDeclaration() ModuleDeclaration {
 }
 
 func (n ModuleDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+moduleDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+moduleDeclarationModifiersSlot]))
 }
 
 func (n ModuleDeclaration) Keyword() ast.Kind {
@@ -5245,31 +4943,43 @@ func (n ModuleDeclaration) Body() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+moduleDeclarationBodySlot]))
 }
 
-func (n ModuleDeclaration) LocalSymbol() SymbolId {
+func (n ModuleDeclaration) LocalSymbolId() SymbolId {
 	return SymbolId(n.s.extra[int(n.h.data)+moduleDeclarationLocalSymbolSlot])
 }
 
-func (n ModuleDeclaration) SetLocalSymbol(v SymbolId) {
+func (n ModuleDeclaration) SetLocalSymbolId(v SymbolId) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+moduleDeclarationLocalSymbolSlot] = uint32(v)
 }
 
-func (n ModuleDeclaration) LocalsSlot() uint32 {
+func (n ModuleDeclaration) LocalSymbol() *Symbol {
+	return n.s.symbolAt(n.s.extra[int(n.h.data)+moduleDeclarationLocalSymbolSlot])
+}
+
+func (n ModuleDeclaration) LocalsRef() uint32 {
 	return uint32(n.s.extra[int(n.h.data)+moduleDeclarationLocalsSlot])
 }
 
-func (n ModuleDeclaration) SetLocalsSlot(v uint32) {
+func (n ModuleDeclaration) SetLocalsRef(v uint32) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+moduleDeclarationLocalsSlot] = uint32(v)
 }
 
-func (n ModuleDeclaration) EndFlowNode() FlowRef {
+func (n ModuleDeclaration) Locals() SymbolTable {
+	return n.s.localsAt(n.s.extra[int(n.h.data)+moduleDeclarationLocalsSlot])
+}
+
+func (n ModuleDeclaration) EndFlowRef() FlowRef {
 	return FlowRef(n.s.extra[int(n.h.data)+moduleDeclarationEndFlowNodeSlot])
 }
 
-func (n ModuleDeclaration) SetEndFlowNode(v FlowRef) {
+func (n ModuleDeclaration) SetEndFlowRef(v FlowRef) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+moduleDeclarationEndFlowNodeSlot] = uint32(v)
+}
+
+func (n ModuleDeclaration) EndFlowNode() Flow {
+	return n.s.flowAt(n.s.extra[int(n.h.data)+moduleDeclarationEndFlowNodeSlot])
 }
 
 // ImportEqualsDeclaration: ast.KindImportEqualsDeclaration
@@ -5281,10 +4991,7 @@ const (
 	importEqualsDeclarationLocalSymbolSlot     = 4
 )
 
-type ImportEqualsDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type ImportEqualsDeclaration Node
 
 func (n Node) AsImportEqualsDeclaration() ImportEqualsDeclaration {
 	if storeChecks {
@@ -5294,7 +5001,7 @@ func (n Node) AsImportEqualsDeclaration() ImportEqualsDeclaration {
 }
 
 func (n ImportEqualsDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+importEqualsDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+importEqualsDeclarationModifiersSlot]))
 }
 
 func (n ImportEqualsDeclaration) IsTypeOnly() bool {
@@ -5309,13 +5016,17 @@ func (n ImportEqualsDeclaration) ModuleReference() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+importEqualsDeclarationModuleReferenceSlot]))
 }
 
-func (n ImportEqualsDeclaration) LocalSymbol() SymbolId {
+func (n ImportEqualsDeclaration) LocalSymbolId() SymbolId {
 	return SymbolId(n.s.extra[int(n.h.data)+importEqualsDeclarationLocalSymbolSlot])
 }
 
-func (n ImportEqualsDeclaration) SetLocalSymbol(v SymbolId) {
+func (n ImportEqualsDeclaration) SetLocalSymbolId(v SymbolId) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+importEqualsDeclarationLocalSymbolSlot] = uint32(v)
+}
+
+func (n ImportEqualsDeclaration) LocalSymbol() *Symbol {
+	return n.s.symbolAt(n.s.extra[int(n.h.data)+importEqualsDeclarationLocalSymbolSlot])
 }
 
 // ExportDeclaration: ast.KindExportDeclaration
@@ -5327,10 +5038,7 @@ const (
 	exportDeclarationAttributesSlot      = 4
 )
 
-type ExportDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type ExportDeclaration Node
 
 func (n Node) AsExportDeclaration() ExportDeclaration {
 	if storeChecks {
@@ -5340,7 +5048,7 @@ func (n Node) AsExportDeclaration() ExportDeclaration {
 }
 
 func (n ExportDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+exportDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+exportDeclarationModifiersSlot]))
 }
 
 func (n ExportDeclaration) IsTypeOnly() bool {
@@ -5368,10 +5076,7 @@ const (
 	importTypeNodeTypeArgumentsSlot = 4
 )
 
-type ImportTypeNode struct {
-	s *Store
-	h *NodeHeader
-}
+type ImportTypeNode Node
 
 func (n Node) AsImportTypeNode() ImportTypeNode {
 	if storeChecks {
@@ -5397,7 +5102,7 @@ func (n ImportTypeNode) Qualifier() Node {
 }
 
 func (n ImportTypeNode) TypeArguments() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+importTypeNodeTypeArgumentsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+importTypeNodeTypeArgumentsSlot]))
 }
 
 // ImportClause: ast.KindImportClause
@@ -5408,10 +5113,7 @@ const (
 	importClauseLocalSymbolSlot   = 3
 )
 
-type ImportClause struct {
-	s *Store
-	h *NodeHeader
-}
+type ImportClause Node
 
 func (n Node) AsImportClause() ImportClause {
 	if storeChecks {
@@ -5432,13 +5134,17 @@ func (n ImportClause) NamedBindings() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+importClauseNamedBindingsSlot]))
 }
 
-func (n ImportClause) LocalSymbol() SymbolId {
+func (n ImportClause) LocalSymbolId() SymbolId {
 	return SymbolId(n.s.extra[int(n.h.data)+importClauseLocalSymbolSlot])
 }
 
-func (n ImportClause) SetLocalSymbol(v SymbolId) {
+func (n ImportClause) SetLocalSymbolId(v SymbolId) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+importClauseLocalSymbolSlot] = uint32(v)
+}
+
+func (n ImportClause) LocalSymbol() *Symbol {
+	return n.s.symbolAt(n.s.extra[int(n.h.data)+importClauseLocalSymbolSlot])
 }
 
 // ImportSpecifier: ast.KindImportSpecifier
@@ -5449,10 +5155,7 @@ const (
 	importSpecifierLocalSymbolSlot  = 3
 )
 
-type ImportSpecifier struct {
-	s *Store
-	h *NodeHeader
-}
+type ImportSpecifier Node
 
 func (n Node) AsImportSpecifier() ImportSpecifier {
 	if storeChecks {
@@ -5473,13 +5176,17 @@ func (n ImportSpecifier) Name() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+importSpecifierNameSlot]))
 }
 
-func (n ImportSpecifier) LocalSymbol() SymbolId {
+func (n ImportSpecifier) LocalSymbolId() SymbolId {
 	return SymbolId(n.s.extra[int(n.h.data)+importSpecifierLocalSymbolSlot])
 }
 
-func (n ImportSpecifier) SetLocalSymbol(v SymbolId) {
+func (n ImportSpecifier) SetLocalSymbolId(v SymbolId) {
 	Node(n).checkUnsealed()
 	n.s.extra[int(n.h.data)+importSpecifierLocalSymbolSlot] = uint32(v)
+}
+
+func (n ImportSpecifier) LocalSymbol() *Symbol {
+	return n.s.symbolAt(n.s.extra[int(n.h.data)+importSpecifierLocalSymbolSlot])
 }
 
 // JSDocLink: ast.KindJSDocLink
@@ -5488,10 +5195,7 @@ const (
 )
 
 // TODO(store): text []string has no slot: where JSDoc lives is undecided (store-ast-design-20260922.md section 5).
-type JSDocLink struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocLink Node
 
 func (n Node) AsJSDocLink() JSDocLink {
 	if storeChecks {
@@ -5508,10 +5212,7 @@ const (
 )
 
 // TODO(store): text []string has no slot: where JSDoc lives is undecided (store-ast-design-20260922.md section 5).
-type JSDocLinkPlain struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocLinkPlain Node
 
 func (n Node) AsJSDocLinkPlain() JSDocLinkPlain {
 	if storeChecks {
@@ -5530,10 +5231,7 @@ const (
 )
 
 // TODO(store): text []string has no slot: where JSDoc lives is undecided (store-ast-design-20260922.md section 5).
-type JSDocLinkCode struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocLinkCode Node
 
 func (n Node) AsJSDocLinkCode() JSDocLinkCode {
 	if storeChecks {
@@ -5555,10 +5253,7 @@ const (
 	typeParameterDeclarationDefaultTypeSlot = 4
 )
 
-type TypeParameterDeclaration struct {
-	s *Store
-	h *NodeHeader
-}
+type TypeParameterDeclaration Node
 
 func (n Node) AsTypeParameterDeclaration() TypeParameterDeclaration {
 	if storeChecks {
@@ -5568,7 +5263,7 @@ func (n Node) AsTypeParameterDeclaration() TypeParameterDeclaration {
 }
 
 func (n TypeParameterDeclaration) Modifiers() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+typeParameterDeclarationModifiersSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+typeParameterDeclarationModifiersSlot]))
 }
 
 func (n TypeParameterDeclaration) Name() Node {
@@ -5593,10 +5288,7 @@ const (
 	syntheticReferenceExpressionThisArgSlot    = 1
 )
 
-type SyntheticReferenceExpression struct {
-	s *Store
-	h *NodeHeader
-}
+type SyntheticReferenceExpression Node
 
 func (n Node) AsSyntheticReferenceExpression() SyntheticReferenceExpression {
 	if storeChecks {
@@ -5619,10 +5311,7 @@ const (
 	jsdocTypeLiteralIsArrayTypeSlot       = 1
 )
 
-type JSDocTypeLiteral struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocTypeLiteral Node
 
 func (n Node) AsJSDocTypeLiteral() JSDocTypeLiteral {
 	if storeChecks {
@@ -5632,7 +5321,7 @@ func (n Node) AsJSDocTypeLiteral() JSDocTypeLiteral {
 }
 
 func (n JSDocTypeLiteral) JSDocPropertyTags() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocTypeLiteralJSDocPropertyTagsSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocTypeLiteralJSDocPropertyTagsSlot]))
 }
 
 func (n JSDocTypeLiteral) IsArrayType() bool {
@@ -5649,10 +5338,7 @@ const (
 	jsdocParameterOrPropertyTagCommentSlot        = 5
 )
 
-type JSDocParameterOrPropertyTag struct {
-	s *Store
-	h *NodeHeader
-}
+type JSDocParameterOrPropertyTag Node
 
 func (n Node) AsJSDocParameterOrPropertyTag() JSDocParameterOrPropertyTag {
 	if storeChecks {
@@ -5682,7 +5368,7 @@ func (n JSDocParameterOrPropertyTag) IsNameFirst() bool {
 }
 
 func (n JSDocParameterOrPropertyTag) Comment() List {
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+jsdocParameterOrPropertyTagCommentSlot])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+jsdocParameterOrPropertyTagCommentSlot]))
 }
 
 // Kind-polymorphic accessors. One static table lookup picks the payload word,
@@ -5690,59 +5376,59 @@ func (n JSDocParameterOrPropertyTag) Comment() List {
 // without the role returns the nil node, the nil list or the empty string.
 
 func (n Node) Left() Node {
-	slot := leftSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := leftSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) Right() Node {
-	slot := rightSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := rightSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) Expression() Node {
-	slot := expressionSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := expressionSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) Statement() Node {
-	slot := statementSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := statementSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) Initializer() Node {
-	slot := initializerSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := initializerSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) Condition() Node {
-	slot := conditionSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := conditionSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) Label() Node {
-	slot := labelSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := labelSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) Statements() List {
@@ -5750,7 +5436,7 @@ func (n Node) Statements() List {
 	if slot == 0xFF {
 		return List{n.s, NoListRef}
 	}
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+int(slot)]))
 }
 
 func (n Node) Modifiers() List {
@@ -5758,23 +5444,23 @@ func (n Node) Modifiers() List {
 	if slot == 0xFF {
 		return List{n.s, NoListRef}
 	}
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+int(slot)]))
 }
 
 func (n Node) Name() Node {
-	slot := nameSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := nameSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) Type() Node {
-	slot := typeSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := typeSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) Elements() List {
@@ -5782,39 +5468,39 @@ func (n Node) Elements() List {
 	if slot == 0xFF {
 		return List{n.s, NoListRef}
 	}
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+int(slot)]))
 }
 
 func (n Node) DotDotDotToken() Node {
-	slot := dotDotDotTokenSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := dotDotDotTokenSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) QuestionToken() Node {
-	slot := questionTokenSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := questionTokenSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) PropertyName() Node {
-	slot := propertyNameSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := propertyNameSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) AsteriskToken() Node {
-	slot := asteriskTokenSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := asteriskTokenSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) TypeParameters() List {
@@ -5822,7 +5508,7 @@ func (n Node) TypeParameters() List {
 	if slot == 0xFF {
 		return List{n.s, NoListRef}
 	}
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+int(slot)]))
 }
 
 func (n Node) Parameters() List {
@@ -5830,23 +5516,23 @@ func (n Node) Parameters() List {
 	if slot == 0xFF {
 		return List{n.s, NoListRef}
 	}
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+int(slot)]))
 }
 
 func (n Node) FullSignature() Node {
-	slot := fullSignatureSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := fullSignatureSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) Body() Node {
-	slot := bodySlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := bodySlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) HeritageClauses() List {
@@ -5854,7 +5540,7 @@ func (n Node) HeritageClauses() List {
 	if slot == 0xFF {
 		return List{n.s, NoListRef}
 	}
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+int(slot)]))
 }
 
 func (n Node) Members() List {
@@ -5862,7 +5548,7 @@ func (n Node) Members() List {
 	if slot == 0xFF {
 		return List{n.s, NoListRef}
 	}
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+int(slot)]))
 }
 
 func (n Node) Types() List {
@@ -5870,47 +5556,47 @@ func (n Node) Types() List {
 	if slot == 0xFF {
 		return List{n.s, NoListRef}
 	}
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+int(slot)]))
 }
 
 func (n Node) ImportClause() Node {
-	slot := importClauseSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := importClauseSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) ModuleSpecifier() Node {
-	slot := moduleSpecifierSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := moduleSpecifierSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) PostfixToken() Node {
-	slot := postfixTokenSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := postfixTokenSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) Operand() Node {
-	slot := operandSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := operandSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) QuestionDotToken() Node {
-	slot := questionDotTokenSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := questionDotTokenSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) TypeArguments() List {
@@ -5918,7 +5604,7 @@ func (n Node) TypeArguments() List {
 	if slot == 0xFF {
 		return List{n.s, NoListRef}
 	}
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+int(slot)]))
 }
 
 func (n Node) Arguments() List {
@@ -5926,15 +5612,15 @@ func (n Node) Arguments() List {
 	if slot == 0xFF {
 		return List{n.s, NoListRef}
 	}
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+int(slot)]))
 }
 
 func (n Node) Head() Node {
-	slot := headSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := headSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) TemplateSpans() List {
@@ -5942,15 +5628,15 @@ func (n Node) TemplateSpans() List {
 	if slot == 0xFF {
 		return List{n.s, NoListRef}
 	}
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+int(slot)]))
 }
 
 func (n Node) Literal() Node {
-	slot := literalSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := literalSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) Properties() List {
@@ -5958,15 +5644,15 @@ func (n Node) Properties() List {
 	if slot == 0xFF {
 		return List{n.s, NoListRef}
 	}
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+int(slot)]))
 }
 
 func (n Node) TypeParameter() Node {
-	slot := typeParameterSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := typeParameterSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) RawText() string {
@@ -5982,15 +5668,15 @@ func (n Node) Children() List {
 	if slot == 0xFF {
 		return List{n.s, NoListRef}
 	}
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+int(slot)]))
 }
 
 func (n Node) TagName() Node {
-	slot := tagNameSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := tagNameSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) Comment() List {
@@ -5998,39 +5684,41 @@ func (n Node) Comment() List {
 	if slot == 0xFF {
 		return List{n.s, NoListRef}
 	}
-	return List{n.s, ListRef(n.s.extra[int(n.h.data)+int(slot)])}
+	return n.s.list(ListRef(n.s.extra[int(n.h.data)+int(slot)]))
 }
 
 func (n Node) TypeExpression() Node {
-	slot := typeExpressionSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := typeExpressionSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) Constraint() Node {
-	slot := constraintSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := constraintSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
 func (n Node) ClassName() Node {
-	slot := classNameSlot[n.h.kind&511]
-	if slot == 0xFF {
-		return n.s.node(0)
+	var e NodeRef
+	if slot := classNameSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
-	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+int(slot)]))
+	return n.s.node(e)
 }
 
-// The binder's role accessors: the reserved slot of the kind, or 0 and false
-// when the kind does not have it (one table lookup and one compare, no
-// switch). The setter is a no-op on a kind without the slot, like the Pointer
-// binder's setReturnFlowNode, and panics after Seal in a storeChecks build.
+// The binder's role accessors, id layer: the reserved slot of the kind, or 0
+// (and false) when the kind does not have it (one table lookup and one
+// compare, no switch). The setter is a no-op on a kind without the slot, like
+// the Pointer binder's setReturnFlowNode, and panics after Seal in a
+// storeChecks build. The resolving layer has the Pointer name and reads the
+// word in the node's owner: 0 is nil, and so is a kind without the slot.
 
-func (n Node) LocalSymbol() SymbolId {
+func (n Node) LocalSymbolId() SymbolId {
 	slot := localSymbolSlot[n.h.kind&511]
 	if slot == 0xFF {
 		return 0
@@ -6038,7 +5726,7 @@ func (n Node) LocalSymbol() SymbolId {
 	return SymbolId(n.s.extra[int(n.h.data)+int(slot)])
 }
 
-func (n Node) SetLocalSymbol(v SymbolId) {
+func (n Node) SetLocalSymbolId(v SymbolId) {
 	n.checkUnsealed()
 	slot := localSymbolSlot[n.h.kind&511]
 	if slot == 0xFF {
@@ -6047,7 +5735,9 @@ func (n Node) SetLocalSymbol(v SymbolId) {
 	n.s.extra[int(n.h.data)+int(slot)] = uint32(v)
 }
 
-func (n Node) LocalsSlot() (uint32, bool) {
+func (n Node) LocalSymbol() *Symbol { return n.s.symbolAt(uint32(n.LocalSymbolId())) }
+
+func (n Node) LocalsRef() (uint32, bool) {
 	slot := localsSlot[n.h.kind&511]
 	if slot == 0xFF {
 		return 0, false
@@ -6055,7 +5745,7 @@ func (n Node) LocalsSlot() (uint32, bool) {
 	return uint32(n.s.extra[int(n.h.data)+int(slot)]), true
 }
 
-func (n Node) SetLocalsSlot(v uint32) {
+func (n Node) SetLocalsRef(v uint32) {
 	n.checkUnsealed()
 	slot := localsSlot[n.h.kind&511]
 	if slot == 0xFF {
@@ -6064,7 +5754,9 @@ func (n Node) SetLocalsSlot(v uint32) {
 	n.s.extra[int(n.h.data)+int(slot)] = uint32(v)
 }
 
-func (n Node) EndFlowNode() FlowRef {
+func (n Node) Locals() SymbolTable { i, _ := n.LocalsRef(); return n.s.localsAt(i) }
+
+func (n Node) EndFlowRef() FlowRef {
 	slot := endFlowNodeSlot[n.h.kind&511]
 	if slot == 0xFF {
 		return 0
@@ -6072,7 +5764,7 @@ func (n Node) EndFlowNode() FlowRef {
 	return FlowRef(n.s.extra[int(n.h.data)+int(slot)])
 }
 
-func (n Node) SetEndFlowNode(v FlowRef) {
+func (n Node) SetEndFlowRef(v FlowRef) {
 	n.checkUnsealed()
 	slot := endFlowNodeSlot[n.h.kind&511]
 	if slot == 0xFF {
@@ -6081,7 +5773,9 @@ func (n Node) SetEndFlowNode(v FlowRef) {
 	n.s.extra[int(n.h.data)+int(slot)] = uint32(v)
 }
 
-func (n Node) ReturnFlowNode() FlowRef {
+func (n Node) EndFlowNode() Flow { return n.s.flowAt(uint32(n.EndFlowRef())) }
+
+func (n Node) ReturnFlowRef() FlowRef {
 	slot := returnFlowNodeSlot[n.h.kind&511]
 	if slot == 0xFF {
 		return 0
@@ -6089,7 +5783,7 @@ func (n Node) ReturnFlowNode() FlowRef {
 	return FlowRef(n.s.extra[int(n.h.data)+int(slot)])
 }
 
-func (n Node) SetReturnFlowNode(v FlowRef) {
+func (n Node) SetReturnFlowRef(v FlowRef) {
 	n.checkUnsealed()
 	slot := returnFlowNodeSlot[n.h.kind&511]
 	if slot == 0xFF {
@@ -6098,7 +5792,9 @@ func (n Node) SetReturnFlowNode(v FlowRef) {
 	n.s.extra[int(n.h.data)+int(slot)] = uint32(v)
 }
 
-func (n Node) FallthroughFlowNode() FlowRef {
+func (n Node) ReturnFlowNode() Flow { return n.s.flowAt(uint32(n.ReturnFlowRef())) }
+
+func (n Node) FallthroughFlowRef() FlowRef {
 	slot := fallthroughFlowNodeSlot[n.h.kind&511]
 	if slot == 0xFF {
 		return 0
@@ -6106,7 +5802,7 @@ func (n Node) FallthroughFlowNode() FlowRef {
 	return FlowRef(n.s.extra[int(n.h.data)+int(slot)])
 }
 
-func (n Node) SetFallthroughFlowNode(v FlowRef) {
+func (n Node) SetFallthroughFlowRef(v FlowRef) {
 	n.checkUnsealed()
 	slot := fallthroughFlowNodeSlot[n.h.kind&511]
 	if slot == 0xFF {
@@ -6114,3 +5810,5 @@ func (n Node) SetFallthroughFlowNode(v FlowRef) {
 	}
 	n.s.extra[int(n.h.data)+int(slot)] = uint32(v)
 }
+
+func (n Node) FallthroughFlowNode() Flow { return n.s.flowAt(uint32(n.FallthroughFlowRef())) }

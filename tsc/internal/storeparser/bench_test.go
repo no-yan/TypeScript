@@ -9,6 +9,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/parser"
+	"github.com/microsoft/TypeScript/tsc/internal/testutil/filefixture"
 	"github.com/microsoft/TypeScript/tsc/internal/testutil/fixtures"
 	"github.com/microsoft/TypeScript/tsc/internal/testutil/kperf"
 )
@@ -51,9 +52,23 @@ func BenchmarkStoreParseV1(b *testing.B) {
 	}
 }
 
-// BenchmarkStoreParseKPCV1 has the form of BenchmarkASTParseKPCV1.
+// BenchmarkStoreParseKPCV1 has the form of BenchmarkASTParseKPCV1: checker.ts
+// as pointer and store, and dom.generated.d.ts under dom (7d design 2.2:
+// checker.ts has almost no JSDoc, dom has the lazy TS JSDoc that 7d-1 moves).
 func BenchmarkStoreParseKPCV1(b *testing.B) {
-	fixture := fixtures.ASTBenchCheckerFixture
+	parseKPC(b, fixtures.ASTBenchCheckerFixture)
+	b.Run("dom", func(b *testing.B) {
+		for _, fixture := range fixtures.ASTBenchFixtures {
+			if fixture.Name() == "dom.generated.d.ts" {
+				parseKPC(b, fixture)
+				return
+			}
+		}
+		b.Fatal("no dom.generated.d.ts in the AST bench fixtures")
+	})
+}
+
+func parseKPC(b *testing.B, fixture filefixture.Fixture) {
 	opts, text, kind := fixtureInput(b, fixture)
 	for _, p := range parses {
 		b.Run(p.name, func(b *testing.B) {

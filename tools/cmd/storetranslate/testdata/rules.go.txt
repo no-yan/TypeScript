@@ -1,0 +1,137 @@
+package storetranslatefixture
+
+import (
+	"slices"
+
+	"github.com/microsoft/TypeScript/tsc/internal/ast"
+	"github.com/microsoft/TypeScript/tsc/internal/collections"
+	"github.com/microsoft/TypeScript/tsc/internal/core"
+)
+
+// The generic helpers (Z1): the Node versions for a Node type argument, core
+// for anything else.
+
+func firstName(nodes []*ast.Node) *ast.Node {
+	return core.FirstNonNil(nodes, func(n *ast.Node) *ast.Node { return n.Name() })
+}
+
+func firstSymbol(nodes []*ast.Node) *ast.Symbol {
+	return core.FirstNonNil(nodes, func(n *ast.Node) *ast.Symbol { return n.Symbol() })
+}
+
+func names(nodes []*ast.Node) []*ast.Node {
+	return core.MapNonNil(nodes, func(n *ast.Node) *ast.Node { return n.Name() })
+}
+
+func kinds(symbols []*ast.Symbol) []*ast.Node {
+	return core.MapNonNil(symbols, func(s *ast.Symbol) *ast.Node { return s.ValueDeclaration })
+}
+
+func symbolsOf(nodes []*ast.Node) []*ast.Symbol {
+	return core.MapNonNil(nodes, func(n *ast.Node) *ast.Symbol { return n.Symbol() })
+}
+
+func nameOrNode(node *ast.Node) *ast.Node {
+	return core.OrElse(node.Name(), node)
+}
+
+func exportOrLocal(local *ast.Symbol) *ast.Symbol {
+	return core.OrElse(local.ExportSymbol, local)
+}
+
+func parents(nodes []*ast.Node) []*ast.Node {
+	return core.SameMap(nodes, func(n *ast.Node) *ast.Node { return n.Parent })
+}
+
+func parentsIndex(nodes []*ast.Node) []*ast.Node {
+	return core.SameMapIndex(nodes, func(n *ast.Node, i int) *ast.Node { return n.Parent })
+}
+
+func unique(nodes []*ast.Node) []*ast.Node {
+	return core.Deduplicate(nodes)
+}
+
+func uniqueKinds(kinds []ast.Kind) []ast.Kind {
+	return core.Deduplicate(kinds)
+}
+
+func addDeclaration(declarations []*ast.Node, node *ast.Node) []*ast.Node {
+	return core.AppendIfUnique(declarations, node)
+}
+
+func hasNode(nodes []*ast.Node, node *ast.Node) bool {
+	return slices.Contains(nodes, node) && slices.Index(nodes, node) >= 0
+}
+
+func hasKind(kinds []ast.Kind, kind ast.Kind) bool {
+	return slices.Contains(kinds, kind)
+}
+
+// The composite keys (Z1): the node field of a key-only struct is a NodeKey,
+// its constructions and assignments take Key(), a nil literal is NodeKey{}.
+
+type Type struct{ id int }
+
+type nonExistentPropertyKey struct {
+	propNode       *ast.Node
+	containingType *Type
+	isUncheckedJS  bool
+}
+
+type accessibleChainCacheKey struct {
+	useOnlyExternalAliasing bool
+	location                *ast.Node
+	meaning                 ast.SymbolFlags
+}
+
+type checker struct {
+	nonExistentProperties collections.Set[nonExistentPropertyKey]
+	accessibleChainCache  map[accessibleChainCacheKey][]*ast.Symbol
+}
+
+func (c *checker) reportNonExistentProperty(propNode *ast.Node, containingType *Type, isUncheckedJS bool) bool {
+	key := nonExistentPropertyKey{propNode, containingType, isUncheckedJS}
+	if c.nonExistentProperties.Has(key) {
+		return false
+	}
+	c.nonExistentProperties.Add(key)
+	keyed := nonExistentPropertyKey{propNode: nil, containingType: containingType}
+	keyed.propNode = propNode
+	return c.nonExistentProperties.Has(keyed)
+}
+
+func (c *checker) accessibleChain(useOnlyExternalAliasing bool, location *ast.Node, meaning ast.SymbolFlags) []*ast.Symbol {
+	linkKey := accessibleChainCacheKey{useOnlyExternalAliasing, location, meaning}
+	if c.accessibleChainCache == nil {
+		c.accessibleChainCache = make(map[accessibleChainCacheKey][]*ast.Symbol)
+	}
+	if chain, ok := c.accessibleChainCache[linkKey]; ok {
+		return chain
+	}
+	c.accessibleChainCache[accessibleChainCacheKey{meaning: meaning}] = nil
+	return nil
+}
+
+// A map keyed by a node: map[store.NodeKey]T and Key() at every index.
+func count(nodes []*ast.Node) map[*ast.Node]int {
+	counts := map[*ast.Node]int{}
+	for _, n := range nodes {
+		counts[n]++
+		delete(counts, n.Parent)
+	}
+	return counts
+}
+
+// The accessors, nil and the lists.
+func argumentsOf(node *ast.Node) int {
+	total := 0
+	for i, arg := range node.Arguments() {
+		if arg != nil && arg.Kind == ast.KindIdentifier && node.Parent != arg {
+			total += i
+		}
+	}
+	if len(node.AsCallExpression().Arguments.Nodes) > 0 && node.AsCallExpression().Arguments.Nodes[0].Pos() < node.End() {
+		return total
+	}
+	return -1
+}

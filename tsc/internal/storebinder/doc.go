@@ -1,7 +1,9 @@
 // Package storebinder binds a Store AST (internal/ast/store) as
 // internal/binder binds the Pointer AST. It is TODO 7c of
 // internal/ast/docs/store-ast-design-20260922.md (section 6); its design is
-// internal/ast/docs/store-binder-design-20260922.md.
+// internal/ast/docs/store-binder-design-20260922.md, with the 7d-0 API of
+// internal/ast/docs/store-checker-design-20260923.md (2.4, 2.5: NodeKey, the
+// declarations as Nodes, the id layer of the header).
 //
 // # A mechanical port
 //
@@ -13,20 +15,24 @@
 //     sentinel node (IsNil). A flow node, label or list is an index into the
 //     slabs of store.Bound (FlowRef, FlowListRef; 0 is nil), so no *FlowNode
 //     is held across an append. A symbol is *store.Symbol; the nodes it holds
-//     are store.Ref.
+//     are store.Node (D2).
 //   - The output goes where store-binder-design-20260922.md 2.3 puts it: the
-//     node's flow and symbol in its 32-byte header (SetFlow, SetSymbol), its
-//     flags through AddFlags and ClearFlags, Locals, LocalSymbol, EndFlowNode,
-//     ReturnFlowNode and FallthroughFlowNode in the kind's reserved slot
-//     (the generated role setters), and the file's fields, the flow slabs and
-//     the symbol table in File.Bound. The file's symbol is the root header's.
+//     node's flow and symbol in its 32-byte header (SetFlowRef, SetSymbolId:
+//     the binder uses the id layer only), its flags through AddFlags and
+//     ClearFlags, Locals, LocalSymbol, EndFlowNode, ReturnFlowNode and
+//     FallthroughFlowNode in the kind's reserved slot (the generated id-layer
+//     setters SetLocalsRef, SetLocalSymbolId, SetEndFlowRef, ...), and the
+//     file's fields, the flow slabs and the symbol table in File.Bound. The
+//     file's symbol is the root header's.
 //   - Children are read through the typed views and the role accessors; a
 //     list is walked as Refs() and resolved with Store.Node. The visit order,
 //     including the hand-written orders (functions first, the destructuring
 //     and IIFE orders), is the Pointer binder's.
 //   - The predicates of internal/ast that read a node's contents are the
-//     same-named functions of store/utilities.go; those that read only a kind
-//     are ast's. The scanner helpers that took a *ast.SourceFile are in
+//     same-named functions of store/utilities.go (translated from ast by
+//     tools/cmd/storetranslate, U2); those that read only a kind are ast's.
+//     A private name is #<store.GetSymbolId of the class>@name, the id the
+//     checker's lookup uses too. The scanner helpers that took a *ast.SourceFile are in
 //     utilities.go here, on a *store.File.
 //   - The binder seals the Store when it is done: in a storechecks build,
 //     any later write through the Store's write API panics.

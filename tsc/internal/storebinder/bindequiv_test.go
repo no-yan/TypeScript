@@ -60,11 +60,13 @@ func (m *bindComparer) node(label string, owner *ast.Node, p *ast.Node, n store.
 	}
 }
 
-func (m *bindComparer) ref(label string, owner *ast.Node, p *ast.Node, r store.Ref) {
-	if r != (store.Ref{}) && r.File() != m.file.Root().FileRef().File() {
-		m.add(owner, label+" (Ref.file)")
+// declaration compares a declaration of a symbol, and checks that it is a
+// node of the file's Store.
+func (m *bindComparer) declaration(label string, owner *ast.Node, p *ast.Node, n store.Node) {
+	if !n.IsNil() && n.File() != m.file {
+		m.add(owner, label+" (Store)")
 	}
-	m.node(label, owner, p, m.s.Node(r.Id()))
+	m.node(label, owner, p, n)
 }
 
 func (m *bindComparer) symbol(label string, owner *ast.Node, p *ast.Symbol, s *store.Symbol) {
@@ -99,10 +101,10 @@ func (m *bindComparer) symbol(label string, owner *ast.Node, p *ast.Symbol, s *s
 		m.add(owner, label+" Declarations")
 	} else {
 		for i, d := range p.Declarations {
-			m.ref(label+" Declarations", owner, d, s.Declarations[i])
+			m.declaration(label+" Declarations", owner, d, s.Declarations[i])
 		}
 	}
-	m.ref(label+" ValueDeclaration", owner, p.ValueDeclaration, s.ValueDeclaration)
+	m.declaration(label+" ValueDeclaration", owner, p.ValueDeclaration, s.ValueDeclaration)
 	m.symbol(label+" Parent", owner, p.Parent, s.Parent)
 	m.symbol(label+" ExportSymbol", owner, p.ExportSymbol, s.ExportSymbol)
 	m.table(label+" Members", owner, p.Members, s.Members)
@@ -130,7 +132,7 @@ func (m *bindComparer) table(label string, owner *ast.Node, p ast.SymbolTable, s
 			sv = candidates[0]
 		case len(candidates) > 1 && len(pv.Declarations) > 0:
 			for _, c := range candidates {
-				if len(c.Declarations) > 0 && m.sameNode(pv.Declarations[0], m.s.Node(c.Declarations[0].Id())) {
+				if len(c.Declarations) > 0 && m.sameNode(pv.Declarations[0], c.Declarations[0]) {
 					sv = c
 					break
 				}
@@ -210,9 +212,9 @@ func (m *bindComparer) pair(p *ast.Node, n store.Node) {
 	if (n.Flags()^p.Flags)&^m.opts.MaskFlags != 0 {
 		m.add(p, "Flags")
 	}
-	m.symbol("Symbol", p, p.Symbol(), m.bound.SymbolOf(n.Symbol()))
-	m.symbol("LocalSymbol", p, p.LocalSymbol(), m.bound.SymbolOf(n.LocalSymbol()))
-	slot, hasSlot := n.LocalsSlot()
+	m.symbol("Symbol", p, p.Symbol(), m.bound.SymbolOf(n.SymbolId()))
+	m.symbol("LocalSymbol", p, p.LocalSymbol(), m.bound.SymbolOf(n.LocalSymbolId()))
+	slot, hasSlot := n.LocalsRef()
 	if hasSlot != (p.LocalsContainerData() != nil) {
 		m.add(p, "Locals (kind)")
 	}
@@ -225,12 +227,12 @@ func (m *bindComparer) pair(p *ast.Node, n store.Node) {
 	if data := p.FlowNodeData(); data != nil {
 		flow = data.FlowNode
 	}
-	m.flow("FlowNode", p, flow, n.FlowNode())
+	m.flow("FlowNode", p, flow, n.FlowRef())
 	var endFlow *ast.FlowNode
 	if data := p.BodyData(); data != nil {
 		endFlow = data.EndFlowNode
 	}
-	m.flow("EndFlowNode", p, endFlow, n.EndFlowNode())
+	m.flow("EndFlowNode", p, endFlow, n.EndFlowRef())
 	var returnFlow *ast.FlowNode
 	switch p.Kind {
 	case ast.KindConstructor:
@@ -242,12 +244,12 @@ func (m *bindComparer) pair(p *ast.Node, n store.Node) {
 	case ast.KindClassStaticBlockDeclaration:
 		returnFlow = p.AsClassStaticBlockDeclaration().ReturnFlowNode
 	}
-	m.flow("ReturnFlowNode", p, returnFlow, n.ReturnFlowNode())
+	m.flow("ReturnFlowNode", p, returnFlow, n.ReturnFlowRef())
 	var fallthroughFlow *ast.FlowNode
 	if p.Kind == ast.KindCaseClause || p.Kind == ast.KindDefaultClause {
 		fallthroughFlow = p.AsCaseOrDefaultClause().FallthroughFlowNode
 	}
-	m.flow("FallthroughFlowNode", p, fallthroughFlow, n.FallthroughFlowNode())
+	m.flow("FallthroughFlowNode", p, fallthroughFlow, n.FallthroughFlowRef())
 }
 
 // A diagnostic as compared between the two binders: the Store one has no file.

@@ -2,17 +2,22 @@ package store
 
 import (
 	"strings"
+	"sync/atomic"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
 
-// internal/ast/symbol.go with the two node fields as Ref, and the id given at
-// creation instead of on demand (store-binder-design-20260922.md 2.4). The
-// InternalSymbolName constants are ast's.
+// internal/ast/symbol.go with the two node fields as Node (D2) and two ids:
+// id, the dense index in the Bound, given at creation, and gid, the lazy
+// process-wide id of ast.GetSymbolId (I1). internal/ast/docs/
+// store-checker-design-20260923.md 2.4 and 2.5, and
+// store-checker-review-contracts-20260926.md 1. The InternalSymbolName
+// constants are ast's.
 
 // SymbolId is the index of a symbol in Bound.symbols: 1-based, dense per file.
-// 0 is nil.
+// 0 is nil. It is the Bound's reference only: a private name or anything that
+// needs a symbol's identity across files uses GetSymbolId.
 type SymbolId uint32
 
 // Symbol
@@ -21,27 +26,44 @@ type Symbol struct {
 	Flags            ast.SymbolFlags
 	CheckFlags       ast.CheckFlags // Non-zero only in transient symbols created by Checker
 	Name             string
-	Declarations     []Ref
-	ValueDeclaration Ref // zero = nil
+	Declarations     []Node
+	ValueDeclaration Node // zero = nil
 	Members          SymbolTable
 	Exports          SymbolTable
 	id               SymbolId
+	gid              atomic.Uint64
 	Parent           *Symbol
 	ExportSymbol     *Symbol
 }
 
 func (s *Symbol) Id() SymbolId { return s.id }
 
+var nextSymbolId atomic.Uint64
+
+// newSymbolId is the counter of GetSymbolId (utilities_manual.go). It never
+// wraps: at the end of the range it panics without moving, so that no later
+// call reissues an id.
+func newSymbolId() uint64 {
+	for {
+		id := nextSymbolId.Load()
+		if id == ^uint64(0) {
+			panic("store: the symbol ids are exhausted")
+		}
+		if nextSymbolId.CompareAndSwap(id, id+1) {
+			return id + 1
+		}
+	}
+}
+
 func (s *Symbol) IsExternalModule() bool {
 	return s.Flags&ast.SymbolFlagsModule != 0 && ast.IsAmbientModuleSymbolName(s.Name)
 }
 
-// IsStatic reads the ValueDeclaration in st, the Store of the file that holds it.
-func (s *Symbol) IsStatic(st *Store) bool {
-	if s.ValueDeclaration == (Ref{}) {
+func (s *Symbol) IsStatic() bool {
+	if s.ValueDeclaration.IsNil() {
 		return false
 	}
-	modifierFlags := st.Node(s.ValueDeclaration.Id()).ModifierFlags()
+	modifierFlags := s.ValueDeclaration.ModifierFlags()
 	return modifierFlags&ast.ModifierFlagsStatic != 0
 }
 
@@ -60,14 +82,6 @@ type SymbolTable map[string]*Symbol
 type PatternAmbientModule struct {
 	Pattern core.Pattern
 	Symbol  *Symbol
-}
-
-// SymbolName reads the ValueDeclaration in st, the Store of the file that holds it.
-func SymbolName(st *Store, symbol *Symbol) string {
-	if symbol.ValueDeclaration != (Ref{}) && IsPrivateIdentifierClassElementDeclaration(st.Node(symbol.ValueDeclaration.Id())) {
-		return st.Node(symbol.ValueDeclaration.Id()).Name().Text()
-	}
-	return symbol.Name
 }
 
 // EscapeAllInternalSymbolNames replaces internal symbol name markers ("\xFE") with "__".
@@ -94,36 +108,4 @@ func EscapeSymbolName(name string) string {
 		return "_" + name
 	}
 	return name
-}
-
-// The lazy tables, from internal/ast/utilities.go.
-
-func GetSymbolTable(data *SymbolTable) SymbolTable {
-	if *data == nil {
-		*data = make(SymbolTable)
-	}
-	return *data
-}
-
-func GetMembers(symbol *Symbol) SymbolTable {
-	return GetSymbolTable(&symbol.Members)
-}
-
-func GetExports(symbol *Symbol) SymbolTable {
-	return GetSymbolTable(&symbol.Exports)
-}
-
-// GetLocals is ast.GetLocals through the reserved slot: a container's slot
-// holds the index of its table in bound, made on first use. A kind without the
-// slot panics, as the Pointer version does on a nil LocalsContainerData.
-func GetLocals(bound *Bound, container Node) SymbolTable {
-	i, ok := container.LocalsSlot()
-	if !ok {
-		panic("store: " + container.Kind().String() + " is not a locals container")
-	}
-	if i == 0 {
-		i = bound.NewLocals()
-		container.SetLocalsSlot(i)
-	}
-	return bound.Locals(i)
 }

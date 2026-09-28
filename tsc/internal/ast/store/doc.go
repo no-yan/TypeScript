@@ -10,7 +10,7 @@
 // kind, and a Pointer-AST-to-Store converter (./convert) exercises the
 // generated Builder API end to end.
 //
-// # Scope (7a to 7c)
+// # Scope (7a to 7d-0)
 //
 // This package is not wired into anything: the checker, emitter and language
 // service are untouched, and nothing outside this package, internal/storeparser
@@ -24,9 +24,21 @@
 // FallthroughFlowNode; generated with the payload) and in Bound (bound.go:
 // the flow slabs, the symbols, the locals tables, the file's fields). Symbol
 // is symbol.go; the predicates of internal/ast that read a node's contents
-// are utilities.go. Not yet built (7d and later):
+// are utilities.go, translated from ast by tools/cmd/storetranslate, with the
+// hand-written P2 replacements in utilities_manual.go.
 //
-//   - a synthetic Store for checker/emitter-created nodes;
-//   - JSDoc node placement (JSDoc is not converted at all: Convert follows
-//     exactly the children (*ast.Node).ForEachChild visits).
+// # 7d-0
+//
+// The base of the Store checker (internal/ast/docs/
+// store-checker-design-20260923.md 2.1, and
+// store-checker-7d0-implementation-instructions-20260924.md): StoreID and
+// NodeKey (idspace.go, store.go), edges that may name a node or list of
+// another Store through a foreign table (store.go), the zero Node as nil and
+// Node not comparable (store-node-zero-design-20260926.md), the declarations
+// of a Symbol as Nodes and its process-wide gid (symbol.go), the resolving
+// layer that carries the owner (bound.go: Flow, FlowList), and the synthetic
+// Stores of a checker with their Factory and writers (factory.go,
+// factory_generated.go). Not yet built (7d-1 and later): the JSDoc nodes (JSDoc
+// is not converted at all: Convert follows exactly the children
+// (*ast.Node).ForEachChild visits) and the checker.
 package store

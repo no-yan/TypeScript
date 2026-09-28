@@ -214,7 +214,7 @@ func TestCorpus(t *testing.T) {
 			continue
 		}
 		compared++
-		refs += countRefs(file)
+		refs += countDeclarations(file)
 		for label, count := range BindEquivalent(pointer, file, options(kind)) {
 			if all[label] == 0 {
 				example[label] = i
@@ -222,7 +222,7 @@ func TestCorpus(t *testing.T) {
 			all[label] += count
 		}
 	}
-	t.Logf("%d files: %d compared, %d excluded (JS with a reparsed node the bind depends on), %d with a parse mismatch; %d Refs checked", len(files), compared, excludedFiles, parseMismatch, refs)
+	t.Logf("%d files: %d compared, %d excluded (JS with a reparsed node the bind depends on), %d with a parse mismatch; %d declaration Stores checked", len(files), compared, excludedFiles, parseMismatch, refs)
 	var reasons []string
 	for reason := range reasonCounts {
 		reasons = append(reasons, reason)
@@ -238,8 +238,9 @@ func TestCorpus(t *testing.T) {
 	located.Report(t)
 }
 
-// countRefs is the Refs of the file's symbols whose file index the driver checked.
-func countRefs(file *store.File) int {
+// countDeclarations is the declarations of the file's symbols whose Store the
+// driver checked.
+func countDeclarations(file *store.File) int {
 	n := 0
 	seen := map[*store.Symbol]bool{}
 	var visit func(s *store.Symbol)
@@ -249,7 +250,7 @@ func countRefs(file *store.File) int {
 		}
 		seen[s] = true
 		n += len(s.Declarations)
-		if s.ValueDeclaration != (store.Ref{}) {
+		if !s.ValueDeclaration.IsNil() {
 			n++
 		}
 		for _, m := range s.Members {
@@ -262,9 +263,9 @@ func countRefs(file *store.File) int {
 		visit(s.ExportSymbol)
 	}
 	for _, node := range storetest.Preorder(file.Root()) {
-		visit(file.Bound.SymbolOf(node.Symbol()))
-		visit(file.Bound.SymbolOf(node.LocalSymbol()))
-		if slot, ok := node.LocalsSlot(); ok && slot != 0 {
+		visit(file.Bound.SymbolOf(node.SymbolId()))
+		visit(file.Bound.SymbolOf(node.LocalSymbolId()))
+		if slot, ok := node.LocalsRef(); ok && slot != 0 {
 			for _, l := range file.Bound.Locals(slot) {
 				visit(l)
 			}

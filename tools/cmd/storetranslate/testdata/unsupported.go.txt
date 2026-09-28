@@ -1,0 +1,34 @@
+package storetranslatefixture
+
+import (
+	"github.com/microsoft/TypeScript/tsc/internal/ast"
+	"github.com/microsoft/TypeScript/tsc/internal/core"
+)
+
+// A comparable helper with no rule for Node: reported.
+func firstNonZeroNode(a, b *ast.Node) *ast.Node {
+	return core.FirstNonZero(a, b)
+}
+
+type checker struct{}
+
+// A key struct whose node is read back: not a key only, reported.
+type readBackKey struct {
+	node *ast.Node
+	flag bool
+}
+
+func (c *checker) readBack(m map[readBackKey]int, node *ast.Node) *ast.Node {
+	for k := range m {
+		if k.flag {
+			return k.node
+		}
+	}
+	m[readBackKey{node, true}] = 1
+	return nil
+}
+
+// A list passed where the Pointer takes a slice: no rule.
+func someArgument(node *ast.Node) bool {
+	return core.Some(node.Arguments(), func(n *ast.Node) bool { return n == nil })
+}

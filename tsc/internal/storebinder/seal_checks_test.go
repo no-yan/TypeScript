@@ -17,12 +17,12 @@ func TestSealPanics(t *testing.T) {
 	root := file.Root()
 	fn := root.AsSourceFile().Statements().At(0)
 	for name, write := range map[string]func(){
-		"AddFlags":      func() { root.AddFlags(ast.NodeFlagsAmbient) },
-		"ClearFlags":    func() { root.ClearFlags(ast.NodeFlagsAmbient) },
-		"SetFlow":       func() { root.SetFlow(1) },
-		"SetSymbol":     func() { root.SetSymbol(1) },
-		"SetLocalsSlot": func() { fn.SetLocalsSlot(1) },
-		"typed setter":  func() { fn.AsFunctionDeclaration().SetEndFlowNode(1) },
+		"AddFlags":     func() { root.AddFlags(ast.NodeFlagsAmbient) },
+		"ClearFlags":   func() { root.ClearFlags(ast.NodeFlagsAmbient) },
+		"SetFlowRef":   func() { root.SetFlowRef(1) },
+		"SetSymbolId":  func() { root.SetSymbolId(1) },
+		"SetLocalsRef": func() { fn.SetLocalsRef(1) },
+		"typed setter": func() { fn.AsFunctionDeclaration().SetEndFlowRef(1) },
 	} {
 		t.Run(name, func(t *testing.T) {
 			defer func() {

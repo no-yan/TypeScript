@@ -72,7 +72,7 @@ func (f *File) Symbol() *Symbol {
 	if f.Bound == nil {
 		return nil
 	}
-	return f.Bound.SymbolOf(f.Root().Symbol())
+	return f.Bound.SymbolOf(f.Root().SymbolId())
 }
 
 func (f *File) IsExternalModule() bool { return f.ExternalModuleIndicator != NoNodeRef }

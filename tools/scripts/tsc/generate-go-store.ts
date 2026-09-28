@@ -1,7 +1,9 @@
 /**
  * Store AST generator: reads tools/scripts/tsc/ast.json and produces the
  * generated files of tsc/internal/ast/store (design:
- * tsc/internal/ast/docs/store-ast-design-20260922.md).
+ * tsc/internal/ast/docs/store-ast-design-20260922.md; the edge resolution,
+ * the two layers of the binder's accessors and the Factory:
+ * tsc/internal/ast/docs/store-checker-design-20260923.md 2.5 and 2.6).
  *
  * Usage: node tools/scripts/tsc/generate-go-store.ts
  *
@@ -10,7 +12,9 @@
  *     the binder's reserved slot tables
  *   - views_generated.go: slot constants, typed views, member and role accessors
  *   - foreach_generated.go: ForEachChild
- *   - builder_generated.go: one constructor per definition
+ *   - builder_generated.go: one constructor per definition, for a source Store
+ *   - factory_generated.go: New, Update and Clone per definition, for a
+ *     synthetic Store (the Pointer NodeFactory's parameters)
  *   - convert/convert_generated.go: Pointer AST to Store
  *   - storetest/equivalence_generated.go: Pointer and Store compared member by member
  *
@@ -84,14 +88,17 @@ const slotWords: Record<SlotClass, number> = { child: 1, list: 1, text: 2, bool:
 // goOnly members that the Pointer binder writes and that are neither in the
 // header (Symbol, FlowNode) nor in Bound (NextContainer). Each is one uint32
 // word at the end of the payload, 0 after the parse; the binder writes it
-// through the generated setter. Keyed by member name, in slot order; the value
-// is the Go type of the word and the accessor name.
-const boundSlots: { name: string; accessor: string; type: string; }[] = [
-    { name: "LocalSymbol", accessor: "LocalSymbol", type: "SymbolId" },
-    { name: "Locals", accessor: "LocalsSlot", type: "uint32" },
-    { name: "EndFlowNode", accessor: "EndFlowNode", type: "FlowRef" },
-    { name: "ReturnFlowNode", accessor: "ReturnFlowNode", type: "FlowRef" },
-    { name: "FallthroughFlowNode", accessor: "FallthroughFlowNode", type: "FlowRef" },
+// through the generated setter. Keyed by member name, in slot order. The word
+// has two layers (A1, V1): the id layer (accessor, its Go type), which the
+// binder reads and writes, and the resolving layer (the member's own name, the
+// Pointer type's Store form), which asks the node's Store for the owner:
+// resolve is the Store method that turns the word into the value.
+const boundSlots: { name: string; accessor: string; type: string; resolved: string; resolve: string; }[] = [
+    { name: "LocalSymbol", accessor: "LocalSymbolId", type: "SymbolId", resolved: "*Symbol", resolve: "symbolAt" },
+    { name: "Locals", accessor: "LocalsRef", type: "uint32", resolved: "SymbolTable", resolve: "localsAt" },
+    { name: "EndFlowNode", accessor: "EndFlowRef", type: "FlowRef", resolved: "Flow", resolve: "flowAt" },
+    { name: "ReturnFlowNode", accessor: "ReturnFlowRef", type: "FlowRef", resolved: "Flow", resolve: "flowAt" },
+    { name: "FallthroughFlowNode", accessor: "FallthroughFlowRef", type: "FlowRef", resolved: "Flow", resolve: "flowAt" },
 ];
 
 function boundSlot(name: string) {
@@ -337,6 +344,10 @@ function role(name: string): Role {
 
 interface BoundRole {
     name: string;
+    /** The resolving accessor: the member's name. */
+    resolver: string;
+    resolved: string;
+    resolve: string;
     type: string;
     table: string;
     /** kind value → payload word */
@@ -345,7 +356,7 @@ interface BoundRole {
 
 // One role per reserved slot, whatever the number of definitions that have it.
 const boundRoles: BoundRole[] = boundSlots.map(b => {
-    const role: BoundRole = { name: b.accessor, type: b.type, table: `${api.uncapitalize(b.name)}Slot`, slots: new Map() };
+    const role: BoundRole = { name: b.accessor, resolver: b.name, resolved: b.resolved, resolve: b.resolve, type: b.type, table: `${api.uncapitalize(b.name)}Slot`, slots: new Map() };
     for (const { kind, def } of payloadKinds) {
         const slot = def.slots.find(s => s.class === "bound" && s.name === b.accessor);
         if (slot) role.slots.set(kind.value, slot.word);
@@ -477,7 +488,7 @@ function memberAccessor(def: Definition, slot: Slot): string {
         case "child":
             return `return n.s.node(NodeRef(n.s.extra[${index}]))`;
         case "list":
-            return `return List{n.s, ListRef(n.s.extra[${index}])}`;
+            return `return n.s.list(ListRef(n.s.extra[${index}]))`;
         case "text":
             return `return n.s.text(${index})`;
         case "bool":
@@ -499,10 +510,14 @@ function generateViews(): string {
     w.write();
     w.write(`import ${AST_IMPORT}`);
     w.write();
-    w.write("// A typed view is the same two words as Node under another type: creating one");
-    w.write("// loads nothing, and each accessor reads only its own payload word. Accessors");
-    w.write("// have no nil guard (nodes[0] and list block 0 are sentinels) and no kind check");
-    w.write("// outside storeChecks. Slot constants are payload words in declaration order.");
+    w.write("// A typed view is Node under another type (the same underlying struct, so the");
+    w.write("// same two words and not comparable either): creating one loads nothing, and");
+    w.write("// each accessor reads only its own payload word. Accessors have no nil guard");
+    w.write("// (nodes[0] and list block 0 are sentinels) and no kind check outside");
+    w.write("// storeChecks. A child or list word is an edge, resolved in the node's Store:");
+    w.write("// a foreign edge gives the canonical Node or List (FR1, K3 in");
+    w.write("// internal/ast/docs/store-checker-design-20260923.md 2.6). Slot constants");
+    w.write("// are payload words in declaration order.");
     for (const def of viewDefinitions) {
         w.write();
         w.write(`// ${def.name}: ${goKinds(def)}`);
@@ -518,10 +533,7 @@ function generateViews(): string {
         for (const todo of def.todos) {
             w.write(`// TODO(store): ${todo}.`);
         }
-        w.write(`type ${def.name} struct {`);
-        w.write("\ts *Store");
-        w.write("\th *NodeHeader");
-        w.write("}");
+        w.write(`type ${def.name} Node`);
         w.write();
         w.write(`func (n Node) As${def.name}() ${def.name} {`);
         w.write("\tif storeChecks {");
@@ -542,10 +554,15 @@ function generateViews(): string {
             w.write();
             w.write(`func (n ${def.name}) ${slot.name}() ${goType(slot)} { ${memberAccessor(def, slot)} }`);
             if (slot.class === "bound") {
+                const b = boundSlot(slot.member.name)!;
                 w.write();
                 w.write(`func (n ${def.name}) Set${slot.name}(v ${goType(slot)}) {`);
                 w.write("\tNode(n).checkUnsealed()");
                 w.write(`\tn.s.extra[int(n.h.data)+${slotConst(def, slot)}] = uint32(v)`);
+                w.write("}");
+                w.write();
+                w.write(`func (n ${def.name}) ${b.name}() ${b.resolved} {`);
+                w.write(`\treturn n.s.${b.resolve}(n.s.extra[int(n.h.data)+${slotConst(def, slot)}])`);
                 w.write("}");
             }
         }
@@ -561,13 +578,23 @@ function generateViews(): string {
         if (r.name === "Text") continue;
         w.write();
         const index = `int(n.h.data)+int(slot)`;
-        w.write(`func (n Node) ${r.name}() ${r.class === "child" ? "Node" : r.class === "list" ? "List" : "string"} {`);
+        if (r.class === "child") {
+            // One resolution for both paths: a kind without the role reads the
+            // edge 0 (the sentinel), so node() is expanded once and the
+            // accessor stays within the inline budget.
+            w.write(`func (n Node) ${r.name}() Node {`);
+            w.write(`\tvar e NodeRef`);
+            w.write(`\tif slot := ${r.table}[n.h.kind&511]; slot != 0xFF {`);
+            w.write(`\t\te = NodeRef(n.s.extra[${index}])`);
+            w.write("\t}");
+            w.write("\treturn n.s.node(e)");
+            w.write("}");
+            continue;
+        }
+        w.write(`func (n Node) ${r.name}() ${r.class === "list" ? "List" : "string"} {`);
         w.write(`\tslot := ${r.table}[n.h.kind&511]`);
         w.write("\tif slot == 0xFF {");
         switch (r.class) {
-            case "child":
-                w.write("\t\treturn n.s.node(0)");
-                break;
             case "list":
                 w.write("\t\treturn List{n.s, NoListRef}");
                 break;
@@ -581,7 +608,7 @@ function generateViews(): string {
                 w.write(`\treturn n.s.node(NodeRef(n.s.extra[${index}]))`);
                 break;
             case "list":
-                w.write(`\treturn List{n.s, ListRef(n.s.extra[${index}])}`);
+                w.write(`\treturn n.s.list(ListRef(n.s.extra[${index}]))`);
                 break;
             case "text":
                 w.write(`\treturn n.s.text(${index})`);
@@ -591,14 +618,16 @@ function generateViews(): string {
     }
 
     w.write();
-    w.write("// The binder's role accessors: the reserved slot of the kind, or 0 and false");
-    w.write("// when the kind does not have it (one table lookup and one compare, no");
-    w.write("// switch). The setter is a no-op on a kind without the slot, like the Pointer");
-    w.write("// binder's setReturnFlowNode, and panics after Seal in a storeChecks build.");
+    w.write("// The binder's role accessors, id layer: the reserved slot of the kind, or 0");
+    w.write("// (and false) when the kind does not have it (one table lookup and one");
+    w.write("// compare, no switch). The setter is a no-op on a kind without the slot, like");
+    w.write("// the Pointer binder's setReturnFlowNode, and panics after Seal in a");
+    w.write("// storeChecks build. The resolving layer has the Pointer name and reads the");
+    w.write("// word in the node's owner: 0 is nil, and so is a kind without the slot.");
     for (const r of boundRoles) {
         const index = `int(n.h.data)+int(slot)`;
         w.write();
-        if (r.name === "LocalsSlot") {
+        if (r.name === "LocalsRef") {
             w.write(`func (n Node) ${r.name}() (${r.type}, bool) {`);
             w.write(`\tslot := ${r.table}[n.h.kind&511]`);
             w.write("\tif slot == 0xFF {");
@@ -625,11 +654,38 @@ function generateViews(): string {
         w.write("\t}");
         w.write(`\tn.s.extra[${index}] = uint32(v)`);
         w.write("}");
+        w.write();
+        if (r.name === "LocalsRef") {
+            w.write(`func (n Node) ${r.resolver}() ${r.resolved} { i, _ := n.${r.name}(); return n.s.${r.resolve}(i) }`);
+        }
+        else {
+            w.write(`func (n Node) ${r.resolver}() ${r.resolved} { return n.s.${r.resolve}(uint32(n.${r.name}())) }`);
+        }
     }
     return w.toString();
 }
 
 // ── foreach_generated.go ──
+
+/** The walk of one slot: s and data name the Store and the payload start. */
+function forEachSlot(w: CodeWriter, slot: Slot, indent: string, s: string, data: string) {
+    if (slot.class === "child") {
+        w.write(`${indent}if ref := NodeRef(${s}.extra[${data}+${slot.word}]); ref != NoNodeRef && v(${s}.node(ref)) { // ${slot.name}`);
+        w.write(`${indent}\treturn true`);
+        w.write(`${indent}}`);
+        return;
+    }
+    // The list loop is written out, not a call: the elements are read in the
+    // list's owner.
+    w.write(`${indent}if at := ListRef(${s}.extra[${data}+${slot.word}]); at != NoListRef { // ${slot.name}`);
+    w.write(`${indent}\tl := ${s}.list(at)`);
+    w.write(`${indent}\tfor _, e := range l.edges() {`);
+    w.write(`${indent}\t\tif v(l.s.node(e)) {`);
+    w.write(`${indent}\t\t\treturn true`);
+    w.write(`${indent}\t\t}`);
+    w.write(`${indent}\t}`);
+    w.write(`${indent}}`);
+}
 
 function generateForEachChild(): string {
     const w = new CodeWriter();
@@ -639,35 +695,43 @@ function generateForEachChild(): string {
     w.write();
     w.write(`import ${AST_IMPORT}`);
     w.write();
-    w.write("// The cases are in Kind order and cover every kind that has a payload.");
+    const walked = (def: Definition) => def.slots.filter(s => s.class === "child" || s.class === "list");
+    // A definition with one child or list is walked in the switch itself; the
+    // others call their function. Both follow the edges through node() and
+    // list(), whose foreign side puts a function with a call over the inline
+    // budget, so the switch does not rely on inlining (7d-0: the single-child
+    // functions and visitList stopped inlining when node() gained the foreign
+    // edges, and Walk paid a call per visit).
+    const byDef = new Map<Definition, KindRef[]>();
+    for (const { kind, def } of payloadKinds) {
+        if (walked(def).length === 0) continue;
+        byDef.set(def, [...(byDef.get(def) ?? []), kind]);
+    }
+    w.write("// The cases are in Kind order (of the first kind of each definition) and cover");
+    w.write("// every kind that has a child or a list.");
     w.write("func (n Node) ForEachChild(v Visitor) bool {");
     w.write("\tswitch n.h.kind {");
-    for (const { kind, def } of payloadKinds) {
-        if (!def.slots.some(s => s.class === "child" || s.class === "list")) continue;
-        w.write(`\tcase ast.Kind${kind.name}:`);
-        w.write(`\t\treturn forEachChild${def.name}(n, v)`);
+    for (const [def, kinds] of byDef) {
+        w.write(`\tcase ${kinds.map(k => `ast.Kind${k.name}`).join(", ")}:`);
+        const slots = walked(def);
+        if (slots.length === 1) {
+            forEachSlot(w, slots[0], "\t\t", "n.s", "int(n.h.data)");
+            w.write("\t\treturn false");
+        }
+        else {
+            w.write(`\t\treturn forEachChild${def.name}(n, v)`);
+        }
     }
     w.write("\t}");
     w.write("\treturn false");
     w.write("}");
-    const seen = new Set<Definition>();
-    for (const { def } of payloadKinds) {
-        if (seen.has(def) || !def.slots.some(s => s.class === "child" || s.class === "list")) continue;
-        seen.add(def);
+    for (const def of byDef.keys()) {
+        if (walked(def).length === 1) continue;
         w.write();
         w.write(`func forEachChild${def.name}(n Node, v Visitor) bool {`);
         w.write("\ts, data := n.s, int(n.h.data)");
-        for (const slot of def.slots) {
-            if (slot.class === "child") {
-                w.write(`\tif ref := NodeRef(s.extra[data+${slot.word}]); ref != NoNodeRef && v(s.node(ref)) { // ${slot.name}`);
-                w.write("\t\treturn true");
-                w.write("\t}");
-            }
-            else if (slot.class === "list") {
-                w.write(`\tif at := ListRef(s.extra[data+${slot.word}]); at != NoListRef && visitList(s, at, v) { // ${slot.name}`);
-                w.write("\t\treturn true");
-                w.write("\t}");
-            }
+        for (const slot of walked(def)) {
+            forEachSlot(w, slot, "\t", "s", "data");
         }
         w.write("\treturn false");
         w.write("}");
@@ -751,6 +815,245 @@ function generateBuilder(): string {
     return w.toString();
 }
 
+// ── factory_generated.go ──
+
+// The Factory takes the Pointer NodeFactory's parameters: the schema members
+// without noFactory, in schema order, a child as Node, a list (node, modifier
+// or raw) as List, and the rest by value. A member without a slot in the Store
+// (a []string of JSDoc, SyntheticExpression.Type) has no parameter: its
+// definition says so in a TODO.
+
+function isNodeFlagsParam(m: MemberInfo): boolean {
+    return m.type.kind === "primitive" && m.type.name === "NodeFlags";
+}
+
+interface FactoryParam {
+    member: MemberInfo;
+    name: string;
+    type: string;
+    /** The slot the member fills, if any. */
+    slot?: Slot;
+    kind?: true;
+    flags?: true;
+    headerText?: true;
+}
+
+const factoryLocals = new Set(["f", "r", "dst", "data", "node"]);
+
+function factoryParams(def: Definition): FactoryParam[] {
+    const params: FactoryParam[] = [];
+    for (const m of def.node.members) {
+        if (m.noFactory) continue;
+        const name = m.goParamName();
+        if (factoryLocals.has(name)) problems.push(`${def.name}.${m.name}: parameter name ${name} is reserved in the Factory`);
+        if (m.isKindParam()) {
+            params.push({ member: m, name, type: "ast.Kind", kind: true });
+            continue;
+        }
+        if (isNodeFlagsParam(m)) {
+            params.push({ member: m, name, type: "ast.NodeFlags", flags: true });
+            continue;
+        }
+        if (def.headerText && isPrimitive(m.type, "string")) {
+            params.push({ member: m, name, type: "string", headerText: true });
+            continue;
+        }
+        const slot = def.slots.find(s => s.member === m);
+        if (!slot) continue; // a TODO member: no slot, no parameter
+        params.push({ member: m, name, type: goType(slot), slot });
+    }
+    return params;
+}
+
+function goBitmask(mask: string): string {
+    return `ast.${mask}`;
+}
+
+/** New for one kind of the definition: kindExpr is the kind parameter or constant. */
+function writeFactoryNew(w: CodeWriter, def: Definition, funcName: string, kindExpr: string) {
+    const params = factoryParams(def);
+    w.write();
+    w.write(`func (f *Factory) ${funcName}(${params.map(p => `${p.name} ${p.type}`).join(", ")}) Node {`);
+    const flagsParam = params.find(p => p.flags);
+    const flags = !flagsParam ? "0" : flagsParam.member.bitmask ? `${flagsParam.name}&${goBitmask(flagsParam.member.bitmask)}` : flagsParam.name;
+    if (def.headerText) {
+        const text = params.find(p => p.headerText)!;
+        w.write("\tdst := f.row()");
+        w.write(`\treturn f.newNode(dst, ${kindExpr}, ${flags}, 0, f.identifierData(dst, ${text.name}))`);
+        w.write("}");
+        return;
+    }
+    if (def.words === 0) {
+        w.write(`\treturn f.newNode(f.row(), ${kindExpr}, ${flags}, 0, 0)`);
+        w.write("}");
+        return;
+    }
+    w.write("\tdst := f.row()");
+    const words: string[] = [];
+    const byMember = new Map(params.filter(p => p.slot).map(p => [p.slot!.member, p]));
+    if (def.slots.some(s => s.class === "child" || s.class === "list")) w.write("\tr := f.region");
+    for (const slot of def.slots) {
+        const p = byMember.get(slot.member);
+        if (!p) {
+            // A reserved slot of the binder, or a member without a factory
+            // parameter: 0, the nil value.
+            words.push(slot.class === "text" ? "textInTexts, 0" : "0");
+            continue;
+        }
+        switch (slot.class) {
+            case "child":
+                words.push(`uint32(r.edge(dst, ${p.name}))`);
+                break;
+            case "list":
+                words.push(`uint32(r.listEdge(dst, ${p.name}))`);
+                break;
+            case "text":
+                w.write(`\t${p.name}Off, ${p.name}Len := f.text(dst, ${p.name})`);
+                words.push(`${p.name}Off`, `${p.name}Len`);
+                break;
+            case "bool":
+                words.push(`boolWord(${p.name})`);
+                break;
+            case "tokenFlags":
+                words.push(p.member.bitmask ? `uint32(${p.name}&${goBitmask(p.member.bitmask)})` : `uint32(${p.name})`);
+                break;
+            case "kind":
+                words.push(`uint32(${p.name})`);
+                break;
+            case "bound":
+                words.push("0");
+                break;
+        }
+    }
+    const modifiers = def.slots.find(s => s.name === "Modifiers" && s.class === "list");
+    const modParam = modifiers ? byMember.get(modifiers.member) : undefined;
+    const mod = modParam ? `modifierFlags(${modParam.name})` : "0";
+    w.write("\tdata := uint32(len(dst.extra))");
+    w.write(`\tdst.extra = append(dst.extra, ${words.join(", ")})`);
+    w.write(`\treturn f.newNode(dst, ${kindExpr}, ${flags}, ${mod}, data)`);
+    w.write("}");
+}
+
+/** The view type of a definition, or Node for one without a view. */
+function viewType(def: Definition): string {
+    return viewDefinitions.includes(def) ? def.name : "Node";
+}
+
+/** The value of a parameter's member read from node (a view of the definition). */
+function readParam(def: Definition, p: FactoryParam): string {
+    if (p.kind) return "Node(node).Kind()";
+    if (p.flags) return "Node(node).Flags()";
+    if (p.headerText) return "node.Text()";
+    return `node.${p.slot!.name}()`;
+}
+
+/** Calls New for the kind of node: a switch when the definition has kind aliases. */
+function writeNewForKind(w: CodeWriter, def: Definition, args: string, wrap: (call: string) => string, what: string) {
+    const aliases = def.node.kindAliases;
+    if (aliases.length === 0) {
+        w.write(`\treturn ${wrap(`f.New${def.name}(${args})`)}`);
+        return;
+    }
+    w.write("\tswitch Node(node).Kind() {");
+    w.write(`\tcase ast.Kind${def.node.syntaxKindName}:`);
+    w.write(`\t\treturn ${wrap(`f.New${def.name}(${args})`)}`);
+    for (const alias of aliases) {
+        w.write(`\tcase ast.Kind${alias}:`);
+        w.write(`\t\treturn ${wrap(`f.New${alias}(${args})`)}`);
+    }
+    w.write("\t}");
+    w.write(`\tpanic("unexpected kind in ${what}: " + Node(node).Kind().String())`);
+}
+
+function writeFactoryUpdate(w: CodeWriter, def: Definition) {
+    const params = factoryParams(def);
+    const members = params.filter(p => !p.kind);
+    // As the Pointer generator: no Update without a child member.
+    if (members.length === 0 || !def.node.members.some(m => !m.noFactory && m.isChild())) return;
+    const view = viewType(def);
+    w.write();
+    w.write(`func (f *Factory) Update${def.name}(node ${view}, ${members.map(p => `${p.name} ${p.type}`).join(", ")}) Node {`);
+    const comparisons = members.map(p => {
+        if (p.flags) return `${p.name} != Node(node).Flags()`;
+        switch (p.slot?.class) {
+            case "child":
+                return `!SameNode(${p.name}, node.${p.slot.name}())`;
+            case "list":
+                return `!SameList(${p.name}, node.${p.slot.name}())`;
+            default:
+                return `${p.name} != ${readParam(def, p)}`;
+        }
+    });
+    w.write(`\tif ${comparisons.join(" || ")} {`);
+    const args = params.map(p => p.kind ? "Node(node).Kind()" : p.name).join(", ");
+    const inner = new CodeWriter();
+    writeNewForKind(inner, def, args, call => `f.updateNode(${call}, Node(node))`, `Update${def.name}`);
+    for (const line of inner.toString().trimEnd().split("\n")) w.write(`\t${line}`);
+    w.write("\t}");
+    w.write("\treturn Node(node)");
+    w.write("}");
+}
+
+function writeFactoryClone(w: CodeWriter, def: Definition) {
+    const params = factoryParams(def);
+    w.write();
+    w.write(`func (f *Factory) Clone${def.name}(node ${viewType(def)}) Node {`);
+    const args = params.map(p => readParam(def, p)).join(", ");
+    writeNewForKind(w, def, args, call => `f.cloneNode(${call}, Node(node))`, `${def.name}.Clone`);
+    w.write("}");
+}
+
+function generateFactory(): string {
+    const w = new CodeWriter();
+    w.write(HEADER);
+    w.write();
+    w.write("package store");
+    w.write();
+    w.write(`import ${AST_IMPORT}`);
+    w.write();
+    w.write("// New, Update and Clone of ast.NodeFactory per definition, for a synthetic");
+    w.write("// Store (factory.go). New picks the Store once, writes the payload, the");
+    w.write("// foreign entries and the header, then calls the hook; it never writes the");
+    w.write("// parent of a child (invariant 18). Update compares with SameNode and");
+    w.write("// SameList and returns the original when nothing changed. Clone is shallow:");
+    w.write("// it shares the children and lists, and takes the flags and range but not");
+    w.write("// the parent, flow, symbol or locals. internal/ast/docs/");
+    w.write("// store-checker-design-20260923.md 2.6 (R, K3) and");
+    w.write("// store-checker-execution-design-20260924.md 1, 4.");
+    for (const def of definitions) {
+        for (const todo of def.todos) {
+            w.write();
+            w.write(`// TODO(store): ${def.name}: ${todo}; it is not a parameter.`);
+        }
+        const kindParam = factoryParams(def).find(p => p.kind);
+        writeFactoryNew(w, def, `New${def.name}`, kindParam ? kindParam.name : `ast.Kind${def.node.syntaxKindName}`);
+        for (const alias of def.node.kindAliases) {
+            writeFactoryNew(w, def, `New${alias}`, kindParam ? kindParam.name : `ast.Kind${alias}`);
+        }
+        writeFactoryUpdate(w, def);
+        writeFactoryClone(w, def);
+    }
+    w.write();
+    w.write("// CloneNode is (*ast.Node).Clone: Clone of the definition of the node's kind.");
+    w.write("func (f *Factory) CloneNode(node Node) Node {");
+    w.write("\tswitch node.Kind() {");
+    const byDef = new Map<Definition, number[]>();
+    for (const [value, def] of [...kindDefinition].sort((a, b) => a[0] - b[0])) {
+        byDef.set(def, [...(byDef.get(def) ?? []), value]);
+    }
+    const kindName = (def: Definition, value: number) => def.kinds.find(k => k.value === value)!.name;
+    for (const [def, values] of byDef) {
+        if (values.every(v => kindName(def, v) === "Unknown")) continue;
+        const kinds = values.filter(v => kindName(def, v) !== "Unknown").map(v => `ast.Kind${kindName(def, v)}`);
+        w.write(`\tcase ${kinds.join(", ")}:`);
+        w.write(`\t\treturn f.Clone${def.name}(${viewDefinitions.includes(def) ? `node.As${def.name}()` : "node"})`);
+    }
+    w.write("\t}");
+    w.write(`\tpanic("store: CloneNode of " + node.Kind().String())`);
+    w.write("}");
+    return w.toString();
+}
+
 // ── convert/convert_generated.go ──
 
 /** Go expression reading the member of the typed Pointer struct v. */
@@ -794,7 +1097,7 @@ function generateConvert(): string {
     w.write("// Convert builds a Store from a Pointer AST in post-order. It follows exactly");
     w.write("// the children that the Pointer ForEachChild visits, so JSDoc is not converted.");
     w.write("func Convert(file *ast.SourceFile, fileIndex uint32) *store.Store {");
-    w.write("\tc := &converter{b: store.NewBuilder(file.Text(), fileIndex)}");
+    w.write("\tc := &converter{b: store.NewBuilder(file.Text(), nil, store.StoreID(fileIndex))}");
     w.write("\tc.node(file.AsNode())");
     w.write("\treturn c.b.Finish()");
     w.write("}");
@@ -987,6 +1290,7 @@ export default function main() {
     writeAndFormat(path.join(OUT_DIR, "views_generated.go"), generateViews());
     writeAndFormat(path.join(OUT_DIR, "foreach_generated.go"), generateForEachChild());
     writeAndFormat(path.join(OUT_DIR, "builder_generated.go"), generateBuilder());
+    writeAndFormat(path.join(OUT_DIR, "factory_generated.go"), generateFactory());
     writeAndFormat(path.join(OUT_DIR, "convert/convert_generated.go"), generateConvert());
     writeAndFormat(path.join(OUT_DIR, "storetest/equivalence_generated.go"), generateEquivalenceTest());
 }

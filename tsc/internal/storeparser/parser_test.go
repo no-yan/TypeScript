@@ -492,7 +492,7 @@ func TestScratchReuse(t *testing.T) {
 	p := newParser()
 	var file *store.File
 	parse := func() {
-		p.initializeState(opts, text, kind)
+		p.initializeState(nil, 0, opts, text, kind)
 		p.nextToken()
 		file = p.parseSourceFileWorker()
 		*p = Parser{scanner: p.scanner, b: p.b, elems: p.elems[:0], missingLists: p.missingLists[:0]}

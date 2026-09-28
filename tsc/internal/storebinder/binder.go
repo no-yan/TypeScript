@@ -78,7 +78,7 @@ type Binder struct {
 	symbolCount             int
 	notConstEnumOnlyModules collections.Set[*store.Symbol]
 	symbolArena             core.Arena[store.Symbol]
-	singleDeclarationsArena core.Arena[store.Ref]
+	singleDeclarationsArena core.Arena[store.Node]
 	expandoAssignments      []ExpandoAssignmentInfo
 	scratch                 *store.BoundScratch // kept by putBinder
 }
@@ -132,7 +132,7 @@ func bindSourceFile(file *store.File) {
 		if scratch == nil {
 			scratch = &store.BoundScratch{}
 		}
-		b.bound = store.NewBoundIn(scratch)
+		b.bound = store.NewBoundIn(scratch, b.s)
 		file.Bound = b.bound
 		// The container locals start as the nil node, not the zero Node,
 		// so that IsNil reads a header.
@@ -157,7 +157,7 @@ func (b *Binder) nilNode() store.Node {
 
 // symbolOf resolves the symbol in the node's header (node.Symbol() in the Pointer AST).
 func (b *Binder) symbolOf(node store.Node) *store.Symbol {
-	return b.bound.SymbolOf(node.Symbol())
+	return b.bound.SymbolOf(node.SymbolId())
 }
 
 func (b *Binder) newSymbol(flags ast.SymbolFlags, name string) *store.Symbol {
@@ -288,8 +288,7 @@ func (b *Binder) declareSymbolEx(symbolTable store.SymbolTable, parent *store.Sy
 					// export type T; - may have meant export type { T }?
 					diag.AddRelatedInfo(b.createDiagnosticForNode(node, diagnostics.Did_you_mean_0, "export type { "+node.AsTypeAliasDeclaration().Name().Text()+" }"))
 				}
-				for index, declarationRef := range symbol.Declarations {
-					declaration := b.s.Node(declarationRef.Id())
+				for index, declaration := range symbol.Declarations {
 					var decl store.Node = store.GetNameOfDeclaration(declaration)
 					if decl.IsNil() {
 						decl = declaration
@@ -345,10 +344,11 @@ func (b *Binder) getDeclarationName(node store.Node) string {
 			if pattern := core.TryParsePattern(moduleName); pattern.IsValid() && pattern.StarIndex >= 0 {
 				if attributes := node.AsModuleDeclaration().Attributes(); !attributes.IsNil() {
 					// The Pointer binder uses the process-wide node id; here the
-					// id is the file and node index, so that two files' same-named
-					// patterns stay apart when the checker merges globals.
-					ref := attributes.FileRef()
-					return ast.InternalSymbolNamePrefix + "\"" + moduleName + "\"pattern@" + strconv.FormatUint(uint64(ref.File()), 10) + ":" + strconv.FormatUint(uint64(ref.Id()), 10)
+					// id is the NodeKey (StoreID and node index), so that two
+					// files' same-named patterns stay apart when the checker
+					// merges globals.
+					key := attributes.Key()
+					return ast.InternalSymbolNamePrefix + "\"" + moduleName + "\"pattern@" + strconv.FormatUint(uint64(key.StoreID()), 10) + ":" + strconv.FormatUint(uint64(key.ID()), 10)
 				}
 			}
 			return "\"" + moduleName + "\""
@@ -409,12 +409,12 @@ func (b *Binder) getDisplayName(node store.Node) string {
 }
 
 func GetSymbolNameForPrivateIdentifier(containingClassSymbol *store.Symbol, description string) string {
-	return ast.InternalSymbolNamePrefix + "#" + strconv.Itoa(int(containingClassSymbol.Id())) + "@" + description
+	return ast.InternalSymbolNamePrefix + "#" + strconv.FormatUint(store.GetSymbolId(containingClassSymbol), 10) + "@" + description
 }
 
 func (b *Binder) declareModuleMember(node store.Node, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags) *store.Symbol {
 	container := b.container
-	hasExportModifier := store.GetCombinedModifierFlags(node)&ast.ModifierFlagsExport != 0 || store.IsImplicitlyExportedJSDocDeclaration(b.file, node)
+	hasExportModifier := store.GetCombinedModifierFlags(node)&ast.ModifierFlagsExport != 0 || store.IsImplicitlyExportedJSDocDeclaration(node)
 	if symbolFlags&ast.SymbolFlagsAlias != 0 {
 		if node.Kind() == ast.KindExportSpecifier || (node.Kind() == ast.KindImportEqualsDeclaration && hasExportModifier) {
 			return b.declareSymbol(store.GetExports(b.symbolOf(container)), b.symbolOf(container), node, symbolFlags, symbolExcludes)
@@ -447,7 +447,7 @@ func (b *Binder) declareModuleMember(node store.Node, symbolFlags ast.SymbolFlag
 		}
 		local := b.declareSymbol(store.GetLocals(b.bound, container), nil /*parent*/, node, exportKind, symbolExcludes)
 		local.ExportSymbol = b.declareSymbol(store.GetExports(b.symbolOf(container)), b.symbolOf(container), node, symbolFlags, symbolExcludes)
-		node.SetLocalSymbol(local.Id())
+		node.SetLocalSymbolId(local.Id())
 		return local
 	}
 	return b.declareSymbol(store.GetLocals(b.bound, container), nil /*parent*/, node, symbolFlags, symbolExcludes)
@@ -564,7 +564,7 @@ func (b *Binder) combineFlowLists(head store.FlowListRef, tail store.FlowListRef
 	return b.newFlowList(flow, b.combineFlowLists(next, tail))
 }
 
-func (b *Binder) newSingleDeclaration(declaration store.Ref) []store.Ref {
+func (b *Binder) newSingleDeclaration(declaration store.Node) []store.Node {
 	return b.singleDeclarationsArena.NewSlice1(declaration)
 }
 
@@ -644,19 +644,19 @@ func (b *Binder) bind(node store.Node) bool {
 	kind := node.Kind()
 	switch kind {
 	case ast.KindIdentifier:
-		node.SetFlow(b.currentFlow)
+		node.SetFlowRef(b.currentFlow)
 		b.checkContextualIdentifier(node)
 	case ast.KindThisKeyword, ast.KindSuperKeyword:
 		if kind == ast.KindThisKeyword {
 			b.seenThisKeyword = true
 		}
-		node.SetFlow(b.currentFlow)
+		node.SetFlowRef(b.currentFlow)
 	case ast.KindQualifiedName:
 		if b.currentFlow != 0 && store.IsPartOfTypeQuery(node) {
-			node.SetFlow(b.currentFlow)
+			node.SetFlowRef(b.currentFlow)
 		}
 	case ast.KindMetaProperty:
-		node.SetFlow(b.currentFlow)
+		node.SetFlowRef(b.currentFlow)
 	case ast.KindPrivateIdentifier:
 		b.checkPrivateIdentifier(node)
 	case ast.KindPropertyAccessExpression, ast.KindElementAccessExpression:
@@ -696,7 +696,7 @@ func (b *Binder) bind(node store.Node) bool {
 	case ast.KindVariableDeclaration:
 		b.bindVariableDeclarationOrBindingElement(node)
 	case ast.KindBindingElement:
-		node.SetFlow(b.currentFlow)
+		node.SetFlowRef(b.currentFlow)
 		b.bindVariableDeclarationOrBindingElement(node)
 	case ast.KindPropertyDeclaration, ast.KindPropertySignature:
 		b.bindPropertyWorker(node)
@@ -808,9 +808,9 @@ func (b *Binder) bindSourceFileIfExternalModule() {
 		b.bindSourceFileAsExternalModule()
 		// Create symbol equivalent for the module.exports = {}
 		root := b.file.Root()
-		originalSymbol := root.Symbol()
+		originalSymbol := root.SymbolId()
 		b.declareSymbol(store.GetSymbolTable(&b.symbolOf(root).Exports), b.symbolOf(root), root, ast.SymbolFlagsProperty, ast.SymbolFlagsAll)
-		root.SetSymbol(originalSymbol)
+		root.SetSymbolId(originalSymbol)
 	}
 }
 
@@ -824,7 +824,7 @@ func (b *Binder) bindModuleDeclaration(node store.Node) {
 		if store.HasSyntacticModifier(node, ast.ModifierFlagsExport) {
 			b.errorOnFirstToken(node, diagnostics.X_export_modifier_cannot_be_applied_to_ambient_modules_and_module_augmentations_since_they_are_always_visible)
 		}
-		if store.IsModuleAugmentationExternal(b.file, node) {
+		if store.IsModuleAugmentationExternal(node) {
 			b.declareModuleSymbol(node)
 		} else {
 			name := node.AsModuleDeclaration().Name()
@@ -919,7 +919,7 @@ func (b *Binder) bindExportAssignment(node store.Node) {
 		symbol := b.declareSymbol(store.GetExports(b.symbolOf(container)), b.symbolOf(container), node, flags, ast.SymbolFlagsAll)
 		if node.AsExportAssignment().IsExportEquals() {
 			// Ensure export assignments have a ValueDeclaration set.
-			SetValueDeclaration(b.s, symbol, node)
+			SetValueDeclaration(symbol, node)
 		}
 	}
 }
@@ -1023,7 +1023,7 @@ func (b *Binder) bindClassLikeDeclaration(node store.Node) {
 	prototypeSymbol := b.newSymbol(ast.SymbolFlagsProperty|ast.SymbolFlagsPrototype, "prototype")
 	symbolExport := store.GetExports(symbol)[prototypeSymbol.Name]
 	if symbolExport != nil {
-		b.errorOnNode(b.s.Node(symbolExport.Declarations[0].Id()), diagnostics.Duplicate_identifier_0, store.SymbolName(b.s, prototypeSymbol))
+		b.errorOnNode(symbolExport.Declarations[0], diagnostics.Duplicate_identifier_0, store.SymbolName(prototypeSymbol))
 	}
 	store.GetExports(symbol)[prototypeSymbol.Name] = prototypeSymbol
 	prototypeSymbol.Parent = symbol
@@ -1065,7 +1065,7 @@ func (b *Binder) addLateBoundAssignmentDeclarationToSymbol(node store.Node, symb
 		assignmentSymbol = b.newSymbol(ast.SymbolFlagsNone, ast.InternalSymbolNameAssignmentDeclaration)
 		exports[ast.InternalSymbolNameAssignmentDeclaration] = assignmentSymbol
 	}
-	assignmentSymbol.Declarations = append(assignmentSymbol.Declarations, node.FileRef())
+	assignmentSymbol.Declarations = append(assignmentSymbol.Declarations, node)
 }
 
 func (b *Binder) bindModuleExportsAssignment(node store.Node) {
@@ -1073,7 +1073,7 @@ func (b *Binder) bindModuleExportsAssignment(node store.Node) {
 		container := b.file.Root()
 		flags := core.IfElse(store.ExpressionIsAlias(node.AsBinaryExpression().Right()), ast.SymbolFlagsAlias, ast.SymbolFlagsProperty)
 		symbol := b.declareSymbol(store.GetExports(b.symbolOf(container)), b.symbolOf(container), node, flags, 0)
-		SetValueDeclaration(b.s, symbol, node)
+		SetValueDeclaration(symbol, node)
 	}
 }
 
@@ -1146,12 +1146,12 @@ func (b *Binder) bindExportsOrObjectDefineProperty(node store.Node) {
 	}
 }
 
-// getInitializerSymbol is a method here: the ValueDeclaration is a Ref that the Store resolves.
+// getInitializerSymbol is a method here: it reads the symbol slab.
 func (b *Binder) getInitializerSymbol(symbol *store.Symbol) *store.Symbol {
-	if symbol == nil || symbol.ValueDeclaration == (store.Ref{}) {
+	if symbol == nil || symbol.ValueDeclaration.IsNil() {
 		return nil
 	}
-	declaration := b.s.Node(symbol.ValueDeclaration.Id())
+	declaration := symbol.ValueDeclaration
 	// For an assignment 'fn.xxx = ...', where 'fn' is a previously declared function or a previously
 	// declared const variable initialized with a function expression or arrow function, we add expando
 	// property declarations to the function's symbol. This also applies to class expressions in JS files,
@@ -1285,7 +1285,7 @@ func (b *Binder) bindFunctionDeclaration(node store.Node) {
 func (b *Binder) getInferTypeContainer(node store.Node) store.Node {
 	extendsType := store.FindAncestor(node, func(n store.Node) bool {
 		parent := n.Parent()
-		return !parent.IsNil() && store.IsConditionalTypeNode(parent) && parent.AsConditionalTypeNode().ExtendsType() == n
+		return !parent.IsNil() && store.IsConditionalTypeNode(parent) && store.SameNode(parent.AsConditionalTypeNode().ExtendsType(), n)
 	})
 	if !extendsType.IsNil() {
 		return extendsType.Parent()
@@ -1351,7 +1351,7 @@ func (b *Binder) lookupEntity(node store.Node, container store.Node) *store.Symb
 }
 
 func (b *Binder) lookupName(name string, container store.Node) *store.Symbol {
-	if localsSlot, ok := container.LocalsSlot(); ok {
+	if localsSlot, ok := container.LocalsRef(); ok {
 		if local := b.bound.Locals(localsSlot)[name]; local != nil {
 			return core.OrElse(local.ExportSymbol, local)
 		}
@@ -1627,7 +1627,7 @@ func (b *Binder) bindContainer(node store.Node, containerFlags ContainerFlags) {
 				if b.hasExplicitReturn {
 					node.AddFlags(ast.NodeFlagsHasExplicitReturn)
 				}
-				node.SetEndFlowNode(b.currentFlow)
+				node.SetEndFlowRef(b.currentFlow)
 			}
 		}
 		if b.seenThisKeyword {
@@ -1697,7 +1697,7 @@ func (b *Binder) declareCommonJSVariable(name string) {
 	locals := store.GetLocals(b.bound, b.file.Root())
 	if locals[name] == nil {
 		symbol := b.newSymbol(ast.SymbolFlagsFunctionScopedVariable|ast.SymbolFlagsModuleExports, name)
-		symbol.Declarations = b.newSingleDeclaration(b.file.Root().FileRef())
+		symbol.Declarations = b.newSingleDeclaration(b.file.Root())
 		symbol.ValueDeclaration = symbol.Declarations[0]
 		if name == "module" {
 			exportsProperty := b.newSymbol(ast.SymbolFlagsModuleExports|ast.SymbolFlagsProperty, "exports")
@@ -1719,7 +1719,7 @@ func (b *Binder) bindChildren(node store.Node) {
 
 	if b.currentFlow == b.unreachableFlow {
 		// Every header has a flow word; a kind without FlowNodeBase has 0 there already.
-		node.SetFlow(0)
+		node.SetFlowRef(0)
 		if store.IsPotentiallyExecutableNode(node) {
 			node.AddFlags(ast.NodeFlagsUnreachable)
 		}
@@ -1731,7 +1731,7 @@ func (b *Binder) bindChildren(node store.Node) {
 	kind := node.Kind()
 	if ast.KindFirstStatement <= kind && kind <= ast.KindLastStatement {
 		// Every statement kind embeds FlowNodeBase.
-		node.SetFlow(b.currentFlow)
+		node.SetFlowRef(b.currentFlow)
 	}
 
 	switch kind {
@@ -2219,7 +2219,7 @@ func (b *Binder) bindCaseBlock(node store.Node) {
 		b.bind(clause)
 		fallthroughFlow = b.currentFlow
 		if b.bound.Flow(b.currentFlow).Flags&ast.FlowFlagsUnreachable == 0 && i != len(clauses)-1 {
-			clause.AsCaseOrDefaultClause().SetFallthroughFlowNode(b.currentFlow)
+			clause.AsCaseOrDefaultClause().SetFallthroughFlowRef(b.currentFlow)
 		}
 	}
 }
@@ -2604,12 +2604,12 @@ func (b *Binder) bindInitializer(node store.Node) {
 // Every header has a flow word; the callers are guarded by kind, like the
 // Pointer's FlowNodeData check.
 func setFlowNode(node store.Node, flowNode store.FlowRef) {
-	node.SetFlow(flowNode)
+	node.SetFlowRef(flowNode)
 }
 
 // The kind switch of the Pointer version is the table lookup of the role setter.
 func setReturnFlowNode(node store.Node, returnFlowNode store.FlowRef) {
-	node.SetReturnFlowNode(returnFlowNode)
+	node.SetReturnFlowRef(returnFlowNode)
 }
 
 func isGeneratorFunctionExpression(node store.Node) bool {
@@ -2627,11 +2627,11 @@ func (b *Binder) addToContainerChain(next store.Node) {
 
 func (b *Binder) addDeclarationToSymbol(symbol *store.Symbol, node store.Node, symbolFlags ast.SymbolFlags) {
 	symbol.Flags |= symbolFlags
-	node.SetSymbol(symbol.Id())
+	node.SetSymbolId(symbol.Id())
 	if symbol.Declarations == nil {
-		symbol.Declarations = b.newSingleDeclaration(node.FileRef())
+		symbol.Declarations = b.newSingleDeclaration(node)
 	} else {
-		symbol.Declarations = core.AppendIfUnique(symbol.Declarations, node.FileRef())
+		symbol.Declarations = store.AppendIfUnique(symbol.Declarations, node)
 	}
 	// On merge of const enum module with class or function, reset const enum only flag (namespaces will already recalculate)
 	if symbol.Flags&ast.SymbolFlagsConstEnumOnlyModule != 0 && symbol.Flags&(ast.SymbolFlagsFunction|ast.SymbolFlagsClass|ast.SymbolFlagsRegularEnum) != 0 {
@@ -2639,23 +2639,18 @@ func (b *Binder) addDeclarationToSymbol(symbol *store.Symbol, node store.Node, s
 		b.notConstEnumOnlyModules.Add(symbol)
 	}
 	if symbolFlags&ast.SymbolFlagsValue != 0 {
-		SetValueDeclaration(b.s, symbol, node)
+		SetValueDeclaration(symbol, node)
 	}
 }
 
-// SetValueDeclaration takes the Store that resolves the symbol's ValueDeclaration Ref (one file in 7c).
-func SetValueDeclaration(s *store.Store, symbol *store.Symbol, node store.Node) {
-	valueDeclarationRef := symbol.ValueDeclaration
-	if valueDeclarationRef == (store.Ref{}) {
-		symbol.ValueDeclaration = node.FileRef()
-		return
-	}
-	valueDeclaration := s.Node(valueDeclarationRef.Id())
-	if isAssignmentDeclaration(valueDeclaration) && !isAssignmentDeclaration(node) ||
+func SetValueDeclaration(symbol *store.Symbol, node store.Node) {
+	valueDeclaration := symbol.ValueDeclaration
+	if valueDeclaration.IsNil() ||
+		isAssignmentDeclaration(valueDeclaration) && !isAssignmentDeclaration(node) ||
 		valueDeclaration.Kind() != node.Kind() && isEffectiveModuleDeclaration(valueDeclaration) {
 		// Non-assignment declarations take precedence over assignment declarations and
 		// non-namespace declarations take precedence over namespace declarations.
-		symbol.ValueDeclaration = node.FileRef()
+		symbol.ValueDeclaration = node
 	}
 }
 
@@ -2853,10 +2848,9 @@ func getOptionalSymbolFlagForNode(node store.Node) ast.SymbolFlags {
 	return core.IfElse(!postfixToken.IsNil() && postfixToken.Kind() == ast.KindQuestionToken, ast.SymbolFlagsOptional, ast.SymbolFlagsNone)
 }
 
-// isFunctionSymbol takes the Store that resolves the symbol's ValueDeclaration Ref.
-func isFunctionSymbol(s *store.Store, symbol *store.Symbol) bool {
-	if symbol.ValueDeclaration != (store.Ref{}) {
-		d := s.Node(symbol.ValueDeclaration.Id())
+func isFunctionSymbol(symbol *store.Symbol) bool {
+	d := symbol.ValueDeclaration
+	if !d.IsNil() {
 		if store.IsFunctionDeclaration(d) {
 			return true
 		}
@@ -2874,11 +2868,11 @@ func isStatementCondition(node store.Node) bool {
 	parent := node.Parent()
 	switch parent.Kind() {
 	case ast.KindIfStatement, ast.KindWhileStatement, ast.KindDoStatement:
-		return parent.Expression() == node
+		return store.SameNode(parent.Expression(), node)
 	case ast.KindForStatement:
-		return parent.AsForStatement().Condition() == node
+		return store.SameNode(parent.AsForStatement().Condition(), node)
 	case ast.KindConditionalExpression:
-		return parent.AsConditionalExpression().Condition() == node
+		return store.SameNode(parent.AsConditionalExpression().Condition(), node)
 	}
 	return false
 }
@@ -2889,7 +2883,7 @@ func isTopLevelLogicalExpression(node store.Node) bool {
 		node = parent
 		parent = node.Parent()
 	}
-	return !isStatementCondition(node) && !store.IsLogicalExpression(parent) && !(store.IsOptionalChain(parent) && parent.Expression() == node)
+	return !isStatementCondition(node) && !store.IsLogicalExpression(parent) && !(store.IsOptionalChain(parent) && store.SameNode(parent.Expression(), node))
 }
 
 func isAssignmentDeclaration(decl store.Node) bool {

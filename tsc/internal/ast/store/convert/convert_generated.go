@@ -10,7 +10,7 @@ import (
 // Convert builds a Store from a Pointer AST in post-order. It follows exactly
 // the children that the Pointer ForEachChild visits, so JSDoc is not converted.
 func Convert(file *ast.SourceFile, fileIndex uint32) *store.Store {
-	c := &converter{b: store.NewBuilder(file.Text(), fileIndex)}
+	c := &converter{b: store.NewBuilder(file.Text(), nil, store.StoreID(fileIndex))}
 	c.node(file.AsNode())
 	return c.b.Finish()
 }
