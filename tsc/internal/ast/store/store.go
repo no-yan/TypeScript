@@ -37,9 +37,10 @@ type NodeHeader struct { // 32 bytes, no pointers
 	// TODO(store): only the syntactic ModifierFlags, bits 0-15, live here.
 	// Bit 16 and up (Deprecated, the JSDoc cache bits 23-27,
 	// HasComputedJSDocModifiers, HasComputedFlags) are computed lazily from
-	// JSDoc and need a separate path. That path is undesigned; it is decided
-	// together with where JSDoc nodes live. See store-ast-design-20260922.md
-	// sections 2.1 and 7.
+	// JSDoc and need a separate path. The Pointer parse and bind write bits
+	// 0-15 only (ModifiersToFlags); the path is decided with the checker
+	// (7d-2; store-checker-7d1-implementation-instructions-20260928.md 0).
+	// See store-ast-design-20260922.md sections 2.1 and 7.
 	modifierFlags uint16
 	flags         ast.NodeFlags
 	pos, end      int32
@@ -540,6 +541,9 @@ func (b *Builder) Finish() *Store {
 // FinishFile is Finish for a parsed file: f and its Store point at each other
 // (F1). File <-> Store is a cycle, which the GC handles.
 func (b *Builder) FinishFile(f *File) {
+	if storeChecks && b.s.nodes[len(b.s.nodes)-1].kind != ast.KindSourceFile {
+		panic("store: the root is not the last node (invariant 20)")
+	}
 	s := b.Finish()
 	s.file = f
 	f.Store = s

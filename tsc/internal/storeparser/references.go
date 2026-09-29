@@ -78,7 +78,7 @@ func collectModuleReferences(file *store.File, node store.Node, inAmbientModule 
 
 // findImportOrRequire and forEachDynamicImportOrRequireCall are
 // ast.ForEachDynamicImportOrRequireCall's text scan and its descent, with
-// store.GetNodeAtPosition (no JSDoc) in place of ast.GetNodeAtPosition.
+// store.GetNodeAtPosition in place of ast.GetNodeAtPosition.
 
 func findImportOrRequire(text string, start int) (index int, size int) {
 	index = max(start, 0)
@@ -116,7 +116,7 @@ func forEachDynamicImportOrRequireCall(
 	isJavaScriptFile := store.IsInJSFile(file.Root())
 	lastIndex, size := findImportOrRequire(file.Text, 0)
 	for lastIndex >= 0 {
-		node := store.GetNodeAtPosition(file, lastIndex)
+		node := store.GetNodeAtPosition(file, lastIndex, isJavaScriptFile && includeTypeSpaceImports)
 		if isJavaScriptFile && store.IsRequireCall(node, requireStringLiteralLikeArgument) {
 			if cb(node, node.Arguments().At(0)) {
 				return true

@@ -886,15 +886,29 @@ func compareMembers(m *comparer, p *ast.Node, n store.Node) {
 		}
 		m.node("ImportSpecifier.PropertyName", p, pv.PropertyName, sv.PropertyName())
 		m.node("ImportSpecifier.Name", p, pv.Name(), sv.Name())
+	case ast.KindJSDocText:
+		pv, sv := p.AsJSDocText(), n.AsJSDocText()
+		if pv.Text() != sv.Text() {
+			m.add(p, "JSDocText.Text")
+		}
 	case ast.KindJSDocLink:
 		pv, sv := p.AsJSDocLink(), n.AsJSDocLink()
 		m.node("JSDocLink.Name", p, pv.Name(), sv.Name())
+		if pv.Text() != sv.Text() {
+			m.add(p, "JSDocLink.Text")
+		}
 	case ast.KindJSDocLinkPlain:
 		pv, sv := p.AsJSDocLinkPlain(), n.AsJSDocLinkPlain()
 		m.node("JSDocLinkPlain.Name", p, pv.Name(), sv.Name())
+		if pv.Text() != sv.Text() {
+			m.add(p, "JSDocLinkPlain.Text")
+		}
 	case ast.KindJSDocLinkCode:
 		pv, sv := p.AsJSDocLinkCode(), n.AsJSDocLinkCode()
 		m.node("JSDocLinkCode.Name", p, pv.Name(), sv.Name())
+		if pv.Text() != sv.Text() {
+			m.add(p, "JSDocLinkCode.Text")
+		}
 	case ast.KindTypeParameter:
 		pv, sv := p.AsTypeParameterDeclaration(), n.AsTypeParameterDeclaration()
 		m.modifiers("TypeParameterDeclaration.Modifiers", p, pv.Modifiers(), sv.Modifiers())
@@ -1231,14 +1245,35 @@ func compareRoles(m *comparer, p *ast.Node, n store.Node) {
 		m.guard(p, "Type", func() { m.node("Type", p, p.Type(), n.Type()) })
 	case ast.KindJSDocOptionalType:
 		m.guard(p, "Type", func() { m.node("Type", p, p.Type(), n.Type()) })
+	case ast.KindJSDocText:
+		m.guard(p, "Text", func() {
+			if p.Text() != n.Text() {
+				m.add(p, "Text")
+			}
+		})
 	case ast.KindJSDocSignature:
 		m.guard(p, "Type", func() { m.node("Type", p, p.Type(), n.Type()) })
 	case ast.KindJSDocLink:
 		m.guard(p, "Name", func() { m.node("Name", p, p.Name(), n.Name()) })
+		m.guard(p, "Text", func() {
+			if p.Text() != n.Text() {
+				m.add(p, "Text")
+			}
+		})
 	case ast.KindJSDocLinkCode:
 		m.guard(p, "Name", func() { m.node("Name", p, p.Name(), n.Name()) })
+		m.guard(p, "Text", func() {
+			if p.Text() != n.Text() {
+				m.add(p, "Text")
+			}
+		})
 	case ast.KindJSDocLinkPlain:
 		m.guard(p, "Name", func() { m.node("Name", p, p.Name(), n.Name()) })
+		m.guard(p, "Text", func() {
+			if p.Text() != n.Text() {
+				m.add(p, "Text")
+			}
+		})
 	case ast.KindJSDocCallbackTag:
 		m.guard(p, "Name", func() { m.node("Name", p, p.Name(), n.Name()) })
 	case ast.KindJSDocParameterTag:
@@ -1272,6 +1307,6 @@ func compareRoles(m *comparer, p *ast.Node, n store.Node) {
 
 // Comparisons per node kind, for the verification report.
 const (
-	ComparedMembers = 466
-	ComparedRoles   = 180
+	ComparedMembers = 470
+	ComparedRoles   = 184
 )

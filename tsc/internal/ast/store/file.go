@@ -11,9 +11,9 @@ import (
 
 // File is the result of the Store parser: the fields of ast.SourceFile that
 // the parser sets without walking the tree, the external module indicator and
-// the module references, and the binder's output (Bound). It is not named
-// SourceFile because that is the typed view of the root node. The JSDoc cache
-// is not here (store-ast-design-20260922.md 5 and 6).
+// the module references, the JSDoc cache (jsdoc.go), and the binder's output
+// (Bound). It is not named SourceFile because that is the typed view of the
+// root node.
 type File struct {
 	Store                                                            *Store
 	FileName                                                         string
@@ -39,6 +39,16 @@ type File struct {
 	ModuleAugmentations         []NodeRef
 	AmbientModuleNames          []string
 	UsesUriStyleNodeCoreModules core.Tristate
+
+	// Set by the parser (jsdoc.go). The cache maps a host (a node of Store)
+	// to its JSDoc: filled at the end of the parse for the eager JSDoc (JS,
+	// and TS comments with @see or @link), and under jsdocMu for the lazy
+	// JSDoc of a TS file (hasLazyJSDoc).
+	jsdocDiagnostics []*ast.Diagnostic
+	jsdocCache       map[NodeRef][]Node
+	jsdocMu          sync.RWMutex
+	hasLazyJSDoc     bool
+	ReparsedClones   []NodeRef // sorted by position, as ast.SourceFile.ReparsedClones
 
 	// Set by the binder. Bound is attached when the bind starts, because the
 	// binder writes CommonJSModuleIndicator during the bind; isBound is set

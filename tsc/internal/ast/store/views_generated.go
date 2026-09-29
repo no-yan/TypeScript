@@ -5189,12 +5189,28 @@ func (n ImportSpecifier) LocalSymbol() *Symbol {
 	return n.s.symbolAt(n.s.extra[int(n.h.data)+importSpecifierLocalSymbolSlot])
 }
 
+// JSDocText: ast.KindJSDocText
+const (
+	jsdocTextTextSlot = 0 // [offset, length]
+)
+
+type JSDocText Node
+
+func (n Node) AsJSDocText() JSDocText {
+	if storeChecks {
+		n.assertKind(ast.KindJSDocText)
+	}
+	return JSDocText(n)
+}
+
+func (n JSDocText) Text() string { return n.s.text(int(n.h.data) + jsdocTextTextSlot) }
+
 // JSDocLink: ast.KindJSDocLink
 const (
 	jsdocLinkNameSlot = 0
+	jsdocLinkTextSlot = 1 // [offset, length]
 )
 
-// TODO(store): text []string has no slot: where JSDoc lives is undecided (store-ast-design-20260922.md section 5).
 type JSDocLink Node
 
 func (n Node) AsJSDocLink() JSDocLink {
@@ -5206,12 +5222,14 @@ func (n Node) AsJSDocLink() JSDocLink {
 
 func (n JSDocLink) Name() Node { return n.s.node(NodeRef(n.s.extra[int(n.h.data)+jsdocLinkNameSlot])) }
 
+func (n JSDocLink) Text() string { return n.s.text(int(n.h.data) + jsdocLinkTextSlot) }
+
 // JSDocLinkPlain: ast.KindJSDocLinkPlain
 const (
 	jsdocLinkPlainNameSlot = 0
+	jsdocLinkPlainTextSlot = 1 // [offset, length]
 )
 
-// TODO(store): text []string has no slot: where JSDoc lives is undecided (store-ast-design-20260922.md section 5).
 type JSDocLinkPlain Node
 
 func (n Node) AsJSDocLinkPlain() JSDocLinkPlain {
@@ -5225,12 +5243,14 @@ func (n JSDocLinkPlain) Name() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+jsdocLinkPlainNameSlot]))
 }
 
+func (n JSDocLinkPlain) Text() string { return n.s.text(int(n.h.data) + jsdocLinkPlainTextSlot) }
+
 // JSDocLinkCode: ast.KindJSDocLinkCode
 const (
 	jsdocLinkCodeNameSlot = 0
+	jsdocLinkCodeTextSlot = 1 // [offset, length]
 )
 
-// TODO(store): text []string has no slot: where JSDoc lives is undecided (store-ast-design-20260922.md section 5).
 type JSDocLinkCode Node
 
 func (n Node) AsJSDocLinkCode() JSDocLinkCode {
@@ -5243,6 +5263,8 @@ func (n Node) AsJSDocLinkCode() JSDocLinkCode {
 func (n JSDocLinkCode) Name() Node {
 	return n.s.node(NodeRef(n.s.extra[int(n.h.data)+jsdocLinkCodeNameSlot]))
 }
+
+func (n JSDocLinkCode) Text() string { return n.s.text(int(n.h.data) + jsdocLinkCodeTextSlot) }
 
 // TypeParameterDeclaration: ast.KindTypeParameter
 const (

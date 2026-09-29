@@ -1,0 +1,5 @@
+go test fuzz v1
+string(".js")
+string("x = (/** @typedef {number} T */ a, b);")
+bool(false)
+bool(false)

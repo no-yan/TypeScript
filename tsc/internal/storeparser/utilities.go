@@ -1,6 +1,8 @@
 package storeparser
 
 import (
+	"slices"
+
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
@@ -24,8 +26,37 @@ func tokenIsIdentifierOrKeywordOrGreaterThan(token ast.Kind) bool {
 	return token == ast.KindGreaterThanToken || tokenIsIdentifierOrKeyword(token)
 }
 
+// GetJSDocCommentRanges is the Pointer one on a Store node: the node is
+// read before any comment range is made.
+func GetJSDocCommentRanges(f *ast.NodeFactory, commentRanges []ast.CommentRange, node store.Node, text string) []ast.CommentRange {
+	switch node.Kind() {
+	case ast.KindParameter, ast.KindTypeParameter, ast.KindFunctionExpression, ast.KindArrowFunction, ast.KindParenthesizedExpression, ast.KindVariableDeclaration, ast.KindExportSpecifier:
+		for commentRange := range scanner.GetTrailingCommentRanges(f, text, int(node.Pos())) {
+			commentRanges = append(commentRanges, commentRange)
+		}
+		for commentRange := range scanner.GetLeadingCommentRanges(f, text, int(node.Pos())) {
+			commentRanges = append(commentRanges, commentRange)
+		}
+	default:
+		for commentRange := range scanner.GetLeadingCommentRanges(f, text, int(node.Pos())) {
+			commentRanges = append(commentRanges, commentRange)
+		}
+	}
+	// Keep if the comment starts with '/**' but not if it is '/**/'
+	end := int(node.End())
+	return slices.DeleteFunc(commentRanges, func(comment ast.CommentRange) bool {
+		commentStart := comment.Pos()
+		commentLen := comment.End() - commentStart
+		return comment.End() > end || commentLen < 4 || text[commentStart+1] != '*' || text[commentStart+2] != '*' || text[commentStart+3] == '/'
+	})
+}
+
 func isKeywordOrPunctuation(token ast.Kind) bool {
 	return ast.IsKeywordKind(token) || ast.IsPunctuationKind(token)
+}
+
+func isJSDocLikeText(text string) bool {
+	return len(text) >= 4 && text[1] == '*' && text[2] == '*' && text[3] != '/'
 }
 
 // The View versions of what the Pointer parser reads off *ast.Node. Each one

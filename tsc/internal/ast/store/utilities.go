@@ -5,7 +5,7 @@
 // internal/ast/docs/store-checker-design-20260923.md 2.1). The functions the
 // rules do not cover are written by hand in utilities_manual.go (P2).
 //
-// Reach: 171 roots, 176 functions of package ast that the roots name in
+// Reach: 183 roots, 188 functions of package ast that the roots name in
 // their bodies, called or as a value, transitively.
 
 package store
@@ -23,6 +23,10 @@ func IsIdentifier(node Node) bool {
 
 func IsPrivateIdentifier(node Node) bool {
 	return node.Kind() == ast.KindPrivateIdentifier
+}
+
+func IsQualifiedName(node Node) bool {
+	return node.Kind() == ast.KindQualifiedName
 }
 
 func IsComputedPropertyName(node Node) bool {
@@ -77,6 +81,10 @@ func IsImportDeclaration(node Node) bool {
 	return node.Kind() == ast.KindImportDeclaration
 }
 
+func IsJSImportDeclaration(node Node) bool {
+	return node.Kind() == ast.KindJSImportDeclaration
+}
+
 func IsExternalModuleReference(node Node) bool {
 	return node.Kind() == ast.KindExternalModuleReference
 }
@@ -95,6 +103,10 @@ func IsExportSpecifier(node Node) bool {
 
 func IsConstructorDeclaration(node Node) bool {
 	return node.Kind() == ast.KindConstructor
+}
+
+func IsMethodDeclaration(node Node) bool {
+	return node.Kind() == ast.KindMethodDeclaration
 }
 
 func IsPropertyDeclaration(node Node) bool {
@@ -169,6 +181,10 @@ func IsConditionalTypeNode(node Node) bool {
 	return node.Kind() == ast.KindConditionalType
 }
 
+func IsTypeReferenceNode(node Node) bool {
+	return node.Kind() == ast.KindTypeReference
+}
+
 func IsLiteralTypeNode(node Node) bool {
 	return node.Kind() == ast.KindLiteralType
 }
@@ -191,6 +207,18 @@ func IsJsxSelfClosingElement(node Node) bool {
 
 func IsJsxFragment(node Node) bool {
 	return node.Kind() == ast.KindJsxFragment
+}
+
+func IsJSDocTemplateTag(node Node) bool {
+	return node.Kind() == ast.KindJSDocTemplateTag
+}
+
+func IsJSDocCallbackTag(node Node) bool {
+	return node.Kind() == ast.KindJSDocCallbackTag
+}
+
+func IsJSDocTypedefTag(node Node) bool {
+	return node.Kind() == ast.KindJSDocTypedefTag
 }
 
 func IsSourceFile(node Node) bool {
@@ -254,6 +282,13 @@ func IsAssignmentExpression(node Node, excludeCompoundAssignment bool) bool {
 			IsLeftHandSideExpression(expr.Left())
 	}
 	return false
+}
+
+func GetRightMostAssignedExpression(node Node) Node {
+	for IsAssignmentExpression(node, false /*excludeCompoundAssignment*/) {
+		node = node.AsBinaryExpression().Right()
+	}
+	return node
 }
 
 func IsDestructuringAssignment(node Node) bool {
@@ -708,6 +743,10 @@ func IsModuleIdentifier(node Node) bool {
 	return IsIdentifier(node) && node.Text() == "module"
 }
 
+func IsThisIdentifier(node Node) bool {
+	return IsIdentifier(node) && node.Text() == "this"
+}
+
 func IsBindableStaticAccessExpression(node Node, excludeThisKeyword bool) bool {
 	return IsPropertyAccessExpression(node) &&
 		(!excludeThisKeyword && node.Expression().Kind() == ast.KindThisKeyword || IsIdentifier(node.Name()) && IsBindableStaticNameExpression(node.Expression(), true /*excludeThisKeyword*/)) ||
@@ -906,6 +945,16 @@ func IsDottedName(node Node) bool {
 		return true
 	case ast.KindPropertyAccessExpression, ast.KindParenthesizedExpression:
 		return IsDottedName(node.Expression())
+	}
+	return false
+}
+
+func HasSamePropertyAccessName(node1, node2 Node) bool {
+	if node1.Kind() == ast.KindIdentifier && node2.Kind() == ast.KindIdentifier {
+		return node1.Text() == node2.Text()
+	} else if node1.Kind() == ast.KindPropertyAccessExpression && node2.Kind() == ast.KindPropertyAccessExpression {
+		return node1.AsPropertyAccessExpression().Name().Text() == node2.AsPropertyAccessExpression().Name().Text() &&
+			HasSamePropertyAccessName(node1.Expression(), node2.Expression())
 	}
 	return false
 }
@@ -1258,6 +1307,10 @@ func GetLeftmostAccessExpression(expr Node) Node {
 
 func IsJsxOpeningLikeElement(node Node) bool {
 	return IsJsxOpeningElement(node) || IsJsxSelfClosingElement(node)
+}
+
+func CompareNodePositions(n1, n2 Node) int {
+	return core.CompareTextRanges(n1.Loc(), n2.Loc())
 }
 
 func IsExpandoInitializer(declaration Node, initializer Node) bool {

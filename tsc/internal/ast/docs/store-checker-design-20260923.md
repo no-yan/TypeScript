@@ -622,12 +622,12 @@ Pointer の実測 (2026-09-24、compiler プロジェクト、GC 2 回の後の 
 2026-09-26 の4点レビュー（private 名、symbol 番号、Pointer AST を外すメモリ計測、印字変換の性能）は [追加契約](store-checker-review-contracts-20260926.md) に反映した。文書対応済みであり、実装・検証完了ではない。7d-0 / 7d-2 の完了条件は同文書 §5。
 
 1. ~~7d-0 の実装指示書と検証指示書~~ 済 (2026-09-24): [実装指示書](store-checker-7d0-implementation-instructions-20260924.md)、[検証指示書](store-checker-7d0-verification-instructions-20260924.md)。
-2. 7d-0 の before の計測 (ユーザー、別ターミナル): 今の HEAD で Walk / Parse / Bind の KPC と retained (7c のベンチ)。
-3. 7d-0 の実装と検証。結果で §2.7 の retained / GC の線の前提 (parse + bind の比) を確かめる。
-4. 7d-1 の実装指示書と検証指示書 (7d-0 の後)。
+2. ~~7d-0 の before の計測~~ 済 (2026-09-27)。
+3. ~~7d-0 の実装と検証~~ 済 (2026-09-28、[検証報告](store-checker-7d0-verification-report-20260927.md) §12 の修正後に合格)。compiler プロジェクトの parse + bind の retained 比は 0.567 で §2.7 の線の前提どおり。
+4. ~~7d-1 の実装指示書と検証指示書~~ 済 (2026-09-28): [実装指示書](store-checker-7d1-implementation-instructions-20260928.md)、[検証指示書](store-checker-7d1-verification-instructions-20260928.md)。次は 7d-1 の実装と検証。
 5. 7d-2 の設計の残り (7d-1 の後): checker の変換規則の一覧と P2 の差し替えの一覧、Store → Pointer の変換器 (EmitContext の対応を含む)、合成の Store の既定の容量、(g) を入れるか。
 
-零値の扱い (2026-09-26 に設計案を追加。本番未実装):
+零値の扱い (2026-09-26 に設計案を追加。2026-09-28 に 7d-0 で実装済み。以下は設計時の記録):
 
 - **[零値の設計 Z1](store-node-zero-design-20260926.md) を推奨する。** `Node{}` と各 Store の番兵を同じ nil として扱い、`IsNil` / `SameNode` / `Key` / `File` と nil を受ける境界だけを対応させる。通常の header 読みと `node()` は変えない。Node は先頭のゼロサイズ field で非比較型にし、view は同じ underlying type から導く。writer は番兵への書き込みを拒否する。命令列の差・時間測定の限界・KPC と変換規則の受け入れ条件は Z1 §6〜7。性能の採用判断は未了。現行コードの `IsNil()` は引き続き零値で panic する。
 

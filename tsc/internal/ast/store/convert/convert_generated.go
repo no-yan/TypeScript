@@ -573,15 +573,18 @@ func (c *converter) node(n *ast.Node) store.NodeRef {
 	case ast.KindImportSpecifier:
 		d := n.AsImportSpecifier()
 		return c.b.NewImportSpecifier(n.Flags, pos, end, d.IsTypeOnly, c.node(d.PropertyName), c.node(d.Name()))
+	case ast.KindJSDocText:
+		d := n.AsJSDocText()
+		return c.b.NewJSDocText(n.Flags, pos, end, d.Text())
 	case ast.KindJSDocLink:
 		d := n.AsJSDocLink()
-		return c.b.NewJSDocLink(n.Flags, pos, end, c.node(d.Name()))
+		return c.b.NewJSDocLink(n.Flags, pos, end, c.node(d.Name()), d.Text())
 	case ast.KindJSDocLinkPlain:
 		d := n.AsJSDocLinkPlain()
-		return c.b.NewJSDocLinkPlain(n.Flags, pos, end, c.node(d.Name()))
+		return c.b.NewJSDocLinkPlain(n.Flags, pos, end, c.node(d.Name()), d.Text())
 	case ast.KindJSDocLinkCode:
 		d := n.AsJSDocLinkCode()
-		return c.b.NewJSDocLinkCode(n.Flags, pos, end, c.node(d.Name()))
+		return c.b.NewJSDocLinkCode(n.Flags, pos, end, c.node(d.Name()), d.Text())
 	case ast.KindTypeParameter:
 		d := n.AsTypeParameterDeclaration()
 		return c.b.NewTypeParameterDeclaration(n.Flags, pos, end, c.modifiers(d.Modifiers()), c.node(d.Name()), c.node(d.Constraint), c.node(d.Expression), c.node(d.DefaultType))

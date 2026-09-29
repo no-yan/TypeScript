@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"runtime"
 	"slices"
-	"sort"
 	"strings"
 	"testing"
 
@@ -53,21 +52,6 @@ func parseBoth(opts ast.SourceFileParseOptions, text string, kind core.ScriptKin
 	return parser.ParseSourceFile(opts, text, kind), ParseSourceFile(opts, text, kind)
 }
 
-// options are the equivalence options for a file: JS files get their JSDoc
-// parsed and reparsed by the Pointer parser, which the Store parser does not
-// do (7c). Left out of the Flags comparison of JS files: HasJSDoc and
-// PossiblyContainsDeprecatedTag, which the Pointer parser sets from the
-// parsed JSDoc rather than from the scanner; ThisNodeHasError, which a
-// diagnostic of the reparse sets on the node finished next (the diagnostics
-// are compared separately); PossiblyContainsDynamicImport, which an import
-// type inside a JSDoc comment sets on the root.
-func options(kind core.ScriptKind) storetest.Options {
-	if kind == core.ScriptKindJS || kind == core.ScriptKindJSX {
-		return storetest.Options{SkipReparsed: true, MaskFlags: ast.NodeFlagsHasJSDoc | ast.NodeFlagsPossiblyContainsDeprecatedTag | ast.NodeFlagsThisNodeHasError | ast.NodeFlagsPossiblyContainsDynamicImport}
-	}
-	return storetest.Options{}
-}
-
 func TestFingerprint(t *testing.T) {
 	for _, fixture := range fixtures.ASTBenchFixtures {
 		t.Run(fixture.Name(), func(t *testing.T) {
@@ -82,7 +66,7 @@ func TestFingerprint(t *testing.T) {
 			if uint64(len(nodes)) != want.visits || fingerprint != want.fingerprint {
 				t.Fatalf("baseline mismatch: visits=%d fingerprint=%s", len(nodes), fingerprint)
 			}
-			t.Logf("%s: %d nodes, %d dead", fixture.Name(), file.NodeCount, file.NodeCount-len(nodes))
+			t.Logf("%s: %d nodes, %d dead", fixture.Name(), file.NodeCount, file.NodeCount-len(nodes)-eagerJSDocNodes(file))
 		})
 	}
 }
@@ -97,6 +81,8 @@ func TestEquivalence(t *testing.T) {
 	inputs := map[string]input{}
 	opts, text, kind := sourceInput("/ast-benchmark-small.ts", smallSource)
 	inputs["small"] = input{opts, text, kind}
+	opts, text, kind = sourceInput("/rewound-typedef.js", "x = (/** @typedef {number} T */ a, b);\n/** @type {T} */\nvar y;")
+	inputs["rewound-typedef"] = input{opts, text, kind}
 	for _, fixture := range fixtures.ASTBenchFixtures {
 		opts, text, kind := fixtureInput(t, fixture)
 		inputs[fixture.Name()] = input{opts, text, kind}
@@ -104,44 +90,78 @@ func TestEquivalence(t *testing.T) {
 	for name, in := range inputs {
 		t.Run(name, func(t *testing.T) {
 			pointer, file := parseBoth(in.opts, in.text, in.kind)
-			m, _ := storetest.Equivalent(pointer, file.Store, storetest.Options{})
+			m, _ := storetest.Equivalent(pointer, file.Store)
 			m.Report(t)
-			compareFields(t, pointer, file, storetest.Options{})
+			jm, _ := storetest.EquivalentJSDoc(pointer, file)
+			jm.Report(t)
+			compareFields(t, pointer, file)
 		})
 	}
 }
 
+// TestRewoundReparse puts a @typedef, @callback or @import in the JSDoc of a
+// node made in a speculation. The Pointer parser keeps the reparse list across
+// a rewind, so the statement reparsed in a discarded speculation stays in the
+// enclosing statement list; the Store parser must keep its rows.
+func TestRewoundReparse(t *testing.T) {
+	tags := map[string]string{
+		"typedef":  "/** @typedef {number} T */",
+		"callback": "/** @callback F @returns {string} */",
+		"import":   "/** @import { A } from 'a' */",
+	}
+	positions := []string{
+		"x = (%s a, b);",
+		"x = (%s a);",
+		"x = (%s a, b) => a;", // the speculation succeeds
+		"x = (%s a = 1, b);",
+		"x = (%s {a}, b);",
+		"x = async (%s a, b);",
+		"x = c ? (%s a) : d;",
+		"x = c ? (%s a) : d => e;",
+		"x = ((%s a, b), c);",
+		"x = (a = class {\n%s\nm() {} }, b);", // pushed out of the class member list; on the line of { the comment is not the member's JSDoc
+		"x = (a = {\n%s\nm() {} }, b);",
+		"f(%s a, b);", // no speculation
+		"x = <div>{(%s a, b)}</div>;",
+	}
+	for i, position := range positions {
+		name := "/a.js"
+		if strings.Contains(position, "<div>") {
+			name = "/a.jsx"
+		}
+		for tag, comment := range tags {
+			source := fmt.Sprintf(position, comment)
+			t.Run(fmt.Sprintf("%d/%s", i+1, tag), func(t *testing.T) {
+				pointer, file := parseBoth(sourceInput(name, source))
+				m, _ := storetest.Equivalent(pointer, file.Store)
+				m.Report(t)
+				jm, _ := storetest.EquivalentJSDoc(pointer, file)
+				jm.Report(t)
+				compareFields(t, pointer, file)
+				want, got := diagnosticKeys(pointer.Diagnostics()), diagnosticKeys(file.Diagnostics())
+				if !slices.Equal(want, got) {
+					t.Errorf("diagnostics differ:\n  pointer: %v\n  store:   %v", want, got)
+				}
+			})
+		}
+	}
+}
+
 // compareFields checks the fields of store.File against ast.SourceFile.
-func compareFields(t *testing.T, pointer *ast.SourceFile, file *store.File, opts storetest.Options) {
+func compareFields(t *testing.T, pointer *ast.SourceFile, file *store.File) {
 	t.Helper()
-	for label, differs := range fieldMismatches(pointer, file, opts) {
-		if differs && !(label == "IdentifierCount" && eagerJSDoc(pointer)) {
+	for label, differs := range fieldMismatches(pointer, file) {
+		if differs {
 			t.Errorf("%s differs from the Pointer file", label)
 		}
 	}
-	if eagerJSDoc(pointer) {
-		t.Logf("IdentifierCount: Store %d, Pointer %d (the Pointer parser counts the identifiers of the JSDoc it parses eagerly)", file.IdentifierCount, pointer.IdentifierCount)
-	}
 }
 
-// eagerJSDoc reports whether the Pointer parser may have parsed JSDoc: in a JS
-// file always, in a TS file when a comment mentions @see or @link. The
-// identifiers of that JSDoc count in its IdentifierCount.
-func eagerJSDoc(pointer *ast.SourceFile) bool {
-	return pointer.ScriptKind == core.ScriptKindJS || pointer.ScriptKind == core.ScriptKindJSX ||
-		strings.Contains(pointer.Text(), "@see") || strings.Contains(pointer.Text(), "@link")
-}
-
-// fieldMismatches compares the fields of store.File with ast.SourceFile. With
-// opts.SkipReparsed, the module references that the Pointer parser found in
-// JSDoc (an import type in a comment, a reparsed declaration) are left out,
-// as the Store has no JSDoc.
-func fieldMismatches(pointer *ast.SourceFile, file *store.File, opts storetest.Options) map[string]bool {
+// fieldMismatches compares the fields of store.File with ast.SourceFile, the
+// JSDoc diagnostics and the reparsed clones (position and kind) included.
+func fieldMismatches(pointer *ast.SourceFile, file *store.File) map[string]bool {
 	refs := func(a, b []*ast.FileReference) bool {
 		return !slices.EqualFunc(a, b, func(x, y *ast.FileReference) bool { return *x == *y })
-	}
-	fromJSDoc := func(p *ast.Node) bool {
-		return opts.SkipReparsed && p != nil && p.Flags&(ast.NodeFlagsJSDoc|ast.NodeFlagsReparsed) != 0
 	}
 	node := func(p *ast.Node, r store.NodeRef) bool {
 		if p == nil || r == store.NoNodeRef {
@@ -151,7 +171,6 @@ func fieldMismatches(pointer *ast.SourceFile, file *store.File, opts storetest.O
 		return n.Kind() != p.Kind || int(n.Pos()) != p.Pos()
 	}
 	nodes := func(ps []*ast.Node, rs []store.NodeRef) bool {
-		ps = slices.DeleteFunc(slices.Clone(ps), fromJSDoc)
 		if len(ps) != len(rs) {
 			return true
 		}
@@ -177,11 +196,13 @@ func fieldMismatches(pointer *ast.SourceFile, file *store.File, opts storetest.O
 		"TypeReferenceDirectives":     refs(file.TypeReferenceDirectives, pointer.TypeReferenceDirectives),
 		"LibReferenceDirectives":      refs(file.LibReferenceDirectives, pointer.LibReferenceDirectives),
 		"CheckJsDirective":            (file.CheckJsDirective == nil) != (pointer.CheckJsDirective == nil) || file.CheckJsDirective != nil && *file.CheckJsDirective != *pointer.CheckJsDirective,
-		"ExternalModuleIndicator":     !fromJSDoc(pointer.ExternalModuleIndicator) && node(pointer.ExternalModuleIndicator, file.ExternalModuleIndicator),
+		"ExternalModuleIndicator":     node(pointer.ExternalModuleIndicator, file.ExternalModuleIndicator),
 		"Imports":                     nodes(pointer.Imports(), file.Imports),
 		"ModuleAugmentations":         nodes(pointer.ModuleAugmentations, file.ModuleAugmentations),
 		"AmbientModuleNames":          !slices.Equal(pointer.AmbientModuleNames, file.AmbientModuleNames),
 		"UsesUriStyleNodeCoreModules": pointer.UsesUriStyleNodeCoreModules != file.UsesUriStyleNodeCoreModules,
+		"JSDocDiagnostics":            !slices.Equal(diagnosticKeys(pointer.JSDocDiagnostics()), diagnosticKeys(file.JSDocDiagnostics())),
+		"ReparsedClones":              nodes(pointer.ReparsedClones, file.ReparsedClones),
 	}
 	for i := range min(len(file.Pragmas), len(pointer.Pragmas)) {
 		a, b := file.Pragmas[i], pointer.Pragmas[i]
@@ -281,58 +302,40 @@ func diagnosticKeys(ds []*ast.Diagnostic) []diagnosticKey {
 	return keys
 }
 
-// missingFrom returns the elements of want that are not in got in order;
-// ok is false when got is not a subsequence of want.
-func missingFrom(want, got []diagnosticKey) (missing []diagnosticKey, ok bool) {
-	j := 0
-	for _, w := range want {
-		if j < len(got) && got[j] == w {
-			j++
-		} else {
-			missing = append(missing, w)
-		}
-	}
-	return missing, j == len(got)
-}
-
-func subsequence(want, got []diagnosticKey) bool {
-	_, ok := missingFrom(want, got)
-	return ok
-}
-
 func TestCorpus(t *testing.T) {
 	files := corpus(t)
 	all := storetest.Mismatches{}
 	example := map[string]int{}
 	fields := map[string]int{}
 	var visits, pointerNodes, storeNodes int
-	diagnosticsSame, diagnosticsSubset, diagnosticsDiffer := 0, 0, 0
-	jsMissing := map[string]int{}
-	var jsMissingExample []string
-	rootFlagDiffs := map[ast.NodeFlags]int{}
+	var jsdocNodes, eagerNodes, jsFiles, jsLive, jsDead int
+	diagnosticsSame, diagnosticsDiffer := 0, 0
 	for i, f := range files {
 		opts, text, kind := sourceInput(f.name, f.text)
 		pointer, file := parseBoth(opts, text, kind)
-		m, n := storetest.Equivalent(pointer, file.Store, options(kind))
+		m, n := storetest.Equivalent(pointer, file.Store)
 		visits += n
 		pointerNodes += pointer.NodeCount
 		storeNodes += file.NodeCount
-		for label, count := range m {
-			if all[label] == 0 {
-				example[label] = i
-			}
-			all[label] += count
+		eager := eagerJSDocNodes(file)
+		eagerNodes += eager
+		if kind == core.ScriptKindJS || kind == core.ScriptKindJSX {
+			jsFiles++
+			jsLive += n + eager
+			jsDead += file.NodeCount - n - eager
 		}
-		for label, differs := range fieldMismatches(pointer, file, options(kind)) {
-			if label == "Flags" && options(kind).SkipReparsed {
-				// The Pointer parser's JSDoc reparse can set flags on the root too
-				// (PossiblyContainsDynamicImport from an import type in a comment).
-				if diff := (file.Flags ^ pointer.Flags) &^ options(kind).MaskFlags; diff != 0 {
-					rootFlagDiffs[diff]++
+		jm, jn := storetest.EquivalentJSDoc(pointer, file)
+		jsdocNodes += jn
+		for _, mm := range []storetest.Mismatches{m, jm} {
+			for label, count := range mm {
+				if all[label] == 0 {
+					example[label] = i
 				}
-				continue
+				all[label] += count
 			}
-			if differs && !(label == "IdentifierCount" && eagerJSDoc(pointer)) {
+		}
+		for label, differs := range fieldMismatches(pointer, file) {
+			if differs {
 				if fields[label] == 0 {
 					t.Logf("%s differs first in %s #%d", label, f.name, i)
 				}
@@ -340,40 +343,20 @@ func TestCorpus(t *testing.T) {
 			}
 		}
 		want, got := diagnosticKeys(pointer.Diagnostics()), diagnosticKeys(file.Diagnostics())
-		switch {
-		case slices.Equal(want, got):
+		if slices.Equal(want, got) {
 			diagnosticsSame++
-		case options(kind).SkipReparsed && subsequence(want, got):
-			diagnosticsSubset++
-			missing, _ := missingFrom(want, got)
-			for _, d := range missing {
-				key := fmt.Sprintf("code %d %q", d.code, d.message)
-				if jsMissing[key] == 0 && len(jsMissingExample) < 40 {
-					jsMissingExample = append(jsMissingExample, fmt.Sprintf("%s #%d: %s at %d", f.name, i, key, d.pos))
-				}
-				jsMissing[key]++
-			}
-		default:
+		} else {
 			diagnosticsDiffer++
 			if diagnosticsDiffer <= 10 {
 				t.Errorf("diagnostics differ in %s #%d:\n  pointer: %v\n  store:   %v", f.name, i, want, got)
 			}
 		}
 	}
-	t.Logf("%d files, %d nodes visited; Pointer NodeCount %d, Store NodeCount %d (dead %d = %.2f%%)",
-		len(files), visits, pointerNodes, storeNodes, storeNodes-visits, 100*float64(storeNodes-visits)/float64(visits))
-	t.Logf("diagnostics: %d files same, %d JS files with a subset, %d differ", diagnosticsSame, diagnosticsSubset, diagnosticsDiffer)
-	if len(jsMissing) != 0 {
-		var lines []string
-		for message, count := range jsMissing {
-			lines = append(lines, fmt.Sprintf("%6d  %s", count, message))
-		}
-		sort.Strings(lines)
-		t.Logf("JS diagnostics the Store parser does not report (Pointer reports them from JSDoc):\n%s\nexamples:\n  %s", strings.Join(lines, "\n"), strings.Join(jsMissingExample, "\n  "))
-	}
-	for diff, count := range rootFlagDiffs {
-		t.Logf("root Flags differ by %v in %d JS files", diff, count)
-	}
+	live := visits + eagerNodes
+	t.Logf("%d files (%d JS), %d nodes visited, %d JSDoc nodes compared (%d eager, in the file's Store); Pointer NodeCount %d, Store NodeCount %d (dead %d = %.2f%%)",
+		len(files), jsFiles, visits, jsdocNodes, eagerNodes, pointerNodes, storeNodes, storeNodes-live, 100*float64(storeNodes-live)/float64(live))
+	t.Logf("JS files: %d live nodes, dead %d = %.2f%%", jsLive, jsDead, 100*float64(jsDead)/float64(jsLive))
+	t.Logf("diagnostics: %d files same, %d differ", diagnosticsSame, diagnosticsDiffer)
 	for label, count := range fields {
 		t.Errorf("%s differs in %d files", label, count)
 	}
@@ -382,6 +365,23 @@ func TestCorpus(t *testing.T) {
 		located[fmt.Sprintf("%s (first in %s #%d)", label, files[example[label]].name, example[label])] = count
 	}
 	located.Report(t)
+}
+
+// eagerJSDocNodes counts the nodes of the JSDoc parsed with the file, which
+// live in its Store: the JSDoc of every host before any lazy parse, each
+// comment once (a @typedef's comment belongs to its type alias too).
+func eagerJSDocNodes(file *store.File) int {
+	n := 0
+	seen := map[store.NodeKey]bool{}
+	for _, host := range storetest.Preorder(file.Root()) {
+		for _, jsdoc := range host.EagerJSDoc(file) {
+			if !seen[jsdoc.Key()] {
+				seen[jsdoc.Key()] = true
+				n += len(storetest.Preorder(jsdoc))
+			}
+		}
+	}
+	return n
 }
 
 // FuzzEquivalence parses each input with both parsers and holds it to the
@@ -402,29 +402,29 @@ func FuzzEquivalence(f *testing.F) {
 		opts, _, kind := sourceInput("/index"+extension, "")
 		opts.ExternalModuleIndicatorOptions = ast.ExternalModuleIndicatorOptions{JSX: jsx, Force: force}
 		pointer, file := parseBoth(opts, text, kind)
-		m, _ := storetest.Equivalent(pointer, file.Store, options(kind))
+		m, _ := storetest.Equivalent(pointer, file.Store)
 		m.Report(t)
-		for label, differs := range fieldMismatches(pointer, file, options(kind)) {
-			if label == "Flags" && options(kind).SkipReparsed {
-				continue // see TestCorpus
-			}
-			if differs && !(label == "IdentifierCount" && eagerJSDoc(pointer)) {
+		jm, _ := storetest.EquivalentJSDoc(pointer, file)
+		jm.Report(t)
+		for label, differs := range fieldMismatches(pointer, file) {
+			if differs {
 				t.Errorf("%s differs from the Pointer file", label)
 			}
 		}
 		want, got := diagnosticKeys(pointer.Diagnostics()), diagnosticKeys(file.Diagnostics())
-		if !slices.Equal(want, got) && !(options(kind).SkipReparsed && subsequence(want, got)) {
+		if !slices.Equal(want, got) {
 			t.Errorf("diagnostics differ:\n  pointer: %v\n  store:   %v", want, got)
 		}
 	})
 }
 
 // TestDeadNodes checks that a rewound speculation leaves no node behind, and
-// documents the constructs that leave one without a rewind.
+// documents the constructs that leave one without a rewind. The JSDoc parsed
+// with the file is live.
 func TestDeadNodes(t *testing.T) {
 	deadNodes := func(name, source string) int {
 		file := ParseSourceFile(sourceInput(name, source))
-		return file.NodeCount - len(storetest.Preorder(file.Root()))
+		return file.NodeCount - len(storetest.Preorder(file.Root())) - eagerJSDocNodes(file)
 	}
 	for _, source := range []string{
 		"(a, b) => c",
@@ -456,10 +456,39 @@ func TestDeadNodes(t *testing.T) {
 		// ExpressionStatement + NumericLiteral) stay; the rewinds that keep
 		// the reparsed nodes leave nothing extra.
 		{"export {};\nawait\n1;", 5},
+		// JS: the JSDoc parse drops what the Pointer parser drops, and the
+		// reparse rewrites lists (old blocks, not nodes) and fills empty
+		// slots, so only a slot that held a node leaves one.
+		{"/** @type {number} */\nvar x = 1;", 0},
+		{"/** @readonly */\nthis.x = 1;", 0},
+		{"class C {\n/** @readonly */\nx = 1;\n/** @private */\nm() {}\n}", 0},
+		{"/** @this {C} */\nfunction f(a) {}", 0},
+		{"/** @implements {I} */\nclass C extends B {}", 0},
+		{"/** @template T\n * @param {T} x\n * @returns {T}\n */\nfunction f(x) { return x }", 0},
+		{"/** @satisfies {T} */\nvar x = {};", 0},
+		{"return /** @type {T} */ (x);", 0},
+		{"/** @import { A } from 'a' */", 0},
+		{"/** @overload\n * @param {number} a\n */\nfunction f(a) {}", 0},
+		{"/** see {@link A.B} and {@linkcode C} */\nvar x;", 0},
+		{"/** @param {number} [x=1] */\nfunction f(x) {}", 2},                       // the default: EqualsToken and NumericLiteral
+		{"/** @param {Object} o\n * @param {string} o.a\n */\nfunction f(o) {}", 3}, // {Object}, replaced by the nested type literal
+		{"/** @typedef {Object} T\n * @property {string} a\n */", 3},                // {Object}, replaced by the type literal
+		// {Object}, the property tag (5 nodes) and the @type tag (2) whose type the typedef takes
+		{"/** @typedef {Object} T\n * @property {string} a\n * @type {number}\n */", 10},
+		// the reparse: the function type made with an any return type, replaced by the @returns type
+		{"/** @callback F\n * @param {number} a\n * @returns {string}\n */", 1},
+		// The arrow speculation is rewound but keeps its rows for the reparsed
+		// @typedef: the two Parameters with their Identifiers, and the JSDoc of
+		// a (JSDoc, JSDocTypedefTag, its two Identifiers, JSDocTypeExpression,
+		// NumberKeyword).
+		{"x = (/** @typedef {number} T */ a, b);", 10},
 	} {
 		name := "/a.ts"
 		if strings.HasPrefix(c.source, "<") {
 			name = "/a.tsx"
+		}
+		if strings.HasPrefix(c.source, "/**") || strings.HasPrefix(c.source, "class") || strings.HasPrefix(c.source, "return") || strings.HasPrefix(c.source, "x = (") {
+			name = "/a.js"
 		}
 		if dead := deadNodes(name, c.source); dead != c.dead {
 			t.Errorf("%q leaves %d dead nodes, want %d", c.source, dead, c.dead)
@@ -468,9 +497,10 @@ func TestDeadNodes(t *testing.T) {
 	for _, fixture := range fixtures.ASTBenchFixtures {
 		file := ParseSourceFile(fixtureInput(t, fixture))
 		visits := len(storetest.Preorder(file.Root()))
+		eager := eagerJSDocNodes(file)
 		pointer := parser.ParseSourceFile(fixtureInput(t, fixture))
-		t.Logf("%s: Store NodeCount %d, visits %d, dead %d; Pointer NodeCount %d, dead %d",
-			fixture.Name(), file.NodeCount, visits, file.NodeCount-visits, pointer.NodeCount, pointer.NodeCount-visits)
+		t.Logf("%s: Store NodeCount %d, visits %d, eager JSDoc %d, dead %d; Pointer NodeCount %d",
+			fixture.Name(), file.NodeCount, visits, eager, file.NodeCount-visits-eager, pointer.NodeCount)
 	}
 }
 
@@ -546,7 +576,7 @@ func TestComposedText(t *testing.T) {
 	for name, source := range sources {
 		opts, text, kind := sourceInput(name, source)
 		pointer, file := parseBoth(opts, text, kind)
-		pairs, mismatches := storetest.Pairs(pointer, file.Store, storetest.Options{})
+		pairs, mismatches := storetest.Pairs(pointer, file.Store)
 		if pairs == nil {
 			t.Fatalf("%s: the walks do not line up: %v", name, mismatches)
 		}

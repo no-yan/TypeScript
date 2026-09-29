@@ -29,26 +29,45 @@ func GetLocals(bound *Bound, container Node) SymbolTable {
 	return bound.Locals(i)
 }
 
-// GetNodeAtPosition has no includeJSDoc: the Store has no JSDoc yet (7d-1).
-// From the root, it descends into the child whose range holds position.
+// GetNodeAtPosition descends from the root into the child whose range holds
+// position, and with includeJSDoc into a JSDoc comment of the node first.
+// The file's root is file.Root(), not the file itself.
 //
 // storetranslate:pointer-hash f2ca68b56aa87bec utilities.go:GetNodeAtPosition
-func GetNodeAtPosition(file *File, position int) Node {
+func GetNodeAtPosition(file *File, position int, includeJSDoc bool) Node {
 	current := file.Root()
 	for {
 		var child Node
-		current.ForEachChild(func(node Node) bool {
-			if nodeContainsPosition(node, position) {
-				child = node
-				return true
+		if includeJSDoc {
+			for _, jsdoc := range current.JSDoc(file) {
+				if nodeContainsPosition(jsdoc, position) {
+					child = jsdoc
+					break
+				}
 			}
-			return false
-		})
+		}
+		if child.IsNil() {
+			current.ForEachChild(func(node Node) bool {
+				if nodeContainsPosition(node, position) {
+					child = node
+					return true
+				}
+				return false
+			})
+		}
 		if child.IsNil() || IsMetaProperty(child) {
 			return current
 		}
 		current = child
 	}
+}
+
+// SetParseJSDocForNode registers the lazy JSDoc parser (jsdoc.go): the
+// parser takes the Store File and host, and returns Store nodes.
+//
+// storetranslate:pointer-hash e231d5a508aa9186 ast.go:SetParseJSDocForNode
+func SetParseJSDocForNode(parse func(f *File, host Node) []Node) {
+	parseJSDocForNode = parse
 }
 
 // GetSymbolId is ast.GetSymbolId on the gid (I1): a non-zero id, unique in

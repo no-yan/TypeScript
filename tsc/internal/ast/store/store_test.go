@@ -113,7 +113,7 @@ func TestSmallWalk(t *testing.T) {
 // the Ref round trip needs NodeAt, which only this package's tests have.
 func equivalent(file *ast.SourceFile) (storetest.Mismatches, int) {
 	s := convert.Convert(file, 0)
-	m, visits := storetest.Equivalent(file, s, storetest.Options{})
+	m, visits := storetest.Equivalent(file, s)
 	for _, n := range storetest.Preorder(s.Root()) {
 		if !store.SameNode(s.NodeAt(n.Ref()), n) {
 			m[n.Kind().String()+" Ref round trip"]++

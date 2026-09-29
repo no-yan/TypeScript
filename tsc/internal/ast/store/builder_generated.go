@@ -1608,25 +1608,35 @@ func (b *Builder) NewImportSpecifier(flags ast.NodeFlags, pos, end int32, isType
 	return id
 }
 
-func (b *Builder) NewJSDocLink(flags ast.NodeFlags, pos, end int32, name NodeRef) NodeRef {
+func (b *Builder) NewJSDocText(flags ast.NodeFlags, pos, end int32, text string) NodeRef {
+	textOff, textLen := b.textWords(end, text)
 	data := uint32(len(b.s.extra))
-	b.s.extra = append(b.s.extra, uint32(name))
+	b.s.extra = append(b.s.extra, textOff, textLen)
+	return b.header(ast.KindJSDocText, flags, 0, pos, end, data)
+}
+
+func (b *Builder) NewJSDocLink(flags ast.NodeFlags, pos, end int32, name NodeRef, text string) NodeRef {
+	textOff, textLen := b.textWords(end, text)
+	data := uint32(len(b.s.extra))
+	b.s.extra = append(b.s.extra, uint32(name), textOff, textLen)
 	id := b.header(ast.KindJSDocLink, flags, 0, pos, end, data)
 	b.adopt(name, id)
 	return id
 }
 
-func (b *Builder) NewJSDocLinkPlain(flags ast.NodeFlags, pos, end int32, name NodeRef) NodeRef {
+func (b *Builder) NewJSDocLinkPlain(flags ast.NodeFlags, pos, end int32, name NodeRef, text string) NodeRef {
+	textOff, textLen := b.textWords(end, text)
 	data := uint32(len(b.s.extra))
-	b.s.extra = append(b.s.extra, uint32(name))
+	b.s.extra = append(b.s.extra, uint32(name), textOff, textLen)
 	id := b.header(ast.KindJSDocLinkPlain, flags, 0, pos, end, data)
 	b.adopt(name, id)
 	return id
 }
 
-func (b *Builder) NewJSDocLinkCode(flags ast.NodeFlags, pos, end int32, name NodeRef) NodeRef {
+func (b *Builder) NewJSDocLinkCode(flags ast.NodeFlags, pos, end int32, name NodeRef, text string) NodeRef {
+	textOff, textLen := b.textWords(end, text)
 	data := uint32(len(b.s.extra))
-	b.s.extra = append(b.s.extra, uint32(name))
+	b.s.extra = append(b.s.extra, uint32(name), textOff, textLen)
 	id := b.header(ast.KindJSDocLinkCode, flags, 0, pos, end, data)
 	b.adopt(name, id)
 	return id
@@ -1670,4 +1680,1893 @@ func (b *Builder) NewJSDocParameterOrPropertyTag(kind ast.Kind, flags ast.NodeFl
 	b.adopt(typeExpression, id)
 	b.adoptList(comment, id)
 	return id
+}
+
+// The setters of the reparse (internal/parser/reparser.go writes these
+// members after the node is made): before Finish only. A kind without the
+// member panics. The setter writes the parent of the new child or of the
+// elements of the new list; the old ones are left as they are (dead unless
+// the new value still holds them). SetModifiers folds the header's modifier
+// flags again, as the Pointer parser makes a new ModifierList.
+
+func (b *Builder) SetType(id NodeRef, v NodeRef) {
+	h := &b.s.nodes[id]
+	slot := typeSlot[h.kind&511]
+	if slot == 0xFF {
+		panic("store: " + h.kind.String() + " has no Type")
+	}
+	b.s.extra[int(h.data)+int(slot)] = uint32(v)
+	b.adopt(v, id)
+}
+
+func (b *Builder) SetTypeParameters(id NodeRef, v ListRef) {
+	h := &b.s.nodes[id]
+	slot := typeParametersSlot[h.kind&511]
+	if slot == 0xFF {
+		panic("store: " + h.kind.String() + " has no TypeParameters")
+	}
+	b.s.extra[int(h.data)+int(slot)] = uint32(v)
+	b.adoptList(v, id)
+}
+
+func (b *Builder) SetParameters(id NodeRef, v ListRef) {
+	h := &b.s.nodes[id]
+	slot := parametersSlot[h.kind&511]
+	if slot == 0xFF {
+		panic("store: " + h.kind.String() + " has no Parameters")
+	}
+	b.s.extra[int(h.data)+int(slot)] = uint32(v)
+	b.adoptList(v, id)
+}
+
+func (b *Builder) SetQuestionToken(id NodeRef, v NodeRef) {
+	h := &b.s.nodes[id]
+	slot := questionTokenSlot[h.kind&511]
+	if slot == 0xFF {
+		panic("store: " + h.kind.String() + " has no QuestionToken")
+	}
+	b.s.extra[int(h.data)+int(slot)] = uint32(v)
+	b.adopt(v, id)
+}
+
+func (b *Builder) SetExpression(id NodeRef, v NodeRef) {
+	h := &b.s.nodes[id]
+	slot := expressionSlot[h.kind&511]
+	if slot == 0xFF {
+		panic("store: " + h.kind.String() + " has no Expression")
+	}
+	b.s.extra[int(h.data)+int(slot)] = uint32(v)
+	b.adopt(v, id)
+}
+
+func (b *Builder) SetInitializer(id NodeRef, v NodeRef) {
+	h := &b.s.nodes[id]
+	slot := initializerSlot[h.kind&511]
+	if slot == 0xFF {
+		panic("store: " + h.kind.String() + " has no Initializer")
+	}
+	b.s.extra[int(h.data)+int(slot)] = uint32(v)
+	b.adopt(v, id)
+}
+
+func (b *Builder) SetObjectAssignmentInitializer(id NodeRef, v NodeRef) {
+	h := &b.s.nodes[id]
+	var slot int
+	switch h.kind {
+	case ast.KindShorthandPropertyAssignment:
+		slot = shorthandPropertyAssignmentObjectAssignmentInitializerSlot
+	default:
+		panic("store: " + h.kind.String() + " has no ObjectAssignmentInitializer")
+	}
+	b.s.extra[int(h.data)+int(slot)] = uint32(v)
+	b.adopt(v, id)
+}
+
+func (b *Builder) SetRight(id NodeRef, v NodeRef) {
+	h := &b.s.nodes[id]
+	slot := rightSlot[h.kind&511]
+	if slot == 0xFF {
+		panic("store: " + h.kind.String() + " has no Right")
+	}
+	b.s.extra[int(h.data)+int(slot)] = uint32(v)
+	b.adopt(v, id)
+}
+
+func (b *Builder) SetModifiers(id NodeRef, v ListRef) {
+	h := &b.s.nodes[id]
+	slot := modifiersSlot[h.kind&511]
+	if slot == 0xFF {
+		panic("store: " + h.kind.String() + " has no Modifiers")
+	}
+	b.s.extra[int(h.data)+int(slot)] = uint32(v)
+	b.adoptList(v, id)
+	h.modifierFlags = uint16(b.modifierFlags(v))
+}
+
+func (b *Builder) SetFullSignature(id NodeRef, v NodeRef) {
+	h := &b.s.nodes[id]
+	slot := fullSignatureSlot[h.kind&511]
+	if slot == 0xFF {
+		panic("store: " + h.kind.String() + " has no FullSignature")
+	}
+	b.s.extra[int(h.data)+int(slot)] = uint32(v)
+	b.adopt(v, id)
+}
+
+func (b *Builder) SetHeritageClauses(id NodeRef, v ListRef) {
+	h := &b.s.nodes[id]
+	slot := heritageClausesSlot[h.kind&511]
+	if slot == 0xFF {
+		panic("store: " + h.kind.String() + " has no HeritageClauses")
+	}
+	b.s.extra[int(h.data)+int(slot)] = uint32(v)
+	b.adoptList(v, id)
+}
+
+func (b *Builder) SetTypes(id NodeRef, v ListRef) {
+	h := &b.s.nodes[id]
+	slot := typesSlot[h.kind&511]
+	if slot == 0xFF {
+		panic("store: " + h.kind.String() + " has no Types")
+	}
+	b.s.extra[int(h.data)+int(slot)] = uint32(v)
+	b.adoptList(v, id)
+}
+
+func (b *Builder) SetTypeArguments(id NodeRef, v ListRef) {
+	h := &b.s.nodes[id]
+	slot := typeArgumentsSlot[h.kind&511]
+	if slot == 0xFF {
+		panic("store: " + h.kind.String() + " has no TypeArguments")
+	}
+	b.s.extra[int(h.data)+int(slot)] = uint32(v)
+	b.adoptList(v, id)
+}
+
+func (b *Builder) SetPhaseModifier(id NodeRef, v ast.Kind) {
+	h := &b.s.nodes[id]
+	var slot int
+	switch h.kind {
+	case ast.KindImportClause:
+		slot = importClausePhaseModifierSlot
+	default:
+		panic("store: " + h.kind.String() + " has no PhaseModifier")
+	}
+	b.s.extra[int(h.data)+int(slot)] = uint32(v)
+}
+
+// deepCloneReparse is the walk of DeepCloneReparse (builder_reparse.go):
+// the copy of each payload word, with the children and lists cloned first.
+func (b *Builder) deepCloneReparse(id NodeRef) NodeRef {
+	h := b.s.nodes[id]
+	switch h.kind {
+	case ast.KindNumericLiteral:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		clone := b.cloneRow(h, w[:])
+		return clone
+	case ast.KindBigIntLiteral:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		clone := b.cloneRow(h, w[:])
+		return clone
+	case ast.KindStringLiteral:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		clone := b.cloneRow(h, w[:])
+		return clone
+	case ast.KindJsxText:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		clone := b.cloneRow(h, w[:])
+		return clone
+	case ast.KindRegularExpressionLiteral:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		clone := b.cloneRow(h, w[:])
+		return clone
+	case ast.KindNoSubstitutionTemplateLiteral:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		clone := b.cloneRow(h, w[:])
+		return clone
+	case ast.KindTemplateHead:
+		var w [5]uint32
+		copy(w[:], b.s.extra[h.data:])
+		clone := b.cloneRow(h, w[:])
+		return clone
+	case ast.KindTemplateMiddle:
+		var w [5]uint32
+		copy(w[:], b.s.extra[h.data:])
+		clone := b.cloneRow(h, w[:])
+		return clone
+	case ast.KindTemplateTail:
+		var w [5]uint32
+		copy(w[:], b.s.extra[h.data:])
+		clone := b.cloneRow(h, w[:])
+		return clone
+	case ast.KindQualifiedName:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Left
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Right
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindComputedPropertyName:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindTypeParameter:
+		var w [5]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Name
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Constraint
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Expression
+		w[4] = uint32(b.cloneChildReparse(NodeRef(w[4]))) // DefaultType
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		b.adopt(NodeRef(w[4]), clone)
+		return clone
+	case ast.KindParameter:
+		var w [6]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // DotDotDotToken
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Name
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // QuestionToken
+		w[4] = uint32(b.cloneChildReparse(NodeRef(w[4]))) // Type
+		w[5] = uint32(b.cloneChildReparse(NodeRef(w[5]))) // Initializer
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		b.adopt(NodeRef(w[4]), clone)
+		b.adopt(NodeRef(w[5]), clone)
+		return clone
+	case ast.KindDecorator:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindPropertySignature:
+		var w [5]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Name
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // PostfixToken
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Type
+		w[4] = uint32(b.cloneChildReparse(NodeRef(w[4]))) // Initializer
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		b.adopt(NodeRef(w[4]), clone)
+		return clone
+	case ast.KindPropertyDeclaration:
+		var w [5]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Name
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // PostfixToken
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Type
+		w[4] = uint32(b.cloneChildReparse(NodeRef(w[4]))) // Initializer
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		b.adopt(NodeRef(w[4]), clone)
+		return clone
+	case ast.KindMethodSignature:
+		var w [7]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Name
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // PostfixToken
+		w[3] = uint32(b.cloneListReparse(ListRef(w[3])))  // TypeParameters
+		w[4] = uint32(b.cloneListReparse(ListRef(w[4])))  // Parameters
+		w[5] = uint32(b.cloneChildReparse(NodeRef(w[5]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adoptList(ListRef(w[3]), clone)
+		b.adoptList(ListRef(w[4]), clone)
+		b.adopt(NodeRef(w[5]), clone)
+		return clone
+	case ast.KindMethodDeclaration:
+		var w [11]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // AsteriskToken
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Name
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // PostfixToken
+		w[4] = uint32(b.cloneListReparse(ListRef(w[4])))  // TypeParameters
+		w[5] = uint32(b.cloneListReparse(ListRef(w[5])))  // Parameters
+		w[6] = uint32(b.cloneChildReparse(NodeRef(w[6]))) // Type
+		w[7] = uint32(b.cloneChildReparse(NodeRef(w[7]))) // FullSignature
+		w[8] = uint32(b.cloneChildReparse(NodeRef(w[8]))) // Body
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		b.adoptList(ListRef(w[4]), clone)
+		b.adoptList(ListRef(w[5]), clone)
+		b.adopt(NodeRef(w[6]), clone)
+		b.adopt(NodeRef(w[7]), clone)
+		b.adopt(NodeRef(w[8]), clone)
+		return clone
+	case ast.KindClassStaticBlockDeclaration:
+		var w [4]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Body
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindConstructor:
+		var w [9]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // TypeParameters
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // Parameters
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Type
+		w[4] = uint32(b.cloneChildReparse(NodeRef(w[4]))) // FullSignature
+		w[5] = uint32(b.cloneChildReparse(NodeRef(w[5]))) // Body
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		b.adopt(NodeRef(w[4]), clone)
+		b.adopt(NodeRef(w[5]), clone)
+		return clone
+	case ast.KindGetAccessor:
+		var w [9]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Name
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // TypeParameters
+		w[3] = uint32(b.cloneListReparse(ListRef(w[3])))  // Parameters
+		w[4] = uint32(b.cloneChildReparse(NodeRef(w[4]))) // Type
+		w[5] = uint32(b.cloneChildReparse(NodeRef(w[5]))) // FullSignature
+		w[6] = uint32(b.cloneChildReparse(NodeRef(w[6]))) // Body
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		b.adoptList(ListRef(w[3]), clone)
+		b.adopt(NodeRef(w[4]), clone)
+		b.adopt(NodeRef(w[5]), clone)
+		b.adopt(NodeRef(w[6]), clone)
+		return clone
+	case ast.KindSetAccessor:
+		var w [9]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Name
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // TypeParameters
+		w[3] = uint32(b.cloneListReparse(ListRef(w[3])))  // Parameters
+		w[4] = uint32(b.cloneChildReparse(NodeRef(w[4]))) // Type
+		w[5] = uint32(b.cloneChildReparse(NodeRef(w[5]))) // FullSignature
+		w[6] = uint32(b.cloneChildReparse(NodeRef(w[6]))) // Body
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		b.adoptList(ListRef(w[3]), clone)
+		b.adopt(NodeRef(w[4]), clone)
+		b.adopt(NodeRef(w[5]), clone)
+		b.adopt(NodeRef(w[6]), clone)
+		return clone
+	case ast.KindCallSignature:
+		var w [4]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // TypeParameters
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // Parameters
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		return clone
+	case ast.KindConstructSignature:
+		var w [4]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // TypeParameters
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // Parameters
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		return clone
+	case ast.KindIndexSignature:
+		var w [4]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // Parameters
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		return clone
+	case ast.KindTypePredicate:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // AssertsModifier
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // ParameterName
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		return clone
+	case ast.KindTypeReference:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TypeName
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // TypeArguments
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		return clone
+	case ast.KindFunctionType:
+		var w [4]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // TypeParameters
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // Parameters
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		return clone
+	case ast.KindConstructorType:
+		var w [5]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // TypeParameters
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // Parameters
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		return clone
+	case ast.KindTypeQuery:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // ExprName
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // TypeArguments
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		return clone
+	case ast.KindTypeLiteral:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0]))) // Members
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		return clone
+	case ast.KindArrayType:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // ElementType
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindTupleType:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0]))) // Elements
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		return clone
+	case ast.KindOptionalType:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindRestType:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindUnionType:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0]))) // Types
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		return clone
+	case ast.KindIntersectionType:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0]))) // Types
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		return clone
+	case ast.KindConditionalType:
+		var w [5]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // CheckType
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // ExtendsType
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // TrueType
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // FalseType
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		return clone
+	case ast.KindInferType:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TypeParameter
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindParenthesizedType:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindTypeOperator:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindIndexedAccessType:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // ObjectType
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // IndexType
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindMappedType:
+		var w [7]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // ReadonlyToken
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // TypeParameter
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // NameType
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // QuestionToken
+		w[4] = uint32(b.cloneChildReparse(NodeRef(w[4]))) // Type
+		w[5] = uint32(b.cloneListReparse(ListRef(w[5])))  // Members
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		b.adopt(NodeRef(w[4]), clone)
+		b.adoptList(ListRef(w[5]), clone)
+		return clone
+	case ast.KindLiteralType:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Literal
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindNamedTupleMember:
+		var w [4]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // DotDotDotToken
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Name
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // QuestionToken
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		return clone
+	case ast.KindTemplateLiteralType:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Head
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // TemplateSpans
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		return clone
+	case ast.KindTemplateLiteralTypeSpan:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Type
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Literal
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindImportType:
+		var w [5]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Argument
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Attributes
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Qualifier
+		w[4] = uint32(b.cloneListReparse(ListRef(w[4])))  // TypeArguments
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		b.adoptList(ListRef(w[4]), clone)
+		return clone
+	case ast.KindObjectBindingPattern, ast.KindArrayBindingPattern:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0]))) // Elements
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		return clone
+	case ast.KindBindingElement:
+		var w [5]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // DotDotDotToken
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // PropertyName
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Name
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Initializer
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		return clone
+	case ast.KindArrayLiteralExpression:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0]))) // Elements
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		return clone
+	case ast.KindObjectLiteralExpression:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0]))) // Properties
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		return clone
+	case ast.KindPropertyAccessExpression:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // QuestionDotToken
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Name
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		return clone
+	case ast.KindElementAccessExpression:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // QuestionDotToken
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // ArgumentExpression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		return clone
+	case ast.KindCallExpression:
+		var w [4]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // QuestionDotToken
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // TypeArguments
+		w[3] = uint32(b.cloneListReparse(ListRef(w[3])))  // Arguments
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		b.adoptList(ListRef(w[3]), clone)
+		return clone
+	case ast.KindNewExpression:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // TypeArguments
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // Arguments
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		return clone
+	case ast.KindTaggedTemplateExpression:
+		var w [4]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Tag
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // QuestionDotToken
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // TypeArguments
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Template
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		return clone
+	case ast.KindTypeAssertionExpression:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Type
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindParenthesizedExpression:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindFunctionExpression:
+		var w [11]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // AsteriskToken
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Name
+		w[3] = uint32(b.cloneListReparse(ListRef(w[3])))  // TypeParameters
+		w[4] = uint32(b.cloneListReparse(ListRef(w[4])))  // Parameters
+		w[5] = uint32(b.cloneChildReparse(NodeRef(w[5]))) // Type
+		w[6] = uint32(b.cloneChildReparse(NodeRef(w[6]))) // FullSignature
+		w[7] = uint32(b.cloneChildReparse(NodeRef(w[7]))) // Body
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adoptList(ListRef(w[3]), clone)
+		b.adoptList(ListRef(w[4]), clone)
+		b.adopt(NodeRef(w[5]), clone)
+		b.adopt(NodeRef(w[6]), clone)
+		b.adopt(NodeRef(w[7]), clone)
+		return clone
+	case ast.KindArrowFunction:
+		var w [9]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // TypeParameters
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // Parameters
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Type
+		w[4] = uint32(b.cloneChildReparse(NodeRef(w[4]))) // FullSignature
+		w[5] = uint32(b.cloneChildReparse(NodeRef(w[5]))) // EqualsGreaterThanToken
+		w[6] = uint32(b.cloneChildReparse(NodeRef(w[6]))) // Body
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		b.adopt(NodeRef(w[4]), clone)
+		b.adopt(NodeRef(w[5]), clone)
+		b.adopt(NodeRef(w[6]), clone)
+		return clone
+	case ast.KindDeleteExpression:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindTypeOfExpression:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindVoidExpression:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindAwaitExpression:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindPrefixUnaryExpression:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Operand
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindPostfixUnaryExpression:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Operand
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindBinaryExpression:
+		var w [5]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Left
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Type
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // OperatorToken
+		w[4] = uint32(b.cloneChildReparse(NodeRef(w[4]))) // Right
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		b.adopt(NodeRef(w[4]), clone)
+		return clone
+	case ast.KindConditionalExpression:
+		var w [5]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Condition
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // QuestionToken
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // WhenTrue
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // ColonToken
+		w[4] = uint32(b.cloneChildReparse(NodeRef(w[4]))) // WhenFalse
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		b.adopt(NodeRef(w[4]), clone)
+		return clone
+	case ast.KindTemplateExpression:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Head
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // TemplateSpans
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		return clone
+	case ast.KindYieldExpression:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // AsteriskToken
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindSpreadElement:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindClassExpression:
+		var w [7]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Name
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // TypeParameters
+		w[3] = uint32(b.cloneListReparse(ListRef(w[3])))  // HeritageClauses
+		w[4] = uint32(b.cloneListReparse(ListRef(w[4])))  // Members
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		b.adoptList(ListRef(w[3]), clone)
+		b.adoptList(ListRef(w[4]), clone)
+		return clone
+	case ast.KindExpressionWithTypeArguments:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // TypeArguments
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		return clone
+	case ast.KindAsExpression:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindNonNullExpression:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindMetaProperty:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Name
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindSyntheticExpression:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // TupleNameSource
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindSatisfiesExpression:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindTemplateSpan:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Literal
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindBlock:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0]))) // Statements
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		return clone
+	case ast.KindVariableStatement:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // DeclarationList
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindExpressionStatement:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindIfStatement:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // ThenStatement
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // ElseStatement
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		return clone
+	case ast.KindDoStatement:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Statement
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindWhileStatement:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Statement
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindForStatement:
+		var w [5]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Initializer
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Condition
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Incrementor
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Statement
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		return clone
+	case ast.KindForInStatement, ast.KindForOfStatement:
+		var w [5]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // AwaitModifier
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Initializer
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Expression
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Statement
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		return clone
+	case ast.KindContinueStatement:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Label
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindBreakStatement:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Label
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindReturnStatement:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindWithStatement:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Statement
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindSwitchStatement:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // CaseBlock
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindLabeledStatement:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Label
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Statement
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindThrowStatement:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindTryStatement:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TryBlock
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // CatchClause
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // FinallyBlock
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		return clone
+	case ast.KindVariableDeclaration:
+		var w [5]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Name
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // ExclamationToken
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Type
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Initializer
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		return clone
+	case ast.KindVariableDeclarationList:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0]))) // Declarations
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		return clone
+	case ast.KindFunctionDeclaration:
+		var w [12]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // AsteriskToken
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Name
+		w[3] = uint32(b.cloneListReparse(ListRef(w[3])))  // TypeParameters
+		w[4] = uint32(b.cloneListReparse(ListRef(w[4])))  // Parameters
+		w[5] = uint32(b.cloneChildReparse(NodeRef(w[5]))) // Type
+		w[6] = uint32(b.cloneChildReparse(NodeRef(w[6]))) // FullSignature
+		w[7] = uint32(b.cloneChildReparse(NodeRef(w[7]))) // Body
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adoptList(ListRef(w[3]), clone)
+		b.adoptList(ListRef(w[4]), clone)
+		b.adopt(NodeRef(w[5]), clone)
+		b.adopt(NodeRef(w[6]), clone)
+		b.adopt(NodeRef(w[7]), clone)
+		return clone
+	case ast.KindClassDeclaration:
+		var w [7]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Name
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // TypeParameters
+		w[3] = uint32(b.cloneListReparse(ListRef(w[3])))  // HeritageClauses
+		w[4] = uint32(b.cloneListReparse(ListRef(w[4])))  // Members
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		b.adoptList(ListRef(w[3]), clone)
+		b.adoptList(ListRef(w[4]), clone)
+		return clone
+	case ast.KindInterfaceDeclaration:
+		var w [6]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Name
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // TypeParameters
+		w[3] = uint32(b.cloneListReparse(ListRef(w[3])))  // HeritageClauses
+		w[4] = uint32(b.cloneListReparse(ListRef(w[4])))  // Members
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		b.adoptList(ListRef(w[3]), clone)
+		b.adoptList(ListRef(w[4]), clone)
+		return clone
+	case ast.KindTypeAliasDeclaration, ast.KindJSTypeAliasDeclaration:
+		var w [6]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Name
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // TypeParameters
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		return clone
+	case ast.KindEnumDeclaration:
+		var w [4]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Name
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // Members
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		return clone
+	case ast.KindModuleDeclaration:
+		var w [8]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Name
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Attributes
+		w[4] = uint32(b.cloneChildReparse(NodeRef(w[4]))) // Body
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		b.adopt(NodeRef(w[4]), clone)
+		return clone
+	case ast.KindModuleBlock:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0]))) // Statements
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		return clone
+	case ast.KindCaseBlock:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0]))) // Clauses
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		return clone
+	case ast.KindNamespaceExportDeclaration:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Name
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindImportEqualsDeclaration:
+		var w [5]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Name
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // ModuleReference
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		return clone
+	case ast.KindImportDeclaration, ast.KindJSImportDeclaration:
+		var w [4]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // ImportClause
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // ModuleSpecifier
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Attributes
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		return clone
+	case ast.KindImportClause:
+		var w [4]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Name
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // NamedBindings
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		return clone
+	case ast.KindNamespaceImport:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Name
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindNamedImports:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0]))) // Elements
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		return clone
+	case ast.KindImportSpecifier:
+		var w [4]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // PropertyName
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Name
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		return clone
+	case ast.KindExportAssignment:
+		var w [4]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Type
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		return clone
+	case ast.KindExportDeclaration:
+		var w [5]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // ExportClause
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // ModuleSpecifier
+		w[4] = uint32(b.cloneChildReparse(NodeRef(w[4]))) // Attributes
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		b.adopt(NodeRef(w[4]), clone)
+		return clone
+	case ast.KindNamedExports:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0]))) // Elements
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		return clone
+	case ast.KindNamespaceExport:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Name
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindExportSpecifier:
+		var w [4]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // PropertyName
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Name
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		return clone
+	case ast.KindMissingDeclaration:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0]))) // Modifiers
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		return clone
+	case ast.KindExternalModuleReference:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindJsxElement:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // OpeningElement
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // Children
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // ClosingElement
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		return clone
+	case ast.KindJsxSelfClosingElement:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // TypeArguments
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Attributes
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		return clone
+	case ast.KindJsxOpeningElement:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // TypeArguments
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Attributes
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		return clone
+	case ast.KindJsxClosingElement:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindJsxFragment:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // OpeningFragment
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // Children
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // ClosingFragment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		return clone
+	case ast.KindJsxAttribute:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Name
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Initializer
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindJsxAttributes:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0]))) // Properties
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		return clone
+	case ast.KindJsxSpreadAttribute:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindJsxExpression:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // DotDotDotToken
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindJsxNamespacedName:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Namespace
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Name
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindCaseClause, ast.KindDefaultClause:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // Statements
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		return clone
+	case ast.KindHeritageClause:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1]))) // Types
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[1]), clone)
+		return clone
+	case ast.KindCatchClause:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // VariableDeclaration
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Block
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindImportAttributes:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1]))) // Attributes
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[1]), clone)
+		return clone
+	case ast.KindImportAttribute:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Name
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Value
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindPropertyAssignment:
+		var w [5]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Name
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // PostfixToken
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Type
+		w[4] = uint32(b.cloneChildReparse(NodeRef(w[4]))) // Initializer
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		b.adopt(NodeRef(w[4]), clone)
+		return clone
+	case ast.KindShorthandPropertyAssignment:
+		var w [6]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Modifiers
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Name
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // PostfixToken
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Type
+		w[4] = uint32(b.cloneChildReparse(NodeRef(w[4]))) // EqualsToken
+		w[5] = uint32(b.cloneChildReparse(NodeRef(w[5]))) // ObjectAssignmentInitializer
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		b.adopt(NodeRef(w[4]), clone)
+		b.adopt(NodeRef(w[5]), clone)
+		return clone
+	case ast.KindSpreadAssignment:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindEnumMember:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Name
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Initializer
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindSourceFile:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // Statements
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // EndOfFileToken
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	case ast.KindJSDocTypeExpression:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindJSDocNameReference:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Name
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindJSDocNullableType:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindJSDocNonNullableType:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindJSDocOptionalType:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindJSDocVariadicType:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindJSDoc:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0]))) // Comment
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1]))) // Tags
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		return clone
+	case ast.KindJSDocText:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		clone := b.cloneRow(h, w[:])
+		return clone
+	case ast.KindJSDocTypeLiteral:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0]))) // JSDocPropertyTags
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		return clone
+	case ast.KindJSDocSignature:
+		var w [4]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0])))  // TypeParameters
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // Parameters
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Type
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		return clone
+	case ast.KindJSDocLink:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Name
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindJSDocLinkCode:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Name
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindJSDocLinkPlain:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Name
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindJSDocUnknownTag:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		return clone
+	case ast.KindJSDocAugmentsTag:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // ClassName
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		return clone
+	case ast.KindJSDocImplementsTag:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // ClassName
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		return clone
+	case ast.KindJSDocDeprecatedTag:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		return clone
+	case ast.KindJSDocPublicTag:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		return clone
+	case ast.KindJSDocPrivateTag:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		return clone
+	case ast.KindJSDocProtectedTag:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		return clone
+	case ast.KindJSDocReadonlyTag:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		return clone
+	case ast.KindJSDocOverrideTag:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneListReparse(ListRef(w[1])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adoptList(ListRef(w[1]), clone)
+		return clone
+	case ast.KindJSDocCallbackTag:
+		var w [4]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // TypeExpression
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Name
+		w[3] = uint32(b.cloneListReparse(ListRef(w[3])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adoptList(ListRef(w[3]), clone)
+		return clone
+	case ast.KindJSDocOverloadTag:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // TypeExpression
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		return clone
+	case ast.KindJSDocParameterTag, ast.KindJSDocPropertyTag:
+		var w [6]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Name
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // TypeExpression
+		w[5] = uint32(b.cloneListReparse(ListRef(w[5])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		b.adoptList(ListRef(w[5]), clone)
+		return clone
+	case ast.KindJSDocReturnTag:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // TypeExpression
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		return clone
+	case ast.KindJSDocThisTag:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // TypeExpression
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		return clone
+	case ast.KindJSDocTypeTag:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // TypeExpression
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		return clone
+	case ast.KindJSDocTemplateTag:
+		var w [4]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // Constraint
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // TypeParameters
+		w[3] = uint32(b.cloneListReparse(ListRef(w[3])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		b.adoptList(ListRef(w[3]), clone)
+		return clone
+	case ast.KindJSDocTypedefTag:
+		var w [4]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // TypeExpression
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // Name
+		w[3] = uint32(b.cloneListReparse(ListRef(w[3])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adoptList(ListRef(w[3]), clone)
+		return clone
+	case ast.KindJSDocSeeTag:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // NameExpression
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		return clone
+	case ast.KindJSDocThrowsTag:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // TypeExpression
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		return clone
+	case ast.KindJSDocSatisfiesTag:
+		var w [3]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // TypeExpression
+		w[2] = uint32(b.cloneListReparse(ListRef(w[2])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adoptList(ListRef(w[2]), clone)
+		return clone
+	case ast.KindJSDocImportTag:
+		var w [5]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // TagName
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // ImportClause
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // ModuleSpecifier
+		w[3] = uint32(b.cloneChildReparse(NodeRef(w[3]))) // Attributes
+		w[4] = uint32(b.cloneListReparse(ListRef(w[4])))  // Comment
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
+		b.adopt(NodeRef(w[3]), clone)
+		b.adoptList(ListRef(w[4]), clone)
+		return clone
+	case ast.KindSyntaxList:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneListReparse(ListRef(w[0]))) // Children
+		clone := b.cloneRow(h, w[:])
+		b.adoptList(ListRef(w[0]), clone)
+		return clone
+	case ast.KindPartiallyEmittedExpression:
+		var w [1]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		return clone
+	case ast.KindSyntheticReferenceExpression:
+		var w [2]uint32
+		copy(w[:], b.s.extra[h.data:])
+		w[0] = uint32(b.cloneChildReparse(NodeRef(w[0]))) // Expression
+		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // ThisArg
+		clone := b.cloneRow(h, w[:])
+		b.adopt(NodeRef(w[0]), clone)
+		b.adopt(NodeRef(w[1]), clone)
+		return clone
+	}
+	return b.cloneRow(h, nil)
 }

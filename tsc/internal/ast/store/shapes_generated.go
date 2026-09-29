@@ -160,11 +160,12 @@ var shapes = [512]shape{
 	ast.KindJSDocOptionalType:             {1, 0b0},
 	ast.KindJSDocVariadicType:             {1, 0b0},
 	ast.KindJSDoc:                         {2, 0b11},
+	ast.KindJSDocText:                     {2, 0b0},
 	ast.KindJSDocTypeLiteral:              {2, 0b1},
 	ast.KindJSDocSignature:                {4, 0b11},
-	ast.KindJSDocLink:                     {1, 0b0},
-	ast.KindJSDocLinkCode:                 {1, 0b0},
-	ast.KindJSDocLinkPlain:                {1, 0b0},
+	ast.KindJSDocLink:                     {3, 0b0},
+	ast.KindJSDocLinkCode:                 {3, 0b0},
+	ast.KindJSDocLinkPlain:                {3, 0b0},
 	ast.KindJSDocUnknownTag:               {2, 0b10},
 	ast.KindJSDocAugmentsTag:              {3, 0b100},
 	ast.KindJSDocImplementsTag:            {3, 0b100},
@@ -546,6 +547,10 @@ func init() {
 	textSlot[ast.KindTemplateHead] = 0
 	textSlot[ast.KindTemplateMiddle] = 0
 	textSlot[ast.KindTemplateTail] = 0
+	textSlot[ast.KindJSDocText] = 0
+	textSlot[ast.KindJSDocLink] = 1
+	textSlot[ast.KindJSDocLinkCode] = 1
+	textSlot[ast.KindJSDocLinkPlain] = 1
 	operandSlot[ast.KindPrefixUnaryExpression] = 1
 	operandSlot[ast.KindPostfixUnaryExpression] = 0
 	questionDotTokenSlot[ast.KindPropertyAccessExpression] = 1

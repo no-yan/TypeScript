@@ -2573,11 +2573,20 @@ func forEachChildJSDocParameterOrPropertyTag(n Node, v Visitor) bool {
 	if ref := NodeRef(s.extra[data+0]); ref != NoNodeRef && v(s.node(ref)) { // TagName
 		return true
 	}
-	if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
-		return true
-	}
-	if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // TypeExpression
-		return true
+	if s.extra[data+4] != 0 { // IsNameFirst
+		if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
+			return true
+		}
+		if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // TypeExpression
+			return true
+		}
+	} else {
+		if ref := NodeRef(s.extra[data+3]); ref != NoNodeRef && v(s.node(ref)) { // TypeExpression
+			return true
+		}
+		if ref := NodeRef(s.extra[data+1]); ref != NoNodeRef && v(s.node(ref)) { // Name
+			return true
+		}
 	}
 	if at := ListRef(s.extra[data+5]); at != NoListRef { // Comment
 		l := s.list(at)

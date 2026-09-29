@@ -691,7 +691,7 @@ func TestStorageFlowGraph(t *testing.T) {
 	}
 	compared := 0
 	for i := range files {
-		pairs, mismatches := storetest.Pairs(pointers[i], files[i].Store, storetest.Options{})
+		pairs, mismatches := storetest.Pairs(pointers[i], files[i].Store)
 		mismatches.Report(t)
 		w := newFlowWalker(t, files[i])
 		for _, pair := range pairs {
@@ -724,7 +724,7 @@ func TestStorageFlowGraph(t *testing.T) {
 	flowsA, _, _ := files[0].Bound.FlowCounts()
 	var sourceB store.Node
 	var pointerB *ast.Node
-	pairs, _ := storetest.Pairs(pointers[1], files[1].Store, storetest.Options{})
+	pairs, _ := storetest.Pairs(pointers[1], files[1].Store)
 	for _, pair := range pairs {
 		if r := pair.N.FlowRef(); r > 1 && int(r) < flowsA && pair.N.Kind() == ast.KindIdentifier {
 			sourceB, pointerB = pair.N, pair.P

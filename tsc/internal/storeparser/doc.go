@@ -32,14 +32,24 @@
 // indicator is computed on the scratch before the top-level await reparse
 // that depends on it, the references on the finished Store.
 //
+// # JSDoc and the JS reparse (7d-1)
+//
+// jsdoc.go and reparser.go are internal/parser/jsdoc.go and reparser.go,
+// ported by the same rules (internal/ast/docs/store-checker-design-20260923.md
+// 2.2 and store-checker-7d1-implementation-instructions-20260928.md 4). The
+// JSDoc of a JS file, and of a TS comment with @see or @link, is parsed into
+// the file's Store with its host, and the JS reparse writes its nodes there
+// too, through the Builder's reparse API (store/builder_reparse.go); the
+// file's JSDoc cache is made after Finish. The rest of a TS file's JSDoc is
+// parsed on the first access (parseJSDocForNode, registered with
+// store.SetParseJSDocForNode), each comment set into a sealed Store of its
+// own.
+//
 // # Not ported (7d and later)
 //
-// JSDoc nodes and the JS reparse (jsdoc.go, reparser.go): every file only gets
-// the HasJSDoc and PossiblyContainsDeprecatedTag flags, as TS files do in the
-// Pointer parser. Incremental parsing, the language service and the api
-// encoder.
+// Incremental parsing, the language service and the api encoder.
 //
-// getCommentPragmas needs an ast.NodeFactory because
+// getCommentPragmas and GetJSDocCommentRanges need an ast.NodeFactory because
 // scanner.GetLeadingCommentRanges takes one to make CommentRange values; the
-// parser keeps one for that call only.
+// parser keeps one for those calls only.
 package storeparser

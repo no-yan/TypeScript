@@ -49,11 +49,39 @@ const STORE_IMPORT = `"github.com/microsoft/TypeScript/tsc/internal/ast/store"`;
 // order must be the order in which that ForEachChild visits.
 const memberOrderOverrides: Record<string, string[]> = {
     SourceFile: ["Statements", "EndOfFileToken"],
-    // TODO(store): the Pointer version visits TypeExpression before name when
-    // !IsNameFirst. A fixed shape cannot express that. Decided together with
-    // where JSDoc lives (store-ast-design-20260922.md section 7).
+    // The Pointer version visits TypeExpression before name when !IsNameFirst,
+    // which a fixed order cannot express: the payload keeps this order, and
+    // the walks swap the pair by the bool (swappedChildren).
     JSDocParameterOrPropertyTag: ["TagName", "name", "IsBracketed", "TypeExpression", "IsNameFirst", "Comment"],
 };
+
+// Definitions whose Pointer ForEachChild visits two children in an order that
+// a bool member decides: first, second in member order when the bool is true,
+// swapped when it is false. Every generated walk of the children in order
+// (ForEachChild) writes the two orders out (store-checker-7d1 instructions 2).
+const swappedChildren: Record<string, { flag: string; first: string; second: string; }> = {
+    JSDocParameterOrPropertyTag: { flag: "IsNameFirst", first: "Name", second: "TypeExpression" },
+};
+
+// The members that the Pointer reparser (internal/parser/reparser.go) writes
+// after the node is made: each gets a Builder setter, used only before Finish
+// (store-checker-design-20260923.md 2.2, "reparse の Builder API").
+const reparseSetters = [
+    "Type",
+    "TypeParameters",
+    "Parameters",
+    "QuestionToken",
+    "Expression",
+    "Initializer",
+    "ObjectAssignmentInitializer",
+    "Right",
+    "Modifiers",
+    "FullSignature",
+    "HeritageClauses",
+    "Types",
+    "TypeArguments",
+    "PhaseModifier",
+];
 
 // Kinds removed from a role table although the member exists, because the
 // Pointer accessor of the same name does not return it.
@@ -159,7 +187,9 @@ function classify(def: NodeType, m: MemberInfo): Classification {
     if (m.isChild()) return { slot: m.listKind ? "list" : "child" };
     const type = m.type;
     if (type.kind === "list" && type.listKind === "raw" && isPrimitive(type.elementType, "string")) {
-        return { todo: `${m.name} []string has no slot: where JSDoc lives is undecided (store-ast-design-20260922.md section 5)` };
+        // The JSDoc text parts: the Pointer AST reads them only joined
+        // ((*ast.Node).Text), so the slot holds the joined text.
+        return { slot: "text" };
     }
     if (isPrimitive(type, "string")) {
         return headerTextDefinitions.has(def.name) ? { header: true } : { slot: "text" };
@@ -730,11 +760,28 @@ function generateForEachChild(): string {
         w.write();
         w.write(`func forEachChild${def.name}(n Node, v Visitor) bool {`);
         w.write("\ts, data := n.s, int(n.h.data)");
+        const swap = swappedChildren[def.name];
+        const slotNamed = (name: string) => def.slots.find(s => s.name === name)!;
         for (const slot of walked(def)) {
+            if (swap && slot.name === swap.second) continue;
+            if (swap && slot.name === swap.first) {
+                const first = slotNamed(swap.first), second = slotNamed(swap.second);
+                w.write(`\tif s.extra[data+${slotNamed(swap.flag).word}] != 0 { // ${swap.flag}`);
+                forEachSlot(w, first, "\t\t", "s", "data");
+                forEachSlot(w, second, "\t\t", "s", "data");
+                w.write("\t} else {");
+                forEachSlot(w, second, "\t\t", "s", "data");
+                forEachSlot(w, first, "\t\t", "s", "data");
+                w.write("\t}");
+                continue;
+            }
             forEachSlot(w, slot, "\t", "s", "data");
         }
         w.write("\treturn false");
         w.write("}");
+    }
+    for (const name of Object.keys(swappedChildren)) {
+        if (!definitions.some(d => d.name === name)) throw new Error(`swappedChildren names ${name}, which is not a definition`);
     }
     return w.toString();
 }
@@ -812,7 +859,91 @@ function generateBuilder(): string {
         w.write("\treturn id");
         w.write("}");
     }
+    generateReparseSetters(w);
+    generateDeepCloneReparse(w);
     return w.toString();
+}
+
+// The setters of the reparse (reparseSetters): kind-polymorphic like the role
+// accessors. A role's table picks the payload word; a member of a single
+// definition is found by a switch over its kinds. A kind without the member
+// panics. The new child's (or the new list's elements') parent is the node.
+function generateReparseSetters(w: CodeWriter) {
+    w.write();
+    w.write("// The setters of the reparse (internal/parser/reparser.go writes these");
+    w.write("// members after the node is made): before Finish only. A kind without the");
+    w.write("// member panics. The setter writes the parent of the new child or of the");
+    w.write("// elements of the new list; the old ones are left as they are (dead unless");
+    w.write("// the new value still holds them). SetModifiers folds the header's modifier");
+    w.write("// flags again, as the Pointer parser makes a new ModifierList.");
+    for (const name of reparseSetters) {
+        const owners = viewDefinitions.filter(def => def.slots.some(s => s.name === name));
+        const classes = new Set(owners.map(def => def.slots.find(s => s.name === name)!.class));
+        if (owners.length === 0 || classes.size !== 1) throw new Error(`reparse setter ${name}: no member or mixed classes`);
+        const cls = [...classes][0];
+        const type = cls === "child" ? "NodeRef" : cls === "list" ? "ListRef" : cls === "kind" ? "ast.Kind" : undefined;
+        if (!type) throw new Error(`reparse setter ${name}: a ${cls} member has no setter`);
+        const r = roles.find(r => r.name === name);
+        w.write();
+        w.write(`func (b *Builder) Set${name}(id NodeRef, v ${type}) {`);
+        w.write("\th := &b.s.nodes[id]");
+        if (r) {
+            w.write(`\tslot := ${r.table}[h.kind&511]`);
+            w.write("\tif slot == 0xFF {");
+            w.write(`\t\tpanic("store: " + h.kind.String() + " has no ${name}")`);
+            w.write("\t}");
+        }
+        else {
+            w.write("\tvar slot int");
+            w.write("\tswitch h.kind {");
+            for (const def of owners) {
+                w.write(`\tcase ${goKinds(def)}:`);
+                w.write(`\t\tslot = ${slotConst(def, def.slots.find(s => s.name === name)!)}`);
+            }
+            w.write("\tdefault:");
+            w.write(`\t\tpanic("store: " + h.kind.String() + " has no ${name}")`);
+            w.write("\t}");
+        }
+        w.write("\tb.s.extra[int(h.data)+int(slot)] = uint32(v)");
+        if (cls === "child") w.write("\tb.adopt(v, id)");
+        if (cls === "list") w.write("\tb.adoptList(v, id)");
+        if (name === "Modifiers") w.write("\th.modifierFlags = uint16(b.modifierFlags(v))");
+        w.write("}");
+    }
+}
+
+// deepCloneReparse copies a subtree in post-order: each payload word as is
+// (a text keeps pointing at the same bytes), each child and list cloned. The
+// cases are the definitions with a payload; the other kinds (tokens,
+// identifiers) copy the header only.
+function generateDeepCloneReparse(w: CodeWriter) {
+    const byDef = new Map<Definition, KindRef[]>();
+    for (const { kind, def } of payloadKinds) byDef.set(def, [...(byDef.get(def) ?? []), kind]);
+    w.write();
+    w.write("// deepCloneReparse is the walk of DeepCloneReparse (builder_reparse.go):");
+    w.write("// the copy of each payload word, with the children and lists cloned first.");
+    w.write("func (b *Builder) deepCloneReparse(id NodeRef) NodeRef {");
+    w.write("\th := b.s.nodes[id]");
+    w.write("\tswitch h.kind {");
+    for (const [def, kinds] of byDef) {
+        w.write(`\tcase ${kinds.map(k => `ast.Kind${k.name}`).join(", ")}:`);
+        w.write(`\t\tvar w [${def.words}]uint32`);
+        w.write("\t\tcopy(w[:], b.s.extra[h.data:])");
+        const walked = def.slots.filter(s => s.class === "child" || s.class === "list");
+        for (const slot of walked) {
+            const f = slot.class === "child" ? "cloneChildReparse" : "cloneListReparse";
+            const t = slot.class === "child" ? "NodeRef" : "ListRef";
+            w.write(`\t\tw[${slot.word}] = uint32(b.${f}(${t}(w[${slot.word}]))) // ${slot.name}`);
+        }
+        w.write("\t\tclone := b.cloneRow(h, w[:])");
+        for (const slot of walked) {
+            w.write(`\t\tb.${slot.class === "child" ? "adopt" : "adoptList"}(${slot.class === "child" ? "NodeRef" : "ListRef"}(w[${slot.word}]), clone)`);
+        }
+        w.write("\t\treturn clone");
+    }
+    w.write("\t}");
+    w.write("\treturn b.cloneRow(h, nil)");
+    w.write("}");
 }
 
 // ── factory_generated.go ──

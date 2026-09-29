@@ -38,7 +38,15 @@
 // of a Symbol as Nodes and its process-wide gid (symbol.go), the resolving
 // layer that carries the owner (bound.go: Flow, FlowList), and the synthetic
 // Stores of a checker with their Factory and writers (factory.go,
-// factory_generated.go). Not yet built (7d-1 and later): the JSDoc nodes (JSDoc
-// is not converted at all: Convert follows exactly the children
-// (*ast.Node).ForEachChild visits) and the checker.
+// factory_generated.go).
+//
+// # 7d-1
+//
+// JSDoc (store-checker-design-20260923.md 2.2, and
+// store-checker-7d1-implementation-instructions-20260928.md): the Builder
+// API of the JS reparse (builder_reparse.go, and the generated setters and
+// DeepCloneReparse walk), the file's JSDoc cache and the lazy JSDoc Stores
+// (jsdoc.go). Convert still follows exactly the children that
+// (*ast.Node).ForEachChild visits, so it converts no JSDoc. Not yet built
+// (7d-2): the checker.
 package store

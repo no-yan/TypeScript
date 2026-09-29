@@ -1,13 +1,10 @@
 package storebinder_test
 
 import (
-	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"slices"
-	"sort"
-	"strings"
 	"testing"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
@@ -44,17 +41,6 @@ func bindBoth(opts ast.SourceFileParseOptions, text string, kind core.ScriptKind
 	return pointer, file
 }
 
-// options are the equivalence options of the Store parser's tests, with the
-// error propagation flag added for JS files: the Pointer parser's JSDoc
-// reparse sets ThisNodeHasError on nodes the Store does not have, and the
-// binder propagates it to the ancestors.
-func options(kind core.ScriptKind) storetest.Options {
-	if kind == core.ScriptKindJS || kind == core.ScriptKindJSX {
-		return storetest.Options{SkipReparsed: true, MaskFlags: ast.NodeFlagsHasJSDoc | ast.NodeFlagsPossiblyContainsDeprecatedTag | ast.NodeFlagsThisNodeHasError | ast.NodeFlagsThisNodeOrAnySubNodesHasError | ast.NodeFlagsPossiblyContainsDynamicImport}
-	}
-	return storetest.Options{}
-}
-
 // Small sources for the paths the fixtures do not take: private names,
 // pattern ambient modules with attributes, CommonJS, expandos, a JSON file.
 var smallSources = map[string]string{
@@ -79,6 +65,8 @@ var x: number; export {};`,
 	"/jsx.tsx":     `const a = <div x="1" y={2} ns:z="3">{a}</div>; export {}`,
 	"/json.json":   `{ "a": 1, "b": [true, null] }`,
 	"/strict.ts":   `"use strict"; function f(eval) { arguments = 1; delete x; with (y) { } } let await = 1; yield: 1;`,
+	// A @typedef reparsed in a rewound arrow speculation, and its use.
+	"/rewound-typedef.js": "x = (/** @typedef {number} T */ a, b);\n/** @type {T} */\nvar y;",
 }
 
 func TestEquivalence(t *testing.T) {
@@ -105,7 +93,7 @@ func TestEquivalence(t *testing.T) {
 			if pointer.SymbolCount == 0 {
 				t.Fatal("the Pointer bind made no symbol")
 			}
-			BindEquivalent(pointer, file, options(in.kind)).Report(t)
+			BindEquivalent(pointer, file).Report(t)
 		})
 	}
 }
@@ -187,26 +175,11 @@ func TestCorpus(t *testing.T) {
 	files := corpus(t)
 	all := storetest.Mismatches{}
 	example := map[string]int{}
-	var compared, parseMismatch, excludedFiles, refs int
-	reasonCounts := map[string]int{}
-	excludedBy := map[string][]string{}
+	var compared, parseMismatch, refs int
 	for i, f := range files {
 		opts, text, kind := sourceInput(f.name, f.text)
 		pointer, file := bindBoth(opts, text, kind)
-		reasons := reparsedEffects(pointer)
-		for reason := range reasons {
-			reasonCounts[reason]++
-		}
-		if excluded(reasons) {
-			excludedFiles++
-			for reason := range reasons {
-				if len(excludedBy[reason]) < 400 {
-					excludedBy[reason] = append(excludedBy[reason], fmt.Sprintf("#%d", i))
-				}
-			}
-			continue
-		}
-		if pairs, m := storetest.Pairs(pointer, file.Store, options(kind)); pairs == nil {
+		if pairs, m := storetest.Pairs(pointer, file.Store); pairs == nil {
 			parseMismatch++
 			for label := range m {
 				t.Errorf("parse mismatch in %s #%d: %s", f.name, i, label)
@@ -215,22 +188,14 @@ func TestCorpus(t *testing.T) {
 		}
 		compared++
 		refs += countDeclarations(file)
-		for label, count := range BindEquivalent(pointer, file, options(kind)) {
+		for label, count := range BindEquivalent(pointer, file) {
 			if all[label] == 0 {
 				example[label] = i
 			}
 			all[label] += count
 		}
 	}
-	t.Logf("%d files: %d compared, %d excluded (JS with a reparsed node the bind depends on), %d with a parse mismatch; %d declaration Stores checked", len(files), compared, excludedFiles, parseMismatch, refs)
-	var reasons []string
-	for reason := range reasonCounts {
-		reasons = append(reasons, reason)
-	}
-	sort.Strings(reasons)
-	for _, reason := range reasons {
-		t.Logf("files with %s: %d; excluded among them: %s", reason, reasonCounts[reason], strings.Join(excludedBy[reason], " "))
-	}
+	t.Logf("%d files: %d compared, %d with a parse mismatch; %d declaration Stores checked", len(files), compared, parseMismatch, refs)
 	located := storetest.Mismatches{}
 	for label, count := range all {
 		located[labelWithExample(label, files[example[label]].name, example[label])] = count

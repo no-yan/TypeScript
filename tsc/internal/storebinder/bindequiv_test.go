@@ -20,7 +20,6 @@ import (
 
 type bindComparer struct {
 	storetest.Mismatches
-	opts       storetest.Options
 	pointer    *ast.SourceFile
 	file       *store.File
 	s          *store.Store
@@ -209,7 +208,7 @@ func (m *bindComparer) flowList(label string, owner *ast.Node, p *ast.FlowList, 
 
 // pair compares everything the binder wrote on one node.
 func (m *bindComparer) pair(p *ast.Node, n store.Node) {
-	if (n.Flags()^p.Flags)&^m.opts.MaskFlags != 0 {
+	if n.Flags() != p.Flags {
 		m.add(p, "Flags")
 	}
 	m.symbol("Symbol", p, p.Symbol(), m.bound.SymbolOf(n.SymbolId()))
@@ -267,15 +266,8 @@ func diagnosticKeys(ds []*ast.Diagnostic) []diagnosticKey {
 	return keys
 }
 
-// fromJSDoc reports a Pointer node the Store cannot have: one the Pointer
-// parser made from JSDoc.
-func (m *bindComparer) fromJSDoc(p *ast.Node) bool {
-	return m.opts.SkipReparsed && p != nil && p.Flags&(ast.NodeFlagsJSDoc|ast.NodeFlagsReparsed) != 0
-}
-
 func (m *bindComparer) nodes(label string, ps []*ast.Node, rs []store.NodeRef) {
 	root := m.pointer.AsNode()
-	ps = slices.DeleteFunc(slices.Clone(ps), m.fromJSDoc)
 	if len(ps) != len(rs) {
 		m.add(root, label)
 		return
@@ -308,9 +300,7 @@ func (m *bindComparer) fileFields() {
 		m.add(root, "BindDiagnostics")
 	}
 	m.node("CommonJSModuleIndicator", root, m.pointer.CommonJSModuleIndicator, m.s.Node(m.bound.CommonJSModuleIndicator))
-	if !m.fromJSDoc(m.pointer.ExternalModuleIndicator) {
-		m.node("ExternalModuleIndicator", root, m.pointer.ExternalModuleIndicator, m.s.Node(m.file.ExternalModuleIndicator))
-	}
+	m.node("ExternalModuleIndicator", root, m.pointer.ExternalModuleIndicator, m.s.Node(m.file.ExternalModuleIndicator))
 	m.nodes("Imports", m.pointer.Imports(), m.file.Imports)
 	m.nodes("ModuleAugmentations", m.pointer.ModuleAugmentations, m.file.ModuleAugmentations)
 	if !slices.Equal(m.pointer.AmbientModuleNames, m.file.AmbientModuleNames) {
@@ -330,14 +320,13 @@ func (m *bindComparer) fileFields() {
 // BindEquivalent compares the bound Pointer file and the bound Store file. It
 // requires the parse equivalence (storetest.Pairs) first; a file whose walks
 // do not line up reports that and nothing else.
-func BindEquivalent(pointer *ast.SourceFile, file *store.File, opts storetest.Options) storetest.Mismatches {
-	pairs, mismatches := storetest.Pairs(pointer, file.Store, opts)
+func BindEquivalent(pointer *ast.SourceFile, file *store.File) storetest.Mismatches {
+	pairs, mismatches := storetest.Pairs(pointer, file.Store)
 	if pairs == nil {
 		return mismatches
 	}
 	m := &bindComparer{
 		Mismatches: mismatches,
-		opts:       opts,
 		pointer:    pointer,
 		file:       file,
 		s:          file.Store,
@@ -352,91 +341,6 @@ func BindEquivalent(pointer *ast.SourceFile, file *store.File, opts storetest.Op
 	}
 	m.fileFields()
 	return m.Mismatches
-}
-
-// Why a JS file is left out of the equivalence test: the Pointer parser made
-// nodes from JSDoc that the Store does not have, and the Pointer binder's
-// output depends on them. The literal rule of store-binder-design-20260922.md
-// 2.1 is the first reason; the others are the ways a reparsed node changes
-// the bind without carrying a symbol itself.
-const (
-	reasonBoundReparsed = "a reparsed node with a symbol"               // the design's rule
-	reasonBoundSubtree  = "a symbol below a reparsed node"              // @import: the specifier has the symbol, the declaration the flag
-	reasonReparsedType  = "a reparsed type annotation on a declaration" // @type: IsExpandoInitializer reads declaration.Type()
-	reasonJSDocCast     = "a JSDoc type cast"                           // /** @type {T} */ (e): an AsExpression the Store does not have, which stops narrowing
-	reasonOtherReparsed = "another reparsed node"                       // not excluded
-)
-
-// reparsedEffects reports the reasons found in the Pointer file.
-func reparsedEffects(pointer *ast.SourceFile) map[string]bool {
-	reasons := map[string]bool{}
-	var hasSymbol func(n *ast.Node) bool
-	hasSymbol = func(n *ast.Node) bool {
-		if n.Symbol() != nil {
-			return true
-		}
-		found := false
-		n.ForEachChild(func(c *ast.Node) bool {
-			found = hasSymbol(c)
-			return found
-		})
-		return found
-	}
-	var visit ast.Visitor
-	visit = func(n *ast.Node) bool {
-		if n.Flags&ast.NodeFlagsReparsed != 0 {
-			switch {
-			case n.Symbol() != nil:
-				reasons[reasonBoundReparsed] = true
-			case hasSymbol(n):
-				reasons[reasonBoundSubtree] = true
-			case n.Parent != nil && isTypeOfExpandoOrRequireDeclaration(n.Parent, n):
-				reasons[reasonReparsedType] = true
-			default:
-				reasons[reasonOtherReparsed] = true
-			}
-		}
-		if (n.Kind == ast.KindAsExpression || n.Kind == ast.KindSatisfiesExpression) && n.Type().Flags&ast.NodeFlagsReparsed != 0 {
-			reasons[reasonJSDocCast] = true
-		}
-		return n.ForEachChild(visit)
-	}
-	visit(pointer.AsNode())
-	return reasons
-}
-
-// isTypeOfExpandoOrRequireDeclaration reports whether typeNode is the type
-// annotation that the binder reads: IsExpandoInitializer reads the type of a
-// declaration whose initializer is an empty object literal, and
-// IsVariableDeclarationInitializedToRequire the type of a variable
-// initialized to a require call. Other reparsed annotations do not change
-// the bind.
-func isTypeOfExpandoOrRequireDeclaration(declaration *ast.Node, typeNode *ast.Node) bool {
-	var initializer *ast.Node
-	switch declaration.Kind {
-	case ast.KindVariableDeclaration:
-		if declaration.AsVariableDeclaration().Type != typeNode {
-			return false
-		}
-		initializer = declaration.Initializer()
-	case ast.KindBinaryExpression:
-		if declaration.AsBinaryExpression().Type != typeNode {
-			return false
-		}
-		initializer = declaration.AsBinaryExpression().Right
-	default:
-		return false
-	}
-	if initializer == nil {
-		return false
-	}
-	return ast.IsObjectLiteralExpression(initializer) && len(initializer.Properties()) == 0 ||
-		ast.IsRequireCall(initializer, true /*requireStringLiteralLikeArgument*/)
-}
-
-// excluded reports whether the reasons leave the file out.
-func excluded(reasons map[string]bool) bool {
-	return reasons[reasonBoundReparsed] || reasons[reasonBoundSubtree] || reasons[reasonReparsedType] || reasons[reasonJSDocCast]
 }
 
 func labelWithExample(label string, name string, index int) string {

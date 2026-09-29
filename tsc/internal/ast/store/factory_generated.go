@@ -3329,77 +3329,76 @@ func (f *Factory) CloneImportSpecifier(node ImportSpecifier) Node {
 	return f.cloneNode(f.NewImportSpecifier(node.IsTypeOnly(), node.PropertyName(), node.Name()), Node(node))
 }
 
-// TODO(store): JSDocText: text []string has no slot: where JSDoc lives is undecided (store-ast-design-20260922.md section 5); it is not a parameter.
-
-func (f *Factory) NewJSDocText() Node {
-	return f.newNode(f.row(), ast.KindJSDocText, 0, 0, 0)
+func (f *Factory) NewJSDocText(text string) Node {
+	dst := f.row()
+	textOff, textLen := f.text(dst, text)
+	data := uint32(len(dst.extra))
+	dst.extra = append(dst.extra, textOff, textLen)
+	return f.newNode(dst, ast.KindJSDocText, 0, 0, data)
 }
 
-func (f *Factory) CloneJSDocText(node Node) Node {
-	return f.cloneNode(f.NewJSDocText(), Node(node))
+func (f *Factory) CloneJSDocText(node JSDocText) Node {
+	return f.cloneNode(f.NewJSDocText(node.Text()), Node(node))
 }
 
-// TODO(store): JSDocLink: text []string has no slot: where JSDoc lives is undecided (store-ast-design-20260922.md section 5); it is not a parameter.
-
-func (f *Factory) NewJSDocLink(name Node) Node {
+func (f *Factory) NewJSDocLink(name Node, text string) Node {
 	dst := f.row()
 	r := f.region
+	textOff, textLen := f.text(dst, text)
 	data := uint32(len(dst.extra))
-	dst.extra = append(dst.extra, uint32(r.edge(dst, name)))
+	dst.extra = append(dst.extra, uint32(r.edge(dst, name)), textOff, textLen)
 	return f.newNode(dst, ast.KindJSDocLink, 0, 0, data)
 }
 
-func (f *Factory) UpdateJSDocLink(node JSDocLink, name Node) Node {
-	if !SameNode(name, node.Name()) {
-		return f.updateNode(f.NewJSDocLink(name), Node(node))
+func (f *Factory) UpdateJSDocLink(node JSDocLink, name Node, text string) Node {
+	if !SameNode(name, node.Name()) || text != node.Text() {
+		return f.updateNode(f.NewJSDocLink(name, text), Node(node))
 	}
 	return Node(node)
 }
 
 func (f *Factory) CloneJSDocLink(node JSDocLink) Node {
-	return f.cloneNode(f.NewJSDocLink(node.Name()), Node(node))
+	return f.cloneNode(f.NewJSDocLink(node.Name(), node.Text()), Node(node))
 }
 
-// TODO(store): JSDocLinkPlain: text []string has no slot: where JSDoc lives is undecided (store-ast-design-20260922.md section 5); it is not a parameter.
-
-func (f *Factory) NewJSDocLinkPlain(name Node) Node {
+func (f *Factory) NewJSDocLinkPlain(name Node, text string) Node {
 	dst := f.row()
 	r := f.region
+	textOff, textLen := f.text(dst, text)
 	data := uint32(len(dst.extra))
-	dst.extra = append(dst.extra, uint32(r.edge(dst, name)))
+	dst.extra = append(dst.extra, uint32(r.edge(dst, name)), textOff, textLen)
 	return f.newNode(dst, ast.KindJSDocLinkPlain, 0, 0, data)
 }
 
-func (f *Factory) UpdateJSDocLinkPlain(node JSDocLinkPlain, name Node) Node {
-	if !SameNode(name, node.Name()) {
-		return f.updateNode(f.NewJSDocLinkPlain(name), Node(node))
+func (f *Factory) UpdateJSDocLinkPlain(node JSDocLinkPlain, name Node, text string) Node {
+	if !SameNode(name, node.Name()) || text != node.Text() {
+		return f.updateNode(f.NewJSDocLinkPlain(name, text), Node(node))
 	}
 	return Node(node)
 }
 
 func (f *Factory) CloneJSDocLinkPlain(node JSDocLinkPlain) Node {
-	return f.cloneNode(f.NewJSDocLinkPlain(node.Name()), Node(node))
+	return f.cloneNode(f.NewJSDocLinkPlain(node.Name(), node.Text()), Node(node))
 }
 
-// TODO(store): JSDocLinkCode: text []string has no slot: where JSDoc lives is undecided (store-ast-design-20260922.md section 5); it is not a parameter.
-
-func (f *Factory) NewJSDocLinkCode(name Node) Node {
+func (f *Factory) NewJSDocLinkCode(name Node, text string) Node {
 	dst := f.row()
 	r := f.region
+	textOff, textLen := f.text(dst, text)
 	data := uint32(len(dst.extra))
-	dst.extra = append(dst.extra, uint32(r.edge(dst, name)))
+	dst.extra = append(dst.extra, uint32(r.edge(dst, name)), textOff, textLen)
 	return f.newNode(dst, ast.KindJSDocLinkCode, 0, 0, data)
 }
 
-func (f *Factory) UpdateJSDocLinkCode(node JSDocLinkCode, name Node) Node {
-	if !SameNode(name, node.Name()) {
-		return f.updateNode(f.NewJSDocLinkCode(name), Node(node))
+func (f *Factory) UpdateJSDocLinkCode(node JSDocLinkCode, name Node, text string) Node {
+	if !SameNode(name, node.Name()) || text != node.Text() {
+		return f.updateNode(f.NewJSDocLinkCode(name, text), Node(node))
 	}
 	return Node(node)
 }
 
 func (f *Factory) CloneJSDocLinkCode(node JSDocLinkCode) Node {
-	return f.cloneNode(f.NewJSDocLinkCode(node.Name()), Node(node))
+	return f.cloneNode(f.NewJSDocLinkCode(node.Name(), node.Text()), Node(node))
 }
 
 func (f *Factory) NewTypeParameterDeclaration(modifiers List, name Node, constraint Node, expression Node, defaultType Node) Node {
@@ -3798,7 +3797,7 @@ func (f *Factory) CloneNode(node Node) Node {
 	case ast.KindJSDoc:
 		return f.CloneJSDoc(node.AsJSDoc())
 	case ast.KindJSDocText:
-		return f.CloneJSDocText(node)
+		return f.CloneJSDocText(node.AsJSDocText())
 	case ast.KindJSDocTypeLiteral:
 		return f.CloneJSDocTypeLiteral(node.AsJSDocTypeLiteral())
 	case ast.KindJSDocSignature:

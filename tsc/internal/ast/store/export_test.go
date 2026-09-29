@@ -33,3 +33,9 @@ func SetNextSymbolId(v uint64) { nextSymbolId.Store(v) }
 
 // FlowOwner is the Store of the Bound that a Flow carries.
 func FlowOwner(f Flow) *Store { return f.bound.store }
+
+// ParseJSDocForNodeFunc is the registered lazy JSDoc parser, for a test that
+// wraps it to count the parses.
+func ParseJSDocForNodeFunc() func(*File, Node) []Node { return parseJSDocForNode }
+
+func IsSealed(s *Store) bool { return s.sealed }
