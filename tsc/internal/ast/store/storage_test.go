@@ -63,7 +63,7 @@ func find(t *testing.T, file *store.File, kind ast.Kind) store.Node {
 			return n
 		}
 	}
-	t.Fatalf("no %v in %s", kind, file.FileName)
+	t.Fatalf("no %v in %s", kind, file.FileName())
 	return store.Node{}
 }
 
@@ -161,7 +161,7 @@ func fileName(f *store.File) string {
 	if f == nil {
 		return "nil"
 	}
-	return f.FileName
+	return f.FileName()
 }
 
 // eachCapacity runs a sequence with every capacity and compares the
@@ -704,7 +704,7 @@ func TestStorageFlowGraph(t *testing.T) {
 				w.compare(pair.P.BodyData().EndFlowNode, pair.N.EndFlowNode())
 			}
 		}
-		t.Logf("%s: %d flows compared through %d node flows", files[i].FileName, len(w.seen), compared)
+		t.Logf("%s: %d flows compared through %d node flows", files[i].FileName(), len(w.seen), compared)
 		var flags ast.FlowFlags
 		for p := range w.seen {
 			flags |= p.Flags
@@ -715,7 +715,7 @@ func TestStorageFlowGraph(t *testing.T) {
 		}
 		for _, want := range wants {
 			if flags&want == 0 {
-				t.Errorf("%s: no flow with %v was compared", files[i].FileName, want)
+				t.Errorf("%s: no flow with %v was compared", files[i].FileName(), want)
 			}
 		}
 	}
@@ -770,7 +770,7 @@ func (w *flowWalker) node(label string, p *ast.Node, n store.Node) {
 		w.t.Errorf("%s: %v %d-%d, want %v %d-%d", label, n.Kind(), n.Pos(), n.End(), p.Kind, p.Pos(), p.End())
 	}
 	if n.File() != w.file {
-		w.t.Errorf("%s: the node is in %s, want %s", label, fileName(n.File()), w.file.FileName)
+		w.t.Errorf("%s: the node is in %s, want %s", label, fileName(n.File()), w.file.FileName())
 	}
 }
 

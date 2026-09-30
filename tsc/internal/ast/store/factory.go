@@ -109,7 +109,10 @@ type privateTables struct {
 	flows   []Flow
 	symbols []*Symbol
 	locals  []SymbolTable
-	texts   strings.Builder
+	// anys are the values of the any members (SyntheticExpression.Type, a
+	// checker type): the Store keeps them without knowing their type.
+	anys  []any
+	texts strings.Builder
 }
 
 // A nil *privateTables (a source Store before its bind, or a lazy JSDoc
@@ -131,6 +134,29 @@ func (p *privateTables) flowAt(i uint32) Flow {
 
 func (p *privateTables) localsAt(i uint32) SymbolTable {
 	return p.locals[i]
+}
+
+// anyAt is the value of an any member's word: 0 is nil. Only a synthetic
+// Store has such a member (a source Store has no SyntheticExpression).
+func (s *Store) anyAt(i uint32) any {
+	if i == 0 {
+		return nil
+	}
+	return s.private.anys[i]
+}
+
+// anyWord keeps v in s's private table and returns its word; nil is 0.
+func (f *Factory) anyWord(s *Store, v any) uint32 {
+	if v == nil {
+		return 0
+	}
+	p := s.private
+	if len(p.anys) == 0 {
+		p.anys = append(p.anys, nil)
+	}
+	i := uint32(len(p.anys))
+	p.anys = append(p.anys, v)
+	return i
 }
 
 func (f *Factory) newStore() *Store {

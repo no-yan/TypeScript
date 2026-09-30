@@ -88,7 +88,7 @@ var shapes = [512]shape{
 	ast.KindAsExpression:                  {2, 0b0},
 	ast.KindNonNullExpression:             {1, 0b0},
 	ast.KindMetaProperty:                  {2, 0b0},
-	ast.KindSyntheticExpression:           {2, 0b0},
+	ast.KindSyntheticExpression:           {3, 0b0},
 	ast.KindSatisfiesExpression:           {2, 0b0},
 	ast.KindTemplateSpan:                  {2, 0b0},
 	ast.KindBlock:                         {3, 0b1},

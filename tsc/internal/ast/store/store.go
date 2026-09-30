@@ -34,13 +34,11 @@ const foreignBit = 1 << 31
 
 type NodeHeader struct { // 32 bytes, no pointers
 	kind ast.Kind
-	// TODO(store): only the syntactic ModifierFlags, bits 0-15, live here.
-	// Bit 16 and up (Deprecated, the JSDoc cache bits 23-27,
-	// HasComputedJSDocModifiers, HasComputedFlags) are computed lazily from
-	// JSDoc and need a separate path. The Pointer parse and bind write bits
-	// 0-15 only (ModifiersToFlags); the path is decided with the checker
-	// (7d-2; store-checker-7d1-implementation-instructions-20260928.md 0).
-	// See store-ast-design-20260922.md sections 2.1 and 7.
+	// The syntactic ModifierFlags, bits 0-15. The Go Pointer AST never sets
+	// bit 16 and up (Deprecated, the JSDoc bits, HasComputed*): only the enum
+	// export of the API and a local of the LS use them, never a node. So 16
+	// bits hold the same value as the Pointer's
+	// (store-checker-7d2-design-remainder-20260929.md 2.1).
 	modifierFlags uint16
 	flags         ast.NodeFlags
 	pos, end      int32
@@ -459,8 +457,7 @@ func (b *Builder) header(kind ast.Kind, flags ast.NodeFlags, mod ast.ModifierFla
 	}
 	b.s.nodes = append(b.s.nodes, NodeHeader{
 		kind: kind,
-		// TODO(store): truncates ModifierFlags to bits 0-15. See the TODO on
-		// NodeHeader.modifierFlags for what happens to bit 16 and up.
+		// Bits 0-15: the Pointer never sets the others (NodeHeader.modifierFlags).
 		modifierFlags: uint16(mod),
 		flags:         flags,
 		pos:           pos,

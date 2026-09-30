@@ -17,7 +17,7 @@ import (
 
 func getScannerForSourceFile(file *store.File, pos int) *scanner.Scanner {
 	s := scanner.NewScanner()
-	s.SetText(file.Text)
+	s.SetText(file.Text())
 	s.SetLanguageVariant(file.LanguageVariant)
 	s.ResetPos(pos)
 	s.Scan()
@@ -33,15 +33,15 @@ func getRangeOfTokenAtPosition(file *store.File, pos int) core.TextRange {
 // call; the Pointer version reads the file's cached line map. It runs only
 // for a diagnostic on an arrow function.
 func getErrorRangeForArrowFunction(file *store.File, node store.Node) core.TextRange {
-	pos := scanner.SkipTrivia(file.Text, int(node.Pos()))
+	pos := scanner.SkipTrivia(file.Text(), int(node.Pos()))
 	body := node.Body()
 	if !body.IsNil() && body.Kind() == ast.KindBlock {
-		lineStarts := core.ComputeECMALineStarts(file.Text)
+		lineStarts := core.ComputeECMALineStarts(file.Text())
 		startLine := scanner.ComputeLineOfPosition(lineStarts, int(body.Pos()))
 		endLine := scanner.ComputeLineOfPosition(lineStarts, int(body.End()))
 		if startLine < endLine {
 			// The arrow function spans multiple lines, make the error span be the first line, inclusive.
-			return core.NewTextRange(pos, getECMAEndLinePosition(file.Text, lineStarts, startLine)+1)
+			return core.NewTextRange(pos, getECMAEndLinePosition(file.Text(), lineStarts, startLine)+1)
 		}
 	}
 	return core.NewTextRange(pos, int(node.End()))
@@ -68,8 +68,8 @@ func getErrorRangeForNode(file *store.File, node store.Node) core.TextRange {
 	errorNode := node
 	switch node.Kind() {
 	case ast.KindSourceFile:
-		pos := scanner.SkipTrivia(file.Text, 0)
-		if pos == len(file.Text) {
+		pos := scanner.SkipTrivia(file.Text(), 0)
+		if pos == len(file.Text()) {
 			return core.NewTextRange(0, 0)
 		}
 		return getRangeOfTokenAtPosition(file, pos)
@@ -91,7 +91,7 @@ func getErrorRangeForNode(file *store.File, node store.Node) core.TextRange {
 	case ast.KindArrowFunction:
 		return getErrorRangeForArrowFunction(file, node)
 	case ast.KindCaseClause, ast.KindDefaultClause:
-		start := scanner.SkipTrivia(file.Text, int(node.Pos()))
+		start := scanner.SkipTrivia(file.Text(), int(node.Pos()))
 		end := int(node.End())
 		statements := node.Statements()
 		if statements.Len() != 0 {
@@ -99,10 +99,10 @@ func getErrorRangeForNode(file *store.File, node store.Node) core.TextRange {
 		}
 		return core.NewTextRange(start, end)
 	case ast.KindReturnStatement, ast.KindYieldExpression:
-		pos := scanner.SkipTrivia(file.Text, int(node.Pos()))
+		pos := scanner.SkipTrivia(file.Text(), int(node.Pos()))
 		return getRangeOfTokenAtPosition(file, pos)
 	case ast.KindSatisfiesExpression:
-		pos := scanner.SkipTrivia(file.Text, int(node.AsSatisfiesExpression().Expression().End()))
+		pos := scanner.SkipTrivia(file.Text(), int(node.AsSatisfiesExpression().Expression().End()))
 		return getRangeOfTokenAtPosition(file, pos)
 	case ast.KindConstructor:
 		if node.Flags()&ast.NodeFlagsReparsed != 0 {
@@ -123,13 +123,13 @@ func getErrorRangeForNode(file *store.File, node store.Node) core.TextRange {
 	}
 	pos := int(errorNode.Pos())
 	if !store.NodeIsMissing(errorNode) && errorNode.Kind() != ast.KindJsxText {
-		pos = scanner.SkipTrivia(file.Text, pos)
+		pos = scanner.SkipTrivia(file.Text(), pos)
 	}
 	return core.NewTextRange(pos, int(errorNode.End()))
 }
 
 func getSourceTextOfNodeFromSourceFile(file *store.File, node store.Node, includeTrivia bool) string {
-	return getTextOfNodeFromSourceText(file.Text, node, includeTrivia)
+	return getTextOfNodeFromSourceText(file.Text(), node, includeTrivia)
 }
 
 func getTextOfNodeFromSourceText(sourceText string, node store.Node, includeTrivia bool) string {

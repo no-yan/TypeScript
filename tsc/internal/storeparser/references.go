@@ -21,7 +21,7 @@ func collectExternalModuleReferences(file *store.File) {
 
 	if file.Flags&ast.NodeFlagsPossiblyContainsDynamicImport != 0 || store.IsInJSFile(file.Root()) {
 		forEachDynamicImportOrRequireCall(file /*includeTypeSpaceImports*/, true /*requireStringLiteralLikeArgument*/, true, func(node store.Node, moduleSpecifier store.Node) bool {
-			file.Imports = append(file.Imports, moduleSpecifier.Ref())
+			file.AppendImport(moduleSpecifier.Ref())
 			return false
 		})
 	}
@@ -36,7 +36,7 @@ func collectModuleReferences(file *store.File, node store.Node, inAmbientModule 
 		if !moduleNameExpr.IsNil() && store.IsStringLiteral(moduleNameExpr) {
 			moduleName := moduleNameExpr.Text()
 			if moduleName != "" && (!inAmbientModule || !tspath.IsExternalModuleNameRelative(moduleName)) {
-				file.Imports = append(file.Imports, moduleNameExpr.Ref())
+				file.AppendImport(moduleNameExpr.Ref())
 				// !!! removed `&& p.currentNodeModulesDepth == 0`
 				if file.UsesUriStyleNodeCoreModules != core.TSTrue && !file.IsDeclarationFile {
 					if strings.HasPrefix(moduleName, "node:") && !core.ExclusivelyPrefixedNodeCoreModules[moduleName] {
@@ -114,7 +114,7 @@ func forEachDynamicImportOrRequireCall(
 	cb func(node store.Node, argument store.Node) bool,
 ) bool {
 	isJavaScriptFile := store.IsInJSFile(file.Root())
-	lastIndex, size := findImportOrRequire(file.Text, 0)
+	lastIndex, size := findImportOrRequire(file.Text(), 0)
 	for lastIndex >= 0 {
 		node := store.GetNodeAtPosition(file, lastIndex, isJavaScriptFile && includeTypeSpaceImports)
 		if isJavaScriptFile && store.IsRequireCall(node, requireStringLiteralLikeArgument) {
@@ -132,7 +132,7 @@ func forEachDynamicImportOrRequireCall(
 		}
 		// skip past import/require
 		lastIndex += size
-		lastIndex, size = findImportOrRequire(file.Text, lastIndex)
+		lastIndex, size = findImportOrRequire(file.Text(), lastIndex)
 	}
 	return false
 }

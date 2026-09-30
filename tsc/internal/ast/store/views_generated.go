@@ -3834,11 +3834,11 @@ func (n TemplateLiteralTypeSpan) Literal() Node {
 
 // SyntheticExpression: ast.KindSyntheticExpression
 const (
-	syntheticExpressionIsSpreadSlot        = 0
-	syntheticExpressionTupleNameSourceSlot = 1
+	syntheticExpressionTypeSlot            = 0
+	syntheticExpressionIsSpreadSlot        = 1
+	syntheticExpressionTupleNameSourceSlot = 2
 )
 
-// TODO(store): Type any has no slot: a checker type, kept in a side table.
 type SyntheticExpression Node
 
 func (n Node) AsSyntheticExpression() SyntheticExpression {
@@ -3846,6 +3846,10 @@ func (n Node) AsSyntheticExpression() SyntheticExpression {
 		n.assertKind(ast.KindSyntheticExpression)
 	}
 	return SyntheticExpression(n)
+}
+
+func (n SyntheticExpression) Type() any {
+	return n.s.anyAt(n.s.extra[int(n.h.data)+syntheticExpressionTypeSlot])
 }
 
 func (n SyntheticExpression) IsSpread() bool {

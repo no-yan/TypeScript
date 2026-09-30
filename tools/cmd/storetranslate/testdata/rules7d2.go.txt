@@ -1,0 +1,120 @@
+package storetranslatefixture
+
+import (
+	"slices"
+
+	"github.com/microsoft/TypeScript/tsc/internal/ast"
+	"github.com/microsoft/TypeScript/tsc/internal/collections"
+	"github.com/microsoft/TypeScript/tsc/internal/core"
+)
+
+// The rules of 7d-2a (store-checker-7d2a-implementation-instructions-20260929.md
+// 3.3), one function or more each.
+
+// R2: the list methods, and a field read on the data of a node.
+func r2(node *ast.Node) int {
+	n := len(node.TypeArgumentList().Nodes) + len(node.ModifierNodes())
+	for range node.FunctionLikeData().Parameters.Nodes {
+		n++
+	}
+	return n
+}
+
+// R3: the file's node, a NodeRef field, the refs of a slice, a method.
+func r3(sf *ast.SourceFile) int {
+	root := sf.AsNode()
+	n := 0
+	if sf.ExternalModuleIndicator == nil && root != nil {
+		n++
+	}
+	for _, augmentation := range sf.ModuleAugmentations {
+		if augmentation.Kind == ast.KindIdentifier {
+			n++
+		}
+	}
+	return n + len(sf.Statements.Nodes)
+}
+
+// R4: a list where a helper of core or slices takes []*ast.Node.
+func r4(node *ast.Node, arg *ast.Node) bool {
+	return core.Some(node.Arguments(), func(n *ast.Node) bool { return n.Kind == ast.KindIdentifier }) &&
+		slices.Index(node.Arguments(), arg) >= 0
+}
+
+// R4': a list that flows into a []*ast.Node.
+func r4prime(node *ast.Node, i int) []*ast.Node {
+	var args []*ast.Node
+	args = node.Arguments()
+	if i > 0 {
+		return args[:i]
+	}
+	return node.AsCallExpression().Arguments.Nodes
+}
+
+// R5: a links store and a set keyed by a node.
+type links struct {
+	nodeLinks core.LinkStore[*ast.Node, int]
+	seen      collections.Set[*ast.Node]
+}
+
+func (l *links) r5(node *ast.Node) int {
+	l.seen.Add(node)
+	*l.nodeLinks.Get(node) = 1
+	return *l.nodeLinks.Get(node)
+}
+
+// R6: the comparable helpers with SameNode.
+func r6(a, b *ast.Node, nodes []*ast.Node) *ast.Node {
+	_ = slices.Compact(nodes)
+	return core.Coalesce(a, b)
+}
+
+// R7 and R8: the checker's factory, a clone, and the writes through it.
+type checker struct {
+	factory ast.NodeFactory
+}
+
+func (c *checker) r7(node *ast.Node) *ast.Node {
+	return node.Clone(&c.factory)
+}
+
+func (c *checker) r8(node *ast.Node, parent *ast.Node, list *ast.NodeList, i int) {
+	node.Parent = parent
+	node.Loc = core.NewTextRange(-1, -1)
+	node.Flags |= ast.NodeFlagsSynthesized
+	list.Loc = parent.Loc
+	list.Nodes[i] = node
+	node.AsImportTypeNode().IsTypeOf = true
+}
+
+// R11: a callback on the parse diagnostics of a file takes *ast.Diagnostic.
+func r11(sf *ast.SourceFile) bool {
+	return core.Some(sf.Diagnostics(), func(d *ast.Diagnostic) bool { return d.Code() == 1 })
+}
+
+// An integer conversion of an ast.NodeId packs the NodeKey.
+func nodeIdKey(node *ast.Node) uint64 {
+	return uint64(ast.GetNodeId(node))
+}
+
+// A switch on a node compares with SameNode.
+func identitySwitch(node *ast.Node, a *ast.Node) int {
+	switch node {
+	case a:
+		return 1
+	}
+	return 0
+}
+
+// A type switch on a value that is not a node.
+func typeSwitch(v any) int {
+	switch x := v.(type) {
+	case *ast.Node:
+		if x != nil {
+			return 1
+		}
+	case string:
+		return len(x)
+	}
+	return 0
+}

@@ -28,7 +28,39 @@ func (c *checker) readBack(m map[readBackKey]int, node *ast.Node) *ast.Node {
 	return nil
 }
 
-// A list passed where the Pointer takes a slice: no rule.
-func someArgument(node *ast.Node) bool {
-	return core.Some(node.Arguments(), func(n *ast.Node) bool { return n == nil })
+// A list passed where the Pointer takes a slice, to a function without a
+// List version: reported.
+func count(nodes []*ast.Node) int { return len(nodes) }
+
+func countArguments(node *ast.Node) int {
+	return count(node.Arguments())
+}
+
+// A lone XxxData(): reported (4.1).
+func isFunctionLike(node *ast.Node) bool {
+	return node.FunctionLikeData() != nil
+}
+
+// The keys of a map keyed by a node read back: reported.
+func keysOf(m map[*ast.Node]int) []*ast.Node {
+	var out []*ast.Node
+	for k := range m {
+		out = append(out, k)
+	}
+	return out
+}
+
+// R8 without a factory: reported.
+func noFactory(node *ast.Node, parent *ast.Node) {
+	node.Parent = parent
+}
+
+// R8 with two factories: reported.
+type two struct {
+	a ast.NodeFactory
+	b *ast.NodeFactory
+}
+
+func (t *two) twoFactories(node *ast.Node, parent *ast.Node) {
+	node.Parent = parent
 }

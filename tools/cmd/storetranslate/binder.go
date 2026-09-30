@@ -13,11 +13,12 @@ import (
 // translateFile translates every declaration of one source file into a file
 // of the target package. It is the whole-file mode: the binder.go trial and
 // the tests of the rules use it; the utilities use the reach instead.
-func translateFile(p *program, u *universe, pkg *packages.Package, file *ast.File, out *target) ([]byte, []problem, error) {
-	keys, keyProblems := keyFields(u, p.fset, pkg.Types, pkg.TypesInfo, pkg.Syntax)
+func translateFile(w *world, pkg *packages.Package, file *ast.File, out *target) ([]byte, []problem, error) {
+	u := w.u
+	keys, keyProblems := keyFields(u, w.fset, pkg.Types, pkg.TypesInfo, pkg.Syntax)
 	u.keyFields = keys
 	defer func() { u.keyFields = nil }()
-	tr := &translator{universe: u, fset: p.fset, src: pkg.Types, info: pkg.TypesInfo, out: out}
+	tr := &translator{universe: u, fset: w.fset, src: pkg.Types, info: pkg.TypesInfo, out: out}
 	problems := append([]problem(nil), keyProblems...)
 	var decls []ast.Decl
 	var comments []*ast.CommentGroup
@@ -33,10 +34,10 @@ func translateFile(p *program, u *universe, pkg *packages.Package, file *ast.Fil
 			decls = append(decls, f.genDecl(d))
 		}
 		problems = append(problems, f.problems...)
-		comments = append(comments, commentsIn(p, d)...)
+		comments = append(comments, commentsIn(w, file, d)...)
 	}
-	header := fmt.Sprintf("%s\n\n// Translated from %s by tools/cmd/storetranslate.\n", generatedHeader, filepath.Base(p.fset.Position(file.Pos()).Filename))
-	src, err := render(p.fset, out.name, out.imports, decls, comments, header)
+	header := fmt.Sprintf("%s\n\n// Translated from %s by tools/cmd/storetranslate.\n", generatedHeader, filepath.Base(w.fset.Position(file.Pos()).Filename))
+	src, err := render(w.fset, out.name, out.imports, decls, comments, header)
 	return src, problems, err
 }
 
@@ -44,18 +45,20 @@ func translateFile(p *program, u *universe, pkg *packages.Package, file *ast.Fil
 // it, and compares it with the 7c verbatim version, function by function and
 // hunk by hunk (7d-0 instructions 5.2). The output is a report; storebinder
 // stays hand-written.
-func binderTrial(p *program, u *universe, dir, verbatimPath string, storeFuncs map[string]bool) error {
+func binderTrial(w *world, dir, verbatimPath string) error {
+	binder := w.byPath[internal+"binder"]
 	var file *ast.File
-	for _, f := range p.binder.Syntax {
-		if filepath.Base(p.fset.Position(f.Pos()).Filename) == "binder.go" {
+	for _, f := range binder.Syntax {
+		if filepath.Base(w.fset.Position(f.Pos()).Filename) == "binder.go" {
 			file = f
 		}
 	}
 	if file == nil {
 		return fmt.Errorf("no binder.go in package binder")
 	}
-	out := &target{name: "storebinder", funcs: storeFuncs, local: true, imports: map[string]string{}}
-	src, problems, err := translateFile(p, u, p.binder, file, out)
+	p := w
+	out := &target{name: "storebinder", path: internal + "storebinder", local: true, imports: map[string]string{}}
+	src, problems, err := translateFile(w, binder, file, out)
 	if err != nil {
 		// A rule that makes invalid Go is a bug of the translator; keep the
 		// text for the report.
@@ -107,10 +110,6 @@ func binderTrial(p *program, u *universe, dir, verbatimPath string, storeFuncs m
 	}
 	fmt.Printf("wrote the binder trial into %s: %d problems\n%s", dir, len(problems), firstLines(report, 16))
 	return nil
-}
-
-func relPos(root, pos string) string {
-	return strings.TrimPrefix(pos, root+"/")
 }
 
 func firstLines(s string, n int) string {

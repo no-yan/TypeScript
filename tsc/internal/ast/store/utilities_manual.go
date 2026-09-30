@@ -1,6 +1,10 @@
 package store
 
-import "github.com/microsoft/TypeScript/tsc/internal/ast"
+import (
+	"slices"
+
+	"github.com/microsoft/TypeScript/tsc/internal/ast"
+)
 
 // The P2 replacements of internal/ast/docs/store-checker-design-20260923.md
 // 2.1 ("手書き差分の持ち方"): the functions of package ast that the rules of
@@ -198,4 +202,131 @@ func IsAsyncFunction(node Node) bool {
 		return !node.Body().IsNil() && node.AsteriskToken().IsNil() && HasSyntacticModifier(node, ast.ModifierFlagsAsync)
 	}
 	return false
+}
+
+// IsDeclarationNode tests the kind: the Pointer x.DeclarationData() is non-nil
+// exactly for the kinds whose definition extends DeclarationBase
+// (HasDeclarationData, generated). A lone DeclarationData() has no Store form
+// (store-checker-7d2a-implementation-instructions-20260929.md 4.1).
+//
+// storetranslate:pointer-hash f75ed3ee84a9df81 ast.go:IsDeclarationNode
+func IsDeclarationNode(node Node) bool {
+	return node.HasDeclarationData()
+}
+
+// GetFunctionFlags reads the members of BodyData on the node (HasBodyData,
+// AsteriskToken, Body).
+//
+// storetranslate:pointer-hash 79ef5ff003ff4ddd functionflags.go:GetFunctionFlags
+func GetFunctionFlags(node Node) ast.FunctionFlags {
+	if node.IsNil() {
+		return ast.FunctionFlagsInvalid
+	}
+	if !node.HasBodyData() {
+		return ast.FunctionFlagsInvalid
+	}
+	flags := ast.FunctionFlagsNormal
+	switch node.Kind() {
+	case ast.KindFunctionDeclaration, ast.KindFunctionExpression, ast.KindMethodDeclaration:
+		if !node.AsteriskToken().IsNil() {
+			flags |= ast.FunctionFlagsGenerator
+		}
+		fallthrough
+	case ast.KindArrowFunction:
+		if HasSyntacticModifier(node, ast.ModifierFlagsAsync) {
+			flags |= ast.FunctionFlagsAsync
+		}
+	}
+	if node.Body().IsNil() {
+		flags |= ast.FunctionFlagsInvalid
+	}
+	return flags
+}
+
+// IsUnterminatedLiteral reads TokenFlags and TemplateFlags on the views that
+// have them. The Pointer's LiteralLikeNodeBase.TokenFlags of JsxText and of
+// a template literal is never set, so it is 0 there, as here.
+//
+// storetranslate:pointer-hash 4a6f12d112d50c43 utilities.go:IsUnterminatedLiteral
+func IsUnterminatedLiteral(node Node) bool {
+	return ast.IsLiteralKind(node.Kind()) && literalTokenFlags(node)&ast.TokenFlagsUnterminated != 0 ||
+		ast.IsTemplateLiteralKind(node.Kind()) && templateFlags(node)&ast.TokenFlagsUnterminated != 0
+}
+
+// GetAllAccessorDeclarationsList is GetAllAccessorDeclarations on a list
+// (3.4, List version).
+//
+// storetranslate:pointer-hash 14c9926de6cb9199 utilities.go:GetAllAccessorDeclarations
+func GetAllAccessorDeclarationsList(parentDeclarations List, accessor Node) AllAccessorDeclarations {
+	if HasDynamicName(accessor) {
+		// dynamic names can only be match up via checker symbol lookup, just return an object with just this accessor
+		return GetAllAccessorDeclarationsForDeclaration(accessor, []Node{accessor})
+	}
+
+	accessorName := GetPropertyNameForPropertyNameNode(accessor.Name())
+	accessorStatic := IsStatic(accessor)
+	var matches []Node
+	for i := range parentDeclarations.Len() {
+		member := parentDeclarations.At(i)
+		if !IsAccessor(member) || IsStatic(member) != accessorStatic {
+			continue
+		}
+		memberName := GetPropertyNameForPropertyNameNode(member.Name())
+		if memberName == accessorName {
+			matches = append(matches, member)
+		}
+	}
+	return GetAllAccessorDeclarationsForDeclaration(accessor, matches)
+}
+
+// GetReparsedNodeForNode searches the reparsed clones of the file, which are
+// NodeRefs of its Store, by position.
+//
+// storetranslate:pointer-hash 3d5245962b162d81 utilities.go:GetReparsedNodeForNode
+func GetReparsedNodeForNode(node Node) Node {
+	if !node.IsNil() && node.Flags()&ast.NodeFlagsJSDoc != 0 && node.Flags()&ast.NodeFlagsReparsed == 0 {
+		if file := node.File(); file != nil && len(file.ReparsedClones) != 0 {
+			pos, found := slices.BinarySearchFunc(file.ReparsedClones, node, func(ref NodeRef, n Node) int {
+				return CompareNodePositions(file.Store.Node(ref), n)
+			})
+			if !found && pos > 0 {
+				pos--
+			}
+			candidate := file.Store.Node(file.ReparsedClones[pos])
+			if node.Loc().ContainedBy(candidate.Loc()) {
+				if reparsed := findCloneInNode(candidate, node); !reparsed.IsNil() {
+					return reparsed
+				}
+			}
+		}
+	}
+	return node
+}
+
+// IndexOfNodeList is IndexOfNode on a list (3.4, List version).
+//
+// storetranslate:pointer-hash 625d482165f65d1d utilities.go:IndexOfNode
+func IndexOfNodeList(nodes List, node Node) int {
+	index, ok := BinarySearchFuncList(nodes, node, CompareNodePositions)
+	if ok {
+		return index
+	}
+	return -1
+}
+
+// GetSemanticJsxChildrenList is GetSemanticJsxChildren on a list (3.4, List
+// version).
+//
+// storetranslate:pointer-hash cc36c98a569ca60e utilities.go:GetSemanticJsxChildren
+func GetSemanticJsxChildrenList(children List) []Node {
+	return FilterList(children, func(i Node) bool {
+		switch i.Kind() {
+		case ast.KindJsxExpression:
+			return !i.Expression().IsNil()
+		case ast.KindJsxText:
+			return !i.AsJsxText().ContainsOnlyTriviaWhiteSpaces()
+		default:
+			return true
+		}
+	})
 }

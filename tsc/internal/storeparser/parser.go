@@ -547,7 +547,7 @@ func (p *Parser) parseSourceFileWorker() *store.File {
 // so the caller makes it after Finish (createJSDocCache); the reparsed clones
 // are NodeRefs, valid in the scratch and in the Store alike.
 func (p *Parser) finishSourceFile(root store.NodeRef, isDeclarationFile bool) *store.File {
-	result := &store.File{FileName: p.opts.FileName, Path: p.opts.Path, Text: p.sourceText}
+	result := store.NewFile(p.opts.FileName, p.opts.Path, p.sourceText)
 	result.CommentDirectives = p.scanner.CommentDirectives()
 	result.Pragmas = getCommentPragmas(&p.pragmaFactory, p.sourceText)
 	p.processPragmasIntoFields(result)

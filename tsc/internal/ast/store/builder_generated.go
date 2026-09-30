@@ -1153,7 +1153,7 @@ func (b *Builder) NewTemplateLiteralTypeSpan(flags ast.NodeFlags, pos, end int32
 
 func (b *Builder) NewSyntheticExpression(flags ast.NodeFlags, pos, end int32, isSpread bool, tupleNameSource NodeRef) NodeRef {
 	data := uint32(len(b.s.extra))
-	b.s.extra = append(b.s.extra, boolWord(isSpread), uint32(tupleNameSource))
+	b.s.extra = append(b.s.extra, 0, boolWord(isSpread), uint32(tupleNameSource))
 	id := b.header(ast.KindSyntheticExpression, flags, 0, pos, end, data)
 	b.adopt(tupleNameSource, id)
 	return id
@@ -2614,11 +2614,11 @@ func (b *Builder) deepCloneReparse(id NodeRef) NodeRef {
 		b.adopt(NodeRef(w[1]), clone)
 		return clone
 	case ast.KindSyntheticExpression:
-		var w [2]uint32
+		var w [3]uint32
 		copy(w[:], b.s.extra[h.data:])
-		w[1] = uint32(b.cloneChildReparse(NodeRef(w[1]))) // TupleNameSource
+		w[2] = uint32(b.cloneChildReparse(NodeRef(w[2]))) // TupleNameSource
 		clone := b.cloneRow(h, w[:])
-		b.adopt(NodeRef(w[1]), clone)
+		b.adopt(NodeRef(w[2]), clone)
 		return clone
 	case ast.KindSatisfiesExpression:
 		var w [2]uint32

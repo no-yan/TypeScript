@@ -1,27 +1,31 @@
 // Command storetranslate translates the Pointer AST code that reads nodes
-// into the Store AST (TODO 7d-0; the method is
-// tsc/internal/ast/docs/store-checker-design-20260923.md 2.1, "移植の方法",
-// and the rules are store-checker-7d0-implementation-instructions-20260924.md
-// 5). The rules are only those that the types decide: go/types on the
-// Pointer code and the API of package store. A function the rules cannot
-// translate is written by hand in store/utilities_manual.go (P2), with the
-// hash of the Pointer function it replaces; a change of that function stops
-// the translation.
+// into the Store AST: the method is
+// tsc/internal/ast/docs/store-checker-design-20260923.md 2.1 ("移植の方法"),
+// the rules are store-checker-7d0-implementation-instructions-20260924.md 5
+// and store-checker-7d2a-implementation-instructions-20260929.md 3. The rules
+// are only those that the types decide: go/types on the Pointer code and on
+// the Store packages. A declaration the rules cannot translate is written by
+// hand in a *_manual.go file of its output package (P2), with the hash of the
+// Pointer declaration it replaces; a change of that declaration stops the
+// translation.
 //
 // Usage, from the tools module:
 //
-//	go run ./cmd/storetranslate            # writes tsc/internal/ast/store/utilities.go
-//	go run ./cmd/storetranslate -binder DIR # also the binder.go trial into DIR
+//	go run ./cmd/storetranslate                 # writes every output (pkgs.go)
+//	go run ./cmd/storetranslate -hash checker.Checker.f   # the hash line of a P2 declaration
+//	go run ./cmd/storetranslate -listdraft checker.Checker.f  # the draft of a List version
+//	go run ./cmd/storetranslate -binder DIR     # also the 7d-0 binder.go trial into DIR
 //
-// The utilities (U2): the roots are the functions of the previous
-// store/utilities.go and the ast functions that storebinder and storeparser
-// call; every package-level function of package ast that they reach (named
-// in a body, called or as a value; not followed into other packages) is
-// translated into store/utilities.go.
-//
-// The binder.go trial: internal/binder/binder.go translated in full, compared
-// function by function with the hand-written verbatim version of 7c. The
-// output is not used by storebinder.
+// What each output package gets (pkgs.go): package store the ast utilities
+// that the roots reach (U2) and ast/visitor.go and ast/diagnostic.go whole;
+// storechecker and storeprinter every type and the reached functions and
+// methods; storebinder binder/nameresolver.go and referenceresolver.go;
+// storeevaluator the whole evaluator; storescanner, storenodebuilder,
+// storepseudochecker, storemodulespecifiers and storemodule the reached
+// declarations whose types change. The reach (reach.go) starts from the
+// checker's API (7d design 2.7), the entries of the unit equivalences, the
+// ast functions that storebinder and storeparser call (roots.txt and their
+// sources), and what the P2 and hand-written files name.
 package main
 
 import (
@@ -34,7 +38,8 @@ import (
 func main() {
 	binderOut := flag.String("binder", "", "also translate internal/binder/binder.go and write the trial and its comparison into this directory")
 	verbatim := flag.String("verbatim", "", "the 7c verbatim storebinder (binder-verbatim.diff applied to internal/binder/binder.go); default: made from the diff")
-	hash := flag.String("hash", "", "print the pointer-hash line of these ast functions (comma-separated) for a P2 function, and exit")
+	hash := flag.String("hash", "", "print the pointer-hash line of these declarations (comma-separated; pkg.Name or pkg.Type.Name, ast when pkg is omitted) for a P2 declaration, and exit")
+	listdraft := flag.String("listdraft", "", "print the draft of the List version (<F>List) of these functions (as -hash), for a P2 file, and exit")
 	flag.Parse()
 	root, err := repoRoot()
 	if err != nil {
@@ -43,6 +48,13 @@ func main() {
 	}
 	if *hash != "" {
 		if err := printHashes(root, *hash); err != nil {
+			fmt.Fprintln(os.Stderr, "storetranslate:", err)
+			os.Exit(1)
+		}
+		return
+	}
+	if *listdraft != "" {
+		if err := listDraft(root, *listdraft); err != nil {
 			fmt.Fprintln(os.Stderr, "storetranslate:", err)
 			os.Exit(1)
 		}

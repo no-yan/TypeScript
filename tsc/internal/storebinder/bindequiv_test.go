@@ -301,7 +301,7 @@ func (m *bindComparer) fileFields() {
 	}
 	m.node("CommonJSModuleIndicator", root, m.pointer.CommonJSModuleIndicator, m.s.Node(m.bound.CommonJSModuleIndicator))
 	m.node("ExternalModuleIndicator", root, m.pointer.ExternalModuleIndicator, m.s.Node(m.file.ExternalModuleIndicator))
-	m.nodes("Imports", m.pointer.Imports(), m.file.Imports)
+	m.nodes("Imports", m.pointer.Imports(), m.file.ImportRefs())
 	m.nodes("ModuleAugmentations", m.pointer.ModuleAugmentations, m.file.ModuleAugmentations)
 	if !slices.Equal(m.pointer.AmbientModuleNames, m.file.AmbientModuleNames) {
 		m.add(root, "AmbientModuleNames")

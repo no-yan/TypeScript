@@ -2379,25 +2379,23 @@ func (f *Factory) CloneTemplateLiteralTypeSpan(node TemplateLiteralTypeSpan) Nod
 	return f.cloneNode(f.NewTemplateLiteralTypeSpan(node.Type(), node.Literal()), Node(node))
 }
 
-// TODO(store): SyntheticExpression: Type any has no slot: a checker type, kept in a side table; it is not a parameter.
-
-func (f *Factory) NewSyntheticExpression(isSpread bool, tupleNameSource Node) Node {
+func (f *Factory) NewSyntheticExpression(typeNode any, isSpread bool, tupleNameSource Node) Node {
 	dst := f.row()
 	r := f.region
 	data := uint32(len(dst.extra))
-	dst.extra = append(dst.extra, boolWord(isSpread), uint32(r.edge(dst, tupleNameSource)))
+	dst.extra = append(dst.extra, f.anyWord(dst, typeNode), boolWord(isSpread), uint32(r.edge(dst, tupleNameSource)))
 	return f.newNode(dst, ast.KindSyntheticExpression, 0, 0, data)
 }
 
-func (f *Factory) UpdateSyntheticExpression(node SyntheticExpression, isSpread bool, tupleNameSource Node) Node {
-	if isSpread != node.IsSpread() || !SameNode(tupleNameSource, node.TupleNameSource()) {
-		return f.updateNode(f.NewSyntheticExpression(isSpread, tupleNameSource), Node(node))
+func (f *Factory) UpdateSyntheticExpression(node SyntheticExpression, typeNode any, isSpread bool, tupleNameSource Node) Node {
+	if typeNode != node.Type() || isSpread != node.IsSpread() || !SameNode(tupleNameSource, node.TupleNameSource()) {
+		return f.updateNode(f.NewSyntheticExpression(typeNode, isSpread, tupleNameSource), Node(node))
 	}
 	return Node(node)
 }
 
 func (f *Factory) CloneSyntheticExpression(node SyntheticExpression) Node {
-	return f.cloneNode(f.NewSyntheticExpression(node.IsSpread(), node.TupleNameSource()), Node(node))
+	return f.cloneNode(f.NewSyntheticExpression(node.Type(), node.IsSpread(), node.TupleNameSource()), Node(node))
 }
 
 func (f *Factory) NewPartiallyEmittedExpression(expression Node) Node {

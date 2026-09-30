@@ -120,3 +120,135 @@ func Index(slice []Node, n Node) int {
 	}
 	return -1
 }
+
+// The List versions of the helpers of core and slices (R4 of
+// store-checker-7d2-design-remainder-20260929.md 2.1): the translation calls
+// <F>List where the Pointer passes list.Nodes to F. Each reads the list with
+// Len and At, in the order of the core version, with its early exits. A List
+// that an accessor returns for an absent member belongs to its Store (block 0)
+// and reads as empty, as the Pointer's nil slice from the accessor does. The
+// zero List{} is the Pointer's nil *ast.NodeList: like nil.Nodes, it cannot be
+// read, and these helpers panic on it.
+
+func SomeList(l List, f func(Node) bool) bool {
+	for i := range l.Len() {
+		if f(l.At(i)) {
+			return true
+		}
+	}
+	return false
+}
+
+func EveryList(l List, f func(Node) bool) bool {
+	for i := range l.Len() {
+		if !f(l.At(i)) {
+			return false
+		}
+	}
+	return true
+}
+
+func FindList(l List, f func(Node) bool) Node {
+	for i := range l.Len() {
+		if value := l.At(i); f(value) {
+			return value
+		}
+	}
+	return Node{}
+}
+
+func FindIndexList(l List, f func(Node) bool) int {
+	for i := range l.Len() {
+		if f(l.At(i)) {
+			return i
+		}
+	}
+	return -1
+}
+
+func FindLastIndexList(l List, f func(Node) bool) int {
+	for i := l.Len() - 1; i >= 0; i-- {
+		if f(l.At(i)) {
+			return i
+		}
+	}
+	return -1
+}
+
+// MapList is core.Map: nil for the nil List.
+func MapList[U any](l List, f func(Node) U) []U {
+	if l.IsNil() {
+		return nil
+	}
+	result := make([]U, l.Len())
+	for i := range result {
+		result[i] = f(l.At(i))
+	}
+	return result
+}
+
+// FilterList is core.Filter. The core version returns its input when nothing
+// is dropped; a List is not a slice, so this one returns a copy then.
+func FilterList(l List, f func(Node) bool) []Node {
+	var result []Node
+	for i := range l.Len() {
+		if value := l.At(i); f(value) {
+			result = append(result, value)
+		}
+	}
+	if result == nil && !l.IsNil() && l.Len() == 0 {
+		return []Node{}
+	}
+	return result
+}
+
+func FirstOrNilList(l List) Node {
+	if l.Len() != 0 {
+		return l.At(0)
+	}
+	return Node{}
+}
+
+func LastOrNilList(l List) Node {
+	if n := l.Len(); n != 0 {
+		return l.At(n - 1)
+	}
+	return Node{}
+}
+
+func ElementOrNilList(l List, index int) Node {
+	if index < l.Len() {
+		return l.At(index)
+	}
+	return Node{}
+}
+
+// IndexList is slices.Index with SameNode.
+func IndexList(l List, n Node) int {
+	for i := range l.Len() {
+		if SameNode(l.At(i), n) {
+			return i
+		}
+	}
+	return -1
+}
+
+// ContainsList is slices.Contains with SameNode.
+func ContainsList(l List, n Node) bool {
+	return IndexList(l, n) >= 0
+}
+
+// BinarySearchFuncList is slices.BinarySearchFunc on a list.
+func BinarySearchFuncList[T any](l List, target T, cmp func(Node, T) int) (int, bool) {
+	n := l.Len()
+	i, j := 0, n
+	for i < j {
+		h := int(uint(i+j) >> 1)
+		if cmp(l.At(h), target) < 0 {
+			i = h + 1
+		} else {
+			j = h
+		}
+	}
+	return i, i < n && cmp(l.At(i), target) == 0
+}

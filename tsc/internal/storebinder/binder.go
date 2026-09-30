@@ -815,7 +815,7 @@ func (b *Binder) bindSourceFileIfExternalModule() {
 }
 
 func (b *Binder) bindSourceFileAsExternalModule() {
-	b.bindAnonymousDeclaration(b.file.Root(), ast.SymbolFlagsValueModule, "\""+tspath.RemoveFileExtension(b.file.FileName)+"\"")
+	b.bindAnonymousDeclaration(b.file.Root(), ast.SymbolFlagsValueModule, "\""+tspath.RemoveFileExtension(b.file.FileName())+"\"")
 }
 
 func (b *Binder) bindModuleDeclaration(node store.Node) {

@@ -182,9 +182,9 @@ func fieldMismatches(pointer *ast.SourceFile, file *store.File) map[string]bool 
 		return false
 	}
 	m := map[string]bool{
-		"FileName":                    file.FileName != pointer.FileName(),
-		"Path":                        file.Path != pointer.Path(),
-		"Text":                        file.Text != pointer.Text(),
+		"FileName":                    file.FileName() != pointer.FileName(),
+		"Path":                        file.Path() != pointer.Path(),
+		"Text":                        file.Text() != pointer.Text(),
 		"ScriptKind":                  file.ScriptKind != pointer.ScriptKind,
 		"LanguageVariant":             file.LanguageVariant != pointer.LanguageVariant,
 		"IsDeclarationFile":           file.IsDeclarationFile != pointer.IsDeclarationFile,
@@ -197,7 +197,7 @@ func fieldMismatches(pointer *ast.SourceFile, file *store.File) map[string]bool 
 		"LibReferenceDirectives":      refs(file.LibReferenceDirectives, pointer.LibReferenceDirectives),
 		"CheckJsDirective":            (file.CheckJsDirective == nil) != (pointer.CheckJsDirective == nil) || file.CheckJsDirective != nil && *file.CheckJsDirective != *pointer.CheckJsDirective,
 		"ExternalModuleIndicator":     node(pointer.ExternalModuleIndicator, file.ExternalModuleIndicator),
-		"Imports":                     nodes(pointer.Imports(), file.Imports),
+		"Imports":                     nodes(pointer.Imports(), file.ImportRefs()),
 		"ModuleAugmentations":         nodes(pointer.ModuleAugmentations, file.ModuleAugmentations),
 		"AmbientModuleNames":          !slices.Equal(pointer.AmbientModuleNames, file.AmbientModuleNames),
 		"UsesUriStyleNodeCoreModules": pointer.UsesUriStyleNodeCoreModules != file.UsesUriStyleNodeCoreModules,

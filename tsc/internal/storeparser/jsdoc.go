@@ -37,8 +37,8 @@ func init() {
 func parseJSDocForNode(sourceFile *store.File, node store.Node) []store.Node {
 	p := getParser()
 	defer putParser(p)
-	p.initializeState(nil, 0, ast.SourceFileParseOptions{FileName: sourceFile.FileName, Path: sourceFile.Path}, sourceFile.Text, sourceFile.ScriptKind)
-	ranges := GetJSDocCommentRanges(&p.pragmaFactory, nil, node, sourceFile.Text)
+	p.initializeState(nil, 0, ast.SourceFileParseOptions{FileName: sourceFile.FileName(), Path: sourceFile.Path()}, sourceFile.Text(), sourceFile.ScriptKind)
+	ranges := GetJSDocCommentRanges(&p.pragmaFactory, nil, node, sourceFile.Text())
 	if len(ranges) == 0 {
 		return nil
 	}

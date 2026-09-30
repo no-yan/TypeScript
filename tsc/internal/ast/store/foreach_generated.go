@@ -258,7 +258,7 @@ func (n Node) ForEachChild(v Visitor) bool {
 		}
 		return false
 	case ast.KindSyntheticExpression:
-		if ref := NodeRef(n.s.extra[int(n.h.data)+1]); ref != NoNodeRef && v(n.s.node(ref)) { // TupleNameSource
+		if ref := NodeRef(n.s.extra[int(n.h.data)+2]); ref != NoNodeRef && v(n.s.node(ref)) { // TupleNameSource
 			return true
 		}
 		return false

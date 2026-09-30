@@ -108,9 +108,9 @@ const testedRoles = ["Name", "Expression", "Type", "Initializer", "Body", "Text"
 // Schema to slots
 // ────────────────────────────────────────────────────────────────────────────
 
-type SlotClass = "child" | "list" | "text" | "bool" | "tokenFlags" | "kind" | "bound";
+type SlotClass = "child" | "list" | "text" | "bool" | "tokenFlags" | "kind" | "bound" | "any";
 
-const slotWords: Record<SlotClass, number> = { child: 1, list: 1, text: 2, bool: 1, tokenFlags: 1, kind: 1, bound: 1 };
+const slotWords: Record<SlotClass, number> = { child: 1, list: 1, text: 2, bool: 1, tokenFlags: 1, kind: 1, bound: 1, any: 1 };
 
 // The reserved slots of the binder (store-binder-design-20260922.md 2.3): the
 // goOnly members that the Pointer binder writes and that are neither in the
@@ -198,9 +198,11 @@ function classify(def: NodeType, m: MemberInfo): Classification {
     if (isPrimitive(type, "TokenFlags")) return { slot: "tokenFlags" };
     if (type.baseKind() === "kind") return { slot: "kind" };
     if (isPrimitive(type, "any")) {
-        // SyntheticExpression.Type is a checker type: checker data, like the
-        // goOnly members (store-ast-design-20260922.md section 5).
-        return { todo: `${m.name} any has no slot: a checker type, kept in a side table` };
+        // SyntheticExpression.Type is a checker type: the word indexes the
+        // private table of the synthetic Store, which holds the value (the
+        // Store does not import the checker). Only a Factory makes such a
+        // node; a source Store has none.
+        return { slot: "any" };
     }
     problems.push(`${def.name}.${m.name}: no slot class for type ${JSON.stringify(m.rawType)}`);
     return { skip: true };
@@ -354,7 +356,9 @@ const mixedRoles: string[] = [];
         const excluded = new Set(roleOverrides[name] ?? []);
         for (const { kind, def } of payloadKinds) {
             if (excluded.has(kind.name)) continue;
-            const slot = def.slots.find(s => s.name === name);
+            // A role is one class: SyntheticExpression.Type (any) is not the
+            // Type role.
+            const slot = def.slots.find(s => s.name === name && s.class === role.class);
             if (slot) role.slots.set(kind.value, slot.word);
         }
         roles.push(role);
@@ -433,6 +437,8 @@ function goType(slot: Slot): string {
             return "ast.Kind";
         case "bound":
             return boundSlot(slot.member.name)!.type;
+        case "any":
+            return "any";
     }
 }
 
@@ -529,6 +535,8 @@ function memberAccessor(def: Definition, slot: Slot): string {
             return `return ast.Kind(n.s.extra[${index}])`;
         case "bound":
             return `return ${goType(slot)}(n.s.extra[${index}])`;
+        case "any":
+            return `return n.s.anyAt(n.s.extra[${index}])`;
     }
 }
 
@@ -804,7 +812,9 @@ function generateBuilder(): string {
         if (isMultiKind(def)) params.unshift("kind ast.Kind");
         if (def.headerText) params.push("text string");
         for (const slot of def.slots) {
-            if (slot.class === "bound") continue;
+            // A reserved slot is the binder's; an any member is only a
+            // Factory's (a source Store has no SyntheticExpression).
+            if (slot.class === "bound" || slot.class === "any") continue;
             params.push(`${slot.member.goParamName()} ${paramType(slot)}`);
         }
         const kind = isMultiKind(def) ? "kind" : goKinds(def);
@@ -837,6 +847,7 @@ function generateBuilder(): string {
                     words.push(`uint32(${p})`);
                     break;
                 case "bound":
+                case "any":
                     words.push("0");
                     break;
             }
@@ -877,8 +888,9 @@ function generateReparseSetters(w: CodeWriter) {
     w.write("// the new value still holds them). SetModifiers folds the header's modifier");
     w.write("// flags again, as the Pointer parser makes a new ModifierList.");
     for (const name of reparseSetters) {
-        const owners = viewDefinitions.filter(def => def.slots.some(s => s.name === name));
-        const classes = new Set(owners.map(def => def.slots.find(s => s.name === name)!.class));
+        const member = (def: Definition) => def.slots.find(s => s.name === name && s.class !== "any");
+        const owners = viewDefinitions.filter(def => member(def) !== undefined);
+        const classes = new Set(owners.map(def => member(def)!.class));
         if (owners.length === 0 || classes.size !== 1) throw new Error(`reparse setter ${name}: no member or mixed classes`);
         const cls = [...classes][0];
         const type = cls === "child" ? "NodeRef" : cls === "list" ? "ListRef" : cls === "kind" ? "ast.Kind" : undefined;
@@ -898,7 +910,7 @@ function generateReparseSetters(w: CodeWriter) {
             w.write("\tswitch h.kind {");
             for (const def of owners) {
                 w.write(`\tcase ${goKinds(def)}:`);
-                w.write(`\t\tslot = ${slotConst(def, def.slots.find(s => s.name === name)!)}`);
+                w.write(`\t\tslot = ${slotConst(def, member(def)!)}`);
             }
             w.write("\tdefault:");
             w.write(`\t\tpanic("store: " + h.kind.String() + " has no ${name}")`);
@@ -1054,6 +1066,9 @@ function writeFactoryNew(w: CodeWriter, def: Definition, funcName: string, kindE
             case "bound":
                 words.push("0");
                 break;
+            case "any":
+                words.push(`f.anyWord(dst, ${p.name})`);
+                break;
         }
     }
     const modifiers = def.slots.find(s => s.name === "Modifiers" && s.class === "list");
@@ -1185,6 +1200,150 @@ function generateFactory(): string {
     return w.toString();
 }
 
+// ── The bases of each kind ──
+
+// The bases (DeclarationBase, BodyBase, ...) that the definition of each kind
+// extends, transitively: the Pointer node's XxxData() is non-nil exactly for
+// these (ast.go). Has<Xxx>Data answers whether x.XxxData() != nil, for the
+// P2 code of the checker that tests it
+// (store-checker-7d2a-implementation-instructions-20260929.md 4.1). It answers
+// by kind where the Pointer answers by the concrete data type, so the two
+// differ for a node the Pointer makes with NewToken for a kind that is also a
+// KeywordExpression (Null, True, False, This, Super, Import): no data there.
+function basesOf(node: NodeType): string[] {
+    const out: string[] = [];
+    const seen = new Set<NodeType>();
+    const visit = (base: NodeType) => {
+        if (seen.has(base)) return;
+        seen.add(base);
+        out.push(base.name);
+        for (const b of base.extends) visit(b);
+    };
+    for (const base of node.extends) visit(base);
+    return out;
+}
+
+// The data accessors of *ast.Node (ast.go) and the base each returns.
+const dataAccessors: [string, string][] = [
+    ["DeclarationData", "DeclarationBase"],
+    ["ExportableData", "ExportableBase"],
+    ["LocalsContainerData", "LocalsContainerBase"],
+    ["FunctionLikeData", "FunctionLikeBase"],
+    ["ClassLikeData", "ClassLikeBase"],
+    ["BodyData", "BodyBase"],
+    ["FlowNodeData", "FlowNodeBase"],
+    ["LiteralLikeData", "LiteralLikeNodeBase"],
+    ["TemplateLiteralLikeData", "TemplateLiteralLikeNodeBase"],
+];
+
+function writeBaseTests(w: CodeWriter) {
+    // Every definition that covers a kind counts, not only the one that
+    // kindDefinition keeps: FalseKeyword is covered by Token and by
+    // KeywordExpression, and the Pointer makes it a KeywordExpression, whose
+    // FlowNodeData is non-nil.
+    const bases = new Map<string, Set<number>>();
+    for (const def of definitions) {
+        for (const base of basesOf(def.node)) {
+            const values = bases.get(base) ?? new Set<number>();
+            for (const kind of def.kinds) values.add(kind.value);
+            bases.set(base, values);
+        }
+    }
+    for (const [data, base] of dataAccessors) {
+        const values = [...(bases.get(base) ?? [])].sort((a, b) => a - b);
+        if (values.length === 0) throw new Error(`no kind extends ${base}`);
+        const kinds = values.map(v => `ast.Kind${kindDefinition.get(v)!.kinds.find(k => k.value === v)!.name}`);
+        w.write();
+        w.write(`// Has${data} is, by kind, (*ast.Node).${data}() != nil`);
+        w.write(`// for the nodes the parser and binder make. A node the Pointer makes with`);
+        w.write(`// NewToken for a kind that is also a KeywordExpression has no data there, but`);
+        w.write(`// true here.`);
+        w.write(`func (n Node) Has${data}() bool {`);
+        w.write("\tswitch n.Kind() {");
+        w.write(`\tcase ${kinds.join(", ")}:`);
+        w.write("\t\treturn true");
+        w.write("\t}");
+        w.write("\treturn false");
+        w.write("}");
+    }
+}
+
+// ── visit_generated.go ──
+
+// VisitEachChild of every definition that has an Update: the Pointer
+// generator's (generate-go-ast.ts, generateVisitEachChild) on the Store
+// accessors. Each child is visited by the NodeVisitor method the Pointer one
+// uses (visitNode, visitToken, visitNodes, visitModifiers, or the member's own
+// visit), then Update is called with the results. A raw list (the Pointer's
+// []*Node) is visited element by element with visitNode (visitRawNodes). A
+// definition with a hand-written visitor calls visitEachChild_<Name>, written
+// by hand in visit.go. Node.VisitEachChild dispatches on the kind; a kind
+// without an Update returns the node, as the Pointer NodeDefault does. The
+// NodeVisitor is package ast's visitor.go translated (tools/cmd/storetranslate).
+// internal/ast/docs/store-checker-7d2a-implementation-instructions-20260929.md 3.3 (R12).
+
+function hasUpdate(def: Definition): boolean {
+    const members = factoryParams(def).filter(p => !p.kind);
+    return members.length > 0 && def.node.members.some(m => !m.noFactory && m.isChild());
+}
+
+function visitArg(def: Definition, p: FactoryParam): string {
+    if (p.flags) return "Node(node).Flags()";
+    if (!p.slot || (p.slot.class !== "child" && p.slot.class !== "list")) return readParam(def, p);
+    const m = p.member;
+    const access = `node.${p.slot.name}()`;
+    const type = m.type;
+    if (type.kind === "list" && type.listKind === "raw") return `v.visitRawNodes(${access})`;
+    if (m.visit) return `v.visit${api.capitalize(m.visit)}(${access})`;
+    if (m.listKind === "ModifierList") return `v.visitModifiers(${access})`;
+    if (m.listKind === "NodeList") return `v.visitNodes(${access})`;
+    if (type.kind === "primitive" && type.name === "Token") return `v.visitToken(${access})`;
+    return `v.visitNode(${access})`;
+}
+
+function generateVisitEachChild(): string {
+    const w = new CodeWriter();
+    w.write(HEADER);
+    w.write();
+    w.write("package store");
+    w.write();
+    w.write(`import ${AST_IMPORT}`);
+    const visited: Definition[] = [];
+    for (const def of definitions) {
+        if (!hasUpdate(def) || !viewDefinitions.includes(def)) continue;
+        visited.push(def);
+        w.write();
+        w.write(`func (node ${def.name}) VisitEachChild(v *NodeVisitor) Node {`);
+        if (def.node.handWrittenVisitor) {
+            w.write(`\treturn visitEachChild_${def.name}(node, v)`);
+            w.write("}");
+            continue;
+        }
+        const args = factoryParams(def).filter(p => !p.kind).map(p => visitArg(def, p));
+        w.write(`\treturn v.Factory.Update${def.name}(node, ${args.join(", ")})`);
+        w.write("}");
+    }
+    w.write();
+    w.write("// VisitEachChild is (*ast.Node).VisitEachChild: the definition's, by kind.");
+    w.write("func (n Node) VisitEachChild(v *NodeVisitor) Node {");
+    w.write("\tswitch n.Kind() {");
+    const byDef = new Map<Definition, number[]>();
+    for (const [value, def] of [...kindDefinition].sort((a, b) => a[0] - b[0])) {
+        byDef.set(def, [...(byDef.get(def) ?? []), value]);
+    }
+    for (const [def, values] of byDef) {
+        if (!visited.includes(def)) continue;
+        const kinds = values.map(v => `ast.Kind${def.kinds.find(k => k.value === v)!.name}`);
+        w.write(`\tcase ${kinds.join(", ")}:`);
+        w.write(`\t\treturn n.As${def.name}().VisitEachChild(v)`);
+    }
+    w.write("\t}");
+    w.write("\treturn n");
+    w.write("}");
+    writeBaseTests(w);
+    return w.toString();
+}
+
 // ── convert/convert_generated.go ──
 
 /** Go expression reading the member of the typed Pointer struct v. */
@@ -1284,7 +1443,7 @@ function generateConvert(): string {
         const args = ["n.Flags", "pos", "end"];
         if (isMultiKind(def)) args.unshift("n.Kind");
         for (const slot of def.slots) {
-            if (slot.class !== "bound") args.push(convertArg(slot));
+            if (slot.class !== "bound" && slot.class !== "any") args.push(convertArg(slot));
         }
         if (def.headerText) args.push("d.Text");
         w.write(`\t\treturn c.b.New${def.name}(${args.join(", ")})`);
@@ -1327,7 +1486,7 @@ function generateEquivalenceTest(): string {
         for (const slot of def.slots) {
             // A reserved slot is 0 after the parse and the Pointer field is
             // nil; the binder's equivalence test compares them.
-            if (slot.class === "bound") continue;
+            if (slot.class === "bound" || slot.class === "any") continue;
             const label = `"${def.name}.${slot.name}"`;
             const read = pointerRead("pv", slot);
             members++;
@@ -1422,6 +1581,7 @@ export default function main() {
     writeAndFormat(path.join(OUT_DIR, "foreach_generated.go"), generateForEachChild());
     writeAndFormat(path.join(OUT_DIR, "builder_generated.go"), generateBuilder());
     writeAndFormat(path.join(OUT_DIR, "factory_generated.go"), generateFactory());
+    writeAndFormat(path.join(OUT_DIR, "visit_generated.go"), generateVisitEachChild());
     writeAndFormat(path.join(OUT_DIR, "convert/convert_generated.go"), generateConvert());
     writeAndFormat(path.join(OUT_DIR, "storetest/equivalence_generated.go"), generateEquivalenceTest());
 }
