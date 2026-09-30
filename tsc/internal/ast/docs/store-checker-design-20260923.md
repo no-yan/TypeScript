@@ -422,7 +422,7 @@ checker の `GetSymbolId` 19 箇所の用途: `valueSymbolLinks` (paged、Get 1,
 
 #### nodebuilder の出力
 
-**出力も Store にする (NB1)。** (2026-09-23、ユーザー) nodebuilder は checker の synth Store に組み、print の直前に Store → Pointer の変換器で Pointer の木にして printer に渡す。変換規則は checker package 全体で一律 (`*ast.Node` → `store.Node`)。
+**出力も Store にする (NB1)。** (2026-09-23、ユーザー) nodebuilder は checker の synth Store に組み、print の直前に Store → Pointer の変換器で Pointer の木にして printer に渡す。 **(2026-09-29 に NB1' で置き換え、ユーザー: Store → Pointer の変換器を作らず、printer を変換して `storeprinter` で Store のまま印字する。[7d-2 設計の残り](store-checker-7d2-design-remainder-20260929.md) §2.4。以下の変換器と EmitContext の記述は記録として残す)**変換規則は checker package 全体で一律 (`*ast.Node` → `store.Node`)。
 
 - 型から「この `*ast.Node` は出力か source か」が分からない: nodebuilder は入力 (source) と出力 (factory) を同じ `*ast.Node` の変数で混ぜる (`setTextRange(range_, location)` nodebuilderimpl.go:1436 は `range_` が出力で `location` が source、`b.e.SetOriginal(output, source)`、`reuseNode` は visitor で変わらなかった source ノードをそのまま返す)。出力だけ Pointer に残す変換は規則で書けない。
 - (2026-09-24 に K3 で撤回、下の「複製の規則」。記録として残す) **Store をまたぐ複製は深い複製にする。** Pointer の `node.Clone(factory)` (nodecopy.go:663、815、874、nodebuilderimpl.go:1440) は浅い複製で子を共有するが、synth Store の slot に source Store の ref は入れられない。変わるのは複製した部分木の中のノードの同一性だけで、出力のテキストは同じ。同一性を key にしているのは `idToSymbol` (複製の root だけ、nodebuilderimpl.go:1441) と `Original` の連鎖で、等価テストは message のテキストで比べる。
@@ -624,8 +624,10 @@ Pointer の実測 (2026-09-24、compiler プロジェクト、GC 2 回の後の 
 1. ~~7d-0 の実装指示書と検証指示書~~ 済 (2026-09-24): [実装指示書](store-checker-7d0-implementation-instructions-20260924.md)、[検証指示書](store-checker-7d0-verification-instructions-20260924.md)。
 2. ~~7d-0 の before の計測~~ 済 (2026-09-27)。
 3. ~~7d-0 の実装と検証~~ 済 (2026-09-28、[検証報告](store-checker-7d0-verification-report-20260927.md) §12 の修正後に合格)。compiler プロジェクトの parse + bind の retained 比は 0.567 で §2.7 の線の前提どおり。
-4. ~~7d-1 の実装指示書と検証指示書~~ 済 (2026-09-28): [実装指示書](store-checker-7d1-implementation-instructions-20260928.md)、[検証指示書](store-checker-7d1-verification-instructions-20260928.md)。次は 7d-1 の実装と検証。
-5. 7d-2 の設計の残り (7d-1 の後): checker の変換規則の一覧と P2 の差し替えの一覧、Store → Pointer の変換器 (EmitContext の対応を含む)、合成の Store の既定の容量、(g) を入れるか。
+4. ~~7d-1 の実装指示書と検証指示書~~ 済 (2026-09-28): [実装指示書](store-checker-7d1-implementation-instructions-20260928.md)、[検証指示書](store-checker-7d1-verification-instructions-20260928.md)。7d-1 の実装と検証も済 (2026-09-29、2341effa51。[実装報告](store-checker-7d1-implementation-report-20260929.md) §10 の巻き戻された reparse の修正を含む)。
+5. ~~7d-2 の設計の残り~~ 済 (2026-09-29): [7d-2 設計の残り](store-checker-7d2-design-remainder-20260929.md)。checker の変換規則 R1〜R17、到達計算、P2、Store → Pointer の変換器と EmitContext、容量、(g)。7d-2 は 2a 変換 / 2b 等価 / 2c 性能の 3 小段に分け、指示書を小段ごとに書く。
+6. ~~7d-2a の実装指示書と検証指示書~~ 済 (2026-09-29): [実装指示書](store-checker-7d2a-implementation-instructions-20260929.md)、[検証指示書](store-checker-7d2a-verification-instructions-20260929.md)。7d-2a の実装・検証・修正も済 (2026-09-30、[実装報告](store-checker-7d2a-implementation-report-20260930.md)、[修正報告](store-checker-7d2a-fix-report-20260930.md))。
+7. 7d-2b の指示書。2b は 2 段に分ける (2026-09-30、ユーザー): 2b-1 はハーネスと 2b の最初の P2 を作って全テストを回し、不一致を原因ごとに分類して報告する。2b-2 はその分類を見て直し方を決めてから書く。
 
 零値の扱い (2026-09-26 に設計案を追加。2026-09-28 に 7d-0 で実装済み。以下は設計時の記録):
 
@@ -633,6 +635,6 @@ Pointer の実測 (2026-09-24、compiler プロジェクト、GC 2 回の後の 
 
 未決 (7d-1 / 7d-2 で扱う):
 
-- `ModifierFlags` の bit 16 以降 (設計文書 §7)。JSDoc 由来の modifier (`@deprecated` など) は checker の memo に計算済みの状態と一緒に置き、共有の header に遅延で書かない (再設計案 §6)。7d-1 の JS の reparse と 7d-2 の checker で決める。
+- ~~`ModifierFlags` の bit 16 以降~~ 閉じた (2026-09-29、[7d-2 設計の残り](store-checker-7d2-design-remainder-20260929.md) §2.1): Go の Pointer は bit 16 以降をどこでも立てないので、header の 16 bit で Pointer と同じ値になる。
 - 子を返す accessor の返り値 (解決済み `Node` か `NodeRef` か) を決める根拠の「nil 判定だけ・転送だけの呼び出しの頻度」(設計文書 §2.5 の再検討 1) は数えていない。7d-2 の Check ゲートを越えたら不要。
 - source と一致しない text を示す flag の置き場 (設計文書 §7)。
