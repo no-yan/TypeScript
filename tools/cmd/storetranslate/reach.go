@@ -45,8 +45,9 @@ type reachResult struct {
 }
 
 // checkerRoots are the roots of 7d design 2.7, the entries of the unit
-// equivalences of 7d-2a (6.2, 6.3), and what the type and symbol walker of
-// 7d-2b-1 calls (4).
+// equivalences of 7d-2a (6.2, 6.3), what the type and symbol walker of
+// 7d-2b-1 calls (4), and what the harness of 7d-2b-2 checks the properties
+// of (6, CompareSymbols).
 var checkerRoots = []string{
 	"checker.NewChecker",
 	"checker.Checker.GetDiagnostics",
@@ -63,6 +64,7 @@ var checkerRoots = []string{
 	"checker.Checker.SymbolToStringEx",
 	"checker.IntrinsicType.IntrinsicName",
 	"printer.EmitContext.Reset",
+	"checker.Checker.CompareSymbols",
 }
 
 func computeReach(w *world) (*reachResult, error) {

@@ -20,17 +20,20 @@ import (
 )
 
 // TestPointerWalkerBaselines holds the Pointer walker (pointerwalker.go, a
-// copy of tsbaseline's) to the committed reference baselines (8.4): every
-// test of tests/cases/compiler with one unit, no @ directive, and a
-// reference .types and .symbols. Each is put at /.src/<name> in a program
-// with testrunner's default options, the driver takes the diagnostics, and
-// the walker's records, written as tsbaseline writes a result line, are the
-// reference's > lines. Strict.
+// copy of tsbaseline's) to the committed reference baselines
+// (store-checker-7d2b2-implementation-instructions-20261001.md 7): every test
+// of tests/cases/compiler with one unit and a reference .types and .symbols
+// whose compiler options, set on testrunner's defaults as harnessutil sets
+// them, make one configuration and no harness option. Each is put at
+// /.src/<name> in a program of those options, the driver takes the
+// diagnostics, and the walker's records, written as tsbaseline writes a
+// result line, are the reference's > lines. Strict.
 //
-// STORE_CHECKER_BASELINE_OPTIONS=1 widens it to the tests with compiler
-// options too, set as harnessutil sets them, when they make one
-// configuration and no harness option (not 8.4's selection: almost every
-// test has an option, and the selection of 8.4 is 14 tests).
+// The walker's hadErrorBaseline is whether the reference has a .errors.txt,
+// here only: tsbaseline's is the program's diagnostics after its comment
+// directives (testrunner's len(c.result.Diagnostics) > 0), and an error
+// baseline is written when there is one (tsbaseline's error baseline has
+// NoContent otherwise). The corpus keeps the driver's rule (H1).
 func TestPointerWalkerBaselines(t *testing.T) {
 	if testing.Short() {
 		t.Skip("the baselines are not compared with -short")
@@ -41,7 +44,6 @@ func TestPointerWalkerBaselines(t *testing.T) {
 	if err != nil {
 		t.Skipf("testdata/tests/cases/compiler is missing: %v", err)
 	}
-	withOptions := os.Getenv("STORE_CHECKER_BASELINE_OPTIONS") != ""
 	type test struct {
 		name, text string
 		options    *core.CompilerOptions
@@ -75,14 +77,9 @@ func TestPointerWalkerBaselines(t *testing.T) {
 			continue
 		}
 		compilerOptions := testrunnerDefaultOptions()
-		if len(options) != 0 {
-			if !withOptions {
-				continue
-			}
-			if !setOptions(t, options, compilerOptions) {
-				skippedOptions++
-				continue
-			}
+		if len(options) != 0 && !setOptions(t, options, compilerOptions) {
+			skippedOptions++
+			continue
 		}
 		tests = append(tests, test{e.Name(), units[0].text, compilerOptions})
 	}
@@ -116,9 +113,7 @@ func TestPointerWalkerBaselines(t *testing.T) {
 		}
 	}
 	t.Logf("%d tests, %d differ from their baselines", len(tests), failed)
-	if withOptions {
-		t.Logf("%d tests with options not taken (several configurations or a harness option)", skippedOptions)
-	}
+	t.Logf("%d tests with options not taken (several configurations or a harness option)", skippedOptions)
 }
 
 // testrunnerDefaultOptions are harnessutil.CompileFiles's defaults
@@ -151,12 +146,13 @@ func compareWithBaselines(name, text string, options *core.CompilerOptions, refe
 	if len(missing) > 0 {
 		return "not a source file of its program"
 	}
-	r := runPointer(pointer, roots)
+	base := tsExtension.ReplaceAllString(name, "")
+	hadErrorBaseline := fileExists(filepath.Join(referenceDir, base+".errors.txt"))
+	r := runPointer(pointer, roots, &hadErrorBaseline)
 	if r.panicked != nil {
 		return "the Pointer panics: " + r.panicked.message
 	}
 	codeLines := codeLinesRegexp.Split(text, -1)
-	base := tsExtension.ReplaceAllString(name, "")
 	for _, walk := range []struct {
 		extension string
 		records   []walkRecord

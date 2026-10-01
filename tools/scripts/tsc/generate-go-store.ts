@@ -96,6 +96,21 @@ const roleOverrides: Record<string, string[]> = {
     Text: ["JsxText"],
 };
 
+// Kind-polymorphic accessors written by hand: each needs a Pointer accessor's
+// knowledge that the schema does not have, so the generator writes their role
+// tables (read by the Builder setters or the hand-written code) but not the
+// accessors.
+//   Text (store.go) reads the header for identifiers and composes the text of
+//     kinds without a slot.
+//   QuestionToken (checker_api.go) falls back, as the Pointer's does, to the
+//     PostfixToken when it is a question token: a node that is not a member
+//     named QuestionToken (store-checker-7d2b2 instructions 3.1).
+//   Type (store.go) gives the TypeExpression of a JSDoc parameter or
+//     property tag, as the Pointer's does: a member of another name.
+//   TypeExpression (checker_api.go) panics, as the Pointer's does, on
+//     JSDocOverloadTag and JSDocThisTag, which have the member.
+const handWrittenRoles = new Set(["Text", "QuestionToken", "Type", "TypeExpression"]);
+
 // Definitions whose single text member lives in the header (section 5 of the
 // implementation instructions), not in the payload.
 const headerTextDefinitions = new Set(["Identifier", "PrivateIdentifier"]);
@@ -611,9 +626,7 @@ function generateViews(): string {
     w.write("// so the code is the same for every kind: no switch, no jump table. A kind");
     w.write("// without the role returns the nil node, the nil list or the empty string.");
     for (const r of roles) {
-        // Text is hand-written in store.go: it reads the header for identifiers
-        // and composes the text of kinds without a slot. It still uses textSlot.
-        if (r.name === "Text") continue;
+        if (handWrittenRoles.has(r.name)) continue;
         w.write();
         const index = `int(n.h.data)+int(slot)`;
         if (r.class === "child") {

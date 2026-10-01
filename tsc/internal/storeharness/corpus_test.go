@@ -31,6 +31,7 @@ import (
 type corpusFile struct {
 	name, text string
 	origin     string // the file under testdata, and the unit of a test
+	index      int    // in the corpus: an origin is not unique
 }
 
 func corpusUnder(tb testing.TB, testCases bool) []corpusFile {
@@ -42,7 +43,7 @@ func corpusUnder(tb testing.TB, testCases bool) []corpusFile {
 	var files []corpusFile
 	add := func(origin, name, text string) {
 		if ext := tspath.TryGetExtensionFromPath(name); slices.Contains(supported, ext) {
-			files = append(files, corpusFile{"/index" + ext, text, origin})
+			files = append(files, corpusFile{"/index" + ext, text, origin, len(files)})
 		}
 	}
 	each := func(root string, visit func(path string, text string)) bool {
@@ -128,9 +129,13 @@ type corpusResult struct {
 }
 
 // TestCheckerCorpus runs the driver on every file of the corpus as a program
-// of its own (7.1) and classifies each by its first difference (7.2). It
-// reports: a difference does not fail it (the strict mode is 2b-2's).
+// of its own (7.1) and classifies each by its first difference (7.2). It is
+// strict (store-checker-7d2b2-implementation-instructions-20261001.md 5.1): a
+// file that is not excluded (Compare's reasons) and not equal fails it. It
+// logs the classes, the exclusions, the internal id tokens and the pairs of
+// CompareSymbols checked.
 //
+//	STORE_CHECKER_CORPUS_REPORT=1   report: log the classes, fail on none
 //	STORE_CHECKER_CORPUS_SAMPLE=n   n files of the corpus, at a fixed interval
 //	STORE_CHECKER_CORPUS_WORKERS=n  the workers (4)
 //	STORE_CHECKER_CORPUS_OUT=path   a JSONL line for each file
@@ -250,7 +255,7 @@ func TestCheckerCorpus(t *testing.T) {
 		t.Logf("time of a file: median %v, p99 %v, max %v", perFile[len(perFile)/2].Round(time.Millisecond), perFile[len(perFile)*99/100].Round(time.Millisecond), perFile[len(perFile)-1].Round(time.Millisecond))
 	}
 
-	logCorpusResults(t, results)
+	logCorpusResults(t, results, os.Getenv("STORE_CHECKER_CORPUS_REPORT") == "")
 	if out := os.Getenv("STORE_CHECKER_CORPUS_OUT"); out != "" {
 		if err := writeCorpusJSONL(out, results); err != nil {
 			t.Error(err)
@@ -281,7 +286,10 @@ func maxRSSBytes(r syscall.Rusage) int64 {
 	return r.Maxrss * 1024
 }
 
-func logCorpusResults(t *testing.T, results []corpusResult) {
+// logCorpusResults logs the exclusions, the classes and their examples, the
+// tokens and the pairs of CompareSymbols; strict, it fails on every file
+// that is compared and not equal.
+func logCorpusResults(t *testing.T, results []corpusResult, strict bool) {
 	t.Helper()
 	type bucket struct {
 		key      string
@@ -290,12 +298,21 @@ func logCorpusResults(t *testing.T, results []corpusResult) {
 	}
 	classes := map[string]*bucket{}
 	excluded := map[string]*bucket{}
-	var harness []corpusResult
-	compared := 0
+	var harness, failed []corpusResult
+	compared, tokens := 0, 0
+	var pairs, fallback [2]int
 	for _, r := range results {
 		if r.harness != "" {
 			harness = append(harness, r)
 			continue
+		}
+		tokens += r.Tokens
+		for side := range 2 {
+			pairs[side] += r.Pairs[side]
+			fallback[side] += r.Fallback[side]
+		}
+		if r.Excluded == "" && r.Class != ClassEqual {
+			failed = append(failed, r)
 		}
 		table, key := classes, r.Class
 		if r.Excluded != "" {
@@ -323,11 +340,19 @@ func logCorpusResults(t *testing.T, results []corpusResult) {
 		})
 		return out
 	}
-	for _, reason := range []string{ExcludedMissingRoot, ExcludedPointerPanics} {
+	for _, reason := range ExclusionReasons {
 		if b := excluded[reason]; b != nil {
 			t.Logf("excluded (%s): %d, first %s", reason, b.count, b.examples[0].file.origin)
 		} else {
 			t.Logf("excluded (%s): 0", reason)
+		}
+	}
+	// The Pointer's nondeterminism hides a difference of the Store's in the
+	// same file: each is listed, with its class, for the verification to read.
+	for _, r := range results {
+		if r.Excluded == ExcludedPointerNondeterministic {
+			t.Logf("  Pointer nondeterministic after %d reruns: %s (index %d), class %s\n    Pointer rerun: %s\n    Store: %s",
+				r.Reruns, r.file.origin, r.file.index, r.Class, r.Rerun.Where, r.Detail.Where)
 		}
 	}
 	var equal int
@@ -346,8 +371,27 @@ func logCorpusResults(t *testing.T, results []corpusResult) {
 			}
 		}
 	}
+	t.Logf("internal id tokens: %d", tokens)
+	t.Logf("CompareSymbols: %d pairs checked on the Pointer side (%d reach the id fallback), %d on the Store side (%d)", pairs[0], fallback[0], pairs[1], fallback[1])
 	for _, r := range harness {
 		t.Errorf("harness error on %s: %s", r.file.origin, r.harness)
+	}
+	if !strict {
+		return
+	}
+	for i, r := range failed {
+		if i == 50 {
+			t.Errorf("… and %d more", len(failed)-i)
+			break
+		}
+		where := ""
+		if r.Detail != nil {
+			where = r.Detail.Where
+		}
+		t.Errorf("%s (index %d): %s: %s", r.file.origin, r.file.index, r.Class, where)
+	}
+	if len(failed) > 0 {
+		t.Errorf("%d files compared and not equal", len(failed))
 	}
 }
 
@@ -367,13 +411,19 @@ func writeCorpusJSONL(path string, results []corpusResult) error {
 	enc := json.NewEncoder(w)
 	for _, r := range results {
 		line := struct {
+			Index    int     `json:"index"`
 			File     string  `json:"file"`
 			Class    string  `json:"class,omitempty"`
 			Excluded string  `json:"excluded,omitempty"`
 			Harness  string  `json:"harness,omitempty"`
 			Detail   *Detail `json:"detail,omitempty"`
+			Reruns   int     `json:"reruns,omitempty"`
+			Rerun    *Detail `json:"rerun,omitempty"` // the Pointer runs' first difference
+			Tokens   int     `json:"tokens,omitempty"`
+			Pairs    [2]int  `json:"pairs"`    // CompareSymbols, Pointer and Store
+			Fallback [2]int  `json:"fallback"` // of them, those that reach the ids
 			Millis   int64   `json:"ms"`
-		}{r.file.origin, r.Class, r.Excluded, r.harness, r.Detail, r.elapsed.Milliseconds()}
+		}{r.file.index, r.file.origin, r.Class, r.Excluded, r.harness, r.Detail, r.Reruns, r.Rerun, r.Tokens, r.Pairs, r.Fallback, r.elapsed.Milliseconds()}
 		if err := enc.Encode(line); err != nil {
 			f.Close()
 			return err

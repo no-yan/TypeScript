@@ -13,6 +13,10 @@ func (c *Checker) GetEffectiveDeclarationFlags(n store.Node, flagsToCheck ast.Mo
 	return c.getEffectiveDeclarationFlags(n, flagsToCheck)
 }
 
+func (c *Checker) CompareSymbols(s1, s2 *store.Symbol) int {
+	return c.compareSymbols(s1, s2)
+}
+
 func IsDistributedTypeParameter(t *Type) bool {
 	return t.flags&TypeFlagsTypeParameter != 0 && t.AsTypeParameter().isDistributed
 }

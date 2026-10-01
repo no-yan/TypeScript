@@ -17971,19 +17971,6 @@ func (c *Checker) popTypeResolution() bool {
 	return result
 }
 
-func (c *Checker) findResolutionCycleStartIndex(target TypeSystemEntity, propertyName TypeSystemPropertyName) int {
-	for i := len(c.typeResolutions) - 1; i >= c.resolutionStart; i-- {
-		resolution := &c.typeResolutions[i]
-		if c.typeResolutionHasProperty(resolution) {
-			return -1
-		}
-		if resolution.target == target && resolution.propertyName == propertyName {
-			return i
-		}
-	}
-	return -1
-}
-
 func (c *Checker) typeResolutionHasProperty(r *TypeResolution) bool {
 	switch r.propertyName {
 	case TypeSystemPropertyNameType:

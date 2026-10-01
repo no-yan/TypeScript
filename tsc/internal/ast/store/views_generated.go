@@ -5481,14 +5481,6 @@ func (n Node) Name() Node {
 	return n.s.node(e)
 }
 
-func (n Node) Type() Node {
-	var e NodeRef
-	if slot := typeSlot[n.h.kind&511]; slot != 0xFF {
-		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
-	}
-	return n.s.node(e)
-}
-
 func (n Node) Elements() List {
 	slot := elementsSlot[n.h.kind&511]
 	if slot == 0xFF {
@@ -5500,14 +5492,6 @@ func (n Node) Elements() List {
 func (n Node) DotDotDotToken() Node {
 	var e NodeRef
 	if slot := dotDotDotTokenSlot[n.h.kind&511]; slot != 0xFF {
-		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
-	}
-	return n.s.node(e)
-}
-
-func (n Node) QuestionToken() Node {
-	var e NodeRef
-	if slot := questionTokenSlot[n.h.kind&511]; slot != 0xFF {
 		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
 	}
 	return n.s.node(e)
@@ -5711,14 +5695,6 @@ func (n Node) Comment() List {
 		return List{n.s, NoListRef}
 	}
 	return n.s.list(ListRef(n.s.extra[int(n.h.data)+int(slot)]))
-}
-
-func (n Node) TypeExpression() Node {
-	var e NodeRef
-	if slot := typeExpressionSlot[n.h.kind&511]; slot != 0xFF {
-		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
-	}
-	return n.s.node(e)
 }
 
 func (n Node) Constraint() Node {

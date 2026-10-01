@@ -293,6 +293,31 @@ func (n Node) Text() string {
 	return n.s.text(int(n.h.data) + int(slot))
 }
 
+// Type is (*ast.Node).Type: one lookup, as a generated accessor makes, in
+// typeRoleSlot, typeSlot with the Pointer's case whose member is not named
+// Type: a JSDoc parameter or property tag gives its TypeExpression. It is not
+// generated, as the schema does not say so; a table, not the Pointer's
+// switch, keeps the hot accessor inline (2026-10-01). storeharness's
+// TestPolymorphicAccessors compares it with the Pointer's on every kind.
+func (n Node) Type() Node {
+	var e NodeRef
+	if slot := typeRoleSlot[n.h.kind&511]; slot != 0xFF {
+		e = NodeRef(n.s.extra[int(n.h.data)+int(slot)])
+	}
+	return n.s.node(e)
+}
+
+// typeRoleSlot is filled from typeSlot, after it: the init functions of a
+// package run in the order of its file names, and shapes_generated.go comes
+// before store.go (TestTypeRoleSlot).
+var typeRoleSlot [512]uint8
+
+func init() {
+	typeRoleSlot = typeSlot
+	typeRoleSlot[ast.KindJSDocParameterTag] = jsdocParameterOrPropertyTagTypeExpressionSlot
+	typeRoleSlot[ast.KindJSDocPropertyTag] = jsdocParameterOrPropertyTagTypeExpressionSlot
+}
+
 // text reads the [offset, length] pair at extra[at]. The offset's top bit
 // selects texts over src.
 func (s *Store) text(at int) string {

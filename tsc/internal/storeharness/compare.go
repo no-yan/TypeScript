@@ -2,7 +2,6 @@ package storeharness
 
 import (
 	"fmt"
-	"regexp"
 	"slices"
 	"strings"
 )
@@ -13,42 +12,29 @@ import (
 
 // Classes other than a difference's.
 const (
-	ClassEqual            = "equal"
-	ClassSyntheticImport  = "synthetic import (stage 2)"
-	ClassInternalIDToken  = "internal id token"
-	classCorrespondence   = "symbol correspondence"
-	classWalkNodeSet      = "walk: node set"
-	storePanicClassPrefix = "store panic: "
+	ClassEqual                  = "equal"
+	ClassInternalIDTokenPresent = "internal id token present" // tokens.go
+	classCorrespondence         = "symbol correspondence"
+	classWalkNodeSet            = "walk: node set"
+	storePanicClassPrefix       = "store panic: "
+	symbolOrderClassPrefix      = "compareSymbols: " // symbolorder.go
 )
-
-// internalIDToken are the numbers that the two sides may give differently:
-// the class symbol's id of a private name (#<id>@) and a unique symbol's id
-// (__@name@<id>, or with the internal prefix before escaping).
-var (
-	privateNameIDRe  = regexp.MustCompile(`#[0-9]+@`)
-	uniqueSymbolIDRe = regexp.MustCompile(`(__|\xFE)@([^@]*)@[0-9]+`)
-)
-
-func withoutIDs(s string) string {
-	s = privateNameIDRe.ReplaceAllString(s, "#@")
-	return uniqueSymbolIDRe.ReplaceAllString(s, "$1@$2@")
-}
 
 type comparison struct {
-	found   *Detail
-	class   string
-	idToken *Detail // the first difference that is only in the ids
+	found *Detail
+	class string
 }
 
 func (c *comparison) fail(class string, d Detail) {
 	c.class, c.found = class, &d
 }
 
-func compareRuns(p, s *run) (string, *Detail) {
+// compareRecords is the class of the first difference of the records in the
+// driver's order. The strings are compared as they are (review contracts
+// 2.5): an internal id token in them is counted apart (tokens.go), not taken
+// out.
+func compareRecords(p, s *run) (string, *Detail) {
 	if s.panicked != nil {
-		if s.panicked.message == syntheticImportPanic {
-			return ClassSyntheticImport, &Detail{Where: s.panicked.frame, Store: s.panicked.message}
-		}
 		return storePanicClassPrefix + first60(s.panicked.message) + " @ " + s.panicked.frame, &Detail{Where: s.panicked.frame, Store: s.panicked.message + "\n" + s.panicked.stack}
 	}
 	c := &comparison{}
@@ -60,13 +46,25 @@ func compareRuns(p, s *run) (string, *Detail) {
 	c.walk("type", p.types, s.types)
 	c.walk("symbol", p.symbols, s.symbols)
 	c.correspondence(p.symbols, s.symbols)
-	switch {
-	case c.found != nil:
+	if c.found != nil {
 		return c.class, c.found
-	case c.idToken != nil:
-		return ClassInternalIDToken, c.idToken
 	}
 	return ClassEqual, nil
+}
+
+// symbolOrderViolation is the class of the first violation of
+// CompareSymbols's properties, the Pointer's side first (symbolorder.go), or
+// "" for none.
+func symbolOrderViolation(p, s *run) (string, *Detail) {
+	for _, side := range []struct {
+		name  string
+		order symbolOrder
+	}{{"Pointer", p.order}, {"Store", s.order}} {
+		if side.order.property != "" {
+			return symbolOrderClassPrefix + side.order.property + " (" + side.name + ")", &Detail{Where: side.name + ": " + side.order.violation}
+		}
+	}
+	return "", nil
 }
 
 func first60(s string) string {
@@ -92,31 +90,17 @@ func (c *comparison) diagList(column string, file int, p, s []diag) {
 		return
 	}
 	for i := range p {
-		field, pv, sv := diagDiff(p[i], s[i], false)
+		field, pv, sv := diagDiff(p[i], s[i])
 		if field == "" {
 			continue
 		}
-		d := Detail{Where: fmt.Sprintf("%s #%d %s", where, i, field), Pointer: pv + " | " + p[i].String(), Store: sv + " | " + s[i].String()}
-		if other, _, _ := diagDiff(p[i], s[i], true); other == "" {
-			if c.idToken == nil {
-				c.idToken = &d
-			}
-			continue
-		}
-		c.fail("diag "+column+": "+field, d)
+		c.fail("diag "+column+": "+field, Detail{Where: fmt.Sprintf("%s #%d %s", where, i, field), Pointer: pv + " | " + p[i].String(), Store: sv + " | " + s[i].String()})
 		return
 	}
 }
 
-// diagDiff is the first field that differs, with the two values; the
-// strings of the message are compared without their ids when ids is set.
-func diagDiff(p, s diag, ids bool) (field, pv, sv string) {
-	str := func(v string) string {
-		if ids {
-			return withoutIDs(v)
-		}
-		return v
-	}
+// diagDiff is the first field that differs, with the two values.
+func diagDiff(p, s diag) (field, pv, sv string) {
 	type value struct {
 		name string
 		p, s any
@@ -128,8 +112,8 @@ func diagDiff(p, s diag, ids bool) (field, pv, sv string) {
 		{"Code", p.code, s.code},
 		{"Category", p.category, s.category},
 		{"MessageKey", p.messageKey, s.messageKey},
-		{"MessageArgs", strings.Join(mapStrings(p.messageArgs, str), "\x00"), strings.Join(mapStrings(s.messageArgs, str), "\x00")},
-		{"MessageText", str(p.messageText), str(s.messageText)},
+		{"MessageArgs", strings.Join(p.messageArgs, "\x00"), strings.Join(s.messageArgs, "\x00")},
+		{"MessageText", p.messageText, s.messageText},
 		{"Source", p.source, s.source},
 		{"ReportsUnnecessary", p.reportsUnnecessary, s.reportsUnnecessary},
 		{"ReportsDeprecated", p.reportsDeprecated, s.reportsDeprecated},
@@ -168,20 +152,12 @@ func diagDiff(p, s diag, ids bool) (field, pv, sv string) {
 			return nested.name + ".count", fmt.Sprint(len(nested.p)), fmt.Sprint(len(nested.s))
 		}
 		for i := range nested.p {
-			if field, pv, sv := diagDiff(nested.p[i], nested.s[i], ids); field != "" {
+			if field, pv, sv := diagDiff(nested.p[i], nested.s[i]); field != "" {
 				return nested.name + "." + field, pv, sv
 			}
 		}
 	}
 	return "", "", ""
-}
-
-func mapStrings(ss []string, f func(string) string) []string {
-	out := make([]string, len(ss))
-	for i, s := range ss {
-		out[i] = f(s)
-	}
-	return out
 }
 
 func (d diag) String() string {
@@ -214,14 +190,7 @@ func (c *comparison) walk(which string, p, s []walkRecord) {
 		if pr.present == sr.present && pr.value == sr.value {
 			continue
 		}
-		d := Detail{Where: where, Pointer: pr.shown(), Store: sr.shown()}
-		if pr.present && sr.present && withoutIDs(pr.value) == withoutIDs(sr.value) {
-			if c.idToken == nil {
-				c.idToken = &d
-			}
-			continue
-		}
-		c.fail("walk: "+which, d)
+		c.fail("walk: "+which, Detail{Where: where, Pointer: pr.shown(), Store: sr.shown()})
 		return
 	}
 	if len(p) != len(s) {

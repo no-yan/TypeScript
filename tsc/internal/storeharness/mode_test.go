@@ -134,19 +134,23 @@ func TestModeCorpus(t *testing.T) {
 	}
 }
 
-// specifierPairs are the pairs of the file's tree (storetest.Pairs), and of
-// the JSDoc of each host, whose Pointer node is a module specifier.
+// specifierPairs are the pairs of filePairs whose Pointer node is a module
+// specifier.
 func specifierPairs(t *testing.T, origin string, pf *ast.SourceFile, sf *store.File) []storetest.Pair {
+	pairs, _ := filePairs(t, origin, pf, sf)
+	return slices.DeleteFunc(pairs, func(pair storetest.Pair) bool { return specifierPlace(pair.P) == "" })
+}
+
+// filePairs are the pairs of the file's tree (storetest.Pairs), each host
+// followed by the pairs of its JSDoc, and how many of them are JSDoc's.
+func filePairs(t *testing.T, origin string, pf *ast.SourceFile, sf *store.File) (out []storetest.Pair, jsdoc int) {
 	pairs, m := storetest.Pairs(pf, sf.Store)
 	if pairs == nil {
 		t.Errorf("%s: the trees do not pair: %v", origin, m)
-		return nil
+		return nil, 0
 	}
-	var out []storetest.Pair
 	for _, pair := range pairs {
-		if specifierPlace(pair.P) != "" {
-			out = append(out, pair)
-		}
+		out = append(out, pair)
 		if pair.P.Flags&ast.NodeFlagsHasJSDoc == 0 {
 			continue
 		}
@@ -162,13 +166,12 @@ func specifierPairs(t *testing.T, origin string, pf *ast.SourceFile, sf *store.F
 				continue
 			}
 			for j, pn := range pointers {
-				if specifierPlace(pn) != "" {
-					out = append(out, storetest.Pair{P: pn, N: nodes[j]})
-				}
+				out = append(out, storetest.Pair{P: pn, N: nodes[j]})
 			}
+			jsdoc += len(pointers)
 		}
 	}
-	return out
+	return out, jsdoc
 }
 
 func preorderPointer(root *ast.Node) []*ast.Node {

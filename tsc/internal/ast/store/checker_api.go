@@ -83,6 +83,53 @@ func (n Node) CanHaveStatements() bool {
 	}
 }
 
+// QuestionToken is (*ast.Node).QuestionToken: the member of the four kinds
+// that have one, else the PostfixToken when it is a question token. It is not
+// generated: the fallback gives a member of another name, which the schema
+// does not say (store-checker-7d2b2-implementation-instructions-20261001.md
+// 3.1).
+func (n Node) QuestionToken() Node {
+	switch n.Kind() {
+	case ast.KindParameter:
+		return n.AsParameterDeclaration().QuestionToken()
+	case ast.KindConditionalExpression:
+		return n.AsConditionalExpression().QuestionToken()
+	case ast.KindMappedType:
+		return n.AsMappedTypeNode().QuestionToken()
+	case ast.KindNamedTupleMember:
+		return n.AsNamedTupleMember().QuestionToken()
+	}
+	postfix := n.PostfixToken()
+	if !postfix.IsNil() && postfix.Kind() == ast.KindQuestionToken {
+		return postfix
+	}
+	return Node{}
+}
+
+// TypeExpression is (*ast.Node).TypeExpression: it panics on the kinds the
+// Pointer's has no case for, JSDocOverloadTag and JSDocThisTag among them,
+// which have the member. It is not generated: a generated accessor would give
+// the member there.
+func (n Node) TypeExpression() Node {
+	switch n.Kind() {
+	case ast.KindJSDocParameterTag, ast.KindJSDocPropertyTag:
+		return n.AsJSDocParameterOrPropertyTag().TypeExpression()
+	case ast.KindJSDocReturnTag:
+		return n.AsJSDocReturnTag().TypeExpression()
+	case ast.KindJSDocTypeTag:
+		return n.AsJSDocTypeTag().TypeExpression()
+	case ast.KindJSDocTypedefTag:
+		return n.AsJSDocTypedefTag().TypeExpression()
+	case ast.KindJSDocCallbackTag:
+		return n.AsJSDocCallbackTag().TypeExpression()
+	case ast.KindJSDocSatisfiesTag:
+		return n.AsJSDocSatisfiesTag().TypeExpression()
+	case ast.KindJSDocThrowsTag:
+		return n.AsJSDocThrowsTag().TypeExpression()
+	}
+	panic("Unhandled case in Node.TypeExpression: " + n.Kind().String())
+}
+
 // GetResolutionModeOverride is (*ast.ImportAttributesNode).GetResolutionModeOverride.
 func (n Node) GetResolutionModeOverride(grammarErrorOnNode func(node Node, message *diagnostics.Message, args ...any) bool) (core.ResolutionMode, bool) {
 	if n.IsNil() {
@@ -287,10 +334,14 @@ func (s *OrderedNodeSet) Delete(n Node) bool {
 	return true
 }
 
+// Values ranges over the nodes in insertion order. It reads the length and
+// the element at each step, as the Pointer's OrderedMap.Keys does, so that a
+// node added while it ranges is visited too.
 func (s *OrderedNodeSet) Values() iter.Seq[Node] {
 	return func(yield func(Node) bool) {
-		for _, n := range s.keys {
-			if !yield(n) {
+		//nolint:intrange
+		for i := 0; i < len(s.keys); i++ {
+			if !yield(s.keys[i]) {
 				return
 			}
 		}

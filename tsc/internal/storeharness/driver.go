@@ -27,6 +27,8 @@ import (
 //
 // The diagnostics are the checker's, before the program's comment directives
 // and sorting. A panic ends the side's run: the checker is not used after it.
+// After everything is recorded, each side checks CompareSymbols on the
+// symbols of its symbol walk (symbolorder.go).
 
 // run is what the driver records of one side.
 type run struct {
@@ -35,6 +37,7 @@ type run struct {
 	global      []diag
 	types       []walkRecord
 	symbols     []walkRecord
+	order       symbolOrder
 	panicked    *panicInfo
 }
 
@@ -89,7 +92,10 @@ func Roots(pointer *compiler.Program, files map[string]string) (roots []*ast.Sou
 	return roots, missing
 }
 
-func runPointer(program *compiler.Program, roots []*ast.SourceFile) (r *run) {
+// runPointer runs the driver on the Pointer program. hadErrorBaseline, when
+// not nil, is the walker's hadErrorBaseline in place of the driver's rule
+// (the diagnostics of the run, before the comment directives: H1).
+func runPointer(program *compiler.Program, roots []*ast.SourceFile, hadErrorBaseline *bool) (r *run) {
 	r = &run{}
 	defer func() {
 		if v := recover(); v != nil {
@@ -107,6 +113,9 @@ func runPointer(program *compiler.Program, roots []*ast.SourceFile) (r *run) {
 	for i, f := range roots {
 		hadErrors = hadErrors || len(r.diags[i]) > 0 || len(f.Diagnostics()) > 0 || len(f.JSDiagnostics()) > 0 || len(f.BindDiagnostics()) > 0
 	}
+	if hadErrorBaseline != nil {
+		hadErrors = *hadErrorBaseline
+	}
 	w := &pointerWalker{checker: c, hadErrors: hadErrors}
 	for _, f := range roots {
 		r.types = append(r.types, w.walk(f, false /*isSymbolWalk*/)...)
@@ -114,6 +123,9 @@ func runPointer(program *compiler.Program, roots []*ast.SourceFile) (r *run) {
 	for _, f := range roots {
 		r.symbols = append(r.symbols, w.walk(f, true /*isSymbolWalk*/)...)
 	}
+	r.order = checkSymbolOrder(r.symbols,
+		func(a, b any) int { return c.CompareSymbols(a.(*ast.Symbol), b.(*ast.Symbol)) },
+		func(s any) string { return s.(*ast.Symbol).Name })
 	return r
 }
 
@@ -149,6 +161,9 @@ func runStore(build func() *Program, pointerRoots []*ast.SourceFile) (r *run) {
 	for _, f := range roots {
 		r.symbols = append(r.symbols, w.walk(f, true /*isSymbolWalk*/)...)
 	}
+	r.order = checkSymbolOrder(r.symbols,
+		func(a, b any) int { return c.CompareSymbols(a.(*store.Symbol), b.(*store.Symbol)) },
+		func(s any) string { return s.(*store.Symbol).Name })
 	return r
 }
 
@@ -235,10 +250,21 @@ func storeDiags(ds []*store.Diagnostic) []diag {
 
 // Result is the comparison of one program: its class (7.2), the first
 // difference that decided it, and the reason when it is excluded (7.1).
+// Tokens counts the internal id tokens of both sides (tokens.go); Pairs and
+// Fallback the pairs of CompareSymbols checked on each side, the Pointer's
+// first, and those that reach the id fallback (symbolorder.go). A program
+// excluded as the Pointer's nondeterminism keeps its class, and Rerun is the
+// first difference of the Pointer's records in its run Reruns from those of
+// its first run (Rerun.Pointer is the first run's, Rerun.Store the rerun's).
 type Result struct {
 	Class    string
 	Excluded string
 	Detail   *Detail
+	Tokens   int
+	Pairs    [2]int
+	Fallback [2]int
+	Rerun    *Detail
+	Reruns   int
 }
 
 // Detail is a difference: where it is and the two values.
@@ -248,14 +274,29 @@ type Detail struct {
 	Store   string `json:"store"`
 }
 
-// Exclusion reasons (7.1).
+// Exclusion reasons (store-checker-7d2b2-implementation-instructions-20261001.md
+// 5.2).
 const (
-	ExcludedMissingRoot   = "a root is not a source file of the Pointer program"
-	ExcludedPointerPanics = "Pointer panics"
+	ExcludedMissingRoot             = "a root is not a source file of the Pointer program"
+	ExcludedPointerPanics           = "Pointer panics"
+	ExcludedSyntheticImport         = "synthetic import (stage 2)"
+	ExcludedPointerNondeterministic = "Pointer nondeterministic"
 )
 
+// ExclusionReasons are the reasons, in the order the corpus logs them.
+var ExclusionReasons = []string{ExcludedMissingRoot, ExcludedPointerPanics, ExcludedSyntheticImport, ExcludedPointerNondeterministic}
+
+// pointerReruns is how many times a program that is not equal runs the
+// Pointer side again, to tell the Pointer's nondeterminism (5.2).
+const pointerReruns = 10
+
 // Compare builds the two programs of files, runs the driver on each side,
-// the Pointer first, and compares what they record.
+// the Pointer first, and compares what they record, then, when they record
+// the same, the properties of CompareSymbols on each side. A program whose
+// records differ (not by a Store panic, and with no internal id token) runs
+// the Pointer side again, from the program, up to pointerReruns times: a run
+// whose records are not the first run's, by the same comparison, excludes the
+// program as the Pointer's nondeterminism.
 func Compare(files map[string]string, options *core.CompilerOptions) Result {
 	pointer, panicked := tryPointerProgram(files, options)
 	if panicked != nil {
@@ -266,13 +307,40 @@ func Compare(files map[string]string, options *core.CompilerOptions) Result {
 		slices.Sort(missing)
 		return Result{Excluded: ExcludedMissingRoot, Detail: &Detail{Where: strings.Join(missing, ", ")}}
 	}
-	p := runPointer(pointer, roots)
+	p := runPointer(pointer, roots, nil)
 	if p.panicked != nil {
 		return Result{Excluded: ExcludedPointerPanics, Detail: &Detail{Where: p.panicked.frame, Pointer: p.panicked.message + "\n" + p.panicked.stack}}
 	}
 	s := runStore(func() *Program { return newProgram(pointer) }, roots)
-	class, detail := compareRuns(p, s)
-	return Result{Class: class, Detail: detail}
+	if s.panicked != nil && s.panicked.message == syntheticImportPanic {
+		return Result{Excluded: ExcludedSyntheticImport, Detail: &Detail{Where: s.panicked.frame, Store: s.panicked.message}}
+	}
+	r := Result{Pairs: [2]int{p.order.pairs, s.order.pairs}, Fallback: [2]int{p.order.fallback, s.order.fallback}}
+	pointerTokens, pointerWhere, pointerValue := idTokens(p)
+	storeTokens, storeWhere, storeValue := idTokens(s)
+	r.Tokens = pointerTokens + storeTokens
+	r.Class, r.Detail = compareRecords(p, s)
+	switch {
+	case pointerTokens > 0:
+		r.Class, r.Detail = ClassInternalIDTokenPresent, &Detail{Where: "Pointer " + pointerWhere, Pointer: pointerValue}
+	case storeTokens > 0:
+		r.Class, r.Detail = ClassInternalIDTokenPresent, &Detail{Where: "Store " + storeWhere, Store: storeValue}
+	case r.Class == ClassEqual:
+		if class, detail := symbolOrderViolation(p, s); class != "" {
+			r.Class, r.Detail = class, detail
+		}
+	case s.panicked == nil:
+		for r.Reruns < pointerReruns {
+			r.Reruns++
+			again := newPointerProgram(files, options)
+			againRoots, _ := Roots(again, files)
+			if class, detail := compareRecords(p, runPointer(again, againRoots, nil)); class != ClassEqual {
+				r.Excluded, r.Rerun = ExcludedPointerNondeterministic, &Detail{Where: class + ": " + detail.Where, Pointer: detail.Pointer, Store: detail.Store}
+				break
+			}
+		}
+	}
+	return r
 }
 
 // tryPointerProgram is newPointerProgram with its panic recovered: the

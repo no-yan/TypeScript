@@ -641,6 +641,34 @@ basePropertyCheck:
 	}
 }
 
+// findResolutionCycleStartIndex compares the targets, TypeSystemEntity (any),
+// with SameNode when both are a Node: pushTypeResolution puts a declaration
+// in one (TypeSystemPropertyNameInitializerIsUndefined), and == of two
+// interfaces holding a Node panics, a Node being uncomparable. Any other pair
+// is compared with ==, false when the dynamic types differ
+// (store-checker-7d2b2-implementation-instructions-20261001.md 3.3).
+//
+// storetranslate:pointer-hash 7215403e5af99e9c checker.go:Checker.findResolutionCycleStartIndex
+func (c *Checker) findResolutionCycleStartIndex(target TypeSystemEntity, propertyName TypeSystemPropertyName) int {
+	for i := len(c.typeResolutions) - 1; i >= c.resolutionStart; i-- {
+		resolution := &c.typeResolutions[i]
+		if c.typeResolutionHasProperty(resolution) {
+			return -1
+		}
+		var sameTarget bool
+		if node, ok := resolution.target.(store.Node); ok {
+			targetNode, ok := target.(store.Node)
+			sameTarget = ok && store.SameNode(node, targetNode)
+		} else {
+			sameTarget = resolution.target == target
+		}
+		if sameTarget && resolution.propertyName == propertyName {
+			return i
+		}
+	}
+	return -1
+}
+
 // checkUnusedLocalsAndParameters reads back the keys of a map keyed by a
 // node: as checkKindsOfPropertyMemberOverrides.
 //
