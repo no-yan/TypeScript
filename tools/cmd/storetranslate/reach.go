@@ -44,8 +44,9 @@ type reachResult struct {
 	roots  []string
 }
 
-// checkerRoots are the roots of 7d design 2.7, and the entries of the unit
-// equivalences of 7d-2a (6.2, 6.3).
+// checkerRoots are the roots of 7d design 2.7, the entries of the unit
+// equivalences of 7d-2a (6.2, 6.3), and what the type and symbol walker of
+// 7d-2b-1 calls (4).
 var checkerRoots = []string{
 	"checker.NewChecker",
 	"checker.Checker.GetDiagnostics",
@@ -59,6 +60,9 @@ var checkerRoots = []string{
 	"printer.NewPrinter",
 	"printer.Printer.Write",
 	"binder.NameResolver.Resolve",
+	"checker.Checker.SymbolToStringEx",
+	"checker.IntrinsicType.IntrinsicName",
+	"printer.EmitContext.Reset",
 }
 
 func computeReach(w *world) (*reachResult, error) {
@@ -115,6 +119,21 @@ func computeReach(w *world) (*reachResult, error) {
 	for _, o := range sortedOuts(w) {
 		for _, m := range o.handRefs {
 			r.followManual(&declInfo{w: w, key: "hand:" + m.key, out: o}, m)
+		}
+	}
+	// What the store-only P2 declarations name (7d-2b-1 instructions 3.2):
+	// they replace no Pointer declaration, so no reached declaration leads
+	// to them, and they are followed as the hand-written files are.
+	for _, o := range sortedOuts(w) {
+		var keys []string
+		for key, m := range o.manual {
+			if m.storeOnly {
+				keys = append(keys, key)
+			}
+		}
+		sort.Strings(keys)
+		for _, key := range keys {
+			r.followManual(&declInfo{w: w, key: "store-only:" + key, out: o}, o.manual[key])
 		}
 	}
 	// init functions and the files output whole.

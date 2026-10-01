@@ -446,16 +446,34 @@ func (c *Checker) getSymbolOfNode(node store.Node) *store.Symbol {
 	return nil
 }
 
-// checkIfExpressionRefinesParameter makes flow nodes of its own (a
-// TrueCondition and a FalseCondition on the expression): the Store's flows are
-// the rows of a source Bound, shared by the checkers and sealed, and there is
-// no synthetic flow. Out of the scope of 7d-2a (2026-09-30, the user's
-// decision): it panics, so that a check that reaches it fails where it is
-// rather than inferring no predicate.
+// checkIfExpressionRefinesParameter makes no flow node: the Pointer makes a
+// TrueCondition and a FalseCondition on the expression, and a Start when the
+// expression has no flow, but the Store's flows are the rows of a source
+// Bound, shared by the checkers and sealed. The synthetic flows are only ever
+// the start of the walk, and getTypeAtFlowNode on a Condition calls
+// getTypeAtFlowCondition, which reads Flags, Node and Antecedent; they are not
+// Shared. So the condition is evaluated directly, true then false
+// (getFlowTypeOfReferenceUnderCondition), with a nil antecedent for the
+// Pointer's Start (internal/ast/docs/store-checker-7d2a-implementation-report-20260930.md
+// 8.1, store-checker-7d2b1-implementation-instructions-20261001.md 3.1).
 //
 // storetranslate:pointer-hash 867f582282b847d0 checker.go:Checker.checkIfExpressionRefinesParameter
 func (c *Checker) checkIfExpressionRefinesParameter(fn store.Node, expr store.Node, param store.Node, initType *Type) *Type {
-	panic("storechecker: checkIfExpressionRefinesParameter needs synthetic flow nodes, which the Store does not have (out of the scope of 7d-2a)")
+	antecedent := getFlowNodeOfNode(expr)
+	if antecedent.IsNil() && store.IsReturnStatement(expr.Parent()) {
+		antecedent = getFlowNodeOfNode(expr.Parent())
+	}
+	trueType := c.getFlowTypeOfReferenceUnderCondition(param.Name(), initType, initType, fn, antecedent, expr, true /*assumeTrue*/)
+	if trueType == initType {
+		return nil
+	}
+	// "x is T" means that x is T if and only if it returns true. If it returns false then x is not T.
+	// This means that if the function is called with an argument of type trueType, there can't be anything left in the `else` branch. It must reduce to `never`.
+	falseSubtype := c.getReducedType(c.getFlowTypeOfReferenceUnderCondition(param.Name(), initType, trueType, fn, antecedent, expr, false /*assumeTrue*/))
+	if falseSubtype.flags&TypeFlagsNever != 0 {
+		return trueType
+	}
+	return nil
 }
 
 // checkKindsOfPropertyMemberOverrides reads back the keys of a map keyed by a

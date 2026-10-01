@@ -627,7 +627,7 @@ Pointer の実測 (2026-09-24、compiler プロジェクト、GC 2 回の後の 
 4. ~~7d-1 の実装指示書と検証指示書~~ 済 (2026-09-28): [実装指示書](store-checker-7d1-implementation-instructions-20260928.md)、[検証指示書](store-checker-7d1-verification-instructions-20260928.md)。7d-1 の実装と検証も済 (2026-09-29、2341effa51。[実装報告](store-checker-7d1-implementation-report-20260929.md) §10 の巻き戻された reparse の修正を含む)。
 5. ~~7d-2 の設計の残り~~ 済 (2026-09-29): [7d-2 設計の残り](store-checker-7d2-design-remainder-20260929.md)。checker の変換規則 R1〜R17、到達計算、P2、Store → Pointer の変換器と EmitContext、容量、(g)。7d-2 は 2a 変換 / 2b 等価 / 2c 性能の 3 小段に分け、指示書を小段ごとに書く。
 6. ~~7d-2a の実装指示書と検証指示書~~ 済 (2026-09-29): [実装指示書](store-checker-7d2a-implementation-instructions-20260929.md)、[検証指示書](store-checker-7d2a-verification-instructions-20260929.md)。7d-2a の実装・検証・修正も済 (2026-09-30、[実装報告](store-checker-7d2a-implementation-report-20260930.md)、[修正報告](store-checker-7d2a-fix-report-20260930.md))。
-7. 7d-2b の指示書。2b は 2 段に分ける (2026-09-30、ユーザー): 2b-1 はハーネスと 2b の最初の P2 を作って全テストを回し、不一致を原因ごとに分類して報告する。2b-2 はその分類を見て直し方を決めてから書く。
+7. 7d-2b の指示書。2b は 2 段に分ける (2026-09-30、ユーザー): 2b-1 はハーネスと 2b の最初の P2 を作って全テストを回し、不一致を原因ごとに分類して報告する。2b-2 はその分類を見て直し方を決めてから書く。 入力も段 1 (2a の corpus を 1 file ずつ) と段 2 (testrunner の全構成) に分ける。2b-1 (段 1) の指示書: [実装](store-checker-7d2b1-implementation-instructions-20261001.md)、[検証](store-checker-7d2b1-verification-instructions-20261001.md)。2b-1 の実装は済 (2026-10-01、[実装報告](store-checker-7d2b1-implementation-report-20261001.md)。corpus の equal は 95.7%、不一致の 739 / 749 file は store の API の 2 つの差)。2b-1 の検証も合格 (2026-10-01、[検証報告](store-checker-7d2b1-verification-report-20261001.md))。検証で見つけたハーネスの欠陥 3 件 (同 §7 の 1〜3) は 2b-2 で直す (2026-10-01、ユーザー)。
 
 零値の扱い (2026-09-26 に設計案を追加。2026-09-28 に 7d-0 で実装済み。以下は設計時の記録):
 

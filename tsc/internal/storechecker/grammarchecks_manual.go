@@ -15,6 +15,10 @@ import (
 // internal/ast/docs/store-checker-7d2a-implementation-instructions-20260929.md
 // 3.4.
 
+// checkGrammarForUseStrictSimpleParameterList passes the NodeRefs of the
+// statements to storebinder.FindUseStrictPrologue, which takes them (R15). The
+// body is a node of a source Store, whose list Refs gives.
+//
 // storetranslate:pointer-hash 20e5b70624236d99 grammarchecks.go:Checker.checkGrammarForUseStrictSimpleParameterList
 func (c *Checker) checkGrammarForUseStrictSimpleParameterList(node store.Node) bool {
 	if c.languageVersion >= core.ScriptTargetES2016 {

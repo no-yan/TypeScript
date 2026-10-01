@@ -121,6 +121,10 @@ func (c *Checker) symbolToString(symbol *store.Symbol) string {
 	return c.symbolToStringEx(symbol, store.Node{}, ast.SymbolFlagsAll, SymbolFormatFlagsAllowAnyNodeKind)
 }
 
+func (c *Checker) SymbolToStringEx(symbol *store.Symbol, enclosingDeclaration store.Node, meaning ast.SymbolFlags, flags SymbolFormatFlags) string {
+	return c.symbolToStringEx(symbol, enclosingDeclaration, meaning, flags)
+}
+
 func (c *Checker) symbolToStringEx(symbol *store.Symbol, enclosingDeclaration store.Node, meaning ast.SymbolFlags, flags SymbolFormatFlags) string {
 	writer, putWriter := storeprinter.GetSingleLineStringWriter()
 	defer putWriter()

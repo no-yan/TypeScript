@@ -19,13 +19,20 @@ import (
 // Pointer declaration of the same name. It carries the hash of that
 // declaration's source, and the translation stops when the Pointer source
 // changes. A List version <F>List (3.4) carries the hash of F.
+//
+// A P2 declaration may carry more than one hash line (7d-2b-1 instructions
+// 3.2): the hash of every Pointer declaration it copies, each checked. A
+// replacement names exactly one of them (itself or <name>List). A store-only
+// declaration, marked by a storetranslate:store-only line, replaces none: its
+// name is not the Pointer's, and its hash lines name the declarations it
+// copies. A P2 declaration without the mark whose name the Pointer lacks
+// stops the translation, so that a misspelt name is not taken as a helper.
 
 type manualDecl struct {
-	key     string // name, Type.name or type name, in the output package
-	pointer string // the Pointer declaration it replaces: its key in the source package
-	hash    string
-	file    string // the Pointer declaration's file (base name)
-	isType  bool
+	key       string // name, Type.name or type name, in the output package
+	hashes    []hashLine
+	storeOnly bool
+	isType    bool
 	// names are the identifiers of the Store body, and quals the qualified
 	// names (package name -> names): the reach follows them instead of the
 	// Pointer body.
@@ -34,7 +41,16 @@ type manualDecl struct {
 	sels  []string // the selector names (methods)
 }
 
-var hashRe = regexp.MustCompile(`^// storetranslate:pointer-hash ([0-9a-f]{16}) (\S+):(\S+)$`)
+// hashLine is a storetranslate:pointer-hash line: a Pointer declaration (its
+// key in the source package, and its file's base name) and its hash.
+type hashLine struct {
+	hash, file, pointer string
+}
+
+var (
+	hashRe      = regexp.MustCompile(`^// storetranslate:pointer-hash ([0-9a-f]{16}) (\S+):(\S+)$`)
+	storeOnlyRe = regexp.MustCompile(`^// storetranslate:store-only$`)
+)
 
 // readManuals reads the *_manual.go files of every output package and checks
 // each hash against the Pointer declaration.
@@ -105,27 +121,55 @@ func readManualFile(w *world, o *outPkg, path string) ([]string, error) {
 		if doc != nil {
 			for _, c := range doc.List {
 				if sub := hashRe.FindStringSubmatch(c.Text); sub != nil {
-					m.hash, m.file, m.pointer = sub[1], sub[2], sub[3]
+					m.hashes = append(m.hashes, hashLine{hash: sub[1], file: sub[2], pointer: sub[3]})
+				}
+				if storeOnlyRe.MatchString(c.Text) {
+					m.storeOnly = true
 				}
 			}
 		}
-		if m.hash == "" {
+		if len(m.hashes) == 0 {
 			errs = append(errs, fmt.Sprintf("%s: %s: no storetranslate:pointer-hash line", base, key))
 			continue
 		}
-		if m.pointer != key && m.pointer+"List" != key {
-			errs = append(errs, fmt.Sprintf("%s: %s: the hash names %s", base, key, m.pointer))
+		if m.storeOnly {
+			if w.decl(o.srcPath, key) != nil {
+				errs = append(errs, fmt.Sprintf("%s: %s: marked store-only, but it names the Pointer declaration %s in %s: make it a replacement", base, key, key, o.src))
+				continue
+			}
+		} else {
+			var replaced []string
+			for _, h := range m.hashes {
+				if h.pointer == key || h.pointer+"List" == key {
+					replaced = append(replaced, h.pointer)
+				}
+			}
+			if len(replaced) != 1 {
+				var named []string
+				for _, h := range m.hashes {
+					named = append(named, h.pointer)
+				}
+				errs = append(errs, fmt.Sprintf("%s: %s: the hash lines name %s, and one must name the declaration it replaces (%s or its List version; a helper of the Store's own is marked storetranslate:store-only)", base, key, strings.Join(named, ", "), key))
+				continue
+			}
 		}
-		pd := w.decl(o.srcPath, m.pointer)
-		if pd == nil {
-			errs = append(errs, fmt.Sprintf("%s: %s: no declaration %s in %s", base, key, m.pointer, o.src))
+		broken := false
+		for _, h := range m.hashes {
+			pd := w.decl(o.srcPath, h.pointer)
+			if pd == nil {
+				errs = append(errs, fmt.Sprintf("%s: %s: no declaration %s in %s", base, key, h.pointer, o.src))
+				broken = true
+				continue
+			}
+			if pd.fileName != h.file {
+				errs = append(errs, fmt.Sprintf("%s: %s: the Pointer declaration is in %s, not %s", base, key, pd.fileName, h.file))
+			}
+			if got := pd.hash(); got != h.hash {
+				errs = append(errs, fmt.Sprintf("%s: %s: the Pointer declaration %s changed (hash %s, recorded %s): check the P2 version against it and update the hash", base, key, h.pointer, got, h.hash))
+			}
+		}
+		if broken {
 			continue
-		}
-		if pd.fileName != m.file {
-			errs = append(errs, fmt.Sprintf("%s: %s: the Pointer declaration is in %s, not %s", base, key, pd.fileName, m.file))
-		}
-		if got := pd.hash(); got != m.hash {
-			errs = append(errs, fmt.Sprintf("%s: %s: the Pointer declaration %s changed (hash %s, recorded %s): check the P2 version against it and update the hash", base, key, m.pointer, got, m.hash))
 		}
 		m.names, m.quals, m.sels = bodyRefs(body)
 		o.manual[key] = m

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"maps"
 	"os"
 	"path/filepath"
 	"strings"
@@ -281,4 +282,121 @@ func hashRe16(s string) string {
 	const marker = "storetranslate:pointer-hash "
 	i := strings.Index(s, marker) + len(marker)
 	return s[:i] + "0000000000000000" + s[i+16:]
+}
+
+// The hash lines and the store-only mark of 7d-2b-1 (instructions 3.2): the
+// P2 files of the storechecker output, and temporary P2 files read into the
+// same world.
+
+var manualTestWorld *world
+
+// manualWorld is the world with the committed P2 files read, loaded once.
+func manualWorld(t *testing.T) *world {
+	t.Helper()
+	if manualTestWorld == nil {
+		w, err := loadWorld(testRoot(t), nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := readManuals(w); err != nil {
+			t.Fatalf("the committed P2 files do not check: %v", err)
+		}
+		manualTestWorld = w
+	}
+	return manualTestWorld
+}
+
+// readTempManual reads src as a P2 file of the storechecker output. The P2
+// table is restored after the test.
+func readTempManual(t *testing.T, w *world, src string) []string {
+	t.Helper()
+	o := w.outs[internal+"checker"]
+	before := maps.Clone(o.manual)
+	t.Cleanup(func() { o.manual = before })
+	path := filepath.Join(t.TempDir(), "temp_manual.go")
+	if err := os.WriteFile(path, []byte(src), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	errs, err := readManualFile(w, o, path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return errs
+}
+
+// hashLineOf is the hash line of a declaration of package checker.
+func hashLineOf(t *testing.T, w *world, key string) string {
+	t.Helper()
+	d := w.decl(internal+"checker", key)
+	if d == nil {
+		t.Fatalf("no declaration checker.%s", key)
+	}
+	return "// storetranslate:pointer-hash " + d.hash() + " " + d.fileName + ":" + key
+}
+
+// A P2 declaration with two hash lines stops the translation when the Pointer
+// declaration of the second line changes: the committed getTypeAtSyntheticCondition
+// with the hash of getTypeAtFlowCondition, its second line, replaced.
+func TestManualSecondHash(t *testing.T) {
+	w := manualWorld(t)
+	manual, err := os.ReadFile(filepath.Join(w.outs[internal+"checker"].dir, "flow_manual.go"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	first := hashLineOf(t, w, "Checker.getTypeAtFlowNode")
+	second := hashLineOf(t, w, "Checker.getTypeAtFlowCondition")
+	if i, j := strings.Index(string(manual), first), strings.Index(string(manual), second); i < 0 || j < i {
+		t.Fatalf("flow_manual.go lacks the hash lines %q then %q", first, second)
+	}
+	changed := strings.Replace(string(manual), second, strings.Replace(second, second[len("// storetranslate:pointer-hash "):][:16], "0000000000000000", 1), 1)
+	all := strings.Join(readTempManual(t, w, changed), "\n")
+	if !strings.Contains(all, "the Pointer declaration Checker.getTypeAtFlowCondition changed (hash") {
+		t.Fatalf("a changed second hash did not stop the translation: %v", all)
+	}
+	if strings.Contains(all, "Checker.getTypeAtFlowNode changed") {
+		t.Fatalf("the unchanged first hash is reported: %v", all)
+	}
+}
+
+// A P2 declaration without the store-only mark whose name the Pointer lacks
+// (a misspelt name) stops the translation.
+func TestManualUnmarkedName(t *testing.T) {
+	w := manualWorld(t)
+	src := "package storechecker\n\n" + hashLineOf(t, w, "Checker.getTypeAtFlowNode") + "\nfunc (c *Checker) getTypeAtFlowNod() {}\n"
+	all := strings.Join(readTempManual(t, w, src), "\n")
+	if !strings.Contains(all, "Checker.getTypeAtFlowNod: the hash lines name Checker.getTypeAtFlowNode, and one must name the declaration it replaces") {
+		t.Fatalf("an unmarked P2 of a name the Pointer lacks did not stop the translation: %v", all)
+	}
+}
+
+// A P2 declaration with the store-only mark whose name the Pointer has stops
+// the translation: it is a replacement.
+func TestManualMarkedPointerName(t *testing.T) {
+	w := manualWorld(t)
+	src := "package storechecker\n\n// storetranslate:store-only\n" + hashLineOf(t, w, "Checker.getTypeAtFlowNode") + "\nfunc (c *Checker) getTypeAtFlowNode() {}\n"
+	all := strings.Join(readTempManual(t, w, src), "\n")
+	if !strings.Contains(all, "Checker.getTypeAtFlowNode: marked store-only, but it names the Pointer declaration Checker.getTypeAtFlowNode") {
+		t.Fatalf("a store-only P2 of a Pointer name did not stop the translation: %v", all)
+	}
+}
+
+// The reach follows what the body of a store-only P2 declaration names:
+// GetSymbolsInScope, which the roots do not reach (TestReach).
+func TestManualStoreOnlyReach(t *testing.T) {
+	w := manualWorld(t)
+	src := "package storechecker\n\n// storetranslate:store-only\n" + hashLineOf(t, w, "Checker.getTypeAtFlowNode") + "\nfunc (c *Checker) reachedByStoreOnly() { c.GetSymbolsInScope(store.Node{}, 0) }\n"
+	if errs := readTempManual(t, w, src); len(errs) > 0 {
+		t.Fatalf("the store-only P2 does not check: %v", errs)
+	}
+	res, err := computeReach(w)
+	if err != nil {
+		t.Fatal(err)
+	}
+	key := internal + "checker.Checker.GetSymbolsInScope"
+	if !res.output[key] {
+		t.Fatal("GetSymbolsInScope is not reached")
+	}
+	if from, want := res.from[key], internal+"checker.store-only:Checker.reachedByStoreOnly"; from != want {
+		t.Fatalf("GetSymbolsInScope is reached from %q, not %q", from, want)
+	}
 }

@@ -770,6 +770,8 @@ type IntrinsicType struct {
 	intrinsicName string
 }
 
+func (t *IntrinsicType) IntrinsicName() string { return t.intrinsicName }
+
 type LiteralType struct {
 	TypeBase
 	value       any   // string | jsnum.Number | bool | PseudoBigInt | nil (computed enum)
