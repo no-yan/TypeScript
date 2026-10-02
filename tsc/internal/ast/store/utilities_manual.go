@@ -83,6 +83,20 @@ func SetParseJSDocForNode(parse func(f *File, host Node) []Node) {
 //
 // storetranslate:pointer-hash 2d51f4a544629e45 utilities.go:GetSymbolId
 func GetSymbolId(s *Symbol) uint64 {
+	if id := s.gid.Load(); id != 0 {
+		return id
+	}
+	return newGetSymbolId(s)
+}
+
+// newGetSymbolId is the slow side of GetSymbolId, out of line so that
+// GetSymbolId is within the inline budget.
+//
+// storetranslate:store-only
+// storetranslate:pointer-hash 2d51f4a544629e45 utilities.go:GetSymbolId
+//
+//go:noinline
+func newGetSymbolId(s *Symbol) uint64 {
 	id := s.gid.Load()
 	if id == 0 {
 		// Worst case, we burn a few ids if we have to CAS.
@@ -329,4 +343,96 @@ func GetSemanticJsxChildrenList(children List) []Node {
 			return true
 		}
 	})
+}
+
+// The ancestor walks below are the generated versions reshaped to stay within
+// the inline budget (store-checker-7d2c-accessor-tax-report-20261002.md 2):
+// the rare side of each is a noinline call, and FindAncestorOrQuit reads the
+// header and the parent edge directly.
+
+// storetranslate:pointer-hash 2978672a03f3135f utilities.go:FindAncestorOrQuit
+func FindAncestorOrQuit(node Node, callback func(Node) ast.FindAncestorResult) Node {
+	for node.h != nil && node.h.kind != ast.KindUnknown { // !node.IsNil()
+		switch callback(node) {
+		case ast.FindAncestorQuit:
+			return Node{}
+		case ast.FindAncestorTrue:
+			return node
+		}
+		node = node.s.node(node.h.parent)
+	}
+	return Node{}
+}
+
+// storetranslate:pointer-hash dca65bd012276201 utilities.go:GetRootDeclaration
+func GetRootDeclaration(node Node) Node {
+	if node.Kind() == ast.KindBindingElement {
+		return getRootDeclarationOfBindingElement(node)
+	}
+	return node
+}
+
+// storetranslate:store-only
+// storetranslate:pointer-hash dca65bd012276201 utilities.go:GetRootDeclaration
+//
+//go:noinline
+func getRootDeclarationOfBindingElement(node Node) Node {
+	for node.Kind() == ast.KindBindingElement {
+		node = node.Parent().Parent()
+	}
+	return node
+}
+
+// GetCombinedNodeFlags takes the walk only for the kinds it climbs from; any
+// other kind combines its own flags alone.
+//
+// storetranslate:pointer-hash 83da3d18b6ace2cc utilities.go:GetCombinedNodeFlags
+func GetCombinedNodeFlags(node Node) ast.NodeFlags {
+	switch node.Kind() {
+	case ast.KindBindingElement, ast.KindVariableDeclaration, ast.KindVariableDeclarationList:
+		return getCombinedNodeFlags(node)
+	}
+	return node.Flags()
+}
+
+// storetranslate:store-only
+// storetranslate:pointer-hash 83da3d18b6ace2cc utilities.go:GetCombinedNodeFlags
+//
+//go:noinline
+func getCombinedNodeFlags(node Node) ast.NodeFlags {
+	node = GetRootDeclaration(node)
+	flags := node.Flags()
+	if node.Kind() == ast.KindVariableDeclaration {
+		node = node.Parent()
+	}
+	if !node.IsNil() && node.Kind() == ast.KindVariableDeclarationList {
+		flags |= node.Flags()
+		node = node.Parent()
+	}
+	if !node.IsNil() && node.Kind() == ast.KindVariableStatement {
+		flags |= node.Flags()
+	}
+	return flags
+}
+
+// storetranslate:pointer-hash f831f76b089fef80 utilities.go:IsGlobalSourceFile
+func IsGlobalSourceFile(node Node) bool {
+	return node.Kind() == ast.KindSourceFile && isGlobalSourceFile(node)
+}
+
+// storetranslate:store-only
+// storetranslate:pointer-hash f831f76b089fef80 utilities.go:IsGlobalSourceFile
+//
+//go:noinline
+func isGlobalSourceFile(node Node) bool {
+	return !IsExternalOrCommonJSModule(node.File())
+}
+
+// HasQuestionToken reads the kind directly: QuestionToken gives a node of its
+// Store or Node{}, and no sentinel is of kind QuestionToken.
+//
+// storetranslate:pointer-hash 8df070f5dc4fd89b utilities.go:HasQuestionToken
+func HasQuestionToken(node Node) bool {
+	t := node.QuestionToken()
+	return t.h != nil && t.h.kind == ast.KindQuestionToken
 }

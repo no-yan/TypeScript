@@ -108,18 +108,20 @@ func (k NodeKey) ID() NodeRef      { return k.id }
 
 func (s *Store) ID() StoreID { return s.id }
 
-// node resolves an edge. The foreign side is written out here rather than
-// called: as a call, Parent() went over the inline budget (7d design 2.6).
-// An out-of-range value without foreignBit panics in every build, so that a
-// corrupt small value cannot silently name a foreign entry.
+// node resolves an edge. An out-of-range value is a foreign edge; xor rather
+// than &^ removes foreignBit, so that a corrupt value without it indexes past
+// any foreignNodes (at least 1<<31) and the bounds check panics in every build
+// without a branch of its own, which keeps FindAncestor and the other walks
+// over Parent within the inline budget. A storeChecks build also names the
+// fault.
 func (s *Store) node(e NodeRef) Node {
 	if i := int(e); i < len(s.nodes) {
 		return Node{s: s, h: &s.nodes[i]}
 	}
-	if e&foreignBit == 0 {
+	if storeChecks && e&foreignBit == 0 {
 		panic("store: invalid node edge")
 	}
-	return s.foreignNodes[e&^foreignBit]
+	return s.foreignNodes[e^foreignBit]
 }
 
 // list resolves a list edge (a list slot) to the canonical List: the elements
@@ -180,25 +182,13 @@ func (n Node) Key() NodeKey {
 // Store knows its file; a synthetic node walks its parents to one, or to nil.
 // It never guesses from the file being checked or from an Original.
 func (n Node) File() *File {
-	if n.IsNil() {
-		return nil
-	}
-	if f := n.s.file; f != nil {
-		return f
-	}
-	return n.parentFile()
-}
-
-func (n Node) parentFile() *File {
-	for {
-		n = n.Parent()
-		if n.IsNil() {
-			return nil
-		}
+	for !n.IsNil() {
 		if f := n.s.file; f != nil {
 			return f
 		}
+		n = n.Parent()
 	}
+	return nil
 }
 
 // PropertyNameOrName is (*ast.Node).PropertyNameOrName.

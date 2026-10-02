@@ -5,7 +5,7 @@
 // internal/ast/docs/store-checker-design-20260923.md 2.1). The functions the
 // rules do not cover are written by hand in utilities_manual.go (P2).
 //
-// Reach: 451 functions of package ast that the roots of tools/cmd/storetranslate
+// Reach: 446 functions of package ast that the roots of tools/cmd/storetranslate
 // name in their bodies, called or as a value, transitively.
 
 package store
@@ -1466,19 +1466,6 @@ func FindAncestorKind(node Node, kind ast.Kind) Node {
 	return Node{}
 }
 
-func FindAncestorOrQuit(node Node, callback func(Node) ast.FindAncestorResult) Node {
-	for !node.IsNil() {
-		switch callback(node) {
-		case ast.FindAncestorQuit:
-			return Node{}
-		case ast.FindAncestorTrue:
-			return node
-		}
-		node = node.Parent()
-	}
-	return Node{}
-}
-
 func IsNodeDescendantOf(node Node, ancestor Node) bool {
 	for !node.IsNil() {
 		if SameNode(node, ancestor) {
@@ -1632,13 +1619,6 @@ func ForEachReturnStatement(body Node, visitor func(stmt Node) bool) bool {
 	return traverse(body)
 }
 
-func GetRootDeclaration(node Node) Node {
-	for node.Kind() == ast.KindBindingElement {
-		node = node.Parent().Parent()
-	}
-	return node
-}
-
 func GetCombinedModifierFlags(node Node) ast.ModifierFlags {
 	node = GetRootDeclaration(node)
 	flags := node.ModifierFlags()
@@ -1651,22 +1631,6 @@ func GetCombinedModifierFlags(node Node) ast.ModifierFlags {
 	}
 	if !node.IsNil() && node.Kind() == ast.KindVariableStatement {
 		flags |= node.ModifierFlags()
-	}
-	return flags
-}
-
-func GetCombinedNodeFlags(node Node) ast.NodeFlags {
-	node = GetRootDeclaration(node)
-	flags := node.Flags()
-	if node.Kind() == ast.KindVariableDeclaration {
-		node = node.Parent()
-	}
-	if !node.IsNil() && node.Kind() == ast.KindVariableDeclarationList {
-		flags |= node.Flags()
-		node = node.Parent()
-	}
-	if !node.IsNil() && node.Kind() == ast.KindVariableStatement {
-		flags |= node.Flags()
 	}
 	return flags
 }
@@ -2681,10 +2645,6 @@ func IsConstTypeReference(node Node) bool {
 	return IsTypeReferenceNode(node) && node.TypeArguments().Len() == 0 && IsIdentifier(node.AsTypeReferenceNode().TypeName()) && node.AsTypeReferenceNode().TypeName().Text() == "const"
 }
 
-func IsGlobalSourceFile(node Node) bool {
-	return node.Kind() == ast.KindSourceFile && !IsExternalOrCommonJSModule(node.File())
-}
-
 func GetDeclarationOfKind(symbol *Symbol, kind ast.Kind) Node {
 	for _, declaration := range symbol.Declarations {
 		if declaration.Kind() == kind {
@@ -3236,10 +3196,6 @@ func IsRightSideOfQualifiedNameOrPropertyAccess(node Node) bool {
 		return SameNode(parent.AsMetaProperty().Name(), node)
 	}
 	return false
-}
-
-func HasQuestionToken(node Node) bool {
-	return IsQuestionToken(node.QuestionToken())
 }
 
 func IsJsxOpeningLikeElement(node Node) bool {
