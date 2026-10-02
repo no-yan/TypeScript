@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strconv"
+	"strings"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store"
@@ -167,6 +169,55 @@ func nodeKey(file ast.HasFileName, node store.Node) string {
 }
 
 func pathKey(file ast.HasFileName) string { return string(file.Path()) }
+
+// nodeKeyOf is nodeKey as a map key, for FixtureProgram's lookups: making the
+// string of nodeKey on every call cost more than the lookup
+// (store-checker-7d2c-abc-implementation-instructions-20261002.md 3).
+// The file is the program's Store file of the key's path: hashing the path
+// was most of the lookup.
+type nodeKeyOf struct {
+	file     *store.File
+	pos, end int32
+	kind     ast.Kind
+}
+
+func (p *FixtureProgram) nodeKeyFor(file ast.HasFileName, node store.Node) nodeKeyOf {
+	f, ok := file.(*store.File)
+	if !ok {
+		f = p.byPath[string(file.Path())]
+	}
+	return nodeKeyOf{f, node.Pos(), node.End(), node.Kind()}
+}
+
+// byNodeKey makes a map of nodeKey strings into one of nodeKeyOf. Run it once
+// byPath is complete.
+func byNodeKey[V any](p *FixtureProgram, m map[string]V) map[nodeKeyOf]V {
+	out := make(map[nodeKeyOf]V, len(m))
+	for k, v := range m {
+		rest, kind, ok1 := cutLast(k)
+		rest, end, ok2 := cutLast(rest)
+		path, pos, ok3 := cutLast(rest)
+		if !ok1 || !ok2 || !ok3 {
+			panic("fixture: bad node key " + k)
+		}
+		f := p.byPath[path]
+		if f == nil {
+			panic("fixture: node key of a file not in the program " + k)
+		}
+		out[nodeKeyOf{f, int32(pos), int32(end), ast.Kind(kind)}] = v
+	}
+	return out
+}
+
+// cutLast splits "s|n" into s and n.
+func cutLast(k string) (string, int, bool) {
+	i := strings.LastIndexByte(k, '|')
+	if i < 0 {
+		return "", 0, false
+	}
+	n, err := strconv.Atoi(k[i+1:])
+	return k[:i], n, err == nil
+}
 
 // WriteFixture writes f as JSON to name.
 func WriteFixture(f *Fixture, name string) error {
@@ -528,7 +579,93 @@ type FixtureProgram struct {
 	jsxImports    map[tspath.Path]store.Node
 	symlinks      *symlinks.KnownSymlinks
 	packageJsons  map[string]*packagejson.InfoCacheEntry // one entry for a path, as the program's cache
-	Calls         map[string]int
+	emitSyntax    map[nodeKeyOf]int32
+	usageMode     map[nodeKeyOf]int32
+	fromSpecifier map[nodeKeyOf]int
+	Calls         [numCalls]int // by call; CallCounts names them
+}
+
+// call names a method of FixtureProgram for Calls: a map of the names cost
+// more than the lookups they count
+// (store-checker-7d2c-abc-implementation-instructions-20261002.md 3.1).
+type call int
+
+const (
+	callGetSourceFile call = iota
+	callGetSourceFileForResolvedModule
+	callFileExists
+	callSourceFileMayBeEmitted
+	callGetEmitModuleFormatOfFile
+	callGetImpliedNodeFormatForEmit
+	callGetEmitSyntaxForUsageLocation
+	callGetModeForUsageLocation
+	callGetDefaultResolutionModeForFile
+	callGetResolvedModule
+	callGetResolvedModuleFromModuleSpecifier
+	callGetSourceFileMetaData
+	callIsSourceFileDefaultLibrary
+	callGetRedirectForResolution
+	callGetProjectReferenceFromOutputDts
+	callGetProjectReferenceFromSource
+	callGetPackageJsonInfo
+	callGetRedirectTargets
+	callGetSourceOfProjectReferenceIfOutputIncluded
+	callGetNearestAncestorDirectoryWithPackageJson
+	callGetJSXRuntimeImportSpecifier
+	callResolvedModules
+	callPackagesMap
+	callSymlinkCache
+	callCommonSourceDirectory
+	callContentMapperExtensions
+	callGlobalTypingsLocation
+	callUseCaseSensitiveFileNames
+	callCurrentDirectory
+	callGetImportHelpersImportSpecifier
+	numCalls
+)
+
+var callNames = [numCalls]string{
+	callGetSourceFile:                               "GetSourceFile",
+	callGetSourceFileForResolvedModule:              "GetSourceFileForResolvedModule",
+	callFileExists:                                  "FileExists",
+	callSourceFileMayBeEmitted:                      "SourceFileMayBeEmitted",
+	callGetEmitModuleFormatOfFile:                   "GetEmitModuleFormatOfFile",
+	callGetImpliedNodeFormatForEmit:                 "GetImpliedNodeFormatForEmit",
+	callGetEmitSyntaxForUsageLocation:               "GetEmitSyntaxForUsageLocation",
+	callGetModeForUsageLocation:                     "GetModeForUsageLocation",
+	callGetDefaultResolutionModeForFile:             "GetDefaultResolutionModeForFile",
+	callGetResolvedModule:                           "GetResolvedModule",
+	callGetResolvedModuleFromModuleSpecifier:        "GetResolvedModuleFromModuleSpecifier",
+	callGetSourceFileMetaData:                       "GetSourceFileMetaData",
+	callIsSourceFileDefaultLibrary:                  "IsSourceFileDefaultLibrary",
+	callGetRedirectForResolution:                    "GetRedirectForResolution",
+	callGetProjectReferenceFromOutputDts:            "GetProjectReferenceFromOutputDts",
+	callGetProjectReferenceFromSource:               "GetProjectReferenceFromSource",
+	callGetPackageJsonInfo:                          "GetPackageJsonInfo",
+	callGetRedirectTargets:                          "GetRedirectTargets",
+	callGetSourceOfProjectReferenceIfOutputIncluded: "GetSourceOfProjectReferenceIfOutputIncluded",
+	callGetNearestAncestorDirectoryWithPackageJson:  "GetNearestAncestorDirectoryWithPackageJson",
+	callGetJSXRuntimeImportSpecifier:                "GetJSXRuntimeImportSpecifier",
+	callResolvedModules:                             "ResolvedModules",
+	callPackagesMap:                                 "PackagesMap",
+	callSymlinkCache:                                "SymlinkCache",
+	callCommonSourceDirectory:                       "CommonSourceDirectory",
+	callContentMapperExtensions:                     "ContentMapperExtensions",
+	callGlobalTypingsLocation:                       "GlobalTypingsLocation",
+	callUseCaseSensitiveFileNames:                   "UseCaseSensitiveFileNames",
+	callCurrentDirectory:                            "CurrentDirectory",
+	callGetImportHelpersImportSpecifier:             "GetImportHelpersImportSpecifier",
+}
+
+// CallCounts is Calls by method name, without the methods not called.
+func (p *FixtureProgram) CallCounts() map[string]int {
+	m := map[string]int{}
+	for c, n := range p.Calls {
+		if n != 0 {
+			m[callNames[c]] = n
+		}
+	}
+	return m
 }
 
 var _ storechecker.Program = (*FixtureProgram)(nil)
@@ -545,13 +682,15 @@ func NewFixtureProgram(f *Fixture) *FixtureProgram {
 		helperImports: map[tspath.Path]store.Node{},
 		jsxImports:    map[tspath.Path]store.Node{},
 		packageJsons:  map[string]*packagejson.InfoCacheEntry{},
-		Calls:         map[string]int{},
 	}
 	for i, ff := range f.Files {
 		sf := storeparser.ParseSourceFileIn(p.space, store.StoreID(i), ff.ParseOptions, string(ff.Text), ff.ScriptKind)
 		p.files[i] = sf
 		p.byPath[string(sf.Path())] = sf
 	}
+	p.emitSyntax = byNodeKey(p, f.EmitSyntax)
+	p.usageMode = byNodeKey(p, f.UsageMode)
+	p.fromSpecifier = byNodeKey(p, f.FromSpecifier)
 	for i, ff := range f.Files {
 		if ff.HelperImport != "" {
 			p.helperImports[p.files[i].Path()] = store.NewSyntheticImport(p.files[i], ff.HelperImport)
@@ -576,19 +715,29 @@ func NewFixtureProgram(f *Fixture) *FixtureProgram {
 // File is the Store file of a path of the program, or nil.
 func (p *FixtureProgram) File(path tspath.Path) *store.File { return p.byPath[string(path)] }
 
-func lookup[V any](p *FixtureProgram, method string, m map[string]V, key string) V {
+func lookup[V any](p *FixtureProgram, method call, m map[string]V, key string) V {
 	p.Calls[method]++
 	v, ok := m[key]
 	if !ok {
-		panic(fmt.Sprintf("fixture: %s(%s) was not recorded", method, key))
+		panic(fmt.Sprintf("fixture: %s(%s) was not recorded", callNames[method], key))
 	}
 	return v
 }
 
-func (p *FixtureProgram) scalar(name string) {
+// lookupNode is lookup with a nodeKeyOf; the message has the nodeKey string.
+func lookupNode[V any](p *FixtureProgram, method call, m map[nodeKeyOf]V, file ast.HasFileName, node store.Node) V {
+	p.Calls[method]++
+	v, ok := m[p.nodeKeyFor(file, node)]
+	if !ok {
+		panic(fmt.Sprintf("fixture: %s(%s) was not recorded", callNames[method], nodeKey(file, node)))
+	}
+	return v
+}
+
+func (p *FixtureProgram) scalar(name call) {
 	p.Calls[name]++
-	if !p.fixture.Scalars.Asked[name] {
-		panic("fixture: " + name + " was not recorded")
+	if !p.fixture.Scalars.Asked[callNames[name]] {
+		panic("fixture: " + callNames[name] + " was not recorded")
 	}
 }
 
@@ -617,88 +766,88 @@ func (p *FixtureProgram) BindSourceFiles() {
 }
 
 func (p *FixtureProgram) GetSourceFile(fileName string) *store.File {
-	return p.file(lookup(p, "GetSourceFile", p.fixture.SourceFile, fileName))
+	return p.file(lookup(p, callGetSourceFile, p.fixture.SourceFile, fileName))
 }
 
 func (p *FixtureProgram) GetSourceFileForResolvedModule(fileName string) *store.File {
-	return p.file(lookup(p, "GetSourceFileForResolvedModule", p.fixture.ForResolved, fileName))
+	return p.file(lookup(p, callGetSourceFileForResolvedModule, p.fixture.ForResolved, fileName))
 }
 
 func (p *FixtureProgram) FileExists(fileName string) bool {
-	return lookup(p, "FileExists", p.fixture.FileExists, fileName)
+	return lookup(p, callFileExists, p.fixture.FileExists, fileName)
 }
 
 func (p *FixtureProgram) SourceFileMayBeEmitted(sourceFile *store.File, forceDtsEmit bool) bool {
-	return lookup(p, "SourceFileMayBeEmitted", p.fixture.MayBeEmitted, fmt.Sprintf("%s|%t", sourceFile.Path(), forceDtsEmit))
+	return lookup(p, callSourceFileMayBeEmitted, p.fixture.MayBeEmitted, fmt.Sprintf("%s|%t", sourceFile.Path(), forceDtsEmit))
 }
 
 func (p *FixtureProgram) GetEmitModuleFormatOfFile(sourceFile ast.HasFileName) core.ModuleKind {
-	return core.ModuleKind(lookup(p, "GetEmitModuleFormatOfFile", p.fixture.EmitFormat, pathKey(sourceFile)))
+	return core.ModuleKind(lookup(p, callGetEmitModuleFormatOfFile, p.fixture.EmitFormat, pathKey(sourceFile)))
 }
 
 func (p *FixtureProgram) GetImpliedNodeFormatForEmit(sourceFile ast.HasFileName) core.ModuleKind {
-	return core.ModuleKind(lookup(p, "GetImpliedNodeFormatForEmit", p.fixture.ImpliedFormat, pathKey(sourceFile)))
+	return core.ModuleKind(lookup(p, callGetImpliedNodeFormatForEmit, p.fixture.ImpliedFormat, pathKey(sourceFile)))
 }
 
 func (p *FixtureProgram) GetEmitSyntaxForUsageLocation(file ast.HasFileName, usage store.Node) core.ResolutionMode {
-	return core.ResolutionMode(lookup(p, "GetEmitSyntaxForUsageLocation", p.fixture.EmitSyntax, nodeKey(file, usage)))
+	return core.ResolutionMode(lookupNode(p, callGetEmitSyntaxForUsageLocation, p.emitSyntax, file, usage))
 }
 
 func (p *FixtureProgram) GetModeForUsageLocation(file ast.HasFileName, usage store.Node) core.ResolutionMode {
-	return core.ResolutionMode(lookup(p, "GetModeForUsageLocation", p.fixture.UsageMode, nodeKey(file, usage)))
+	return core.ResolutionMode(lookupNode(p, callGetModeForUsageLocation, p.usageMode, file, usage))
 }
 
 func (p *FixtureProgram) GetDefaultResolutionModeForFile(file ast.HasFileName) core.ResolutionMode {
-	return core.ResolutionMode(lookup(p, "GetDefaultResolutionModeForFile", p.fixture.DefaultMode, pathKey(file)))
+	return core.ResolutionMode(lookup(p, callGetDefaultResolutionModeForFile, p.fixture.DefaultMode, pathKey(file)))
 }
 
 func (p *FixtureProgram) GetResolvedModule(file ast.HasFileName, moduleReference string, mode core.ResolutionMode) *module.ResolvedModule {
-	return p.module(lookup(p, "GetResolvedModule", p.fixture.Resolved, fmt.Sprintf("%s|%s|%d", file.Path(), moduleReference, mode)))
+	return p.module(lookup(p, callGetResolvedModule, p.fixture.Resolved, fmt.Sprintf("%s|%s|%d", file.Path(), moduleReference, mode)))
 }
 
 func (p *FixtureProgram) GetResolvedModuleFromModuleSpecifier(file ast.HasFileName, moduleSpecifier store.Node) *module.ResolvedModule {
-	return p.module(lookup(p, "GetResolvedModuleFromModuleSpecifier", p.fixture.FromSpecifier, nodeKey(file, moduleSpecifier)))
+	return p.module(lookupNode(p, callGetResolvedModuleFromModuleSpecifier, p.fromSpecifier, file, moduleSpecifier))
 }
 
 func (p *FixtureProgram) GetResolvedModules() map[tspath.Path]module.ModeAwareCache[*module.ResolvedModule] {
-	p.scalar("ResolvedModules")
+	p.scalar(callResolvedModules)
 	return nil
 }
 
 func (p *FixtureProgram) GetPackagesMap() map[string]bool {
-	p.scalar("PackagesMap")
+	p.scalar(callPackagesMap)
 	return p.fixture.Scalars.PackagesMap
 }
 
 func (p *FixtureProgram) GetSourceFileMetaData(path tspath.Path) ast.SourceFileMetaData {
-	return lookup(p, "GetSourceFileMetaData", p.fixture.MetaData, string(path))
+	return lookup(p, callGetSourceFileMetaData, p.fixture.MetaData, string(path))
 }
 
 func (p *FixtureProgram) IsSourceFileDefaultLibrary(path tspath.Path) bool {
-	return lookup(p, "IsSourceFileDefaultLibrary", p.fixture.DefaultLibrary, string(path))
+	return lookup(p, callIsSourceFileDefaultLibrary, p.fixture.DefaultLibrary, string(path))
 }
 
 func (p *FixtureProgram) GetRedirectForResolution(file ast.HasFileName) *tsoptions.ParsedCommandLine {
-	lookup(p, "GetRedirectForResolution", p.fixture.NilRedirect, pathKey(file))
+	lookup(p, callGetRedirectForResolution, p.fixture.NilRedirect, pathKey(file))
 	return nil
 }
 
 func (p *FixtureProgram) GetProjectReferenceFromOutputDts(path tspath.Path) *tsoptions.SourceOutputAndProjectReference {
-	lookup(p, "GetProjectReferenceFromOutputDts", p.fixture.NilOutputDts, string(path))
+	lookup(p, callGetProjectReferenceFromOutputDts, p.fixture.NilOutputDts, string(path))
 	return nil
 }
 
 func (p *FixtureProgram) GetProjectReferenceFromSource(path tspath.Path) *tsoptions.SourceOutputAndProjectReference {
-	lookup(p, "GetProjectReferenceFromSource", p.fixture.NilFromSource, string(path))
+	lookup(p, callGetProjectReferenceFromSource, p.fixture.NilFromSource, string(path))
 	return nil
 }
 
 func (p *FixtureProgram) GetPackageJsonInfo(pkgJsonPath string) *packagejson.InfoCacheEntry {
 	if e, ok := p.packageJsons[pkgJsonPath]; ok {
-		p.Calls["GetPackageJsonInfo"]++
+		p.Calls[callGetPackageJsonInfo]++
 		return e
 	}
-	v := lookup(p, "GetPackageJsonInfo", p.fixture.PackageJson, pkgJsonPath)
+	v := lookup(p, callGetPackageJsonInfo, p.fixture.PackageJson, pkgJsonPath)
 	var e *packagejson.InfoCacheEntry
 	if v != nil {
 		e = v.entry()
@@ -708,53 +857,53 @@ func (p *FixtureProgram) GetPackageJsonInfo(pkgJsonPath string) *packagejson.Inf
 }
 
 func (p *FixtureProgram) GetSymlinkCache() *symlinks.KnownSymlinks {
-	p.scalar("SymlinkCache")
+	p.scalar(callSymlinkCache)
 	return p.symlinks
 }
 
 func (p *FixtureProgram) GetRedirectTargets(path tspath.Path) []string {
-	return lookup(p, "GetRedirectTargets", p.fixture.RedirectTarget, string(path))
+	return lookup(p, callGetRedirectTargets, p.fixture.RedirectTarget, string(path))
 }
 
 func (p *FixtureProgram) GetSourceOfProjectReferenceIfOutputIncluded(file ast.HasFileName) string {
-	return lookup(p, "GetSourceOfProjectReferenceIfOutputIncluded", p.fixture.SourceOfOutput, pathKey(file))
+	return lookup(p, callGetSourceOfProjectReferenceIfOutputIncluded, p.fixture.SourceOfOutput, pathKey(file))
 }
 
 func (p *FixtureProgram) GetNearestAncestorDirectoryWithPackageJson(dirname string) string {
-	return lookup(p, "GetNearestAncestorDirectoryWithPackageJson", p.fixture.NearestPackage, dirname)
+	return lookup(p, callGetNearestAncestorDirectoryWithPackageJson, p.fixture.NearestPackage, dirname)
 }
 
 func (p *FixtureProgram) GetJSXRuntimeImportSpecifier(path tspath.Path) (string, store.Node) {
-	reference := lookup(p, "GetJSXRuntimeImportSpecifier", p.fixture.JSXReference, string(path))
+	reference := lookup(p, callGetJSXRuntimeImportSpecifier, p.fixture.JSXReference, string(path))
 	return reference, p.jsxImports[path]
 }
 
 func (p *FixtureProgram) GetImportHelpersImportSpecifier(path tspath.Path) store.Node {
-	p.Calls["GetImportHelpersImportSpecifier"]++
+	p.Calls[callGetImportHelpersImportSpecifier]++
 	return p.helperImports[path]
 }
 
 func (p *FixtureProgram) CommonSourceDirectory() string {
-	p.scalar("CommonSourceDirectory")
+	p.scalar(callCommonSourceDirectory)
 	return p.fixture.Scalars.CommonSourceDirectory
 }
 
 func (p *FixtureProgram) ContentMapperExtensions() []string {
-	p.scalar("ContentMapperExtensions")
+	p.scalar(callContentMapperExtensions)
 	return p.fixture.Scalars.ContentMapperExtensions
 }
 
 func (p *FixtureProgram) GetGlobalTypingsCacheLocation() string {
-	p.scalar("GlobalTypingsLocation")
+	p.scalar(callGlobalTypingsLocation)
 	return p.fixture.Scalars.GlobalTypingsLocation
 }
 
 func (p *FixtureProgram) UseCaseSensitiveFileNames() bool {
-	p.scalar("UseCaseSensitiveFileNames")
+	p.scalar(callUseCaseSensitiveFileNames)
 	return p.fixture.Scalars.UseCaseSensitiveFileNames
 }
 
 func (p *FixtureProgram) GetCurrentDirectory() string {
-	p.scalar("CurrentDirectory")
+	p.scalar(callCurrentDirectory)
 	return p.fixture.Scalars.CurrentDirectory
 }

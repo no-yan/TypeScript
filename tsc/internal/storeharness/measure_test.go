@@ -152,11 +152,11 @@ func BenchmarkCheckKPCStore(b *testing.B) {
 		program.BindSourceFiles()
 		diagFiles := fixtureDiagFiles(fixture, program)
 		nodes = storeNodes(program.SourceFiles())
-		clear(program.Calls)
+		program.Calls = [numCalls]int{}
 		b.StartTimer()
 		session.Measure(func() { checkStore(b, program, diagFiles) })
 		b.StopTimer()
-		calls = program.Calls
+		calls = program.CallCounts()
 	}
 	session.Report()
 	reportPerNode(b, session, nodes)
