@@ -10,22 +10,6 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
 
-type nodeLinkStore[V any] struct {
-	store core.PagedLinkStore[V]
-}
-
-func (s *nodeLinkStore[V]) Get(node store.Node) *V {
-	return s.store.Get(uint64(node.Key().Uint64()))
-}
-
-func (s *nodeLinkStore[V]) Has(node store.Node) bool {
-	return s.store.Has(uint64(node.Key().Uint64()))
-}
-
-func (s *nodeLinkStore[V]) TryGet(node store.Node) *V {
-	return s.store.TryGet(uint64(node.Key().Uint64()))
-}
-
 type symbolArenaLinkStore[V any] struct {
 	store core.PagedLinkStore[*V]
 	arena core.Arena[V]
