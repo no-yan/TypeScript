@@ -160,7 +160,13 @@ func runStore(build func() *Program, diagFiles, walkFiles []*ast.SourceFile) (r 
 		}
 		return out
 	}
-	diagStores, walkStores := stores(diagFiles), stores(walkFiles)
+	runStoreOn(r, program, stores(diagFiles), stores(walkFiles))
+	return r
+}
+
+// runStoreOn runs the driver on a Store program, any storechecker.Program,
+// with its files of the targets, into r.
+func runStoreOn(r *run, program storechecker.Program, diagStores, walkStores []*store.File) {
 	ctx := context.Background()
 	c, _ := storechecker.NewChecker(program, nil)
 	for _, f := range diagStores {
@@ -186,7 +192,6 @@ func runStore(build func() *Program, diagFiles, walkFiles []*ast.SourceFile) (r 
 	r.order = checkSymbolOrder(r.symbols,
 		func(a, b any) int { return c.CompareSymbols(a.(*store.Symbol), b.(*store.Symbol)) },
 		func(s any) string { return s.(*store.Symbol).Name })
-	return r
 }
 
 func recovered(v any) *panicInfo {

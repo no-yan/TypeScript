@@ -27,12 +27,17 @@ type pointerWalker struct {
 func (w *pointerWalker) walk(file *ast.SourceFile, isSymbolWalk bool) []walkRecord {
 	var records []walkRecord
 	for _, n := range forEachASTNode(file.AsNode()) {
-		if ast.IsExpressionNode(n) || n.Kind == ast.KindIdentifier || ast.IsDeclarationName(n) ||
-			ast.IsQualifiedName(n) && ast.IsNameOfHeritageClauseTypeReference(n) && (isSymbolWalk || ast.IsQualifiedName(n.Parent)) {
+		if pointerWalked(n, isSymbolWalk) {
 			records = append(records, w.writeTypeOrSymbol(file, n, isSymbolWalk))
 		}
 	}
 	return records
+}
+
+// pointerWalked is whether the walk writes a record for n.
+func pointerWalked(n *ast.Node, isSymbolWalk bool) bool {
+	return ast.IsExpressionNode(n) || n.Kind == ast.KindIdentifier || ast.IsDeclarationName(n) ||
+		ast.IsQualifiedName(n) && ast.IsNameOfHeritageClauseTypeReference(n) && (isSymbolWalk || ast.IsQualifiedName(n.Parent))
 }
 
 func forEachASTNode(node *ast.Node) []*ast.Node {
@@ -62,6 +67,69 @@ func forEachASTNode(node *ast.Node) []*ast.Node {
 	return result
 }
 
+// typeOf is the type walk's type of node: ok is false where the walk gives
+// nothing, t is nil where it gives the intrinsic name of any (without the
+// node builder), and the type to print otherwise.
+func (w *pointerWalker) typeOf(file *ast.SourceFile, node *ast.Node) (t *checker.Type, intrinsic string, ok bool) {
+	fileChecker := w.checker
+	// Don't try to get the type of something that's already a type.
+	// Exception for `T` in `type T = something` because that may evaluate to some interesting type.
+	if ast.IsPartOfTypeNode(node) ||
+		(node.Kind == ast.KindAsExpression || node.Kind == ast.KindSatisfiesExpression) && node.Type().Flags&ast.NodeFlagsReparsed != 0 ||
+		ast.IsIdentifier(node) &&
+			(ast.GetMeaningFromDeclaration(node.Parent)&ast.SemanticMeaningValue) == 0 &&
+			!(ast.IsTypeOrJSTypeAliasDeclaration(node.Parent) && node == node.Parent.Name()) {
+		return nil, "", false
+	}
+
+	if ast.IsOmittedExpression(node) {
+		return nil, "", false
+	}
+
+	// Workaround to ensure we output 'C' instead of 'typeof C' for base class expressions
+	if ast.IsExpressionWithTypeArgumentsInClassExtendsClause(node.Parent) {
+		t = fileChecker.GetTypeAtLocation(node.Parent)
+	}
+	if t == nil || checker.IsTypeAny(t) {
+		t = fileChecker.GetTypeAtLocation(node)
+	}
+	if !w.hadErrors &&
+		checker.IsTypeAny(t) &&
+		!ast.IsBindingElement(node.Parent) &&
+		!ast.IsPropertyAccessOrQualifiedName(node.Parent) &&
+		!ast.IsLabelName(node) &&
+		!ast.IsGlobalScopeAugmentation(node.Parent) &&
+		!ast.IsMetaProperty(node.Parent) &&
+		!pointerIsImportStatementName(node) &&
+		!pointerIsExportStatementName(node) &&
+		!pointerIsIntrinsicJsxTag(node, file) {
+		return nil, t.AsIntrinsicType().IntrinsicName(), true
+	}
+	return t, "", true
+}
+
+// pointerPrintType is the type walk's string of t at node: the node builder,
+// the printer and the writer's string, a copy (the writer grew to the file's
+// length in printer.Write).
+func pointerPrintType(fileChecker *checker.Checker, t *checker.Type, file *ast.SourceFile, node *ast.Node) string {
+	ctx, putCtx := printer.GetEmitContext()
+	defer putCtx()
+	ctx.Reset()
+	builder := checker.NewNodeBuilder(fileChecker, ctx)
+	typeFormatFlags := checker.TypeFormatFlagsNoTruncation | checker.TypeFormatFlagsAllowUniqueESSymbolType | checker.TypeFormatFlagsGenerateNamesForShadowedTypeParams
+	typeNode := builder.TypeToTypeNode(t, node.Parent, nodebuilder.Flags(typeFormatFlags&checker.TypeFormatFlagsNodeBuilderFlagsMask)|nodebuilder.FlagsIgnoreErrors, nodebuilder.InternalFlagsAllowUnresolvedNames, nil)
+	if ast.IsIdentifier(node) && ast.IsTypeAliasDeclaration(node.Parent) && node.Parent.Name() == node && ast.IsIdentifier(typeNode) && typeNode.Text() == node.Text() {
+		// for a complex type alias `type T = ...`, showing "T : T" isn't very helpful for type tests. When the type produced is the same as
+		// the name of the type alias, recreate the type string without reusing the alias name
+		typeNode = builder.TypeToTypeNode(t, node.Parent, nodebuilder.Flags((typeFormatFlags|checker.TypeFormatFlagsInTypeAlias)&checker.TypeFormatFlagsNodeBuilderFlagsMask)|nodebuilder.FlagsIgnoreErrors, nodebuilder.InternalFlagsAllowUnresolvedNames, nil)
+	}
+
+	writer := printer.NewTextWriter("", 0)
+	printer := printer.NewPrinter(printer.PrinterOptions{RemoveComments: true}, printer.PrintHandlers{}, ctx)
+	printer.Write(typeNode, file, writer, nil)
+	return strings.Clone(writer.String())
+}
+
 func (w *pointerWalker) writeTypeOrSymbol(file *ast.SourceFile, node *ast.Node, isSymbolWalk bool) walkRecord {
 	record := walkRecord{
 		pos:  node.Pos(),
@@ -70,63 +138,16 @@ func (w *pointerWalker) writeTypeOrSymbol(file *ast.SourceFile, node *ast.Node, 
 	}
 	fileChecker := w.checker
 
-	ctx, putCtx := printer.GetEmitContext()
-	defer putCtx()
-
 	if !isSymbolWalk {
-		// Don't try to get the type of something that's already a type.
-		// Exception for `T` in `type T = something` because that may evaluate to some interesting type.
-		if ast.IsPartOfTypeNode(node) ||
-			(node.Kind == ast.KindAsExpression || node.Kind == ast.KindSatisfiesExpression) && node.Type().Flags&ast.NodeFlagsReparsed != 0 ||
-			ast.IsIdentifier(node) &&
-				(ast.GetMeaningFromDeclaration(node.Parent)&ast.SemanticMeaningValue) == 0 &&
-				!(ast.IsTypeOrJSTypeAliasDeclaration(node.Parent) && node == node.Parent.Name()) {
+		t, intrinsic, ok := w.typeOf(file, node)
+		if !ok {
 			return record
 		}
-
-		if ast.IsOmittedExpression(node) {
-			return record
+		typeString := intrinsic
+		if t != nil {
+			typeString = pointerPrintType(fileChecker, t, file, node)
 		}
-
-		var t *checker.Type
-		// Workaround to ensure we output 'C' instead of 'typeof C' for base class expressions
-		if ast.IsExpressionWithTypeArgumentsInClassExtendsClause(node.Parent) {
-			t = fileChecker.GetTypeAtLocation(node.Parent)
-		}
-		if t == nil || checker.IsTypeAny(t) {
-			t = fileChecker.GetTypeAtLocation(node)
-		}
-		var typeString string
-		if !w.hadErrors &&
-			checker.IsTypeAny(t) &&
-			!ast.IsBindingElement(node.Parent) &&
-			!ast.IsPropertyAccessOrQualifiedName(node.Parent) &&
-			!ast.IsLabelName(node) &&
-			!ast.IsGlobalScopeAugmentation(node.Parent) &&
-			!ast.IsMetaProperty(node.Parent) &&
-			!pointerIsImportStatementName(node) &&
-			!pointerIsExportStatementName(node) &&
-			!pointerIsIntrinsicJsxTag(node, file) {
-			typeString = t.AsIntrinsicType().IntrinsicName()
-		} else {
-			ctx.Reset()
-			builder := checker.NewNodeBuilder(fileChecker, ctx)
-			typeFormatFlags := checker.TypeFormatFlagsNoTruncation | checker.TypeFormatFlagsAllowUniqueESSymbolType | checker.TypeFormatFlagsGenerateNamesForShadowedTypeParams
-			typeNode := builder.TypeToTypeNode(t, node.Parent, nodebuilder.Flags(typeFormatFlags&checker.TypeFormatFlagsNodeBuilderFlagsMask)|nodebuilder.FlagsIgnoreErrors, nodebuilder.InternalFlagsAllowUnresolvedNames, nil)
-			if ast.IsIdentifier(node) && ast.IsTypeAliasDeclaration(node.Parent) && node.Parent.Name() == node && ast.IsIdentifier(typeNode) && typeNode.Text() == node.Text() {
-				// for a complex type alias `type T = ...`, showing "T : T" isn't very helpful for type tests. When the type produced is the same as
-				// the name of the type alias, recreate the type string without reusing the alias name
-				typeNode = builder.TypeToTypeNode(t, node.Parent, nodebuilder.Flags((typeFormatFlags|checker.TypeFormatFlagsInTypeAlias)&checker.TypeFormatFlagsNodeBuilderFlagsMask)|nodebuilder.FlagsIgnoreErrors, nodebuilder.InternalFlagsAllowUnresolvedNames, nil)
-			}
-
-			writer := printer.NewTextWriter("", 0)
-			printer := printer.NewPrinter(printer.PrinterOptions{RemoveComments: true}, printer.PrintHandlers{}, ctx)
-			printer.Write(typeNode, file, writer, nil)
-			typeString = writer.String()
-		}
-		// The writer grew to the file's length (printer.Write): the record
-		// keeps a copy, not the writer's buffer.
-		record.value, record.present = strings.Clone(typeString), true
+		record.value, record.present = typeString, true
 		return record
 	}
 

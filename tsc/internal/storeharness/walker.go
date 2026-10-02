@@ -63,12 +63,17 @@ func newStoreWalker(c *storechecker.Checker, space *store.IDSpace, hadErrors boo
 func (w *storeWalker) walk(file *store.File, isSymbolWalk bool) []walkRecord {
 	var records []walkRecord
 	for _, n := range forEachStoreNode(file.Root()) {
-		if store.IsExpressionNode(n) || n.Kind() == ast.KindIdentifier || store.IsDeclarationName(n) ||
-			store.IsQualifiedName(n) && store.IsNameOfHeritageClauseTypeReference(n) && (isSymbolWalk || store.IsQualifiedName(n.Parent())) {
+		if storeWalked(n, isSymbolWalk) {
 			records = append(records, w.writeTypeOrSymbol(file, n, isSymbolWalk))
 		}
 	}
 	return records
+}
+
+// storeWalked is whether the walk writes a record for n.
+func storeWalked(n store.Node, isSymbolWalk bool) bool {
+	return store.IsExpressionNode(n) || n.Kind() == ast.KindIdentifier || store.IsDeclarationName(n) ||
+		store.IsQualifiedName(n) && store.IsNameOfHeritageClauseTypeReference(n) && (isSymbolWalk || store.IsQualifiedName(n.Parent()))
 }
 
 // forEachStoreNode is forEachASTNode: the preorder of ForEachChild, into a
@@ -100,6 +105,65 @@ func forEachStoreNode(node store.Node) []store.Node {
 	return result
 }
 
+// typeOf is the type walk's type of node, as pointerWalker.typeOf.
+func (w *storeWalker) typeOf(file *store.File, node store.Node) (t *storechecker.Type, intrinsic string, ok bool) {
+	c := w.checker
+	// Don't try to get the type of something that's already a type.
+	// Exception for `T` in `type T = something` because that may evaluate to some interesting type.
+	if store.IsPartOfTypeNode(node) ||
+		(node.Kind() == ast.KindAsExpression || node.Kind() == ast.KindSatisfiesExpression) && node.Type().Flags()&ast.NodeFlagsReparsed != 0 ||
+		store.IsIdentifier(node) &&
+			(getMeaningFromDeclaration(node.Parent())&ast.SemanticMeaningValue) == 0 &&
+			!(store.IsTypeOrJSTypeAliasDeclaration(node.Parent()) && store.SameNode(node, node.Parent().Name())) {
+		return nil, "", false
+	}
+
+	if store.IsOmittedExpression(node) {
+		return nil, "", false
+	}
+
+	// Workaround to ensure we output 'C' instead of 'typeof C' for base class expressions
+	if store.IsExpressionWithTypeArgumentsInClassExtendsClause(node.Parent()) {
+		t = c.GetTypeAtLocation(node.Parent())
+	}
+	if t == nil || storechecker.IsTypeAny(t) {
+		t = c.GetTypeAtLocation(node)
+	}
+	if !w.hadErrors &&
+		storechecker.IsTypeAny(t) &&
+		!store.IsBindingElement(node.Parent()) &&
+		!store.IsPropertyAccessOrQualifiedName(node.Parent()) &&
+		!isLabelName(node) &&
+		!store.IsGlobalScopeAugmentation(node.Parent()) &&
+		!store.IsMetaProperty(node.Parent()) &&
+		!isImportStatementName(node) &&
+		!isExportStatementName(node) &&
+		!isIntrinsicJsxTag(node, file) {
+		return nil, t.AsIntrinsicType().IntrinsicName(), true
+	}
+	return t, "", true
+}
+
+// storePrintType is the type walk's string of t at node, as
+// pointerPrintType: the node builder, the printer and the writer's string, a
+// copy. ctx is reset first.
+func storePrintType(c *storechecker.Checker, ctx *storeprinter.EmitContext, t *storechecker.Type, file *store.File, node store.Node) string {
+	ctx.Reset()
+	builder := storechecker.NewNodeBuilder(c, ctx)
+	typeFormatFlags := storechecker.TypeFormatFlagsNoTruncation | storechecker.TypeFormatFlagsAllowUniqueESSymbolType | storechecker.TypeFormatFlagsGenerateNamesForShadowedTypeParams
+	typeNode := builder.TypeToTypeNode(t, node.Parent(), nodebuilder.Flags(typeFormatFlags&storechecker.TypeFormatFlagsNodeBuilderFlagsMask)|nodebuilder.FlagsIgnoreErrors, nodebuilder.InternalFlagsAllowUnresolvedNames, nil)
+	if store.IsIdentifier(node) && store.IsTypeAliasDeclaration(node.Parent()) && store.SameNode(node.Parent().Name(), node) && store.IsIdentifier(typeNode) && typeNode.Text() == node.Text() {
+		// for a complex type alias `type T = ...`, showing "T : T" isn't very helpful for type tests. When the type produced is the same as
+		// the name of the type alias, recreate the type string without reusing the alias name
+		typeNode = builder.TypeToTypeNode(t, node.Parent(), nodebuilder.Flags((typeFormatFlags|storechecker.TypeFormatFlagsInTypeAlias)&storechecker.TypeFormatFlagsNodeBuilderFlagsMask)|nodebuilder.FlagsIgnoreErrors, nodebuilder.InternalFlagsAllowUnresolvedNames, nil)
+	}
+
+	writer := storeprinter.NewTextWriter("", 0)
+	printer := storeprinter.NewPrinter(storeprinter.PrinterOptions{RemoveComments: true}, storeprinter.PrintHandlers{}, ctx)
+	printer.Write(typeNode, file, writer, nil)
+	return strings.Clone(writer.String())
+}
+
 func (w *storeWalker) writeTypeOrSymbol(file *store.File, node store.Node, isSymbolWalk bool) walkRecord {
 	record := walkRecord{
 		pos:  int(node.Pos()),
@@ -107,62 +171,17 @@ func (w *storeWalker) writeTypeOrSymbol(file *store.File, node store.Node, isSym
 		text: storescanner.GetSourceTextOfNodeFromSourceFile(file, node, false /*includeTrivia*/),
 	}
 	c := w.checker
-	w.ctx.Reset()
 
 	if !isSymbolWalk {
-		// Don't try to get the type of something that's already a type.
-		// Exception for `T` in `type T = something` because that may evaluate to some interesting type.
-		if store.IsPartOfTypeNode(node) ||
-			(node.Kind() == ast.KindAsExpression || node.Kind() == ast.KindSatisfiesExpression) && node.Type().Flags()&ast.NodeFlagsReparsed != 0 ||
-			store.IsIdentifier(node) &&
-				(getMeaningFromDeclaration(node.Parent())&ast.SemanticMeaningValue) == 0 &&
-				!(store.IsTypeOrJSTypeAliasDeclaration(node.Parent()) && store.SameNode(node, node.Parent().Name())) {
+		t, intrinsic, ok := w.typeOf(file, node)
+		if !ok {
 			return record
 		}
-
-		if store.IsOmittedExpression(node) {
-			return record
+		typeString := intrinsic
+		if t != nil {
+			typeString = storePrintType(c, w.ctx, t, file, node)
 		}
-
-		var t *storechecker.Type
-		// Workaround to ensure we output 'C' instead of 'typeof C' for base class expressions
-		if store.IsExpressionWithTypeArgumentsInClassExtendsClause(node.Parent()) {
-			t = c.GetTypeAtLocation(node.Parent())
-		}
-		if t == nil || storechecker.IsTypeAny(t) {
-			t = c.GetTypeAtLocation(node)
-		}
-		var typeString string
-		if !w.hadErrors &&
-			storechecker.IsTypeAny(t) &&
-			!store.IsBindingElement(node.Parent()) &&
-			!store.IsPropertyAccessOrQualifiedName(node.Parent()) &&
-			!isLabelName(node) &&
-			!store.IsGlobalScopeAugmentation(node.Parent()) &&
-			!store.IsMetaProperty(node.Parent()) &&
-			!isImportStatementName(node) &&
-			!isExportStatementName(node) &&
-			!isIntrinsicJsxTag(node, file) {
-			typeString = t.AsIntrinsicType().IntrinsicName()
-		} else {
-			w.ctx.Reset()
-			builder := storechecker.NewNodeBuilder(c, w.ctx)
-			typeFormatFlags := storechecker.TypeFormatFlagsNoTruncation | storechecker.TypeFormatFlagsAllowUniqueESSymbolType | storechecker.TypeFormatFlagsGenerateNamesForShadowedTypeParams
-			typeNode := builder.TypeToTypeNode(t, node.Parent(), nodebuilder.Flags(typeFormatFlags&storechecker.TypeFormatFlagsNodeBuilderFlagsMask)|nodebuilder.FlagsIgnoreErrors, nodebuilder.InternalFlagsAllowUnresolvedNames, nil)
-			if store.IsIdentifier(node) && store.IsTypeAliasDeclaration(node.Parent()) && store.SameNode(node.Parent().Name(), node) && store.IsIdentifier(typeNode) && typeNode.Text() == node.Text() {
-				// for a complex type alias `type T = ...`, showing "T : T" isn't very helpful for type tests. When the type produced is the same as
-				// the name of the type alias, recreate the type string without reusing the alias name
-				typeNode = builder.TypeToTypeNode(t, node.Parent(), nodebuilder.Flags((typeFormatFlags|storechecker.TypeFormatFlagsInTypeAlias)&storechecker.TypeFormatFlagsNodeBuilderFlagsMask)|nodebuilder.FlagsIgnoreErrors, nodebuilder.InternalFlagsAllowUnresolvedNames, nil)
-			}
-
-			writer := storeprinter.NewTextWriter("", 0)
-			printer := storeprinter.NewPrinter(storeprinter.PrinterOptions{RemoveComments: true}, storeprinter.PrintHandlers{}, w.ctx)
-			printer.Write(typeNode, file, writer, nil)
-			typeString = writer.String()
-		}
-		// The writer grew to the file's length (printer.Write): the record
-		// keeps a copy, not the writer's buffer.
-		record.value, record.present = strings.Clone(typeString), true
+		record.value, record.present = typeString, true
 		return record
 	}
 
