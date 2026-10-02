@@ -48,8 +48,10 @@ func NewNodeRegion(space *IDSpace) *NodeRegion {
 }
 
 // checkImport is invariant 26: a node or list of s may be the target of an
-// edge of this region only if s is a source or lazy JSDoc Store of the same
-// program, or a synthetic Store of this region. A StoreID is unique only
+// edge of this region only if s is a Store of the same program with no owner
+// (a source or lazy JSDoc Store, or an immutable synthetic Store of the
+// program: FinishSynthetic, NewSyntheticImport), or a synthetic Store of this
+// region. A StoreID is unique only
 // within a program, so a node of another program would collide in NodeKey;
 // a node of another region (another checker) is private to it.
 func (r *NodeRegion) checkImport(s *Store) {

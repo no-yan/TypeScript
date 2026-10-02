@@ -54,7 +54,7 @@ func TestPrivateFixtures(t *testing.T) {
 			}
 			pointer := newPointerProgram(files, stage1Options())
 			roots, _ := Roots(pointer, files)
-			p := runPointer(pointer, roots, nil)
+			p := runPointer(pointer, roots, roots, nil)
 			errors := len(p.global)
 			for _, ds := range p.diags {
 				errors += len(ds)

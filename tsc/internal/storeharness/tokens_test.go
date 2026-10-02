@@ -44,7 +44,7 @@ func TestIDTokens(t *testing.T) {
 		types:       []walkRecord{{value: "number"}, {value: "#6@"}},
 		symbols:     []walkRecord{{value: "Symbol(__@w@7)"}},
 	}
-	if n, where, value := idTokens(r); n != 7 || where != "file of root 0 #0 MessageArgs[0]" || value != "__@x@1" {
-		t.Errorf("idTokens = %d, %q, %q; want 7, at file of root 0 #0 MessageArgs[0], __@x@1", n, where, value)
+	if n, where, value := idTokens(r); n != 7 || where != "file of target 0 #0 MessageArgs[0]" || value != "__@x@1" {
+		t.Errorf("idTokens = %d, %q, %q; want 7, at file of target 0 #0 MessageArgs[0], __@x@1", n, where, value)
 	}
 }

@@ -45,8 +45,8 @@ func idTokens(r *run) (count int, where, value string) {
 		}
 	}
 	for i := range r.diags {
-		diags(fmt.Sprintf("file of root %d", i), r.diags[i])
-		diags(fmt.Sprintf("suggestion of root %d", i), r.suggestions[i])
+		diags(fmt.Sprintf("file of target %d", i), r.diags[i])
+		diags(fmt.Sprintf("suggestion of target %d", i), r.suggestions[i])
 	}
 	diags("global", r.global)
 	for _, w := range []struct {

@@ -47,7 +47,7 @@ func newPointerProgram(files map[string]string, options *core.CompilerOptions) *
 
 // newProgram parses every source file of the Pointer program again into the
 // Store, in the program's order, each with its StoreID in the program's
-// IDSpace. The Store files are the program's own, the libs included: a Store
+// IDSpace, and makes the synthetic imports the Pointer program has. The Store files are the program's own, the libs included: a Store
 // belongs to one IDSpace, and a Factory refuses the nodes of another
 // (idspace.go, factory.go), so they are not shared between programs.
 func newProgram(pointer *compiler.Program) *Program {
@@ -64,6 +64,19 @@ func newProgram(pointer *compiler.Program) *Program {
 		p.files[i] = f
 		p.byPath[f.Path()] = f
 		p.pointers[f.Path()] = pf
+	}
+	// The synthetic imports of each file the Pointer program made them for,
+	// the import helpers' and then the JSX runtime's, as its fileloader makes
+	// them (resolveImportsAndModuleAugmentations).
+	p.helperImports = map[tspath.Path]store.Node{}
+	p.jsxImports = map[tspath.Path]store.Node{}
+	for i, pf := range sources {
+		if specifier := pointer.GetImportHelpersImportSpecifier(pf.Path()); specifier != nil {
+			p.helperImports[pf.Path()] = store.NewSyntheticImport(p.files[i], specifier.Text())
+		}
+		if _, specifier := pointer.GetJSXRuntimeImportSpecifier(pf.Path()); specifier != nil {
+			p.jsxImports[pf.Path()] = store.NewSyntheticImport(p.files[i], specifier.Text())
+		}
 	}
 	return p
 }
@@ -85,14 +98,23 @@ type libCacheKey struct {
 var libCache collections.SyncMap[libCacheKey, *ast.SourceFile]
 
 func (h *libCachingHost) GetSourceFile(opts ast.SourceFileParseOptions) *ast.SourceFile {
-	if !strings.HasPrefix(opts.FileName, tspath.EnsureTrailingDirectorySeparator(bundled.LibPath())) {
+	if !isBundledLib(opts.FileName) {
 		return h.CompilerHost.GetSourceFile(opts)
 	}
 	text, ok := h.FS().ReadFile(opts.FileName)
 	if !ok {
 		return nil
 	}
-	scriptKind := core.EnsureScriptKindFromFileName(opts.FileName)
+	return cachedLib(opts, text, core.EnsureScriptKindFromFileName(opts.FileName))
+}
+
+func isBundledLib(fileName string) bool {
+	return strings.HasPrefix(fileName, tspath.EnsureTrailingDirectorySeparator(bundled.LibPath()))
+}
+
+// cachedLib is the Pointer source file of a bundled lib, parsed once for the
+// programs of every test.
+func cachedLib(opts ast.SourceFileParseOptions, text string, scriptKind core.ScriptKind) *ast.SourceFile {
 	key := libCacheKey{opts: opts, text: text, scriptKind: scriptKind}
 	if cached, ok := libCache.Load(key); ok {
 		return cached

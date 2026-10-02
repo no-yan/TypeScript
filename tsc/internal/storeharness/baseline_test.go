@@ -148,7 +148,7 @@ func compareWithBaselines(name, text string, options *core.CompilerOptions, refe
 	}
 	base := tsExtension.ReplaceAllString(name, "")
 	hadErrorBaseline := fileExists(filepath.Join(referenceDir, base+".errors.txt"))
-	r := runPointer(pointer, roots, &hadErrorBaseline)
+	r := runPointer(pointer, roots, roots, &hadErrorBaseline)
 	if r.panicked != nil {
 		return "the Pointer panics: " + r.panicked.message
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store"
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store/storetest"
+	"github.com/microsoft/TypeScript/tsc/internal/compiler"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
 
@@ -56,26 +57,14 @@ func TestModeCorpus(t *testing.T) {
 				sf := program.Store(pf)
 				for _, pair := range specifierPairs(t, f.origin, pf, sf) {
 					place := specifierPlace(pair.P)
-					if place == "" {
-						continue
-					}
 					st.positions[place]++
-					pm, sm := pointer.GetModeForUsageLocation(pf, pair.P), program.GetModeForUsageLocation(sf, pair.N)
-					st.modes[pm]++
-					pe, se := pointer.GetEmitSyntaxForUsageLocation(pf, pair.P), program.GetEmitSyntaxForUsageLocation(sf, pair.N)
-					if pm != pe {
+					m := compareSpecifier(pointer, program, pf, sf, pair)
+					st.modes[m.mode]++
+					if m.overridden {
 						st.overridden++
 					}
-					pr, sr := pointer.GetResolvedModuleFromModuleSpecifier(pf, pair.P), program.GetResolvedModuleFromModuleSpecifier(sf, pair.N)
-					where := fmt.Sprintf("%s at %d (%s %q)", f.origin, pair.P.Pos(), place, pair.P.Text())
-					if pm != sm {
-						st.mismatches = append(st.mismatches, fmt.Sprintf("GetModeForUsageLocation %s: Pointer %v, Store %v", where, pm, sm))
-					}
-					if pe != se {
-						st.mismatches = append(st.mismatches, fmt.Sprintf("GetEmitSyntaxForUsageLocation %s: Pointer %v, Store %v", where, pe, se))
-					}
-					if pr != sr {
-						st.mismatches = append(st.mismatches, fmt.Sprintf("GetResolvedModuleFromModuleSpecifier %s: Pointer %p, Store %p", where, pr, sr))
+					for _, mismatch := range m.mismatches {
+						st.mismatches = append(st.mismatches, fmt.Sprintf("%s %s at %d (%s %q): %s", mismatch.method, f.origin, pair.P.Pos(), place, pair.P.Text(), mismatch.values))
 					}
 				}
 				stats[i] = st
@@ -134,6 +123,40 @@ func TestModeCorpus(t *testing.T) {
 	}
 }
 
+// modeComparison is compareSpecifier's: the Pointer's mode, whether it is
+// not the emit syntax (a resolution-mode override), and the methods whose
+// results differ.
+type modeComparison struct {
+	mode       core.ResolutionMode
+	overridden bool
+	mismatches []modeMismatch
+}
+
+type modeMismatch struct {
+	method string
+	values string // the Pointer's and the Store's
+}
+
+// compareSpecifier compares the Pointer program's GetModeForUsageLocation,
+// GetEmitSyntaxForUsageLocation and GetResolvedModuleFromModuleSpecifier with
+// the adapter's at a pair of module specifiers.
+func compareSpecifier(pointer *compiler.Program, program *Program, pf *ast.SourceFile, sf *store.File, pair storetest.Pair) modeComparison {
+	pm, sm := pointer.GetModeForUsageLocation(pf, pair.P), program.GetModeForUsageLocation(sf, pair.N)
+	pe, se := pointer.GetEmitSyntaxForUsageLocation(pf, pair.P), program.GetEmitSyntaxForUsageLocation(sf, pair.N)
+	pr, sr := pointer.GetResolvedModuleFromModuleSpecifier(pf, pair.P), program.GetResolvedModuleFromModuleSpecifier(sf, pair.N)
+	m := modeComparison{mode: pm, overridden: pm != pe}
+	if pm != sm {
+		m.mismatches = append(m.mismatches, modeMismatch{"GetModeForUsageLocation", fmt.Sprintf("Pointer %v, Store %v", pm, sm)})
+	}
+	if pe != se {
+		m.mismatches = append(m.mismatches, modeMismatch{"GetEmitSyntaxForUsageLocation", fmt.Sprintf("Pointer %v, Store %v", pe, se)})
+	}
+	if pr != sr {
+		m.mismatches = append(m.mismatches, modeMismatch{"GetResolvedModuleFromModuleSpecifier", fmt.Sprintf("Pointer %p, Store %p", pr, sr)})
+	}
+	return m
+}
+
 // specifierPairs are the pairs of filePairs whose Pointer node is a module
 // specifier.
 func specifierPairs(t *testing.T, origin string, pf *ast.SourceFile, sf *store.File) []storetest.Pair {
@@ -141,13 +164,22 @@ func specifierPairs(t *testing.T, origin string, pf *ast.SourceFile, sf *store.F
 	return slices.DeleteFunc(pairs, func(pair storetest.Pair) bool { return specifierPlace(pair.P) == "" })
 }
 
-// filePairs are the pairs of the file's tree (storetest.Pairs), each host
-// followed by the pairs of its JSDoc, and how many of them are JSDoc's.
-func filePairs(t *testing.T, origin string, pf *ast.SourceFile, sf *store.File) (out []storetest.Pair, jsdoc int) {
+// filePairs is pairNodes, with its problems the test's errors.
+func filePairs(t *testing.T, origin string, pf *ast.SourceFile, sf *store.File) ([]storetest.Pair, int) {
+	pairs, jsdoc, problems := pairNodes(pf, sf)
+	for _, problem := range problems {
+		t.Errorf("%s: %s", origin, problem)
+	}
+	return pairs, jsdoc
+}
+
+// pairNodes are the pairs of the file's tree (storetest.Pairs), each host
+// followed by the pairs of its JSDoc, how many of them are JSDoc's, and what
+// does not pair.
+func pairNodes(pf *ast.SourceFile, sf *store.File) (out []storetest.Pair, jsdoc int, problems []string) {
 	pairs, m := storetest.Pairs(pf, sf.Store)
 	if pairs == nil {
-		t.Errorf("%s: the trees do not pair: %v", origin, m)
-		return nil, 0
+		return nil, 0, []string{fmt.Sprintf("the trees do not pair: %v", m)}
 	}
 	for _, pair := range pairs {
 		out = append(out, pair)
@@ -156,13 +188,13 @@ func filePairs(t *testing.T, origin string, pf *ast.SourceFile, sf *store.File) 
 		}
 		ps, ns := pair.P.JSDoc(pf), pair.N.JSDoc(sf)
 		if len(ps) != len(ns) {
-			t.Errorf("%s: %d JSDoc on the Pointer host at %d, %d on the Store's", origin, len(ps), pair.P.Pos(), len(ns))
+			problems = append(problems, fmt.Sprintf("%d JSDoc on the Pointer host at %d, %d on the Store's", len(ps), pair.P.Pos(), len(ns)))
 			continue
 		}
 		for i, p := range ps {
 			pointers, nodes := preorderPointer(p), storetest.Preorder(ns[i])
 			if len(pointers) != len(nodes) {
-				t.Errorf("%s: the JSDoc at %d do not pair: %d nodes, %d", origin, p.Pos(), len(pointers), len(nodes))
+				problems = append(problems, fmt.Sprintf("the JSDoc at %d do not pair: %d nodes, %d", p.Pos(), len(pointers), len(nodes)))
 				continue
 			}
 			for j, pn := range pointers {
@@ -171,7 +203,7 @@ func filePairs(t *testing.T, origin string, pf *ast.SourceFile, sf *store.File) 
 			jsdoc += len(pointers)
 		}
 	}
-	return out, jsdoc
+	return out, jsdoc, problems
 }
 
 func preorderPointer(root *ast.Node) []*ast.Node {

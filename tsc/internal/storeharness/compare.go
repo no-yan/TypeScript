@@ -83,7 +83,7 @@ func (c *comparison) diagList(column string, file int, p, s []diag) {
 	}
 	where := column
 	if file >= 0 {
-		where = fmt.Sprintf("%s of root %d", column, file)
+		where = fmt.Sprintf("%s of target %d", column, file)
 	}
 	if len(p) != len(s) {
 		c.fail("diag "+column+": count", Detail{Where: where, Pointer: diagsString(p), Store: diagsString(s)})

@@ -18,13 +18,16 @@ import (
 // that take or give no node are the Pointer program's (A), the files are the
 // Store files of the same paths (B), the three that read a module specifier
 // are written by hand in mode.go (C), and the synthetic import specifiers are
-// stage 2.
+// the Store's own, made as the Pointer program has them.
 type Program struct {
-	pointer  *compiler.Program
-	space    *store.IDSpace
-	files    []*store.File // in the order of the Pointer program's SourceFiles
-	byPath   map[tspath.Path]*store.File
-	pointers map[tspath.Path]*ast.SourceFile
+	pointer        *compiler.Program
+	space          *store.IDSpace
+	files          []*store.File // in the order of the Pointer program's SourceFiles
+	byPath         map[tspath.Path]*store.File
+	pointers       map[tspath.Path]*ast.SourceFile
+	helperImports  map[tspath.Path]store.Node // the synthetic import specifiers, by file
+	jsxImports     map[tspath.Path]store.Node
+	syntheticAsked int
 }
 
 var _ storechecker.Program = (*Program)(nil)
@@ -55,24 +58,25 @@ func (p *Program) SourceFileMayBeEmitted(sourceFile *store.File, forceDtsEmit bo
 	return p.pointer.SourceFileMayBeEmitted(p.pointers[sourceFile.Path()], forceDtsEmit)
 }
 
-// The synthetic import specifiers: stage 2 (5.2). The options of stage 1 make
-// none (compiler/fileloader.go), so a Pointer specifier panics.
-
-const syntheticImportPanic = "storeharness: synthetic import specifiers are stage 2"
+// The synthetic import specifiers: newProgram makes them, as the Pointer
+// program has them (store.NewSyntheticImport). syntheticAsked counts the
+// specifiers given to the checker.
 
 func (p *Program) GetJSXRuntimeImportSpecifier(path tspath.Path) (moduleReference string, specifier store.Node) {
-	moduleReference, pointer := p.pointer.GetJSXRuntimeImportSpecifier(path)
-	if pointer != nil {
-		panic(syntheticImportPanic)
+	moduleReference, _ = p.pointer.GetJSXRuntimeImportSpecifier(path)
+	specifier = p.jsxImports[path]
+	if !specifier.IsNil() {
+		p.syntheticAsked++
 	}
-	return moduleReference, store.Node{}
+	return moduleReference, specifier
 }
 
 func (p *Program) GetImportHelpersImportSpecifier(path tspath.Path) store.Node {
-	if p.pointer.GetImportHelpersImportSpecifier(path) != nil {
-		panic(syntheticImportPanic)
+	specifier := p.helperImports[path]
+	if !specifier.IsNil() {
+		p.syntheticAsked++
 	}
-	return store.Node{}
+	return specifier
 }
 
 // BindSourceFiles binds every Store file; a file binds once.
