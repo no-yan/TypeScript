@@ -13,7 +13,7 @@ Check KPC の差 (cycles 約 120 ms、inst 約 1.59 G) をどの関数の何に�
 | 測定用 adapter と fixture | `internal/storeharness/fixture.go`、7d-2c 実装報告 §3 |
 | 前回の帰属 (b719): 共通関数は横ばい、差は accessor・map・書き換えた関数 | memory の vscode-trace-common-vs-store-only-split に基づく。下の §5 の分類はこれに合わせる |
 
-before は 7d-2c の作業ツリー (HEAD 9c93098cc3 + 未コミットの 7d-2c)。開始時の HEAD と差分の hash を記録する。
+before は **2980ba4970** (7d-2c)。開始時の HEAD と差分の hash を記録する。
 
 ## 0. 規則
 
@@ -162,8 +162,8 @@ xcrun xctrace export --input <trace> --xpath '/trace-toc/run[1]/data/table[@sche
 - 次の改善段の候補。各候補に、見積り (inst / cycles と、Check の cycles の比で何ポイント下がるか) と受入条件を付ける。
   - 線 1.10 に届く組み合わせがあるかも書く。
 
-## 7. 決めること (着手前にユーザーへ確認)
+## 7. 決定事項 (2026-10-02、ユーザー: 3 つとも推奨どおり)
 
-1. **before の確定**: 7d-2c を先に commit して before をその hash にするか、未コミットの作業ツリーのまま測るか。推奨は先に commit すること。差分の hash で再現できるが、binary と source の対応が追いやすくなる。
-2. **K と run 数**: 推奨は K = 10、各 side 3 run。export の時間が合わなければ K を下げ、結合の検証の誤差 (±3% / ±5%) を守れる範囲にする。
-3. **inline frame が出ない場合の扱い**: 推奨は overlay の計数 × 単価で補い、標本では外側の関数に残す。`-gcflags=-l` で inline を止めた binary は、コードの形が変わるので使わない。
+1. 7d-2c を先に commit し、before はその hash (2980ba4970) とする。
+2. K = 10、各 side 3 run。export の時間が合わなければ K を下げ、結合の検証の誤差 (±3% / ±5%) を守れる範囲にする。
+3. inline frame が出ない場合は、overlay の計数 × 単価で補い、標本では外側の関数に残す。`-gcflags=-l` の binary は使わない。
