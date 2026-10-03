@@ -11,13 +11,15 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store"
 	"github.com/microsoft/TypeScript/tsc/internal/compiler"
 	"github.com/microsoft/TypeScript/tsc/internal/testutil/harnessutil"
+	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
 // The identity of the measurement program (store-checker-7d2c-implementation-
 // instructions-20261002.md 3.3): the Store checker on a FixtureProgram records
-// what it records on the H1 Program the fixture was recorded from. The
-// recording run is the H1 run: the Recorder answers what the H1 Program
-// answers. The fixture goes through its JSON, as between the processes.
+// what it records on the H1 Program the fixture was recorded from, and the two
+// programs give the same synthetic import specifiers. The recording run is the
+// H1 run: the Recorder answers what the H1 Program answers. The fixture goes
+// through its JSON, as between the processes.
 
 // fixtureIdentity runs the driver on the H1 Program of pointer through a
 // Recorder, then on the FixtureProgram of what it recorded, with the targets
@@ -63,7 +65,72 @@ func fixtureIdentity(pointer *compiler.Program, diagFiles, walkFiles []*ast.Sour
 	if class == ClassEqual && (recorded.order != replayed.order) {
 		class, detail = "symbol order", &Detail{Where: fmt.Sprintf("%+v / %+v", recorded.order, replayed.order)}
 	}
+	if class == ClassEqual {
+		class, detail = compareSyntheticImports(h1, program)
+	}
 	return class, detail, fixture, nil
+}
+
+// compareSyntheticImports is compareModes's check of the synthetic import
+// specifiers (configurations_test.go) between the H1 Program and the
+// FixtureProgram: the records show a wrong specifier only when the check's
+// answers change with it (store-checker-7d2d-implementation-instructions-
+// 20261003.md 2). For each role of each file, both programs have one or
+// neither, each gives the same node when asked again, each is of a synthetic
+// import's shape in its own program's file, and the texts are the same. The
+// FixtureProgram's JSX specifier of a path the recording did not ask is read
+// from its map: its GetJSXRuntimeImportSpecifier panics there.
+func compareSyntheticImports(h1 *Program, fixture *FixtureProgram) (class string, detail *Detail) {
+	h1JSX := func(path tspath.Path) store.Node {
+		_, specifier := h1.GetJSXRuntimeImportSpecifier(path)
+		return specifier
+	}
+	fixtureJSX := func(path tspath.Path) store.Node {
+		if _, asked := fixture.fixture.JSXReference[string(path)]; !asked {
+			return fixture.jsxImports[path]
+		}
+		_, specifier := fixture.GetJSXRuntimeImportSpecifier(path)
+		return specifier
+	}
+	for _, hf := range h1.files {
+		path := hf.Path()
+		ff := fixture.File(path)
+		for _, role := range []struct {
+			name        string
+			h1, fixture func(tspath.Path) store.Node
+		}{
+			{"helpers", h1.GetImportHelpersImportSpecifier, fixture.GetImportHelpersImportSpecifier},
+			{"jsx", h1JSX, fixtureJSX},
+		} {
+			where := string(path) + " (" + role.name + ")"
+			h, f := role.h1(path), role.fixture(path)
+			if h.IsNil() != f.IsNil() {
+				return "mode: synthetic import", &Detail{Where: where, Pointer: fmt.Sprint(!h.IsNil()), Store: fmt.Sprint(!f.IsNil())}
+			}
+			if h.IsNil() {
+				continue
+			}
+			if !store.SameNode(role.h1(path), h) || !store.SameNode(role.fixture(path), f) {
+				return "mode: synthetic import identity", &Detail{Where: where, Store: "another node when asked again"}
+			}
+			if !isSyntheticImport(h, hf) || !isSyntheticImport(f, ff) || f.Text() != h.Text() {
+				return "mode: synthetic import shape", &Detail{Where: where, Pointer: syntheticShape(h), Store: syntheticShape(f)}
+			}
+		}
+	}
+	return ClassEqual, nil
+}
+
+// isSyntheticImport is whether specifier is a StringLiteral whose parent is an
+// ImportDeclaration whose parent is file's root, and whose File is file.
+func isSyntheticImport(specifier store.Node, file *store.File) bool {
+	decl := specifier.Parent()
+	return specifier.Kind() == ast.KindStringLiteral && decl.Kind() == ast.KindImportDeclaration &&
+		store.SameNode(decl.Parent(), file.Root()) && specifier.File() == file
+}
+
+func syntheticShape(specifier store.Node) string {
+	return fmt.Sprintf("%v %q, parent %v", specifier.Kind(), specifier.Text(), specifier.Parent().Kind())
 }
 
 func h1Stores(p *Program, files []*ast.SourceFile) []*store.File {
