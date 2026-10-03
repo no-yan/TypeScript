@@ -16,6 +16,8 @@
 | adapter の単体費用 | < 1 ms/run | node 鍵の 3 method で 0.66 ms。adapter 全体は未測定で、見積り約 7 ms (§2.3) | 3 method のみ合格。全体は見積りで未達 |
 | 等価 (§4.2) | 全部 | 既知の `FuzzEquivalence/a708303f611b95c8` のみ失敗 | 合格 |
 
+> **検証での注記 (2026-10-03)**: §4 の Check の比は、Pointer と Store が同じ仕事をしていない条件で取られていた。`build-kpc.sh` は各段の source を `git archive` で scratchpad に出して build するので、`repo.TestDataPath()` (compile 時の source の path から決まる) が長い path を指し、Pointer 側だけがその下の compiler プロジェクトを読む。Store 側は repo の path で記録した fixture を使う。同じセッションでこの段の C の binary と repo から build した binary を交互に取ると、Pointer の inst は +0.92%、Store は +0.06% 違った。このため本報告の比 (A+B+C で 1.053) は約 1% 低く出ている。repo から build した binary では 1.0635 / 1.0493 で、線 1.10 の判定は変わらない。各段の差 (Store 側の値) は影響を受けない。詳細は [検証報告](store-checker-7d2c-verification-report-20261002.md) §5.1 と §10 の残件 1。
+
 ## 1. 開始時の状態と commit
 
 - 開始時の HEAD は `cd66aaa4d3`。未コミットだったのは、docs 3 本と `xctrace_test.go` (§7 の 1)。
