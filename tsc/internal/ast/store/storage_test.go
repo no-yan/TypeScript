@@ -1073,3 +1073,95 @@ class D extends C { #x = 4; static #y = 5; }
 		}
 	}
 }
+
+// 18. A growing Factory, built as the node builder's EmitContext builds it
+// (storeprinter/region.go): the first Store, and the first after a release,
+// holds 16 nodes, and the Store after a full one twice as many, up to 4,096,
+// with extra and texts in proportion. Each node is in the Store it was made
+// in, before and after a release and a change of capacity, and the edges
+// across the boundaries read.
+func TestStorageGrowingFactory(t *testing.T) {
+	p := newProgram(t, "let a = 1;")
+	f := store.NewGrowingFactory(store.NewNodeRegion(p.space), 16, 4096, store.FactoryHooks{})
+	type made struct {
+		node store.Node
+		text string
+	}
+	var all []made
+	newIdentifier := func() store.Node {
+		text := fmt.Sprintf("n%d", len(all))
+		n := f.NewIdentifier(text)
+		all = append(all, made{n, text})
+		return n
+	}
+	// fill makes count identifiers and checks that they are in one new Store
+	// of rows nodes, after the Store of last.
+	fill := func(count, rows int, last store.Node) []store.Node {
+		t.Helper()
+		nodes := make([]store.Node, count)
+		for i := range nodes {
+			nodes[i] = newIdentifier()
+		}
+		s := store.StoreOf(nodes[0])
+		if !last.IsNil() && s == store.StoreOf(last) {
+			t.Fatalf("the Store of %d nodes is the Store before", rows)
+		}
+		if store.NodeCapacity(s) != rows || store.ExtraCap(s) != 16*rows || store.TextsCap(s) < 8*rows {
+			t.Fatalf("a Store of %d nodes, %d extra, %d texts; want %d, %d, at least %d",
+				store.NodeCapacity(s), store.ExtraCap(s), store.TextsCap(s), rows, 16*rows, 8*rows)
+		}
+		for _, n := range nodes {
+			if store.StoreOf(n) != s {
+				t.Fatalf("the nodes of a Store of %d nodes are in two Stores", rows)
+			}
+		}
+		return nodes
+	}
+
+	last := store.Node{}
+	for _, rows := range []int{16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 4096} {
+		nodes := fill(rows, rows, last)
+		last = nodes[len(nodes)-1]
+	}
+	first := all[0].node
+	partial := fill(5, 4096, last)
+
+	// A release from a Store that is not full: the next node is in a new
+	// Store of 16 nodes, and the nodes before are read and written.
+	f.ReleaseArenas()
+	small := fill(16, 16, partial[0])
+	f.SetRange(first, 3, 4)
+	f.SetRange(partial[4], 5, 6)
+	if first.Pos() != 3 || partial[4].Pos() != 5 || small[0].Pos() != -1 {
+		t.Error("a write after the release went to another node")
+	}
+
+	// Across the boundary of the full Store of 16 and the next, of 32: the
+	// child edge of the new parent and the parent edge written into the old
+	// Store are foreign entries.
+	parent := f.NewParenthesizedExpression(small[15])
+	next := store.StoreOf(parent)
+	if next == store.StoreOf(small[15]) || store.NodeCapacity(next) != 32 {
+		t.Fatalf("the node after a full Store of 16 is in a Store of %d nodes", store.NodeCapacity(next))
+	}
+	f.SetParent(small[15], parent)
+	f.SetParent(first, parent)
+	if !store.SameNode(parent.Expression(), small[15]) || !store.SameNode(small[15].Parent(), parent) ||
+		!store.SameNode(first.Parent(), parent) {
+		t.Error("an edge across a Store boundary does not read")
+	}
+	if store.ForeignNodeCount(next) != 1 || store.ForeignNodeCount(store.StoreOf(small[15])) != 1 ||
+		store.ForeignNodeCount(store.StoreOf(first)) != 1 {
+		t.Error("an edge across a Store boundary is not a foreign entry")
+	}
+	// A node of the new Store whose child was made before the release.
+	if wrapped := f.NewParenthesizedExpression(first); !store.SameNode(wrapped.Expression(), first) || store.StoreOf(wrapped) != next {
+		t.Error("a node after the release does not read its child from before it")
+	}
+
+	for i, m := range all {
+		if m.node.Text() != m.text {
+			t.Fatalf("node %d reads %q, want %q", i, m.node.Text(), m.text)
+		}
+	}
+}

@@ -7,9 +7,16 @@ import "github.com/microsoft/TypeScript/tsc/internal/ast/store"
 // 3.4 and 5.1). The checker's node builder makes its EmitContext in the
 // checker's region; the tests make one per program.
 
-// synthStoreCapacity is the node capacity of a Store of the EmitContext's
-// Factory (store-checker-7d2-design-remainder-20260929.md 2.5).
-const synthStoreCapacity = 4096
+// The node capacity of a Store of the EmitContext's Factory: the first after
+// a release holds synthStoreMinCapacity, and each after a full one twice as
+// many, up to synthStoreCapacity (store-checker-7d2-design-remainder-
+// 20260929.md 2.5, store-checker-7d2d-implementation-instructions-20261003.md
+// 1). The node builder releases after each typeToString, which makes 8 nodes
+// at the median in the check of the compiler project.
+const (
+	synthStoreMinCapacity = 16
+	synthStoreCapacity    = 4096
+)
 
 // NewEmitContextIn is printer.NewEmitContext with its Factory in region.
 func NewEmitContextIn(region *store.NodeRegion) *EmitContext {
@@ -21,7 +28,7 @@ func NewEmitContextIn(region *store.NodeRegion) *EmitContext {
 // NewNodeFactoryIn is printer.NewNodeFactory with its Factory in region.
 func NewNodeFactoryIn(context *EmitContext, region *store.NodeRegion) *NodeFactory {
 	return &NodeFactory{
-		Factory: store.NewFactory(region, synthStoreCapacity, store.FactoryHooks{
+		Factory: store.NewGrowingFactory(region, synthStoreMinCapacity, synthStoreCapacity, store.FactoryHooks{
 			OnCreate: context.onCreate,
 			OnUpdate: context.onUpdate,
 			OnClone:  context.onClone,

@@ -18,6 +18,7 @@ func SetInitialCaps(f *Factory, extra, texts int) {
 
 func StoreOf(n Node) *Store         { return n.s }
 func ListStoreOf(l List) *Store     { return l.s }
+func NodeCapacity(s *Store) int     { return cap(s.nodes) - 1 }
 func ExtraCap(s *Store) int         { return cap(s.extra) }
 func TextsCap(s *Store) int         { return s.private.texts.Cap() }
 func IsSynthetic(n Node) bool       { return n.s.owner != nil }

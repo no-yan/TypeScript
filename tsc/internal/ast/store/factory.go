@@ -9,8 +9,9 @@ import (
 // The synthetic Stores: the nodes that a checker makes (R, K3, V1 in
 // internal/ast/docs/store-checker-design-20260923.md 2.5 and 2.6, and
 // store-checker-execution-design-20260924.md 1, 3 to 5 and 8). A Factory
-// fills a Store of fixed node capacity and adds a new one when it is full: a
-// published header never moves and a StoreID is never reused. There is no
+// fills a Store of a node capacity it picks when it makes it, and adds a new
+// one when it is full: a published header never moves and a StoreID is never
+// reused. There is no
 // table of all the Stores, and a Store refers to no Factory, NodeRegion or
 // checker, so a Store that no Node, cache or foreign entry reaches is garbage.
 //
@@ -71,12 +72,15 @@ type FactoryHooks struct {
 // Factory is ast.NodeFactory for a region. New, Update and Clone are
 // generated (factory_generated.go); the writers are below.
 type Factory struct {
-	region   *NodeRegion
-	active   *Store
-	capacity int // real rows per Store
-	hooks    FactoryHooks
-	// The initial capacity of extra and texts of a new Store. Only the tests
-	// of this package set them, to force the reallocation of the columns.
+	region *NodeRegion
+	active *Store
+	// capacity is the real rows of the next Store: minCapacity after a
+	// release, twice the last up to maxCapacity after a full Store.
+	capacity, minCapacity, maxCapacity int
+	hooks                              FactoryHooks
+	// The initial capacity of extra and texts of a new Store, in proportion
+	// to capacity. Only the tests of this package set them otherwise, to
+	// force the reallocation of the columns.
 	extraCap, textsCap int
 	nodeCount          int
 	textCount          int
@@ -86,20 +90,40 @@ type Factory struct {
 // capacity is a performance knob: the tests run with 1 to 3 to force a
 // Store boundary between any two nodes.
 func NewFactory(r *NodeRegion, capacity int, hooks FactoryHooks) *Factory {
-	if capacity < 1 || capacity >= foreignBit {
+	return NewGrowingFactory(r, capacity, capacity, hooks)
+}
+
+// NewGrowingFactory makes a Factory whose first Store, and first after each
+// ReleaseArenas, holds min nodes, and whose Store after a full one holds
+// twice as many, up to max. The node builder's EmitContext releases after
+// each typeToString, which makes a few nodes
+// (store-checker-7d2d-implementation-instructions-20261003.md 1).
+func NewGrowingFactory(r *NodeRegion, min, max int, hooks FactoryHooks) *Factory {
+	if min < 1 || max < min || max >= foreignBit {
 		panic("store: invalid Store capacity")
 	}
-	return &Factory{region: r, capacity: capacity, hooks: hooks, extraCap: 16 * capacity, textsCap: 8 * capacity}
+	f := &Factory{region: r, minCapacity: min, maxCapacity: max, hooks: hooks}
+	f.setCapacity(min)
+	return f
+}
+
+func (f *Factory) setCapacity(rows int) {
+	f.capacity, f.extraCap, f.textsCap = rows, 16*rows, 8*rows
 }
 
 func (f *Factory) NodeCount() int { return f.nodeCount }
 func (f *Factory) TextCount() int { return f.textCount }
 
 // ReleaseArenas is ast.NodeFactory.ReleaseArenas: the Factory lets go of its
-// active Store, and the next New starts a new one. The old Stores are not
-// cleared, sealed or renumbered: a Node made before stays valid, readable and
-// writable, and keeps its Store alive.
-func (f *Factory) ReleaseArenas() { f.active = nil }
+// active Store, and the next New starts a new one of the least capacity. The
+// old Stores are not cleared, sealed or renumbered: a Node made before stays
+// valid, readable and writable, and keeps its Store alive.
+func (f *Factory) ReleaseArenas() {
+	f.active = nil
+	if f.capacity != f.minCapacity {
+		f.setCapacity(f.minCapacity)
+	}
+}
 
 // privateTables are the flows, symbols and locals of the nodes of a
 // synthetic Store: the header's flow and symbol words and the locals slot
@@ -189,6 +213,9 @@ func (f *Factory) store() *Store {
 func (f *Factory) row() *Store {
 	if s := f.active; s != nil && len(s.nodes) < cap(s.nodes) {
 		return s
+	}
+	if f.active != nil && f.capacity < f.maxCapacity {
+		f.setCapacity(min(2*f.capacity, f.maxCapacity))
 	}
 	f.active = f.newStore()
 	return f.active
