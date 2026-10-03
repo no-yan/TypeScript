@@ -1,10 +1,12 @@
 package storeharness
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"os"
 	"reflect"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -44,7 +46,7 @@ import (
 type Fixture struct {
 	Files   []FixtureFile
 	Options *core.CompilerOptions
-	Modules []fixtureModule // the distinct resolved modules, by identity
+	Modules []fixtureModule // the distinct resolved modules, by identity, in the order of sortModules
 	// DroppedResolutionDiagnostics counts the modules' resolution diagnostics,
 	// which are Pointer diagnostics and which no Store package reads.
 	DroppedResolutionDiagnostics int
@@ -295,7 +297,8 @@ func NewRecorder(program *Program) *Recorder {
 	return r
 }
 
-// Fixture is what r has recorded, its options checked to survive JSON.
+// Fixture is what r has recorded, its options checked to survive JSON and its
+// modules sorted.
 func (r *Recorder) Fixture() (*Fixture, error) {
 	data, err := json.Marshal(r.fixture.Options)
 	if err != nil {
@@ -308,7 +311,64 @@ func (r *Recorder) Fixture() (*Fixture, error) {
 	if !reflect.DeepEqual(&back, r.fixture.Options) {
 		return nil, fmt.Errorf("the options do not survive JSON")
 	}
+	if err := r.sortModules(); err != nil {
+		return nil, err
+	}
 	return r.fixture, nil
+}
+
+// sortModules numbers the modules in the order of their values (their JSON),
+// then of the least key that refers to each, since two distinct modules can be
+// equal, and renumbers Resolved, FromSpecifier and r.modules. moduleIndex
+// numbers them in the order the checker first asks them, which is not the same
+// in every run, and the fixture's bytes would follow it
+// (store-checker-7d2d-implementation-instructions-20261003.md 3).
+func (r *Recorder) sortModules() error {
+	f := r.fixture
+	values := make([]string, len(f.Modules))
+	for i, m := range f.Modules {
+		data, err := json.Marshal(m)
+		if err != nil {
+			return err
+		}
+		values[i] = string(data)
+	}
+	least := make([]string, len(f.Modules))
+	for _, refs := range []struct {
+		prefix string
+		m      map[string]int
+	}{{"Resolved ", f.Resolved}, {"FromSpecifier ", f.FromSpecifier}} {
+		for k, i := range refs.m {
+			if i >= 0 && (least[i] == "" || refs.prefix+k < least[i]) {
+				least[i] = refs.prefix + k
+			}
+		}
+	}
+	order := make([]int, len(f.Modules)) // old index by new
+	for i := range order {
+		order[i] = i
+	}
+	slices.SortFunc(order, func(a, b int) int {
+		return cmp.Or(strings.Compare(values[a], values[b]), strings.Compare(least[a], least[b]))
+	})
+	renumber := make([]int, len(f.Modules)) // new index by old
+	modules := make([]fixtureModule, len(f.Modules))
+	for to, from := range order {
+		renumber[from] = to
+		modules[to] = f.Modules[from]
+	}
+	f.Modules = modules
+	for _, m := range []map[string]int{f.Resolved, f.FromSpecifier} {
+		for k, i := range m {
+			if i >= 0 {
+				m[k] = renumber[i]
+			}
+		}
+	}
+	for m, i := range r.modules {
+		r.modules[m] = renumber[i]
+	}
+	return nil
 }
 
 func (r *Recorder) fileIndex(f *store.File) int {
