@@ -245,7 +245,8 @@ AST ノードの形が決まるまで決めない。§2.8 の不変条件を守�
 7. parser を Store に直接構築させる (id 書き、scratch、Compact)。Parse ベンチで Pointer と比較。
 8. E9 を済ませてから binder を移植し、Bind ゲート。symbol は §5 の移行形。
 9. checker の設計 (links、`Ref`、synth Store)。ここで §5 を別文書にする。
-10. emit の設計 (synth Store、Update、E8)。
+10. `--noEmit` での CLI 結線 (2026-10-03 に追加。checker 設計 §4 の 9)。Store の parse / bind / check を tsc の `--noEmit` の経路で動かし、測定用 adapter を介さない end-to-end の比較にする。
+11. emit の設計 (synth Store、Update、E8)。
 
 ## 7. 未決事項
 
