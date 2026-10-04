@@ -11,8 +11,10 @@ import (
 	"time"
 
 	"github.com/microsoft/TypeScript/tsc/internal/bundled"
+	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/execute"
 	"github.com/microsoft/TypeScript/tsc/internal/execute/tsc"
+	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
 	"github.com/microsoft/TypeScript/tsc/internal/vfs"
 	"github.com/microsoft/TypeScript/tsc/internal/vfs/vfstest"
 )
@@ -32,9 +34,23 @@ type CLIResult struct {
 // vfstest.Symlink) with the bundled libs, at cwd, with a clock that does not
 // move (so that the times of --diagnostics are 0) and no TTY.
 func RunCLI(files map[string]any, caseSensitive bool, cwd string, args []string) CLIResult {
+	return runOn(files, caseSensitive, cwd, func(sys tsc.System) tsc.CommandLineResult {
+		return execute.CommandLine(context.Background(), sys, args, nil)
+	})
+}
+
+// RunCheck is execute.RunCheck of config on the same kind of system as
+// RunCLI's.
+func RunCheck(files map[string]any, caseSensitive bool, cwd string, config *tsoptions.ParsedCommandLine, backend core.ASTBackend) CLIResult {
+	return runOn(files, caseSensitive, cwd, func(sys tsc.System) tsc.CommandLineResult {
+		return execute.RunCheck(context.Background(), sys, config, backend, nil)
+	})
+}
+
+func runOn(files map[string]any, caseSensitive bool, cwd string, run func(tsc.System) tsc.CommandLineResult) CLIResult {
 	fs := &recordingFS{FS: bundled.WrapFS(vfstest.FromMap(files, caseSensitive))}
 	sys := &cliSystem{fs: fs, cwd: cwd}
-	result := execute.CommandLine(context.Background(), sys, args, nil)
+	result := run(sys)
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
 	return CLIResult{Output: sys.out.String(), Status: result.Status, Reads: slices.Clone(fs.reads), Writes: slices.Clone(fs.writes), Written: maps.Clone(fs.written)}

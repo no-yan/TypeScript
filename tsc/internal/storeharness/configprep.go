@@ -574,21 +574,7 @@ func prepareCase(c *configCase) (*configDescriptor, tOutcome) {
 //   - the files are parsed for each program, but the bundled libs
 //     (configHost).
 func (d *configDescriptor) build() (program *compiler.Program, release func()) {
-	testfs := map[string]any{}
-	for _, file := range core.Concatenate(d.toBeCompiled, d.otherFiles) {
-		testfs[tspath.GetNormalizedAbsolutePath(file.UnitName, d.currentDirectory)] = &fstest.MapFile{
-			Data: []byte(file.Content),
-		}
-	}
-	for src, target := range d.symlinks {
-		srcFileName := tspath.GetNormalizedAbsolutePath(src, d.currentDirectory)
-		targetFileName := tspath.GetNormalizedAbsolutePath(target, d.currentDirectory)
-		testfs[srcFileName] = vfstest.Symlink(targetFileName)
-	}
-	if d.includeLibDir {
-		maps.Copy(testfs, testLibFolderMap())
-	}
-	fs := vfstest.FromMap(testfs, d.harnessOptions.UseCaseSensitiveFileNames)
+	fs := vfstest.FromMap(d.fileMap(), d.harnessOptions.UseCaseSensitiveFileNames)
 	fs = bundled.WrapFS(fs)
 	fs = harnessutil.NewOutputRecorderFS(fs)
 
@@ -610,21 +596,7 @@ func (d *configDescriptor) build() (program *compiler.Program, release func()) {
 		contentMapperHost = contentmapper.NewHost(context.Background(), contentmappertest.NewSpawner(), locale.Default)
 		closers = append(closers, func() { contentMapperHost.Close() })
 	}
-	var configFile *tsoptions.TsConfigSourceFile
-	var errors []*ast.Diagnostic
-	if d.tsConfig != nil {
-		configFile = d.tsConfig.ConfigFile
-		errors = d.tsConfig.Errors
-	}
-	config := &tsoptions.ParsedCommandLine{
-		ParsedConfig: &tsoptions.ParsedOptions{
-			CompilerOptions: options,
-			FileNames:       slices.Clone(d.rootNames),
-			ContentMappers:  d.contentMappers,
-		},
-		ConfigFile: configFile,
-		Errors:     errors,
-	}
+	config := d.commandLine(options)
 	var contentMapperProject contentmapper.Project
 	if contentMapperHost != nil {
 		contentMapperProject = contentMapperHost.Project(contentmapper.ProjectSpec{
@@ -637,6 +609,45 @@ func (d *configDescriptor) build() (program *compiler.Program, release func()) {
 	host := &configHost{CompilerHost: compiler.NewCompilerHost(d.currentDirectory, fs, bundled.LibPath(), nil, nil, contentMapperProject)}
 	program = compiler.NewProgram(compiler.ProgramOptions{Config: config, Host: host, SingleThreaded: core.TSTrue})
 	return program, release
+}
+
+// fileMap is the descriptor's file system: the files, the symlinks and the
+// test lib folder, for vfstest.FromMap.
+func (d *configDescriptor) fileMap() map[string]any {
+	testfs := map[string]any{}
+	for _, file := range core.Concatenate(d.toBeCompiled, d.otherFiles) {
+		testfs[tspath.GetNormalizedAbsolutePath(file.UnitName, d.currentDirectory)] = &fstest.MapFile{
+			Data: []byte(file.Content),
+		}
+	}
+	for src, target := range d.symlinks {
+		srcFileName := tspath.GetNormalizedAbsolutePath(src, d.currentDirectory)
+		targetFileName := tspath.GetNormalizedAbsolutePath(target, d.currentDirectory)
+		testfs[srcFileName] = vfstest.Symlink(targetFileName)
+	}
+	if d.includeLibDir {
+		maps.Copy(testfs, testLibFolderMap())
+	}
+	return testfs
+}
+
+// commandLine is the program's config with options.
+func (d *configDescriptor) commandLine(options *core.CompilerOptions) *tsoptions.ParsedCommandLine {
+	var configFile *tsoptions.TsConfigSourceFile
+	var errors []*ast.Diagnostic
+	if d.tsConfig != nil {
+		configFile = d.tsConfig.ConfigFile
+		errors = d.tsConfig.Errors
+	}
+	return &tsoptions.ParsedCommandLine{
+		ParsedConfig: &tsoptions.ParsedOptions{
+			CompilerOptions: options,
+			FileNames:       slices.Clone(d.rootNames),
+			ContentMappers:  d.contentMappers,
+		},
+		ConfigFile: configFile,
+		Errors:     errors,
+	}
 }
 
 // targets are the program's diagnostic targets and walk targets.

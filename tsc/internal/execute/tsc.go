@@ -234,7 +234,7 @@ func tscCompilation(ctx context.Context, sys tsc.System, commandLine *tsoptions.
 		// The check mode (store-cli-design-20261004.md 3): the Store program
 		// rejects a config outside it before any source is read; the Pointer
 		// program takes the compile path for it.
-		reasons := checkModeUnsupported(configForCompilation)
+		reasons := CheckModeUnsupported(configForCompilation)
 		if backend == core.ASTBackendStore && len(reasons) != 0 {
 			for _, reason := range reasons {
 				reportDiagnostic(reason)
