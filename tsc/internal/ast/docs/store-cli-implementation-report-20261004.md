@@ -7,10 +7,10 @@
 | 項目 | 判定 |
 | --- | --- |
 | 機能 | 完了。A〜E の実装と試験は通過した。全母集団の対応 13,170 構成で Pointer と Store が一致し、不一致 0・panic 0 |
-| 性能の必須測定 | 未取得あり。C01 の native Check KPC は root 権限が要るため未実行（`e/kpc-pairs.sh` を用意済み）。E01 は未測定 |
-| L01 の 3 目標 | 保持メモリは基準未達（A/A 合格）。wall は区間が上限を大きく超えるが A/A 不合格のため、規則上は未確定。mark CPU は区間が上限を大きく下回るが A/A 不合格のため、規則上は未確定 |
+| 性能の必須測定 | C01 の native Check KPC は取得済み（2026-10-05、ユーザーが sudo で実行、A/A 合格）。E01 は未測定 |
+| L01 の 3 目標 | 保持メモリは基準未達（A/A 合格）。wall は区間が上限を大きく超えるが A/A 不合格のため、規則上は未確定。mark CPU は区間が上限を大きく下回るが A/A 不合格のため、規則上は未確定。§9.5 の再実行は行わない（2026-10-05、ユーザー決定）ので、この判定で確定 |
 | Pointer の結線前後 | 許容幅内。ただし δ=0.149 と大きく、検出力は弱い |
-| 7e 全体 | 未完了（機能完了、性能基準未達） |
+| 7e 全体 | 未完了（機能完了、性能基準未達。L01 の保持 heap が 0.80 を超え、wall と mark CPU は A/A 不合格で未確定） |
 
 ## commit
 
@@ -101,7 +101,7 @@ A/A（after）の wall の最大偏差 δ は 0.149。after/before は 0.9725 [0
 | C01 footprint | 0.849 |
 | D01 | 1 回 0.05 秒で、`time` の分解能以下。比は出さない |
 | C01 benchstat（`e/c01-bench/`、in-process、n=10） | CommandLine −11.1% sec/op・−7.9% B/op・+2.0% allocs。Program の build −46.6%・allocs −69.5%、bind +17.5%・B/op +33.1%、check −7.9%・B/op +6.6%・allocs +6.4% |
-| C01 native Check KPC | 未取得（root が必要） |
+| C01 native Check KPC（`e/c01-kpc/`、-benchtime=1x の独立プロセス、A/A 10 組×2・A/B 30 組） | A/A の cycles は Pointer [0.998, 1.001]・幅 0.58%、Store [0.998, 1.002]・幅 0.77% で合格。A/B（Store/Pointer）: cycles 1.0455 [1.0441, 1.0467]、inst 1.0774 [1.0770, 1.0779]、IPC 1.030、ns 1.0455、B/op 1.068、allocs 1.064。採用線は置かない。旧 harness 経由の Check（7d-2d）の cycles 1.0525 から、adapter が無くなった分だけ小さい。load1 の中央値は 3.61 |
 
 ### hot paths と allocation drivers（L01、`e/profiles/`）
 
@@ -115,10 +115,10 @@ A/A（after）の wall の最大偏差 δ は 0.149。after/before は 0.9725 [0
 - `getAdditionalJSSyntacticDiagnostics` は、Store に SubtreeFacts が無いため全走査にした。全母集団で差は出なかった。
 - `verifyCompilerOptions` の emit path の検査は、noEmit 必須なので到達時に panic する。
 - `--build --astBackend store` は、専用の拒否ではなく既存の TS5094（exit 1）にした（build の help に載せないため）。
-- 未完了: C01 の native Check KPC（`sudo e/kpc-pairs.sh`）、E01 の測定、比較器の感度試験の網羅（一部の故障注入のみ）、§9.5 の再実行。
+- KPC は、ユーザーが load 3〜4 の状態で実行した。以前決めた load<1.5 の条件は満たしていないが、A/A は合格している。
+- KPC の binary は、execute が引き込む FSEvents のために `CGO_LDFLAGS="-framework CoreFoundation -framework CoreServices"` が要る。
+- 未完了: E01 の測定、比較器の感度試験の網羅（一部の故障注入のみ）。§9.5 の再実行は行わない（ユーザー決定）。
 
 ## 次の action
 
-1. KPC をユーザー環境で実行し、C01 の Check 比を取得する。
-2. A/A を満たす環境（他のアプリを閉じ、ページングを減らす）で、L01 の wall と mark CPU を 1 回だけ再実行する（§9.5）。
-3. 保持メモリの 0.80 は、AST の変更だけでは届かない。checker の型と symbol の表現の見直しが要るので、別の設計判断として扱う。
+1. 保持メモリの 0.80 は、AST の変更だけでは届かない。checker の型と symbol の表現の見直しが要るので、別の設計判断として扱う。
