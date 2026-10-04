@@ -30,7 +30,8 @@ func getOptionsForHelp(commandLine *tsoptions.ParsedCommandLine) []*tsoptions.Co
 	opts = append(opts, &tsoptions.TscBuildOption)
 
 	if commandLine.CompilerOptions().All.IsTrue() {
-		slices.SortFunc(opts, func(a, b *tsoptions.CommandLineOption) int {
+		// Stable: the two "help" declarations (-h and -?) keep their order.
+		slices.SortStableFunc(opts, func(a, b *tsoptions.CommandLineOption) int {
 			return strings.Compare(strings.ToLower(a.Name), strings.ToLower(b.Name))
 		})
 		return opts

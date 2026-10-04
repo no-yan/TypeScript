@@ -21,6 +21,7 @@ type apiFlags struct {
 	async           bool
 	timing          bool
 	runExternalCode bool
+	astBackend      string
 }
 
 func parseAPIFlags(args []string) (apiFlags, error) {
@@ -32,6 +33,7 @@ func parseAPIFlags(args []string) (apiFlags, error) {
 	flags.BoolVar(&result.async, "async", false, "use JSON-RPC protocol instead of MessagePack (for async API)")
 	flags.BoolVar(&result.timing, "timing", false, "collect per-request server processing time, folded into the client's timing snapshot")
 	flags.BoolVar(&result.runExternalCode, "runExternalCode", false, "allow projects to execute configured external plugins")
+	flags.StringVar(&result.astBackend, "astBackend", "pointer", "the AST of the compiler; the API has the Pointer AST only")
 	if err := flags.Parse(args); err != nil {
 		return apiFlags{}, err
 	}
@@ -42,6 +44,9 @@ func runAPI(args []string) int {
 	flags, err := parseAPIFlags(args)
 	if err != nil {
 		return 2
+	}
+	if status, ok := rejectASTBackend(flags.astBackend, "--api"); !ok {
+		return status
 	}
 
 	defaultLibraryPath := bundled.LibPath()

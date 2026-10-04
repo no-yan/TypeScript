@@ -5,18 +5,23 @@
 package storecompiler
 
 import (
+	"context"
 	"slices"
 	"sync"
 	"sync/atomic"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store"
+	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
 	"github.com/microsoft/TypeScript/tsc/internal/module"
 	"github.com/microsoft/TypeScript/tsc/internal/outputpaths"
 	"github.com/microsoft/TypeScript/tsc/internal/packagejson"
+	"github.com/microsoft/TypeScript/tsc/internal/scanner"
+	"github.com/microsoft/TypeScript/tsc/internal/spanmap"
 	"github.com/microsoft/TypeScript/tsc/internal/storebinder"
+	"github.com/microsoft/TypeScript/tsc/internal/storechecker"
 	"github.com/microsoft/TypeScript/tsc/internal/tracing"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
@@ -84,6 +89,10 @@ func (p *Program) GetSourceOfProjectReferenceIfOutputIncluded(file ast.HasFileNa
 
 func (p *Program) GetProjectReferenceFromSource(path tspath.Path) *tsoptions.SourceOutputAndProjectReference {
 	return p.projectReferenceFileMapper.getProjectReferenceFromSource(path)
+}
+
+func (p *Program) IsSourceFromProjectReference(path tspath.Path) bool {
+	return p.projectReferenceFileMapper.isSourceFromProjectReference(path)
 }
 
 func (p *Program) GetProjectReferenceFromOutputDts(path tspath.Path) *tsoptions.SourceOutputAndProjectReference {
@@ -174,6 +183,216 @@ func (p *Program) GetPackagesMap() map[string]bool {
 		}
 	})
 	return p.packagesMap
+}
+
+func (p *Program) collectDiagnostics(ctx context.Context, sourceFile *store.File, concurrent bool, collect func(context.Context, *store.File) []*store.Diagnostic) []*store.Diagnostic {
+	var result []*store.Diagnostic
+	if sourceFile != nil {
+		result = collect(ctx, sourceFile)
+	} else {
+		diagnostics := p.collectDiagnosticsFromFiles(ctx, p.files, concurrent, collect)
+		result = slices.Concat(diagnostics...)
+	}
+	return filterAndSortDiagnostics(result)
+}
+
+func (p *Program) collectDiagnosticsFromFiles(ctx context.Context, sourceFiles []*store.File, concurrent bool, collect func(context.Context, *store.File) []*store.Diagnostic) [][]*store.Diagnostic {
+	diagnostics := make([][]*store.Diagnostic, len(sourceFiles))
+	wg := core.NewWorkGroup(!concurrent || p.SingleThreaded())
+	for i, file := range sourceFiles {
+		wg.Queue(func() {
+			diagnostics[i] = collect(ctx, file)
+		})
+	}
+	wg.RunAndWait()
+	return diagnostics
+}
+
+func filterAndSortDiagnostics(diags []*store.Diagnostic) []*store.Diagnostic {
+	return SortAndDeduplicateDiagnostics(core.Filter(diags, func(diag *store.Diagnostic) bool {
+		file := diag.File()
+		if !diag.ReportsUnnecessary() || file == nil || file.SpanMap() == nil || diag.Source() != "" {
+			return true
+		}
+		_, fidelity := file.SpanMap().VirtualToOriginalSpan(diag.Loc())
+		return fidelity != spanmap.FidelityNone
+	}))
+}
+
+func (p *Program) GetSemanticDiagnostics(ctx context.Context, sourceFile *store.File) []*store.Diagnostic {
+	return p.collectCheckerDiagnostics(ctx, sourceFile, p.getSemanticDiagnosticsWithChecker)
+}
+
+func (p *Program) GetIncludeProcessorDiagnostics(sourceFile *store.File) []*store.Diagnostic {
+	if p.SkipTypeChecking(sourceFile, false) {
+		return nil
+	}
+	filtered, _ := p.getDiagnosticsWithPrecedingDirectives(sourceFile, p.includeProcessor.getDiagnostics(p).GetDiagnosticsForFile(sourceFile))
+	return filtered
+}
+
+func (p *Program) SkipTypeChecking(sourceFile *store.File, ignoreNoCheck bool) bool {
+	return (!ignoreNoCheck && p.Options().NoCheck.IsTrue()) ||
+		p.Options().SkipLibCheck.IsTrue() && sourceFile.IsDeclarationFile ||
+		p.Options().SkipDefaultLibCheck.IsTrue() && p.IsSourceFileDefaultLibrary(sourceFile.Path()) ||
+		p.IsSourceFromProjectReference(sourceFile.Path()) ||
+		!p.canIncludeBindAndCheckDiagnostics(sourceFile)
+}
+
+func (p *Program) canIncludeBindAndCheckDiagnostics(sourceFile *store.File) bool {
+	if sourceFile.CheckJsDirective != nil && !sourceFile.CheckJsDirective.Enabled {
+		return false
+	}
+
+	if sourceFile.ScriptKind == core.ScriptKindTS || sourceFile.ScriptKind == core.ScriptKindTSX {
+		return true
+	}
+
+	isJS := sourceFile.ScriptKind == core.ScriptKindJS || sourceFile.ScriptKind == core.ScriptKindJSX
+	isCheckJS := isJS && store.IsCheckJSEnabledForFile(sourceFile, p.Options())
+	isPlainJS := store.IsPlainJSFile(sourceFile, p.Options().CheckJs)
+
+	// By default, only type-check .ts, .tsx, plain JS, and checked JS
+	// - plain JS: .js files with no // ts-check and checkJs: undefined
+	// - check JS: .js files with either // ts-check or checkJs: true
+	return isPlainJS || isCheckJS
+}
+
+func hasZeroOrOneAsteriskCharacter(str string) bool {
+	seenAsterisk := false
+	for _, ch := range str {
+		if ch == '*' {
+			if !seenAsterisk {
+				seenAsterisk = true
+			} else {
+				// have already seen asterisk
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func moduleResolutionSupportsPackageJsonExportsAndImports(moduleResolution core.ModuleResolutionKind) bool {
+	return moduleResolution >= core.ModuleResolutionKindNode16 && moduleResolution <= core.ModuleResolutionKindNodeNext ||
+		moduleResolution == core.ModuleResolutionKindBundler
+}
+
+func emitModuleKindIsNonNodeESM(moduleKind core.ModuleKind) bool {
+	return moduleKind >= core.ModuleKindES2015 && moduleKind <= core.ModuleKindESNext
+}
+
+func FilterNoEmitSemanticDiagnostics(diagnostics []*store.Diagnostic, options *core.CompilerOptions) []*store.Diagnostic {
+	if !options.NoEmit.IsTrue() {
+		return diagnostics
+	}
+	return core.Filter(diagnostics, func(d *store.Diagnostic) bool {
+		return !d.SkippedOnNoEmit()
+	})
+}
+
+func (p *Program) getSemanticDiagnosticsWithChecker(ctx context.Context, c *storechecker.Checker, sourceFile *store.File) []*store.Diagnostic {
+	return core.Concatenate(
+		FilterNoEmitSemanticDiagnostics(p.getBindAndCheckDiagnosticsWithChecker(ctx, c, sourceFile), p.Options()),
+		p.GetIncludeProcessorDiagnostics(sourceFile),
+	)
+}
+
+func (p *Program) getDiagnosticsWithPrecedingDirectives(sourceFile *store.File, diags []*store.Diagnostic) ([]*store.Diagnostic, map[int]ast.CommentDirective) {
+	if len(sourceFile.CommentDirectives) == 0 {
+		return diags, nil
+	}
+	// Build map of directives by line number
+	directivesByLine := make(map[int]ast.CommentDirective)
+	for _, directive := range sourceFile.CommentDirectives {
+		line := scanner.GetECMALineOfPosition(sourceFile, directive.Loc.Pos())
+		directivesByLine[line] = directive
+	}
+	lineStarts := scanner.GetECMALineStarts(sourceFile)
+	filtered := make([]*store.Diagnostic, 0, len(diags))
+	for _, diagnostic := range diags {
+		ignoreDiagnostic := false
+		for line := scanner.ComputeLineOfPosition(lineStarts, diagnostic.Pos()) - 1; line >= 0; line-- {
+			// If line contains a @ts-ignore or @ts-expect-error directive, ignore this diagnostic and change
+			// the directive kind to @ts-ignore to indicate it was used.
+			if directive, ok := directivesByLine[line]; ok {
+				ignoreDiagnostic = true
+				directive.Kind = ast.CommentDirectiveKindIgnore
+				directivesByLine[line] = directive
+				break
+			}
+			// Stop searching backwards when we encounter a line that isn't blank or a comment.
+			if !isCommentOrBlankLine(sourceFile.Text(), int(lineStarts[line])) {
+				break
+			}
+		}
+		if !ignoreDiagnostic {
+			filtered = append(filtered, diagnostic)
+		}
+	}
+	return filtered, directivesByLine
+}
+
+func isCommentOrBlankLine(text string, pos int) bool {
+	for pos < len(text) && (text[pos] == ' ' || text[pos] == '\t') {
+		pos++
+	}
+	return pos == len(text) ||
+		pos < len(text) && (text[pos] == '\r' || text[pos] == '\n') ||
+		pos+1 < len(text) && text[pos] == '/' && text[pos+1] == '/'
+}
+
+func SortAndDeduplicateDiagnostics(diagnostics []*store.Diagnostic) []*store.Diagnostic {
+	diagnostics = slices.Clone(diagnostics)
+	slices.SortFunc(diagnostics, store.CompareDiagnostics)
+	return compactAndMergeRelatedInfos(diagnostics)
+}
+
+func compactAndMergeRelatedInfos(diagnostics []*store.Diagnostic) []*store.Diagnostic {
+	if len(diagnostics) < 2 {
+		return diagnostics
+	}
+	i := 0
+	j := 0
+	for i < len(diagnostics) {
+		d := diagnostics[i]
+		n := 1
+		for i+n < len(diagnostics) && store.EqualDiagnosticsNoRelatedInfo(d, diagnostics[i+n]) {
+			n++
+		}
+		if n > 1 {
+			var relatedInfos []*store.Diagnostic
+			for k := range n {
+				relatedInfos = append(relatedInfos, diagnostics[i+k].RelatedInformation()...)
+			}
+			if relatedInfos != nil {
+				slices.SortFunc(relatedInfos, store.CompareDiagnostics)
+				relatedInfos = slices.CompactFunc(relatedInfos, store.EqualDiagnostics)
+				d = d.Clone().SetRelatedInfo(relatedInfos)
+			}
+		}
+		diagnostics[j] = d
+		i += n
+		j++
+	}
+	clear(diagnostics[j:])
+	return diagnostics[:j]
+}
+
+func (p *Program) LineCount() int {
+	var count int
+	for _, file := range p.files {
+		count += len(file.ECMALineMap())
+	}
+	return count
+}
+
+func (p *Program) IdentifierCount() int {
+	var count int
+	for _, file := range p.files {
+		count += file.IdentifierCount
+	}
+	return count
 }
 
 func (p *Program) Program() *Program {
@@ -327,3 +546,100 @@ func forEachResolution[T any](resolutionCache map[tspath.Path]module.ModeAwareCa
 		}
 	}
 }
+
+var plainJSErrors = collections.NewSetFromItems(
+	// binder errors
+	diagnostics.Cannot_redeclare_block_scoped_variable_0.Code(),
+	diagnostics.A_module_cannot_have_multiple_default_exports.Code(),
+	diagnostics.Another_export_default_is_here.Code(),
+	diagnostics.The_first_export_default_is_here.Code(),
+	diagnostics.Identifier_expected_0_is_a_reserved_word_at_the_top_level_of_a_module.Code(),
+	diagnostics.Identifier_expected_0_is_a_reserved_word_in_strict_mode_Modules_are_automatically_in_strict_mode.Code(),
+	diagnostics.Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here.Code(),
+	diagnostics.X_constructor_is_a_reserved_word.Code(),
+	diagnostics.X_delete_cannot_be_called_on_an_identifier_in_strict_mode.Code(),
+	diagnostics.Code_contained_in_a_class_is_evaluated_in_JavaScript_s_strict_mode_which_does_not_allow_this_use_of_0_For_more_information_see_https_Colon_Slash_Slashdeveloper_mozilla_org_Slashen_US_Slashdocs_SlashWeb_SlashJavaScript_SlashReference_SlashStrict_mode.Code(),
+	diagnostics.Invalid_use_of_0_Modules_are_automatically_in_strict_mode.Code(),
+	diagnostics.Invalid_use_of_0_in_strict_mode.Code(),
+	diagnostics.A_label_is_not_allowed_here.Code(),
+	diagnostics.X_with_statements_are_not_allowed_in_strict_mode.Code(),
+	// grammar errors
+	diagnostics.A_break_statement_can_only_be_used_within_an_enclosing_iteration_or_switch_statement.Code(),
+	diagnostics.A_break_statement_can_only_jump_to_a_label_of_an_enclosing_statement.Code(),
+	diagnostics.A_class_declaration_without_the_default_modifier_must_have_a_name.Code(),
+	diagnostics.A_class_member_cannot_have_the_0_keyword.Code(),
+	diagnostics.A_comma_expression_is_not_allowed_in_a_computed_property_name.Code(),
+	diagnostics.A_continue_statement_can_only_be_used_within_an_enclosing_iteration_statement.Code(),
+	diagnostics.A_continue_statement_can_only_jump_to_a_label_of_an_enclosing_iteration_statement.Code(),
+	diagnostics.A_default_clause_cannot_appear_more_than_once_in_a_switch_statement.Code(),
+	diagnostics.A_default_export_must_be_at_the_top_level_of_a_file_or_module_declaration.Code(),
+	diagnostics.A_definite_assignment_assertion_is_not_permitted_in_this_context.Code(),
+	diagnostics.A_destructuring_declaration_must_have_an_initializer.Code(),
+	diagnostics.A_get_accessor_cannot_have_parameters.Code(),
+	diagnostics.A_rest_element_cannot_contain_a_binding_pattern.Code(),
+	diagnostics.A_rest_element_cannot_have_a_property_name.Code(),
+	diagnostics.A_rest_element_cannot_have_an_initializer.Code(),
+	diagnostics.A_rest_element_must_be_last_in_a_destructuring_pattern.Code(),
+	diagnostics.A_rest_parameter_cannot_have_an_initializer.Code(),
+	diagnostics.A_rest_parameter_must_be_last_in_a_parameter_list.Code(),
+	diagnostics.A_rest_parameter_or_binding_pattern_may_not_have_a_trailing_comma.Code(),
+	diagnostics.A_return_statement_cannot_be_used_inside_a_class_static_block.Code(),
+	diagnostics.A_set_accessor_cannot_have_rest_parameter.Code(),
+	diagnostics.A_set_accessor_must_have_exactly_one_parameter.Code(),
+	diagnostics.An_export_declaration_can_only_be_used_at_the_top_level_of_a_module.Code(),
+	diagnostics.An_export_declaration_cannot_have_modifiers.Code(),
+	diagnostics.An_import_declaration_can_only_be_used_at_the_top_level_of_a_module.Code(),
+	diagnostics.An_import_declaration_cannot_have_modifiers.Code(),
+	diagnostics.An_object_member_cannot_be_declared_optional.Code(),
+	diagnostics.Argument_of_dynamic_import_cannot_be_spread_element.Code(),
+	diagnostics.Cannot_assign_to_private_method_0_Private_methods_are_not_writable.Code(),
+	diagnostics.Cannot_redeclare_identifier_0_in_catch_clause.Code(),
+	diagnostics.Catch_clause_variable_cannot_have_an_initializer.Code(),
+	diagnostics.Class_decorators_can_t_be_used_with_static_private_identifier_Consider_removing_the_experimental_decorator.Code(),
+	diagnostics.Classes_can_only_extend_a_single_class.Code(),
+	diagnostics.Classes_may_not_have_a_field_named_constructor.Code(),
+	diagnostics.Did_you_mean_to_use_a_Colon_An_can_only_follow_a_property_name_when_the_containing_object_literal_is_part_of_a_destructuring_pattern.Code(),
+	diagnostics.Duplicate_label_0.Code(),
+	diagnostics.Dynamic_imports_can_only_accept_a_module_specifier_and_an_optional_set_of_attributes_as_arguments.Code(),
+	diagnostics.X_for_await_loops_cannot_be_used_inside_a_class_static_block.Code(),
+	diagnostics.JSX_attributes_must_only_be_assigned_a_non_empty_expression.Code(),
+	diagnostics.JSX_elements_cannot_have_multiple_attributes_with_the_same_name.Code(),
+	diagnostics.JSX_expressions_may_not_use_the_comma_operator_Did_you_mean_to_write_an_array.Code(),
+	diagnostics.JSX_property_access_expressions_cannot_include_JSX_namespace_names.Code(),
+	diagnostics.Jump_target_cannot_cross_function_boundary.Code(),
+	diagnostics.Line_terminator_not_permitted_before_arrow.Code(),
+	diagnostics.Modifiers_cannot_appear_here.Code(),
+	diagnostics.Only_a_single_variable_declaration_is_allowed_in_a_for_in_statement.Code(),
+	diagnostics.Only_a_single_variable_declaration_is_allowed_in_a_for_of_statement.Code(),
+	diagnostics.Private_identifiers_are_not_allowed_outside_class_bodies.Code(),
+	diagnostics.Private_identifiers_are_only_allowed_in_class_bodies_and_may_only_be_used_as_part_of_a_class_member_declaration_property_access_or_on_the_left_hand_side_of_an_in_expression.Code(),
+	diagnostics.Property_0_is_not_accessible_outside_class_1_because_it_has_a_private_identifier.Code(),
+	diagnostics.Tagged_template_expressions_are_not_permitted_in_an_optional_chain.Code(),
+	diagnostics.The_left_hand_side_of_a_for_of_statement_may_not_be_async.Code(),
+	diagnostics.The_variable_declaration_of_a_for_in_statement_cannot_have_an_initializer.Code(),
+	diagnostics.The_variable_declaration_of_a_for_of_statement_cannot_have_an_initializer.Code(),
+	diagnostics.Trailing_comma_not_allowed.Code(),
+	diagnostics.Variable_declaration_list_cannot_be_empty.Code(),
+	diagnostics.X_0_and_1_operations_cannot_be_mixed_without_parentheses.Code(),
+	diagnostics.X_0_expected.Code(),
+	diagnostics.X_0_is_not_a_valid_meta_property_for_keyword_1_Did_you_mean_2.Code(),
+	diagnostics.X_0_list_cannot_be_empty.Code(),
+	diagnostics.X_0_modifier_already_seen.Code(),
+	diagnostics.X_0_modifier_cannot_appear_on_a_constructor_declaration.Code(),
+	diagnostics.X_0_modifier_cannot_appear_on_a_module_or_namespace_element.Code(),
+	diagnostics.X_0_modifier_cannot_appear_on_a_parameter.Code(),
+	diagnostics.X_0_modifier_cannot_appear_on_class_elements_of_this_kind.Code(),
+	diagnostics.X_0_modifier_cannot_be_used_here.Code(),
+	diagnostics.X_0_modifier_must_precede_1_modifier.Code(),
+	diagnostics.X_0_declarations_can_only_be_declared_inside_a_block.Code(),
+	diagnostics.X_0_declarations_must_be_initialized.Code(),
+	diagnostics.X_extends_clause_already_seen.Code(),
+	diagnostics.X_let_is_not_allowed_to_be_used_as_a_name_in_let_or_const_declarations.Code(),
+	diagnostics.Class_constructor_may_not_be_a_generator.Code(),
+	diagnostics.Class_constructor_may_not_be_an_accessor.Code(),
+	diagnostics.X_await_expressions_are_only_allowed_within_async_functions_and_at_the_top_levels_of_modules.Code(),
+	diagnostics.X_await_using_statements_are_only_allowed_within_async_functions_and_at_the_top_levels_of_modules.Code(),
+	diagnostics.Private_field_0_must_be_declared_in_an_enclosing_class.Code(),
+	// Type errors
+	diagnostics.This_condition_will_always_return_0_since_JavaScript_compares_objects_by_reference_not_value.Code(),
+)

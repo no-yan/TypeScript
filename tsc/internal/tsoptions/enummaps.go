@@ -199,6 +199,11 @@ var jsxOptionMap = collections.NewOrderedMapFromList([]collections.MapEntry[stri
 	{Key: "react", Value: core.JsxEmitReact},
 })
 
+var astBackendOptionMap = collections.NewOrderedMapFromList([]collections.MapEntry[string, any]{
+	{Key: "pointer", Value: core.ASTBackendPointer},
+	{Key: "store", Value: core.ASTBackendStore},
+})
+
 var newLineOptionMap = collections.NewOrderedMapFromList([]collections.MapEntry[string, any]{
 	{Key: "crlf", Value: core.NewLineKindCRLF},
 	{Key: "lf", Value: core.NewLineKindLF},

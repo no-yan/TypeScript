@@ -87,6 +87,18 @@ var compilerRoots = []string{
 	"compiler.Program.GetIncludeReasons",
 	"compiler.Program.IsMissingPath",
 	"compiler.Program.GetResolvedTypeReferenceDirectives",
+	// The check and its diagnostics (7e C).
+	"compiler.Program.GetSyntacticDiagnostics",
+	"compiler.Program.GetBindDiagnostics",
+	"compiler.Program.GetProgramDiagnostics",
+	"compiler.Program.GetSemanticDiagnostics",
+	"compiler.Program.GetGlobalDiagnostics",
+	"compiler.Program.LineCount",
+	"compiler.Program.IdentifierCount",
+	"compiler.Program.SymbolCount",
+	"compiler.Program.TypeCount",
+	"compiler.Program.InstantiationCount",
+	"compiler.SortAndDeduplicateDiagnostics",
 }
 
 func computeReach(w *world) (*reachResult, error) {

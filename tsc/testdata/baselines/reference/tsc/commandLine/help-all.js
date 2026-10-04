@@ -14,6 +14,9 @@ tsc: The TypeScript Compiler - Version FakeTSVersion
 [94m--all[39m
 Show all compiler options.
 
+[94m--astBackend[39m
+Select the AST of the compiler: 'pointer' (the default) or 'store'. Experimental: 'store' checks a one-shot, single-threaded '--noEmit' program only, without declarations, incremental builds, watch, build mode, project references or content mappers.
+
 [94m--build, -b[39m
 Build one or more projects and their dependencies, if out of date
 

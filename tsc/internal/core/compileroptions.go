@@ -158,7 +158,19 @@ type CompilerOptions struct {
 	SingleThreaded Tristate `json:"singleThreaded,omitzero" internal:"true"`
 	Quiet          Tristate `json:"quiet,omitzero" internal:"true"`
 	Checkers       *int     `json:"checkers,omitzero" internal:"true"`
+
+	ASTBackend ASTBackend `json:"astBackend,omitzero" internal:"true"`
 }
+
+// ASTBackend is the AST of the CLI's compiler (--astBackend): a choice of the
+// implementation, not a language option. None is the Pointer AST.
+type ASTBackend int32
+
+const (
+	ASTBackendNone ASTBackend = iota
+	ASTBackendPointer
+	ASTBackendStore
+)
 
 // noCopy may be embedded into structs which must not be copied
 // after the first use.

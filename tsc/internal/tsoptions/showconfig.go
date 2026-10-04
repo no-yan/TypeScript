@@ -86,6 +86,7 @@ func ConvertToTSConfig(configParseResult *ParsedCommandLine, configFileName stri
 	for _, name := range []string{
 		"showConfig", "configFile", "configFilePath", "help", "init",
 		"listFilesOnly", "listEmittedFiles", "project", "build", "version",
+		"astBackend",
 	} {
 		optionMap.Delete(name)
 	}

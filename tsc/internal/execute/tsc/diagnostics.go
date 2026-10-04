@@ -28,15 +28,27 @@ func CreateDiagnosticReporter(sys System, w io.Writer, locale locale.Locale, opt
 	if options.Quiet.IsTrue() {
 		return QuietDiagnosticReporter
 	}
+	write := createDiagnosticWriter(sys, w, locale, options)
+	return func(diagnostic *ast.Diagnostic) {
+		write(diagnosticwriter.WrapASTDiagnostic(diagnostic))
+	}
+}
+
+// createDiagnosticWriter is CreateDiagnosticReporter for a diagnostic of
+// either AST (the check mode, check.go).
+func createDiagnosticWriter(sys System, w io.Writer, locale locale.Locale, options *core.CompilerOptions) func(diagnosticwriter.Diagnostic) {
+	if options.Quiet.IsTrue() {
+		return func(diagnosticwriter.Diagnostic) {}
+	}
 	formatOpts := getFormatOptsOfSys(sys, locale)
 	if shouldBePretty(sys, options) {
-		return func(diagnostic *ast.Diagnostic) {
-			diagnosticwriter.FormatDiagnosticWithColorAndContext(w, diagnosticwriter.WrapASTDiagnostic(diagnostic), formatOpts)
+		return func(diagnostic diagnosticwriter.Diagnostic) {
+			diagnosticwriter.FormatDiagnosticWithColorAndContext(w, diagnostic, formatOpts)
 			fmt.Fprint(w, formatOpts.NewLine)
 		}
 	}
-	return func(diagnostic *ast.Diagnostic) {
-		diagnosticwriter.WriteFormatDiagnostic(w, diagnosticwriter.WrapASTDiagnostic(diagnostic), formatOpts)
+	return func(diagnostic diagnosticwriter.Diagnostic) {
+		diagnosticwriter.WriteFormatDiagnostic(w, diagnostic, formatOpts)
 	}
 }
 
@@ -139,12 +151,24 @@ func QuietDiagnosticsReporter(diagnostics []*ast.Diagnostic) {}
 
 func CreateReportErrorSummary(sys System, locale locale.Locale, options *core.CompilerOptions) DiagnosticsReporter {
 	if shouldBePretty(sys, options) {
-		formatOpts := getFormatOptsOfSys(sys, locale)
+		write := createErrorSummaryWriter(sys, locale, options)
 		return func(diagnostics []*ast.Diagnostic) {
-			diagnosticwriter.WriteErrorSummaryText(sys.Writer(), diagnosticwriter.FromASTDiagnostics(diagnostics), formatOpts)
+			write(diagnosticwriter.FromASTDiagnostics(diagnostics))
 		}
 	}
 	return QuietDiagnosticsReporter
+}
+
+// createErrorSummaryWriter is CreateReportErrorSummary for diagnostics of
+// either AST (the check mode, check.go).
+func createErrorSummaryWriter(sys System, locale locale.Locale, options *core.CompilerOptions) func([]diagnosticwriter.Diagnostic) {
+	if shouldBePretty(sys, options) {
+		formatOpts := getFormatOptsOfSys(sys, locale)
+		return func(diagnostics []diagnosticwriter.Diagnostic) {
+			diagnosticwriter.WriteErrorSummaryText(sys.Writer(), diagnostics, formatOpts)
+		}
+	}
+	return func([]diagnosticwriter.Diagnostic) {}
 }
 
 func CreateBuilderStatusReporter(sys System, w io.Writer, locale locale.Locale, options *core.CompilerOptions, testing CommandLineTesting) DiagnosticReporter {

@@ -338,5 +338,21 @@
     "Diagnostic directive {0} returned by the content mapper has an invalid 'unusedExpectDirectiveIndex'.": {
         "category": "Message",
         "code": 100068
+    },
+    "Select the AST of the compiler: 'pointer' (the default) or 'store'. Experimental: 'store' checks a one-shot, single-threaded '--noEmit' program only, without declarations, incremental builds, watch, build mode, project references or content mappers.": {
+        "category": "Message",
+        "code": 100069
+    },
+    "The 'store' AST backend requires '{0}'.": {
+        "category": "Error",
+        "code": 100070
+    },
+    "The 'store' AST backend does not support '{0}'.": {
+        "category": "Error",
+        "code": 100071
+    },
+    "Option '{0}' cannot be used with '{1}'.": {
+        "category": "Error",
+        "code": 100072
     }
 }

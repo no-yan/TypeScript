@@ -165,14 +165,14 @@ func TestNativeIDSpace(t *testing.T) {
 // come after, and no key of the loaded program changes.
 func TestNativeIDSpaceProgram(t *testing.T) {
 	files := map[string]string{
-		"/src/a.ts": "import { y } from \"./b\";\nimport { x } from \"./b\";\nexport const a = x() ?? y;\n",
-		"/src/b.ts": jsdocSource,
-		"/src/c.tsx": "import { a } from \"./a\";\nexport const c = <div>{a}</div>;\n",
-		"/node_modules/tslib/index.d.ts":                  "export declare function __importDefault(m: any): any;\n",
-		"/node_modules/tslib/package.json":                `{"name":"tslib","types":"index.d.ts"}`,
-		"/node_modules/react/jsx-runtime.d.ts":            "export {};\ndeclare global { namespace JSX { interface IntrinsicElements { div: any } } }\n",
-		"/node_modules/react/package.json":                `{"name":"react","exports":{"./jsx-runtime":{"types":"./jsx-runtime.d.ts"}}}`,
-		"/node_modules/@types/react/jsx-runtime.d.ts":     "export {};\n",
+		"/src/a.ts":                                   "import { y } from \"./b\";\nimport { x } from \"./b\";\nexport const a = x() ?? y;\n",
+		"/src/b.ts":                                   jsdocSource,
+		"/src/c.tsx":                                  "import { a } from \"./a\";\nexport const c = <div>{a}</div>;\n",
+		"/node_modules/tslib/index.d.ts":              "export declare function __importDefault(m: any): any;\n",
+		"/node_modules/tslib/package.json":            `{"name":"tslib","types":"index.d.ts"}`,
+		"/node_modules/react/jsx-runtime.d.ts":        "export {};\ndeclare global { namespace JSX { interface IntrinsicElements { div: any } } }\n",
+		"/node_modules/react/package.json":            `{"name":"react","exports":{"./jsx-runtime":{"types":"./jsx-runtime.d.ts"}}}`,
+		"/node_modules/@types/react/jsx-runtime.d.ts": "export {};\n",
 	}
 	options := &core.CompilerOptions{
 		Module: core.ModuleKindNodeNext, Target: core.ScriptTargetES2020, Strict: core.TSTrue, NoEmit: core.TSTrue,

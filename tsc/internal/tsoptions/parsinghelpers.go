@@ -550,6 +550,8 @@ func parseCompilerOptions(key string, value any, allOptions *core.CompilerOption
 		allOptions.Checkers = parseNumber(value)
 	case "runExternalCode":
 		allOptions.RunExternalCode = ParseTristate(value)
+	case "astBackend":
+		allOptions.ASTBackend = floatOrInt32ToFlag[core.ASTBackend](value)
 	default:
 		// different than any key above
 		return false

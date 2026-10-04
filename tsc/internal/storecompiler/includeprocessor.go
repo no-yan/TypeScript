@@ -6,26 +6,13 @@ package storecompiler
 
 import (
 	"slices"
-	"sync"
 
+	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store"
-	"github.com/microsoft/TypeScript/tsc/internal/collections"
+	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
-
-type includeProcessor struct {
-	fileIncludeReasons    map[tspath.Path][]*FileIncludeReason
-	processingDiagnostics []*processingDiagnostic
-
-	reasonToReferenceLocation  collections.SyncMap[*FileIncludeReason, *referenceFileLocation]
-	includeReasonToRelatedInfo collections.SyncMap[*FileIncludeReason, *store.Diagnostic]
-	redirectAndFileFormat      collections.SyncMap[tspath.Path, []*store.Diagnostic]
-	computedDiagnostics        *store.DiagnosticsCollection
-	computedDiagnosticsOnce    sync.Once
-	compilerOptionsSyntax      store.ObjectLiteralExpression
-	compilerOptionsSyntaxOnce  sync.Once
-}
 
 func (i *includeProcessor) addProcessingDiagnostic(d ...*processingDiagnostic) {
 	i.processingDiagnostics = append(i.processingDiagnostics, d...)
@@ -55,4 +42,85 @@ func (i *includeProcessor) addProcessingDiagnosticsForFileCasing(file tspath.Pat
 			},
 		})
 	}
+}
+
+func (i *includeProcessor) getReferenceLocation(r *FileIncludeReason, program *Program) *referenceFileLocation {
+	if existing, ok := i.reasonToReferenceLocation.Load(r); ok {
+		return existing
+	}
+
+	loc, _ := i.reasonToReferenceLocation.LoadOrStore(r, r.getReferencedLocation(program))
+	return loc
+}
+
+func (i *includeProcessor) getRelatedInfo(r *FileIncludeReason, program *Program) *store.Diagnostic {
+	if existing, ok := i.includeReasonToRelatedInfo.Load(r); ok {
+		return existing
+	}
+
+	relatedInfo, _ := i.includeReasonToRelatedInfo.LoadOrStore(r, r.toRelatedInfo(program))
+	return relatedInfo
+}
+
+func (i *includeProcessor) explainRedirectAndImpliedFormat(
+	program *Program,
+	filePath tspath.Path,
+	toFileName func(fileName string) string,
+) []*store.Diagnostic {
+	if existing, ok := i.redirectAndFileFormat.Load(filePath); ok {
+		return existing
+	}
+	var file ast.HasFileName
+	var sourceFile *store.File
+	redirectsFile := program.redirectFilesByPath[filePath]
+	if redirectsFile != nil {
+		file = redirectsFile
+	} else {
+		sourceFile = program.GetSourceFileByPath(filePath)
+		if sourceFile == nil {
+			return nil
+		}
+		file = sourceFile
+	}
+	var result []*store.Diagnostic
+	if source := program.GetSourceOfProjectReferenceIfOutputIncluded(file); source != file.FileName() {
+		result = append(result, store.NewCompilerDiagnostic(
+			diagnostics.File_is_output_of_project_reference_source_0,
+			toFileName(source),
+		))
+	}
+
+	if redirectsFile != nil {
+		targetFile := program.GetSourceFileByPath(redirectsFile.target)
+		result = append(result, store.NewCompilerDiagnostic(
+			diagnostics.File_redirects_to_file_0,
+			toFileName(targetFile.FileName()),
+		))
+	}
+
+	if sourceFile != nil && store.IsExternalOrCommonJSModule(sourceFile) {
+		metaData := program.GetSourceFileMetaData(file.Path())
+		switch program.GetImpliedNodeFormatForEmit(file) {
+		case core.ModuleKindESNext:
+			if metaData.PackageJsonType == "module" {
+				result = append(result, store.NewCompilerDiagnostic(
+					diagnostics.File_is_ECMAScript_module_because_0_has_field_type_with_value_module,
+					toFileName(metaData.PackageJsonDirectory+"/package.json"),
+				))
+			}
+		case core.ModuleKindCommonJS:
+			if metaData.PackageJsonType != "" {
+				result = append(result, store.NewCompilerDiagnostic(diagnostics.File_is_CommonJS_module_because_0_has_field_type_whose_value_is_not_module, toFileName(metaData.PackageJsonDirectory+"/package.json")))
+			} else if metaData.PackageJsonDirectory != "" {
+				if metaData.PackageJsonType == "" {
+					result = append(result, store.NewCompilerDiagnostic(diagnostics.File_is_CommonJS_module_because_0_does_not_have_field_type, toFileName(metaData.PackageJsonDirectory+"/package.json")))
+				}
+			} else {
+				result = append(result, store.NewCompilerDiagnostic(diagnostics.File_is_CommonJS_module_because_package_json_was_not_found))
+			}
+		}
+	}
+
+	result, _ = i.redirectAndFileFormat.LoadOrStore(filePath, result)
+	return result
 }

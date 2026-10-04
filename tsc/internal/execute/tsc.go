@@ -230,6 +230,26 @@ func tscCompilation(ctx context.Context, sys tsc.System, commandLine *tsoptions.
 		showConfig(sys, configForCompilation, configFileName)
 		return tsc.CommandLineResult{Status: tsc.ExitStatusSuccess}
 	}
+	if backend := configForCompilation.CompilerOptions().ASTBackend; backend != core.ASTBackendNone {
+		// The check mode (store-cli-design-20261004.md 3): the Store program
+		// rejects a config outside it before any source is read; the Pointer
+		// program takes the compile path for it.
+		reasons := checkModeUnsupported(configForCompilation)
+		if backend == core.ASTBackendStore && len(reasons) != 0 {
+			for _, reason := range reasons {
+				reportDiagnostic(reason)
+			}
+			return tsc.CommandLineResult{Status: tsc.ExitStatusNotImplemented}
+		}
+		if len(reasons) == 0 {
+			reporters := tsc.NewCheckReporters(sys, commandLine.CompilerOptions(), configForCompilation.CompilerOptions(), locale)
+			perform := performPointerCheck
+			if backend == core.ASTBackendStore {
+				perform = performStoreCheck
+			}
+			return perform(ctx, sys, configForCompilation, reporters, extendedConfigCache, &compileTimes, testing)
+		}
+	}
 	if configForCompilation.CompilerOptions().Watch.IsTrue() {
 		watcher := createWatcher(
 			sys,

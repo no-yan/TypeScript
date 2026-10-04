@@ -36,7 +36,8 @@ func generateTSConfig(options *collections.OrderedMap[string, any], locale local
 
 	allSetOptions := make([]string, 0, options.Size())
 	for k := range options.Keys() {
-		if k != "init" && k != "help" && k != "watch" {
+		// astBackend chooses the CLI's implementation; a tsconfig rejects it.
+		if k != "init" && k != "help" && k != "watch" && k != "astBackend" {
 			allSetOptions = append(allSetOptions, k)
 		}
 	}

@@ -4,10 +4,12 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store"
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/module"
+	"github.com/microsoft/TypeScript/tsc/internal/storechecker"
 	"github.com/microsoft/TypeScript/tsc/internal/symlinks"
 	"github.com/microsoft/TypeScript/tsc/internal/tracing"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
@@ -39,9 +41,21 @@ type Program struct {
 	// Cached map of package names to whether they bundle types
 	packagesMapOnce sync.Once
 	packagesMap     map[string]bool
+
+	programDiagnostics []*store.Diagnostic
+
+	// The program's one checker, made on the first ask (getTypeChecker).
+	checker     *storechecker.Checker
+	checkerOnce sync.Once
+
+	// The Store files of the Pointer config files, for the diagnostics that
+	// point into them (configFile).
+	configFilesMu sync.Mutex
+	configFiles   map[*ast.SourceFile]*store.File
 }
 
-// NewProgram loads the program's files into a new IDSpace.
+// NewProgram loads the program's files into a new IDSpace and verifies the
+// options; it makes no checker (getTypeChecker).
 //
 // storetranslate:pointer-hash 4a872292947f260d program.go:NewProgram
 func NewProgram(opts ProgramOptions) *Program {
@@ -51,6 +65,7 @@ func NewProgram(opts ProgramOptions) *Program {
 		defer p.opts.Tracing.Push(tracing.PhaseProgram, "createProgram", map[string]any{"configFilePath": opts.Config.CompilerOptions().ConfigFilePath}, true)()
 	}
 	p.processedFiles = processAllProgramFiles(p.opts, p.SingleThreaded())
+	p.verifyCompilerOptions()
 	return p
 }
 

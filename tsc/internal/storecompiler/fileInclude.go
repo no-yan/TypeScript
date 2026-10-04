@@ -5,11 +5,14 @@
 package storecompiler
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store"
+	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
 	"github.com/microsoft/TypeScript/tsc/internal/module"
+	"github.com/microsoft/TypeScript/tsc/internal/scanner"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
@@ -55,11 +58,220 @@ type referenceFileLocation struct {
 	isSynthetic bool
 }
 
+func (r *referenceFileLocation) text() string {
+	if !r.node.IsNil() {
+		if !store.NodeIsSynthesized(r.node) {
+			return r.file.Text()[scanner.SkipTrivia(r.file.Text(), int(r.node.Pos())):int(r.node.End())]
+		} else {
+			return fmt.Sprintf(`"%s"`, r.node.Text())
+		}
+	} else {
+		return r.file.Text()[r.ref.Pos():r.ref.End()]
+	}
+}
+
 type automaticTypeDirectiveFileData struct {
 	typeReference string
 	packageId     module.PackageId
 }
 
+func (r *FileIncludeReason) asIndex() int {
+	return r.data.(int)
+}
+
+func (r *FileIncludeReason) asLibFileIndex() (int, bool) {
+	index, ok := r.data.(int)
+	return index, ok
+}
+
 func (r *FileIncludeReason) isReferencedFile() bool {
 	return r != nil && r.kind <= fileIncludeKindLibReferenceDirective
+}
+
+func (r *FileIncludeReason) asReferencedFileData() *referencedFileData {
+	return r.data.(*referencedFileData)
+}
+
+func (r *FileIncludeReason) asAutomaticTypeDirectiveFileData() *automaticTypeDirectiveFileData {
+	return r.data.(*automaticTypeDirectiveFileData)
+}
+
+func (r *FileIncludeReason) getReferencedLocation(program *Program) *referenceFileLocation {
+	ref := r.asReferencedFileData()
+	file := program.GetSourceFileByPath(ref.file)
+	switch r.kind {
+	case fileIncludeKindImport:
+		var specifier store.Node
+		var isSynthetic bool
+		if !ref.synthetic.IsNil() {
+			specifier = ref.synthetic
+			isSynthetic = true
+		} else if ref.index < len(file.Imports()) {
+			specifier = file.Imports()[ref.index]
+		} else {
+			augIndex := len(file.Imports())
+			for _, impRef := range file.ModuleAugmentations {
+				imp := file.Store.Node(impRef)
+				if imp.Kind() == ast.KindStringLiteral {
+					if augIndex == ref.index {
+						specifier = imp
+						break
+					}
+					augIndex++
+				}
+			}
+		}
+		resolution := program.GetResolvedModuleFromModuleSpecifier(file, specifier)
+		return &referenceFileLocation{
+			file:        file,
+			node:        specifier,
+			packageId:   resolution.PackageId,
+			isSynthetic: isSynthetic,
+		}
+	case fileIncludeKindReferenceFile:
+		return &referenceFileLocation{
+			file: file,
+			ref:  file.ReferencedFiles[ref.index],
+		}
+	case fileIncludeKindTypeReferenceDirective:
+		return &referenceFileLocation{
+			file: file,
+			ref:  file.TypeReferenceDirectives[ref.index],
+		}
+	case fileIncludeKindLibReferenceDirective:
+		return &referenceFileLocation{
+			file: file,
+			ref:  file.LibReferenceDirectives[ref.index],
+		}
+	default:
+		panic(fmt.Sprintf("unknown reason: %v", r.kind))
+	}
+}
+
+func (r *FileIncludeReason) toDiagnostic(program *Program, relativeFileName bool) *store.Diagnostic {
+	if relativeFileName {
+		r.relativeFileNameDiagOnce.Do(func() {
+			r.relativeFileNameDiag = r.computeDiagnostic(program, func(fileName string) string {
+				return tspath.GetRelativePathFromDirectory(program.GetCurrentDirectory(), fileName, program.comparePathsOptions)
+			})
+		})
+		return r.relativeFileNameDiag
+	} else {
+		r.diagOnce.Do(func() {
+			r.diag = r.computeDiagnostic(program, func(fileName string) string { return fileName })
+		})
+		return r.diag
+	}
+}
+
+func (r *FileIncludeReason) computeDiagnostic(program *Program, toFileName func(string) string) *store.Diagnostic {
+	if r.isReferencedFile() {
+		return r.computeReferenceFileDiagnostic(program, toFileName)
+	}
+	switch r.kind {
+	case fileIncludeKindRootFile:
+		if program.opts.Config.ConfigFile != nil {
+			config := program.opts.Config
+			fileName := tspath.GetNormalizedAbsolutePath(config.FileNames()[r.asIndex()], program.GetCurrentDirectory())
+			if matchedFileSpec := config.GetMatchedFileSpec(fileName); matchedFileSpec != "" {
+				return store.NewCompilerDiagnostic(diagnostics.Part_of_files_list_in_tsconfig_json, matchedFileSpec, toFileName(fileName))
+			} else if matchedIncludeSpec, isDefaultIncludeSpec := config.GetMatchedIncludeSpec(fileName); matchedIncludeSpec != "" {
+				if isDefaultIncludeSpec {
+					return store.NewCompilerDiagnostic(diagnostics.Matched_by_default_include_pattern_Asterisk_Asterisk_Slash_Asterisk)
+				} else {
+					return store.NewCompilerDiagnostic(diagnostics.Matched_by_include_pattern_0_in_1, matchedIncludeSpec, toFileName(config.ConfigName()))
+				}
+			} else {
+				return store.NewCompilerDiagnostic(diagnostics.Root_file_specified_for_compilation)
+			}
+		} else {
+			return store.NewCompilerDiagnostic(diagnostics.Root_file_specified_for_compilation)
+		}
+	case fileIncludeKindAutomaticTypeDirectiveFile:
+		data := r.asAutomaticTypeDirectiveFileData()
+		if !program.Options().UsesWildcardTypes() {
+			if data.packageId.Name != "" {
+				return store.NewCompilerDiagnostic(diagnostics.Entry_point_of_type_library_0_specified_in_compilerOptions_with_packageId_1, data.typeReference, data.packageId.String())
+			} else {
+				return store.NewCompilerDiagnostic(diagnostics.Entry_point_of_type_library_0_specified_in_compilerOptions, data.typeReference)
+			}
+		} else {
+			if data.packageId.Name != "" {
+				return store.NewCompilerDiagnostic(diagnostics.Entry_point_for_implicit_type_library_0_with_packageId_1, data.typeReference, data.packageId.String())
+			} else {
+				return store.NewCompilerDiagnostic(diagnostics.Entry_point_for_implicit_type_library_0, data.typeReference)
+			}
+		}
+	case fileIncludeKindLibFile:
+		if index, ok := r.asLibFileIndex(); ok {
+			return store.NewCompilerDiagnostic(diagnostics.Library_0_specified_in_compilerOptions, program.Options().Lib[index])
+		} else if target := program.Options().GetEmitScriptTarget().String(); target != "" {
+			return store.NewCompilerDiagnostic(diagnostics.Default_library_for_target_0, target)
+		} else {
+			return store.NewCompilerDiagnostic(diagnostics.Default_library)
+		}
+	case fileIncludeKindContentMapperSupplemental:
+		canonical := program.GetSourceFileByPath(r.data.(tspath.Path))
+		return store.NewCompilerDiagnostic(diagnostics.Supplemental_virtual_file_produced_by_the_content_mapper_for_file_0, toFileName(canonical.FileName()))
+	default:
+		panic(fmt.Sprintf("unknown reason: %v", r.kind))
+	}
+}
+
+func (r *FileIncludeReason) computeReferenceFileDiagnostic(program *Program, toFileName func(string) string) *store.Diagnostic {
+	referenceLocation := program.includeProcessor.getReferenceLocation(r, program)
+	referenceText := referenceLocation.text()
+	switch r.kind {
+	case fileIncludeKindImport:
+		if !referenceLocation.isSynthetic {
+			if referenceLocation.packageId.Name != "" {
+				return store.NewCompilerDiagnostic(diagnostics.Imported_via_0_from_file_1_with_packageId_2, referenceText, toFileName(referenceLocation.file.FileName()), referenceLocation.packageId.String())
+			} else {
+				return store.NewCompilerDiagnostic(diagnostics.Imported_via_0_from_file_1, referenceText, toFileName(referenceLocation.file.FileName()))
+			}
+		} else if specifier, ok := program.importHelpersImportSpecifiers[referenceLocation.file.Path()]; ok && store.SameNode(specifier, referenceLocation.node) {
+			if referenceLocation.packageId.Name != "" {
+				return store.NewCompilerDiagnostic(diagnostics.Imported_via_0_from_file_1_with_packageId_2_to_import_importHelpers_as_specified_in_compilerOptions, referenceText, toFileName(referenceLocation.file.FileName()), referenceLocation.packageId.String())
+			} else {
+				return store.NewCompilerDiagnostic(diagnostics.Imported_via_0_from_file_1_to_import_importHelpers_as_specified_in_compilerOptions, referenceText, toFileName(referenceLocation.file.FileName()))
+			}
+		} else {
+			if referenceLocation.packageId.Name != "" {
+				return store.NewCompilerDiagnostic(diagnostics.Imported_via_0_from_file_1_with_packageId_2_to_import_jsx_and_jsxs_factory_functions, referenceText, toFileName(referenceLocation.file.FileName()), referenceLocation.packageId.String())
+			} else {
+				return store.NewCompilerDiagnostic(diagnostics.Imported_via_0_from_file_1_to_import_jsx_and_jsxs_factory_functions, referenceText, toFileName(referenceLocation.file.FileName()))
+			}
+		}
+	case fileIncludeKindReferenceFile:
+		return store.NewCompilerDiagnostic(diagnostics.Referenced_via_0_from_file_1, referenceText, toFileName(referenceLocation.file.FileName()))
+	case fileIncludeKindTypeReferenceDirective:
+		if referenceLocation.packageId.Name != "" {
+			return store.NewCompilerDiagnostic(diagnostics.Type_library_referenced_via_0_from_file_1_with_packageId_2, referenceText, toFileName(referenceLocation.file.FileName()), referenceLocation.packageId.String())
+		} else {
+			return store.NewCompilerDiagnostic(diagnostics.Type_library_referenced_via_0_from_file_1, referenceText, toFileName(referenceLocation.file.FileName()))
+		}
+	case fileIncludeKindLibReferenceDirective:
+		return store.NewCompilerDiagnostic(diagnostics.Library_referenced_via_0_from_file_1, referenceText, toFileName(referenceLocation.file.FileName()))
+	default:
+		panic(fmt.Sprintf("unknown reason: %v", r.kind))
+	}
+}
+
+func (r *FileIncludeReason) computeReferenceFileRelatedInfo(program *Program) *store.Diagnostic {
+	referenceLocation := program.includeProcessor.getReferenceLocation(r, program)
+	if referenceLocation.isSynthetic {
+		return nil
+	}
+	switch r.kind {
+	case fileIncludeKindImport:
+		return referenceLocation.diagnosticAt(diagnostics.File_is_included_via_import_here)
+	case fileIncludeKindReferenceFile:
+		return referenceLocation.diagnosticAt(diagnostics.File_is_included_via_reference_here)
+	case fileIncludeKindTypeReferenceDirective:
+		return referenceLocation.diagnosticAt(diagnostics.File_is_included_via_type_library_reference_here)
+	case fileIncludeKindLibReferenceDirective:
+		return referenceLocation.diagnosticAt(diagnostics.File_is_included_via_library_reference_here)
+	default:
+		panic(fmt.Sprintf("unknown reason: %v", r.kind))
+	}
 }

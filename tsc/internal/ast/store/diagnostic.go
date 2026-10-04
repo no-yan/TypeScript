@@ -72,6 +72,8 @@ func (d *Diagnostic) Source() string { return d.source }
 
 func (d *Diagnostic) MessageText() string { return d.messageText }
 
+func (d *Diagnostic) Message() *diagnostics.Message { return d.message }
+
 func (d *Diagnostic) MessageKey() diagnostics.Key { return d.messageKey }
 
 func (d *Diagnostic) MessageArgs() []string { return d.messageArgs }

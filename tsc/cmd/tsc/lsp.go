@@ -26,8 +26,12 @@ func runLSP(args []string) int {
 	socket := flag.String("socket", "", "use socket for communication")
 	_ = socket
 	clientProcessID := flag.Int("clientProcessId", 0, "use the given PID for the parent process watchdog")
+	astBackend := flag.String("astBackend", "pointer", "the AST of the compiler; the language server has the Pointer AST only")
 	if err := flag.Parse(args); err != nil {
 		return 2
+	}
+	if status, ok := rejectASTBackend(*astBackend, "--lsp"); !ok {
+		return status
 	}
 
 	if !*stdio {

@@ -57,6 +57,10 @@ func (mapper *projectReferenceFileMapper) getProjectReferenceFromOutputDts(path 
 	return mapper.outputDtsToProjectReference[path]
 }
 
+func (mapper *projectReferenceFileMapper) isSourceFromProjectReference(path tspath.Path) bool {
+	return mapper.opts.canUseProjectReferenceSource() && mapper.getProjectReferenceFromSource(path) != nil
+}
+
 func (mapper *projectReferenceFileMapper) getCompilerOptionsForFile(file ast.HasFileName) *core.CompilerOptions {
 	redirect := mapper.getRedirectParsedCommandLineForResolution(file)
 	return module.GetCompilerOptionsWithRedirect(mapper.opts.Config.CompilerOptions(), redirect)
