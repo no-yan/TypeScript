@@ -5,6 +5,7 @@
 package storecompiler
 
 import (
+	"slices"
 	"sync"
 	"sync/atomic"
 
@@ -268,6 +269,20 @@ func (p *Program) GetSourceFileForResolvedModule(fileName string) *store.File {
 
 func (p *Program) GetSourceFileByPath(path tspath.Path) *store.File {
 	return p.filesByPath[path]
+}
+
+func (p *Program) GetIncludeReasons() map[tspath.Path][]*FileIncludeReason {
+	return p.includeProcessor.fileIncludeReasons
+}
+
+func (p *Program) IsMissingPath(path tspath.Path) bool {
+	return slices.ContainsFunc(p.missingFiles, func(missingPath string) bool {
+		return p.toPath(missingPath) == path
+	})
+}
+
+func (p *Program) GetResolvedTypeReferenceDirectives() map[tspath.Path]module.ModeAwareCache[*module.ResolvedTypeReferenceDirective] {
+	return p.typeResolutionsInFile
 }
 
 func (p *Program) IsSourceFileFromExternalLibrary(file *store.File) bool {

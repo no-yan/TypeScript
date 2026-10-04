@@ -83,6 +83,10 @@ var checkerRoots = []string{
 // declaration diagnostics and incremental state.
 var compilerRoots = []string{
 	"compiler.NewProgram",
+	// The graph that the native equivalence compares (7e B).
+	"compiler.Program.GetIncludeReasons",
+	"compiler.Program.IsMissingPath",
+	"compiler.Program.GetResolvedTypeReferenceDirectives",
 }
 
 func computeReach(w *world) (*reachResult, error) {
