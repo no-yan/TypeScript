@@ -143,7 +143,8 @@ func ParseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptK
 }
 
 // ParseSourceFileIn parses a source file of the program whose StoreIDs are
-// space; id is the file's StoreID, 0..nFiles-1 of NewIDSpace(nFiles).
+// space. The caller supplies an unused id from space.Next for a dynamic
+// program, or from the source reservation of a fixed-input program.
 func ParseSourceFileIn(space *store.IDSpace, id store.StoreID, opts ast.SourceFileParseOptions, sourceText string, scriptKind core.ScriptKind) *store.File {
 	p := getParser()
 	defer putParser(p)

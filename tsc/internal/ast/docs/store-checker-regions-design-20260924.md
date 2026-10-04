@@ -64,11 +64,11 @@ Checker
 
 nodebuilder の `ReleaseArenas` はその Factory の割り当て先への保持だけを外す。古い Node の無効化や id の再利用はしない。`SerializedTypeEntry.node` 等が Node を保持していれば Store も生存する。全 Store の寿命を checker の寿命に揃える必要も、print 後にすべて消せるという仮定もない。詳細は動作設計 §8。
 
-source の StoreID は program 内で固定する。私有 Store の StoreID は checker の領域内で `nSourceStores` 以降を単調に採番する。同じ番号が別 checker にあってもよいが、その `Ref` を領域の外へ渡して解決してはいけない。外へ返す必要のある結果は、診断の file/位置や変換済み Pointer 出力にする。
+StoreID の採番は親設計 Y3 と不変条件22に従う。checker ごとに番号を重複させる旧案は採らない。2026-10-04 の 7e 改訂では、native Program の source・JSDoc・合成 Store を Program の同じ IDSpace から初回作成時に採番し、その後は変更・再利用しない。全 source 数が既知の fixture/H1 は source の固定予約方式を維持できる。SourceFiles の順序と Store の種類は ID の範囲から推定しない。詳細は [7e 設計 §4.3](store-cli-design-20261004.md)。
 
 map の key は正規化後の `(StoreID, NodeRef)`。paged links は `links[StoreID].pages[localID >> pageBits]` とし、packed 64bit key を直接 page index にしない。私有 Store が増えてもページは初回使用時にだけ確保する。外側 slot の確保も links wrapper に閉じ込め、Store 自体への保持や NodeKey から Node への逆引き表を置かない。
 
-型は `NodeRef` = local row、`NodeKey{StoreID, NodeRef}` = region 内の links 用、`Node` = owner 付きの実物と分ける。現 `Ref{file,id}` / `FileRef()` は `NodeKey` / `Key()` へ改名し、`Ref.File()` を診断の file として利用する余地をなくす。裸の `Node.Ref()` は store 内部と local-only の builder/binder API に限定する。D2 の `Symbol.Declarations` / `ValueDeclaration` は owner を持つ Node なので、再解決用の整数表を増やさずに済む。
+型は `NodeRef` = local row、`NodeKey{StoreID, NodeRef}` = Program 内で一意な links 用、`Node` = owner 付きの実物と分ける。現 `Ref{file,id}` / `FileRef()` は `NodeKey` / `Key()` へ改名し、`Ref.File()` を診断の file として利用する余地をなくす。裸の `Node.Ref()` は store 内部と local-only の builder/binder API に限定する。D2 の `Symbol.Declarations` / `ValueDeclaration` は owner を持つ Node なので、再解決用の整数表を増やさずに済む。
 
 ## 3. 辺は所在を表し、解決結果は常に実物を返す
 

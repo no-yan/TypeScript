@@ -26,8 +26,7 @@ type Checker struct {
 type regionToken struct { marker byte }
 type NodeRegion struct {
     token       *regionToken
-    sourceSpace *SourceSpace  // Program の不変な source StoreID 名前空間
-    nextStoreID StoreID
+    space       *IDSpace  // Program 全体の所属と単調な StoreID allocator
     // []*Store は持たない。NodeKey -> Node の逆引きも提供しない。
 }
 type Factory struct {
@@ -38,7 +37,7 @@ type Factory struct {
 }
 ```
 
-`SourceSpace` は source Store と所属 program の対応を、program 構築時に確定した読み取り専用情報として表す。checker ごとに source の番号を付け直さない。private StoreID はこの番号域の後ろに採番し、checker の生存中は再利用しない。source Store は共有、Factory が作る Store は同じ region token を持つ。
+2026-10-04 の 7e 改訂では、旧案の `SourceSpace` と region ごとの `nextStoreID` を Program の `IDSpace` に置き換える。native Program は source・JSDoc・合成の全 Store を同じ allocator で初回作成時に採番し、探索後に振り直さない。SourceFiles の順序は別に保持する。全 source 数が既知の fixture/H1 だけは source の固定予約方式を維持でき、同じ Program で方式を混在させない。source Store は共有、Factory が作る可変 Store は同じ region token を持つ。API 契約と変更理由は [7e 設計 §4.3](store-cli-design-20261004.md) と親設計 Y3 に従う。
 
 Store は所属 token、StoreID、配列、外部参照表を持つ。**Store から Factory / NodeRegion / Checker / hooks への逆参照は置かない。** token もそれらを参照しない。生きている Node が領域内の無関係な Store を生かし続けるのを防ぐ。
 
@@ -58,7 +57,7 @@ Store は所属 token、StoreID、配列、外部参照表を持つ。**Store �
 | links | `c.nodeLinks.Get(n)` / `c.symbolNodeLinks.Get(n)` | wrapper 内で n.Key() にする。checker 各所で key を手組みしない |
 | JSDoc | `c.docs.JSDoc(host, optionalFile)` / `c.docs.EagerJSDoc(...)` | 後者は parse を起動しない |
 
-writer は宛先が自分の region の可変 Store であることを確認する。import する Node / List は同じ region または同じ SourceSpace に限定する。別 checker の private ノードと別 program の source ノードは拒否する。source 用 Builder / binder の書き込みは別 API のまま。
+writer は宛先が自分の region の可変 Store であることを確認する。import する Node / List は、同じ region、または同じ IDSpace の owner=nil の共有可能 Store に限定する。共有可能なのは source、完成・公開済みの JSDoc、program の不変な合成 Store である。同じ IDSpace でも別 checker の private ノードは拒否する。別 program の source ノードも拒否する。source 用 Builder / binder の書き込みは別 API のまま。
 
 Node 同士と List 同士の比較は `SameNode` / `SameList` を生成する。別 Store の nil sentinel 同士も等しい。`Node.Key()` も nil なら一律に zero NodeKey を返す。links の Get / Has / TryGet はこの同じ正規化を使い、Store ごとに異なる nil key を作らない。非 nil の比較は正規 owner と実体の一致であり、foreign 表の entry 番号ではない。
 
@@ -83,7 +82,7 @@ func (n Node) FlowNode() Flow {
 // NewChecker の既存の初期化へ差し込む位置を表す。
 program.BindSourceFiles()
 c.files = program.SourceFiles()
-c.nodes = store.NewNodeRegion(program.SourceSpace())
+c.nodes = store.NewNodeRegion(program.IDSpace())
 c.factory = store.NewFactory(c.nodes, store.NodeFactoryHooks{})
 c.docs = newJSDocReader(c.nodes, storeparser.ParseLazyJSDoc)
 // この後で initializeClosures / initializeChecker を実行する。
@@ -218,7 +217,7 @@ type jsdocReader struct {
 
 file も key に含める。Pointer は file ごとの map に host を入れており、明示 file を受ける API と同じ区分になる。source host の場合は冗長でも、private host の明示 file を黙って他の file の cache と混ぜない。通常の checker 呼び出しは file=nil、既に正しい file を持つ経路だけそれを渡す。`currentNode` や「検査中の file」を代用しない。
 
-reader の境界では、host が同じ region または SourceSpace、明示 file が同じ SourceSpace に属することを通常 build でも確認する。host.File() が得られる場合は明示 file と一致しなければ拒否する。detached な private host は明示 file がある場合だけ parse でき、なければ nil を返す。この場合も root.Parent は実際の host のままで、parse に使った file を理由に架空の Parent を足さない。通常の checker の source host 読みはこの例外を必要としない。
+reader の境界では、host が同じ region、または同じ IDSpace の owner=nil の共有可能 Store に属し、明示 file が同じ IDSpace に属することを通常 build でも確認する。同じ IDSpace の別 checker の private host は拒否する。host.File() が得られる場合は明示 file と一致しなければ拒否する。detached な private host は明示 file がある場合だけ parse でき、なければ nil を返す。この場合も root.Parent は実際の host のままで、parse に使った file を理由に架空の Parent を足さない。通常の checker の source host 読みはこの例外を必要としない。
 
 JSDoc reader の遷移は以下で固定する。roots の返却 slice は借用・読み取り専用とする。
 
@@ -341,7 +340,7 @@ func (s *pagedNodeLinks[V]) Get(n store.Node) *V {
 | `store` の Factory / NodeRegion | 安定 header、foreign import、writer、Factory 別 active、ReleaseArenas、JSDocBatch の公開 |
 | `store` の Node / Flow / List と生成器 | owner 付きの読み、SameNode / SameList、通常 flow と ReturnFlow の区別。内部 list 共有は領域設計を使用 |
 | `storeparser` | host と file を受けて非公開の JSDocBatch を返す。source parse/reparse は従来の Builder |
-| Program / H1 adapter | source StoreID と program の所属を表す読み取り専用 SourceSpace を供給。private Store の registry は持たない |
+| Program / H1 adapter | Program の所属と全 Store の allocator を表す IDSpace を供給。native は全 Store を動的採番し、固定入力の H1 は source 予約方式を使用できる。private Store の registry は持たない |
 | `storechecker` 初期化・links | region/Factory/reader の生成、Get(Node) wrapper、NodeKey は private scope に限定 |
 | checker と utility の変換 | Parent/Loc/Flow/Symbol/Locals/list の書き込みを writer に変換。JSDoc 読みだけ明示 reader を渡す |
 | Store 版 EmitContext / nodebuilder | Factory の生成時に c.nodes を渡し、既存 hooks を維持。ReleaseArenas は保持解除 |

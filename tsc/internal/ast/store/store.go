@@ -51,9 +51,9 @@ type NodeHeader struct { // 32 bytes, no pointers
 	symbol SymbolId
 }
 
-// StoreID names a Store within a program: the source Stores are 0..nFiles-1,
-// given by the program; every other Store (lazy JSDoc, synthetic) takes the
-// next number of the program's IDSpace. A number is never reused (Y3).
+// StoreID names a Store within a program. Dynamic programs allocate every
+// Store's ID from IDSpace.Next; fixed-input fixtures may reserve source IDs.
+// An ID is never reassigned or reused and is not a file index or Store kind (Y3).
 type StoreID uint32
 
 type Store struct {
@@ -389,8 +389,8 @@ type Visitor func(Node) bool
 // Node values from View point into s. (strings.Builder panics on a copy after
 // the first write, so a copied Builder fails at the first text.) A Builder
 // makes a source Store: every edge it writes is local. space and id are the
-// program and the file's StoreID (0..nFiles-1); a nil space makes a Store
-// outside any program, which no Factory takes.
+// program and the file's unused StoreID, allocated or reserved in that space;
+// a nil space makes a Store outside any program, which no Factory takes.
 type Builder struct {
 	s       Store           // nodes, extra, src, texts, id, space: the columns under construction
 	textBuf strings.Builder // s.texts is textBuf.String(), re-set after every write (textWords)
