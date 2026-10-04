@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 
@@ -33,6 +34,15 @@ type reacher struct {
 	named   map[*types.Named]bool
 	changed map[string]bool // the changed declarations of the modeChanged packages
 	roots   []string
+	// sels are the method names that P2 and hand-written bodies select, which
+	// the reach follows without their receivers' types (closeSelectors).
+	sels     []pendingSel
+	byMethod map[*outPkg]map[string][]*declInfo
+}
+
+type pendingSel struct {
+	o          *outPkg
+	name, from string
 }
 
 // reachResult is what the translation outputs.
@@ -67,6 +77,14 @@ var checkerRoots = []string{
 	"checker.Checker.CompareSymbols",
 }
 
+// compilerRoots are the entries of the Store program of a native check
+// (store-cli-design-20261004.md 6): what package storecompiler's hand-written
+// boundary calls. compiler.ProgramLike is not a root: its methods reach emit,
+// declaration diagnostics and incremental state.
+var compilerRoots = []string{
+	"compiler.NewProgram",
+}
+
 func computeReach(w *world) (*reachResult, error) {
 	r := &reacher{w: w, seen: map[string]bool{}, from: map[string]string{}, ifaces: map[*types.Named]bool{}, named: map[*types.Named]bool{}, changed: map[string]bool{}}
 	// The named types that the output changes: every type of a full or
@@ -97,7 +115,7 @@ func computeReach(w *world) (*reachResult, error) {
 		r.add(d, why)
 		return nil
 	}
-	for _, root := range checkerRoots {
+	for _, root := range slices.Concat(checkerRoots, compilerRoots) {
 		i := strings.Index(root, ".")
 		if err := add(internal+root[:i], root[i+1:], "root"); err != nil {
 			return nil, err
@@ -156,7 +174,8 @@ func computeReach(w *world) (*reachResult, error) {
 			r.queue = r.queue[1:]
 			r.process(d)
 		}
-		if !r.closeInterfaces() {
+		interfaces := r.closeInterfaces()
+		if !r.closeSelectors() && !interfaces {
 			break
 		}
 	}
@@ -207,7 +226,7 @@ func computeReach(w *world) (*reachResult, error) {
 
 func (r *reacher) add(d *declInfo, why string) {
 	k := d.out.srcPath + "." + d.key
-	if r.seen[k] {
+	if r.seen[k] || d.out.isShared(d.key) {
 		return
 	}
 	if why == "root" {
@@ -375,11 +394,7 @@ func (r *reacher) followManual(d *declInfo, m *manualDecl) {
 		}
 	}
 	for _, sel := range m.sels {
-		for _, md := range r.methodsNamed(d.out, sel) {
-			if r.eligible(md) {
-				r.add(md, d.out.srcPath+"."+d.key)
-			}
-		}
+		r.sels = append(r.sels, pendingSel{d.out, sel, d.out.srcPath + "." + d.key})
 	}
 	for qual, names := range m.quals {
 		for _, o := range r.w.outs {
@@ -396,16 +411,46 @@ func (r *reacher) followManual(d *declInfo, m *manualDecl) {
 }
 
 func (r *reacher) methodsNamed(o *outPkg, name string) []*declInfo {
-	var out []*declInfo
-	for _, d := range r.w.decls {
-		if d.out == o {
-			if i := strings.Index(d.key, "."); i >= 0 && d.key[i+1:] == name {
-				out = append(out, d)
+	if r.byMethod == nil {
+		r.byMethod = map[*outPkg]map[string][]*declInfo{}
+	}
+	byName := r.byMethod[o]
+	if byName == nil {
+		byName = map[string][]*declInfo{}
+		for _, d := range r.w.decls {
+			if d.out == o {
+				if i := strings.Index(d.key, "."); i >= 0 {
+					byName[d.key[i+1:]] = append(byName[d.key[i+1:]], d)
+				}
 			}
 		}
+		for _, ds := range byName {
+			sort.Slice(ds, func(i, j int) bool { return ds[i].key < ds[j].key })
+		}
+		r.byMethod[o] = byName
 	}
-	sort.Slice(out, func(i, j int) bool { return out[i].key < out[j].key })
-	return out
+	return byName[name]
+}
+
+// closeSelectors reaches the methods that a P2 or hand-written body selects
+// by name: in a package whose types are output whole (modeFull), every method
+// of the name; elsewhere only those of a receiver type the reach has, since a
+// name such as FS or Path selects the methods of unrelated types (compiler).
+// It reports whether it reached anything.
+func (r *reacher) closeSelectors() bool {
+	before := len(r.seen)
+	for _, p := range r.sels {
+		for _, md := range r.methodsNamed(p.o, p.name) {
+			if !r.eligible(md) {
+				continue
+			}
+			if p.o.mode != modeFull && !r.seen[p.o.srcPath+"."+md.key[:strings.Index(md.key, ".")]] {
+				continue
+			}
+			r.add(md, p.from)
+		}
+	}
+	return len(r.seen) > before
 }
 
 // closeInterfaces reaches the methods of every reached named type that
@@ -514,7 +559,25 @@ func (r *reacher) selectChanged(res *reachResult) {
 			if d == nil {
 				continue
 			}
-			if _, ok := d.out.manual[d.key]; ok {
+			if m, ok := d.out.manual[d.key]; ok {
+				// The P2 body names them by name: the unexported names of its
+				// package, and the unexported methods it selects of a type the
+				// reach has (closeSelectors).
+				for _, name := range m.names {
+					if !token.IsExported(name) && !d.out.hand[name] {
+						progress = mark(d.out.srcPath+"."+name, key) || progress
+					}
+				}
+				for _, sel := range m.sels {
+					if token.IsExported(sel) {
+						continue
+					}
+					for _, md := range r.methodsNamed(d.out, sel) {
+						if res.output[d.out.srcPath+"."+md.key] {
+							progress = mark(d.out.srcPath+"."+md.key, key) || progress
+						}
+					}
+				}
 				continue
 			}
 			info := d.out.pkg.TypesInfo

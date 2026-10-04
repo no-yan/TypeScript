@@ -6,6 +6,7 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"golang.org/x/tools/go/packages"
@@ -46,6 +47,10 @@ type pkgSpec struct {
 	out       string // the Store package, relative to internal/
 	mode      pkgMode
 	fileLevel []string // modeAST and modeFile: the files output whole; nil = every non-test file
+	// shared are the types (with their methods) and functions that the Store
+	// calls in the Pointer package: the reach stops at them, whatever their
+	// bodies name (store-cli-design-20261004.md 4.1).
+	shared []string
 }
 
 var pkgTable = []pkgSpec{
@@ -58,8 +63,10 @@ var pkgTable = []pkgSpec{
 	{src: "nodebuilder", out: "storenodebuilder", mode: modeChanged},
 	{src: "pseudochecker", out: "storepseudochecker", mode: modeChanged},
 	{src: "modulespecifiers", out: "storemodulespecifiers", mode: modeChanged},
-	// module.GetResolutionDiagnostic takes the importing *ast.SourceFile.
-	{src: "module", out: "storemodule", mode: modeChanged},
+	// module.GetResolutionDiagnostic takes the importing *ast.SourceFile. The
+	// resolver reads no node: the Store loader (compiler) shares it.
+	{src: "module", out: "storemodule", mode: modeChanged, shared: []string{"Resolver", "NewResolver"}},
+	{src: "compiler", out: "storecompiler", mode: modeChanged},
 }
 
 // outPkg is a translated package: its Pointer source and what its output
@@ -85,6 +92,15 @@ type outPkg struct {
 	// wrote before: they are read as empty (phase 1) or as stubs (phase 2),
 	// and removed when not written again.
 	generated map[string]bool
+}
+
+// isShared reports whether key (a name, or Type.name) is shared or a method
+// of a shared type.
+func (o *outPkg) isShared(key string) bool {
+	if i := strings.Index(key, "."); i >= 0 {
+		key = key[:i]
+	}
+	return slices.Contains(o.shared, key)
 }
 
 func (o *outPkg) isFileLevel(file string) bool {

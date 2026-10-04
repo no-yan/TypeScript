@@ -5,7 +5,7 @@
 // internal/ast/docs/store-checker-design-20260923.md 2.1). The functions the
 // rules do not cover are written by hand in utilities_manual.go (P2).
 //
-// Reach: 446 functions of package ast that the roots of tools/cmd/storetranslate
+// Reach: 448 functions of package ast that the roots of tools/cmd/storetranslate
 // name in their bodies, called or as a value, transitively.
 
 package store
@@ -618,6 +618,10 @@ func IsJSDocAugmentsTag(node Node) bool {
 
 func IsJSDocSatisfiesTag(node Node) bool {
 	return node.Kind() == ast.KindJSDocSatisfiesTag
+}
+
+func IsJSDocImportTag(node Node) bool {
+	return node.Kind() == ast.KindJSDocImportTag
 }
 
 func IsJSDocCallbackTag(node Node) bool {
@@ -2765,6 +2769,29 @@ func IsRequireCall(node Node, requireStringLiteralLikeArgument bool) bool {
 		return false
 	}
 	return !requireStringLiteralLikeArgument || IsStringLiteralLike(call.Arguments().At(0))
+}
+
+func GetJSXImplicitImportBase(compilerOptions *core.CompilerOptions, file *File) string {
+	jsxImportSourcePragma := GetPragmaFromSourceFile(file, "jsximportsource")
+	jsxRuntimePragma := GetPragmaFromSourceFile(file, "jsxruntime")
+	if ast.GetPragmaArgument(jsxRuntimePragma, "factory") == "classic" {
+		return ""
+	}
+	if compilerOptions.Jsx == core.JsxEmitReactJSX ||
+		compilerOptions.Jsx == core.JsxEmitReactJSXDev ||
+		compilerOptions.JsxImportSource != "" ||
+		jsxImportSourcePragma != nil ||
+		ast.GetPragmaArgument(jsxRuntimePragma, "factory") == "automatic" {
+		result := ast.GetPragmaArgument(jsxImportSourcePragma, "factory")
+		if result == "" {
+			result = compilerOptions.JsxImportSource
+		}
+		if result == "" {
+			result = "react"
+		}
+		return result
+	}
+	return ""
 }
 
 func GetPragmaFromSourceFile(file *File, name string) *ast.Pragma {
