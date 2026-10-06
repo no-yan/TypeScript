@@ -90,7 +90,7 @@ type Parser struct {
 	hasParseError               bool
 
 	identifierCount            int
-	truncatedNodes             int // the nodes that the rewinds truncated (store.File.CreatedNodeCount)
+	unkeptNodes                int // the nodes the Pointer parser makes and the Store does not keep: those the rewinds truncate, a typedef's unfinished JSDocTypeLiteral (store.File.CreatedNodeCount)
 	notParenthesizedArrow      collections.Set[int]
 	jsdocInfos                 []JSDocInfo
 	possibleAwaitSpans         []int
@@ -393,7 +393,7 @@ func (p *Parser) rewind(state ParserState) {
 	// length test keeps the common rewind (an empty list, always so in TS) to
 	// one branch.
 	if len(p.reparseList) == 0 || !p.reparseListFrom(state.nodes) {
-		p.truncatedNodes += p.b.Len() - state.nodes
+		p.unkeptNodes += p.b.Len() - state.nodes
 		p.b.Truncate(state.nodes, state.extra)
 	}
 	if storeChecks {
@@ -562,7 +562,7 @@ func (p *Parser) finishSourceFile(root store.NodeRef, isDeclarationFile bool) *s
 	p.b.AddFlags(root, p.sourceFlags)
 	result.Flags = p.b.View(root).Flags()
 	result.NodeCount = p.b.Len() - 1
-	result.CreatedNodeCount = result.NodeCount + p.truncatedNodes
+	result.CreatedNodeCount = result.NodeCount + p.unkeptNodes
 	result.IdentifierCount = p.identifierCount
 	// For non-JS files, enable lazy JSDoc parsing on demand
 	if !p.isJavaScript() {

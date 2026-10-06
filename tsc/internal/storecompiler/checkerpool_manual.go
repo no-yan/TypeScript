@@ -8,12 +8,11 @@ import (
 
 // The P2 declarations of compiler/checkerpool.go.
 
-// createCheckers weighs a file by the nodes its parser made, those a rewind
-// of the Store parser truncated included (store.File.CreatedNodeCount): the
-// Pointer's NodeCount, which counts every node of its factory. The Store's
-// NodeCount, the rows the file keeps, is smaller, and a different weight can
-// move a file to another checker (store-cli-parallel-instructions-20261007.md
-// 3).
+// createCheckers weighs a file by the nodes the Pointer parser makes
+// (store.File.CreatedNodeCount): the Pointer's NodeCount, which counts every
+// node of its factory. The Store's NodeCount, the rows the file keeps, is
+// smaller, and a different weight can move a file to another checker
+// (store-cli-parallel-instructions-20261007.md 3).
 //
 // storetranslate:pointer-hash f7f4030504088c24 checkerpool.go:checkerPool.createCheckers
 func (p *checkerPool) createCheckers() {

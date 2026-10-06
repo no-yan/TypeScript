@@ -1077,6 +1077,7 @@ func (p *Parser) parseTypedefTag(start int, tagName store.NodeRef, indent int, i
 			// it is used.
 			if childTypeTag != store.NoNodeRef && !p.b.View(childTypeTag).AsJSDocTypeTag().TypeExpression().IsNil() && !isObjectOrObjectArrayTypeReference(p.b.View(childTypeTag).AsJSDocTypeTag().TypeExpression().Type()) {
 				typeExpression = p.b.View(childTypeTag).AsJSDocTypeTag().TypeExpression().Ref()
+				p.unkeptNodes++ // the Pointer's unfinished JSDocTypeLiteral
 			} else {
 				// !!! This differs from Strada but prevents a crash
 				pos := start

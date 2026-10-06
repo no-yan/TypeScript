@@ -181,8 +181,9 @@ var poolCheckerCounts = []int{2, 4, 8}
 // TestPoolAssignments: the CLI fixtures, the configs of
 // STORE_CLI_POOLRECORD_CONFIGS (comma-separated tsconfig paths) and, with
 // STORE_CLI_POOLRECORD_CORPUS=1, the configurations of
-// TestNativeCheckerConfigurations, each with 2, 4 and 8 checkers. The runs
-// are one at a time: the record is the last pool's.
+// TestNativeCheckerConfigurations (STORE_CLI_POOLRECORD_FILTER: a regexp of
+// the ids), each with 2, 4 and 8 checkers. The runs are one at a time: the
+// record is the last pool's.
 // STORE_CLI_POOLRECORD_OUT: a directory for the records and the comparisons.
 func TestPoolAssignments(t *testing.T) {
 	out := os.Getenv("STORE_CLI_POOLRECORD_OUT")
@@ -238,9 +239,13 @@ func TestPoolAssignments(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		var filter *regexp.Regexp
+		if f := os.Getenv("STORE_CLI_POOLRECORD_FILTER"); f != "" {
+			filter = regexp.MustCompile(f)
+		}
 		pools, compared := 0, 0
 		for _, c := range cases {
-			if c.Skipped {
+			if c.Skipped || filter != nil && !filter.MatchString(c.ID) {
 				continue
 			}
 			d, outcome := storeharness.PrepareCase(c)
