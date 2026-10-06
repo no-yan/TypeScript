@@ -16,6 +16,10 @@ type Tracer struct {
 	checkerIndex int
 }
 
+func NewTracer(tr *tracing.Tracing, checkerIndex int) *Tracer {
+	return &Tracer{tracing: tr, recorder: tr.NewTypeTracer(checkerIndex), checkerIndex: checkerIndex}
+}
+
 func (t *Tracer) RecordType(typ *Type) {
 	t.recorder.RecordType(wrapType(typ))
 }

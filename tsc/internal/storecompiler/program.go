@@ -150,6 +150,12 @@ func (p *Program) BindSourceFiles() {
 	wg.RunAndWait()
 }
 
+func (p *Program) ForEachCheckerParallel(cb func(idx int, c *storechecker.Checker)) {
+	if p.compilerCheckerPool != nil {
+		p.compilerCheckerPool.forEachCheckerParallel(cb)
+	}
+}
+
 func (p *Program) GetResolvedModule(file ast.HasFileName, moduleReference string, mode core.ResolutionMode) *module.ResolvedModule {
 	if resolutions, ok := p.resolvedModules[file.Path()]; ok {
 		if resolved, ok := resolutions[module.ModeAwareCacheKey{Name: moduleReference, Mode: mode}]; ok {
@@ -206,6 +212,19 @@ func (p *Program) collectDiagnosticsFromFiles(ctx context.Context, sourceFiles [
 	}
 	wg.RunAndWait()
 	return diagnostics
+}
+
+func (p *Program) collectCheckerDiagnostics(ctx context.Context, sourceFile *store.File, collect func(context.Context, *storechecker.Checker, *store.File) []*store.Diagnostic) []*store.Diagnostic {
+	if sourceFile != nil {
+		if p.SkipTypeChecking(sourceFile, false) {
+			return nil
+		}
+		c, done := p.GetTypeCheckerForFileExclusive(ctx, sourceFile)
+		result := collect(ctx, c, sourceFile)
+		done()
+		return filterAndSortDiagnostics(result)
+	}
+	return filterAndSortDiagnostics(slices.Concat(p.collectCheckerDiagnosticsFromFiles(ctx, p.files, collect)...))
 }
 
 func filterAndSortDiagnostics(diags []*store.Diagnostic) []*store.Diagnostic {
@@ -280,6 +299,18 @@ func moduleResolutionSupportsPackageJsonExportsAndImports(moduleResolution core.
 
 func emitModuleKindIsNonNodeESM(moduleKind core.ModuleKind) bool {
 	return moduleKind >= core.ModuleKindES2015 && moduleKind <= core.ModuleKindESNext
+}
+
+func (p *Program) GetGlobalDiagnostics(ctx context.Context) []*store.Diagnostic {
+	if len(p.files) == 0 {
+		return nil
+	}
+	if p.compilerCheckerPool != nil {
+		return p.compilerCheckerPool.GetGlobalDiagnostics()
+	}
+	// For external pools (project system), global diagnostics are collected
+	// incrementally as checkers are used, not via a bulk query.
+	return nil
 }
 
 func FilterNoEmitSemanticDiagnostics(diagnostics []*store.Diagnostic, options *core.CompilerOptions) []*store.Diagnostic {
@@ -393,6 +424,22 @@ func (p *Program) IdentifierCount() int {
 		count += file.IdentifierCount
 	}
 	return count
+}
+
+func (p *Program) TypeCount() int {
+	var val atomic.Uint32
+	p.ForEachCheckerParallel(func(_ int, c *storechecker.Checker) {
+		val.Add(c.TypeCount)
+	})
+	return int(val.Load())
+}
+
+func (p *Program) InstantiationCount() int {
+	var val atomic.Uint32
+	p.ForEachCheckerParallel(func(_ int, c *storechecker.Checker) {
+		val.Add(c.TotalInstantiationCount)
+	})
+	return int(val.Load())
 }
 
 func (p *Program) Program() *Program {

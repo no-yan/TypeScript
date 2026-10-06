@@ -27,16 +27,6 @@ func EmitSyntaxForUsageLocation(fileName string, meta ast.SourceFileMetaData, us
 	return getEmitSyntaxForUsageLocationWorker(fileName, meta, usage, options)
 }
 
-// getTypeChecker is the program's one checker, made on the first ask: by the
-// check, the global diagnostics or the statistics. The CLI rejects
-// --generateTrace, so the checker has no tracer.
-func (p *Program) getTypeChecker() *storechecker.Checker {
-	p.checkerOnce.Do(func() {
-		p.checker, _ = storechecker.NewChecker(p, nil)
-	})
-	return p.checker
-}
-
 // configFile is the Store file of a Pointer config file (tsconfig.json or a
 // file it extends) for a diagnostic that points into it: the same name and
 // text, parsed outside the program, so that the diagnostic sorts and prints

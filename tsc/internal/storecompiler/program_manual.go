@@ -9,7 +9,6 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/module"
-	"github.com/microsoft/TypeScript/tsc/internal/storechecker"
 	"github.com/microsoft/TypeScript/tsc/internal/symlinks"
 	"github.com/microsoft/TypeScript/tsc/internal/tracing"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
@@ -17,8 +16,8 @@ import (
 
 // The P2 declarations of compiler/program.go: the Store program of a native
 // check (store-cli-design-20261004.md 4.1). Its methods are translated from
-// compiler.Program's; this type has the fields they read and no checker pool,
-// emit or incremental state.
+// compiler.Program's; this type has the fields they read: the compiler's
+// checker pool, and no project system pool, emit or incremental state.
 
 // Program owns its IDSpace (opts.idSpace): every Store of the program, the
 // source files included, takes its StoreID from it (4.3).
@@ -44,9 +43,9 @@ type Program struct {
 
 	programDiagnostics []*store.Diagnostic
 
-	// The program's one checker, made on the first ask (getTypeChecker).
-	checker     *storechecker.Checker
-	checkerOnce sync.Once
+	// compilerCheckerPool is the compiler's pool (checkerpool.go): the CLI has
+	// no project system pool (CheckerPool).
+	compilerCheckerPool *checkerPool
 
 	// The Store files of the Pointer config files, for the diagnostics that
 	// point into them (configFile).
@@ -54,8 +53,8 @@ type Program struct {
 	configFiles   map[*ast.SourceFile]*store.File
 }
 
-// NewProgram loads the program's files into a new IDSpace and verifies the
-// options; it makes no checker (getTypeChecker).
+// NewProgram loads the program's files into a new IDSpace, makes the checker
+// pool and verifies the options; the pool makes its checkers on the first ask.
 //
 // storetranslate:pointer-hash 4a872292947f260d program.go:NewProgram
 func NewProgram(opts ProgramOptions) *Program {
@@ -65,6 +64,7 @@ func NewProgram(opts ProgramOptions) *Program {
 		defer p.opts.Tracing.Push(tracing.PhaseProgram, "createProgram", map[string]any{"configFilePath": opts.Config.CompilerOptions().ConfigFilePath}, true)()
 	}
 	p.processedFiles = processAllProgramFiles(p.opts, p.SingleThreaded())
+	p.initCheckerPool()
 	p.verifyCompilerOptions()
 	return p
 }

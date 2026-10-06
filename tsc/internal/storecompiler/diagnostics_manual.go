@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"slices"
+	"sync/atomic"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store"
@@ -16,11 +17,11 @@ import (
 )
 
 // The P2 declarations of the program's diagnostics
-// (store-cli-design-20261004.md 5): the program has one checker, which it
-// makes on the first ask; the parser's and the binder's diagnostics have no
-// file and get the Store file here; the config's and the module resolver's
-// are the Pointer's and become Store diagnostics (store.DiagnosticFromAST);
-// there is no content mapper.
+// (store-cli-design-20261004.md 5): the checkers are the compiler pool's,
+// and there is no project system pool; the parser's and the binder's
+// diagnostics have no file and get the Store file here; the config's and the
+// module resolver's are the Pointer's and become Store diagnostics
+// (store.DiagnosticFromAST); there is no content mapper.
 
 // storetranslate:pointer-hash 292be3f116d28cc7 program.go:Program.GetSyntacticDiagnostics
 func (p *Program) GetSyntacticDiagnostics(ctx context.Context, sourceFile *store.File) []*store.Diagnostic {
@@ -48,23 +49,35 @@ func (p *Program) GetBindDiagnostics(ctx context.Context, sourceFile *store.File
 	})
 }
 
-// collectCheckerDiagnostics asks the program's checker, file by file in the
-// program's order, as the compiler pool of one checker does.
+// initCheckerPool makes the compiler pool: the program has no
+// CreateCheckerPool (ProgramOptions) and no tracer for the checkers (the CLI
+// rejects --generateTrace).
 //
-// storetranslate:pointer-hash 22206c37f727e753 program.go:Program.collectCheckerDiagnostics
-func (p *Program) collectCheckerDiagnostics(ctx context.Context, sourceFile *store.File, collect func(context.Context, *storechecker.Checker, *store.File) []*store.Diagnostic) []*store.Diagnostic {
-	c := p.getTypeChecker()
-	if sourceFile != nil {
-		if p.SkipTypeChecking(sourceFile, false) {
-			return nil
-		}
-		return filterAndSortDiagnostics(collect(ctx, c, sourceFile))
+// storetranslate:pointer-hash 10f82fc2c7f122fe program.go:Program.initCheckerPool
+func (p *Program) initCheckerPool() {
+	if !p.finishedProcessing {
+		panic("Program must finish processing files before initializing checker pool")
 	}
-	diagnostics := make([][]*store.Diagnostic, len(p.files))
-	for i, file := range p.files {
-		diagnostics[i] = collect(ctx, c, file)
-	}
-	return filterAndSortDiagnostics(slices.Concat(diagnostics...))
+	p.compilerCheckerPool = newCheckerPool(p)
+}
+
+// GetTypeCheckerForFileExclusive has no project system pool to fall back on.
+//
+// storetranslate:pointer-hash a4cd48386fdf3db3 program.go:Program.GetTypeCheckerForFileExclusive
+func (p *Program) GetTypeCheckerForFileExclusive(ctx context.Context, file *store.File) (*storechecker.Checker, func()) {
+	return p.compilerCheckerPool.getCheckerForFileExclusive(ctx, file)
+}
+
+// collectCheckerDiagnosticsFromFiles has no project system pool to fall back
+// on: the files go by checker group.
+//
+// storetranslate:pointer-hash e1bb3b762e105faf program.go:Program.collectCheckerDiagnosticsFromFiles
+func (p *Program) collectCheckerDiagnosticsFromFiles(ctx context.Context, sourceFiles []*store.File, collect func(context.Context, *storechecker.Checker, *store.File) []*store.Diagnostic) [][]*store.Diagnostic {
+	diagnostics := make([][]*store.Diagnostic, len(sourceFiles))
+	p.compilerCheckerPool.forEachCheckerGroupDo(ctx, sourceFiles, p.SingleThreaded(), func(c *storechecker.Checker, fileIndex int, file *store.File) {
+		diagnostics[fileIndex] = collect(ctx, c, file)
+	})
+	return diagnostics
 }
 
 // getBindAndCheckDiagnosticsWithChecker has no content mapper directives.
@@ -102,14 +115,6 @@ func (p *Program) getBindAndCheckDiagnosticsWithChecker(ctx context.Context, fil
 		}
 	}
 	return filtered
-}
-
-// storetranslate:pointer-hash 0dbad2d1ee12ae0d program.go:Program.GetGlobalDiagnostics
-func (p *Program) GetGlobalDiagnostics(ctx context.Context) []*store.Diagnostic {
-	if len(p.files) == 0 {
-		return nil
-	}
-	return SortAndDeduplicateDiagnostics(p.getTypeChecker().GetGlobalDiagnostics())
 }
 
 // GetProgramDiagnostics has no content mapper diagnostics.
@@ -200,8 +205,8 @@ func (r *FileIncludeReason) toRelatedInfo(program *Program) *store.Diagnostic {
 	return nil
 }
 
-// SymbolCount counts the bound files' symbols and then the checker's, which
-// it makes if there is none yet, as the compiler pool does.
+// SymbolCount counts the bound files' symbols, which are the binder's
+// (Bound.SymbolCount), and then the checkers'.
 //
 // storetranslate:pointer-hash 0fce1efcada135f5 program.go:Program.SymbolCount
 func (p *Program) SymbolCount() int {
@@ -211,17 +216,12 @@ func (p *Program) SymbolCount() int {
 			count += file.Bound.SymbolCount
 		}
 	}
-	return count + int(p.getTypeChecker().SymbolCount)
-}
-
-// storetranslate:pointer-hash 9381bd6319b3f045 program.go:Program.TypeCount
-func (p *Program) TypeCount() int {
-	return int(p.getTypeChecker().TypeCount)
-}
-
-// storetranslate:pointer-hash 5469acf90ba94554 program.go:Program.InstantiationCount
-func (p *Program) InstantiationCount() int {
-	return int(p.getTypeChecker().TotalInstantiationCount)
+	var val atomic.Uint32
+	val.Store(uint32(count))
+	p.ForEachCheckerParallel(func(_ int, c *storechecker.Checker) {
+		val.Add(c.SymbolCount)
+	})
+	return int(val.Load())
 }
 
 // getAdditionalJSSyntacticDiagnostics walks the whole file: the Store has no
