@@ -3,7 +3,6 @@ package execute
 import (
 	"context"
 	"runtime"
-	"strconv"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store"
@@ -186,12 +185,6 @@ func CheckModeUnsupported(config *tsoptions.ParsedCommandLine) []*ast.Diagnostic
 	}
 	if !options.NoEmit.IsTrue() {
 		requires("--noEmit")
-	}
-	if !options.SingleThreaded.IsTrue() {
-		requires("--singleThreaded")
-	}
-	if options.Checkers != nil && *options.Checkers != 1 {
-		unsupported("--checkers " + strconv.Itoa(*options.Checkers))
 	}
 	for _, option := range []struct {
 		name    string

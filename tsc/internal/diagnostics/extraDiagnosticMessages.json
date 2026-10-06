@@ -339,7 +339,7 @@
         "category": "Message",
         "code": 100068
     },
-    "Select the AST of the compiler: 'pointer' (the default) or 'store'. Experimental: 'store' checks a one-shot, single-threaded '--noEmit' program only, without declarations, incremental builds, watch, build mode, project references or content mappers.": {
+    "Select the AST of the compiler: 'pointer' (the default) or 'store'. Experimental: 'store' checks a one-shot '--noEmit' program only, without declarations, incremental builds, watch, build mode, project references or content mappers.": {
         "category": "Message",
         "code": 100069
     },

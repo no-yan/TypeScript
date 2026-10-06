@@ -11,9 +11,9 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/locale"
 )
 
-// The check mode of the CLI (store-cli-design-20261004.md 5.1): a one-shot,
-// single-threaded --noEmit check whose collection and report are the same for
-// the Pointer and the Store programs. Each backend gives the stages and the
+// The check mode of the CLI (store-cli-design-20261004.md 5.1): a one-shot
+// --noEmit check whose collection and report are the same for the Pointer and
+// the Store programs. Each backend gives the stages and the
 // diagnostics in its own type D; the collector owns the order and the
 // short-circuits of compiler.GetDiagnosticsOfAnyProgram, and the reporter the
 // order of the output and the exit status.

@@ -146,21 +146,19 @@ func TestNativeCLIRejectsUnsupported(t *testing.T) {
 		args   []string
 		reason string
 	}{
-		{[]string{"--singleThreaded"}, "requires '--noEmit'"},
-		{[]string{"--noEmit"}, "requires '--singleThreaded'"},
-		{[]string{"--noEmit", "--singleThreaded", "--checkers", "2"}, "does not support '--checkers 2'"},
-		{[]string{"--noEmit", "--singleThreaded", "--declaration"}, "does not support 'declaration'"},
-		{[]string{"--noEmit", "--singleThreaded", "--declaration", "--emitDeclarationOnly"}, "does not support 'emitDeclarationOnly'"},
-		{[]string{"--noEmit", "--singleThreaded", "--declaration", "--declarationMap"}, "does not support 'declarationMap'"},
-		{[]string{"--noEmit", "--singleThreaded", "--declaration", "--isolatedDeclarations"}, "does not support 'isolatedDeclarations'"},
-		{[]string{"--singleThreaded", "-p", "/p/composite.json"}, "does not support 'composite'"},
-		{[]string{"--noEmit", "--singleThreaded", "--incremental"}, "does not support 'incremental'"},
-		{[]string{"--noEmit", "--singleThreaded", "--watch"}, "does not support 'watch'"},
-		{[]string{"--noEmit", "--singleThreaded", "--noCheck"}, "does not support 'noCheck'"},
-		{[]string{"--noEmit", "--singleThreaded", "--listFilesOnly"}, "does not support 'listFilesOnly'"},
-		{[]string{"--noEmit", "--singleThreaded", "--explainFiles"}, "does not support 'explainFiles'"},
-		{[]string{"--noEmit", "--singleThreaded", "--generateTrace", "/p/trace"}, "does not support 'generateTrace'"},
-		{[]string{"--singleThreaded", "-p", "/p/refs.json"}, "does not support 'references'"},
+		{nil, "requires '--noEmit'"},
+		{[]string{"--noEmit", "--declaration"}, "does not support 'declaration'"},
+		{[]string{"--noEmit", "--declaration", "--emitDeclarationOnly"}, "does not support 'emitDeclarationOnly'"},
+		{[]string{"--noEmit", "--declaration", "--declarationMap"}, "does not support 'declarationMap'"},
+		{[]string{"--noEmit", "--declaration", "--isolatedDeclarations"}, "does not support 'isolatedDeclarations'"},
+		{[]string{"-p", "/p/composite.json"}, "does not support 'composite'"},
+		{[]string{"--noEmit", "--incremental"}, "does not support 'incremental'"},
+		{[]string{"--noEmit", "--watch"}, "does not support 'watch'"},
+		{[]string{"--noEmit", "--noCheck"}, "does not support 'noCheck'"},
+		{[]string{"--noEmit", "--listFilesOnly"}, "does not support 'listFilesOnly'"},
+		{[]string{"--noEmit", "--explainFiles"}, "does not support 'explainFiles'"},
+		{[]string{"--noEmit", "--generateTrace", "/p/trace"}, "does not support 'generateTrace'"},
+		{[]string{"-p", "/p/refs.json"}, "does not support 'references'"},
 	} {
 		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
 			args := append(append([]string{}, base...), tc.args...)

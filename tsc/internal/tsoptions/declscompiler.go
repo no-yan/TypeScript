@@ -269,7 +269,7 @@ var optionsForCompiler = []*CommandLineOption{
 		Kind:                    CommandLineOptionTypeEnum, // astBackendOptionMap
 		Category:                diagnostics.Command_line_Options,
 		IsCommandLineOnly:       true,
-		Description:             diagnostics.Select_the_AST_of_the_compiler_Colon_pointer_the_default_or_store_Experimental_Colon_store_checks_a_one_shot_single_threaded_noEmit_program_only_without_declarations_incremental_builds_watch_build_mode_project_references_or_content_mappers,
+		Description:             diagnostics.Select_the_AST_of_the_compiler_Colon_pointer_the_default_or_store_Experimental_Colon_store_checks_a_one_shot_noEmit_program_only_without_declarations_incremental_builds_watch_build_mode_project_references_or_content_mappers,
 		DefaultValueDescription: "pointer",
 	},
 	{

@@ -4428,7 +4428,7 @@ var The_invalid_diagnostic_directive_is_in_supplemental_output_0_returned_by_the
 
 var Diagnostic_directive_0_returned_by_the_content_mapper_has_an_invalid_unusedExpectDirectiveIndex = &Message{code: 100068, category: CategoryMessage, key: "Diagnostic_directive_0_returned_by_the_content_mapper_has_an_invalid_unusedExpectDirectiveIndex_100068", text: "Diagnostic directive {0} returned by the content mapper has an invalid 'unusedExpectDirectiveIndex'."}
 
-var Select_the_AST_of_the_compiler_Colon_pointer_the_default_or_store_Experimental_Colon_store_checks_a_one_shot_single_threaded_noEmit_program_only_without_declarations_incremental_builds_watch_build_mode_project_references_or_content_mappers = &Message{code: 100069, category: CategoryMessage, key: "Select_the_AST_of_the_compiler_Colon_pointer_the_default_or_store_Experimental_Colon_store_checks_a__100069", text: "Select the AST of the compiler: 'pointer' (the default) or 'store'. Experimental: 'store' checks a one-shot, single-threaded '--noEmit' program only, without declarations, incremental builds, watch, build mode, project references or content mappers."}
+var Select_the_AST_of_the_compiler_Colon_pointer_the_default_or_store_Experimental_Colon_store_checks_a_one_shot_noEmit_program_only_without_declarations_incremental_builds_watch_build_mode_project_references_or_content_mappers = &Message{code: 100069, category: CategoryMessage, key: "Select_the_AST_of_the_compiler_Colon_pointer_the_default_or_store_Experimental_Colon_store_checks_a__100069", text: "Select the AST of the compiler: 'pointer' (the default) or 'store'. Experimental: 'store' checks a one-shot '--noEmit' program only, without declarations, incremental builds, watch, build mode, project references or content mappers."}
 
 var The_store_AST_backend_requires_0 = &Message{code: 100070, category: CategoryError, key: "The_store_AST_backend_requires_0_100070", text: "The 'store' AST backend requires '{0}'."}
 
@@ -8865,7 +8865,7 @@ func keyToMessage(key Key) *Message {
 	case "Diagnostic_directive_0_returned_by_the_content_mapper_has_an_invalid_unusedExpectDirectiveIndex_100068":
 		return Diagnostic_directive_0_returned_by_the_content_mapper_has_an_invalid_unusedExpectDirectiveIndex
 	case "Select_the_AST_of_the_compiler_Colon_pointer_the_default_or_store_Experimental_Colon_store_checks_a__100069":
-		return Select_the_AST_of_the_compiler_Colon_pointer_the_default_or_store_Experimental_Colon_store_checks_a_one_shot_single_threaded_noEmit_program_only_without_declarations_incremental_builds_watch_build_mode_project_references_or_content_mappers
+		return Select_the_AST_of_the_compiler_Colon_pointer_the_default_or_store_Experimental_Colon_store_checks_a_one_shot_noEmit_program_only_without_declarations_incremental_builds_watch_build_mode_project_references_or_content_mappers
 	case "The_store_AST_backend_requires_0_100070":
 		return The_store_AST_backend_requires_0
 	case "The_store_AST_backend_does_not_support_0_100071":
