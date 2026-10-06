@@ -83,10 +83,21 @@ func runSide(files map[string]any, caseSensitive bool, cwd string, d *storeharne
 //
 // STORE_CLI_CORPUS_OUT: the manifest (JSONL); STORE_CLI_CORPUS_FILTER: a
 // regexp of the ids to run (the others are recorded as not selected);
-// STORE_CLI_CORPUS_WORKERS: parallel cases (default 4).
+// STORE_CLI_CORPUS_WORKERS: parallel cases (default 4);
+// STORE_CLI_CORPUS_MODE: single (the default: singleThreaded) or parallel
+// (not singleThreaded, 4 checkers; store-cli-parallel-instructions-20261007.md
+// 4.2).
 func TestNativeCheckerConfigurations(t *testing.T) {
 	if testing.Short() {
 		t.Skip("the whole corpus")
+	}
+	parallel := false
+	switch mode := os.Getenv("STORE_CLI_CORPUS_MODE"); mode {
+	case "", "single":
+	case "parallel":
+		parallel = true
+	default:
+		t.Fatalf("STORE_CLI_CORPUS_MODE %q", mode)
 	}
 	cases, inputErrors, files, err := storeharness.EnumerateConfigurations()
 	if err != nil {
@@ -106,7 +117,7 @@ func TestNativeCheckerConfigurations(t *testing.T) {
 	for range workers {
 		wg.Go(func() {
 			for i := range next {
-				records[i] = runCorpusCase(cases[i], filter)
+				records[i] = runCorpusCase(cases[i], filter, parallel)
 			}
 		})
 	}
@@ -146,12 +157,16 @@ func TestNativeCheckerConfigurations(t *testing.T) {
 		t.Errorf("%d records for %d inputs", total, len(cases)+len(inputErrors))
 	}
 	if out != nil {
-		b, _ := json.Marshal(map[string]any{"summary": counts, "files": files, "configurations": len(cases), "inputErrors": len(inputErrors), "go": runtime.Version()})
+		b, _ := json.Marshal(map[string]any{"summary": counts, "files": files, "configurations": len(cases), "inputErrors": len(inputErrors), "parallel": parallel, "go": runtime.Version()})
 		fmt.Fprintln(out, string(b))
 	}
 }
 
-func runCorpusCase(c *storeharness.Case, filter *regexp.Regexp) *corpusRecord {
+// checkersOfParallel is the checker count of the parallel mode, the CLI's
+// default.
+const checkersOfParallel = 4
+
+func runCorpusCase(c *storeharness.Case, filter *regexp.Regexp, parallel bool) *corpusRecord {
 	r := &corpusRecord{Suite: c.Suite, ID: c.ID, File: c.File, ContentHash: c.ContentHash, Config: c.Config}
 	if filter != nil && !filter.MatchString(c.ID) {
 		r.State = "not-selected"
@@ -173,6 +188,15 @@ func runCorpusCase(c *storeharness.Case, filter *regexp.Regexp) *corpusRecord {
 		"listFiles":      fmt.Sprint(options.ListFiles),
 	}
 	options.NoEmit, options.SingleThreaded, options.ListFiles = core.TSTrue, core.TSTrue, core.TSTrue
+	if parallel {
+		// The case's singleThreaded and checkers are not kept.
+		r.Derived["checkers"] = "<nil>"
+		if options.Checkers != nil {
+			r.Derived["checkers"] = strconv.Itoa(*options.Checkers)
+		}
+		checkers := checkersOfParallel
+		options.SingleThreaded, options.Checkers = core.TSFalse, &checkers
+	}
 	r.CaseSensitive, r.Cwd = d.UseCaseSensitiveFileNames(), d.CurrentDirectory()
 	if reasons := execute.CheckModeUnsupported(d.CommandLine(options.Clone())); len(reasons) != 0 {
 		var texts []string

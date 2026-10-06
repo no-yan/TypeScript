@@ -76,7 +76,7 @@ func runBackends(t *testing.T, fx graphFixture, flags []string) map[string]CLIRe
 	t.Helper()
 	results := map[string]CLIResult{}
 	for _, backend := range []string{"none", "pointer", "store"} {
-		args := append([]string{"--singleThreaded", "-p", "/p/tsconfig.json"}, flags...)
+		args := append([]string{"-p", "/p/tsconfig.json"}, flags...)
 		if backend != "none" {
 			args = append(args, "--astBackend", backend)
 		}
@@ -95,6 +95,16 @@ var outputFlags = [][]string{
 	{"--pretty", "false", "--extendedDiagnostics", "--locale", "ja"},
 }
 
+// threadFlags are the checker configurations: single-threaded, the default
+// pool of 4 checkers, and 2 and 8 (store-cli-parallel-instructions-20261007.md
+// 4.1). Without --singleThreaded, parse and bind are parallel too.
+var threadFlags = [][]string{
+	{"--singleThreaded"},
+	nil,
+	{"--checkers", "2"},
+	{"--checkers", "8"},
+}
+
 // TestNativeCLIEquivalence: with the same input values, the Store check, the
 // Pointer check and the compile path print the same output and give the same
 // status, and none of them writes.
@@ -102,22 +112,25 @@ func TestNativeCLIEquivalence(t *testing.T) {
 	fixtures := append(append([]graphFixture{}, diagnosticFixtures...), graphFixtures...)
 	statuses := map[tsc.ExitStatus]int{}
 	for _, fx := range fixtures {
-		for _, flags := range outputFlags {
-			t.Run(fx.name+" "+strings.Join(flags, " "), func(t *testing.T) {
-				results := runBackends(t, fx, flags)
-				for _, backend := range []string{"pointer", "store"} {
-					got, want := results[backend], results["none"]
-					if normalizeOutput(got.Output) != normalizeOutput(want.Output) || got.Status != want.Status {
-						t.Errorf("%s: status %d, compile path %d\n%s", backend, got.Status, want.Status, firstDifference(strings.Split(normalizeOutput(want.Output), "\n"), strings.Split(normalizeOutput(got.Output), "\n")))
+		for _, threads := range threadFlags {
+			for _, output := range outputFlags {
+				flags := append(append([]string{}, threads...), output...)
+				t.Run(fx.name+" "+strings.Join(flags, " "), func(t *testing.T) {
+					results := runBackends(t, fx, flags)
+					for _, backend := range []string{"pointer", "store"} {
+						got, want := results[backend], results["none"]
+						if normalizeOutput(got.Output) != normalizeOutput(want.Output) || got.Status != want.Status {
+							t.Errorf("%s: status %d, compile path %d\n%s", backend, got.Status, want.Status, firstDifference(strings.Split(normalizeOutput(want.Output), "\n"), strings.Split(normalizeOutput(got.Output), "\n")))
+						}
 					}
-				}
-				for backend, r := range results {
-					if len(r.Writes) != 0 {
-						t.Errorf("%s writes %v", backend, r.Writes)
+					for backend, r := range results {
+						if len(r.Writes) != 0 {
+							t.Errorf("%s writes %v", backend, r.Writes)
+						}
 					}
-				}
-				statuses[results["store"].Status]++
-			})
+					statuses[results["store"].Status]++
+				})
+			}
 		}
 	}
 	// The fixtures reach both statuses of a check (when they all ran).
@@ -125,7 +138,7 @@ func TestNativeCLIEquivalence(t *testing.T) {
 	for _, n := range statuses {
 		ran += n
 	}
-	if ran == len(fixtures)*len(outputFlags) && (statuses[tsc.ExitStatusSuccess] == 0 || statuses[tsc.ExitStatusDiagnosticsPresent_OutputsGenerated] == 0) {
+	if ran == len(fixtures)*len(threadFlags)*len(outputFlags) && (statuses[tsc.ExitStatusSuccess] == 0 || statuses[tsc.ExitStatusDiagnosticsPresent_OutputsGenerated] == 0) {
 		t.Errorf("statuses %v", statuses)
 	}
 }
