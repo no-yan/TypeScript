@@ -26,6 +26,7 @@ type File struct {
 	Flags                                                            ast.NodeFlags // the root's flags, sourceFlags included; Root().Flags() reads the same value
 	IdentifierCount                                                  int
 	NodeCount                                                        int               // len(nodes) - 1, dead nodes included
+	CreatedNodeCount                                                 int               // the nodes the parser made, those a rewind truncated included: the Pointer's NodeCount, the checker association's work
 	diagnostics                                                      []*ast.Diagnostic // file is nil: attachFileToDiagnostics belongs to the program (7d)
 	jsDiagnostics                                                    []*ast.Diagnostic
 	CommentDirectives                                                []ast.CommentDirective
