@@ -22,6 +22,13 @@ func WrapDiagnostics(ds []*store.Diagnostic) []diagnosticwriter.Diagnostic {
 	return out
 }
 
+// CompareWrappedDiagnostics is store.CompareDiagnostics of two of
+// WrapDiagnostics's diagnostics (diagnosticwriter.CompareASTDiagnostics's
+// counterpart).
+func CompareWrappedDiagnostics(a, b diagnosticwriter.Diagnostic) int {
+	return store.CompareDiagnostics(a.(writerDiagnostic).Diagnostic, b.(writerDiagnostic).Diagnostic)
+}
+
 func (d writerDiagnostic) File() diagnosticwriter.FileLike {
 	if f := d.Diagnostic.File(); f != nil {
 		return f

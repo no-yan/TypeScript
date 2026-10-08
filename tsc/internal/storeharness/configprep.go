@@ -174,6 +174,7 @@ type configCase struct {
 	File        string // under the suite's directory
 	ContentHash string
 	Config      map[string]string // nil: the test sets no option
+	Name        string            // the runner's NamedTestConfiguration.Name: "" with no configuration
 	Skipped     bool              // runnerSkippedTests names the file
 	path        string            // as the runner reads it
 	content     string
@@ -269,7 +270,7 @@ func fileCases(suite, file, path, content string, skipped bool, configurations [
 			}
 			id += "(" + strings.Join(parts, ",") + ")"
 		}
-		cases[i] = &configCase{ID: id, Suite: suite, File: file, ContentHash: hash, Config: maps.Clone(configuration.Config), Skipped: skipped, path: path, content: content}
+		cases[i] = &configCase{ID: id, Suite: suite, File: file, ContentHash: hash, Config: maps.Clone(configuration.Config), Name: configuration.Name, Skipped: skipped, path: path, content: content}
 	}
 	// GetFileBasedTestConfigurations's order follows a map's: the ids order
 	// the cases, and the whole configuration orders those of the same id.
