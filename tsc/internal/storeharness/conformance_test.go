@@ -57,11 +57,16 @@ const (
 	semanticNotSelected      = "not-selected"
 )
 
-// The verdicts of a baseline (1).
+// The verdicts of a baseline (1). equal-without-output-path-check is an
+// errors baseline where S is not P, and is P without the diagnostics of the
+// output path check (TS5055, TS5056), which S does not make: S has
+// SuppressOutputPathCheck (4), and the verdict excludes them (2026-10-08,
+// the user).
 const (
-	verdictEqual              = "equal"
-	verdictEqualPointerNoEmit = "equal-pointer-noemit"
-	verdictStoreMismatch      = "store-mismatch"
+	verdictEqual                       = "equal"
+	verdictEqualPointerNoEmit          = "equal-pointer-noemit"
+	verdictEqualWithoutOutputPathCheck = "equal-without-output-path-check"
+	verdictStoreMismatch               = "store-mismatch"
 )
 
 // The semantic baselines: their names and their files' extensions
@@ -113,6 +118,9 @@ type semanticBaseline struct {
 	R      string `json:"r,omitempty"`
 	P      string `json:"p,omitempty"`
 	S      string `json:"s,omitempty"`
+	// PWithoutOutputPathCheck: the errors baseline of P without TS5055 and
+	// TS5056, where P has them.
+	PWithoutOutputPathCheck string `json:"pWithoutOutputPathCheck,omitempty"`
 	// PointerDiff: P against R, where they differ.
 	PointerDiff *lineDiff `json:"pointerDiff,omitempty"`
 	// StoreDiff: S against what it is held to (R where P = R, P otherwise),
@@ -281,6 +289,13 @@ func runSemanticCase(c *configCase, filter *regexp.Regexp) (r *semanticRecord) {
 		pText, sText := p.texts[k], s.texts[k]
 		b.R, b.P, b.S = textHash(reference), textHash(pText), textHash(sText)
 		b.PointerDiff = firstLineDiff(reference, pText)
+		withoutOutputPathCheck := pText
+		if k == kindErrors {
+			withoutOutputPathCheck = p.errorsWithoutOutputPathCheck
+			if withoutOutputPathCheck != pText {
+				b.PWithoutOutputPathCheck = textHash(withoutOutputPathCheck)
+			}
+		}
 		switch {
 		case s.failed[k] != "":
 			b.Verdict, b.Reason = verdictStoreMismatch, s.failed[k]
@@ -288,6 +303,8 @@ func runSemanticCase(c *configCase, filter *regexp.Regexp) (r *semanticRecord) {
 			b.Verdict = verdictEqual
 		case pText != reference && sText == pText:
 			b.Verdict = verdictEqualPointerNoEmit
+		case withoutOutputPathCheck != pText && sText == withoutOutputPathCheck:
+			b.Verdict = verdictEqualWithoutOutputPathCheck
 		default:
 			b.Verdict = verdictStoreMismatch
 		}
@@ -295,7 +312,7 @@ func runSemanticCase(c *configCase, filter *regexp.Regexp) (r *semanticRecord) {
 			// What S is held to: R where P = R, P otherwise.
 			b.StoreDiff = firstLineDiff(pText, sText)
 		}
-		if b.PointerDiff != nil || b.Verdict == verdictStoreMismatch {
+		if b.PointerDiff != nil || b.Verdict != verdictEqual {
 			r.texts = append(r.texts, semanticText{b.File, pText, sText})
 		}
 	}
@@ -378,8 +395,8 @@ func firstLineDiff(expected, actual string) *lineDiff {
 	return &lineDiff{Line: i + 1, Expected: line(e, i), Actual: line(a, i)}
 }
 
-// semanticText is the P and S of a baseline where P is not R or S is a
-// store-mismatch, for writeSemanticTexts.
+// semanticText is the P and S of a baseline where P is not R or the verdict
+// is not equal, for writeSemanticTexts.
 type semanticText struct {
 	file string
 	p, s string
@@ -428,11 +445,22 @@ func preCommandLine(config *tsoptions.ParsedCommandLine) *tsoptions.ParsedComman
 // semanticSide is the texts of one side, by kind. failed is why a text of S
 // is not compared as a text: the pre and post programs' counts, the error
 // baseline's own check, a diagnostic of code -1, a panic.
+// errorsWithoutOutputPathCheck is P's errors baseline without TS5055 and
+// TS5056: its errors baseline where it has neither.
 type semanticSide struct {
-	texts      [kindCount]string
-	failed     [kindCount]string
-	suppressed bool
-	panicStack string
+	texts                        [kindCount]string
+	failed                       [kindCount]string
+	errorsWithoutOutputPathCheck string
+	suppressed                   bool
+	panicStack                   string
+}
+
+// isOutputPathCheck is whether d is of the output path check of
+// verifyCompilerOptions (compiler/program.go), which SuppressOutputPathCheck
+// turns off.
+func isOutputPathCheck(d *ast.Diagnostic) bool {
+	return d.Code() == diagnostics.Cannot_write_file_0_because_it_would_overwrite_input_file.Code() ||
+		d.Code() == diagnostics.Cannot_write_file_0_because_it_would_be_overwritten_by_multiple_input_files.Code()
 }
 
 // errorBaselineFiles are verifyDiagnostics's files (compiler_runner.go):
@@ -524,6 +552,16 @@ func pointerSemantic(d *configDescriptor, header string) (side semanticSide, app
 	}
 	if core.Some(errors, func(d *ast.Diagnostic) bool { return d.Code() == -1 }) {
 		return side, applies, "a diagnostic of code -1"
+	}
+	// The same, without the output path check's diagnostics: the
+	// Pointer's other reader of SuppressOutputPathCheck,
+	// verifyProjectReferences, has no reference in a compared configuration.
+	side.errorsWithoutOutputPathCheck = side.texts[kindErrors]
+	if kept := core.Filter(errors, func(d *ast.Diagnostic) bool { return !isOutputPathCheck(d) }); len(kept) != len(errors) {
+		side.errorsWithoutOutputPathCheck, problem = errorBaselineText(errorBaselineFiles(d), diagnosticwriter.WrapASTDiagnostics(kept), diagnosticwriter.CompareASTDiagnostics, options.Pretty.IsTrue())
+		if problem != "" {
+			return side, applies, "the error baseline without the output path check: " + problem
+		}
 	}
 
 	// verifyTypesAndSymbols and DoTypeAndSymbolBaseline: the type walk of
