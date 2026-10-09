@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"maps"
+	"runtime"
 	"slices"
 	"strings"
 	"sync"
@@ -555,18 +556,36 @@ func (p *Program) SingleThreaded() bool {
 }
 
 func (p *Program) BindSourceFiles() {
+	// A fixed set of workers rather than a goroutine per file: every new
+	// goroutine starts on a small stack and would grow it again through the
+	// binder's recursion.
+	workers := 1
+	if !p.SingleThreaded() {
+		workers = runtime.GOMAXPROCS(0)
+	}
+	var next atomic.Int64
 	wg := core.NewWorkGroup(p.SingleThreaded())
-	for _, file := range p.files {
-		if !file.IsBound() {
-			wg.Queue(func() {
-				if p.opts.Tracing != nil {
-					defer p.opts.Tracing.Push(tracing.PhaseBind, "bindSourceFile", map[string]any{"path": string(file.Path())}, true)()
+	for range workers {
+		wg.Queue(func() {
+			for {
+				i := int(next.Add(1) - 1)
+				if i >= len(p.files) {
+					return
 				}
-				binder.BindSourceFile(file)
-			})
-		}
+				if file := p.files[i]; !file.IsBound() {
+					p.bindSourceFile(file)
+				}
+			}
+		})
 	}
 	wg.RunAndWait()
+}
+
+func (p *Program) bindSourceFile(file *ast.SourceFile) {
+	if p.opts.Tracing != nil {
+		defer p.opts.Tracing.Push(tracing.PhaseBind, "bindSourceFile", map[string]any{"path": string(file.Path())}, true)()
+	}
+	binder.BindSourceFile(file)
 }
 
 // Return the type checker associated with the program.
