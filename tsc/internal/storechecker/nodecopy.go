@@ -843,7 +843,7 @@ func getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recoveryBoundary) *st
 			if store.IsFunctionLike(node) {
 				sig := b.ch.getSignatureFromDeclaration(node)
 				params = sig.parameters
-				typeParams = sig.typeParameters
+				typeParams = sig.TypeParameters()
 			} else if store.IsConditionalTypeNode(node) { // !!! TODO: impossible in combination with the scope start check???
 				typeParams = b.ch.getInferTypeParameters(node)
 			} else if store.IsMappedTypeNode(node) {

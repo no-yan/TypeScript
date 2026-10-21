@@ -54,6 +54,6 @@ func (b *NodeBuilderImpl) addSymbolTypeToContext(symbol *store.Symbol, t *Type) 
 
 func (b *NodeBuilderImpl) enterSignatureScope(signature *Signature) (expandedParams []*store.Symbol, cleanup func()) {
 	expandedParams = b.ch.getExpandedParameters(signature, true /*skipUnionExpanding*/)[0]
-	cleanup = b.enterNewScope(signature.declaration, expandedParams, signature.typeParameters, signature.parameters, signature.mapper)
+	cleanup = b.enterNewScope(signature.declaration, expandedParams, signature.TypeParameters(), signature.parameters, signature.mapper)
 	return expandedParams, cleanup
 }

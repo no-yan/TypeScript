@@ -2022,7 +2022,7 @@ func (c *Checker) getTypeOfSwitchClause(clause store.Node) *Type {
 }
 
 func (c *Checker) getEffectsSignature(node store.Node) *Signature {
-	links := c.signatureLinks.Get(node.Key())
+	links := c.signatureLinks.Get(node)
 	signature := links.effectsSignature
 	if signature == nil {
 		// A call expression parented by an expression statement is a potential assertion. Other call
@@ -2048,7 +2048,7 @@ func (c *Checker) getEffectsSignature(node store.Node) *Signature {
 		}
 		signatures := c.getSignaturesOfType(core.OrElse(apparentType, c.unknownType), SignatureKindCall)
 		switch {
-		case len(signatures) == 1 && len(signatures[0].typeParameters) == 0:
+		case len(signatures) == 1 && len(signatures[0].TypeParameters()) == 0:
 			signature = signatures[0]
 		case core.Some(signatures, c.hasTypePredicateOrNeverReturnType):
 			signature = c.getResolvedSignature(node, nil, CheckModeNormal)
@@ -2186,8 +2186,8 @@ func (c *Checker) getExplicitThisType(node store.Node) *Type {
 	container := store.GetThisContainer(node, false /*includeArrowFunctions*/, false /*includeClassComputedPropertyName*/)
 	if store.IsFunctionLike(container) {
 		signature := c.getSignatureFromDeclaration(container)
-		if signature.thisParameter != nil {
-			return c.getExplicitTypeOfSymbol(signature.thisParameter, nil)
+		if signature.ThisParameter() != nil {
+			return c.getExplicitTypeOfSymbol(signature.ThisParameter(), nil)
 		}
 	}
 	if !container.Parent().IsNil() && store.IsClassLike(container.Parent()) {
@@ -2231,8 +2231,8 @@ func (c *Checker) getTypeOfInitializer(node store.Node) *Type {
 	// Return the cached type if one is available. If the type of the variable was inferred
 	// from its initializer, we'll already have cached the type. Otherwise we compute it now
 	// without caching such that transient types are reflected.
-	if c.typeNodeLinks.Has(node.Key()) {
-		t := c.typeNodeLinks.Get(node.Key()).resolvedType
+	if c.typeNodeLinks.Has(node) {
+		t := c.typeNodeLinks.Get(node).resolvedType
 		if t != nil {
 			return t
 		}

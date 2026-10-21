@@ -162,11 +162,11 @@ func (c *Checker) appendTypeParametersList(typeParameters []*Type, declarations 
 // getConstructorsForTypeArgumentsList is getConstructorsForTypeArguments on a
 // list (3.4, List version): the Pointer body with the List rules.
 //
-// storetranslate:pointer-hash 7c235debcdfb5929 checker.go:Checker.getConstructorsForTypeArguments
+// storetranslate:pointer-hash 3c78d30de306c5d1 checker.go:Checker.getConstructorsForTypeArguments
 func (c *Checker) getConstructorsForTypeArgumentsList(t *Type, typeArgumentNodes store.List, location store.Node) []*Signature {
 	typeArgCount := typeArgumentNodes.Len()
 	return core.Filter(c.getSignaturesOfType(t, SignatureKindConstruct), func(sig *Signature) bool {
-		return typeArgCount >= c.getMinTypeArgumentCount(sig.typeParameters) && typeArgCount <= len(sig.typeParameters)
+		return typeArgCount >= c.getMinTypeArgumentCount(sig.TypeParameters()) && typeArgCount <= len(sig.TypeParameters())
 	})
 }
 
@@ -174,12 +174,12 @@ func (c *Checker) getConstructorsForTypeArgumentsList(t *Type, typeArgumentNodes
 // getInstantiatedConstructorsForTypeArguments on a list (3.4, List version):
 // the Pointer body with the List rules.
 //
-// storetranslate:pointer-hash 69e8493dd867e762 checker.go:Checker.getInstantiatedConstructorsForTypeArguments
+// storetranslate:pointer-hash 718d586f51d10fe2 checker.go:Checker.getInstantiatedConstructorsForTypeArguments
 func (c *Checker) getInstantiatedConstructorsForTypeArgumentsList(t *Type, typeArgumentNodes store.List, location store.Node) []*Signature {
 	signatures := c.getConstructorsForTypeArgumentsList(t, typeArgumentNodes, location)
 	typeArguments := store.MapList(typeArgumentNodes, c.getTypeFromTypeNode)
 	return core.SameMap(signatures, func(sig *Signature) *Signature {
-		if len(sig.typeParameters) != 0 {
+		if len(sig.TypeParameters()) != 0 {
 			return c.getSignatureInstantiation(sig, typeArguments, store.IsInJSFile(location), nil)
 		}
 		return sig
@@ -189,10 +189,10 @@ func (c *Checker) getInstantiatedConstructorsForTypeArgumentsList(t *Type, typeA
 // checkTypeArgumentsList is checkTypeArguments on a list (3.4, List version):
 // the Pointer body with the List rules.
 //
-// storetranslate:pointer-hash 5969694cab6d8003 checker.go:Checker.checkTypeArguments
+// storetranslate:pointer-hash 8f43ee609470ec64 checker.go:Checker.checkTypeArguments
 func (c *Checker) checkTypeArgumentsList(signature *Signature, typeArgumentNodes store.List, reportErrors bool, headMessage *diagnostics.Message) []*Type {
 	isJavaScript := store.IsInJSFile(signature.declaration)
-	typeParameters := signature.typeParameters
+	typeParameters := signature.TypeParameters()
 	typeArgumentTypes := c.fillMissingTypeArguments(store.MapList(typeArgumentNodes, c.getTypeFromTypeNode), typeParameters, c.getMinTypeArgumentCount(typeParameters), isJavaScript)
 	var mapper *TypeMapper
 	for i := range typeArgumentNodes.Len() {
@@ -227,12 +227,12 @@ func (c *Checker) checkTypeArgumentsList(signature *Signature, typeArgumentNodes
 // hasCorrectTypeArgumentArityList is hasCorrectTypeArgumentArity on a list
 // (3.4, List version): the Pointer body with the List rules.
 //
-// storetranslate:pointer-hash c94335fc3f1613ea checker.go:Checker.hasCorrectTypeArgumentArity
+// storetranslate:pointer-hash dee01c12d4f17db0 checker.go:Checker.hasCorrectTypeArgumentArity
 func (c *Checker) hasCorrectTypeArgumentArityList(signature *Signature, typeArguments store.List) bool {
 	// If the user supplied type arguments, but the number of type arguments does not match
 	// the declared number of type parameters, the call has an incorrect arity.
-	numTypeParameters := len(signature.typeParameters)
-	minTypeArgumentCount := c.getMinTypeArgumentCount(signature.typeParameters)
+	numTypeParameters := len(signature.TypeParameters())
+	minTypeArgumentCount := c.getMinTypeArgumentCount(signature.TypeParameters())
 	return typeArguments.Len() == 0 || typeArguments.Len() >= minTypeArgumentCount && typeArguments.Len() <= numTypeParameters
 }
 
@@ -752,7 +752,7 @@ type Program interface {
 // Factory has no zero value. The IDSpace is the program's, not the first
 // file's: a program may have no file.
 //
-// storetranslate:pointer-hash 29c6f3a7ca1363d2 checker.go:NewChecker
+// storetranslate:pointer-hash 5d434fef4768415e checker.go:NewChecker
 func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	program.BindSourceFiles()
 
@@ -816,7 +816,7 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.errorTypes = make(map[CacheHashKey]*Type)
 	c.moduleSymbols = make(map[store.NodeKey]*store.Symbol)
 	c.globalThisSymbol = c.newSymbolEx(ast.SymbolFlagsModule, "globalThis", ast.CheckFlagsReadonly)
-	c.globalThisSymbol.SetExports(c.globals)
+	c.globalThisSymbol.SetExports(c.globals, &c.symbolExtraArena)
 	c.globals[c.globalThisSymbol.Name()] = c.globalThisSymbol
 	c.resolveName = c.createNameResolver().Resolve
 	c.resolveNameForSymbolSuggestion = c.createNameResolverForSuggestion().Resolve

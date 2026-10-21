@@ -7,6 +7,7 @@ package storechecker
 import (
 	"math/bits"
 	"slices"
+	"unsafe"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store"
@@ -159,12 +160,67 @@ type SymbolReferenceLinks struct {
 }
 
 type ValueSymbolLinks struct {
-	resolvedType   *Type // Type of value symbol
+	resolvedType *Type // Type of value symbol
+	target       *store.Symbol
+	mapper       *TypeMapper
+	extra        *valueSymbolExtra
+}
+
+type valueSymbolExtra struct {
 	writeType      *Type
-	target         *store.Symbol
-	mapper         *TypeMapper
 	nameType       *Type
 	containingType *Type // Mapped type for mapped type property, containing union or intersection type for synthetic property
+}
+
+func (links *ValueSymbolLinks) getWriteType() *Type {
+	if links.extra == nil {
+		return nil
+	}
+	return links.extra.writeType
+}
+
+func (links *ValueSymbolLinks) getNameType() *Type {
+	if links.extra == nil {
+		return nil
+	}
+	return links.extra.nameType
+}
+
+func (links *ValueSymbolLinks) getContainingType() *Type {
+	if links.extra == nil {
+		return nil
+	}
+	return links.extra.containingType
+}
+
+func (links *ValueSymbolLinks) setWriteType(c *Checker, typ *Type) {
+	if links.extra == nil {
+		if typ == nil {
+			return
+		}
+		links.extra = c.valueSymbolExtraArena.New()
+	}
+	links.extra.writeType = typ
+}
+
+func (links *ValueSymbolLinks) setNameType(c *Checker, typ *Type) {
+	if links.extra == nil {
+		if typ == nil {
+			return
+		}
+		links.extra = c.valueSymbolExtraArena.New()
+	}
+	links.extra.nameType = typ
+}
+
+func (links *ValueSymbolLinks) setContainingType(c *Checker, typ *Type) {
+	if links.extra == nil {
+		if typ == nil {
+			return
+		}
+		links.extra = c.valueSymbolExtraArena.New()
+	}
+	links.extra.containingType = typ
 }
 
 type MappedSymbolLinks struct {
@@ -335,8 +391,26 @@ type SymbolNodeLinks struct {
 }
 
 type TypeNodeLinks struct {
-	resolvedType        *Type   // Resolved type associated with node
-	outerTypeParameters []*Type // Outer type parameters of anonymous object type
+	resolvedType        *Type    // Resolved type associated with node
+	outerTypeParameters *[]*Type // Outer type parameters of anonymous object type
+}
+
+func (links *TypeNodeLinks) getOuterTypeParameters() []*Type {
+	if links.outerTypeParameters == nil {
+		return nil
+	}
+	return *links.outerTypeParameters
+}
+
+func (links *TypeNodeLinks) setOuterTypeParameters(c *Checker, types []*Type) {
+	if types == nil {
+		links.outerTypeParameters = nil
+		return
+	}
+	if links.outerTypeParameters == nil {
+		links.outerTypeParameters = c.outerTypeParameterListArena.New()
+	}
+	*links.outerTypeParameters = types
 }
 
 type ComputedNameNodeLinks struct {
@@ -607,14 +681,46 @@ func (a *TypeAlias) TypeArguments() []*Type {
 	return a.typeArguments
 }
 
+type typeKind uint8
+
+const (
+	typeKindIntrinsic typeKind = iota + 1
+	typeKindLiteral
+	typeKindUniqueESSymbol
+	typeKindTypeParameter
+	typeKindIndex
+	typeKindIndexedAccess
+	typeKindTemplateLiteral
+	typeKindStringMapping
+	typeKindSubstitution
+	typeKindConditional
+	typeKindObject
+	typeKindTypeReference
+	typeKindInterface
+	typeKindTuple
+	typeKindInstantiationExpression
+	typeKindMapped
+	typeKindReverseMapped
+	typeKindEvolvingArray
+	typeKindUnion
+	typeKindIntersection
+)
+
 type Type struct {
 	flags       TypeFlags
 	objectFlags ObjectFlags
 	id          TypeId
+	kind        typeKind
 	symbol      *store.Symbol
 	alias       *TypeAlias
 	checker     *Checker
-	data        TypeData // Type specific data
+}
+
+func castType[T any](t *Type, kind typeKind) *T {
+	if t.kind != kind {
+		panic("Invalid type cast")
+	}
+	return (*T)(unsafe.Pointer(t))
 }
 
 func (t *Type) Flags() TypeFlags {
@@ -625,54 +731,102 @@ func (t *Type) ObjectFlags() ObjectFlags {
 	return t.objectFlags
 }
 
-func (t *Type) AsIntrinsicType() *IntrinsicType { return t.data.(*IntrinsicType) }
+func (t *Type) AsIntrinsicType() *IntrinsicType { return castType[IntrinsicType](t, typeKindIntrinsic) }
 
-func (t *Type) AsLiteralType() *LiteralType { return t.data.(*LiteralType) }
+func (t *Type) AsLiteralType() *LiteralType { return castType[LiteralType](t, typeKindLiteral) }
 
-func (t *Type) AsUniqueESSymbolType() *UniqueESSymbolType { return t.data.(*UniqueESSymbolType) }
-
-func (t *Type) AsTupleType() *TupleType { return t.data.(*TupleType) }
-
-func (t *Type) AsInstantiationExpressionType() *InstantiationExpressionType {
-	return t.data.(*InstantiationExpressionType)
+func (t *Type) AsUniqueESSymbolType() *UniqueESSymbolType {
+	return castType[UniqueESSymbolType](t, typeKindUniqueESSymbol)
 }
 
-func (t *Type) AsMappedType() *MappedType { return t.data.(*MappedType) }
+func (t *Type) AsTupleType() *TupleType { return castType[TupleType](t, typeKindTuple) }
 
-func (t *Type) AsReverseMappedType() *ReverseMappedType { return t.data.(*ReverseMappedType) }
+func (t *Type) AsInstantiationExpressionType() *InstantiationExpressionType {
+	return castType[InstantiationExpressionType](t, typeKindInstantiationExpression)
+}
 
-func (t *Type) AsEvolvingArrayType() *EvolvingArrayType { return t.data.(*EvolvingArrayType) }
+func (t *Type) AsMappedType() *MappedType { return castType[MappedType](t, typeKindMapped) }
 
-func (t *Type) AsTypeParameter() *TypeParameter { return t.data.(*TypeParameter) }
+func (t *Type) AsReverseMappedType() *ReverseMappedType {
+	return castType[ReverseMappedType](t, typeKindReverseMapped)
+}
 
-func (t *Type) AsUnionType() *UnionType { return t.data.(*UnionType) }
+func (t *Type) AsEvolvingArrayType() *EvolvingArrayType {
+	return castType[EvolvingArrayType](t, typeKindEvolvingArray)
+}
 
-func (t *Type) AsIntersectionType() *IntersectionType { return t.data.(*IntersectionType) }
+func (t *Type) AsTypeParameter() *TypeParameter {
+	return castType[TypeParameter](t, typeKindTypeParameter)
+}
 
-func (t *Type) AsIndexType() *IndexType { return t.data.(*IndexType) }
+func (t *Type) AsUnionType() *UnionType { return castType[UnionType](t, typeKindUnion) }
 
-func (t *Type) AsIndexedAccessType() *IndexedAccessType { return t.data.(*IndexedAccessType) }
+func (t *Type) AsIntersectionType() *IntersectionType {
+	return castType[IntersectionType](t, typeKindIntersection)
+}
 
-func (t *Type) AsTemplateLiteralType() *TemplateLiteralType { return t.data.(*TemplateLiteralType) }
+func (t *Type) AsIndexType() *IndexType { return castType[IndexType](t, typeKindIndex) }
 
-func (t *Type) AsStringMappingType() *StringMappingType { return t.data.(*StringMappingType) }
+func (t *Type) AsIndexedAccessType() *IndexedAccessType {
+	return castType[IndexedAccessType](t, typeKindIndexedAccess)
+}
 
-func (t *Type) AsSubstitutionType() *SubstitutionType { return t.data.(*SubstitutionType) }
+func (t *Type) AsTemplateLiteralType() *TemplateLiteralType {
+	return castType[TemplateLiteralType](t, typeKindTemplateLiteral)
+}
 
-func (t *Type) AsConditionalType() *ConditionalType { return t.data.(*ConditionalType) }
+func (t *Type) AsStringMappingType() *StringMappingType {
+	return castType[StringMappingType](t, typeKindStringMapping)
+}
 
-func (t *Type) AsConstrainedType() *ConstrainedType { return t.data.AsConstrainedType() }
+func (t *Type) AsSubstitutionType() *SubstitutionType {
+	return castType[SubstitutionType](t, typeKindSubstitution)
+}
 
-func (t *Type) AsStructuredType() *StructuredType { return t.data.AsStructuredType() }
+func (t *Type) AsConditionalType() *ConditionalType {
+	return castType[ConditionalType](t, typeKindConditional)
+}
 
-func (t *Type) AsObjectType() *ObjectType { return t.data.AsObjectType() }
+func (t *Type) AsConstrainedType() *ConstrainedType {
+	if t.kind >= typeKindTypeParameter && t.kind <= typeKindIntersection {
+		return (*ConstrainedType)(unsafe.Pointer(t))
+	}
+	return nil
+}
 
-func (t *Type) AsTypeReference() *TypeReference { return t.data.AsTypeReference() }
+func (t *Type) AsStructuredType() *StructuredType {
+	if t.kind >= typeKindObject && t.kind <= typeKindIntersection {
+		return (*StructuredType)(unsafe.Pointer(t))
+	}
+	return nil
+}
 
-func (t *Type) AsInterfaceType() *InterfaceType { return t.data.AsInterfaceType() }
+func (t *Type) AsObjectType() *ObjectType {
+	if t.kind >= typeKindObject && t.kind <= typeKindEvolvingArray {
+		return (*ObjectType)(unsafe.Pointer(t))
+	}
+	return nil
+}
+
+func (t *Type) AsTypeReference() *TypeReference {
+	if t.kind >= typeKindTypeReference && t.kind <= typeKindTuple {
+		return (*TypeReference)(unsafe.Pointer(t))
+	}
+	return nil
+}
+
+func (t *Type) AsInterfaceType() *InterfaceType {
+	if t.kind >= typeKindInterface && t.kind <= typeKindTuple {
+		return (*InterfaceType)(unsafe.Pointer(t))
+	}
+	return nil
+}
 
 func (t *Type) AsUnionOrIntersectionType() *UnionOrIntersectionType {
-	return t.data.AsUnionOrIntersectionType()
+	if t.kind >= typeKindUnion && t.kind <= typeKindIntersection {
+		return (*UnionOrIntersectionType)(unsafe.Pointer(t))
+	}
+	return nil
 }
 
 func (t *Type) Distributed() []*Type {
@@ -735,33 +889,15 @@ func (t *Type) Symbol() *store.Symbol {
 	return t.symbol
 }
 
-type TypeData interface {
-	AsType() *Type
-	AsConstrainedType() *ConstrainedType
-	AsStructuredType() *StructuredType
-	AsObjectType() *ObjectType
-	AsTypeReference() *TypeReference
-	AsInterfaceType() *InterfaceType
-	AsUnionOrIntersectionType() *UnionOrIntersectionType
-}
-
 type TypeBase struct {
 	Type
 }
 
 func (t *TypeBase) AsType() *Type { return &t.Type }
 
-func (t *TypeBase) AsConstrainedType() *ConstrainedType { return nil }
-
-func (t *TypeBase) AsStructuredType() *StructuredType { return nil }
-
 func (t *TypeBase) AsObjectType() *ObjectType { return nil }
 
-func (t *TypeBase) AsTypeReference() *TypeReference { return nil }
-
 func (t *TypeBase) AsInterfaceType() *InterfaceType { return nil }
-
-func (t *TypeBase) AsUnionOrIntersectionType() *UnionOrIntersectionType { return nil }
 
 type IntrinsicType struct {
 	TypeBase
@@ -787,12 +923,14 @@ type ConstrainedType struct {
 	resolvedBaseConstraint *Type
 }
 
-func (t *ConstrainedType) AsConstrainedType() *ConstrainedType { return t }
-
 type StructuredType struct {
 	ConstrainedType
-	members            store.SymbolTable
-	properties         []*store.Symbol
+	members    store.SymbolTable
+	properties []*store.Symbol
+	extra      *structuredTypeExtra
+}
+
+type structuredTypeExtra struct {
 	signatures         []*Signature // Signatures (call + construct)
 	callSignatureCount int          // Count of call signatures
 	indexInfos         []*IndexInfo
@@ -800,14 +938,39 @@ type StructuredType struct {
 	objectTypeWithoutAbstractConstructSignatures *Type
 }
 
-func (t *StructuredType) AsStructuredType() *StructuredType { return t }
-
 func (t *StructuredType) CallSignatures() []*Signature {
-	return slices.Clip(t.signatures[:t.callSignatureCount])
+	if t.extra == nil {
+		return nil
+	}
+	return slices.Clip(t.extra.signatures[:t.extra.callSignatureCount])
 }
 
 func (t *StructuredType) ConstructSignatures() []*Signature {
-	return slices.Clip(t.signatures[t.callSignatureCount:])
+	if t.extra == nil {
+		return nil
+	}
+	return slices.Clip(t.extra.signatures[t.extra.callSignatureCount:])
+}
+
+func (t *StructuredType) getSignatures() []*Signature {
+	if t.extra == nil {
+		return nil
+	}
+	return t.extra.signatures
+}
+
+func (t *StructuredType) getIndexInfos() []*IndexInfo {
+	if t.extra == nil {
+		return nil
+	}
+	return t.extra.indexInfos
+}
+
+func (t *StructuredType) ensureExtra() *structuredTypeExtra {
+	if t.extra == nil {
+		t.extra = t.checker.structuredTypeExtraArena.New()
+	}
+	return t.extra
 }
 
 func (t *StructuredType) Properties() []*store.Symbol {
@@ -828,8 +991,6 @@ type TypeReference struct {
 	node                  store.Node // TypeReferenceNode | ArrayTypeNode | TupleTypeNode when deferred, else nil
 	resolvedTypeArguments []*Type
 }
-
-func (t *TypeReference) AsTypeReference() *TypeReference { return t }
 
 type InterfaceType struct {
 	TypeReference
@@ -934,8 +1095,6 @@ type UnionOrIntersectionType struct {
 	propertyCacheWithoutFunctionPropertyAugment store.SymbolTable
 	resolvedProperties                          []*store.Symbol
 }
-
-func (t *UnionOrIntersectionType) AsUnionOrIntersectionType() *UnionOrIntersectionType { return t }
 
 func (t *UnionOrIntersectionType) Types() []*Type {
 	return t.types
@@ -1048,6 +1207,7 @@ const (
 	SignatureFlagsIsUntypedSignatureInJSFile             SignatureFlags = 1 << 6 // Indicates signature is from a js file and has no types
 	SignatureFlagsIsNonInferrable                        SignatureFlags = 1 << 7 // Indicates signature comes from a non-inferrable type
 	SignatureFlagsIsSignatureCandidateForOverloadFailure SignatureFlags = 1 << 8
+	signatureFlagsNoTypePredicate                        SignatureFlags = 1 << 9
 	// We do not propagate `IsInnerCallChain` or `IsOuterCallChain` to instantiated signatures, as that would result in us
 	// attempting to add `| undefined` on each recursive call to `getReturnTypeOfSignature` when
 	// instantiating the return type.
@@ -1061,27 +1221,101 @@ type Signature struct {
 	minArgumentCount         int32
 	resolvedMinArgumentCount int32
 	declaration              store.Node
-	typeParameters           []*Type
 	parameters               []*store.Symbol
-	thisParameter            *store.Symbol
 	resolvedReturnType       *Type
-	resolvedTypePredicate    *TypePredicate
 	target                   *Signature
 	mapper                   *TypeMapper
-	isolatedSignatureType    *Type
-	composite                *CompositeSignature
+	extra                    *signatureExtra
+}
+
+type signatureExtra struct {
+	typeParameters        []*Type
+	thisParameter         *store.Symbol
+	resolvedTypePredicate *TypePredicate
+	isolatedSignatureType *Type
+	composite             *CompositeSignature
+}
+
+func (s *Signature) ensureExtra(c *Checker) *signatureExtra {
+	if s.extra == nil {
+		s.extra = c.signatureExtraArena.New()
+	}
+	return s.extra
+}
+
+func (s *Signature) setTypeParameters(c *Checker, types []*Type) {
+	if types != nil || s.extra != nil {
+		s.ensureExtra(c).typeParameters = types
+	}
+}
+
+func (s *Signature) setThisParameter(c *Checker, parameter *store.Symbol) {
+	if parameter != nil || s.extra != nil {
+		s.ensureExtra(c).thisParameter = parameter
+	}
+}
+
+func (s *Signature) getResolvedTypePredicate(c *Checker) *TypePredicate {
+	if s.flags&signatureFlagsNoTypePredicate != 0 {
+		return c.noTypePredicate
+	}
+	if s.extra == nil {
+		return nil
+	}
+	return s.extra.resolvedTypePredicate
+}
+
+func (s *Signature) setResolvedTypePredicate(c *Checker, predicate *TypePredicate) {
+	s.flags &^= signatureFlagsNoTypePredicate
+	if predicate != nil && predicate == c.noTypePredicate {
+		s.flags |= signatureFlagsNoTypePredicate
+		predicate = nil
+	}
+	if predicate != nil || s.extra != nil {
+		s.ensureExtra(c).resolvedTypePredicate = predicate
+	}
+}
+
+func (s *Signature) getComposite() *CompositeSignature {
+	if s.extra == nil {
+		return nil
+	}
+	return s.extra.composite
+}
+
+func (s *Signature) setComposite(c *Checker, composite *CompositeSignature) {
+	if composite != nil || s.extra != nil {
+		s.ensureExtra(c).composite = composite
+	}
+}
+
+func (s *Signature) getIsolatedSignatureType() *Type {
+	if s.extra == nil {
+		return nil
+	}
+	return s.extra.isolatedSignatureType
 }
 
 func (s *Signature) Flags() SignatureFlags {
-	return s.flags
+	return s.flags &^ signatureFlagsNoTypePredicate
 }
 
 func (s *Signature) TypeParameters() []*Type {
-	return s.typeParameters
+	if s.extra == nil {
+		return nil
+	}
+	return s.extra.typeParameters
 }
 
 func (s *Signature) Declaration() store.Node {
 	return s.declaration
+}
+
+func (s *Signature) ThisParameter() *store.Symbol {
+	if s.extra == nil {
+		return nil
+	}
+	return s.extra.thisParameter
 }
 
 func (s *Signature) Parameters() []*store.Symbol {
