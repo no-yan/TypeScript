@@ -4,6 +4,7 @@ import (
 	"slices"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store"
+	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
 
 // The P2 declarations of checker/links.go:
@@ -94,3 +95,29 @@ func (s *nodeLinkStore[V]) TryGet(node store.Node) *V {
 	}
 	return nil
 }
+
+// nodeLinkMap keeps the signature and the type node links in a map by
+// NodeKey, as the Pointer did before e36179bde84 moved them to its dense
+// pages: their nodes are about 1 slot in 20 of a NodeRef page on Monaco, so
+// nodeLinkStore's pages of values cost 142 MB more. The translation writes it
+// for those two nodeLinkStores (storetranslate isMapNodeLinks;
+// upstream-sync-20261021.md S7b, the user's decision). TryGet answers nil for
+// a key that Get has not made, as the Pointer's does.
+//
+// storetranslate:store-only
+// storetranslate:pointer-hash 2455b06c970c36ef links.go:nodeLinkStore
+type nodeLinkMap[V any] struct {
+	links core.LinkStore[store.NodeKey, V]
+}
+
+// storetranslate:store-only
+// storetranslate:pointer-hash b1d86f5d08f764b6 links.go:nodeLinkStore.Get
+func (s *nodeLinkMap[V]) Get(node store.Node) *V { return s.links.Get(node.Key()) }
+
+// storetranslate:store-only
+// storetranslate:pointer-hash 81a01ee89bd7af2e links.go:nodeLinkStore.Has
+func (s *nodeLinkMap[V]) Has(node store.Node) bool { return s.links.Has(node.Key()) }
+
+// storetranslate:store-only
+// storetranslate:pointer-hash 81e7a121203b3ba6 links.go:nodeLinkStore.TryGet
+func (s *nodeLinkMap[V]) TryGet(node store.Node) *V { return s.links.TryGet(node.Key()) }

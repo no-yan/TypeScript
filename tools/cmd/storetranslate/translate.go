@@ -384,10 +384,28 @@ func (f *fn) instanceType(e ast.Expr, t types.Type) ast.Expr {
 		out = append(out, ta)
 	}
 	x := f.typ(gen)
+	if named, ok := types.Unalias(t).(*types.Named); ok && isMapNodeLinks(named) {
+		x = &ast.Ident{NamePos: gen.Pos(), Name: "nodeLinkMap"}
+	}
 	if len(out) == 1 {
 		return &ast.IndexExpr{X: x, Lbrack: lbrack, Index: out[0], Rbrack: rbrack}
 	}
 	return &ast.IndexListExpr{X: x, Lbrack: lbrack, Indices: out, Rbrack: rbrack}
+}
+
+// isMapNodeLinks is the checker's nodeLinkStore of the signature or the type
+// node links. e36179bde84 moved them from maps to the dense pages; in the
+// Store their nodes are scattered over the NodeRef space (about 1 slot in 20
+// of a page on Monaco, +142 MB), so they stay in the map by NodeKey they had
+// before: nodeLinkMap (links_manual.go; upstream-sync-20261021.md S7b, the
+// user's decision).
+func isMapNodeLinks(t *types.Named) bool {
+	obj := t.Origin().Obj()
+	if obj.Name() != "nodeLinkStore" || obj.Pkg() == nil || !strings.HasSuffix(obj.Pkg().Path(), "/internal/checker") || t.TypeArgs().Len() != 1 {
+		return false
+	}
+	arg, ok := types.Unalias(t.TypeArgs().At(0)).(*types.Named)
+	return ok && (arg.Obj().Name() == "SignatureLinks" || arg.Obj().Name() == "TypeNodeLinks")
 }
 
 func (f *fn) funcType(e *ast.FuncType) *ast.FuncType {
