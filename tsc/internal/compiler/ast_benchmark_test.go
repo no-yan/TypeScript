@@ -21,7 +21,6 @@ import (
 
 type benchmarkCompilerProject struct {
 	config *tsoptions.ParsedCommandLine
-	root   string
 	fs     vfs.FS
 }
 
@@ -47,22 +46,20 @@ func newASTBenchmarkJSEmitConfig(config *tsoptions.ParsedCommandLine) *tsoptions
 
 func loadASTBenchmarkProject(tb testing.TB) benchmarkCompilerProject {
 	tb.Helper()
-	configFileName := tspath.NormalizeSlashes(filepath.Join(repo.TestDataPath(), "fixtures/compiler/tsconfig.json"))
-	root := filepath.Dir(configFileName)
+	configFileName := tspath.RootedFilePathFromAbsolute(filepath.Join(repo.TestDataPath(), "fixtures/compiler/tsconfig.json"))
 	fs := bundled.WrapFS(osvfs.FS())
-	host := compiler.NewCompilerHost(root, fs, bundled.LibPath(), nil, nil, nil)
-	config, errors := tsoptions.GetParsedCommandLineOfConfigFile(configFileName, &core.CompilerOptions{}, nil, host, nil)
+	config, errors := tsoptions.GetParsedCommandLineOfConfigFile(configFileName, &core.CompilerOptions{}, nil, fs, nil)
 	if len(errors) != 0 {
 		tb.Fatalf("parse project config %s: %s", configFileName, formatDiagnostics(errors))
 	}
 	if config == nil {
 		tb.Fatal("project config is nil")
 	}
-	return benchmarkCompilerProject{config: config, root: root, fs: fs}
+	return benchmarkCompilerProject{config: config, fs: fs}
 }
 
 func (p benchmarkCompilerProject) newProgram(config *tsoptions.ParsedCommandLine, singleThreaded core.Tristate) *compiler.Program {
-	host := compiler.NewCompilerHost(p.root, p.fs, bundled.LibPath(), nil, nil, nil)
+	host := compiler.NewCompilerHost(p.fs, bundled.LibPath(), nil, nil, nil)
 	return compiler.NewProgram(compiler.ProgramOptions{Config: config, Host: host, SingleThreaded: singleThreaded})
 }
 
@@ -130,7 +127,7 @@ func BenchmarkASTEmitV1(b *testing.B) {
 		// Emit may invoke WriteFile concurrently. Atomics keep the timed callback
 		// to the required scalar counters without changing the compiler path.
 		var outputFiles, outputBytes atomic.Int64
-		writeFile := func(_ string, text string, _ *compiler.WriteFileData) error {
+		writeFile := func(_ tspath.RootedFilePath, text string, _ *compiler.WriteFileData) error {
 			outputFiles.Add(1)
 			outputBytes.Add(int64(len(text)))
 			return nil
@@ -157,7 +154,7 @@ func BenchmarkASTEmitKPCV1(b *testing.B) {
 			b.Fatalf("unexpected semantic diagnostics before emit: %s", formatDiagnostics(diagnostics))
 		}
 		var outputFiles, outputBytes atomic.Int64
-		writeFile := func(_ string, text string, _ *compiler.WriteFileData) error {
+		writeFile := func(_ tspath.RootedFilePath, text string, _ *compiler.WriteFileData) error {
 			outputFiles.Add(1)
 			outputBytes.Add(int64(len(text)))
 			return nil
@@ -192,7 +189,7 @@ func checkASTBenchmarkJSEmitResult(tb testing.TB, result *compiler.EmitResult, o
 		tb.Fatalf("emit result recorded %d paths for %d callback outputs", len(result.EmittedFiles), outputFiles)
 	}
 	for _, name := range result.EmittedFiles {
-		if !tspath.HasJSFileExtension(name) {
+		if !name.HasJSFileExtension() {
 			tb.Fatalf("non-JS output %q", name)
 		}
 	}

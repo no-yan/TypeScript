@@ -29,10 +29,10 @@ var ASTBenchFixtures = []filefixture.Fixture{
 // partial run is never mistaken for a complete comparison.
 func ASTBenchParseInput(tb testing.TB, fixture filefixture.Fixture) (ast.SourceFileParseOptions, string, core.ScriptKind) {
 	tb.Helper()
-	fileName := tspath.GetNormalizedAbsolutePath(fixture.Path(), "/")
+	fileName := tspath.RootedFilePathFromAbsolute(fixture.Path())
 	opts := ast.SourceFileParseOptions{
 		FileName: fileName,
-		Path:     tspath.ToPath(fileName, "/", osvfs.FS().UseCaseSensitiveFileNames()),
+		PathKey:  osvfs.FS().CaseSensitivity().PathKey(tspath.RootedPath(fileName)),
 	}
 	return opts, fixture.ReadFile(tb), core.GetScriptKindFromFileName(fileName)
 }

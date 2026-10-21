@@ -14,6 +14,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/testutil/filefixture"
 	"github.com/microsoft/TypeScript/tsc/internal/testutil/fixtures"
 	"github.com/microsoft/TypeScript/tsc/internal/testutil/kperf"
+	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
 // astWalker is deliberately tied to the Pointer AST. The callback is bound
@@ -135,9 +136,10 @@ func fingerprintAST(root *ast.Node) (visits uint64, fingerprint string) {
 // lists ([] and its call), type arguments, and an optional-chain token.
 func TestASTBenchmarkSmallWalk(t *testing.T) {
 	const source = `const result = (left + right); empty([]); fn<T>(); fn?.<T>();`
+	fileName := tspath.RootedFilePathFromNormalized("/ast-benchmark-small.ts")
 	root := parser.ParseSourceFile(ast.SourceFileParseOptions{
-		FileName: "/ast-benchmark-small.ts",
-		Path:     "/ast-benchmark-small.ts",
+		FileName: fileName,
+		PathKey:  tspath.CaseSensitive.PathKey(tspath.RootedPath(fileName)),
 	}, source, core.ScriptKindTS).AsNode()
 
 	var got []astVisit

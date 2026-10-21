@@ -17,6 +17,7 @@ export function diagnostic(text: keyof typeof messages): DiagnosticMessage {
 
 export type GoValue = string | number | boolean | DiagnosticMessage | { go: `core.${string}`; };
 export type OptionKind = "Boolean" | "String" | "Number" | "Object" | "List" | "ListOrElement" | "Enum";
+export type PathKind = "file" | "directory" | "fileOrDirectory" | "sourceMapLocation" | "fileSpec" | "pathPattern" | "resolvedPathPattern" | "configLocator";
 export type CompilerOptionType =
     | "Tristate"
     | "string"
@@ -35,6 +36,7 @@ export type CompilerOptionType =
 export interface DeclarationMetadata {
     shortName?: string;
     isFilePath?: boolean;
+    pathKind?: PathKind;
     isTSConfigOnly?: boolean;
     isCommandLineOnly?: boolean;
     description?: DiagnosticMessage;
@@ -81,6 +83,7 @@ export interface CompilerOption {
     deprecated?: boolean;
     section?: string;
     comment?: string;
+    pathKind?: PathKind;
     parseAliases?: string[];
     declaration?: DeclarationMetadata & {
         group: DeclarationGroup;
