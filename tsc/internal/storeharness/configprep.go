@@ -5,7 +5,7 @@ package storeharness
 // testrunner builds for it. The enumeration and the preparation are
 // testrunner's and harnessutil's: the exported functions are called, and the
 // unexported ones are written out here, each with the name of its original,
-// from revision ed4807212c of testrunner/compiler_runner.go,
+// from revision 5733ab05f5 of testrunner/compiler_runner.go,
 // testutil/harnessutil/harnessutil.go and testrunner/test_case_parser.go.
 
 import (
@@ -448,7 +448,7 @@ func prepareCase(c *configCase) (*configDescriptor, tOutcome) {
 			configDir := configFileName.Directory()
 			tsConfig = tsoptions.ParseJsonSourceFileConfigFileContent(
 				tsConfigSourceFile,
-				configFS,
+				tsoptions.NewDefaultParseConfigHost(configFS),
 				configDir,
 				existingOptions,
 				nil, /*existingOptionsRaw*/

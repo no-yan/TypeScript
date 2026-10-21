@@ -135,11 +135,10 @@ func collect(project string) []input {
 	if err != nil {
 		fatal(err)
 	}
-	configFileName = tspath.NormalizeSlashes(configFileName)
-	root := tspath.GetDirectoryPath(configFileName)
+	configFile := tspath.RootedFilePathFromAbsolute(tspath.NormalizeSlashes(configFileName))
 	fs := bundled.WrapFS(osvfs.FS())
-	host := compiler.NewCompilerHost(root, fs, bundled.LibPath(), nil, nil, nil)
-	config, errors := tsoptions.GetParsedCommandLineOfConfigFile(configFileName, &core.CompilerOptions{}, nil, host, nil)
+	host := compiler.NewCompilerHost(fs, bundled.LibPath(), nil, nil, nil)
+	config, errors := tsoptions.GetParsedCommandLineOfConfigFile(configFile, &core.CompilerOptions{}, nil, tsoptions.NewDefaultParseConfigHost(fs), nil)
 	if config == nil || len(errors) != 0 {
 		fatal(fmt.Errorf("parse %s: %d diagnostics", configFileName, len(errors)))
 	}

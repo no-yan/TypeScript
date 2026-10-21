@@ -35,7 +35,7 @@ func buildGraphs(t *testing.T, fx graphFixture) (pointer, store []string) {
 		return bundled.WrapFS(vfstest.FromMap(fx.files, core.IfElse(fx.caseSensitive, tspath.CaseSensitive, tspath.CaseInsensitive)))
 	}
 	parse := func(fs vfs.FS) *tsoptions.ParsedCommandLine {
-		config, diags := tsoptions.GetParsedCommandLineOfConfigFile(tspath.RootedFilePathFromAbsolute(fx.config), &core.CompilerOptions{}, nil, fs, nil)
+		config, diags := tsoptions.GetParsedCommandLineOfConfigFile(tspath.RootedFilePathFromAbsolute(fx.config), &core.CompilerOptions{}, nil, tsoptions.NewDefaultParseConfigHost(fs), nil)
 		if len(diags) != 0 {
 			t.Fatalf("config diagnostics: %v", diags)
 		}

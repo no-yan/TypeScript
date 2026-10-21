@@ -26,7 +26,7 @@ func TestNativeGraphProject(t *testing.T) {
 		t.Skip("STORE_CLI_GRAPH_CONFIG and STORE_CLI_GRAPH_OUT are not set")
 	}
 	parse := func(fs vfs.FS) *tsoptions.ParsedCommandLine {
-		config, diags := tsoptions.GetParsedCommandLineOfConfigFile(tspath.RootedFilePathFromAbsolute(configFile), &core.CompilerOptions{}, nil, fs, nil)
+		config, diags := tsoptions.GetParsedCommandLineOfConfigFile(tspath.RootedFilePathFromAbsolute(configFile), &core.CompilerOptions{}, nil, tsoptions.NewDefaultParseConfigHost(fs), nil)
 		if len(diags) != 0 {
 			t.Fatalf("config diagnostics: %v", diags)
 		}

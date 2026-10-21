@@ -224,7 +224,7 @@ func TestNativeStages(t *testing.T) {
 }
 
 func parseConfigWith(tb testing.TB, fs vfs.FS, configFile string, commandLine *core.CompilerOptions) *tsoptions.ParsedCommandLine {
-	config, diags := tsoptions.GetParsedCommandLineOfConfigFile(tspath.RootedFilePathFromAbsolute(configFile), commandLine, nil, fs, &tsc.ExtendedConfigCache{})
+	config, diags := tsoptions.GetParsedCommandLineOfConfigFile(tspath.RootedFilePathFromAbsolute(configFile), commandLine, nil, tsoptions.NewDefaultParseConfigHost(fs), &tsc.ExtendedConfigCache{})
 	if len(diags) != 0 {
 		tb.Fatalf("%s: %d config diagnostics", configFile, len(diags))
 	}

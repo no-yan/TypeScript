@@ -48,7 +48,7 @@ func loadASTBenchmarkProject(tb testing.TB) benchmarkCompilerProject {
 	tb.Helper()
 	configFileName := tspath.RootedFilePathFromAbsolute(filepath.Join(repo.TestDataPath(), "fixtures/compiler/tsconfig.json"))
 	fs := bundled.WrapFS(osvfs.FS())
-	config, errors := tsoptions.GetParsedCommandLineOfConfigFile(configFileName, &core.CompilerOptions{}, nil, fs, nil)
+	config, errors := tsoptions.GetParsedCommandLineOfConfigFile(configFileName, &core.CompilerOptions{}, nil, tsoptions.NewDefaultParseConfigHost(fs), nil)
 	if len(errors) != 0 {
 		tb.Fatalf("parse project config %s: %s", configFileName, formatDiagnostics(errors))
 	}

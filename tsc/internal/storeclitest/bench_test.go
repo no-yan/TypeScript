@@ -99,7 +99,7 @@ type nativeProgram struct {
 }
 
 func parseConfig(tb testing.TB, fs vfs.FS, configFile string) *tsoptions.ParsedCommandLine {
-	config, diags := tsoptions.GetParsedCommandLineOfConfigFile(tspath.RootedFilePathFromAbsolute(configFile), &core.CompilerOptions{}, nil, fs, &tsc.ExtendedConfigCache{})
+	config, diags := tsoptions.GetParsedCommandLineOfConfigFile(tspath.RootedFilePathFromAbsolute(configFile), &core.CompilerOptions{}, nil, tsoptions.NewDefaultParseConfigHost(fs), &tsc.ExtendedConfigCache{})
 	if len(diags) != 0 {
 		tb.Fatalf("%s: %d config diagnostics", configFile, len(diags))
 	}

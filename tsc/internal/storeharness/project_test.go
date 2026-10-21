@@ -23,7 +23,7 @@ func newCompilerProjectProgram(tb testing.TB) *compiler.Program {
 	configFileName := tspath.RootedFilePathFromAbsolute(filepath.Join(repo.TestDataPath(), "fixtures/compiler/tsconfig.json"))
 	fs := bundled.WrapFS(osvfs.FS())
 	host := compiler.NewCompilerHost(fs, bundled.LibPath(), nil, nil, nil)
-	config, errors := tsoptions.GetParsedCommandLineOfConfigFile(configFileName, &core.CompilerOptions{}, nil, fs, nil)
+	config, errors := tsoptions.GetParsedCommandLineOfConfigFile(configFileName, &core.CompilerOptions{}, nil, tsoptions.NewDefaultParseConfigHost(fs), nil)
 	if len(errors) != 0 || config == nil {
 		tb.Fatalf("parse project config %s: %d errors", configFileName, len(errors))
 	}
