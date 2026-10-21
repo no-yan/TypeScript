@@ -501,9 +501,29 @@ upstream は emit の出力 path の検査に、content mapper の外部出力 (
 
 storeharness の adapter の `ContentMapperExtensions`。Pointer 側は整形だけで、adapter は委譲なので変更は無い。
 
+(結果で訂正) この見積りは足りなかった。c9b2c8e29c9 で checker が `SourceFile.ContentMapper()` と program の `ContentMapperExtensionRewrites()` を読むようになり、Store 側に次の 2 つが要った。翻訳器が「`ContentMapper` に Store 版が無い」で止まって分かった。
+
+- `store.File` の content mapper の名前
+- harness の program・Recorder・FixtureProgram の `ContentMapperExtensionRewrites`
+
 ### テキスト衝突
 
 診断の生成物 2 つ。upstream を取って再生成する。
+
+### 結果 (合格)
+
+commit:
+
+- 5307be92bbb merge (診断の生成物を再生成)
+- 301de82ceac `store.File` の `ContentMapper`・`SetContentMapper`。harness は Pointer のファイルの値を写す (段 2 が content mapper の付いたファイルを Pointer と同じに見るため)。Store の CLI は content mapper を拒否するので、本番では常に空。harness の program は `ContentMapperExtensionRewrites` を Pointer に委譲し、fixture は scalar として記録・再生する。
+- 8da4144e4d2 再翻訳と `verifyCompilerOptions` の hash。ほかに翻訳で入ったもの: checker・module specifier・printer の host の extension rewrite、file loader の局所 ambient module (1d76970f7a4) と lib の安定ソート (fd871fcc3c1)。
+
+検証 (2026-10-21、合格):
+
+- 段 1: equal 17,711。除外は既知の 2 件 (Pointer panic と、jsxNamespaceImplicitImportJSXNamespace の Pointer の非決定)。
+- 段 2: equal 13,604。
+- mode: 5,186 か所で不一致 0。
+- 再翻訳は 2 回目で差分なし。
 
 ## S7b: 6aace8b1bbe..6c976dad5d6 (#156〜#169、upstream の hot/cold 系列)
 
@@ -511,10 +531,10 @@ storeharness の adapter の `ContentMapperExtensions`。Pointer 側は整形だ
 
 | PR | Pointer の変更 | Store 側の扱い | 承認 |
 |---|---|---|---|
-| 67a1c76aac generated AST accessors | `nodeData` interface を、生成した Kind ごとの accessor に置き換える。公開の method は同じ | 無し。Store の手書きの `Node.Text`・`ParameterList`・`KindString` は Mirror に出るが、Pointer 側は `n.data` を経ない書き方・panic の文言・整形の違いだけ | |
-| 14f7762dde embedded headers | `Node.data` を消し、`AsXxx` を埋め込みの header から取る。`NewToken` は kind ごとの具体的な型を作る | `NewToken` が Null・True・False・This・Super・Import に `KeywordExpression` の data を作るようになった。これで、generate-go-store.ts に書いてある既知の差 (`HasXxxData` が kind で答えるのに、Pointer は data の型で答える) が消える。この差を前提にした試験や例外は無いので、生成器の doc comment だけ直す | |
-| 56ce7acfc8 optional symbol tables | members・exports・exportSymbol を `symbolExtra` に移し、`SymbolExtraArena` から確保する。setter は arena を取る | S5 で決めたとおり、Pointer の形に追従する。store.Symbol に `symbolExtra`・`SymbolExtraArena` を足し、storebinder の 17 宣言は Pointer の diff を写す。翻訳の型の対応に `SymbolExtraArena` を名前で足す (非公開の field を持つ型。S6 の取り決めで報告だけ) | |
-| e67b60e3388 | `core.Arena` の確保の伸ばし方を byte 数で抑える | 無し (API は同じ。storebinder の arena もこれに従う) | |
+| 67a1c76aac generated AST accessors | `nodeData` interface を、生成した Kind ごとの accessor に置き換える。公開の method は同じ | 無し。Store の手書きの `Node.Text`・`ParameterList`・`KindString` は Mirror に出るが、Pointer 側は `n.data` を経ない書き方・panic の文言・整形の違いだけ || 承認 (2026-10-21) |
+| 14f7762dde embedded headers | `Node.data` を消し、`AsXxx` を埋め込みの header から取る。`NewToken` は kind ごとの具体的な型を作る | `NewToken` が Null・True・False・This・Super・Import に `KeywordExpression` の data を作るようになった。これで、generate-go-store.ts に書いてある既知の差 (`HasXxxData` が kind で答えるのに、Pointer は data の型で答える) が消える。この差を前提にした試験や例外は無いので、生成器の doc comment だけ直す || 承認 (2026-10-21) |
+| 56ce7acfc8 optional symbol tables | members・exports・exportSymbol を `symbolExtra` に移し、`SymbolExtraArena` から確保する。setter は arena を取る | S5 で決めたとおり、Pointer の形に追従する。store.Symbol に `symbolExtra`・`SymbolExtraArena` を足し、storebinder の 17 宣言は Pointer の diff を写す。翻訳の型の対応に `SymbolExtraArena` を名前で足す (非公開の field を持つ型。S6 の取り決めで報告だけ) || 承認 (2026-10-21) |
+| e67b60e3388 | `core.Arena` の確保の伸ばし方を byte 数で抑える | 無し (API は同じ。storebinder の arena もこれに従う) || 承認 (2026-10-21) |
 
 ### 古くなる P2 (5)
 
