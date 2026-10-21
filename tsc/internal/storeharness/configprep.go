@@ -16,6 +16,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	goast "go/ast"
+	goparser "go/parser"
+	gotoken "go/token"
 	"io/fs"
 	"maps"
 	"os"
@@ -23,6 +26,7 @@ import (
 	"regexp"
 	"runtime"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -30,6 +34,7 @@ import (
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/bundled"
+	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/compiler"
 	"github.com/microsoft/TypeScript/tsc/internal/contentmapper"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
@@ -112,32 +117,39 @@ var runnerSkippedTests = []string{
 	"requireOfJsonFileWithModuleNodeResolutionEmitNone.ts",
 }
 
-// compilerVaryBy is compiler_runner.go's compilerVaryBy (getCompilerVaryByMap).
-var compilerVaryBy = sync.OnceValue(func() map[string]struct{} {
-	varyByOptions := append(
-		core.Map(core.Filter(tsoptions.OptionsDeclarations, func(option *tsoptions.CommandLineOption) bool {
-			return !option.IsCommandLineOnly &&
-				(option.Kind == tsoptions.CommandLineOptionTypeBoolean || option.Kind == tsoptions.CommandLineOptionTypeEnum) &&
-				(option.AffectsProgramStructure ||
-					option.AffectsEmit ||
-					option.AffectsModuleResolution ||
-					option.AffectsBindDiagnostics ||
-					option.AffectsSemanticDiagnostics ||
-					option.AffectsSourceFile ||
-					option.AffectsDeclarationPath ||
-					option.AffectsBuildInfo)
-		}), func(option *tsoptions.CommandLineOption) string {
-			return option.Name
-		}),
-		// explicit variations that do not match above conditions
-		"noEmit",
-		"isolatedModules",
-	)
-	varyByMap := make(map[string]struct{})
-	for _, option := range varyByOptions {
-		varyByMap[strings.ToLower(option)] = struct{}{}
+// compilerVaryBy is testrunner's compilerVaryBy, which options_generated.go
+// declares from options.ts (e8fd69fc1e). It is read from that file rather
+// than copied, so that a regeneration cannot leave a stale copy here.
+var compilerVaryBy = sync.OnceValue(func() *collections.Set[string] {
+	path := filepath.Join(repo.RootPath(), "internal", "testrunner", "options_generated.go")
+	file, err := goparser.ParseFile(gotoken.NewFileSet(), path, nil, goparser.SkipObjectResolution)
+	if err != nil {
+		panic(err)
 	}
-	return varyByMap
+	var items []string
+	for _, decl := range file.Decls {
+		gen, ok := decl.(*goast.GenDecl)
+		if !ok || gen.Tok != gotoken.VAR {
+			continue
+		}
+		for _, spec := range gen.Specs {
+			value := spec.(*goast.ValueSpec)
+			if value.Names[0].Name != "compilerVaryBy" {
+				continue
+			}
+			for _, arg := range value.Values[0].(*goast.CallExpr).Args {
+				item, err := strconv.Unquote(arg.(*goast.BasicLit).Value)
+				if err != nil {
+					panic(err)
+				}
+				items = append(items, item)
+			}
+		}
+	}
+	if len(items) == 0 {
+		panic("no compilerVaryBy in " + path)
+	}
+	return collections.NewSetFromItems(items...)
 })
 
 // testOptionRegex is test_case_parser.go's optionRegex.
