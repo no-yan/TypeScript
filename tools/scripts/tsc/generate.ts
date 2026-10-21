@@ -8,7 +8,7 @@ import generateTSAST from "./generate-ts-ast.ts";
 export default function generate(force = false) {
     generateEncoder(force);
     generateGoAST(force);
-    generateGoStore();
+    generateGoStore(force);
     generateTSAST(force);
 }
 
