@@ -639,7 +639,7 @@ type Checker struct {
 	subtypeReductionCache                       map[CacheHashKey][]*Type
 	cachedTypes                                 map[CachedTypeKey]*Type
 	cachedSignatures                            map[CachedSignatureKey]*Signature
-	undefinedProperties                         map[string]*ast.Symbol
+	undefinedProperties                         map[*ast.Symbol]*ast.Symbol
 	narrowedTypes                               map[NarrowedTypeKey]*Type
 	assignmentReducedTypes                      map[AssignmentReducedKey]*Type
 	discriminatedContextualTypes                map[DiscriminatedContextualTypeKey]*Type
@@ -977,7 +977,7 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.subtypeReductionCache = make(map[CacheHashKey][]*Type)
 	c.cachedTypes = make(map[CachedTypeKey]*Type)
 	c.cachedSignatures = make(map[CachedSignatureKey]*Signature)
-	c.undefinedProperties = make(map[string]*ast.Symbol)
+	c.undefinedProperties = make(map[*ast.Symbol]*ast.Symbol)
 	c.narrowedTypes = make(map[NarrowedTypeKey]*Type)
 	c.assignmentReducedTypes = make(map[AssignmentReducedKey]*Type)
 	c.discriminatedContextualTypes = make(map[DiscriminatedContextualTypeKey]*Type)
@@ -4383,8 +4383,8 @@ func (c *Checker) checkClassLikeDeclaration(node *ast.Node) {
 		baseTypes := c.getBaseTypes(classType)
 		if len(baseTypes) != 0 {
 			baseType := baseTypes[0]
-			c.checkJSDocAugmentsTagMatchesExtends(node, baseTypeNode, baseType)
 			baseConstructorType := c.getBaseConstructorTypeOfClass(classType)
+			c.checkJSDocAugmentsTagMatchesExtends(node, baseTypeNode, baseType)
 			staticBaseType := c.getApparentType(baseConstructorType)
 			c.checkBaseTypeAccessibility(staticBaseType, baseTypeNode)
 			c.checkSourceElement(baseTypeNode.Expression())
@@ -4457,32 +4457,6 @@ func (c *Checker) checkClassLikeDeclaration(node *ast.Node) {
 	c.checkIndexConstraints(staticType, symbol, true /*isStaticIndex*/)
 	c.checkClassOrInterfaceForDuplicateIndexSignatures(node)
 	c.checkPropertyInitialization(node)
-}
-
-func (c *Checker) checkJSDocAugmentsTagMatchesExtends(node *ast.Node, baseTypeNode *ast.ExpressionWithTypeArgumentsNode, baseType *Type) {
-	if !ast.IsInJSFile(node) {
-		return
-	}
-	file := ast.GetSourceFileOfNode(node)
-	for _, j := range node.EagerJSDoc(file) {
-		if j.AsJSDoc().Tags == nil {
-			continue
-		}
-		for _, tag := range j.AsJSDoc().Tags.Nodes {
-			if tag.Kind != ast.KindJSDocAugmentsTag {
-				continue
-			}
-			sourceTypeNode := tag.ClassName()
-			if c.isTypeIdenticalTo(c.getTypeFromTypeNode(sourceTypeNode), baseType) {
-				continue
-			}
-			targetName := getIdentifierFromEntityNameExpression(baseTypeNode.Expression())
-			sourceName := getIdentifierFromEntityNameExpression(sourceTypeNode.Expression())
-			if targetName != nil && sourceName != nil {
-				c.error(sourceName, diagnostics.JSDoc_0_1_does_not_match_the_extends_2_clause, tag.TagName().Text(), sourceName.Text(), targetName.Text())
-			}
-		}
-	}
 }
 
 func (c *Checker) checkClassForStaticPropertyNameConflicts(node *ast.Node) {
@@ -18953,12 +18927,12 @@ func (c *Checker) getSiblingsOfContext(context *WideningContext) []*Type {
 }
 
 func (c *Checker) getUndefinedProperty(prop *ast.Symbol) *ast.Symbol {
-	if cached := c.undefinedProperties[prop.Name()]; cached != nil {
+	if cached := c.undefinedProperties[prop]; cached != nil {
 		return cached
 	}
 	result := c.createSymbolWithType(prop, c.undefinedOrMissingType)
 	result.SetFlags(result.Flags() | ast.SymbolFlagsOptional)
-	c.undefinedProperties[prop.Name()] = result
+	c.undefinedProperties[prop] = result
 	return result
 }
 

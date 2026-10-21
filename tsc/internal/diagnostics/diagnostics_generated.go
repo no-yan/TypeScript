@@ -2392,6 +2392,8 @@ var Instantiations_of_type_0_appear_infinitely_circular = &Message{code: 5114, c
 
 var Instantiations_of_the_following_types_appear_infinitely_circular_Colon_0 = &Message{code: 5115, category: CategoryError, key: "Instantiations_of_the_following_types_appear_infinitely_circular_Colon_0_5115", text: "Instantiations of the following types appear infinitely circular: {0}."}
 
+var Network_path_0_is_not_supported = &Message{code: 5116, category: CategoryError, key: "Network_path_0_is_not_supported_5116", text: "Network path '{0}' is not supported."}
+
 var Generates_a_sourcemap_for_each_corresponding_d_ts_file = &Message{code: 6000, category: CategoryMessage, key: "Generates_a_sourcemap_for_each_corresponding_d_ts_file_6000", text: "Generates a sourcemap for each corresponding '.d.ts' file."}
 
 var Concatenate_and_emit_output_to_single_file = &Message{code: 6001, category: CategoryMessage, key: "Concatenate_and_emit_output_to_single_file_6001", text: "Concatenate and emit output to single file."}
@@ -3917,6 +3919,8 @@ var The_typescript_contentMapper_outputExtensions_of_the_content_mapper_package_
 var The_typescript_contentMapper_outputExtensions_of_the_content_mapper_package_0_must_be_an_object_with_string_values = &Message{code: 18122, category: CategoryError, key: "The_typescript_contentMapper_outputExtensions_of_the_content_mapper_package_0_must_be_an_object_with_18122", text: "The 'typescript.contentMapper.outputExtensions' of the content mapper package '{0}' must be an object with string values."}
 
 var Content_mapper_extension_0_must_not_contain_path_separators = &Message{code: 18123, category: CategoryError, key: "Content_mapper_extension_0_must_not_contain_path_separators_18123", text: "Content mapper extension '{0}' must not contain path separators."}
+
+var The_content_mapper_package_0_is_outside_the_open_workspace_and_will_not_be_loaded = &Message{code: 18124, category: CategoryError, key: "The_content_mapper_package_0_is_outside_the_open_workspace_and_will_not_be_loaded_18124", text: "The content mapper package '{0}' is outside the open workspace and will not be loaded."}
 
 var Select_the_AST_of_the_compiler_Colon_pointer_the_default_or_store_Experimental_Colon_store_checks_a_one_shot_noEmit_program_only_without_declarations_incremental_builds_watch_build_mode_project_references_or_content_mappers = &Message{code: 18990, category: CategoryMessage, key: "Select_the_AST_of_the_compiler_Colon_pointer_the_default_or_store_Experimental_Colon_store_checks_a__18990", text: "Select the AST of the compiler: 'pointer' (the default) or 'store'. Experimental: 'store' checks a one-shot '--noEmit' program only, without declarations, incremental builds, watch, build mode, project references or content mappers."}
 
@@ -5662,6 +5666,7 @@ var allMessages = [...]**Message{
 	&X_0_is_only_assignable_to_the_non_distributed_1_but_1_has_been_distributed_here,
 	&Instantiations_of_type_0_appear_infinitely_circular,
 	&Instantiations_of_the_following_types_appear_infinitely_circular_Colon_0,
+	&Network_path_0_is_not_supported,
 	&Generates_a_sourcemap_for_each_corresponding_d_ts_file,
 	&Concatenate_and_emit_output_to_single_file,
 	&Generates_corresponding_d_ts_file,
@@ -6425,6 +6430,7 @@ var allMessages = [...]**Message{
 	&The_typescript_contentMapper_outputExtensions_of_the_content_mapper_package_0_contains_an_invalid_mapping_from_1_to_2_Extensions_must_be_non_empty_and_begin_with_a,
 	&The_typescript_contentMapper_outputExtensions_of_the_content_mapper_package_0_must_be_an_object_with_string_values,
 	&Content_mapper_extension_0_must_not_contain_path_separators,
+	&The_content_mapper_package_0_is_outside_the_open_workspace_and_will_not_be_loaded,
 	&Select_the_AST_of_the_compiler_Colon_pointer_the_default_or_store_Experimental_Colon_store_checks_a_one_shot_noEmit_program_only_without_declarations_incremental_builds_watch_build_mode_project_references_or_content_mappers,
 	&The_store_AST_backend_requires_0,
 	&The_store_AST_backend_does_not_support_0,
