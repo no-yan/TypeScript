@@ -1013,10 +1013,7 @@ func (n Node) VisitEachChild(v *NodeVisitor) Node {
 	return n
 }
 
-// HasDeclarationData is, by kind, (*ast.Node).DeclarationData() != nil
-// for the nodes the parser and binder make. A node the Pointer makes with
-// NewToken for a kind that is also a KeywordExpression has no data there, but
-// true here.
+// HasDeclarationData is, by kind, (*ast.Node).DeclarationData() != nil.
 func (n Node) HasDeclarationData() bool {
 	switch n.Kind() {
 	case ast.KindNoSubstitutionTemplateLiteral, ast.KindTypeParameter, ast.KindParameter, ast.KindPropertySignature, ast.KindPropertyDeclaration, ast.KindMethodSignature, ast.KindMethodDeclaration, ast.KindClassStaticBlockDeclaration, ast.KindConstructor, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindCallSignature, ast.KindConstructSignature, ast.KindIndexSignature, ast.KindFunctionType, ast.KindConstructorType, ast.KindTypeLiteral, ast.KindMappedType, ast.KindNamedTupleMember, ast.KindBindingElement, ast.KindObjectLiteralExpression, ast.KindCallExpression, ast.KindFunctionExpression, ast.KindArrowFunction, ast.KindBinaryExpression, ast.KindClassExpression, ast.KindSemicolonClassElement, ast.KindVariableDeclaration, ast.KindFunctionDeclaration, ast.KindClassDeclaration, ast.KindInterfaceDeclaration, ast.KindTypeAliasDeclaration, ast.KindEnumDeclaration, ast.KindModuleDeclaration, ast.KindNamespaceExportDeclaration, ast.KindImportEqualsDeclaration, ast.KindImportDeclaration, ast.KindImportClause, ast.KindNamespaceImport, ast.KindImportSpecifier, ast.KindExportAssignment, ast.KindExportDeclaration, ast.KindNamespaceExport, ast.KindExportSpecifier, ast.KindMissingDeclaration, ast.KindJsxAttribute, ast.KindJsxAttributes, ast.KindJsxSpreadAttribute, ast.KindPropertyAssignment, ast.KindShorthandPropertyAssignment, ast.KindSpreadAssignment, ast.KindEnumMember, ast.KindSourceFile, ast.KindJSDocTypeLiteral, ast.KindJSDocSignature, ast.KindJSTypeAliasDeclaration, ast.KindJSImportDeclaration, ast.KindNotEmittedTypeElement:
@@ -1025,10 +1022,7 @@ func (n Node) HasDeclarationData() bool {
 	return false
 }
 
-// HasExportableData is, by kind, (*ast.Node).ExportableData() != nil
-// for the nodes the parser and binder make. A node the Pointer makes with
-// NewToken for a kind that is also a KeywordExpression has no data there, but
-// true here.
+// HasExportableData is, by kind, (*ast.Node).ExportableData() != nil.
 func (n Node) HasExportableData() bool {
 	switch n.Kind() {
 	case ast.KindBindingElement, ast.KindClassExpression, ast.KindVariableDeclaration, ast.KindFunctionDeclaration, ast.KindClassDeclaration, ast.KindInterfaceDeclaration, ast.KindTypeAliasDeclaration, ast.KindEnumDeclaration, ast.KindModuleDeclaration, ast.KindImportEqualsDeclaration, ast.KindImportClause, ast.KindNamespaceImport, ast.KindImportSpecifier, ast.KindExportSpecifier, ast.KindJSTypeAliasDeclaration:
@@ -1037,10 +1031,7 @@ func (n Node) HasExportableData() bool {
 	return false
 }
 
-// HasLocalsContainerData is, by kind, (*ast.Node).LocalsContainerData() != nil
-// for the nodes the parser and binder make. A node the Pointer makes with
-// NewToken for a kind that is also a KeywordExpression has no data there, but
-// true here.
+// HasLocalsContainerData is, by kind, (*ast.Node).LocalsContainerData() != nil.
 func (n Node) HasLocalsContainerData() bool {
 	switch n.Kind() {
 	case ast.KindMethodSignature, ast.KindMethodDeclaration, ast.KindClassStaticBlockDeclaration, ast.KindConstructor, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindCallSignature, ast.KindConstructSignature, ast.KindIndexSignature, ast.KindFunctionType, ast.KindConstructorType, ast.KindConditionalType, ast.KindMappedType, ast.KindFunctionExpression, ast.KindArrowFunction, ast.KindClassExpression, ast.KindBlock, ast.KindForStatement, ast.KindForInStatement, ast.KindForOfStatement, ast.KindFunctionDeclaration, ast.KindClassDeclaration, ast.KindTypeAliasDeclaration, ast.KindModuleDeclaration, ast.KindCaseBlock, ast.KindCatchClause, ast.KindSourceFile, ast.KindJSDocSignature, ast.KindJSTypeAliasDeclaration:
@@ -1049,10 +1040,7 @@ func (n Node) HasLocalsContainerData() bool {
 	return false
 }
 
-// HasFunctionLikeData is, by kind, (*ast.Node).FunctionLikeData() != nil
-// for the nodes the parser and binder make. A node the Pointer makes with
-// NewToken for a kind that is also a KeywordExpression has no data there, but
-// true here.
+// HasFunctionLikeData is, by kind, (*ast.Node).FunctionLikeData() != nil.
 func (n Node) HasFunctionLikeData() bool {
 	switch n.Kind() {
 	case ast.KindMethodSignature, ast.KindMethodDeclaration, ast.KindConstructor, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindCallSignature, ast.KindConstructSignature, ast.KindIndexSignature, ast.KindFunctionType, ast.KindConstructorType, ast.KindFunctionExpression, ast.KindArrowFunction, ast.KindFunctionDeclaration, ast.KindJSDocSignature:
@@ -1061,10 +1049,7 @@ func (n Node) HasFunctionLikeData() bool {
 	return false
 }
 
-// HasClassLikeData is, by kind, (*ast.Node).ClassLikeData() != nil
-// for the nodes the parser and binder make. A node the Pointer makes with
-// NewToken for a kind that is also a KeywordExpression has no data there, but
-// true here.
+// HasClassLikeData is, by kind, (*ast.Node).ClassLikeData() != nil.
 func (n Node) HasClassLikeData() bool {
 	switch n.Kind() {
 	case ast.KindClassExpression, ast.KindClassDeclaration:
@@ -1073,10 +1058,7 @@ func (n Node) HasClassLikeData() bool {
 	return false
 }
 
-// HasBodyData is, by kind, (*ast.Node).BodyData() != nil
-// for the nodes the parser and binder make. A node the Pointer makes with
-// NewToken for a kind that is also a KeywordExpression has no data there, but
-// true here.
+// HasBodyData is, by kind, (*ast.Node).BodyData() != nil.
 func (n Node) HasBodyData() bool {
 	switch n.Kind() {
 	case ast.KindMethodDeclaration, ast.KindConstructor, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindFunctionExpression, ast.KindArrowFunction, ast.KindFunctionDeclaration, ast.KindModuleDeclaration:
@@ -1085,10 +1067,7 @@ func (n Node) HasBodyData() bool {
 	return false
 }
 
-// HasFlowNodeData is, by kind, (*ast.Node).FlowNodeData() != nil
-// for the nodes the parser and binder make. A node the Pointer makes with
-// NewToken for a kind that is also a KeywordExpression has no data there, but
-// true here.
+// HasFlowNodeData is, by kind, (*ast.Node).FlowNodeData() != nil.
 func (n Node) HasFlowNodeData() bool {
 	switch n.Kind() {
 	case ast.KindIdentifier, ast.KindFalseKeyword, ast.KindImportKeyword, ast.KindNullKeyword, ast.KindSuperKeyword, ast.KindThisKeyword, ast.KindTrueKeyword, ast.KindQualifiedName, ast.KindMethodDeclaration, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindBindingElement, ast.KindPropertyAccessExpression, ast.KindElementAccessExpression, ast.KindFunctionExpression, ast.KindArrowFunction, ast.KindMetaProperty, ast.KindBlock, ast.KindEmptyStatement, ast.KindVariableStatement, ast.KindExpressionStatement, ast.KindIfStatement, ast.KindDoStatement, ast.KindWhileStatement, ast.KindForStatement, ast.KindForInStatement, ast.KindForOfStatement, ast.KindContinueStatement, ast.KindBreakStatement, ast.KindReturnStatement, ast.KindWithStatement, ast.KindSwitchStatement, ast.KindLabeledStatement, ast.KindThrowStatement, ast.KindTryStatement, ast.KindDebuggerStatement, ast.KindFunctionDeclaration, ast.KindClassDeclaration, ast.KindInterfaceDeclaration, ast.KindTypeAliasDeclaration, ast.KindEnumDeclaration, ast.KindModuleDeclaration, ast.KindModuleBlock, ast.KindNamespaceExportDeclaration, ast.KindImportEqualsDeclaration, ast.KindImportDeclaration, ast.KindExportAssignment, ast.KindExportDeclaration, ast.KindMissingDeclaration, ast.KindJSTypeAliasDeclaration, ast.KindJSImportDeclaration, ast.KindNotEmittedStatement:
@@ -1097,10 +1076,7 @@ func (n Node) HasFlowNodeData() bool {
 	return false
 }
 
-// HasLiteralLikeData is, by kind, (*ast.Node).LiteralLikeData() != nil
-// for the nodes the parser and binder make. A node the Pointer makes with
-// NewToken for a kind that is also a KeywordExpression has no data there, but
-// true here.
+// HasLiteralLikeData is, by kind, (*ast.Node).LiteralLikeData() != nil.
 func (n Node) HasLiteralLikeData() bool {
 	switch n.Kind() {
 	case ast.KindNumericLiteral, ast.KindBigIntLiteral, ast.KindStringLiteral, ast.KindJsxText, ast.KindRegularExpressionLiteral, ast.KindNoSubstitutionTemplateLiteral, ast.KindTemplateHead, ast.KindTemplateMiddle, ast.KindTemplateTail:
@@ -1109,10 +1085,7 @@ func (n Node) HasLiteralLikeData() bool {
 	return false
 }
 
-// HasTemplateLiteralLikeData is, by kind, (*ast.Node).TemplateLiteralLikeData() != nil
-// for the nodes the parser and binder make. A node the Pointer makes with
-// NewToken for a kind that is also a KeywordExpression has no data there, but
-// true here.
+// HasTemplateLiteralLikeData is, by kind, (*ast.Node).TemplateLiteralLikeData() != nil.
 func (n Node) HasTemplateLiteralLikeData() bool {
 	switch n.Kind() {
 	case ast.KindNoSubstitutionTemplateLiteral, ast.KindTemplateHead, ast.KindTemplateMiddle, ast.KindTemplateTail:

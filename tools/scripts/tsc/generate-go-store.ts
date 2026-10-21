@@ -1223,9 +1223,9 @@ function generateFactory(): string {
 // these (ast.go). Has<Xxx>Data answers whether x.XxxData() != nil, for the
 // P2 code of the checker that tests it
 // (store-checker-7d2a-implementation-instructions-20260929.md 4.1). It answers
-// by kind where the Pointer answers by the concrete data type, so the two
-// differ for a node the Pointer makes with NewToken for a kind that is also a
-// KeywordExpression (Null, True, False, This, Super, Import): no data there.
+// by kind where the Pointer answers by the concrete data type; the two agree
+// since NewToken makes each kind's concrete data (14f7762dde), a
+// KeywordExpression for Null, True, False, This, Super and Import.
 function basesOf(node: NodeType): string[] {
     const out: string[] = [];
     const seen = new Set<NodeType>();
@@ -1270,10 +1270,7 @@ function writeBaseTests(w: CodeWriter) {
         if (values.length === 0) throw new Error(`no kind extends ${base}`);
         const kinds = values.map(v => `ast.Kind${kindDefinition.get(v)!.kinds.find(k => k.value === v)!.name}`);
         w.write();
-        w.write(`// Has${data} is, by kind, (*ast.Node).${data}() != nil`);
-        w.write(`// for the nodes the parser and binder make. A node the Pointer makes with`);
-        w.write(`// NewToken for a kind that is also a KeywordExpression has no data there, but`);
-        w.write(`// true here.`);
+        w.write(`// Has${data} is, by kind, (*ast.Node).${data}() != nil.`);
         w.write(`func (n Node) Has${data}() bool {`);
         w.write("\tswitch n.Kind() {");
         w.write(`\tcase ${kinds.join(", ")}:`);
