@@ -131,6 +131,8 @@ const (
 	CachedTypeKindDecoratorContextStatic
 	CachedTypeKindDecoratorContextPrivate
 	CachedTypeKindDecoratorContextPrivateStatic
+	CachedTypeKindSimplifiedConditionalTypeForReading
+	CachedTypeKindSimplifiedConditionalTypeForWriting
 )
 
 type CachedTypeKey struct {
@@ -579,6 +581,7 @@ type Checker struct {
 	iterationTypesCache                         map[IterationTypesKey]IterationTypes
 	markerTypes                                 collections.Set[*Type]
 	resolvingExplicitTypeOfSymbol               collections.Set[*store.Symbol]
+	constructorOrFunctionChecked                collections.Set[*store.Symbol]
 	undefinedSymbol                             *store.Symbol
 	argumentsSymbol                             *store.Symbol
 	requireSymbol                               *store.Symbol
@@ -3080,8 +3083,7 @@ func (c *Checker) checkFunctionOrMethodDeclaration(node store.Node) {
 
 func (c *Checker) checkFunctionOrConstructorSymbol(symbol *store.Symbol) {
 	// Only check the symbol once
-	if links := c.valueSymbolLinks.Get(symbol); !links.functionOrConstructorChecked {
-		links.functionOrConstructorChecked = true
+	if c.constructorOrFunctionChecked.AddIfAbsent(symbol) {
 		c.checkFunctionOrConstructorSymbolWorker(symbol)
 	}
 }
@@ -7680,16 +7682,9 @@ func (c *Checker) checkIndexedAccessIndexType(t *Type, accessNode store.Node) *T
 	// Check if the index type is assignable to 'keyof T' for the object type.
 	objectType := t.AsIndexedAccessType().objectType
 	indexType := t.AsIndexedAccessType().indexType
-	// skip index type deferral on remapping mapped types
-	var objectIndexType *Type
-	if c.isGenericMappedType(objectType) && c.getMappedTypeNameTypeKind(objectType) == MappedTypeNameTypeKindRemapping {
-		objectIndexType = c.getIndexTypeForMappedType(objectType, IndexFlagsNone)
-	} else {
-		objectIndexType = c.getIndexTypeEx(objectType, IndexFlagsNone)
-	}
 	hasNumberIndexInfo := c.getIndexInfoOfType(objectType, c.numberType) != nil
 	if everyType(indexType, func(t *Type) bool {
-		return c.isTypeAssignableTo(t, objectIndexType) || hasNumberIndexInfo && c.isApplicableIndexType(t, c.numberType)
+		return c.isTypeAssignableTo(t, c.getIndexTypeEx(objectType, IndexFlagsNone)) || hasNumberIndexInfo && c.isApplicableIndexType(t, c.numberType)
 	}) {
 		if accessNode.Kind() == ast.KindElementAccessExpression && store.IsAssignmentTarget(accessNode) && objectType.objectFlags&ObjectFlagsMapped != 0 && getMappedTypeModifiers(objectType)&MappedTypeModifiersIncludeReadonly != 0 {
 			c.error(accessNode, diagnostics.Index_signature_in_type_0_only_permits_reading, c.TypeToString(objectType))
@@ -7729,6 +7724,9 @@ func (c *Checker) checkImportCallExpression(node store.Node) *Type {
 		return c.createPromiseReturnType(node, c.anyType) //nolint:customlint // no arguments to check
 	}
 	specifier := args.At(0)
+	if c.compilerOptions.RewriteRelativeImportExtensions.IsTrue() && !store.IsStringLiteralLike(specifier) {
+		c.checkExternalEmitHelpers(node, ExternalEmitHelpersRewriteRelativeImportExtension)
+	}
 	specifierType := c.checkExpressionCached(specifier)
 	var optionsType *Type
 	if args.Len() > 1 {
@@ -7778,6 +7776,11 @@ func (c *Checker) checkImportCallExpression(node store.Node) *Type {
 }
 
 func (c *Checker) checkCallExpression(node store.Node, checkMode CheckMode) *Type {
+	if c.compilerOptions.RewriteRelativeImportExtensions.IsTrue() &&
+		store.IsInJSFile(node) && store.IsRequireCall(node, false /*requireStringLiteralLikeArgument*/) &&
+		!store.IsStringLiteralLike(node.Arguments().At(0)) {
+		c.checkExternalEmitHelpers(node, ExternalEmitHelpersRewriteRelativeImportExtension)
+	}
 	c.checkGrammarTypeArguments(node, node.TypeArgumentList())
 	signature := c.getResolvedSignature(node, nil /*candidatesOutArray*/, checkMode)
 	if signature == c.resolvingSignature {
@@ -14627,6 +14630,12 @@ func (c *Checker) resolveExternalModule(
 		}
 
 		if !errorNode.IsNil() && !resolvedModule.IsCustomResolution {
+			rewrites := c.program.ContentMapperExtensionRewrites()
+			caseSensitivity := c.program.CaseSensitivity()
+			specifier := tspath.ToModuleSpecifier(moduleReference)
+			_, mappedSpecifier := specifier.RewriteExtension(rewrites, caseSensitivity)
+			checkDeclarationRewrite := c.compilerOptions.GetEmitDeclarations() && mappedSpecifier &&
+				tspath.PathIsRelative(moduleReference) && !importingSourceFile.IsDeclarationFile
 			if resolvedModule.ResolvedUsingTsExtension && tspath.IsDeclarationFileName(moduleReference) {
 				if !store.FindAncestor(location, store.IsEmittableImport).IsNil() {
 					tsExtension := tspath.TryExtractTSExtension(moduleReference)
@@ -14663,12 +14672,18 @@ func (c *Checker) resolveExternalModule(
 					)
 				}
 			} else if c.compilerOptions.RewriteRelativeImportExtensions.IsTrue() &&
-				location.Flags()&ast.NodeFlagsAmbient == 0 &&
+				(location.Flags()&ast.NodeFlagsAmbient == 0 || checkDeclarationRewrite) &&
 				!tspath.IsDeclarationFileName(moduleReference) &&
-				!store.IsLiteralImportTypeNode(location) &&
-				!store.IsPartOfTypeOnlyImportOrExportDeclaration(location) {
-				shouldRewrite := core.ShouldRewriteModuleSpecifier(moduleReference, c.compilerOptions)
-				if !resolvedModule.ResolvedUsingTsExtension && shouldRewrite {
+				(!store.IsLiteralImportTypeNode(location) && !store.IsPartOfTypeOnlyImportOrExportDeclaration(location) ||
+					checkDeclarationRewrite) {
+				shouldRewrite := specifier.ShouldRewriteExtension(rewrites, caseSensitivity)
+				mappedSource := false
+				if sourceFile.ContentMapper() != "" {
+					_, mappedSource = sourceFile.FileName().RewriteExtension(rewrites, caseSensitivity)
+				}
+				resolvedUsingRewritableExtension := resolvedModule.ResolvedUsingTsExtension ||
+					resolvedModule.ResolvedUsingExtraExtensions && sourceFile.ContentMapper() != "" && mappedSource
+				if !resolvedUsingRewritableExtension && shouldRewrite {
 					relativeToSourceFile := resolvedModule.ResolvedFileName.AsString()
 					if relativePath, ok := c.program.CaseSensitivity().RelativePathFromFile(
 						importingSourceFile.FileName(),
@@ -14682,13 +14697,18 @@ func (c *Checker) resolveExternalModule(
 						diagnostics.This_relative_import_path_is_unsafe_to_rewrite_because_it_looks_like_a_file_name_but_actually_resolves_to_0,
 						relativeToSourceFile,
 					)
-				} else if resolvedModule.ResolvedUsingTsExtension && !shouldRewrite && c.program.SourceFileMayBeEmitted(sourceFile, false) {
+				} else if resolvedUsingRewritableExtension && !shouldRewrite && (mappedSource || c.program.SourceFileMayBeEmitted(sourceFile, false)) {
+					extension := tspath.GetAnyExtensionFromPath(moduleReference, nil, tspath.CaseSensitive)
+					if mappedSource {
+						rewrite, _ := sourceFile.FileName().GetExtensionRewrite(rewrites, caseSensitivity)
+						extension = rewrite.Source
+					}
 					c.error(
 						errorNode,
 						diagnostics.This_import_uses_a_0_extension_to_resolve_to_an_input_TypeScript_file_but_will_not_be_rewritten_during_emit_because_it_is_not_a_relative_path,
-						tspath.GetAnyExtensionFromPath(moduleReference, nil, tspath.CaseSensitive),
+						extension,
 					)
-				} else if resolvedModule.ResolvedUsingTsExtension && shouldRewrite {
+				} else if resolvedUsingRewritableExtension && shouldRewrite {
 					if redirect := c.program.GetRedirectForResolution(sourceFile); redirect != nil {
 						ownRootDir := c.program.CommonSourceDirectory()
 						otherRootDir := redirect.CommonSourceDirectory()
@@ -27007,6 +27027,16 @@ func (c *Checker) getSimplifiedType(t *Type, writing bool) *Type {
 		return c.getSimplifiedIndexedAccessType(t, writing)
 	case t.flags&TypeFlagsConditional != 0:
 		return c.getSimplifiedConditionalType(t, writing)
+	case t.flags&TypeFlagsIndex != 0:
+		return c.getSimplifiedIndexType(t)
+	}
+	return t
+}
+
+func (c *Checker) getSimplifiedIndexType(t *Type) *Type {
+	target := t.AsIndexType().target
+	if c.isGenericMappedType(target) && c.getNameTypeFromMappedType(target) != nil && !c.isMappedTypeWithKeyofConstraintDeclaration(target) {
+		return c.getIndexTypeForMappedType(target, IndexFlagsNone)
 	}
 	return t
 }
@@ -27103,6 +27133,16 @@ func (c *Checker) distributeIndexOverObjectType(objectType *Type, indexType *Typ
 }
 
 func (c *Checker) getSimplifiedConditionalType(t *Type, writing bool) *Type {
+	key := CachedTypeKey{kind: core.IfElse(writing, CachedTypeKindSimplifiedConditionalTypeForWriting, CachedTypeKindSimplifiedConditionalTypeForReading), typeId: t.id}
+	if cached, ok := c.cachedTypes[key]; ok {
+		return cached
+	}
+	result := c.getSimplifiedConditionalTypeWorker(t, writing)
+	c.cachedTypes[key] = result
+	return result
+}
+
+func (c *Checker) getSimplifiedConditionalTypeWorker(t *Type, writing bool) *Type {
 	checkType := t.AsConditionalType().checkType
 	extendsType := t.AsConditionalType().extendsType
 	trueType := c.getTrueTypeFromConditionalType(t)
@@ -27696,6 +27736,10 @@ func (c *Checker) checkExternalEmitHelpers(location store.Node, helpers External
 				} else if helper&ExternalEmitHelpersClassPrivateFieldSet != 0 {
 					if !c.hasSignatureWithArityGreaterThan(symbol, 4) {
 						c.error(location, diagnostics.This_syntax_requires_an_imported_helper_named_1_with_2_parameters_which_is_not_compatible_with_the_one_in_0_Consider_upgrading_your_version_of_0, externalHelpersModuleNameText, name, 5)
+					}
+				} else if helper&ExternalEmitHelpersRewriteRelativeImportExtension != 0 && len(c.program.ContentMapperExtensionRewrites()) > 0 {
+					if !c.hasSignatureWithArityGreaterThan(symbol, 3) {
+						c.error(location, diagnostics.This_syntax_requires_an_imported_helper_named_1_with_2_parameters_which_is_not_compatible_with_the_one_in_0_Consider_upgrading_your_version_of_0, externalHelpersModuleNameText, name, 4)
 					}
 				}
 			}

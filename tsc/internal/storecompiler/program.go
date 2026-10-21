@@ -139,6 +139,10 @@ func (p *Program) Options() *core.CompilerOptions { return p.opts.Config.Compile
 
 func (p *Program) ContentMapperExtensions() []string { return p.opts.Config.ContentMapperExtensions() }
 
+func (p *Program) ContentMapperExtensionRewrites() []tspath.ExtensionRewrite {
+	return p.opts.Config.ContentMapperExtensionRewrites()
+}
+
 func (p *Program) Host() CompilerHost { return p.hosts.Host }
 
 func (p *Program) Tracing() *tracing.Tracing { return p.hosts.Tracing }

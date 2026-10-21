@@ -13,6 +13,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/nodebuilder"
 	"github.com/microsoft/TypeScript/tsc/internal/storenodebuilder"
 	"github.com/microsoft/TypeScript/tsc/internal/storeprinter"
+	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
 func (b *NodeBuilderImpl) reuseNode(node store.Node) store.Node {
@@ -269,7 +270,10 @@ func (b *NodeBuilderImpl) getModuleSpecifierOverride(parent store.Node, lit stor
 func (b *NodeBuilderImpl) rewriteModuleSpecifier(parent store.Node, lit store.Node) store.Node {
 	newName := b.getModuleSpecifierOverride(parent, lit)
 	if len(newName) == 0 {
-		return lit
+		newName = b.rewriteContentMappedModuleSpecifier(tspath.ToModuleSpecifier(lit.Text())).AsString()
+		if newName == lit.Text() {
+			return lit
+		}
 	}
 	res := b.f.NewStringLiteral(newName, ast.TokenFlagsNone)
 	b.e.SetOriginal(res, lit)

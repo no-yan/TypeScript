@@ -23,7 +23,7 @@ import (
 // no emit, and no content mapper: a file's root path is its own path, not its
 // canonical source file's.
 //
-// storetranslate:pointer-hash e35dbf548a197441 program.go:Program.verifyCompilerOptions
+// storetranslate:pointer-hash a34c02ae1dd863f2 program.go:Program.verifyCompilerOptions
 func (p *Program) verifyCompilerOptions() {
 	options := p.Options()
 	var programDiagnostics []*ast.Diagnostic
