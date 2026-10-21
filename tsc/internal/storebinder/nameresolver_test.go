@@ -92,8 +92,8 @@ func newResolverPair(m *bindComparer, pairs []storetest.Pair, pGlobals ast.Symbo
 		rp.storeIndex[s] = i
 		i++
 	}
-	pArguments, pRequire := &ast.Symbol{Name: "arguments"}, &ast.Symbol{Name: "require"}
-	sArguments, sRequire := &store.Symbol{Name: "arguments"}, &store.Symbol{Name: "require"}
+	pArguments, pRequire := pointerSymbol("arguments", 0), pointerSymbol("require", 0)
+	sArguments, sRequire := storeSymbol("arguments", 0), storeSymbol("require", 0)
 	rp.symbolIndex[pArguments], rp.storeIndex[sArguments] = -1, -1
 	rp.symbolIndex[pRequire], rp.storeIndex[sRequire] = -2, -2
 	for name, p := range pGlobals {
@@ -121,7 +121,7 @@ func newResolverPair(m *bindComparer, pairs []storetest.Pair, pGlobals ast.Symbo
 			if i, ok := rp.symbolIndex[symbol]; ok {
 				return fmt.Sprint("s", i)
 			}
-			return "s?" + normalizeName(symbol.Name)
+			return "s?" + normalizeName(symbol.Name())
 		},
 	}
 	rp.s = &resolverSide{
@@ -143,7 +143,7 @@ func newResolverPair(m *bindComparer, pairs []storetest.Pair, pGlobals ast.Symbo
 			if i, ok := rp.storeIndex[symbol]; ok {
 				return fmt.Sprint("s", i)
 			}
-			return "s?" + normalizeName(symbol.Name)
+			return "s?" + normalizeName(symbol.Name())
 		},
 	}
 	options := &core.CompilerOptions{}
@@ -165,7 +165,7 @@ func newResolverPair(m *bindComparer, pairs []storetest.Pair, pGlobals ast.Symbo
 		RequireSymbol:   pRequire,
 		Lookup: func(symbols ast.SymbolTable, name string, meaning ast.SymbolFlags) *ast.Symbol {
 			symbol := symbols[name]
-			if symbol != nil && (symbol.Flags&meaning != 0 || lookupAlias && symbol.Flags&ast.SymbolFlagsAlias != 0) {
+			if symbol != nil && (symbol.Flags()&meaning != 0 || lookupAlias && symbol.Flags()&ast.SymbolFlagsAlias != 0) {
 				ps.record("Lookup %q %d %s", name, meaning, ps.symbol(symbol))
 				return symbol
 			}
@@ -212,7 +212,7 @@ func newResolverPair(m *bindComparer, pairs []storetest.Pair, pGlobals ast.Symbo
 		RequireSymbol:   sRequire,
 		Lookup: func(symbols store.SymbolTable, name string, meaning ast.SymbolFlags) *store.Symbol {
 			symbol := symbols[name]
-			if symbol != nil && (symbol.Flags&meaning != 0 || lookupAlias && symbol.Flags&ast.SymbolFlagsAlias != 0) {
+			if symbol != nil && (symbol.Flags()&meaning != 0 || lookupAlias && symbol.Flags()&ast.SymbolFlagsAlias != 0) {
 				ss.record("Lookup %q %d %s", name, meaning, ss.symbol(symbol))
 				return symbol
 			}
@@ -497,8 +497,8 @@ func TestNameResolverFixtures(t *testing.T) {
 			m := bindComparerFor(pointer, file, pairs)
 			pGlobals, sGlobals := ast.SymbolTable{}, store.SymbolTable{}
 			if fx.globals {
-				pGlobals[fx.ident] = &ast.Symbol{Name: fx.ident, Flags: ast.SymbolFlagsVariable}
-				sGlobals[fx.ident] = &store.Symbol{Name: fx.ident, Flags: ast.SymbolFlagsVariable}
+				pGlobals[fx.ident] = pointerSymbol(fx.ident, ast.SymbolFlagsVariable)
+				sGlobals[fx.ident] = storeSymbol(fx.ident, ast.SymbolFlagsVariable)
 			}
 			rp := newResolverPair(m, pairs, pGlobals, sGlobals, fx.alias)
 			from := strings.Index(fx.source, fx.after)
@@ -533,4 +533,20 @@ func TestNameResolverFixtures(t *testing.T) {
 			t.Logf("%s: %d calls, callbacks %v", fx.name, st.calls, st.callbacks)
 		})
 	}
+}
+
+// pointerSymbol and storeSymbol are a symbol of each side with its name and
+// flags: the fields are behind accessors since 6ad8c56f9b.
+func pointerSymbol(name string, flags ast.SymbolFlags) *ast.Symbol {
+	s := ast.NewSymbol()
+	s.SetName(name)
+	s.SetFlags(flags)
+	return s
+}
+
+func storeSymbol(name string, flags ast.SymbolFlags) *store.Symbol {
+	s := store.NewSymbol()
+	s.SetName(name)
+	s.SetFlags(flags)
+	return s
 }

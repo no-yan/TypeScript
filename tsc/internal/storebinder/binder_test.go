@@ -214,18 +214,18 @@ func countDeclarations(file *store.File) int {
 			return
 		}
 		seen[s] = true
-		n += len(s.Declarations)
-		if !s.ValueDeclaration.IsNil() {
+		n += len(s.Declarations())
+		if !s.ValueDeclaration().IsNil() {
 			n++
 		}
-		for _, m := range s.Members {
+		for _, m := range s.Members() {
 			visit(m)
 		}
-		for _, e := range s.Exports {
+		for _, e := range s.Exports() {
 			visit(e)
 		}
-		visit(s.Parent)
-		visit(s.ExportSymbol)
+		visit(s.Parent())
+		visit(s.ExportSymbol())
 	}
 	for _, node := range storetest.Preorder(file.Root()) {
 		visit(file.Bound.SymbolOf(node.SymbolId()))
@@ -272,7 +272,7 @@ func TestBindOnce(t *testing.T) {
 	if file.Bound != bound {
 		t.Error("the second bind replaced Bound")
 	}
-	if file.Symbol() == nil || file.Symbol().Flags&ast.SymbolFlagsValueModule == 0 {
+	if file.Symbol() == nil || file.Symbol().Flags()&ast.SymbolFlagsValueModule == 0 {
 		t.Errorf("file symbol = %v, want a value module", file.Symbol())
 	}
 }

@@ -460,8 +460,8 @@ func TestStorageNilIdentity(t *testing.T) {
 	if !zeroSlice[1].IsNil() || !store.SameNode(zeroSlice[0], p.files[1].Store.Node(0)) {
 		t.Error("the elements of make([]Node, n) are not nil")
 	}
-	var symbol store.Symbol
-	if !symbol.ValueDeclaration.IsNil() {
+	symbol := store.NewSymbol() // its data is new: a zero Symbol has none (6ad8c56f9b)
+	if !symbol.ValueDeclaration().IsNil() {
 		t.Error("the zero ValueDeclaration is not nil")
 	}
 }
@@ -599,7 +599,8 @@ func TestStorageFakeScope(t *testing.T) {
 		scope := f.NewBlock(f.NewNodeList(nil), false)
 		f.SetLocals(scope, locals)
 		f.SetParent(scope, declaration)
-		late := &store.Symbol{Name: "late"}
+		late := store.NewSymbol()
+		late.SetName("late")
 		locals["late"] = late
 		if scope.Locals()["late"] != late || reflect.ValueOf(scope.Locals()).UnsafePointer() != reflect.ValueOf(locals).UnsafePointer() {
 			t.Error("scope.Locals() is not the map that was set")
@@ -1046,12 +1047,12 @@ class D extends C { #x = 4; static #y = 5; }
 					if key != want {
 						t.Errorf("private name %q, want %q", key, want)
 					}
-					table := symbol.Members
+					table := symbol.Members()
 					if store.HasStaticModifier(member) {
-						table = symbol.Exports
+						table = symbol.Exports()
 					}
 					declared := table[key]
-					if declared == nil || declared != member.Symbol() || !store.SameNode(declared.ValueDeclaration, member) {
+					if declared == nil || declared != member.Symbol() || !store.SameNode(declared.ValueDeclaration(), member) {
 						t.Errorf("file %d class %s: %s does not look up its declaration", i, cls.Name().Text(), key)
 					}
 					if other, ok := keys[key]; ok {

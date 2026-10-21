@@ -87,27 +87,27 @@ func (m *bindComparer) symbol(label string, owner *ast.Node, p *ast.Symbol, s *s
 	}
 	m.symbols[p] = s
 	m.symbolsRev[s] = p
-	if normalizeName(p.Name) != normalizeName(s.Name) {
+	if normalizeName(p.Name()) != normalizeName(s.Name()) {
 		m.add(owner, label+" Name")
 	}
-	if p.Flags != s.Flags {
+	if p.Flags() != s.Flags() {
 		m.add(owner, label+" Flags")
 	}
-	if p.CheckFlags != s.CheckFlags {
+	if p.CheckFlags() != s.CheckFlags() {
 		m.add(owner, label+" CheckFlags")
 	}
-	if len(p.Declarations) != len(s.Declarations) {
+	if len(p.Declarations()) != len(s.Declarations()) {
 		m.add(owner, label+" Declarations")
 	} else {
-		for i, d := range p.Declarations {
-			m.declaration(label+" Declarations", owner, d, s.Declarations[i])
+		for i, d := range p.Declarations() {
+			m.declaration(label+" Declarations", owner, d, s.Declarations()[i])
 		}
 	}
-	m.declaration(label+" ValueDeclaration", owner, p.ValueDeclaration, s.ValueDeclaration)
-	m.symbol(label+" Parent", owner, p.Parent, s.Parent)
-	m.symbol(label+" ExportSymbol", owner, p.ExportSymbol, s.ExportSymbol)
-	m.table(label+" Members", owner, p.Members, s.Members)
-	m.table(label+" Exports", owner, p.Exports, s.Exports)
+	m.declaration(label+" ValueDeclaration", owner, p.ValueDeclaration(), s.ValueDeclaration())
+	m.symbol(label+" Parent", owner, p.Parent(), s.Parent())
+	m.symbol(label+" ExportSymbol", owner, p.ExportSymbol(), s.ExportSymbol())
+	m.table(label+" Members", owner, p.Members(), s.Members())
+	m.table(label+" Exports", owner, p.Exports(), s.Exports())
 }
 
 // table compares the key sets and the values. A key is matched after the id
@@ -129,9 +129,9 @@ func (m *bindComparer) table(label string, owner *ast.Node, p ast.SymbolTable, s
 		switch {
 		case len(candidates) == 1:
 			sv = candidates[0]
-		case len(candidates) > 1 && len(pv.Declarations) > 0:
+		case len(candidates) > 1 && len(pv.Declarations()) > 0:
 			for _, c := range candidates {
-				if len(c.Declarations) > 0 && m.sameNode(pv.Declarations[0], c.Declarations[0]) {
+				if len(c.Declarations()) > 0 && m.sameNode(pv.Declarations()[0], c.Declarations()[0]) {
 					sv = c
 					break
 				}

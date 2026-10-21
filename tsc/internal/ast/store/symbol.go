@@ -22,21 +22,72 @@ type SymbolId uint32
 
 // Symbol
 
+// Symbol stores flags, checkFlags, and gid uniquely for every symbol instance, but may share
+// symbolData with other symbols. This is done so that instantiated symbols in the checker can
+// all share the same underlying symbolData. Every Symbol needs its data field initialized either
+// through SymbolWithData.Initialize or by explicitly setting it with Symbol.SetSymbolData.
 type Symbol struct {
-	Flags            ast.SymbolFlags
-	CheckFlags       ast.CheckFlags // Non-zero only in transient symbols created by Checker
-	Name             string
-	Declarations     []Node
-	ValueDeclaration Node // zero = nil
-	Members          SymbolTable
-	Exports          SymbolTable
-	id               SymbolId
-	gid              atomic.Uint64
-	Parent           *Symbol
-	ExportSymbol     *Symbol
+	flags      ast.SymbolFlags
+	checkFlags ast.CheckFlags // Non-zero only in transient symbols created by Checker
+	gid        atomic.Uint64
+	data       *symbolData
 }
 
-func (s *Symbol) Id() SymbolId { return s.id }
+// Every symbol references a symbolData structure that may be shared with other symbols.
+// id is the Bound's index of the binder symbol that owns the data: a symbol
+// sharing it (an instantiated one, which the checker makes) has the owner's id,
+// and only the binder reads ids, of its own symbols (upstream-sync-20261021.md
+// S5).
+type symbolData struct {
+	name             string
+	declarations     []Node
+	valueDeclaration Node // zero = nil
+	members          SymbolTable
+	exports          SymbolTable
+	parent           *Symbol
+	exportSymbol     *Symbol
+	id               SymbolId
+}
+
+func (s *Symbol) Flags() ast.SymbolFlags     { return s.flags }
+func (s *Symbol) CheckFlags() ast.CheckFlags { return s.checkFlags }
+func (s *Symbol) Name() string               { return s.data.name }
+func (s *Symbol) Declarations() []Node       { return s.data.declarations }
+func (s *Symbol) ValueDeclaration() Node     { return s.data.valueDeclaration }
+func (s *Symbol) Members() SymbolTable       { return s.data.members }
+func (s *Symbol) Exports() SymbolTable       { return s.data.exports }
+func (s *Symbol) Parent() *Symbol            { return s.data.parent }
+func (s *Symbol) ExportSymbol() *Symbol      { return s.data.exportSymbol }
+
+func (s *Symbol) SetFlags(value ast.SymbolFlags)     { s.flags = value }
+func (s *Symbol) SetCheckFlags(value ast.CheckFlags) { s.checkFlags = value }
+func (s *Symbol) SetName(value string)               { s.data.name = value }
+func (s *Symbol) SetDeclarations(value []Node)       { s.data.declarations = value }
+func (s *Symbol) SetValueDeclaration(value Node)     { s.data.valueDeclaration = value }
+func (s *Symbol) SetMembers(value SymbolTable)       { s.data.members = value }
+func (s *Symbol) SetExports(value SymbolTable)       { s.data.exports = value }
+func (s *Symbol) SetParent(value *Symbol)            { s.data.parent = value }
+func (s *Symbol) SetExportSymbol(value *Symbol)      { s.data.exportSymbol = value }
+
+// SymbolWithData is a helper structure that contains both a Symbol and its associated symbolData.
+type SymbolWithData struct {
+	s Symbol
+	d symbolData
+}
+
+// Initializes a SymbolWithData instance and returns the embedded Symbol.
+func (sd *SymbolWithData) Initialize() *Symbol {
+	sd.s.data = &sd.d
+	return &sd.s
+}
+
+// Initializes a Symbol's data field with the data from another Symbol. This allows multiple
+// symbols to share the same underlying symbolData.
+func (s *Symbol) SetSymbolData(other *Symbol) {
+	s.data = other.data
+}
+
+func (s *Symbol) Id() SymbolId { return s.data.id }
 
 var nextSymbolId atomic.Uint64
 
@@ -56,23 +107,23 @@ func newSymbolId() uint64 {
 }
 
 func (s *Symbol) IsExternalModule() bool {
-	return s.Flags&ast.SymbolFlagsModule != 0 && ast.IsAmbientModuleSymbolName(s.Name)
+	return s.Flags()&ast.SymbolFlagsModule != 0 && ast.IsAmbientModuleSymbolName(s.Name())
 }
 
 func (s *Symbol) IsStatic() bool {
-	if s.ValueDeclaration.IsNil() {
+	if s.ValueDeclaration().IsNil() {
 		return false
 	}
-	modifierFlags := s.ValueDeclaration.ModifierFlags()
+	modifierFlags := s.ValueDeclaration().ModifierFlags()
 	return modifierFlags&ast.ModifierFlagsStatic != 0
 }
 
 // See comment on `declareModuleMember` in `binder.go`.
 func (s *Symbol) CombinedLocalAndExportSymbolFlags() ast.SymbolFlags {
-	if s.ExportSymbol != nil {
-		return s.Flags | s.ExportSymbol.Flags
+	if s.ExportSymbol() != nil {
+		return s.Flags() | s.ExportSymbol().Flags()
 	}
-	return s.Flags
+	return s.Flags()
 }
 
 // SymbolTable

@@ -159,9 +159,9 @@ func (b *Bound) NewFlowData(a, bb, c uint32) uint32 {
 
 // AddSymbol gives s its id (its index, 1-based) and returns it.
 func (b *Bound) AddSymbol(s *Symbol) SymbolId {
-	s.id = SymbolId(len(b.symbols))
+	s.data.id = SymbolId(len(b.symbols))
 	b.symbols = append(b.symbols, s)
-	return s.id
+	return s.data.id
 }
 
 // NewLocals makes a table and returns its index, the value of a locals slot.
