@@ -406,3 +406,61 @@ field は accessor (`Flags()`/`SetFlags()` など) になった。`SymbolWithDat
 ### テキスト衝突
 
 無し。
+
+### 結果 (合格)
+
+commit:
+
+- 29460ae68ab merge (衝突なし)
+- d8e2f6f34e1 store.Symbol と storebinder
+- 8de8f449adf 再翻訳と P2 7 件
+- d1f25367b95 harness
+- 387071d7111 storetranslate の fixture
+
+見つかったこと・判断:
+
+- 置き換えは型情報を使うツール (scratchpad の symfix) で行った。
+  - 対象は、`*store.Symbol`・`*ast.Symbol` の新しい method を値として参照している箇所 (呼んでいない `X.Flags` など)。これを呼び出しや setter に書き換えた。
+  - storebinder の約 90 か所、P2 7 件、harness、試験に当てた。正規表現では、別の `Flags`・`Name` まで巻き込むため。
+  - P2 7 件の Pointer 側の差分が、accessor への置き換えだけであることは確かめた。
+- 翻訳の規則: `ast.SymbolWithData` → `store.SymbolWithData` を名前で対応付けた (承認済み)。
+  - Store の data は Bound の id も持つので、形が一致しない。手書きの型の対応は「同じ形」が条件のため、規則が要った。
+  - 手書きの `NewSymbol` は、翻訳の出力と名前が重なるので消した。翻訳が Pointer と同じ 1 行を出す。
+- binder の確保を `core.Arena[store.SymbolWithData]` と `Initialize()` にした。初めは旧形の arena が data の無い Symbol を作り、試験で見つかった。
+- 0 値の `store.Symbol` には data が無いので、accessor を呼べない (Pointer と同じ)。試験は `NewSymbol()` で作るようにした。
+- `store.Symbol` は 24B で、Pointer と同じ (TestLayout)。
+- 段の終わりの検証の 1 回目は、storetranslate の `TestRules` で落ちた。fixture の Pointer コードが symbol の field を読んでいたため。
+
+検証 (2026-10-21、合格、2 回目):
+
+- 段 1: equal 17,623、既知の除外 2。
+- 段 2: equal 13,571。
+- mode: 5,143 か所で不一致 0。
+
+## S6: 6ad8c56f9b..aa8149273b (#132〜#135、dense link stores)
+
+### upstream の変更 (aa8149273b)
+
+- `core.PagedLinkStore` は値を arena に確保し、page にはそのポインタを持つ。`TryGet`・`Has` は、一度 `Get` した key にだけ値を返すようになった。旧形は page に値を直に置いていたので、同じ page のまだ `Get` していない key にも 0 値を返していた。
+- node と symbol の id は、checker ごとの `ast.NodeIdGenerator`・`SymbolIdGenerator` が 256 個ずつの連続した塊で配る (`BlockIdOffset` 以上)。link が密に並ぶ。
+- `nodeLinkStore` と、`symbolArenaLinkStore` から改名した `symbolLinkStore` は、generator の id で page を引く。
+
+### Store 側の設計 (案、承認待ち)
+
+1. **nodeLinkStore (P2) は今の形のまま、hash だけ更新する。**
+   - Store は node を NodeKey (StoreID・NodeRef) で引く。NodeKey は Store ごとに密なので、generator が要らない。
+   - 違いは `TryGet` の意味。Store は旧形どおり、同じ page の未 `Get` の key にも 0 値を返す。
+   - これを使う checker の field は `symbolNodeLinks` だけで、`TryGet` の呼び出しも nodebuilderimpl.go の 1 か所だけ。その箇所は戻り値が nil でも 0 値でも `resolvedSymbol` (どちらも nil) を返すので、結果は同じになる。
+   - 値を arena に移すかどうかは性能の話なので、性能の段に回す。
+2. **symbolLinkStore は翻訳に任せ、Store に `SymbolIdGenerator` を足す。**
+   - Pointer の `valueSymbolLinks.Has` は、node builder と services で 6 か所の分岐に使われる。意味を Pointer と同じ (厳密) にする必要があるので、翻訳に任せる。
+   - 翻訳器は ast の型の method を翻訳しない。そこで `store.SymbolIdGenerator` を手で書く。
+     - 型 (`nextId`・`lastId`) は symbol.go に置く。Pointer と同じ形なので、翻訳の型の対応は自動で付く。
+     - method `GetSymbolId` は utilities_manual.go の P2 にして、pointer-hash を付ける。
+     - id は Store の `gid` と、Store 自身の block の counter から取る。`ast.BlockIdOffset`・`BlockIdSize` は ast の定数を使う。
+   - `NodeIdGenerator` は要らない (1. のとおり)。
+
+### 古くなる P2 (4)
+
+- `nodeLinkStore`、`.Get`、`.Has`、`.TryGet`
+- store-only の `nodeLinkStore.newPage` が写していた `PagedLinkStore.Get` も変わったが、1. のとおり Store の形を保つ。
