@@ -2528,7 +2528,7 @@ func (p *Parser) tryParseImportClause(identifier store.NodeRef, pos int, phaseMo
 		p.parseExpected(ast.KindFromKeyword)
 		return importClause
 	}
-	if phaseModifier == ast.KindSourceKeyword {
+	if phaseModifier == ast.KindDeferKeyword || phaseModifier == ast.KindSourceKeyword {
 		return p.b.NewImportClause(p.flags(), int32(pos), int32(p.nodePos()), phaseModifier, store.NoNodeRef /*name*/, store.NoNodeRef /*namedBindings*/)
 	}
 	return store.NoNodeRef
