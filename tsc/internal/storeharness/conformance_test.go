@@ -639,7 +639,7 @@ func (h *pointerSemanticHost) GetSourceFile(opts ast.SourceFileParseOptions) *as
 	}
 	scriptKind := core.GetScriptKindFromFileName(opts.FileName)
 	if scriptKind == core.ScriptKindUnknown {
-		panic("Unknown script kind for file  " + opts.FileName)
+		panic("Unknown script kind for file  " + opts.FileName.AsString())
 	}
 	if isBundledLib(opts.FileName) {
 		return cachedLib(opts, text, scriptKind)
