@@ -613,3 +613,32 @@ ast・scanner・binder の変更は無い。
   - network path の拒否 (ce30dd50a5d) は、file loader の分は翻訳で入る。`verifyCompilerOptions` の paths の検査は Store の P2 (options_manual.go:295) にもあるので、diff を写す。
   - `GetResolvedProjectReference` の P2 (host_manual.go) は `NewDefaultParseConfigHost` を写す。
   - `GetSourceFileByNodeID` は、到達すれば Store 版が要る。
+
+### 結果 (合格)
+
+commit:
+
+- b518e34fa32 merge。衝突は診断の生成物 2 つで、upstream を取って再生成した。
+  - hereby の生成 (compileroptions の enum 値) は go.work を使う。`GOWORK=off` では失敗する。
+- 17a431354c0 storeparser の @extends の型引数の reparse (f5cdce998e)
+- 0b69b70affd branch の config の parse に `NewDefaultParseConfigHost` を渡す (28534d76090)。直したのは次の 3 つ。
+  - storeharness の configprep.go。写した元の revision を 5733ab05f5 にした。
+  - 試験 6 か所
+  - storebinder/_e2e。`go build ./...` の対象外なので気付かず、S3 (ed4807212c の `NewCompilerHost`) 以降ビルドできていなかった。
+- dcf1e0b0f82 再翻訳と P2 の 4 つ
+  - NewChecker: undefinedProperties の key を symbol にする
+  - GetResolvedProjectReference: `NewDefaultParseConfigHost`
+  - verifyCompilerOptions: paths の network path を誤りにする。Pointer の `GetCurrentDirectory` は `BaseDirectory` なのでそれを使う。
+  - Program: hash だけ更新。Pointer が足した node id から source file を引く索引は API が使うもので、Store には要らない。
+
+見込みとの差:
+
+- `GetSourceFileByNodeID` には到達しなかった。
+- `checkJSDocAugmentsTagMatchesExtends` は jsdoc.go に移り、Store でも同じ形 (`EagerJSDoc`) に翻訳された。
+
+検証 (2026-10-21、合格):
+
+- 段 1: equal 17,876。2e9fb00f5f5 の新しい試験で 165 増えた。除外は既知の 2 件。
+- 段 2: equal 13,728。
+- mode: 5,206 か所で不一致 0。
+- 再翻訳と generate:ast は 2 回目で差分なし。
