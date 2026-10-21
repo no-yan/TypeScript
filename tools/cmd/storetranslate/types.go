@@ -182,7 +182,7 @@ func (u *universe) mentions(t types.Type, named func(*types.Named) bool) bool {
 		case *types.Named:
 			if t.Obj().Pkg() == u.ast {
 				switch t.Obj().Name() {
-				case "SymbolTable", "NodeId", "NodeFactory", "Symbol", "SymbolWithData", "SymbolIdGenerator":
+				case "SymbolTable", "NodeId", "NodeFactory", "Symbol", "SymbolWithData", "SymbolIdGenerator", "SymbolExtraArena":
 					return true
 				}
 			}
@@ -393,6 +393,10 @@ func (u *universe) mapType(t types.Type) (types.Type, bool) {
 					// aa8149273b: package store's deals gids. Its fields are
 					// unexported, which no two packages' types share.
 					return u.storeType("SymbolIdGenerator")
+				case "SymbolExtraArena":
+					// 56ce7acfc8: package store's allocates its symbols'
+					// optional tables, as SymbolIdGenerator by name.
+					return u.storeType("SymbolExtraArena")
 				case "Node", "NodeList", "ModifierList", "FlowNode":
 					ok = false
 				}
@@ -565,9 +569,10 @@ func storeField(t types.Type, name string) *types.Var {
 }
 
 // nodeStructs are the struct types of package ast whose value is a node in
-// the Store: Node, the data of each kind (the types that implement
-// ast.nodeData), and the base structs that the data embed (NodeBase,
-// FunctionLikeBase, NamedMemberBase, ...). A pointer to one of them, and the
+// the Store: Node, the data of each kind (the types that embed Node, through
+// NodeDefault; 67a1c76aac removed the nodeData interface they implemented),
+// and the base structs that the data embed (NodeBase, FunctionLikeBase,
+// NamedMemberBase, ...). A pointer to one of them, and the
 // address of an embedded one (&data.Node, &data.NamedMemberBase), is the
 // node; a field of one is read with the node's accessor.
 func (u *universe) nodeStructs() map[*types.TypeName]bool {
@@ -576,7 +581,20 @@ func (u *universe) nodeStructs() map[*types.TypeName]bool {
 	}
 	set := map[*types.TypeName]bool{}
 	u.nodeStructSet = set
-	iface, _ := u.ast.Scope().Lookup("nodeData").Type().Underlying().(*types.Interface)
+	node := u.ast.Scope().Lookup("Node").Type()
+	var embedsNode func(t types.Type) bool
+	embedsNode = func(t types.Type) bool {
+		s, ok := t.Underlying().(*types.Struct)
+		if !ok {
+			return false
+		}
+		for i := range s.NumFields() {
+			if f := s.Field(i); f.Embedded() && (types.Identical(f.Type(), node) || embedsNode(f.Type())) {
+				return true
+			}
+		}
+		return false
+	}
 	var embed func(t types.Type)
 	embed = func(t types.Type) {
 		named, ok := types.Unalias(t).(*types.Named)
@@ -602,7 +620,7 @@ func (u *universe) nodeStructs() map[*types.TypeName]bool {
 		if _, ok := tn.Type().Underlying().(*types.Struct); !ok {
 			continue
 		}
-		if iface != nil && types.Implements(types.NewPointer(tn.Type()), iface) {
+		if embedsNode(tn.Type()) {
 			embed(tn.Type())
 		}
 	}
