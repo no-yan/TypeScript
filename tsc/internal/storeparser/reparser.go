@@ -619,21 +619,23 @@ func (p *Parser) reparseHosted(tag store.NodeRef, parent store.NodeRef, jsDoc st
 			}); extendsClause != store.NoNodeRef && p.b.View(extendsClause).AsHeritageClause().Types().Len() == 1 {
 				target := p.b.View(extendsClause).AsHeritageClause().Types().At(0).Ref()
 				source := p.b.View(tag).AsJSDocAugmentsTag().ClassName().Ref()
-				if store.HasSamePropertyAccessName(p.b.View(target).Expression(), p.b.View(source).Expression()) {
-					if p.b.View(target).AsExpressionWithTypeArguments().TypeArguments().IsNil() && !p.b.View(source).AsExpressionWithTypeArguments().TypeArguments().IsNil() {
-						sourceArguments := p.b.View(source).AsExpressionWithTypeArguments().TypeArguments().Ref()
-						newArguments := slices.Clone(p.b.ViewList(sourceArguments).Refs())
-						for i, arg := range newArguments {
-							newArguments[i] = p.addDeepCloneReparse(arg)
-						}
-						loc := p.listLoc(sourceArguments)
-						p.b.SetTypeArguments(target, p.b.List(int32(loc.Pos()), int32(loc.End()), newArguments))
-						p.finishMutatedNode(target)
-					}
+				targetExpression := p.b.View(target).Expression()
+				if p.b.View(target).AsExpressionWithTypeArguments().TypeArguments().IsNil() && !p.b.View(source).AsExpressionWithTypeArguments().TypeArguments().IsNil() && targetExpression.Kind() != ast.KindNullKeyword && (!store.IsEntityNameExpression(targetExpression) || store.HasSamePropertyAccessName(targetExpression, p.b.View(source).Expression())) {
+					p.setReparsedTypeArguments(target, p.b.View(source).AsExpressionWithTypeArguments().TypeArguments().Ref())
 				}
 			}
 		}
 	}
+}
+
+func (p *Parser) setReparsedTypeArguments(target store.NodeRef, source store.ListRef) {
+	typeArguments := slices.Clone(p.b.ViewList(source).Refs())
+	for i, typeArgument := range typeArguments {
+		typeArguments[i] = p.addDeepCloneReparse(typeArgument)
+	}
+	loc := p.listLoc(source)
+	p.b.SetTypeArguments(target, p.b.List(int32(loc.Pos()), int32(loc.End()), typeArguments))
+	p.finishMutatedNode(target)
 }
 
 func (p *Parser) makeQuestionIfOptional(parameter store.NodeRef) store.NodeRef {
