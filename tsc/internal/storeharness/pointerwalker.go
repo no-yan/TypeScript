@@ -158,9 +158,9 @@ func (w *pointerWalker) writeTypeOrSymbol(file *ast.SourceFile, node *ast.Node, 
 	symbolString.WriteString("Symbol(")
 	symbolString.WriteString(ast.EscapeAllInternalSymbolNames(fileChecker.SymbolToStringEx(symbol, node.Parent, ast.SymbolFlagsNone, checker.SymbolFormatFlagsAllowAnyNodeKind)))
 	count := 0
-	for _, declaration := range symbol.Declarations {
+	for _, declaration := range symbol.Declarations() {
 		if count >= 5 {
-			fmt.Fprintf(&symbolString, " ... and %d more", len(symbol.Declarations)-count)
+			fmt.Fprintf(&symbolString, " ... and %d more", len(symbol.Declarations())-count)
 			break
 		}
 		count++
@@ -181,7 +181,7 @@ func (w *pointerWalker) writeTypeOrSymbol(file *ast.SourceFile, node *ast.Node, 
 	symbolString.WriteString(")")
 	record.value, record.present = symbolString.String(), true
 	record.symbol = symbol
-	for _, d := range symbol.Declarations {
+	for _, d := range symbol.Declarations() {
 		var path string
 		if f := ast.GetSourceFileOfNode(d); f != nil {
 			path = string(f.PathKey())

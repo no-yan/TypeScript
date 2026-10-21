@@ -139,7 +139,7 @@ func runPointer(program *compiler.Program, diagFiles, walkFiles []*ast.SourceFil
 	}
 	r.order = checkSymbolOrder(r.symbols,
 		func(a, b any) int { return c.CompareSymbols(a.(*ast.Symbol), b.(*ast.Symbol)) },
-		func(s any) string { return s.(*ast.Symbol).Name })
+		func(s any) string { return s.(*ast.Symbol).Name() })
 	return r
 }
 
@@ -192,7 +192,7 @@ func runStoreOn(r *run, program storechecker.Program, diagStores, walkStores []*
 	}
 	r.order = checkSymbolOrder(r.symbols,
 		func(a, b any) int { return c.CompareSymbols(a.(*store.Symbol), b.(*store.Symbol)) },
-		func(s any) string { return s.(*store.Symbol).Name })
+		func(s any) string { return s.(*store.Symbol).Name() })
 }
 
 func recovered(v any) *panicInfo {
