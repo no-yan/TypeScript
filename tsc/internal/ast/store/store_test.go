@@ -45,9 +45,9 @@ func parseFixture(tb testing.TB, fixture filefixture.Fixture) *ast.SourceFile {
 
 func parseSource(name, source string) *ast.SourceFile {
 	return parser.ParseSourceFile(ast.SourceFileParseOptions{
-		FileName: name,
-		Path:     tspath.Path(name),
-	}, source, core.GetScriptKindFromFileName(name))
+		FileName: tspath.ToRootedFilePath(name, "/"),
+		PathKey:  tspath.CaseSensitive.PathKey(tspath.ToRootedPath(name, "/")),
+	}, source, core.GetScriptKindFromFileName(tspath.ToRootedFilePath(name, "/")))
 }
 
 func TestFingerprint(t *testing.T) {

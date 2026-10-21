@@ -12,6 +12,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store/storetest"
 	"github.com/microsoft/TypeScript/tsc/internal/compiler"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
+	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
 // TestModeCorpus is the unit equivalence of the adapter's C methods (8.1):
@@ -47,7 +48,7 @@ func TestModeCorpus(t *testing.T) {
 					stats[i] = st
 					continue
 				}
-				pf := pointer.GetSourceFile(f.name)
+				pf := pointer.GetSourceFile(tspath.ToRootedFilePath(f.name, "/"))
 				if pf == nil {
 					st.missing = true
 					stats[i] = st

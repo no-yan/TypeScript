@@ -433,10 +433,10 @@ func TestWritePrintManifest(t *testing.T) {
 			pt.Requests[i].Hash = hashString(p.out[i])
 		}
 		for _, f := range diagFiles {
-			pt.DiagPaths = append(pt.DiagPaths, string(f.Path()))
+			pt.DiagPaths = append(pt.DiagPaths, string(f.PathKey()))
 		}
 		for _, f := range walkFiles {
-			pt.WalkPaths = append(pt.WalkPaths, string(f.Path()))
+			pt.WalkPaths = append(pt.WalkPaths, string(f.PathKey()))
 		}
 		c, _ := checker.NewChecker(program, nil)
 		messages := pointerMessages(pointerCheckAll(c, diagFiles), nil)

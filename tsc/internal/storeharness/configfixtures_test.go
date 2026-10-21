@@ -66,7 +66,7 @@ func (f fixtureRun) diagsIn(fileName string) []int32 {
 	var codes []int32
 	diag, _ := f.d.targets(f.program)
 	for i, sf := range diag {
-		if sf.FileName() == fileName {
+		if sf.FileName().AsString() == fileName {
 			for _, d := range f.p.diags[i] {
 				codes = append(codes, d.code)
 			}
@@ -77,11 +77,11 @@ func (f fixtureRun) diagsIn(fileName string) []int32 {
 
 func (f fixtureRun) walkNames() []string {
 	_, walk := f.d.targets(f.program)
-	return core.Map(walk, (*ast.SourceFile).FileName)
+	return stringsOf(core.Map(walk, (*ast.SourceFile).FileName))
 }
 
 func (f fixtureRun) sourceFileNames() []string {
-	return core.Map(f.program.SourceFiles(), (*ast.SourceFile).FileName)
+	return stringsOf(core.Map(f.program.SourceFiles(), (*ast.SourceFile).FileName))
 }
 
 func unitNames(files []*harnessutil.TestFile) []string {
@@ -252,7 +252,7 @@ func TestConfigurationFixtures(t *testing.T) {
 	t.Run("case insensitive", func(t *testing.T) {
 		f := run("fixture/caseInsensitive.ts")
 		wantStatus(t, f, statusEqual)
-		if f.program.Host().FS().UseCaseSensitiveFileNames() {
+		if f.program.Host().FS().CaseSensitivity().IsCaseSensitive() {
 			t.Error("the file system is case sensitive")
 		}
 		// The name as written, found in the case-insensitive file system.
@@ -315,7 +315,7 @@ func TestConfigurationFixtures(t *testing.T) {
 		f := run("fixture/defaultLibChecked.ts")
 		wantStatus(t, f, statusEqual)
 		diag, _ := f.d.targets(f.program)
-		names := core.Map(diag, (*ast.SourceFile).FileName)
+		names := stringsOf(core.Map(diag, (*ast.SourceFile).FileName))
 		if len(names) != len(f.program.SourceFiles()) || !slices.ContainsFunc(names, func(n string) bool { return strings.HasSuffix(n, "/lib.es5.d.ts") }) || names[len(names)-1] != "/.src/defaultLibChecked.ts" {
 			t.Errorf("diagnostic targets %v, want every source file", names)
 		}
@@ -408,21 +408,21 @@ func TestConfigurationFixtures(t *testing.T) {
 			}
 			program := f.s.store
 			for name, text := range c.files {
-				file := program.GetSourceFile(name)
+				file := program.GetSourceFile(tspath.ToRootedFilePath(name, "/"))
 				var specifier, other store.Node
 				if c.helpers {
-					specifier, other = program.GetImportHelpersImportSpecifier(file.Path()), program.jsxImports[file.Path()]
+					specifier, other = program.GetImportHelpersImportSpecifier(file.PathKey()), program.jsxImports[file.PathKey()]
 				} else {
-					_, specifier = program.GetJSXRuntimeImportSpecifier(file.Path())
-					other = program.helperImports[file.Path()]
+					_, specifier = program.GetJSXRuntimeImportSpecifier(file.PathKey())
+					other = program.helperImports[file.PathKey()]
 				}
 				decl := specifier.Parent()
 				if specifier.Text() != text || decl.Kind() != ast.KindImportDeclaration || !store.SameNode(decl.Parent(), file.Root()) || specifier.File() != file || !other.IsNil() {
 					t.Errorf("%s %s: %v %q, parent %v", c.id, name, specifier.Kind(), specifier.Text(), decl.Kind())
 				}
-				again := program.GetImportHelpersImportSpecifier(file.Path())
+				again := program.GetImportHelpersImportSpecifier(file.PathKey())
 				if !c.helpers {
-					_, again = program.GetJSXRuntimeImportSpecifier(file.Path())
+					_, again = program.GetJSXRuntimeImportSpecifier(file.PathKey())
 				}
 				if !store.SameNode(again, specifier) {
 					t.Errorf("%s %s: another node the second time", c.id, name)
@@ -444,21 +444,31 @@ func TestConfigurationFixtures(t *testing.T) {
 // resolvedModule is the file a module name of the file resolves to, in any
 // mode, or "".
 func resolvedModule(program *compiler.Program, fileName, name string) string {
-	file := program.GetSourceFile(fileName)
+	file := program.GetSourceFile(tspath.ToRootedFilePath(fileName, "/"))
 	if file == nil {
 		return ""
 	}
-	for key, r := range program.GetResolvedModules()[file.Path()] {
+	for key, r := range program.GetResolvedModules()[file.PathKey()] {
 		if key.Name == name && r.IsResolved() {
-			return r.ResolvedFileName
+			return r.ResolvedFileName.AsString()
 		}
 	}
 	return ""
 }
 
-func wantStrings(t *testing.T, what string, got, want []string) {
+// stringsOf are the file names as strings, for the comparisons and the
+// listings.
+func stringsOf[T ~string](names []T) []string {
+	out := make([]string, len(names))
+	for i, name := range names {
+		out[i] = string(name)
+	}
+	return out
+}
+
+func wantStrings[T ~string](t *testing.T, what string, got []T, want []string) {
 	t.Helper()
-	if !slices.Equal(got, want) {
+	if !slices.Equal(stringsOf(got), want) {
 		t.Errorf("%s: %v, want %v", what, got, want)
 	}
 }
@@ -557,14 +567,14 @@ func optionsJSON(t *testing.T, o *core.CompilerOptions) string {
 func programSummary(t *testing.T, d *configDescriptor, program *compiler.Program) string {
 	var b strings.Builder
 	b.WriteString(optionsJSON(t, program.Options()))
-	b.WriteString("\nroots: " + strings.Join(program.CommandLine().FileNames(), " "))
+	b.WriteString("\nroots: " + strings.Join(stringsOf(program.CommandLine().FileNames()), " "))
 	for _, f := range program.SourceFiles() {
 		opts, _ := json.Marshal(f.ParseOptions())
-		b.WriteString("\n" + f.FileName() + " " + contentHash(f.Text())[:16] + " " + f.ScriptKind.String() + " " + string(opts))
+		b.WriteString("\n" + f.FileName().AsString() + " " + contentHash(f.Text())[:16] + " " + f.ScriptKind.String() + " " + string(opts))
 	}
 	diag, walk := d.targets(program)
-	b.WriteString("\ndiagnostic targets: " + strings.Join(core.Map(diag, (*ast.SourceFile).FileName), " "))
-	b.WriteString("\nwalk targets: " + strings.Join(core.Map(walk, (*ast.SourceFile).FileName), " "))
+	b.WriteString("\ndiagnostic targets: " + strings.Join(stringsOf(core.Map(diag, (*ast.SourceFile).FileName)), " "))
+	b.WriteString("\nwalk targets: " + strings.Join(stringsOf(core.Map(walk, (*ast.SourceFile).FileName)), " "))
 	return b.String()
 }
 

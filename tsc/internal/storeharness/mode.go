@@ -15,13 +15,13 @@ import (
 // GetModeForUsageLocation is compiler.Program.GetModeForUsageLocation
 // (program.go) and getModeForUsageLocation (fileloader.go).
 func (p *Program) GetModeForUsageLocation(file ast.HasFileName, usage store.Node) core.ResolutionMode {
-	return storecompiler.ModeForUsageLocation(file.FileName(), p.pointer.GetSourceFileMetaData(file.Path()), usage, p.optionsForFile(file))
+	return storecompiler.ModeForUsageLocation(file.FileName(), p.pointer.GetSourceFileMetaData(file.PathKey()), usage, p.optionsForFile(file))
 }
 
 // GetEmitSyntaxForUsageLocation is compiler.Program.GetEmitSyntaxForUsageLocation
 // (program.go) and getEmitSyntaxForUsageLocationWorker (fileloader.go).
 func (p *Program) GetEmitSyntaxForUsageLocation(file ast.HasFileName, usage store.Node) core.ResolutionMode {
-	return storecompiler.EmitSyntaxForUsageLocation(file.FileName(), p.pointer.GetSourceFileMetaData(file.Path()), usage, p.optionsForFile(file))
+	return storecompiler.EmitSyntaxForUsageLocation(file.FileName(), p.pointer.GetSourceFileMetaData(file.PathKey()), usage, p.optionsForFile(file))
 }
 
 // GetResolvedModuleFromModuleSpecifier is

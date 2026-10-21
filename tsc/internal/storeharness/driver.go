@@ -14,6 +14,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
 	"github.com/microsoft/TypeScript/tsc/internal/storechecker"
+	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
 // The driver (6.1): on each side, one checker made on the program, not the
@@ -89,12 +90,12 @@ type panicInfo struct {
 // files, in its order, and the paths of the files it lacks.
 func Roots(pointer *compiler.Program, files map[string]string) (roots []*ast.SourceFile, missing []string) {
 	for name := range files {
-		if pointer.GetSourceFile(name) == nil {
+		if pointer.GetSourceFile(tspath.RootedFilePathFromAbsolute(name)) == nil {
 			missing = append(missing, name)
 		}
 	}
 	for _, f := range pointer.SourceFiles() {
-		if _, ok := files[f.FileName()]; ok {
+		if _, ok := files[f.FileName().AsString()]; ok {
 			roots = append(roots, f)
 		}
 	}
@@ -220,7 +221,7 @@ func pointerDiags(ds []*ast.Diagnostic) []diag {
 	for i, d := range ds {
 		var file string
 		if d.File() != nil {
-			file = string(d.File().Path())
+			file = string(d.File().PathKey())
 		}
 		out[i] = diag{
 			file:               file,
@@ -250,7 +251,7 @@ func storeDiags(ds []*store.Diagnostic) []diag {
 	for i, d := range ds {
 		var file string
 		if d.File() != nil {
-			file = string(d.File().Path())
+			file = string(d.File().PathKey())
 		}
 		out[i] = diag{
 			file:               file,

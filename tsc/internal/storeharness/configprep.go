@@ -5,9 +5,8 @@ package storeharness
 // testrunner builds for it. The enumeration and the preparation are
 // testrunner's and harnessutil's: the exported functions are called, and the
 // unexported ones are written out here, each with the name of its original,
-// from revision 0e32aa196a of testrunner/compiler_runner.go and
-// testutil/harnessutil/harnessutil.go and 5f647a841a of
-// testrunner/test_case_parser.go.
+// from revision ed4807212c of testrunner/compiler_runner.go,
+// testutil/harnessutil/harnessutil.go and testrunner/test_case_parser.go.
 
 import (
 	"cmp"
@@ -168,9 +167,10 @@ func extractCompilerSettings(content string) map[string]string {
 // harnessutil.go's testLibFolder.
 const (
 	requireStr    = "require("
-	srcFolder     = "/.src"
 	testLibFolder = "/.lib"
 )
+
+var srcFolder = tspath.RootedDirectoryPathFromNormalized("/.src")
 
 var referencesRegex = regexp.MustCompile(`reference\spath`)
 
@@ -217,12 +217,12 @@ func enumerateConfigurations(suites []configSuite) (cases []*configCase, inputEr
 		if err != nil {
 			return nil, nil, 0, fmt.Errorf("%s: %w", suite.name, err)
 		}
-		base := tspath.EnsureTrailingDirectorySeparator(tspath.GetNormalizedAbsolutePath(suite.dir, repo.TestDataPath()))
+		base := tspath.EnsureTrailingDirectorySeparator(tspath.GetNormalizedAbsolutePath(suite.dir, tspath.RootedDirectoryPathFromAbsolute(repo.TestDataPath())))
 		for _, path := range paths {
 			files++
 			file := strings.TrimPrefix(path, base)
 			// getCompilerFileBasedTest: osvfs reads the file (a BOM is decoded).
-			content, ok := osvfs.FS().ReadFile(path)
+			content, ok := osvfs.FS().ReadFile(tspath.RootedFilePathFromNormalized(path))
 			if !ok {
 				return nil, nil, 0, fmt.Errorf("cannot read %s", path)
 			}
@@ -387,7 +387,7 @@ func endedAt(v any) tOutcome {
 // preparation of the case, as values, and build makes a new program of it
 // each time.
 type configDescriptor struct {
-	currentDirectory string
+	currentDirectory tspath.RootedDirectoryPath
 	toBeCompiled     []*harnessutil.TestFile
 	otherFiles       []*harnessutil.TestFile
 	tsConfigFile     *harnessutil.TestFile // nil when the test has no tsconfig.json or jsconfig.json
@@ -395,7 +395,7 @@ type configDescriptor struct {
 	symlinks         map[string]string
 	options          *core.CompilerOptions // as CompileFilesEx gives them to the program
 	harnessOptions   harnessutil.HarnessOptions
-	rootNames        []string // CompileFilesEx's programFileNames
+	rootNames        []tspath.RootedFilePath // CompileFilesEx's programFileNames
 	includeLibDir    bool
 	contentMappers   []*contentmapper.Mapper
 }
@@ -412,21 +412,22 @@ type testUnit struct {
 // runner's rejection of the case, and ends the preparation.
 func prepareCase(c *configCase) (*configDescriptor, tOutcome) {
 	// makeUnitsFromTest.
-	units, symlinks, currentDirectory, globalOptions, _ := testrunner.ParseTestFilesAndSymlinks(
+	units, symlinks, rawCurrentDirectory, globalOptions, _ := testrunner.ParseTestFilesAndSymlinks(
 		c.content,
 		c.path,
 		func(filename string, content string, fileOptions map[string]string) (*testUnit, error) {
 			return &testUnit{content: content, name: filename}, nil
 		},
 	)
-	if currentDirectory == "" {
-		currentDirectory = srcFolder
+	currentDirectory := srcFolder
+	if rawCurrentDirectory != "" {
+		currentDirectory = tspath.ToRootedDirectoryPath(rawCurrentDirectory, srcFolder)
 	}
 	allFiles := make(map[string]string)
 	for _, data := range units {
-		allFiles[tspath.GetNormalizedAbsolutePath(data.name, currentDirectory)] = data.content
+		allFiles[tspath.ToRootedFilePath(data.name, currentDirectory).AsString()] = data.content
 	}
-	parseConfigHost := tsoptionstest.NewVFSParseConfigHostWithSymlinks(allFiles, symlinks, currentDirectory, true /*useCaseSensitiveFileNames*/)
+	configFS := tsoptionstest.NewVFSWithSymlinks(allFiles, symlinks, currentDirectory, tspath.CaseSensitive /*caseSensitivity*/)
 	var existingOptions *core.CompilerOptions
 	if globalOptions["runexternalcode"] == "true" {
 		existingOptions = &core.CompilerOptions{RunExternalCode: core.TSTrue}
@@ -435,23 +436,22 @@ func prepareCase(c *configCase) (*configDescriptor, tOutcome) {
 	var tsConfigFileUnitData *testUnit
 	for i, data := range units {
 		if harnessutil.GetConfigNameFromFileName(data.name) != "" {
-			configFileName := tspath.GetNormalizedAbsolutePath(data.name, currentDirectory)
-			path := tspath.ToPath(data.name, parseConfigHost.GetCurrentDirectory(), parseConfigHost.Vfs.UseCaseSensitiveFileNames())
+			configFileName := tspath.ToRootedFilePath(data.name, currentDirectory)
+			path := configFS.CaseSensitivity().PathKey(tspath.RootedPath(configFileName))
 			configJson := parser.ParseSourceFile(ast.SourceFileParseOptions{
 				FileName: configFileName,
-				Path:     path,
+				PathKey:  path,
 			}, data.content, core.ScriptKindJSON)
 			tsConfigSourceFile := &tsoptions.TsConfigSourceFile{
 				SourceFile: configJson,
 			}
-			configDir := tspath.GetDirectoryPath(configFileName)
+			configDir := configFileName.Directory()
 			tsConfig = tsoptions.ParseJsonSourceFileConfigFileContent(
 				tsConfigSourceFile,
-				parseConfigHost,
+				configFS,
 				configDir,
 				existingOptions,
 				nil, /*existingOptionsRaw*/
-				configFileName,
 				nil, /*resolutionStack*/
 				nil, /*extendedConfigCache*/
 			)
@@ -465,17 +465,20 @@ func prepareCase(c *configCase) (*configDescriptor, tOutcome) {
 	// rewrites baseurl in it: here, a copy.
 	harnessConfig := maps.Clone(c.Config)
 	d := &configDescriptor{
-		currentDirectory: tspath.GetNormalizedAbsolutePath(harnessConfig["currentdirectory"], srcFolder),
+		currentDirectory: srcFolder,
 		tsConfig:         tsConfig,
 		symlinks:         symlinks,
 	}
+	if rawCurrentDirectory := harnessConfig["currentdirectory"]; rawCurrentDirectory != "" {
+		d.currentDirectory = tspath.ToRootedDirectoryPath(rawCurrentDirectory, srcFolder)
+	}
 	createHarnessTestFile := func(unit *testUnit) *harnessutil.TestFile {
-		return &harnessutil.TestFile{UnitName: tspath.GetNormalizedAbsolutePath(unit.name, d.currentDirectory), Content: unit.content}
+		return &harnessutil.TestFile{UnitName: tspath.ToRootedFilePath(unit.name, d.currentDirectory).AsString(), Content: unit.content}
 	}
 	if tsConfig != nil {
 		d.tsConfigFile = createHarnessTestFile(tsConfigFileUnitData)
 		for _, unit := range units {
-			if slices.Contains(tsConfig.ParsedConfig.FileNames, tspath.GetNormalizedAbsolutePath(unit.name, d.currentDirectory)) {
+			if slices.Contains(tsConfig.ParsedConfig.FileNames, tspath.ToRootedFilePath(unit.name, d.currentDirectory)) {
 				d.toBeCompiled = append(d.toBeCompiled, createHarnessTestFile(unit))
 			} else {
 				d.otherFiles = append(d.otherFiles, createHarnessTestFile(unit))
@@ -483,7 +486,7 @@ func prepareCase(c *configCase) (*configDescriptor, tOutcome) {
 		}
 	} else {
 		if baseUrl, ok := harnessConfig["baseurl"]; ok && !tspath.IsRootedDiskPath(baseUrl) {
-			harnessConfig["baseurl"] = tspath.GetNormalizedAbsolutePath(baseUrl, d.currentDirectory)
+			harnessConfig["baseurl"] = tspath.ToRootedDirectoryPath(baseUrl, d.currentDirectory).AsString()
 		}
 		lastUnit := units[len(units)-1]
 		if harnessConfig["noimplicitreferences"] != "" ||
@@ -513,7 +516,7 @@ func prepareCase(c *configCase) (*configDescriptor, tOutcome) {
 		compilerOptions.SkipDefaultLibCheck = core.TSTrue
 	}
 	compilerOptions.NoErrorTruncation = core.TSTrue
-	d.harnessOptions = harnessutil.HarnessOptions{UseCaseSensitiveFileNames: true, CurrentDirectory: d.currentDirectory}
+	d.harnessOptions = harnessutil.HarnessOptions{CaseSensitivity: tspath.CaseSensitive, CurrentDirectory: d.currentDirectory}
 	if harnessConfig != nil {
 		if o := callWithT(func(t *testing.T) {
 			harnessutil.SetOptionsFromTestConfig(t, harnessConfig, compilerOptions, &d.harnessOptions, d.currentDirectory, false /*allowUnknownOptions*/)
@@ -524,9 +527,9 @@ func prepareCase(c *configCase) (*configDescriptor, tOutcome) {
 
 	// CompileFilesEx, up to the file system.
 	for _, file := range d.toBeCompiled {
-		fileName := tspath.GetNormalizedAbsolutePath(file.UnitName, d.currentDirectory)
-		if !tspath.FileExtensionIs(fileName, tspath.ExtensionJson) &&
-			!tspath.FileExtensionIs(fileName, tspath.ExtensionTsBuildInfo) {
+		fileName := tspath.ToRootedFilePath(file.UnitName, d.currentDirectory)
+		if !fileName.ExtensionIs(tspath.ExtensionJson) &&
+			!fileName.ExtensionIs(tspath.ExtensionTsBuildInfo) {
 			d.rootNames = append(d.rootNames, fileName)
 		}
 	}
@@ -535,32 +538,8 @@ func prepareCase(c *configCase) (*configDescriptor, tOutcome) {
 		if libFile == "lib.d.ts" && compilerOptions.NoLib != core.TSTrue {
 			continue
 		}
-		d.rootNames = append(d.rootNames, tspath.CombinePaths(testLibFolder, libFile))
+		d.rootNames = append(d.rootNames, d.currentDirectory.ResolveFile(tspath.CombinePaths(testLibFolder, libFile)))
 		d.includeLibDir = true
-	}
-	if compilerOptions.OutDir != "" {
-		compilerOptions.OutDir = tspath.GetNormalizedAbsolutePath(compilerOptions.OutDir, d.currentDirectory)
-	}
-	if compilerOptions.Project != "" {
-		compilerOptions.Project = tspath.GetNormalizedAbsolutePath(compilerOptions.Project, d.currentDirectory)
-	}
-	if compilerOptions.RootDir != "" {
-		compilerOptions.RootDir = tspath.GetNormalizedAbsolutePath(compilerOptions.RootDir, d.currentDirectory)
-	}
-	if compilerOptions.TsBuildInfoFile != "" {
-		compilerOptions.TsBuildInfoFile = tspath.GetNormalizedAbsolutePath(compilerOptions.TsBuildInfoFile, d.currentDirectory)
-	}
-	if compilerOptions.BaseUrl != "" {
-		compilerOptions.BaseUrl = tspath.GetNormalizedAbsolutePath(compilerOptions.BaseUrl, d.currentDirectory)
-	}
-	if compilerOptions.DeclarationDir != "" {
-		compilerOptions.DeclarationDir = tspath.GetNormalizedAbsolutePath(compilerOptions.DeclarationDir, d.currentDirectory)
-	}
-	for i, rootDir := range compilerOptions.RootDirs {
-		compilerOptions.RootDirs[i] = tspath.GetNormalizedAbsolutePath(rootDir, d.currentDirectory)
-	}
-	for i, typeRoot := range compilerOptions.TypeRoots {
-		compilerOptions.TypeRoots[i] = tspath.GetNormalizedAbsolutePath(typeRoot, d.currentDirectory)
 	}
 	if tsConfig != nil && tsConfig.ParsedConfig != nil {
 		d.contentMappers = tsConfig.ParsedConfig.ContentMappers
@@ -587,7 +566,7 @@ func prepareCase(c *configCase) (*configDescriptor, tOutcome) {
 //   - the files are parsed for each program, but the bundled libs
 //     (configHost).
 func (d *configDescriptor) build() (program *compiler.Program, release func()) {
-	fs := vfstest.FromMap(d.fileMap(), d.harnessOptions.UseCaseSensitiveFileNames)
+	fs := vfstest.FromMap(d.fileMap(), d.harnessOptions.CaseSensitivity)
 	fs = bundled.WrapFS(fs)
 	fs = harnessutil.NewOutputRecorderFS(fs)
 
@@ -619,7 +598,7 @@ func (d *configDescriptor) build() (program *compiler.Program, release func()) {
 		})
 		closers = append(closers, func() { contentMapperProject.Close() })
 	}
-	host := &configHost{CompilerHost: compiler.NewCompilerHost(d.currentDirectory, fs, bundled.LibPath(), nil, nil, contentMapperProject)}
+	host := &configHost{CompilerHost: compiler.NewCompilerHost(fs, bundled.LibPath(), nil, nil, contentMapperProject)}
 	program = compiler.NewProgram(compiler.ProgramOptions{Config: config, Host: host, SingleThreaded: core.TSTrue})
 	return program, release
 }
@@ -652,15 +631,15 @@ func (d *configDescriptor) commandLine(options *core.CompilerOptions) *tsoptions
 		configFile = d.tsConfig.ConfigFile
 		errors = d.tsConfig.Errors
 	}
-	return &tsoptions.ParsedCommandLine{
-		ParsedConfig: &tsoptions.ParsedOptions{
-			CompilerOptions: options,
-			FileNames:       slices.Clone(d.rootNames),
-			ContentMappers:  d.contentMappers,
-		},
-		ConfigFile: configFile,
-		Errors:     errors,
+	baseDirectory := d.currentDirectory
+	if d.tsConfig != nil && d.tsConfig.BaseDirectory() != "" {
+		baseDirectory = d.tsConfig.BaseDirectory()
 	}
+	config := tsoptions.NewParsedCommandLine(options, slices.Clone(d.rootNames), nil, baseDirectory, d.harnessOptions.CaseSensitivity)
+	config.ParsedConfig.ContentMappers = d.contentMappers
+	config.ConfigFile = configFile
+	config.Errors = errors
+	return config
 }
 
 // targets are the program's diagnostic targets and walk targets.
@@ -678,12 +657,12 @@ func (d *configDescriptor) commandLine(options *core.CompilerOptions) *tsoptions
 func (d *configDescriptor) targets(program *compiler.Program) (diagFiles, walkFiles []*ast.SourceFile) {
 	skipDefaultLibs := program.Options().SkipDefaultLibCheck.IsTrue()
 	for _, f := range program.SourceFiles() {
-		if !(skipDefaultLibs && program.IsSourceFileDefaultLibrary(f.Path())) {
+		if !(skipDefaultLibs && program.IsSourceFileDefaultLibrary(f.PathKey())) {
 			diagFiles = append(diagFiles, f)
 		}
 	}
 	for _, file := range core.Concatenate(d.toBeCompiled, d.otherFiles) {
-		if sf := program.GetSourceFile(file.UnitName); sf != nil {
+		if sf := program.GetSourceFile(tspath.ToRootedFilePath(file.UnitName, d.currentDirectory)); sf != nil {
 			walkFiles = append(walkFiles, sf)
 		}
 	}
@@ -731,7 +710,7 @@ func (h *configHost) GetSourceFile(opts ast.SourceFileParseOptions) *ast.SourceF
 	}
 	scriptKind := core.GetScriptKindFromFileName(opts.FileName)
 	if scriptKind == core.ScriptKindUnknown {
-		panic("Unknown script kind for file  " + opts.FileName)
+		panic("Unknown script kind for file  " + opts.FileName.AsString())
 	}
 	if isBundledLib(opts.FileName) {
 		return cachedLib(opts, text, scriptKind)

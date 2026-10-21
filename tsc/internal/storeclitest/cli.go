@@ -15,6 +15,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/execute"
 	"github.com/microsoft/TypeScript/tsc/internal/execute/tsc"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
+	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 	"github.com/microsoft/TypeScript/tsc/internal/vfs"
 	"github.com/microsoft/TypeScript/tsc/internal/vfs/vfstest"
 )
@@ -48,8 +49,8 @@ func RunCheck(files map[string]any, caseSensitive bool, cwd string, config *tsop
 }
 
 func runOn(files map[string]any, caseSensitive bool, cwd string, run func(tsc.System) tsc.CommandLineResult) CLIResult {
-	fs := &recordingFS{FS: bundled.WrapFS(vfstest.FromMap(files, caseSensitive))}
-	sys := &cliSystem{fs: fs, cwd: cwd}
+	fs := &recordingFS{FS: bundled.WrapFS(vfstest.FromMap(files, core.IfElse(caseSensitive, tspath.CaseSensitive, tspath.CaseInsensitive)))}
+	sys := &cliSystem{fs: fs, cwd: tspath.RootedDirectoryPathFromAbsolute(cwd)}
 	result := run(sys)
 	fs.mu.Lock()
 	defer fs.mu.Unlock()
@@ -58,22 +59,22 @@ func runOn(files map[string]any, caseSensitive bool, cwd string, run func(tsc.Sy
 
 type cliSystem struct {
 	fs  vfs.FS
-	cwd string
+	cwd tspath.RootedDirectoryPath
 	out strings.Builder
 }
 
 var _ tsc.System = (*cliSystem)(nil)
 
-func (s *cliSystem) Writer() io.Writer                            { return &s.out }
-func (s *cliSystem) ErrorWriter() io.Writer                       { return &s.out }
-func (s *cliSystem) FS() vfs.FS                                   { return s.fs }
-func (s *cliSystem) DefaultLibraryPath() string                   { return bundled.LibPath() }
-func (s *cliSystem) GetCurrentDirectory() string                  { return s.cwd }
-func (s *cliSystem) WriteOutputIsTTY() bool                       { return false }
-func (s *cliSystem) GetWidthOfTerminal() int                      { return 0 }
-func (s *cliSystem) GetEnvironmentVariable(string) (string, bool) { return "", false }
-func (s *cliSystem) Now() time.Time                               { return time.Time{} }
-func (s *cliSystem) SinceStart() time.Duration                    { return 0 }
+func (s *cliSystem) Writer() io.Writer                               { return &s.out }
+func (s *cliSystem) ErrorWriter() io.Writer                          { return &s.out }
+func (s *cliSystem) FS() vfs.FS                                      { return s.fs }
+func (s *cliSystem) DefaultLibraryPath() tspath.RootedDirectoryPath  { return bundled.LibPath() }
+func (s *cliSystem) GetCurrentDirectory() tspath.RootedDirectoryPath { return s.cwd }
+func (s *cliSystem) WriteOutputIsTTY() bool                          { return false }
+func (s *cliSystem) GetWidthOfTerminal() int                         { return 0 }
+func (s *cliSystem) GetEnvironmentVariable(string) (string, bool)    { return "", false }
+func (s *cliSystem) Now() time.Time                                  { return time.Time{} }
+func (s *cliSystem) SinceStart() time.Duration                       { return 0 }
 func (s *cliSystem) Spawn([]string, string, io.Writer) (io.ReadWriteCloser, error) {
 	return nil, errors.New("storeclitest: no process")
 }
@@ -94,33 +95,33 @@ func (f *recordingFS) note(list *[]string, path string) {
 	f.mu.Unlock()
 }
 
-func (f *recordingFS) ReadFile(path string) (string, bool) {
-	f.note(&f.reads, path)
+func (f *recordingFS) ReadFile(path tspath.RootedFilePath) (string, bool) {
+	f.note(&f.reads, path.AsString())
 	return f.FS.ReadFile(path)
 }
 
-func (f *recordingFS) WriteFile(path string, data string) error {
-	f.note(&f.writes, "write "+path)
+func (f *recordingFS) WriteFile(path tspath.RootedFilePath, data string) error {
+	f.note(&f.writes, "write "+path.AsString())
 	f.mu.Lock()
 	if f.written == nil {
 		f.written = map[string]string{}
 	}
-	f.written[path] = data
+	f.written[path.AsString()] = data
 	f.mu.Unlock()
 	return f.FS.WriteFile(path, data)
 }
 
-func (f *recordingFS) AppendFile(path string, data string) error {
-	f.note(&f.writes, "append "+path)
+func (f *recordingFS) AppendFile(path tspath.RootedFilePath, data string) error {
+	f.note(&f.writes, "append "+path.AsString())
 	return f.FS.AppendFile(path, data)
 }
 
-func (f *recordingFS) Remove(path string) error {
-	f.note(&f.writes, "remove "+path)
+func (f *recordingFS) Remove(path tspath.RootedPath) error {
+	f.note(&f.writes, "remove "+path.AsString())
 	return f.FS.Remove(path)
 }
 
-func (f *recordingFS) Chtimes(path string, aTime time.Time, mTime time.Time) error {
-	f.note(&f.writes, "chtimes "+path)
+func (f *recordingFS) Chtimes(path tspath.RootedPath, aTime time.Time, mTime time.Time) error {
+	f.note(&f.writes, "chtimes "+path.AsString())
 	return f.FS.Chtimes(path, aTime, mTime)
 }

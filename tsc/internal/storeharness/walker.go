@@ -205,7 +205,7 @@ func (w *storeWalker) writeTypeOrSymbol(file *store.File, node store.Node, isSym
 
 		declSourceFile := declaration.File()
 		declLine, declChar := scanner.GetECMALineAndUTF16CharacterOfPosition(declSourceFile, int(declaration.Pos()))
-		fileName := tspath.GetBaseFileName(declSourceFile.FileName())
+		fileName := declSourceFile.FileName().BaseName()
 		symbolString.WriteString("Decl(")
 		symbolString.WriteString(fileName)
 		symbolString.WriteString(", ")
@@ -221,7 +221,7 @@ func (w *storeWalker) writeTypeOrSymbol(file *store.File, node store.Node, isSym
 	for _, d := range symbol.Declarations {
 		var path string
 		if f := d.File(); f != nil {
-			path = string(f.Path())
+			path = string(f.PathKey())
 		}
 		record.decls = append(record.decls, declKey{path: path, pos: int(d.Pos()), end: int(d.End()), kind: d.Kind()})
 	}

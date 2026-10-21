@@ -75,11 +75,13 @@ func newOSSystem(cwd string) *osSystem {
 
 var start = time.Now()
 
-func (s *osSystem) Writer() io.Writer                            { return s.out }
-func (s *osSystem) ErrorWriter() io.Writer                       { return s.out }
-func (s *osSystem) FS() vfs.FS                                   { return s.fs }
-func (s *osSystem) DefaultLibraryPath() string                   { return bundled.LibPath() }
-func (s *osSystem) GetCurrentDirectory() string                  { return s.cwd }
+func (s *osSystem) Writer() io.Writer                              { return s.out }
+func (s *osSystem) ErrorWriter() io.Writer                         { return s.out }
+func (s *osSystem) FS() vfs.FS                                     { return s.fs }
+func (s *osSystem) DefaultLibraryPath() tspath.RootedDirectoryPath { return bundled.LibPath() }
+func (s *osSystem) GetCurrentDirectory() tspath.RootedDirectoryPath {
+	return tspath.RootedDirectoryPathFromAbsolute(s.cwd)
+}
 func (s *osSystem) WriteOutputIsTTY() bool                       { return false }
 func (s *osSystem) GetWidthOfTerminal() int                      { return 0 }
 func (s *osSystem) GetEnvironmentVariable(string) (string, bool) { return "", false }
@@ -96,8 +98,8 @@ type nativeProgram struct {
 	store   *storecompiler.Program
 }
 
-func parseConfig(tb testing.TB, host tsoptions.ParseConfigHost, configFile string) *tsoptions.ParsedCommandLine {
-	config, diags := tsoptions.GetParsedCommandLineOfConfigFile(configFile, &core.CompilerOptions{}, nil, host, &tsc.ExtendedConfigCache{})
+func parseConfig(tb testing.TB, fs vfs.FS, configFile string) *tsoptions.ParsedCommandLine {
+	config, diags := tsoptions.GetParsedCommandLineOfConfigFile(tspath.RootedFilePathFromAbsolute(configFile), &core.CompilerOptions{}, nil, fs, &tsc.ExtendedConfigCache{})
 	if len(diags) != 0 {
 		tb.Fatalf("%s: %d config diagnostics", configFile, len(diags))
 	}
@@ -108,11 +110,11 @@ func buildProgram(tb testing.TB, backend core.ASTBackend, configFile string) nat
 	cwd := tspath.GetDirectoryPath(tspath.NormalizePath(configFile))
 	sys := newOSSystem(cwd)
 	if backend == core.ASTBackendStore {
-		host := storecompiler.NewCachedFSCompilerHost(cwd, sys.FS(), sys.DefaultLibraryPath(), nil, nil)
-		return nativeProgram{store: storecompiler.NewProgram(storecompiler.ProgramOptions{Config: parseConfig(tb, host, configFile), Host: host})}
+		host := storecompiler.NewCachedFSCompilerHost(sys.FS(), sys.DefaultLibraryPath(), nil, nil)
+		return nativeProgram{store: storecompiler.NewProgram(storecompiler.ProgramOptions{Config: parseConfig(tb, host.FS(), configFile), Host: host})}
 	}
-	host := compiler.NewCachedFSCompilerHost(cwd, sys.FS(), sys.DefaultLibraryPath(), nil, nil, nil)
-	return nativeProgram{pointer: compiler.NewProgram(compiler.ProgramOptions{Config: parseConfig(tb, host, configFile), Host: host})}
+	host := compiler.NewCachedFSCompilerHost(sys.FS(), sys.DefaultLibraryPath(), nil, nil, nil)
+	return nativeProgram{pointer: compiler.NewProgram(compiler.ProgramOptions{Config: parseConfig(tb, host.FS(), configFile), Host: host})}
 }
 
 // BenchmarkNativeCheckKPC is the old Check (storeharness/measure_test.go
@@ -139,7 +141,7 @@ func BenchmarkNativeCheckKPC(b *testing.B) {
 						p.store.BindSourceFiles()
 						var targets []*store.File
 						for _, f := range p.store.SourceFiles() {
-							if !p.store.IsSourceFileDefaultLibrary(f.Path()) {
+							if !p.store.IsSourceFileDefaultLibrary(f.PathKey()) {
 								targets = append(targets, f)
 							}
 						}
@@ -158,7 +160,7 @@ func BenchmarkNativeCheckKPC(b *testing.B) {
 						p.pointer.BindSourceFiles()
 						var targets []*ast.SourceFile
 						for _, f := range p.pointer.SourceFiles() {
-							if !p.pointer.IsSourceFileDefaultLibrary(f.Path()) {
+							if !p.pointer.IsSourceFileDefaultLibrary(f.PathKey()) {
 								targets = append(targets, f)
 							}
 						}

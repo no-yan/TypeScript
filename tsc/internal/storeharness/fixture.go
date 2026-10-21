@@ -69,10 +69,10 @@ type Fixture struct {
 	NilOutputDts   map[string]bool                // GetProjectReferenceFromOutputDts
 	NilFromSource  map[string]bool                // GetProjectReferenceFromSource
 	PackageJson    map[string]*fixturePackageJson // GetPackageJsonInfo: nil for nil
-	RedirectTarget map[string][]string
-	SourceOfOutput map[string]string // GetSourceOfProjectReferenceIfOutputIncluded: path
-	NearestPackage map[string]string // GetNearestAncestorDirectoryWithPackageJson
-	JSXReference   map[string]string // GetJSXRuntimeImportSpecifier's module reference: path
+	RedirectTarget map[string][]tspath.RootedFilePath
+	SourceOfOutput map[string]tspath.RootedFilePath      // GetSourceOfProjectReferenceIfOutputIncluded: path
+	NearestPackage map[string]tspath.RootedDirectoryPath // GetNearestAncestorDirectoryWithPackageJson
+	JSXReference   map[string]string                     // GetJSXRuntimeImportSpecifier's module reference: path
 }
 
 // FixtureFile is a source file of the program, in its order, as the Store
@@ -86,91 +86,92 @@ type FixtureFile struct {
 }
 
 type fixtureModule struct {
-	ResolvedFileName             string
-	OriginalPath                 string
+	ResolvedFileName             tspath.RootedFilePath
+	OriginalPath                 tspath.RootedFilePath
 	Extension                    string
 	ResolvedUsingTsExtension     bool
 	ResolvedUsingExtraExtensions bool
 	PackageId                    module.PackageId
 	IsExternalLibraryImport      bool
-	AlternateResult              string
+	AlternateResult              tspath.RootedFilePath
 }
 
 type fixtureScalars struct {
-	Asked                     map[string]bool // which of the scalars were asked
-	PackagesMap               map[string]bool
-	ResolvedModulesNil        bool
-	CommonSourceDirectory     string
-	ContentMapperExtensions   []string
-	GlobalTypingsLocation     string
-	UseCaseSensitiveFileNames bool
-	CurrentDirectory          string
-	Symlinks                  *fixtureSymlinks
+	Asked                   map[string]bool // which of the scalars were asked
+	PackagesMap             map[string]bool
+	ResolvedModulesNil      bool
+	CommonSourceDirectory   tspath.RootedDirectoryPath
+	ContentMapperExtensions []string
+	GlobalTypingsLocation   tspath.RootedDirectoryPath
+	CaseSensitivity         tspath.CaseSensitivity
+	BaseDirectory           tspath.RootedDirectoryPath
+	Symlinks                *fixtureSymlinks
 }
 
 // fixtureSymlinks is a KnownSymlinks as values: its four maps.
 type fixtureSymlinks struct {
-	CurrentDirectory          string
-	UseCaseSensitiveFileNames bool
-	Directories               map[tspath.Path]*symlinks.KnownDirectoryLink
-	DirectoriesByRealpath     map[tspath.Path][]string
-	Files                     map[tspath.Path]string
-	FilesByRealpath           map[tspath.Path][]string
+	CaseSensitivity       tspath.CaseSensitivity
+	Directories           map[tspath.PathKey]*symlinks.KnownDirectoryLink
+	DirectoriesByRealpath map[tspath.PathKey][]tspath.RootedDirectoryPath
+	Files                 map[tspath.PathKey]tspath.RootedFilePath
+	FilesByRealpath       map[tspath.PathKey][]tspath.RootedFilePath
 }
 
-func symlinksValue(cache *symlinks.KnownSymlinks, cwd string, useCaseSensitiveFileNames bool) *fixtureSymlinks {
+func symlinksValue(cache *symlinks.KnownSymlinks, caseSensitivity tspath.CaseSensitivity) *fixtureSymlinks {
 	v := &fixtureSymlinks{
-		CurrentDirectory: cwd, UseCaseSensitiveFileNames: useCaseSensitiveFileNames,
-		Directories: map[tspath.Path]*symlinks.KnownDirectoryLink{}, DirectoriesByRealpath: map[tspath.Path][]string{},
-		Files: map[tspath.Path]string{}, FilesByRealpath: map[tspath.Path][]string{},
+		CaseSensitivity: caseSensitivity,
+		Directories:     map[tspath.PathKey]*symlinks.KnownDirectoryLink{}, DirectoriesByRealpath: map[tspath.PathKey][]tspath.RootedDirectoryPath{},
+		Files: map[tspath.PathKey]tspath.RootedFilePath{}, FilesByRealpath: map[tspath.PathKey][]tspath.RootedFilePath{},
 	}
-	cache.Directories().Range(func(k tspath.Path, link *symlinks.KnownDirectoryLink) bool {
+	cache.Directories().Range(func(k tspath.PathKey, link *symlinks.KnownDirectoryLink) bool {
 		if link != nil {
 			link = &symlinks.KnownDirectoryLink{Real: link.Real, RealPath: link.RealPath}
 		}
 		v.Directories[k] = link
 		return true
 	})
-	cache.Files().Range(func(k tspath.Path, real string) bool { v.Files[k] = real; return true })
-	sets := func(m *collections.SyncMap[tspath.Path, *collections.SyncSet[string]], into map[tspath.Path][]string) {
-		m.Range(func(k tspath.Path, set *collections.SyncSet[string]) bool {
-			into[k] = []string{}
-			set.Range(func(s string) bool { into[k] = append(into[k], s); return true })
-			return true
-		})
-	}
-	sets(cache.DirectoriesByRealpath(), v.DirectoriesByRealpath)
-	sets(cache.FilesByRealpath(), v.FilesByRealpath)
+	cache.Files().Range(func(k tspath.PathKey, real tspath.RootedFilePath) bool { v.Files[k] = real; return true })
+	setsValue(cache.DirectoriesByRealpath(), v.DirectoriesByRealpath)
+	setsValue(cache.FilesByRealpath(), v.FilesByRealpath)
 	return v
 }
 
+func setsValue[T comparable](m *collections.SyncMap[tspath.PathKey, *collections.SyncSet[T]], into map[tspath.PathKey][]T) {
+	m.Range(func(k tspath.PathKey, set *collections.SyncSet[T]) bool {
+		into[k] = []T{}
+		set.Range(func(s T) bool { into[k] = append(into[k], s); return true })
+		return true
+	})
+}
+
 func (v *fixtureSymlinks) cache() *symlinks.KnownSymlinks {
-	cache := symlinks.NewKnownSymlink(v.CurrentDirectory, v.UseCaseSensitiveFileNames)
+	cache := symlinks.NewKnownSymlinks(v.CaseSensitivity)
 	for k, link := range v.Directories {
 		cache.Directories().Store(k, link)
 	}
 	for k, real := range v.Files {
 		cache.Files().Store(k, real)
 	}
-	sets := func(from map[tspath.Path][]string, m *collections.SyncMap[tspath.Path, *collections.SyncSet[string]]) {
-		for k, items := range from {
-			set := &collections.SyncSet[string]{}
-			for _, s := range items {
-				set.Add(s)
-			}
-			m.Store(k, set)
-		}
-	}
-	sets(v.DirectoriesByRealpath, cache.DirectoriesByRealpath())
-	sets(v.FilesByRealpath, cache.FilesByRealpath())
+	setsCache(v.DirectoriesByRealpath, cache.DirectoriesByRealpath())
+	setsCache(v.FilesByRealpath, cache.FilesByRealpath())
 	return cache
 }
 
-func nodeKey(file ast.HasFileName, node store.Node) string {
-	return fmt.Sprintf("%s|%d|%d|%d", file.Path(), node.Pos(), node.End(), node.Kind())
+func setsCache[T comparable](from map[tspath.PathKey][]T, m *collections.SyncMap[tspath.PathKey, *collections.SyncSet[T]]) {
+	for k, items := range from {
+		set := &collections.SyncSet[T]{}
+		for _, s := range items {
+			set.Add(s)
+		}
+		m.Store(k, set)
+	}
 }
 
-func pathKey(file ast.HasFileName) string { return string(file.Path()) }
+func nodeKey(file ast.HasFileName, node store.Node) string {
+	return fmt.Sprintf("%s|%d|%d|%d", file.PathKey(), node.Pos(), node.End(), node.Kind())
+}
+
+func pathKey(file ast.HasFileName) string { return string(file.PathKey()) }
 
 // nodeKeyOf is nodeKey as a map key, for FixtureProgram's lookups: making the
 // string of nodeKey on every call cost more than the lookup
@@ -186,7 +187,7 @@ type nodeKeyOf struct {
 func (p *FixtureProgram) nodeKeyFor(file ast.HasFileName, node store.Node) nodeKeyOf {
 	f, ok := file.(*store.File)
 	if !ok {
-		f = p.byPath[string(file.Path())]
+		f = p.byPath[string(file.PathKey())]
 	}
 	return nodeKeyOf{f, node.Pos(), node.End(), node.Kind()}
 }
@@ -276,19 +277,19 @@ func NewRecorder(program *Program) *Recorder {
 		NilOutputDts:   map[string]bool{},
 		NilFromSource:  map[string]bool{},
 		PackageJson:    map[string]*fixturePackageJson{},
-		RedirectTarget: map[string][]string{},
-		SourceOfOutput: map[string]string{},
-		NearestPackage: map[string]string{},
+		RedirectTarget: map[string][]tspath.RootedFilePath{},
+		SourceOfOutput: map[string]tspath.RootedFilePath{},
+		NearestPackage: map[string]tspath.RootedDirectoryPath{},
 		JSXReference:   map[string]string{},
 	}
 	r := &Recorder{Program: program, fixture: f, index: map[*store.File]int{}, modules: map[*module.ResolvedModule]int{}}
 	for i, sf := range program.files {
-		pf := program.pointers[sf.Path()]
+		pf := program.pointers[sf.PathKey()]
 		ff := FixtureFile{ParseOptions: pf.ParseOptions(), Text: []byte(pf.Text()), ScriptKind: pf.ScriptKind}
-		if s := program.helperImports[sf.Path()]; !s.IsNil() {
+		if s := program.helperImports[sf.PathKey()]; !s.IsNil() {
 			ff.HelperImport = s.Text()
 		}
-		if s := program.jsxImports[sf.Path()]; !s.IsNil() {
+		if s := program.jsxImports[sf.PathKey()]; !s.IsNil() {
 			ff.JSXImport = s.Text()
 		}
 		f.Files = append(f.Files, ff)
@@ -395,32 +396,33 @@ func (r *Recorder) moduleIndex(m *module.ResolvedModule) int {
 // fixturePackageJson is a package.json entry as values: the text of the file,
 // parsed again by packagejson.Parse, as the resolver parses it.
 type fixturePackageJson struct {
-	PackageDirectory string
+	PackageDirectory tspath.RootedDirectoryPath
+	CaseSensitivity  tspath.CaseSensitivity // of PackageDirectory's key
 	DirectoryExists  bool
 	HasContents      bool
 	Text             []byte
 }
 
-func (r *Recorder) packageJsonValue(path string, v *packagejson.InfoCacheEntry) *fixturePackageJson {
+func (r *Recorder) packageJsonValue(path tspath.RootedFilePath, v *packagejson.InfoCacheEntry) *fixturePackageJson {
 	if v == nil {
 		return nil
 	}
-	value := &fixturePackageJson{PackageDirectory: v.PackageDirectory, DirectoryExists: v.DirectoryExists}
+	value := &fixturePackageJson{PackageDirectory: v.PackageDirectory.AsDirectoryPath(), CaseSensitivity: r.Program.CaseSensitivity(), DirectoryExists: v.DirectoryExists}
 	if v.Contents != nil {
 		text, ok := r.pointer.Host().FS().ReadFile(path)
 		if !ok {
-			panic("fixture: package.json " + path + " cannot be read")
+			panic("fixture: package.json " + path.AsString() + " cannot be read")
 		}
 		value.HasContents, value.Text = true, []byte(text)
 		if again := value.entry(); !reflect.DeepEqual(again.Contents.Fields, v.Contents.Fields) || again.Contents.Parseable != v.Contents.Parseable {
-			panic("fixture: package.json " + path + " does not parse to the program's")
+			panic("fixture: package.json " + path.AsString() + " does not parse to the program's")
 		}
 	}
 	return value
 }
 
 func (v *fixturePackageJson) entry() *packagejson.InfoCacheEntry {
-	e := &packagejson.InfoCacheEntry{PackageDirectory: v.PackageDirectory, DirectoryExists: v.DirectoryExists}
+	e := &packagejson.InfoCacheEntry{PackageDirectory: packagejson.NewPackageDirectory(v.PackageDirectory, v.CaseSensitivity), DirectoryExists: v.DirectoryExists}
 	if v.HasContents {
 		fields, err := packagejson.Parse(v.Text)
 		e.Contents = &packagejson.PackageJson{Fields: fields, Parseable: err == nil}
@@ -434,27 +436,35 @@ func mustBeNil(what string, isNil bool) {
 	}
 }
 
-func (r *Recorder) GetSourceFile(fileName string) *store.File {
+func (r *Recorder) GetSourceFile(fileName tspath.RootedFilePath) *store.File {
 	f := r.Program.GetSourceFile(fileName)
-	r.fixture.SourceFile[fileName] = r.fileIndex(f)
+	r.fixture.SourceFile[string(fileName)] = r.fileIndex(f)
 	return f
 }
 
-func (r *Recorder) GetSourceFileForResolvedModule(fileName string) *store.File {
-	f := r.Program.GetSourceFileForResolvedModule(fileName)
-	r.fixture.ForResolved[fileName] = r.fileIndex(f)
+func (r *Recorder) GetSourceFileForResolvedModule(resolved *module.ResolvedModule) *store.File {
+	f := r.Program.GetSourceFileForResolvedModule(resolved)
+	r.fixture.ForResolved[resolvedKey(resolved)] = r.fileIndex(f)
 	return f
 }
 
-func (r *Recorder) FileExists(fileName string) bool {
+// resolvedKey is the fixture key of a resolved module: its file name.
+func resolvedKey(resolved *module.ResolvedModule) string {
+	if resolved == nil {
+		return ""
+	}
+	return string(resolved.ResolvedFileName)
+}
+
+func (r *Recorder) FileExists(fileName tspath.RootedFilePath) bool {
 	v := r.Program.FileExists(fileName)
-	r.fixture.FileExists[fileName] = v
+	r.fixture.FileExists[string(fileName)] = v
 	return v
 }
 
 func (r *Recorder) SourceFileMayBeEmitted(sourceFile *store.File, forceDtsEmit bool) bool {
 	v := r.Program.SourceFileMayBeEmitted(sourceFile, forceDtsEmit)
-	r.fixture.MayBeEmitted[fmt.Sprintf("%s|%t", sourceFile.Path(), forceDtsEmit)] = v
+	r.fixture.MayBeEmitted[fmt.Sprintf("%s|%t", sourceFile.PathKey(), forceDtsEmit)] = v
 	return v
 }
 
@@ -490,7 +500,7 @@ func (r *Recorder) GetDefaultResolutionModeForFile(file ast.HasFileName) core.Re
 
 func (r *Recorder) GetResolvedModule(file ast.HasFileName, moduleReference string, mode core.ResolutionMode) *module.ResolvedModule {
 	m := r.Program.GetResolvedModule(file, moduleReference, mode)
-	r.fixture.Resolved[fmt.Sprintf("%s|%s|%d", file.Path(), moduleReference, mode)] = r.moduleIndex(m)
+	r.fixture.Resolved[fmt.Sprintf("%s|%s|%d", file.PathKey(), moduleReference, mode)] = r.moduleIndex(m)
 	return m
 }
 
@@ -500,7 +510,7 @@ func (r *Recorder) GetResolvedModuleFromModuleSpecifier(file ast.HasFileName, mo
 	return m
 }
 
-func (r *Recorder) GetResolvedModules() map[tspath.Path]module.ModeAwareCache[*module.ResolvedModule] {
+func (r *Recorder) GetResolvedModules() map[tspath.PathKey]module.ModeAwareCache[*module.ResolvedModule] {
 	v := r.Program.GetResolvedModules()
 	mustBeNil("GetResolvedModules", v == nil)
 	r.fixture.Scalars.Asked["ResolvedModules"] = true
@@ -515,13 +525,13 @@ func (r *Recorder) GetPackagesMap() map[string]bool {
 	return v
 }
 
-func (r *Recorder) GetSourceFileMetaData(path tspath.Path) ast.SourceFileMetaData {
+func (r *Recorder) GetSourceFileMetaData(path tspath.PathKey) ast.SourceFileMetaData {
 	v := r.Program.GetSourceFileMetaData(path)
 	r.fixture.MetaData[string(path)] = v
 	return v
 }
 
-func (r *Recorder) IsSourceFileDefaultLibrary(path tspath.Path) bool {
+func (r *Recorder) IsSourceFileDefaultLibrary(path tspath.PathKey) bool {
 	v := r.Program.IsSourceFileDefaultLibrary(path)
 	r.fixture.DefaultLibrary[string(path)] = v
 	return v
@@ -534,24 +544,24 @@ func (r *Recorder) GetRedirectForResolution(file ast.HasFileName) *tsoptions.Par
 	return v
 }
 
-func (r *Recorder) GetProjectReferenceFromOutputDts(path tspath.Path) *tsoptions.SourceOutputAndProjectReference {
+func (r *Recorder) GetProjectReferenceFromOutputDts(path tspath.PathKey) *tsoptions.SourceOutputAndProjectReference {
 	v := r.Program.GetProjectReferenceFromOutputDts(path)
 	mustBeNil("GetProjectReferenceFromOutputDts", v == nil)
 	r.fixture.NilOutputDts[string(path)] = true
 	return v
 }
 
-func (r *Recorder) GetProjectReferenceFromSource(path tspath.Path) *tsoptions.SourceOutputAndProjectReference {
+func (r *Recorder) GetProjectReferenceFromSource(path tspath.PathKey) *tsoptions.SourceOutputAndProjectReference {
 	v := r.Program.GetProjectReferenceFromSource(path)
 	mustBeNil("GetProjectReferenceFromSource", v == nil)
 	r.fixture.NilFromSource[string(path)] = true
 	return v
 }
 
-func (r *Recorder) GetPackageJsonInfo(pkgJsonPath string) *packagejson.InfoCacheEntry {
+func (r *Recorder) GetPackageJsonInfo(pkgJsonPath tspath.RootedFilePath) *packagejson.InfoCacheEntry {
 	v := r.Program.GetPackageJsonInfo(pkgJsonPath)
-	if _, ok := r.fixture.PackageJson[pkgJsonPath]; !ok {
-		r.fixture.PackageJson[pkgJsonPath] = r.packageJsonValue(pkgJsonPath, v)
+	if _, ok := r.fixture.PackageJson[string(pkgJsonPath)]; !ok {
+		r.fixture.PackageJson[string(pkgJsonPath)] = r.packageJsonValue(pkgJsonPath, v)
 	}
 	return v
 }
@@ -561,37 +571,37 @@ func (r *Recorder) GetSymlinkCache() *symlinks.KnownSymlinks {
 	if !r.fixture.Scalars.Asked["SymlinkCache"] {
 		r.fixture.Scalars.Asked["SymlinkCache"] = true
 		if v != nil {
-			r.fixture.Scalars.Symlinks = symlinksValue(v, r.Program.GetCurrentDirectory(), r.Program.UseCaseSensitiveFileNames())
+			r.fixture.Scalars.Symlinks = symlinksValue(v, r.Program.CaseSensitivity())
 		}
 	}
 	return v
 }
 
-func (r *Recorder) GetRedirectTargets(path tspath.Path) []string {
+func (r *Recorder) GetRedirectTargets(path tspath.PathKey) []tspath.RootedFilePath {
 	v := r.Program.GetRedirectTargets(path)
 	r.fixture.RedirectTarget[string(path)] = v
 	return v
 }
 
-func (r *Recorder) GetSourceOfProjectReferenceIfOutputIncluded(file ast.HasFileName) string {
+func (r *Recorder) GetSourceOfProjectReferenceIfOutputIncluded(file ast.HasFileName) tspath.RootedFilePath {
 	v := r.Program.GetSourceOfProjectReferenceIfOutputIncluded(file)
 	r.fixture.SourceOfOutput[pathKey(file)] = v
 	return v
 }
 
-func (r *Recorder) GetNearestAncestorDirectoryWithPackageJson(dirname string) string {
+func (r *Recorder) GetNearestAncestorDirectoryWithPackageJson(dirname tspath.RootedDirectoryPath) tspath.RootedDirectoryPath {
 	v := r.Program.GetNearestAncestorDirectoryWithPackageJson(dirname)
-	r.fixture.NearestPackage[dirname] = v
+	r.fixture.NearestPackage[string(dirname)] = v
 	return v
 }
 
-func (r *Recorder) GetJSXRuntimeImportSpecifier(path tspath.Path) (string, store.Node) {
+func (r *Recorder) GetJSXRuntimeImportSpecifier(path tspath.PathKey) (string, store.Node) {
 	reference, specifier := r.Program.GetJSXRuntimeImportSpecifier(path)
 	r.fixture.JSXReference[string(path)] = reference
 	return reference, specifier
 }
 
-func (r *Recorder) CommonSourceDirectory() string {
+func (r *Recorder) CommonSourceDirectory() tspath.RootedDirectoryPath {
 	v := r.Program.CommonSourceDirectory()
 	r.fixture.Scalars.Asked["CommonSourceDirectory"] = true
 	r.fixture.Scalars.CommonSourceDirectory = v
@@ -605,24 +615,24 @@ func (r *Recorder) ContentMapperExtensions() []string {
 	return v
 }
 
-func (r *Recorder) GetGlobalTypingsCacheLocation() string {
+func (r *Recorder) GetGlobalTypingsCacheLocation() tspath.RootedDirectoryPath {
 	v := r.Program.GetGlobalTypingsCacheLocation()
 	r.fixture.Scalars.Asked["GlobalTypingsLocation"] = true
 	r.fixture.Scalars.GlobalTypingsLocation = v
 	return v
 }
 
-func (r *Recorder) UseCaseSensitiveFileNames() bool {
-	v := r.Program.UseCaseSensitiveFileNames()
-	r.fixture.Scalars.Asked["UseCaseSensitiveFileNames"] = true
-	r.fixture.Scalars.UseCaseSensitiveFileNames = v
+func (r *Recorder) CaseSensitivity() tspath.CaseSensitivity {
+	v := r.Program.CaseSensitivity()
+	r.fixture.Scalars.Asked["CaseSensitivity"] = true
+	r.fixture.Scalars.CaseSensitivity = v
 	return v
 }
 
-func (r *Recorder) GetCurrentDirectory() string {
-	v := r.Program.GetCurrentDirectory()
-	r.fixture.Scalars.Asked["CurrentDirectory"] = true
-	r.fixture.Scalars.CurrentDirectory = v
+func (r *Recorder) BaseDirectory() tspath.RootedDirectoryPath {
+	v := r.Program.BaseDirectory()
+	r.fixture.Scalars.Asked["BaseDirectory"] = true
+	r.fixture.Scalars.BaseDirectory = v
 	return v
 }
 
@@ -635,8 +645,8 @@ type FixtureProgram struct {
 	files         []*store.File
 	byPath        map[string]*store.File
 	modules       []*module.ResolvedModule
-	helperImports map[tspath.Path]store.Node
-	jsxImports    map[tspath.Path]store.Node
+	helperImports map[tspath.PathKey]store.Node
+	jsxImports    map[tspath.PathKey]store.Node
 	symlinks      *symlinks.KnownSymlinks
 	packageJsons  map[string]*packagejson.InfoCacheEntry // one entry for a path, as the program's cache
 	emitSyntax    map[nodeKeyOf]int32
@@ -678,8 +688,8 @@ const (
 	callCommonSourceDirectory
 	callContentMapperExtensions
 	callGlobalTypingsLocation
-	callUseCaseSensitiveFileNames
-	callCurrentDirectory
+	callCaseSensitivity
+	callBaseDirectory
 	callGetImportHelpersImportSpecifier
 	numCalls
 )
@@ -712,8 +722,8 @@ var callNames = [numCalls]string{
 	callCommonSourceDirectory:                       "CommonSourceDirectory",
 	callContentMapperExtensions:                     "ContentMapperExtensions",
 	callGlobalTypingsLocation:                       "GlobalTypingsLocation",
-	callUseCaseSensitiveFileNames:                   "UseCaseSensitiveFileNames",
-	callCurrentDirectory:                            "CurrentDirectory",
+	callCaseSensitivity:                             "CaseSensitivity",
+	callBaseDirectory:                               "BaseDirectory",
 	callGetImportHelpersImportSpecifier:             "GetImportHelpersImportSpecifier",
 }
 
@@ -739,24 +749,24 @@ func NewFixtureProgram(f *Fixture) *FixtureProgram {
 		space:         store.NewIDSpace(len(f.Files)),
 		files:         make([]*store.File, len(f.Files)),
 		byPath:        make(map[string]*store.File, len(f.Files)),
-		helperImports: map[tspath.Path]store.Node{},
-		jsxImports:    map[tspath.Path]store.Node{},
+		helperImports: map[tspath.PathKey]store.Node{},
+		jsxImports:    map[tspath.PathKey]store.Node{},
 		packageJsons:  map[string]*packagejson.InfoCacheEntry{},
 	}
 	for i, ff := range f.Files {
 		sf := storeparser.ParseSourceFileIn(p.space, store.StoreID(i), ff.ParseOptions, string(ff.Text), ff.ScriptKind)
 		p.files[i] = sf
-		p.byPath[string(sf.Path())] = sf
+		p.byPath[string(sf.PathKey())] = sf
 	}
 	p.emitSyntax = byNodeKey(p, f.EmitSyntax)
 	p.usageMode = byNodeKey(p, f.UsageMode)
 	p.fromSpecifier = byNodeKey(p, f.FromSpecifier)
 	for i, ff := range f.Files {
 		if ff.HelperImport != "" {
-			p.helperImports[p.files[i].Path()] = store.NewSyntheticImport(p.files[i], ff.HelperImport)
+			p.helperImports[p.files[i].PathKey()] = store.NewSyntheticImport(p.files[i], ff.HelperImport)
 		}
 		if ff.JSXImport != "" {
-			p.jsxImports[p.files[i].Path()] = store.NewSyntheticImport(p.files[i], ff.JSXImport)
+			p.jsxImports[p.files[i].PathKey()] = store.NewSyntheticImport(p.files[i], ff.JSXImport)
 		}
 	}
 	if f.Scalars.Symlinks != nil {
@@ -773,7 +783,7 @@ func NewFixtureProgram(f *Fixture) *FixtureProgram {
 }
 
 // File is the Store file of a path of the program, or nil.
-func (p *FixtureProgram) File(path tspath.Path) *store.File { return p.byPath[string(path)] }
+func (p *FixtureProgram) File(path tspath.PathKey) *store.File { return p.byPath[string(path)] }
 
 func lookup[V any](p *FixtureProgram, method call, m map[string]V, key string) V {
 	p.Calls[method]++
@@ -825,20 +835,20 @@ func (p *FixtureProgram) BindSourceFiles() {
 	}
 }
 
-func (p *FixtureProgram) GetSourceFile(fileName string) *store.File {
-	return p.file(lookup(p, callGetSourceFile, p.fixture.SourceFile, fileName))
+func (p *FixtureProgram) GetSourceFile(fileName tspath.RootedFilePath) *store.File {
+	return p.file(lookup(p, callGetSourceFile, p.fixture.SourceFile, string(fileName)))
 }
 
-func (p *FixtureProgram) GetSourceFileForResolvedModule(fileName string) *store.File {
-	return p.file(lookup(p, callGetSourceFileForResolvedModule, p.fixture.ForResolved, fileName))
+func (p *FixtureProgram) GetSourceFileForResolvedModule(resolved *module.ResolvedModule) *store.File {
+	return p.file(lookup(p, callGetSourceFileForResolvedModule, p.fixture.ForResolved, resolvedKey(resolved)))
 }
 
-func (p *FixtureProgram) FileExists(fileName string) bool {
-	return lookup(p, callFileExists, p.fixture.FileExists, fileName)
+func (p *FixtureProgram) FileExists(fileName tspath.RootedFilePath) bool {
+	return lookup(p, callFileExists, p.fixture.FileExists, string(fileName))
 }
 
 func (p *FixtureProgram) SourceFileMayBeEmitted(sourceFile *store.File, forceDtsEmit bool) bool {
-	return lookup(p, callSourceFileMayBeEmitted, p.fixture.MayBeEmitted, fmt.Sprintf("%s|%t", sourceFile.Path(), forceDtsEmit))
+	return lookup(p, callSourceFileMayBeEmitted, p.fixture.MayBeEmitted, fmt.Sprintf("%s|%t", sourceFile.PathKey(), forceDtsEmit))
 }
 
 func (p *FixtureProgram) GetEmitModuleFormatOfFile(sourceFile ast.HasFileName) core.ModuleKind {
@@ -862,14 +872,14 @@ func (p *FixtureProgram) GetDefaultResolutionModeForFile(file ast.HasFileName) c
 }
 
 func (p *FixtureProgram) GetResolvedModule(file ast.HasFileName, moduleReference string, mode core.ResolutionMode) *module.ResolvedModule {
-	return p.module(lookup(p, callGetResolvedModule, p.fixture.Resolved, fmt.Sprintf("%s|%s|%d", file.Path(), moduleReference, mode)))
+	return p.module(lookup(p, callGetResolvedModule, p.fixture.Resolved, fmt.Sprintf("%s|%s|%d", file.PathKey(), moduleReference, mode)))
 }
 
 func (p *FixtureProgram) GetResolvedModuleFromModuleSpecifier(file ast.HasFileName, moduleSpecifier store.Node) *module.ResolvedModule {
 	return p.module(lookupNode(p, callGetResolvedModuleFromModuleSpecifier, p.fromSpecifier, file, moduleSpecifier))
 }
 
-func (p *FixtureProgram) GetResolvedModules() map[tspath.Path]module.ModeAwareCache[*module.ResolvedModule] {
+func (p *FixtureProgram) GetResolvedModules() map[tspath.PathKey]module.ModeAwareCache[*module.ResolvedModule] {
 	p.scalar(callResolvedModules)
 	return nil
 }
@@ -879,11 +889,11 @@ func (p *FixtureProgram) GetPackagesMap() map[string]bool {
 	return p.fixture.Scalars.PackagesMap
 }
 
-func (p *FixtureProgram) GetSourceFileMetaData(path tspath.Path) ast.SourceFileMetaData {
+func (p *FixtureProgram) GetSourceFileMetaData(path tspath.PathKey) ast.SourceFileMetaData {
 	return lookup(p, callGetSourceFileMetaData, p.fixture.MetaData, string(path))
 }
 
-func (p *FixtureProgram) IsSourceFileDefaultLibrary(path tspath.Path) bool {
+func (p *FixtureProgram) IsSourceFileDefaultLibrary(path tspath.PathKey) bool {
 	return lookup(p, callIsSourceFileDefaultLibrary, p.fixture.DefaultLibrary, string(path))
 }
 
@@ -892,27 +902,27 @@ func (p *FixtureProgram) GetRedirectForResolution(file ast.HasFileName) *tsoptio
 	return nil
 }
 
-func (p *FixtureProgram) GetProjectReferenceFromOutputDts(path tspath.Path) *tsoptions.SourceOutputAndProjectReference {
+func (p *FixtureProgram) GetProjectReferenceFromOutputDts(path tspath.PathKey) *tsoptions.SourceOutputAndProjectReference {
 	lookup(p, callGetProjectReferenceFromOutputDts, p.fixture.NilOutputDts, string(path))
 	return nil
 }
 
-func (p *FixtureProgram) GetProjectReferenceFromSource(path tspath.Path) *tsoptions.SourceOutputAndProjectReference {
+func (p *FixtureProgram) GetProjectReferenceFromSource(path tspath.PathKey) *tsoptions.SourceOutputAndProjectReference {
 	lookup(p, callGetProjectReferenceFromSource, p.fixture.NilFromSource, string(path))
 	return nil
 }
 
-func (p *FixtureProgram) GetPackageJsonInfo(pkgJsonPath string) *packagejson.InfoCacheEntry {
-	if e, ok := p.packageJsons[pkgJsonPath]; ok {
+func (p *FixtureProgram) GetPackageJsonInfo(pkgJsonPath tspath.RootedFilePath) *packagejson.InfoCacheEntry {
+	if e, ok := p.packageJsons[string(pkgJsonPath)]; ok {
 		p.Calls[callGetPackageJsonInfo]++
 		return e
 	}
-	v := lookup(p, callGetPackageJsonInfo, p.fixture.PackageJson, pkgJsonPath)
+	v := lookup(p, callGetPackageJsonInfo, p.fixture.PackageJson, string(pkgJsonPath))
 	var e *packagejson.InfoCacheEntry
 	if v != nil {
 		e = v.entry()
 	}
-	p.packageJsons[pkgJsonPath] = e
+	p.packageJsons[string(pkgJsonPath)] = e
 	return e
 }
 
@@ -921,29 +931,29 @@ func (p *FixtureProgram) GetSymlinkCache() *symlinks.KnownSymlinks {
 	return p.symlinks
 }
 
-func (p *FixtureProgram) GetRedirectTargets(path tspath.Path) []string {
+func (p *FixtureProgram) GetRedirectTargets(path tspath.PathKey) []tspath.RootedFilePath {
 	return lookup(p, callGetRedirectTargets, p.fixture.RedirectTarget, string(path))
 }
 
-func (p *FixtureProgram) GetSourceOfProjectReferenceIfOutputIncluded(file ast.HasFileName) string {
+func (p *FixtureProgram) GetSourceOfProjectReferenceIfOutputIncluded(file ast.HasFileName) tspath.RootedFilePath {
 	return lookup(p, callGetSourceOfProjectReferenceIfOutputIncluded, p.fixture.SourceOfOutput, pathKey(file))
 }
 
-func (p *FixtureProgram) GetNearestAncestorDirectoryWithPackageJson(dirname string) string {
-	return lookup(p, callGetNearestAncestorDirectoryWithPackageJson, p.fixture.NearestPackage, dirname)
+func (p *FixtureProgram) GetNearestAncestorDirectoryWithPackageJson(dirname tspath.RootedDirectoryPath) tspath.RootedDirectoryPath {
+	return lookup(p, callGetNearestAncestorDirectoryWithPackageJson, p.fixture.NearestPackage, string(dirname))
 }
 
-func (p *FixtureProgram) GetJSXRuntimeImportSpecifier(path tspath.Path) (string, store.Node) {
+func (p *FixtureProgram) GetJSXRuntimeImportSpecifier(path tspath.PathKey) (string, store.Node) {
 	reference := lookup(p, callGetJSXRuntimeImportSpecifier, p.fixture.JSXReference, string(path))
 	return reference, p.jsxImports[path]
 }
 
-func (p *FixtureProgram) GetImportHelpersImportSpecifier(path tspath.Path) store.Node {
+func (p *FixtureProgram) GetImportHelpersImportSpecifier(path tspath.PathKey) store.Node {
 	p.Calls[callGetImportHelpersImportSpecifier]++
 	return p.helperImports[path]
 }
 
-func (p *FixtureProgram) CommonSourceDirectory() string {
+func (p *FixtureProgram) CommonSourceDirectory() tspath.RootedDirectoryPath {
 	p.scalar(callCommonSourceDirectory)
 	return p.fixture.Scalars.CommonSourceDirectory
 }
@@ -953,17 +963,17 @@ func (p *FixtureProgram) ContentMapperExtensions() []string {
 	return p.fixture.Scalars.ContentMapperExtensions
 }
 
-func (p *FixtureProgram) GetGlobalTypingsCacheLocation() string {
+func (p *FixtureProgram) GetGlobalTypingsCacheLocation() tspath.RootedDirectoryPath {
 	p.scalar(callGlobalTypingsLocation)
 	return p.fixture.Scalars.GlobalTypingsLocation
 }
 
-func (p *FixtureProgram) UseCaseSensitiveFileNames() bool {
-	p.scalar(callUseCaseSensitiveFileNames)
-	return p.fixture.Scalars.UseCaseSensitiveFileNames
+func (p *FixtureProgram) CaseSensitivity() tspath.CaseSensitivity {
+	p.scalar(callCaseSensitivity)
+	return p.fixture.Scalars.CaseSensitivity
 }
 
-func (p *FixtureProgram) GetCurrentDirectory() string {
-	p.scalar(callCurrentDirectory)
-	return p.fixture.Scalars.CurrentDirectory
+func (p *FixtureProgram) BaseDirectory() tspath.RootedDirectoryPath {
+	p.scalar(callBaseDirectory)
+	return p.fixture.Scalars.BaseDirectory
 }

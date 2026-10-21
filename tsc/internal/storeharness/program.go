@@ -34,12 +34,12 @@ func NewPrograms(files map[string]string, options *core.CompilerOptions) (*compi
 }
 
 func newPointerProgram(files map[string]string, options *core.CompilerOptions) *compiler.Program {
-	fs := bundled.WrapFS(vfstest.FromMap(files, true /*useCaseSensitiveFileNames*/))
-	host := &libCachingHost{CompilerHost: compiler.NewCompilerHost("/", fs, bundled.LibPath(), nil, nil, nil)}
+	fs := bundled.WrapFS(vfstest.FromMap(files, tspath.CaseSensitive))
+	host := &libCachingHost{CompilerHost: compiler.NewCompilerHost(fs, bundled.LibPath(), nil, nil, nil)}
 	config := &tsoptions.ParsedCommandLine{
 		ParsedConfig: &tsoptions.ParsedOptions{
 			CompilerOptions: options,
-			FileNames:       slices.Sorted(maps.Keys(files)),
+			FileNames:       rootedFileNames(slices.Sorted(maps.Keys(files))),
 		},
 	}
 	return compiler.NewProgram(compiler.ProgramOptions{Config: config, Host: host, SingleThreaded: core.TSTrue})
@@ -56,26 +56,26 @@ func newProgram(pointer *compiler.Program) *Program {
 		pointer:  pointer,
 		space:    store.NewIDSpace(len(sources)),
 		files:    make([]*store.File, len(sources)),
-		byPath:   make(map[tspath.Path]*store.File, len(sources)),
-		pointers: make(map[tspath.Path]*ast.SourceFile, len(sources)),
+		byPath:   make(map[tspath.PathKey]*store.File, len(sources)),
+		pointers: make(map[tspath.PathKey]*ast.SourceFile, len(sources)),
 	}
 	for i, pf := range sources {
 		f := storeparser.ParseSourceFileIn(p.space, store.StoreID(i), pf.ParseOptions(), pf.Text(), pf.ScriptKind)
 		p.files[i] = f
-		p.byPath[f.Path()] = f
-		p.pointers[f.Path()] = pf
+		p.byPath[f.PathKey()] = f
+		p.pointers[f.PathKey()] = pf
 	}
 	// The synthetic imports of each file the Pointer program made them for,
 	// the import helpers' and then the JSX runtime's, as its fileloader makes
 	// them (resolveImportsAndModuleAugmentations).
-	p.helperImports = map[tspath.Path]store.Node{}
-	p.jsxImports = map[tspath.Path]store.Node{}
+	p.helperImports = map[tspath.PathKey]store.Node{}
+	p.jsxImports = map[tspath.PathKey]store.Node{}
 	for i, pf := range sources {
-		if specifier := pointer.GetImportHelpersImportSpecifier(pf.Path()); specifier != nil {
-			p.helperImports[pf.Path()] = store.NewSyntheticImport(p.files[i], specifier.Text())
+		if specifier := pointer.GetImportHelpersImportSpecifier(pf.PathKey()); specifier != nil {
+			p.helperImports[pf.PathKey()] = store.NewSyntheticImport(p.files[i], specifier.Text())
 		}
-		if _, specifier := pointer.GetJSXRuntimeImportSpecifier(pf.Path()); specifier != nil {
-			p.jsxImports[pf.Path()] = store.NewSyntheticImport(p.files[i], specifier.Text())
+		if _, specifier := pointer.GetJSXRuntimeImportSpecifier(pf.PathKey()); specifier != nil {
+			p.jsxImports[pf.PathKey()] = store.NewSyntheticImport(p.files[i], specifier.Text())
 		}
 	}
 	return p
@@ -108,8 +108,17 @@ func (h *libCachingHost) GetSourceFile(opts ast.SourceFileParseOptions) *ast.Sou
 	return cachedLib(opts, text, core.EnsureScriptKindFromFileName(opts.FileName))
 }
 
-func isBundledLib(fileName string) bool {
-	return strings.HasPrefix(fileName, tspath.EnsureTrailingDirectorySeparator(bundled.LibPath()))
+func isBundledLib(fileName tspath.RootedFilePath) bool {
+	return strings.HasPrefix(fileName.AsString(), tspath.EnsureTrailingDirectorySeparator(bundled.LibPath().AsString()))
+}
+
+// rootedFileNames are the absolute file names of a program's files map.
+func rootedFileNames(names []string) []tspath.RootedFilePath {
+	out := make([]tspath.RootedFilePath, len(names))
+	for i, name := range names {
+		out[i] = tspath.RootedFilePathFromAbsolute(name)
+	}
+	return out
 }
 
 // cachedLib is the Pointer source file of a bundled lib, parsed once for the

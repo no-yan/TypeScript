@@ -396,7 +396,7 @@ type corpusFile struct {
 }
 
 func sourceInput(name, source string) (ast.SourceFileParseOptions, string, core.ScriptKind) {
-	return ast.SourceFileParseOptions{FileName: name, Path: tspath.Path(name)}, source, core.GetScriptKindFromFileName(name)
+	return ast.SourceFileParseOptions{FileName: tspath.ToRootedFilePath(name, "/"), PathKey: tspath.CaseSensitive.PathKey(tspath.ToRootedPath(name, "/"))}, source, core.GetScriptKindFromFileName(tspath.ToRootedFilePath(name, "/"))
 }
 
 func corpus(tb testing.TB) []corpusFile {

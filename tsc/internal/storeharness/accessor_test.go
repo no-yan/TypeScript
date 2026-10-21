@@ -14,6 +14,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store"
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store/storetest"
 	"github.com/microsoft/TypeScript/tsc/internal/storeparser"
+	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
 // TestPolymorphicAccessors holds the methods of store.Node to the methods of
@@ -68,7 +69,7 @@ func TestPolymorphicAccessors(t *testing.T) {
 					mu.Unlock()
 					continue
 				}
-				pf := pointer.GetSourceFile(f.name)
+				pf := pointer.GetSourceFile(tspath.ToRootedFilePath(f.name, "/"))
 				if pf == nil {
 					mu.Lock()
 					notInProgram++

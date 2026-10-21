@@ -10,7 +10,6 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/nodebuilder"
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
 	"github.com/microsoft/TypeScript/tsc/internal/scanner"
-	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
 // The Pointer's type and symbol walker (6.3): the functions of
@@ -171,7 +170,7 @@ func (w *pointerWalker) writeTypeOrSymbol(file *ast.SourceFile, node *ast.Node, 
 
 		declSourceFile := ast.GetSourceFileOfNode(declaration)
 		declLine, declChar := scanner.GetECMALineAndUTF16CharacterOfPosition(declSourceFile, declaration.Pos())
-		fileName := tspath.GetBaseFileName(declSourceFile.FileName())
+		fileName := declSourceFile.FileName().BaseName()
 		symbolString.WriteString("Decl(")
 		symbolString.WriteString(fileName)
 		symbolString.WriteString(", ")
@@ -187,7 +186,7 @@ func (w *pointerWalker) writeTypeOrSymbol(file *ast.SourceFile, node *ast.Node, 
 	for _, d := range symbol.Declarations {
 		var path string
 		if f := ast.GetSourceFileOfNode(d); f != nil {
-			path = string(f.Path())
+			path = string(f.PathKey())
 		}
 		record.decls = append(record.decls, declKey{path: path, pos: d.Pos(), end: d.End(), kind: d.Kind})
 	}

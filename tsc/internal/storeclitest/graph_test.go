@@ -10,6 +10,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/storecompiler"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
+	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 	"github.com/microsoft/TypeScript/tsc/internal/vfs"
 	"github.com/microsoft/TypeScript/tsc/internal/vfs/vfstest"
 )
@@ -30,18 +31,20 @@ type graphFixture struct {
 // host of its own: they share the input values only.
 func buildGraphs(t *testing.T, fx graphFixture) (pointer, store []string) {
 	t.Helper()
-	newFS := func() vfs.FS { return bundled.WrapFS(vfstest.FromMap(fx.files, fx.caseSensitive)) }
-	parse := func(host tsoptions.ParseConfigHost) *tsoptions.ParsedCommandLine {
-		config, diags := tsoptions.GetParsedCommandLineOfConfigFile(fx.config, &core.CompilerOptions{}, nil, host, nil)
+	newFS := func() vfs.FS {
+		return bundled.WrapFS(vfstest.FromMap(fx.files, core.IfElse(fx.caseSensitive, tspath.CaseSensitive, tspath.CaseInsensitive)))
+	}
+	parse := func(fs vfs.FS) *tsoptions.ParsedCommandLine {
+		config, diags := tsoptions.GetParsedCommandLineOfConfigFile(tspath.RootedFilePathFromAbsolute(fx.config), &core.CompilerOptions{}, nil, fs, nil)
 		if len(diags) != 0 {
 			t.Fatalf("config diagnostics: %v", diags)
 		}
 		return config
 	}
-	ph := compiler.NewCompilerHost(fx.cwd, newFS(), bundled.LibPath(), nil, nil, nil)
-	p := compiler.NewProgram(compiler.ProgramOptions{Config: parse(ph), Host: ph, SingleThreaded: core.TSTrue})
-	sh := storecompiler.NewCompilerHost(fx.cwd, newFS(), bundled.LibPath(), nil, nil)
-	s := storecompiler.NewProgram(storecompiler.ProgramOptions{Config: parse(sh), Host: sh, SingleThreaded: core.TSTrue})
+	ph := compiler.NewCompilerHost(newFS(), bundled.LibPath(), nil, nil, nil)
+	p := compiler.NewProgram(compiler.ProgramOptions{Config: parse(ph.FS()), Host: ph, SingleThreaded: core.TSTrue})
+	sh := storecompiler.NewCompilerHost(newFS(), bundled.LibPath(), nil, nil)
+	s := storecompiler.NewProgram(storecompiler.ProgramOptions{Config: parse(sh.FS()), Host: sh, SingleThreaded: core.TSTrue})
 	return PointerGraph(p), StoreGraph(s)
 }
 

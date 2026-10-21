@@ -68,7 +68,7 @@ func fixtureDiagFiles(f *Fixture, p *FixtureProgram) []*store.File {
 	var out []*store.File
 	skip := f.Options.SkipDefaultLibCheck.IsTrue()
 	for _, sf := range p.SourceFiles() {
-		if !(skip && p.IsSourceFileDefaultLibrary(sf.Path())) {
+		if !(skip && p.IsSourceFileDefaultLibrary(sf.PathKey())) {
 			out = append(out, sf)
 		}
 	}

@@ -104,7 +104,7 @@ func compareCase(c *configCase, hooks caseHooks) (r caseResult) {
 	r.roots = len(d.rootNames)
 	for _, name := range d.rootNames {
 		if pointer.GetSourceFile(name) == nil {
-			r.missingRoots = append(r.missingRoots, name)
+			r.missingRoots = append(r.missingRoots, name.AsString())
 		}
 	}
 	diagFiles, walkFiles := d.targets(pointer)
@@ -165,10 +165,10 @@ func tryBuild(build func() (*compiler.Program, func())) (program *compiler.Progr
 // JSX runtime import specifier and with an import helpers specifier.
 func syntheticSpecifiers(program *compiler.Program) (n [2]int) {
 	for _, f := range program.SourceFiles() {
-		if _, specifier := program.GetJSXRuntimeImportSpecifier(f.Path()); specifier != nil {
+		if _, specifier := program.GetJSXRuntimeImportSpecifier(f.PathKey()); specifier != nil {
 			n[0]++
 		}
-		if program.GetImportHelpersImportSpecifier(f.Path()) != nil {
+		if program.GetImportHelpersImportSpecifier(f.PathKey()) != nil {
 			n[1]++
 		}
 	}
@@ -184,37 +184,37 @@ func syntheticSpecifiers(program *compiler.Program) (n [2]int) {
 // again, and of the Pointer's shape (literal, import declaration, the file's
 // root).
 func compareModes(pointer *compiler.Program, program *Program) (class string, detail *Detail, positions int) {
-	jsxImport := func(path tspath.Path) store.Node {
+	jsxImport := func(path tspath.PathKey) store.Node {
 		_, specifier := program.GetJSXRuntimeImportSpecifier(path)
 		return specifier
 	}
 	for _, pf := range pointer.SourceFiles() {
-		if pointer.IsSourceFileDefaultLibrary(pf.Path()) {
+		if pointer.IsSourceFileDefaultLibrary(pf.PathKey()) {
 			continue
 		}
 		sf := program.Store(pf)
 		pairs, _, problems := pairNodes(pf, sf)
 		if len(problems) > 0 {
-			return "mode: the trees do not pair", &Detail{Where: pf.FileName(), Pointer: strings.Join(problems, "\n")}, positions
+			return "mode: the trees do not pair", &Detail{Where: pf.FileName().AsString(), Pointer: strings.Join(problems, "\n")}, positions
 		}
-		_, jsx := pointer.GetJSXRuntimeImportSpecifier(pf.Path())
+		_, jsx := pointer.GetJSXRuntimeImportSpecifier(pf.PathKey())
 		for _, synthetic := range []struct {
 			role    string
 			pointer *ast.Node
-			get     func(tspath.Path) store.Node
+			get     func(tspath.PathKey) store.Node
 		}{
-			{"helpers", pointer.GetImportHelpersImportSpecifier(pf.Path()), program.GetImportHelpersImportSpecifier},
+			{"helpers", pointer.GetImportHelpersImportSpecifier(pf.PathKey()), program.GetImportHelpersImportSpecifier},
 			{"jsx", jsx, jsxImport},
 		} {
-			specifier := synthetic.get(pf.Path())
-			where := pf.FileName() + " (" + synthetic.role + ")"
+			specifier := synthetic.get(pf.PathKey())
+			where := pf.FileName().AsString() + " (" + synthetic.role + ")"
 			if (synthetic.pointer == nil) != specifier.IsNil() {
 				return "mode: synthetic import", &Detail{Where: where, Pointer: fmt.Sprint(synthetic.pointer != nil), Store: fmt.Sprint(!specifier.IsNil())}, positions
 			}
 			if synthetic.pointer == nil {
 				continue
 			}
-			if !store.SameNode(synthetic.get(pf.Path()), specifier) {
+			if !store.SameNode(synthetic.get(pf.PathKey()), specifier) {
 				return "mode: synthetic import identity", &Detail{Where: where, Store: "another node when asked again"}, positions
 			}
 			p, decl := synthetic.pointer, specifier.Parent()

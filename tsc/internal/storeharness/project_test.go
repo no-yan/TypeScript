@@ -20,11 +20,10 @@ import (
 
 func newCompilerProjectProgram(tb testing.TB) *compiler.Program {
 	tb.Helper()
-	configFileName := tspath.NormalizeSlashes(filepath.Join(repo.TestDataPath(), "fixtures/compiler/tsconfig.json"))
-	root := filepath.Dir(configFileName)
+	configFileName := tspath.RootedFilePathFromAbsolute(filepath.Join(repo.TestDataPath(), "fixtures/compiler/tsconfig.json"))
 	fs := bundled.WrapFS(osvfs.FS())
-	host := compiler.NewCompilerHost(root, fs, bundled.LibPath(), nil, nil, nil)
-	config, errors := tsoptions.GetParsedCommandLineOfConfigFile(configFileName, &core.CompilerOptions{}, nil, host, nil)
+	host := compiler.NewCompilerHost(fs, bundled.LibPath(), nil, nil, nil)
+	config, errors := tsoptions.GetParsedCommandLineOfConfigFile(configFileName, &core.CompilerOptions{}, nil, fs, nil)
 	if len(errors) != 0 || config == nil {
 		tb.Fatalf("parse project config %s: %d errors", configFileName, len(errors))
 	}
@@ -36,12 +35,12 @@ func newCompilerProjectProgram(tb testing.TB) *compiler.Program {
 // walk targets.
 func projectTargets(program *compiler.Program) (diagFiles, walkFiles []*ast.SourceFile) {
 	skipDefaultLibs := program.Options().SkipDefaultLibCheck.IsTrue()
-	roots := map[string]bool{}
+	roots := map[tspath.RootedFilePath]bool{}
 	for _, name := range program.CommandLine().FileNames() {
 		roots[name] = true
 	}
 	for _, f := range program.SourceFiles() {
-		if !(skipDefaultLibs && program.IsSourceFileDefaultLibrary(f.Path())) {
+		if !(skipDefaultLibs && program.IsSourceFileDefaultLibrary(f.PathKey())) {
 			diagFiles = append(diagFiles, f)
 		}
 		if roots[f.FileName()] {

@@ -50,7 +50,7 @@ func newProgram(t *testing.T, texts ...string) *program {
 }
 
 func parseAndBind(space *store.IDSpace, id store.StoreID, name, text string) *store.File {
-	file := storeparser.ParseSourceFileIn(space, id, ast.SourceFileParseOptions{FileName: name, Path: tspath.Path(name)}, text, core.ScriptKindTS)
+	file := storeparser.ParseSourceFileIn(space, id, ast.SourceFileParseOptions{FileName: tspath.ToRootedFilePath(name, "/"), PathKey: tspath.CaseSensitive.PathKey(tspath.ToRootedPath(name, "/"))}, text, core.ScriptKindTS)
 	storebinder.BindSourceFile(file)
 	return file
 }
@@ -161,7 +161,7 @@ func fileName(f *store.File) string {
 	if f == nil {
 		return "nil"
 	}
-	return f.FileName()
+	return f.FileName().AsString()
 }
 
 // eachCapacity runs a sequence with every capacity and compares the
@@ -685,7 +685,7 @@ func TestStorageFlowGraph(t *testing.T) {
 	for i, text := range sources {
 		name := fmt.Sprintf("/flow%d.ts", i)
 		files = append(files, parseAndBind(space, store.StoreID(i), name, text))
-		pointer := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: name, Path: tspath.Path(name)}, text, core.ScriptKindTS)
+		pointer := parser.ParseSourceFile(ast.SourceFileParseOptions{FileName: tspath.ToRootedFilePath(name, "/"), PathKey: tspath.CaseSensitive.PathKey(tspath.ToRootedPath(name, "/"))}, text, core.ScriptKindTS)
 		binder.BindSourceFile(pointer)
 		pointers = append(pointers, pointer)
 	}
@@ -850,7 +850,7 @@ func testImportBoundary(t *testing.T, capacity int) {
 	f := store.NewFactory(region, capacity, store.FactoryHooks{})
 	sameRegion := store.NewFactory(region, capacity, store.FactoryHooks{}).NewIdentifier("same")
 	otherRegion := store.NewFactory(store.NewNodeRegion(a.space), capacity, store.FactoryHooks{}).NewIdentifier("other")
-	outside := storeparser.ParseSourceFile(ast.SourceFileParseOptions{FileName: "/outside.ts", Path: "/outside.ts"}, "let a = 1;", core.ScriptKindTS)
+	outside := storeparser.ParseSourceFile(ast.SourceFileParseOptions{FileName: "/outside.ts", PathKey: "/outside.ts"}, "let a = 1;", core.ScriptKindTS)
 	target := f.NewIdentifier("t")
 	list := f.NewNodeList([]store.Node{target})
 	for name, foreign := range map[string]store.Node{

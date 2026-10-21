@@ -13,6 +13,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/storechecker"
 	"github.com/microsoft/TypeScript/tsc/internal/storecompiler"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
+	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 	"github.com/microsoft/TypeScript/tsc/internal/vfs/vfstest"
 )
 
@@ -20,19 +21,20 @@ import (
 // host: nothing of the Pointer program reaches the Store program.
 func newPrograms(t *testing.T, files map[string]string, roots []string, options *core.CompilerOptions) (*compiler.Program, *storecompiler.Program) {
 	t.Helper()
+	rootFiles := core.Map(roots, func(root string) tspath.RootedFilePath { return tspath.ToRootedFilePath(root, "/") })
 	config := func() *tsoptions.ParsedCommandLine {
-		return &tsoptions.ParsedCommandLine{ParsedConfig: &tsoptions.ParsedOptions{CompilerOptions: options, FileNames: roots}}
+		return tsoptions.NewParsedCommandLine(options, rootFiles, nil, "/", tspath.CaseSensitive)
 	}
-	pfs := bundled.WrapFS(vfstest.FromMap(files, true /*useCaseSensitiveFileNames*/))
+	pfs := bundled.WrapFS(vfstest.FromMap(files, tspath.CaseSensitive /*caseSensitivity*/))
 	pointer := compiler.NewProgram(compiler.ProgramOptions{
 		Config:         config(),
-		Host:           compiler.NewCompilerHost("/", pfs, bundled.LibPath(), nil, nil, nil),
+		Host:           compiler.NewCompilerHost(pfs, bundled.LibPath(), nil, nil, nil),
 		SingleThreaded: core.TSTrue,
 	})
-	sfs := bundled.WrapFS(vfstest.FromMap(files, true /*useCaseSensitiveFileNames*/))
+	sfs := bundled.WrapFS(vfstest.FromMap(files, tspath.CaseSensitive /*caseSensitivity*/))
 	s := storecompiler.NewProgram(storecompiler.ProgramOptions{
 		Config:         config(),
-		Host:           storecompiler.NewCompilerHost("/", sfs, bundled.LibPath(), nil, nil),
+		Host:           storecompiler.NewCompilerHost(sfs, bundled.LibPath(), nil, nil),
 		SingleThreaded: core.TSTrue,
 	})
 	return pointer, s
@@ -41,7 +43,7 @@ func newPrograms(t *testing.T, files map[string]string, roots []string, options 
 func pointerNames(p *compiler.Program) []string {
 	var out []string
 	for _, f := range p.SourceFiles() {
-		out = append(out, f.FileName())
+		out = append(out, f.FileName().AsString())
 	}
 	return out
 }
@@ -49,7 +51,7 @@ func pointerNames(p *compiler.Program) []string {
 func storeNames(p *storecompiler.Program) []string {
 	var out []string
 	for _, f := range p.SourceFiles() {
-		out = append(out, f.FileName())
+		out = append(out, f.FileName().AsString())
 	}
 	return out
 }
@@ -81,10 +83,10 @@ func TestNativeGraphOneImport(t *testing.T) {
 		t.Fatalf("./b resolves to %+v", resolved)
 	}
 	for _, f := range s.SourceFiles() {
-		if got, want := s.IsSourceFileDefaultLibrary(f.Path()), pointer.IsSourceFileDefaultLibrary(f.Path()); got != want {
+		if got, want := s.IsSourceFileDefaultLibrary(f.PathKey()), pointer.IsSourceFileDefaultLibrary(f.PathKey()); got != want {
 			t.Errorf("%s: default library %v, Pointer %v", f.FileName(), got, want)
 		}
-		if got, want := s.GetSourceFileMetaData(f.Path()), pointer.GetSourceFileMetaData(f.Path()); got != want {
+		if got, want := s.GetSourceFileMetaData(f.PathKey()), pointer.GetSourceFileMetaData(f.PathKey()); got != want {
 			t.Errorf("%s: metadata %+v, Pointer %+v", f.FileName(), got, want)
 		}
 	}

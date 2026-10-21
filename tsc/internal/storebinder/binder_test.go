@@ -28,7 +28,7 @@ func fixtureInput(tb testing.TB, fixture filefixture.Fixture) (ast.SourceFilePar
 }
 
 func sourceInput(name, source string) (ast.SourceFileParseOptions, string, core.ScriptKind) {
-	return ast.SourceFileParseOptions{FileName: name, Path: tspath.Path(name)}, source, core.GetScriptKindFromFileName(name)
+	return ast.SourceFileParseOptions{FileName: tspath.ToRootedFilePath(name, "/"), PathKey: tspath.CaseSensitive.PathKey(tspath.ToRootedPath(name, "/"))}, source, core.GetScriptKindFromFileName(tspath.ToRootedFilePath(name, "/"))
 }
 
 // bindBoth parses and binds the same input with the Pointer parser and binder

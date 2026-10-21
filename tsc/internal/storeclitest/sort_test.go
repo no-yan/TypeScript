@@ -31,8 +31,8 @@ func TestSortAndDeduplicateDiagnostics(t *testing.T) {
 	pointerFiles := map[string]*ast.SourceFile{}
 	storeFiles := map[*ast.SourceFile]*store.File{}
 	for name, text := range texts {
-		opts := ast.SourceFileParseOptions{FileName: name, Path: tspath.Path(name)}
-		kind := core.GetScriptKindFromFileName(name)
+		opts := ast.SourceFileParseOptions{FileName: tspath.ToRootedFilePath(name, "/"), PathKey: tspath.CaseSensitive.PathKey(tspath.ToRootedPath(name, "/"))}
+		kind := core.GetScriptKindFromFileName(opts.FileName)
 		pf := parser.ParseSourceFile(opts, text, kind)
 		pointerFiles[name] = pf
 		storeFiles[pf] = storeparser.ParseSourceFile(opts, text, kind)
@@ -72,7 +72,7 @@ func TestSortAndDeduplicateDiagnostics(t *testing.T) {
 		for _, d := range ds {
 			name := ""
 			if d.File() != nil {
-				name = d.File().FileName()
+				name = d.File().FileName().AsString()
 			}
 			out = append(out, fmt.Sprintf("%s %d-%d %d %v related=%d", name, d.Pos(), d.End(), d.Code(), d.MessageArgs(), len(d.RelatedInformation())))
 		}
@@ -83,7 +83,7 @@ func TestSortAndDeduplicateDiagnostics(t *testing.T) {
 		for _, d := range ds {
 			name := ""
 			if d.File() != nil {
-				name = d.File().FileName()
+				name = d.File().FileName().AsString()
 			}
 			out = append(out, fmt.Sprintf("%s %d-%d %d %v related=%d", name, d.Pos(), d.End(), d.Code(), d.MessageArgs(), len(d.RelatedInformation())))
 		}

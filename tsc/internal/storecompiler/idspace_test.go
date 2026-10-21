@@ -21,8 +21,8 @@ import (
 const jsdocSource = "/** @deprecated use y */\nexport function x() {}\nexport const y = 1;\n"
 
 func parseIn(space *store.IDSpace, fileName, text string) *store.File {
-	opts := ast.SourceFileParseOptions{FileName: fileName, Path: tspath.Path(fileName)}
-	return storeparser.ParseSourceFileIn(space, space.Next(), opts, text, core.GetScriptKindFromFileName(fileName))
+	opts := ast.SourceFileParseOptions{FileName: tspath.ToRootedFilePath(fileName, "/"), PathKey: tspath.CaseSensitive.PathKey(tspath.ToRootedPath(fileName, "/"))}
+	return storeparser.ParseSourceFileIn(space, space.Next(), opts, text, core.GetScriptKindFromFileName(tspath.ToRootedFilePath(fileName, "/")))
 }
 
 // jsdocHosts are the nodes of f that have JSDoc.
@@ -141,8 +141,8 @@ func TestNativeIDSpace(t *testing.T) {
 	// The fixed reservation of a fixture: the reserved IDs are the caller's,
 	// Next starts after them.
 	fixed := store.NewIDSpace(2)
-	f0 := storeparser.ParseSourceFileIn(fixed, 0, ast.SourceFileParseOptions{FileName: "/f0.ts", Path: "/f0.ts"}, jsdocSource, core.ScriptKindTS)
-	f1 := storeparser.ParseSourceFileIn(fixed, 1, ast.SourceFileParseOptions{FileName: "/f1.ts", Path: "/f1.ts"}, jsdocSource, core.ScriptKindTS)
+	f0 := storeparser.ParseSourceFileIn(fixed, 0, ast.SourceFileParseOptions{FileName: "/f0.ts", PathKey: "/f0.ts"}, jsdocSource, core.ScriptKindTS)
+	f1 := storeparser.ParseSourceFileIn(fixed, 1, ast.SourceFileParseOptions{FileName: "/f1.ts", PathKey: "/f1.ts"}, jsdocSource, core.ScriptKindTS)
 	if doc := jsdocHosts(f1)[0].JSDoc(f1)[0]; doc.Key().StoreID() != 2 || f0.Root().Key().StoreID() != 0 {
 		t.Errorf("fixed reservation: the JSDoc has StoreID %d, the first file %d", doc.Key().StoreID(), f0.Root().Key().StoreID())
 	}
@@ -201,16 +201,16 @@ func TestNativeIDSpaceProgram(t *testing.T) {
 	}
 	synthetic := 0
 	for _, f := range s.SourceFiles() {
-		note(f.FileName(), f.Root())
-		if specifier := s.GetImportHelpersImportSpecifier(f.Path()); !specifier.IsNil() {
-			note("helpers of "+f.FileName(), specifier.Parent())
+		note(f.FileName().AsString(), f.Root())
+		if specifier := s.GetImportHelpersImportSpecifier(f.PathKey()); !specifier.IsNil() {
+			note("helpers of "+f.FileName().AsString(), specifier.Parent())
 			synthetic++
-			if specifier2 := s.GetImportHelpersImportSpecifier(f.Path()); !store.SameNode(specifier, specifier2) {
+			if specifier2 := s.GetImportHelpersImportSpecifier(f.PathKey()); !store.SameNode(specifier, specifier2) {
 				t.Errorf("%s: a second ask gives another helpers specifier", f.FileName())
 			}
 		}
-		if _, specifier := s.GetJSXRuntimeImportSpecifier(f.Path()); !specifier.IsNil() {
-			note("jsx of "+f.FileName(), specifier.Parent())
+		if _, specifier := s.GetJSXRuntimeImportSpecifier(f.PathKey()); !specifier.IsNil() {
+			note("jsx of "+f.FileName().AsString(), specifier.Parent())
 			synthetic++
 		}
 		if again := s.GetSourceFile(f.FileName()); again != f {

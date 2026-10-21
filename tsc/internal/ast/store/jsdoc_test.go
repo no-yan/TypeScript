@@ -21,7 +21,7 @@ import (
 // parser.
 
 func sourceOptions(name string) ast.SourceFileParseOptions {
-	return ast.SourceFileParseOptions{FileName: name, Path: tspath.Path(name)}
+	return ast.SourceFileParseOptions{FileName: tspath.ToRootedFilePath(name, "/"), PathKey: tspath.CaseSensitive.PathKey(tspath.ToRootedPath(name, "/"))}
 }
 
 // countParses wraps the registered lazy parser for the test.

@@ -26,40 +26,40 @@ import (
 func PointerGraph(p *compiler.Program) []string {
 	var out []string
 	for i, f := range p.SourceFiles() {
-		out = append(out, fileLine(i, f.FileName(), f.Path(), p.IsSourceFileDefaultLibrary(f.Path()), p.IsSourceFileFromExternalLibrary(f), p.GetSourceFileMetaData(f.Path())))
-		if s := p.GetImportHelpersImportSpecifier(f.Path()); s != nil {
+		out = append(out, fileLine(i, f.FileName().AsString(), f.PathKey(), p.IsSourceFileDefaultLibrary(f.PathKey()), p.IsSourceFileFromExternalLibrary(f), p.GetSourceFileMetaData(f.PathKey())))
+		if s := p.GetImportHelpersImportSpecifier(f.PathKey()); s != nil {
 			out = append(out, "  helpers "+syntheticPointer(s, f))
 		}
-		if ref, s := p.GetJSXRuntimeImportSpecifier(f.Path()); s != nil {
+		if ref, s := p.GetJSXRuntimeImportSpecifier(f.PathKey()); s != nil {
 			out = append(out, "  jsx "+ref+" "+syntheticPointer(s, f))
 		}
-		if targets := p.GetRedirectTargets(f.Path()); len(targets) > 0 {
+		if targets := p.GetRedirectTargets(f.PathKey()); len(targets) > 0 {
 			out = append(out, fmt.Sprintf("  redirects %v", targets))
 		}
 	}
 	out = append(out, resolutionLines(p.GetResolvedModules(), p.GetResolvedTypeReferenceDirectives())...)
-	return append(out, reasonLines(p.GetIncludeReasons(), func(path tspath.Path) bool { return p.GetSourceFileByPath(path) != nil }, p.IsMissingPath)...)
+	return append(out, reasonLines(p.GetIncludeReasons(), func(path tspath.PathKey) bool { return p.GetSourceFileByPath(path) != nil }, p.IsMissingPath)...)
 }
 
 func StoreGraph(p *storecompiler.Program) []string {
 	var out []string
 	for i, f := range p.SourceFiles() {
-		out = append(out, fileLine(i, f.FileName(), f.Path(), p.IsSourceFileDefaultLibrary(f.Path()), p.IsSourceFileFromExternalLibrary(f), p.GetSourceFileMetaData(f.Path())))
-		if s := p.GetImportHelpersImportSpecifier(f.Path()); !s.IsNil() {
+		out = append(out, fileLine(i, f.FileName().AsString(), f.PathKey(), p.IsSourceFileDefaultLibrary(f.PathKey()), p.IsSourceFileFromExternalLibrary(f), p.GetSourceFileMetaData(f.PathKey())))
+		if s := p.GetImportHelpersImportSpecifier(f.PathKey()); !s.IsNil() {
 			out = append(out, "  helpers "+syntheticStore(s, f))
 		}
-		if ref, s := p.GetJSXRuntimeImportSpecifier(f.Path()); !s.IsNil() {
+		if ref, s := p.GetJSXRuntimeImportSpecifier(f.PathKey()); !s.IsNil() {
 			out = append(out, "  jsx "+ref+" "+syntheticStore(s, f))
 		}
-		if targets := p.GetRedirectTargets(f.Path()); len(targets) > 0 {
+		if targets := p.GetRedirectTargets(f.PathKey()); len(targets) > 0 {
 			out = append(out, fmt.Sprintf("  redirects %v", targets))
 		}
 	}
 	out = append(out, resolutionLines(p.GetResolvedModules(), p.GetResolvedTypeReferenceDirectives())...)
-	return append(out, reasonLines(p.GetIncludeReasons(), func(path tspath.Path) bool { return p.GetSourceFileByPath(path) != nil }, p.IsMissingPath)...)
+	return append(out, reasonLines(p.GetIncludeReasons(), func(path tspath.PathKey) bool { return p.GetSourceFileByPath(path) != nil }, p.IsMissingPath)...)
 }
 
-func fileLine(i int, name string, path tspath.Path, lib, external bool, meta ast.SourceFileMetaData) string {
+func fileLine(i int, name string, path tspath.PathKey, lib, external bool, meta ast.SourceFileMetaData) string {
 	return fmt.Sprintf("file %d %s path=%s lib=%v external=%v meta=%+v", i, name, path, lib, external, meta)
 }
 
@@ -82,7 +82,7 @@ func syntheticStore(s store.Node, f *store.File) string {
 	return fmt.Sprintf("%q %v parent=%v root=%v statement=%v pos=%d,%d", s.Text(), s.Kind(), decl.Kind(), store.SameNode(decl.Parent(), f.Root()), inStatements, s.Pos(), s.End())
 }
 
-func resolutionLines(modules map[tspath.Path]module.ModeAwareCache[*module.ResolvedModule], types map[tspath.Path]module.ModeAwareCache[*module.ResolvedTypeReferenceDirective]) []string {
+func resolutionLines(modules map[tspath.PathKey]module.ModeAwareCache[*module.ResolvedModule], types map[tspath.PathKey]module.ModeAwareCache[*module.ResolvedTypeReferenceDirective]) []string {
 	var out []string
 	for _, path := range slices.Sorted(maps.Keys(modules)) {
 		for _, key := range sortedKeys(modules[path]) {
@@ -123,7 +123,7 @@ func sortedKeys[T any](cache module.ModeAwareCache[T]) []module.ModeAwareCacheKe
 
 // reasonLines are the include reasons of every path, sorted by path, each
 // path's in their order, and whether a path without a file is missing.
-func reasonLines[R any](reasons map[tspath.Path][]R, isFile func(tspath.Path) bool, isMissing func(tspath.Path) bool) []string {
+func reasonLines[R any](reasons map[tspath.PathKey][]R, isFile func(tspath.PathKey) bool, isMissing func(tspath.PathKey) bool) []string {
 	var out []string
 	for _, path := range slices.Sorted(maps.Keys(reasons)) {
 		line := fmt.Sprintf("reasons %s", path)

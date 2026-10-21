@@ -55,7 +55,7 @@ func TestPointerWalkerBaselines(t *testing.T) {
 			continue
 		}
 		// As testrunner reads a test (compiler_runner.go): osvfs decodes a BOM.
-		text, ok := osvfs.FS().ReadFile(tspath.NormalizeSlashes(filepath.Join(dir, e.Name())))
+		text, ok := osvfs.FS().ReadFile(tspath.RootedFilePathFromAbsolute(filepath.Join(dir, e.Name())))
 		if !ok {
 			t.Fatalf("cannot read %s", e.Name())
 		}
@@ -131,9 +131,9 @@ func setOptions(t *testing.T, options map[string]string, compilerOptions *core.C
 			return false
 		}
 	}
-	harnessOptions := harnessutil.HarnessOptions{UseCaseSensitiveFileNames: true, CurrentDirectory: "/.src"}
+	harnessOptions := harnessutil.HarnessOptions{CaseSensitivity: tspath.CaseSensitive, CurrentDirectory: "/.src"}
 	harnessutil.SetOptionsFromTestConfig(t, options, compilerOptions, &harnessOptions, "/.src", false /*allowUnknownOptions*/)
-	return reflect.DeepEqual(harnessOptions, harnessutil.HarnessOptions{UseCaseSensitiveFileNames: true, CurrentDirectory: "/.src"})
+	return reflect.DeepEqual(harnessOptions, harnessutil.HarnessOptions{CaseSensitivity: tspath.CaseSensitive, CurrentDirectory: "/.src"})
 }
 
 // compareWithBaselines is "" when the walker's type and symbol lines are the

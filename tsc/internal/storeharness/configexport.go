@@ -3,6 +3,7 @@ package storeharness
 import (
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
+	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
 // The stage 2 enumeration and preparation (configprep.go) for the native
@@ -35,13 +36,13 @@ func PrepareCase(c *Case) (*Descriptor, Outcome) { return prepareCase(c) }
 // FileMap is the case's file system: a new map, for vfstest.FromMap.
 func (d *configDescriptor) FileMap() map[string]any { return d.fileMap() }
 
-// UseCaseSensitiveFileNames is the case's file system's.
-func (d *configDescriptor) UseCaseSensitiveFileNames() bool {
-	return d.harnessOptions.UseCaseSensitiveFileNames
+// CaseSensitivity is the case's file system's.
+func (d *configDescriptor) CaseSensitivity() tspath.CaseSensitivity {
+	return d.harnessOptions.CaseSensitivity
 }
 
 // CurrentDirectory is the program's cwd.
-func (d *configDescriptor) CurrentDirectory() string { return d.currentDirectory }
+func (d *configDescriptor) CurrentDirectory() tspath.RootedDirectoryPath { return d.currentDirectory }
 
 // Options are the options the runner gives the program: a copy.
 func (d *configDescriptor) Options() *core.CompilerOptions { return d.options.Clone() }

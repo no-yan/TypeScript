@@ -266,7 +266,7 @@ func runSemanticCase(c *configCase, filter *regexp.Regexp) (r *semanticRecord) {
 		return r
 	}
 
-	header := tspath.GetPathFromPathComponents(tspath.GetPathComponentsRelativeTo(repo.TestDataPath(), c.path, tspath.ComparePathsOptions{}))
+	header := tspath.GetPathFromPathComponents(tspath.GetPathComponentsRelativeTo(repo.TestDataPath(), c.path, tspath.CaseInsensitive))
 	p, applies, problem := pointerSemantic(d, header)
 	if problem != "" {
 		r.State, r.Reason = semanticHarnessError, "P: "+problem
@@ -348,7 +348,7 @@ func runnerConfiguredName(c *configCase) string {
 	if c.Name == "" {
 		return basename
 	}
-	extname := tspath.GetAnyExtensionFromPath(basename, nil, false)
+	extname := tspath.GetAnyExtensionFromPath(basename, nil, tspath.CaseSensitive)
 	return fmt.Sprintf("%s(%s)%s", basename[:len(basename)-len(extname)], c.Name, extname)
 }
 
@@ -509,17 +509,14 @@ func pointerSemantic(d *configDescriptor, header string) (side semanticSide, app
 	ctx := context.Background()
 
 	// CompileFilesEx's file system and createCompilerHost.
-	fs := vfstest.FromMap(d.fileMap(), d.harnessOptions.UseCaseSensitiveFileNames)
+	fs := vfstest.FromMap(d.fileMap(), d.harnessOptions.CaseSensitivity)
 	fs = bundled.WrapFS(fs)
 	fs = harnessutil.NewOutputRecorderFS(fs)
 	config := d.commandLine(d.options.Clone())
 	var trace strings.Builder
-	tracer := harnessutil.NewTracerForBaselining(tspath.ComparePathsOptions{
-		UseCaseSensitiveFileNames: fs.UseCaseSensitiveFileNames(),
-		CurrentDirectory:          d.currentDirectory,
-	}, &trace)
+	tracer := harnessutil.NewTracerForBaselining(d.currentDirectory, fs.CaseSensitivity(), &trace)
 	host := &pointerSemanticHost{
-		CompilerHost: compiler.NewCompilerHost(d.currentDirectory, fs, bundled.LibPath(), nil, tracer.Trace, nil),
+		CompilerHost: compiler.NewCompilerHost(fs, bundled.LibPath(), nil, tracer.Trace, nil),
 		files:        map[harnessutil.SourceFileCacheKey]*ast.SourceFile{},
 	}
 
@@ -570,7 +567,7 @@ func pointerSemantic(d *configDescriptor, header string) (side semanticSide, app
 		var allFiles []*harnessutil.TestFile
 		var sourceFiles []*ast.SourceFile
 		for _, f := range core.Concatenate(d.toBeCompiled, d.otherFiles) {
-			if sf := postProgram.GetSourceFile(f.UnitName); sf != nil {
+			if sf := postProgram.GetSourceFile(tspath.ToRootedFilePath(f.UnitName, d.currentDirectory)); sf != nil {
 				allFiles = append(allFiles, f)
 				sourceFiles = append(sourceFiles, sf)
 			}
@@ -710,7 +707,7 @@ func storeSemantic(d *configDescriptor, applies [kindCount]bool, header string) 
 	}()
 	ctx := context.Background()
 
-	fs := bundled.WrapFS(vfstest.FromMap(d.FileMap(), d.UseCaseSensitiveFileNames()))
+	fs := bundled.WrapFS(vfstest.FromMap(d.FileMap(), d.CaseSensitivity()))
 	options := d.Options()
 	if !options.NoEmit.IsTrue() {
 		options.SuppressOutputPathCheck = core.TSTrue
@@ -718,12 +715,9 @@ func storeSemantic(d *configDescriptor, applies [kindCount]bool, header string) 
 	}
 	config := d.CommandLine(options)
 	var trace strings.Builder
-	tracer := harnessutil.NewTracerForBaselining(tspath.ComparePathsOptions{
-		UseCaseSensitiveFileNames: fs.UseCaseSensitiveFileNames(),
-		CurrentDirectory:          d.CurrentDirectory(),
-	}, &trace)
+	tracer := harnessutil.NewTracerForBaselining(d.CurrentDirectory(), fs.CaseSensitivity(), &trace)
 	// One host for both programs, as P's: the Store host keeps no file.
-	host := storecompiler.NewCompilerHost(d.CurrentDirectory(), fs, bundled.LibPath(), nil, tracer.Trace)
+	host := storecompiler.NewCompilerHost(fs, bundled.LibPath(), nil, tracer.Trace)
 	program := func(config *tsoptions.ParsedCommandLine) *storecompiler.Program {
 		return storecompiler.NewProgram(storecompiler.ProgramOptions{Config: config, Host: host, SingleThreaded: semanticSingleThreaded()})
 	}
@@ -760,7 +754,7 @@ func storeSemantic(d *configDescriptor, applies [kindCount]bool, header string) 
 		var allFiles []*harnessutil.TestFile
 		var sourceFiles []*store.File
 		for _, f := range core.Concatenate(d.toBeCompiled, d.otherFiles) {
-			if sf := postProgram.GetSourceFile(f.UnitName); sf != nil {
+			if sf := postProgram.GetSourceFile(tspath.ToRootedFilePath(f.UnitName, d.currentDirectory)); sf != nil {
 				allFiles = append(allFiles, f)
 				sourceFiles = append(sourceFiles, sf)
 			}

@@ -64,7 +64,7 @@ func checkPointerProgram(ctx context.Context, p nativeProgram) {
 	p.pointer.BindSourceFiles()
 	var targets []*ast.SourceFile
 	for _, f := range p.pointer.SourceFiles() {
-		if !p.pointer.IsSourceFileDefaultLibrary(f.Path()) {
+		if !p.pointer.IsSourceFileDefaultLibrary(f.PathKey()) {
 			targets = append(targets, f)
 		}
 	}
@@ -75,7 +75,7 @@ func checkStoreProgram(ctx context.Context, p nativeProgram) {
 	p.store.BindSourceFiles()
 	var targets []*store.File
 	for _, f := range p.store.SourceFiles() {
-		if !p.store.IsSourceFileDefaultLibrary(f.Path()) {
+		if !p.store.IsSourceFileDefaultLibrary(f.PathKey()) {
 			targets = append(targets, f)
 		}
 	}
@@ -86,7 +86,7 @@ func pointerReplayNodes(tb testing.TB, p nativeProgram, recs []replayRecord, mas
 	var r replayNodes[*ast.Node]
 	idx := map[replayKey]*ast.Node{}
 	for i, f := range p.pointer.SourceFiles() {
-		r.fileNs = append(r.fileNs, f.FileName())
+		r.fileNs = append(r.fileNs, f.FileName().AsString())
 		var visit func(n *ast.Node) bool
 		visit = func(n *ast.Node) bool {
 			k := replayKey{int32(i), int32(n.Pos()), int32(n.End()), int32(n.Kind)}
@@ -111,7 +111,7 @@ func storeReplayNodes(tb testing.TB, p nativeProgram, recs []replayRecord, mask 
 	var r replayNodes[store.Node]
 	idx := map[replayKey]store.Node{}
 	for i, f := range p.store.SourceFiles() {
-		r.fileNs = append(r.fileNs, f.FileName())
+		r.fileNs = append(r.fileNs, f.FileName().AsString())
 		var visit func(n store.Node) bool
 		visit = func(n store.Node) bool {
 			k := replayKey{int32(i), int32(n.Pos()), int32(n.End()), int32(n.Kind())}

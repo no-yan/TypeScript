@@ -197,7 +197,7 @@ func runCorpusCase(c *storeharness.Case, filter *regexp.Regexp, parallel bool) *
 		checkers := checkersOfParallel
 		options.SingleThreaded, options.Checkers = core.TSFalse, &checkers
 	}
-	r.CaseSensitive, r.Cwd = d.UseCaseSensitiveFileNames(), d.CurrentDirectory()
+	r.CaseSensitive, r.Cwd = d.CaseSensitivity().IsCaseSensitive(), d.CurrentDirectory().AsString()
 	if reasons := execute.CheckModeUnsupported(d.CommandLine(options.Clone())); len(reasons) != 0 {
 		var texts []string
 		for _, reason := range reasons {

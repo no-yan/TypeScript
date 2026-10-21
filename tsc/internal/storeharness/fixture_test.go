@@ -81,11 +81,11 @@ func fixtureIdentity(pointer *compiler.Program, diagFiles, walkFiles []*ast.Sour
 // FixtureProgram's JSX specifier of a path the recording did not ask is read
 // from its map: its GetJSXRuntimeImportSpecifier panics there.
 func compareSyntheticImports(h1 *Program, fixture *FixtureProgram) (class string, detail *Detail) {
-	h1JSX := func(path tspath.Path) store.Node {
+	h1JSX := func(path tspath.PathKey) store.Node {
 		_, specifier := h1.GetJSXRuntimeImportSpecifier(path)
 		return specifier
 	}
-	fixtureJSX := func(path tspath.Path) store.Node {
+	fixtureJSX := func(path tspath.PathKey) store.Node {
 		if _, asked := fixture.fixture.JSXReference[string(path)]; !asked {
 			return fixture.jsxImports[path]
 		}
@@ -93,11 +93,11 @@ func compareSyntheticImports(h1 *Program, fixture *FixtureProgram) (class string
 		return specifier
 	}
 	for _, hf := range h1.files {
-		path := hf.Path()
+		path := hf.PathKey()
 		ff := fixture.File(path)
 		for _, role := range []struct {
 			name        string
-			h1, fixture func(tspath.Path) store.Node
+			h1, fixture func(tspath.PathKey) store.Node
 		}{
 			{"helpers", h1.GetImportHelpersImportSpecifier, fixture.GetImportHelpersImportSpecifier},
 			{"jsx", h1JSX, fixtureJSX},
@@ -144,7 +144,7 @@ func h1Stores(p *Program, files []*ast.SourceFile) []*store.File {
 func fixtureStores(p *FixtureProgram, files []*ast.SourceFile) []*store.File {
 	out := make([]*store.File, len(files))
 	for i, f := range files {
-		out[i] = p.File(f.Path())
+		out[i] = p.File(f.PathKey())
 	}
 	return out
 }

@@ -72,7 +72,7 @@ func TestXctraceNativeCheck(t *testing.T) {
 			p.store.BindSourceFiles()
 			var targets []*store.File
 			for _, f := range p.store.SourceFiles() {
-				if !p.store.IsSourceFileDefaultLibrary(f.Path()) {
+				if !p.store.IsSourceFileDefaultLibrary(f.PathKey()) {
 					targets = append(targets, f)
 				}
 			}
@@ -81,7 +81,7 @@ func TestXctraceNativeCheck(t *testing.T) {
 			p.pointer.BindSourceFiles()
 			var targets []*ast.SourceFile
 			for _, f := range p.pointer.SourceFiles() {
-				if !p.pointer.IsSourceFileDefaultLibrary(f.Path()) {
+				if !p.pointer.IsSourceFileDefaultLibrary(f.PathKey()) {
 					targets = append(targets, f)
 				}
 			}

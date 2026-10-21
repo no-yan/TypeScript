@@ -43,7 +43,7 @@ func fixtureInput(tb testing.TB, fixture filefixture.Fixture) (ast.SourceFilePar
 }
 
 func sourceInput(name, source string) (ast.SourceFileParseOptions, string, core.ScriptKind) {
-	return ast.SourceFileParseOptions{FileName: name, Path: tspath.Path(name)}, source, core.GetScriptKindFromFileName(name)
+	return ast.SourceFileParseOptions{FileName: tspath.ToRootedFilePath(name, "/"), PathKey: tspath.CaseSensitive.PathKey(tspath.ToRootedPath(name, "/"))}, source, core.GetScriptKindFromFileName(tspath.ToRootedFilePath(name, "/"))
 }
 
 // parseBoth parses the same input with the Pointer parser (its defaults) and
@@ -183,7 +183,7 @@ func fieldMismatches(pointer *ast.SourceFile, file *store.File) map[string]bool 
 	}
 	m := map[string]bool{
 		"FileName":                    file.FileName() != pointer.FileName(),
-		"Path":                        file.Path() != pointer.Path(),
+		"Path":                        file.PathKey() != pointer.PathKey(),
 		"Text":                        file.Text() != pointer.Text(),
 		"ScriptKind":                  file.ScriptKind != pointer.ScriptKind,
 		"LanguageVariant":             file.LanguageVariant != pointer.LanguageVariant,

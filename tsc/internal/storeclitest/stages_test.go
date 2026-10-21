@@ -28,6 +28,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/storecompiler"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
+	"github.com/microsoft/TypeScript/tsc/internal/vfs"
 )
 
 // TestNativeStages is the stage runner of
@@ -107,8 +108,8 @@ func TestNativeStages(t *testing.T) {
 	var checkers []checkerCounts
 	var stoppedAt string
 	if backend == core.ASTBackendStore {
-		host := storecompiler.NewCachedFSCompilerHost(cwd, sys.FS(), sys.DefaultLibraryPath(), nil, nil)
-		config = parseConfigWith(t, host, configFile, commandLine)
+		host := storecompiler.NewCachedFSCompilerHost(sys.FS(), sys.DefaultLibraryPath(), nil, nil)
+		config = parseConfigWith(t, host.FS(), configFile, commandLine)
 		m.mark("start")
 		program := storecompiler.NewProgram(storecompiler.ProgramOptions{Config: config, Host: host})
 		m.mark("build")
@@ -121,7 +122,7 @@ func TestNativeStages(t *testing.T) {
 			emitSkipped := tsc.CheckEmit(sys, times, func() bool { return false })
 			fileNames := make([]string, 0, len(program.SourceFiles()))
 			for _, file := range program.SourceFiles() {
-				fileNames = append(fileNames, file.FileName())
+				fileNames = append(fileNames, file.FileName().AsString())
 			}
 			status = tsc.ReportCompilation(sys, config.CompilerOptions(), reporters, tsc.CompilationReport{
 				Diagnostics:   storecompiler.WrapDiagnostics(ds),
@@ -136,8 +137,8 @@ func TestNativeStages(t *testing.T) {
 		}
 		runtime.KeepAlive(program)
 	} else {
-		host := compiler.NewCachedFSCompilerHost(cwd, sys.FS(), sys.DefaultLibraryPath(), nil, nil, nil)
-		config = parseConfigWith(t, host, configFile, commandLine)
+		host := compiler.NewCachedFSCompilerHost(sys.FS(), sys.DefaultLibraryPath(), nil, nil, nil)
+		config = parseConfigWith(t, host.FS(), configFile, commandLine)
 		m.mark("start")
 		program := compiler.NewProgram(compiler.ProgramOptions{Config: config, Host: host})
 		m.mark("build")
@@ -156,7 +157,7 @@ func TestNativeStages(t *testing.T) {
 			})
 			fileNames := make([]string, 0, len(program.GetSourceFiles()))
 			for _, file := range program.GetSourceFiles() {
-				fileNames = append(fileNames, file.FileName())
+				fileNames = append(fileNames, file.FileName().AsString())
 			}
 			status = tsc.ReportCompilation(sys, config.CompilerOptions(), reporters, tsc.CompilationReport{
 				Diagnostics:   diagnosticwriter.FromASTDiagnostics(ds),
@@ -222,8 +223,8 @@ func TestNativeStages(t *testing.T) {
 	}
 }
 
-func parseConfigWith(tb testing.TB, host tsoptions.ParseConfigHost, configFile string, commandLine *core.CompilerOptions) *tsoptions.ParsedCommandLine {
-	config, diags := tsoptions.GetParsedCommandLineOfConfigFile(configFile, commandLine, nil, host, &tsc.ExtendedConfigCache{})
+func parseConfigWith(tb testing.TB, fs vfs.FS, configFile string, commandLine *core.CompilerOptions) *tsoptions.ParsedCommandLine {
+	config, diags := tsoptions.GetParsedCommandLineOfConfigFile(tspath.RootedFilePathFromAbsolute(configFile), commandLine, nil, fs, &tsc.ExtendedConfigCache{})
 	if len(diags) != 0 {
 		tb.Fatalf("%s: %d config diagnostics", configFile, len(diags))
 	}
