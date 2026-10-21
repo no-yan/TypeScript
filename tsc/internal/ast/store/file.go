@@ -17,8 +17,8 @@ import (
 // root node.
 type File struct {
 	Store                                                            *Store
-	fileName                                                         string
-	path                                                             tspath.Path
+	fileName                                                         tspath.RootedFilePath
+	pathKey                                                          tspath.PathKey
 	text                                                             string // = Store.src
 	ScriptKind                                                       core.ScriptKind
 	LanguageVariant                                                  core.LanguageVariant
@@ -73,13 +73,13 @@ type File struct {
 // named as ast.SourceFile's, so that *File is an ast.HasFileName, which the
 // checker's hosts take (store-checker-7d2a-implementation-instructions-20260929.md
 // 4.2).
-func NewFile(fileName string, path tspath.Path, text string) *File {
-	return &File{fileName: fileName, path: path, text: text}
+func NewFile(fileName tspath.RootedFilePath, pathKey tspath.PathKey, text string) *File {
+	return &File{fileName: fileName, pathKey: pathKey, text: text}
 }
 
-func (f *File) FileName() string  { return f.fileName }
-func (f *File) Path() tspath.Path { return f.path }
-func (f *File) Text() string      { return f.text }
+func (f *File) FileName() tspath.RootedFilePath { return f.fileName }
+func (f *File) PathKey() tspath.PathKey         { return f.pathKey }
+func (f *File) Text() string                    { return f.text }
 
 // Imports is (*ast.SourceFile).Imports: the module specifier literals, as
 // Nodes. The parse keeps them as NodeRefs (AppendImport); the first call

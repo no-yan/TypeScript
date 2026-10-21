@@ -14,7 +14,6 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
 	"github.com/microsoft/TypeScript/tsc/internal/scanner"
 	"github.com/microsoft/TypeScript/tsc/internal/stringutil"
-	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
 type ParsingContext int
@@ -297,7 +296,7 @@ func (p *Parser) validateJsonObjectLiteral(node store.ObjectLiteralExpression) {
 
 func (p *Parser) initializeState(space *store.IDSpace, id store.StoreID, opts ast.SourceFileParseOptions, sourceText string, scriptKind core.ScriptKind) {
 	if scriptKind == core.ScriptKindUnknown {
-		panic("ScriptKind must be specified when parsing source file: " + opts.FileName)
+		panic("ScriptKind must be specified when parsing source file: " + opts.FileName.AsString())
 	}
 
 	if p.scanner == nil {
@@ -507,7 +506,7 @@ func (p *Parser) flags() ast.NodeFlags {
 }
 
 func (p *Parser) parseSourceFileWorker() *store.File {
-	isDeclarationFile := tspath.IsDeclarationFileName(p.opts.FileName)
+	isDeclarationFile := p.opts.FileName.IsDeclarationFile()
 	if isDeclarationFile {
 		p.contextFlags |= ast.NodeFlagsAmbient
 	}
@@ -550,7 +549,7 @@ func (p *Parser) parseSourceFileWorker() *store.File {
 // so the caller makes it after Finish (createJSDocCache); the reparsed clones
 // are NodeRefs, valid in the scratch and in the Store alike.
 func (p *Parser) finishSourceFile(root store.NodeRef, isDeclarationFile bool) *store.File {
-	result := store.NewFile(p.opts.FileName, p.opts.Path, p.sourceText)
+	result := store.NewFile(p.opts.FileName, p.opts.PathKey, p.sourceText)
 	result.CommentDirectives = p.scanner.CommentDirectives()
 	result.Pragmas = getCommentPragmas(&p.pragmaFactory, p.sourceText)
 	p.processPragmasIntoFields(result)
