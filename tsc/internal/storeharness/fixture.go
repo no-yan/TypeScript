@@ -46,7 +46,7 @@ import (
 type Fixture struct {
 	Files   []FixtureFile
 	Options *core.CompilerOptions
-	Modules []fixtureModule // the distinct resolved modules, by identity, in the order of sortModules
+	Modules []module.ResolvedModule // the distinct resolved modules, by identity, in the order of sortModules, without their resolution diagnostics
 	// DroppedResolutionDiagnostics counts the modules' resolution diagnostics,
 	// which are Pointer diagnostics and which no Store package reads.
 	DroppedResolutionDiagnostics int
@@ -76,24 +76,15 @@ type Fixture struct {
 }
 
 // FixtureFile is a source file of the program, in its order, as the Store
-// parser takes it, and its synthetic imports' texts ("" for none).
+// parser takes it, its content mapper, and its synthetic imports' texts (""
+// for none).
 type FixtureFile struct {
-	ParseOptions ast.SourceFileParseOptions
-	Text         []byte // bytes: JSON's strings replace invalid UTF-8
-	ScriptKind   core.ScriptKind
-	HelperImport string
-	JSXImport    string
-}
-
-type fixtureModule struct {
-	ResolvedFileName             tspath.RootedFilePath
-	OriginalPath                 tspath.RootedFilePath
-	Extension                    string
-	ResolvedUsingTsExtension     bool
-	ResolvedUsingExtraExtensions bool
-	PackageId                    module.PackageId
-	IsExternalLibraryImport      bool
-	AlternateResult              tspath.RootedFilePath
+	ParseOptions  ast.SourceFileParseOptions
+	Text          []byte // bytes: JSON's strings replace invalid UTF-8
+	ScriptKind    core.ScriptKind
+	ContentMapper string
+	HelperImport  string
+	JSXImport     string
 }
 
 type fixtureScalars struct {
@@ -126,7 +117,8 @@ func symlinksValue(cache *symlinks.KnownSymlinks, caseSensitivity tspath.CaseSen
 	}
 	cache.Directories().Range(func(k tspath.PathKey, link *symlinks.KnownDirectoryLink) bool {
 		if link != nil {
-			link = &symlinks.KnownDirectoryLink{Real: link.Real, RealPath: link.RealPath}
+			copied := *link
+			link = &copied
 		}
 		v.Directories[k] = link
 		return true
@@ -286,7 +278,7 @@ func NewRecorder(program *Program) *Recorder {
 	r := &Recorder{Program: program, fixture: f, index: map[*store.File]int{}, modules: map[*module.ResolvedModule]int{}}
 	for i, sf := range program.files {
 		pf := program.pointers[sf.PathKey()]
-		ff := FixtureFile{ParseOptions: pf.ParseOptions(), Text: []byte(pf.Text()), ScriptKind: pf.ScriptKind}
+		ff := FixtureFile{ParseOptions: pf.ParseOptions(), Text: []byte(pf.Text()), ScriptKind: pf.ScriptKind, ContentMapper: pf.ContentMapper()}
 		if s := program.helperImports[sf.PathKey()]; !s.IsNil() {
 			ff.HelperImport = s.Text()
 		}
@@ -354,7 +346,7 @@ func (r *Recorder) sortModules() error {
 		return cmp.Or(strings.Compare(values[a], values[b]), strings.Compare(least[a], least[b]))
 	})
 	renumber := make([]int, len(f.Modules)) // new index by old
-	modules := make([]fixtureModule, len(f.Modules))
+	modules := make([]module.ResolvedModule, len(f.Modules))
 	for to, from := range order {
 		renumber[from] = to
 		modules[to] = f.Modules[from]
@@ -390,7 +382,9 @@ func (r *Recorder) moduleIndex(m *module.ResolvedModule) int {
 	r.fixture.DroppedResolutionDiagnostics += len(m.ResolutionDiagnostics)
 	i := len(r.fixture.Modules)
 	r.modules[m] = i
-	r.fixture.Modules = append(r.fixture.Modules, fixtureModule{m.ResolvedFileName, m.OriginalPath, m.Extension, m.ResolvedUsingTsExtension, m.ResolvedUsingExtraExtensions, m.PackageId, m.IsExternalLibraryImport, m.AlternateResult})
+	value := *m
+	value.ResolutionDiagnostics = nil
+	r.fixture.Modules = append(r.fixture.Modules, value)
 	return i
 }
 
@@ -765,6 +759,7 @@ func NewFixtureProgram(f *Fixture) *FixtureProgram {
 	}
 	for i, ff := range f.Files {
 		sf := storeparser.ParseSourceFileIn(p.space, store.StoreID(i), ff.ParseOptions, string(ff.Text), ff.ScriptKind)
+		sf.SetContentMapper(ff.ContentMapper)
 		p.files[i] = sf
 		p.byPath[string(sf.PathKey())] = sf
 	}
@@ -783,11 +778,7 @@ func NewFixtureProgram(f *Fixture) *FixtureProgram {
 		p.symlinks = f.Scalars.Symlinks.cache()
 	}
 	for _, m := range f.Modules {
-		p.modules = append(p.modules, &module.ResolvedModule{
-			ResolvedFileName: m.ResolvedFileName, OriginalPath: m.OriginalPath, Extension: m.Extension,
-			ResolvedUsingTsExtension: m.ResolvedUsingTsExtension, ResolvedUsingExtraExtensions: m.ResolvedUsingExtraExtensions,
-			PackageId: m.PackageId, IsExternalLibraryImport: m.IsExternalLibraryImport, AlternateResult: m.AlternateResult,
-		})
+		p.modules = append(p.modules, &m)
 	}
 	return p
 }
