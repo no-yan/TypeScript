@@ -189,7 +189,7 @@ commit:
 
 | PR | Pointer の変更 | Store 側の扱い | 承認 |
 |---|---|---|---|
-| 2f9fd09a10 source phase imports | `KindSourceKeyword` を DeferKeyword の後に足す (LastKeyword・LastToken・LastContextualKeyword を兼ね、以降の Kind の値が 1 ずれる)。ImportClause の phase に `source` を許す。ast に `IsImportPhaseMetaProperty`・`IsSourcePhaseImport(Call)` など。scanner の keyword 表に `source`。checker・printer・grammarchecks も変わる | (1) Store AST を再生成する (表は Kind の記号名で引くので、値のずれは安全)。(2) storeparser の 6 宣言を手で移植し、新しい helper 3 つ (`currentImportPhaseModifier`・`shouldParseImportPhaseModifier`・`parseImportMetaPropertyName`) を足す。`tokenAfterImportedIdentifierDefinitelyProducesImportDeclaration` は `...AllowsImportEqualsDeclaration` への改名に従う。(3) storescanner・store/utilities.go・checker・printer は翻訳する。(4) `CallExpression.computeSubtreeFacts` の変更は対象外 (Store に SubtreeFacts は無く、読むのは emit の transformer だけ) | |
+| 2f9fd09a10 source phase imports | `KindSourceKeyword` を DeferKeyword の後に足す (LastKeyword・LastToken・LastContextualKeyword を兼ね、以降の Kind の値が 1 ずれる)。ImportClause の phase に `source` を許す。ast に `IsImportPhaseMetaProperty`・`IsSourcePhaseImport(Call)` など。scanner の keyword 表に `source`。checker・printer・grammarchecks も変わる | (1) Store AST を再生成する (表は Kind の記号名で引くので、値のずれは安全)。(2) storeparser の 6 宣言を手で移植し、新しい helper 3 つ (`currentImportPhaseModifier`・`shouldParseImportPhaseModifier`・`parseImportMetaPropertyName`) を足す。`tokenAfterImportedIdentifierDefinitelyProducesImportDeclaration` は `...AllowsImportEqualsDeclaration` への改名に従う。(3) storescanner・store/utilities.go・checker・printer は翻訳する。(4) `CallExpression.computeSubtreeFacts` の変更は対象外 (Store に SubtreeFacts は無く、読むのは emit の transformer だけ) | 2026-10-21 承認 |
 
 ### 古くなる P2 (1)
 
@@ -211,3 +211,71 @@ storeparser の `isStartOfStatement`、`parseImportDeclarationOrImportEqualsDecl
 ### テキスト衝突
 
 診断の生成物 2 つ (`diagnosticMessages.generated.json`・`diagnostics_generated.go`)。upstream 側を取って再生成する。
+
+### 結果 (合格)
+
+commit:
+
+- 3d62114322f merge
+- a0f56d7ba67 Store AST の再生成 (token の case に SourceKeyword)
+- 6c536e2b737 storeparser の移植
+- 3ea84492ac7 再翻訳 (`NewChecker` の P2、`roots.txt` に `IsImportPhaseMetaProperty`)
+- 8361265c68f storeharness の adapter
+
+計画外の判断・見つかったこと:
+
+- storeharness の測定用 adapter (`mode.go`) の `GetResolvedModuleFromModuleSpecifier` は、Pointer の写しだった。2f9fd09a10 で入った「source phase import は nil」の判定が欠けていた。
+  - 段の終わりの `TestModeCorpus` が、importSource7・19・20 の不一致 6 件として見つけた。
+  - これは計画の穴 (d) (harness の写し) に当たる。
+  - これを受けて、p2stale の Mirror の突き合わせに storeharness・storeclitest の手書きファイルを加えた。S1a・S1b の範囲を当て直すと、新しく出たのは adapter の委譲 3 つ (`BindSourceFiles`・`GetNearestAncestorDirectoryWithPackageJson`・`GetPackageJsonInfo`) だけで、写した本体は無かった。
+- `roots.txt` に `IsImportPhaseMetaProperty` を足した。storeparser が呼ぶ ast 関数は root に載せる、という既存の取り決めに従った。
+- `CallExpression.computeSubtreeFacts` の変更は、承認どおり対象外にした。
+
+検証 (2026-10-21、合格、scratchpad/S2/stage-end.log):
+
+- 段 1 strict: 17,569 件。equal 17,567、既知の除外 2。Pointer の非決定の 1 件は、今回は `MessageArgs` の差として出た。ファイルは同じ。
+- 段 2: 15,296 件。equal 13,537、runner-skipped 1,759。
+- upstream が足した `importSource*` の試験は、corpus と段 2 に入っている。
+
+## S3: 2f9fd09a10..ed4807212c (#97〜#103)
+
+### ast・parser・scanner・binder の PR と Store 側の扱い
+
+| PR | Pointer の変更 | Store 側の扱い | 承認 |
+|---|---|---|---|
+| ed4807212c strongly typed file paths | path を `tspath.RootedFilePath`・`tspath.PathKey` などの型で区別する。`ast.HasFileName` は `FileName() RootedFilePath`・`PathKey() PathKey` になり、`SourceFile.Path()` は `PathKey()` に改名する。`SourceFileParseOptions` は `FileName`・`PathKey` を持つ。新しい lint `typedpaths` が型の変換を検査する (483 ファイル) | (1) 手書きの `store/file.go` の `File` を新しい `HasFileName` に合わせ、`Path()` を `PathKey()` に改名する。Pointer の `SourceFile` と同じ形にする。(2) storeparser (`initializeState`・`parseSourceFileWorker`)・storebinder (`bindSourceFileAsExternalModule`)・storecompiler の手書きファイル・storeharness・storeclitest を、コンパイルが通るよう直す。(3) P2 19 件を移植し直し、消えた `compilerHost.GetCurrentDirectory` の P2 を削除する。(4) 翻訳される側は storetranslate に任せる。(5) 手書きの store のコードにも `typedpaths` をかけ、upstream と同じ規則に従わせる | |
+
+### 古くなる P2 (19)、消える宣言 (1)
+
+- checker: `Program` (interface)
+- compiler:
+  - `CompilerHost`、`compilerHost`、`NewCompilerHost`、`NewCachedFSCompilerHost`、`compilerHost.DefaultLibraryPath`、`compilerHost.GetResolvedProjectReference`
+  - `Program`、`ProgramConfig`、`NewProgram`、`Program.GetSymlinkCache`、`Program.verifyCompilerOptions`
+  - `fileLoader.addProjectReferenceTasks`、`fileLoader.parseSourceFile`、`filesParser.getProcessedFiles`、`parseTask.load`
+  - `includeProcessor`、`FileIncludeReason.toRelatedInfo`、`sourceFileMayBeEmitted`
+- 消える: `compilerHost.GetCurrentDirectory` (CompilerHost interface から外れた)
+
+### Mirror (手書きの移植)
+
+- storeparser: `initializeState`、`parseSourceFileWorker`
+- storebinder: `bindSourceFileAsExternalModule`
+- ast/store の手書き (名前が違うので自動では拾えない): `store/file.go` の `File` (Pointer の `SourceFile.FileName`・`PathKey`・`OriginalFileName`・`VirtualFileName`・`hasFileNameImpl`)
+- storeharness の adapter (`adapter.go`・`mode.go`): checker の `Program` interface を実装する 27 の method。大半は Pointer への委譲。`GetModeForUsageLocation`・`GetEmitSyntaxForUsageLocation` は storecompiler の関数を呼ぶ。
+
+### Ref
+
+compiler など 68 件。手順 6 で、写した本体があるかを確かめる。
+
+### storeharness が写したファイル
+
+- `harnessutil.go` (+/- 317)
+- `compiler_runner.go` (41)
+- `test_case_parser.go` (22)
+- `type_symbol_baseline.go` (6)。これは storeharness `pointerwalker.go` の写し元。
+
+それぞれの差分を、写しと突き合わせる。
+
+### テキスト衝突
+
+- program.go: こちらの `bindSourceFile` の `file.Path()` を `file.PathKey()` にする。
+- `core/options_generated.go`: 生成物。upstream を取って再生成する。
