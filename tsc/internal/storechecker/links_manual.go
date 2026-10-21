@@ -22,7 +22,15 @@ const (
 // (IDSpace), so the outer table grows as Stores are made, synthetic ones
 // included. The nil Node is NodeKey{}, one key like any other.
 //
-// storetranslate:pointer-hash 23820a26eafb977a links.go:nodeLinkStore
+// Since aa8149273b the Pointer's store keys a node by an id its checker deals
+// in blocks, to pack the links densely, and keeps the values in an arena, so
+// that TryGet answers nil for a key that Get has not made. A NodeKey is dense
+// already; the pages keep the values, and TryGet answers a zero value for
+// such a key on a page that exists, as the Pointer's did before. The one node
+// link store, symbolNodeLinks, is read by TryGet only for its resolvedSymbol,
+// nil either way (upstream-sync-20261021.md S6, the user's decision).
+//
+// storetranslate:pointer-hash 2455b06c970c36ef links.go:nodeLinkStore
 type nodeLinkStore[V any] struct {
 	stores [][]*[nodeLinkPageSize]V // [StoreID][NodeRef>>nodeLinkPageShift]
 }
@@ -30,7 +38,7 @@ type nodeLinkStore[V any] struct {
 // Get repeats the lookup of TryGet rather than calling it: TryGet is over the
 // inline budget, and Get is the hot one.
 //
-// storetranslate:pointer-hash d5587bfdc4247b0b links.go:nodeLinkStore.Get
+// storetranslate:pointer-hash b1d86f5d08f764b6 links.go:nodeLinkStore.Get
 func (s *nodeLinkStore[V]) Get(node store.Node) *V {
 	k := node.Key()
 	if id := int(k.StoreID()); id < len(s.stores) {
@@ -45,10 +53,10 @@ func (s *nodeLinkStore[V]) Get(node store.Node) *V {
 }
 
 // newPage grows the tables to the key and gives it a page, as
-// PagedLinkStore.Get does.
+// PagedLinkStore.Get did before aa8149273b.
 //
 // storetranslate:store-only
-// storetranslate:pointer-hash d5587bfdc4247b0b links.go:nodeLinkStore.Get
+// storetranslate:pointer-hash b1d86f5d08f764b6 links.go:nodeLinkStore.Get
 func (s *nodeLinkStore[V]) newPage(k store.NodeKey) *V {
 	id := int(k.StoreID())
 	if id >= len(s.stores) {
@@ -68,12 +76,12 @@ func (s *nodeLinkStore[V]) newPage(k store.NodeKey) *V {
 	return &page[k.ID()&nodeLinkPageMask]
 }
 
-// storetranslate:pointer-hash 0a6c3cc96a69d318 links.go:nodeLinkStore.Has
+// storetranslate:pointer-hash 81a01ee89bd7af2e links.go:nodeLinkStore.Has
 func (s *nodeLinkStore[V]) Has(node store.Node) bool {
 	return s.TryGet(node) != nil
 }
 
-// storetranslate:pointer-hash 84bb3b500a6da07a links.go:nodeLinkStore.TryGet
+// storetranslate:pointer-hash 81e7a121203b3ba6 links.go:nodeLinkStore.TryGet
 func (s *nodeLinkStore[V]) TryGet(node store.Node) *V {
 	k := node.Key()
 	if id := int(k.StoreID()); id < len(s.stores) {

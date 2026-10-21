@@ -106,6 +106,17 @@ func newSymbolId() uint64 {
 	}
 }
 
+// SymbolIdGenerator is ast.SymbolIdGenerator (aa8149273b): a checker's dealer
+// of gids in blocks of ast.BlockIdSize, from ast.BlockIdOffset up, so that the
+// links of its symbols are dense. Its GetSymbolId is P2 (utilities_manual.go).
+type SymbolIdGenerator struct {
+	nextId uint64
+	lastId uint64
+}
+
+// nextSymbolBlockId is the counter of SymbolIdGenerator's blocks.
+var nextSymbolBlockId atomic.Uint64
+
 func (s *Symbol) IsExternalModule() bool {
 	return s.Flags()&ast.SymbolFlagsModule != 0 && ast.IsAmbientModuleSymbolName(s.Name())
 }

@@ -108,6 +108,26 @@ func newGetSymbolId(s *Symbol) uint64 {
 	return id
 }
 
+// GetSymbolId is ast.SymbolIdGenerator.GetSymbolId on the gid, which
+// GetSymbolId gives too: whichever is first gives the symbol its id.
+//
+// storetranslate:pointer-hash 9d6f9f495c8fb2d2 utilities.go:SymbolIdGenerator.GetSymbolId
+func (a *SymbolIdGenerator) GetSymbolId(symbol *Symbol) ast.SymbolId {
+	id := symbol.gid.Load()
+	if id == 0 {
+		if a.nextId == a.lastId {
+			a.nextId = nextSymbolBlockId.Add(ast.BlockIdSize) - ast.BlockIdSize
+			a.lastId = a.nextId + ast.BlockIdSize
+		}
+		id = a.nextId + ast.BlockIdOffset
+		a.nextId++
+		if !symbol.gid.CompareAndSwap(0, id) {
+			id = symbol.gid.Load()
+		}
+	}
+	return ast.SymbolId(id)
+}
+
 // IsLocalsContainer reads the kind's reserved slot table: a Store node has
 // no LocalsContainerData to test for nil (7c (f) 17).
 //

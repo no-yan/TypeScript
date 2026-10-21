@@ -10,26 +10,30 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
 
-type symbolArenaLinkStore[V any] struct {
-	store core.PagedLinkStore[*V]
-	arena core.Arena[V]
+const maxPageLinkCount = 0x100_0000 // 16M
+
+type symbolLinkStore[V any] struct {
+	gen   store.SymbolIdGenerator
+	links core.LinkStore[uint64, V]
+	pages core.PagedLinkStore[V]
 }
 
-func (s *symbolArenaLinkStore[V]) Get(symbol *store.Symbol) *V {
-	link := s.store.Get(uint64(ast.SymbolId(store.GetSymbolId(symbol))))
-	if *link == nil {
-		*link = s.arena.New()
+func (s *symbolLinkStore[V]) Get(symbol *store.Symbol) *V {
+	id := uint64(s.gen.GetSymbolId(symbol))
+	if id >= ast.BlockIdOffset && id < ast.BlockIdOffset+maxPageLinkCount {
+		return s.pages.Get(id - ast.BlockIdOffset)
 	}
-	return *link
+	return s.links.Get(id)
 }
 
-func (s *symbolArenaLinkStore[V]) Has(symbol *store.Symbol) bool {
+func (s *symbolLinkStore[V]) Has(symbol *store.Symbol) bool {
 	return s.TryGet(symbol) != nil
 }
 
-func (s *symbolArenaLinkStore[V]) TryGet(symbol *store.Symbol) *V {
-	if link := s.store.TryGet(uint64(ast.SymbolId(store.GetSymbolId(symbol)))); link != nil {
-		return *link
+func (s *symbolLinkStore[V]) TryGet(symbol *store.Symbol) *V {
+	id := uint64(s.gen.GetSymbolId(symbol))
+	if id >= ast.BlockIdOffset && id < ast.BlockIdOffset+maxPageLinkCount {
+		return s.pages.TryGet(id - ast.BlockIdOffset)
 	}
-	return nil
+	return s.links.TryGet(id)
 }

@@ -616,7 +616,7 @@ type Checker struct {
 	jsxElementLinks                             core.LinkStore[store.NodeKey, JsxElementLinks]
 	computedNameLinks                           core.LinkStore[store.NodeKey, ComputedNameNodeLinks]
 	symbolReferenceLinks                        core.LinkStore[*store.Symbol, SymbolReferenceLinks]
-	valueSymbolLinks                            symbolArenaLinkStore[ValueSymbolLinks]
+	valueSymbolLinks                            symbolLinkStore[ValueSymbolLinks]
 	mappedSymbolLinks                           core.LinkStore[*store.Symbol, MappedSymbolLinks]
 	deferredSymbolLinks                         core.LinkStore[*store.Symbol, DeferredSymbolLinks]
 	aliasSymbolLinks                            core.LinkStore[*store.Symbol, AliasSymbolLinks]
