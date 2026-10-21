@@ -5231,7 +5231,9 @@ func (p *Parser) parseJsxAttributeValue() store.NodeRef {
 			return p.parseJsxExpression( /*inExpressionContext*/ true)
 		}
 		if p.token == ast.KindLessThanToken {
-			return p.parseJsxElementOrSelfClosingElementOrFragment(true /*inExpressionContext*/, -1, store.NoNodeRef, false)
+			// An attribute value must be a single JsxAttributeValue, so don't allow the sibling-element
+			// recovery to wrap it in a synthetic binary expression.
+			return p.parseJsxElementOrSelfClosingElementOrFragment(true /*inExpressionContext*/, -1 /*topInvalidNodePosition*/, store.NoNodeRef /*openingTag*/, true /*mustBeUnary*/)
 		}
 		p.parseErrorAtCurrentToken(diagnostics.X_or_JSX_element_expected)
 	}
