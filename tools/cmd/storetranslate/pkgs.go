@@ -65,7 +65,7 @@ var pkgTable = []pkgSpec{
 	{src: "modulespecifiers", out: "storemodulespecifiers", mode: modeChanged},
 	// module.GetResolutionDiagnostic takes the importing *ast.SourceFile. The
 	// resolver reads no node: the Store loader (compiler) shares it.
-	{src: "module", out: "storemodule", mode: modeChanged, shared: []string{"Resolver", "NewResolver"}},
+	{src: "module", out: "storemodule", mode: modeChanged, shared: []string{"Resolver", "DefaultResolver", "NewResolver"}},
 	{src: "compiler", out: "storecompiler", mode: modeChanged},
 }
 

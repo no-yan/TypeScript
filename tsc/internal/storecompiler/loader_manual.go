@@ -25,7 +25,7 @@ import (
 // ProgramOptions has no checker pool: the Store program owns its one checker.
 // idSpace is the program's StoreID namespace (4.3), which NewProgram makes.
 //
-// storetranslate:pointer-hash 9beea9be69954d97 program.go:ProgramOptions
+// storetranslate:pointer-hash eea831a5ace2f126 program.go:ProgramOptions
 type ProgramOptions struct {
 	Host                        CompilerHost
 	Config                      *tsoptions.ParsedCommandLine
@@ -34,6 +34,7 @@ type ProgramOptions struct {
 	TypingsLocation             string
 	ProjectName                 string
 	Tracing                     *tracing.Tracing
+	CreateModuleResolver        func(options module.ResolverOptions) module.Resolver
 	// SkipModuleResolution avoids all module and type reference resolution while
 	// still collecting import metadata needed for emit.
 	SkipModuleResolution bool
@@ -215,7 +216,7 @@ func (t *parseTask) load(loader *fileLoader) {
 // getProcessedFiles keeps no duplicate source files: the Store program has
 // no parse cache whose acquires they balance.
 //
-// storetranslate:pointer-hash a089961247b3eeee filesparser.go:filesParser.getProcessedFiles
+// storetranslate:pointer-hash b3418e73adef2551 filesparser.go:filesParser.getProcessedFiles
 func (w *filesParser) getProcessedFiles(loader *fileLoader) processedFiles {
 	totalFileCount := int(loader.totalFileCount.Load())
 	libFileCount := int(loader.libFileCount.Load())
@@ -428,5 +429,6 @@ func (w *filesParser) getProcessedFiles(loader *fileLoader) processedFiles {
 		redirectTargetsMap:                   redirectTargetsMap,
 		redirectFilesByPath:                  redirectFilesByPath,
 		contentMapperDiagnostics:             loader.contentMapperDiagnostics,
+		moduleResolutionError:                loader.moduleResolutionError,
 	}
 }

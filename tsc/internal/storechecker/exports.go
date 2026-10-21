@@ -9,6 +9,10 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store"
 )
 
+func (c *Checker) WasCanceled() bool {
+	return c.wasCanceled
+}
+
 func (c *Checker) GetEffectiveDeclarationFlags(n store.Node, flagsToCheck ast.ModifierFlags) ast.ModifierFlags {
 	return c.getEffectiveDeclarationFlags(n, flagsToCheck)
 }

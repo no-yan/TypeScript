@@ -3,7 +3,6 @@ package storechecker
 import (
 	"maps"
 	"slices"
-	"strings"
 	"sync"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
@@ -480,7 +479,7 @@ func (c *Checker) checkIfExpressionRefinesParameter(fn store.Node, expr store.No
 // node, which a NodeKey does not give: the nodes are kept in a second map of
 // the same keys.
 //
-// storetranslate:pointer-hash 4f6ad5838dfa80ad checker.go:Checker.checkKindsOfPropertyMemberOverrides
+// storetranslate:pointer-hash 9eef049f74be2246 checker.go:Checker.checkKindsOfPropertyMemberOverrides
 func (c *Checker) checkKindsOfPropertyMemberOverrides(t *Type, baseType *Type) {
 	// TypeScript 1.0 spec (April 2014): 8.2.3
 	// A derived class inherits all members from its base class it doesn't override.
@@ -623,7 +622,7 @@ basePropertyCheck:
 				c.error(errorNode, diagnostics.Non_abstract_class_0_does_not_implement_inherited_abstract_member_1_from_class_2, memberInfo.typeName, missedProperty, memberInfo.baseTypeName)
 			}
 		case len(memberInfo.missedProperties) > 5:
-			missedProperties := strings.Join(core.Map(memberInfo.missedProperties[:4], func(prop string) string { return "'" + prop + "'" }), ", ")
+			missedProperties := quotedAndCommaSeparated(memberInfo.missedProperties[:4])
 			remainingMissedProperties := len(memberInfo.missedProperties) - 4
 			if store.IsClassExpression(errorNode) {
 				c.error(errorNode, diagnostics.Non_abstract_class_expression_is_missing_implementations_for_the_following_members_of_0_Colon_1_and_2_more, memberInfo.baseTypeName, missedProperties, remainingMissedProperties)
@@ -631,7 +630,7 @@ basePropertyCheck:
 				c.error(errorNode, diagnostics.Non_abstract_class_0_is_missing_implementations_for_the_following_members_of_1_Colon_2_and_3_more, memberInfo.typeName, memberInfo.baseTypeName, missedProperties, remainingMissedProperties)
 			}
 		default:
-			missedProperties := strings.Join(core.Map(memberInfo.missedProperties, func(prop string) string { return "'" + prop + "'" }), ", ")
+			missedProperties := quotedAndCommaSeparated(memberInfo.missedProperties)
 			if store.IsClassExpression(errorNode) {
 				c.error(errorNode, diagnostics.Non_abstract_class_expression_is_missing_implementations_for_the_following_members_of_0_Colon_1, memberInfo.baseTypeName, missedProperties)
 			} else {

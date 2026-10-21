@@ -99,6 +99,9 @@ var compilerRoots = []string{
 	"compiler.Program.TypeCount",
 	"compiler.Program.InstantiationCount",
 	"compiler.SortAndDeduplicateDiagnostics",
+	// What the P2 getBindAndCheckDiagnosticsWithChecker calls for the deferred
+	// global diagnostics (4f5ddae224).
+	"checker.Checker.WasCanceled",
 }
 
 func computeReach(w *world) (*reachResult, error) {

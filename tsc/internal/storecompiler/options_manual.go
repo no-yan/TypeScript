@@ -20,9 +20,10 @@ import (
 // Pointer's JSON AST, as the Pointer does, and keeps them as Store
 // diagnostics (store-cli-design-20261004.md 6); it reads the Store files
 // where the Pointer reads its files. The program has no project reference and
-// no emit.
+// no emit, and no content mapper: a file's root path is its own path, not its
+// canonical source file's.
 //
-// storetranslate:pointer-hash cfa793ab2d0ed980 program.go:Program.verifyCompilerOptions
+// storetranslate:pointer-hash c61f36314e55d3c5 program.go:Program.verifyCompilerOptions
 func (p *Program) verifyCompilerOptions() {
 	options := p.Options()
 	var programDiagnostics []*ast.Diagnostic

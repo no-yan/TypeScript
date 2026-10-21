@@ -450,7 +450,7 @@ func getContainingNodeArray(node store.Node) store.List {
 		case store.IsFunctionLike(parent) || store.IsClassLike(parent) || store.IsInterfaceDeclaration(parent) || store.IsTypeOrJSTypeAliasDeclaration(parent):
 			return parent.TypeParameterList()
 		case store.IsInferTypeNode(parent):
-			break
+			// infer type nodes have no associated type parameter list
 		default:
 			panic(fmt.Sprintf("Unexpected TypeParameter parent: %#v", parent.Kind()))
 		}

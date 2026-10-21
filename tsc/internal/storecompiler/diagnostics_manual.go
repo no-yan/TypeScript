@@ -82,16 +82,34 @@ func (p *Program) collectCheckerDiagnosticsFromFiles(ctx context.Context, source
 
 // getBindAndCheckDiagnosticsWithChecker has no content mapper directives.
 //
-// storetranslate:pointer-hash b6b5bbecdef1827e program.go:Program.getBindAndCheckDiagnosticsWithChecker
-func (p *Program) getBindAndCheckDiagnosticsWithChecker(ctx context.Context, fileChecker *storechecker.Checker, sourceFile *store.File) []*store.Diagnostic {
+// storetranslate:pointer-hash 147a3e2e17f17ad9 program.go:Program.getBindAndCheckDiagnosticsWithChecker
+func (p *Program) getBindAndCheckDiagnosticsWithChecker(ctx context.Context, fileChecker *storechecker.Checker, sourceFile *store.File, includeDeferredGlobals bool) []*store.Diagnostic {
 	compilerOptions := p.Options()
 	if p.SkipTypeChecking(sourceFile, false) {
 		return nil
+	}
+	var previousGlobals []*store.Diagnostic
+	if includeDeferredGlobals {
+		previousGlobals = fileChecker.GetGlobalDiagnostics()
 	}
 
 	// Checker creation forces binding, so bind diagnostics will be populated.
 	diags := store.DiagnosticsFromAST(sourceFile.Bound.BindDiagnostics(), store.InFile(sourceFile))
 	diags = append(diags, fileChecker.GetDiagnostics(ctx, sourceFile)...)
+
+	if includeDeferredGlobals {
+		if fileChecker.WasCanceled() {
+			return nil
+		}
+		currentGlobals := fileChecker.GetGlobalDiagnostics()
+		if len(currentGlobals) > len(previousGlobals) {
+			for _, diagnostic := range currentGlobals {
+				if _, found := slices.BinarySearchFunc(previousGlobals, diagnostic, store.CompareDiagnostics); !found {
+					diags = append(diags, diagnostic)
+				}
+			}
+		}
+	}
 
 	isPlainJS := store.IsPlainJSFile(sourceFile, compilerOptions.CheckJs)
 	if isPlainJS {

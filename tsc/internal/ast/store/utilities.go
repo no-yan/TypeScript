@@ -3198,7 +3198,7 @@ func IsTypeDeclaration(node Node) bool {
 	case ast.KindTypeParameter, ast.KindClassDeclaration, ast.KindInterfaceDeclaration, ast.KindTypeAliasDeclaration, ast.KindJSTypeAliasDeclaration, ast.KindEnumDeclaration:
 		return true
 	case ast.KindImportClause:
-		return node.IsTypeOnly()
+		return node.IsTypeOnly() && !node.AsImportClause().Name().IsNil()
 	case ast.KindImportSpecifier, ast.KindExportSpecifier:
 		return node.Parent().Parent().IsTypeOnly()
 	default:

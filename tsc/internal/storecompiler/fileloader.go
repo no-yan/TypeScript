@@ -44,7 +44,7 @@ type sourceFileFromReferenceDiagnostic struct {
 
 type fileLoader struct {
 	opts                                           ProgramOptions
-	resolver                                       *module.Resolver
+	resolver                                       module.Resolver
 	defaultLibraryPath                             string
 	comparePathsOptions                            tspath.ComparePathsOptions
 	supportedExtensions                            [][]string
@@ -68,10 +68,12 @@ type fileLoader struct {
 
 	// contentMapperMu guards the content-mapper bookkeeping below, which is written concurrently as
 	// content-mapped files are parsed across worker goroutines.
-	contentMapperMu          sync.Mutex
-	contentMapperFailures    map[*contentmapper.Mapper]int
-	contentMapperInitFailed  collections.Set[*contentmapper.Mapper]
-	contentMapperDiagnostics []*store.Diagnostic
+	contentMapperMu           sync.Mutex
+	contentMapperFailures     map[*contentmapper.Mapper]int
+	contentMapperInitFailed   collections.Set[*contentmapper.Mapper]
+	contentMapperDiagnostics  []*store.Diagnostic
+	moduleResolutionErrorOnce sync.Once
+	moduleResolutionError     error
 }
 
 type redirectsFile struct {
@@ -91,7 +93,7 @@ func (r *redirectsFile) Path() tspath.Path {
 }
 
 type processedFiles struct {
-	resolver *module.Resolver
+	resolver module.Resolver
 	files    []*store.File
 	// duplicateSourceFiles tracks parsed files loaded during program construction
 	// that were later dropped from the final program, such as losing filename
@@ -120,6 +122,7 @@ type processedFiles struct {
 	redirectFilesByPath map[tspath.Path]*redirectsFile
 	// Program-level diagnostics reported when a content mapper fails fatally (reported once per mapper).
 	contentMapperDiagnostics []*store.Diagnostic
+	moduleResolutionError    error
 	finishedProcessing       bool
 }
 
@@ -157,7 +160,18 @@ func processAllProgramFiles(
 		contentMapperExtensions:                        opts.Config.ContentMapperExtensions(),
 	}
 	loader.addProjectReferenceTasks(singleThreaded)
-	loader.resolver = module.NewResolver(loader.projectReferenceFileMapper.host, compilerOptions, opts.TypingsLocation, opts.ProjectName, opts.Config.ContentMapperExtensions())
+	resolverOptions := module.ResolverOptions{
+		Host:            loader.projectReferenceFileMapper.host,
+		CompilerOptions: compilerOptions,
+		TypingsLocation: opts.TypingsLocation,
+		ProjectName:     opts.ProjectName,
+		ExtraExtensions: opts.Config.ContentMapperExtensions(),
+	}
+	if opts.CreateModuleResolver != nil {
+		loader.resolver = opts.CreateModuleResolver(resolverOptions)
+	} else {
+		loader.resolver = module.NewResolver(resolverOptions)
+	}
 	if opts.Tracing != nil {
 		defer opts.Tracing.Push(tracing.PhaseProgram, "processRootFiles", map[string]any{"count": len(rootFiles)}, false)()
 	}
@@ -570,7 +584,18 @@ func (p *fileLoader) resolveImportsAndModuleAugmentations(t *parseTask) {
 			}
 
 			mode := getModeForUsageLocation(file.FileName(), meta, entry, optionsForFile)
-			resolvedModule, trace := p.resolver.ResolveModuleName(moduleName, fileName, mode, redirect)
+			var resolvedModule *module.ResolvedModule
+			var trace []module.DiagAndArgs
+			var err error
+			resolvedModule, trace, err = p.resolver.ResolveModuleName(moduleName, fileName, mode, redirect)
+			if err != nil {
+				p.moduleResolutionErrorOnce.Do(func() {
+					p.moduleResolutionError = err
+				})
+			}
+			if resolvedModule == nil {
+				resolvedModule = &module.ResolvedModule{}
+			}
 			resolutionsInFile[module.ModeAwareCacheKey{Name: moduleName, Mode: mode}] = resolvedModule
 			resolutionsTrace = append(resolutionsTrace, trace...)
 
@@ -651,7 +676,13 @@ func (p *fileLoader) resolveLibrary(libraryName, resolveFrom string) (*module.Re
 	if tr := p.opts.Tracing; tr != nil {
 		defer tr.Push(tracing.PhaseProgram, "resolveLibrary", map[string]any{"resolveFrom": resolveFrom}, false)()
 	}
-	return p.resolver.ResolveModuleName(libraryName, resolveFrom, core.ModuleKindCommonJS, nil)
+	resolved, trace, err := p.resolver.ResolveModuleName(libraryName, resolveFrom, core.ModuleKindCommonJS, nil)
+	if err != nil {
+		p.moduleResolutionErrorOnce.Do(func() {
+			p.moduleResolutionError = err
+		})
+	}
+	return resolved, trace
 }
 
 func getLibraryNameFromLibFileName(libFileName string) string {

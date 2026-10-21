@@ -343,7 +343,7 @@ func FilterNoEmitSemanticDiagnostics(diagnostics []*store.Diagnostic, options *c
 
 func (p *Program) getSemanticDiagnosticsWithChecker(ctx context.Context, c *storechecker.Checker, sourceFile *store.File) []*store.Diagnostic {
 	return core.Concatenate(
-		FilterNoEmitSemanticDiagnostics(p.getBindAndCheckDiagnosticsWithChecker(ctx, c, sourceFile), p.Options()),
+		FilterNoEmitSemanticDiagnostics(p.getBindAndCheckDiagnosticsWithChecker(ctx, c, sourceFile, false /*includeDeferredGlobals*/), p.Options()),
 		p.GetIncludeProcessorDiagnostics(sourceFile),
 	)
 }
@@ -362,6 +362,10 @@ func (p *Program) getDiagnosticsWithPrecedingDirectives(sourceFile *store.File, 
 	filtered := make([]*store.Diagnostic, 0, len(diags))
 	for _, diagnostic := range diags {
 		ignoreDiagnostic := false
+		if diagnostic.File() != sourceFile {
+			filtered = append(filtered, diagnostic)
+			continue
+		}
 		for line := scanner.ComputeLineOfPosition(lineStarts, diagnostic.Pos()) - 1; line >= 0; line-- {
 			// If line contains a @ts-ignore or @ts-expect-error directive, ignore this diagnostic and change
 			// the directive kind to @ts-ignore to indicate it was used.
