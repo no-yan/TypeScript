@@ -243,7 +243,7 @@ commit:
 
 | PR | Pointer の変更 | Store 側の扱い | 承認 |
 |---|---|---|---|
-| ed4807212c strongly typed file paths | path を `tspath.RootedFilePath`・`tspath.PathKey` などの型で区別する。`ast.HasFileName` は `FileName() RootedFilePath`・`PathKey() PathKey` になり、`SourceFile.Path()` は `PathKey()` に改名する。`SourceFileParseOptions` は `FileName`・`PathKey` を持つ。新しい lint `typedpaths` が型の変換を検査する (483 ファイル) | (1) 手書きの `store/file.go` の `File` を新しい `HasFileName` に合わせ、`Path()` を `PathKey()` に改名する。Pointer の `SourceFile` と同じ形にする。(2) storeparser (`initializeState`・`parseSourceFileWorker`)・storebinder (`bindSourceFileAsExternalModule`)・storecompiler の手書きファイル・storeharness・storeclitest を、コンパイルが通るよう直す。(3) P2 19 件を移植し直し、消えた `compilerHost.GetCurrentDirectory` の P2 を削除する。(4) 翻訳される側は storetranslate に任せる。(5) 手書きの store のコードにも `typedpaths` をかけ、upstream と同じ規則に従わせる | |
+| ed4807212c strongly typed file paths | path を `tspath.RootedFilePath`・`tspath.PathKey` などの型で区別する。`ast.HasFileName` は `FileName() RootedFilePath`・`PathKey() PathKey` になり、`SourceFile.Path()` は `PathKey()` に改名する。`SourceFileParseOptions` は `FileName`・`PathKey` を持つ。新しい lint `typedpaths` が型の変換を検査する (483 ファイル) | (1) 手書きの `store/file.go` の `File` を新しい `HasFileName` に合わせ、`Path()` を `PathKey()` に改名する。Pointer の `SourceFile` と同じ形にする。(2) storeparser (`initializeState`・`parseSourceFileWorker`)・storebinder (`bindSourceFileAsExternalModule`)・storecompiler の手書きファイル・storeharness・storeclitest を、コンパイルが通るよう直す。(3) P2 19 件を移植し直し、消えた `compilerHost.GetCurrentDirectory` の P2 を削除する。(4) 翻訳される側は storetranslate に任せる。(5) 手書きの store のコードにも `typedpaths` をかけ、upstream と同じ規則に従わせる | 2026-10-21 承認 |
 
 ### 古くなる P2 (19)、消える宣言 (1)
 
@@ -279,3 +279,60 @@ compiler など 68 件。手順 6 で、写した本体があるかを確かめ�
 
 - program.go: こちらの `bindSourceFile` の `file.Path()` を `file.PathKey()` にする。
 - `core/options_generated.go`: 生成物。upstream を取って再生成する。
+
+### 結果 (合格)
+
+commit:
+
+- 39ec4fd967f merge。こちらの AST phase benchmark と fixture の型付き path、API の TS 型 (`proto.generated.ts`) の再生成を含む。
+- b6a6d69f096 store.File・storeparser・storebinder
+- dfa37beeb6a 再翻訳と P2 19 件 (+ 削除 1)、`storeprogram.go`・`execute/check.go`
+- 3704e3e7ed9 storeharness・storeclitest・各 package の試験
+- ace9147622b `typedpaths` の指摘 1 件
+- 083e8d86a03 harness の Pointer program の base directory
+
+見つかったこと・計画外の判断:
+
+- 段の終わりの検証の 1 回目は「PASS」だったが、段 1 の 17,581 件がすべて「Pointer panics」で除外されていて、何も比べていなかった。
+  - 原因: harness が `ParsedCommandLine` を literal で作っていて base directory が無く、ed4807212c の resolver が panic した。`tsoptions.NewParsedCommandLine` に直した。
+  - harness は除外を失敗にしないので、検証スクリプトの最後に確認を足した。除外は既知の 2 件まで、段 1 の equal は 17,000 以上、段 2 の equal は 13,000 以上。
+  - S1a〜S2 の数値は、equal の件数から実際に比べていたことが分かる。
+- `gen-proto` の変更で、API の TS 型 `RawCompilerOptions` に `astBackend` が出るようになった。upstream の他の internal option (`checkers`・`quiet` など) と同じ扱いなので受け入れ、merge commit を amend して入れた (push 前の直前の commit)。
+- こちらが Pointer 側に足した試験 (AST phase benchmark・kperf) は、merge commit の確認でビルドしていなかった。段の終わりの検証に、これらの package の vet を足した。
+- harness の fixture (Pointer の program の答えを記録して再生するもの) は repo に記録されていない。なので schema を新しい型 (`CaseSensitivity`・`BaseDirectory` など) に変えた。
+- `configprep.go` の写し元の revision を ed4807212c に更新した。upstream は option を絶対 path にする処理を harness から消したので、写しからも消した。
+- 内部ディスクが満杯になった (Go のビルドキャッシュ 30GB)。ユーザー決定で、Go の GOCACHE・GOTMPDIR を SanDisk に向けた。
+
+検証 (2026-10-21、合格、2 回目):
+
+- 段 1 strict: 17,581 件。equal 17,579、既知の除外 2。
+- 段 2: 15,299 件。equal 13,540、runner-skipped 1,759。
+- mode: 17,581 ファイル・5,120 か所で、不一致 0。Pointer の panic 1 は既知の 1 件。
+- project: 272,046 の対。Store と Pointer の件数は一致した。
+- 検証スクリプトに確認を足した。
+  - 段 1・段 2: 除外の件数と equal の下限。
+  - mode: Pointer の panic の件数と位置の下限。
+
+## S4: ed4807212c..c0ca4744c91 (#104〜#130)
+
+### ast・parser・scanner・binder の PR と Store 側の扱い
+
+| PR | Pointer の変更 | Store 側の扱い | 承認 |
+|---|---|---|---|
+| afd02f1486 | `GetTypeAnnotationNode` が JSDocParameterTag を扱う | 翻訳する (store/utilities.go) | |
+| bea2e849e9 | `tryParseImportClause` が `defer` にも名前空間の束縛を要求する | storeparser の同じ関数に手で移植する | |
+
+### 古くなる P2
+
+0 件。
+
+### その他
+
+- 253bcd86231 で `printer.EmitContext.Reset` と `GetEmitContext` が消え、emit context は呼び出しごとに `NewEmitContext()` で作るようになった。
+  - storetranslate の root の `printer.EmitContext.Reset` を外す (upstream の削除への追従)。
+  - storeharness の `pointerwalker.go` (type_symbol_baseline.go の写し) と `walker.go` を、同じ形に合わせる。
+- storeharness が写したファイル: compiler_runner.go に `-run` の filter が入った。configprep は列挙に使わないので対象外。
+
+### テキスト衝突
+
+診断の生成物 2 つ。upstream を取って再生成する。
