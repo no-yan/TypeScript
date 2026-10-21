@@ -1451,5 +1451,5 @@ func (c *Checker) getJsxNamespaceContainerForImplicitImport(location store.Node)
 }
 
 func (c *Checker) getJSXRuntimeImportSpecifier(file *store.File) (moduleReference string, specifier store.Node) {
-	return c.program.GetJSXRuntimeImportSpecifier(file.Path())
+	return c.program.GetJSXRuntimeImportSpecifier(file.PathKey())
 }

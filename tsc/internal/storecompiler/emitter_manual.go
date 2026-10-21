@@ -8,7 +8,7 @@ import (
 
 // sourceFileMayBeEmitted has no content-mapped file (store-cli-design-20261004.md 4.1).
 //
-// storetranslate:pointer-hash 9fe4fb0f9a3ca21b emitter.go:sourceFileMayBeEmitted
+// storetranslate:pointer-hash 0c6d498126f7d501 emitter.go:sourceFileMayBeEmitted
 func sourceFileMayBeEmitted(sourceFile *store.File, host SourceFileMayBeEmittedHost, forceDtsEmit bool, forceJsEmit bool) bool {
 	// TODO: move this to outputpaths?
 	options := host.Options()
@@ -34,7 +34,7 @@ func sourceFileMayBeEmitted(sourceFile *store.File, host SourceFileMayBeEmittedH
 
 	// Check other conditions for file emit
 	// Source files from referenced projects are not emitted
-	if host.GetProjectReferenceFromSource(sourceFile.Path()) != nil {
+	if host.GetProjectReferenceFromSource(sourceFile.PathKey()) != nil {
 		return false
 	}
 
@@ -50,12 +50,14 @@ func sourceFileMayBeEmitted(sourceFile *store.File, host SourceFileMayBeEmittedH
 
 	// Otherwise, if rootDir is specified or a config file exists, we know the common source directory and can check if the file would be emitted in the same location
 	if options.RootDir != "" || options.ConfigFilePath != "" {
-		commonDir := tspath.GetNormalizedAbsolutePath(outputpaths.GetCommonSourceDirectory(options, func() []string { return nil }, host.GetCurrentDirectory(), host.UseCaseSensitiveFileNames(), nil), host.GetCurrentDirectory())
-		outputPath := outputpaths.GetSourceFilePathInNewDirWorker(sourceFile.FileName(), options.OutDir, host.GetCurrentDirectory(), commonDir, host.UseCaseSensitiveFileNames())
-		if tspath.ComparePaths(sourceFile.FileName(), outputPath, tspath.ComparePathsOptions{
-			UseCaseSensitiveFileNames: host.UseCaseSensitiveFileNames(),
-			CurrentDirectory:          host.GetCurrentDirectory(),
-		}) == 0 {
+		commonDir := outputpaths.GetCommonSourceDirectory(options, func() []tspath.RootedFilePath { return nil }, host.BaseDirectory(), host.CaseSensitivity(), nil)
+		outputPath := outputpaths.GetSourceFileNameInNewDir(
+			sourceFile.FileName(),
+			options.OutDir,
+			commonDir,
+			host.CaseSensitivity(),
+		)
+		if host.CaseSensitivity().CompareFilePaths(sourceFile.FileName(), outputPath) == 0 {
 			return false
 		}
 	}

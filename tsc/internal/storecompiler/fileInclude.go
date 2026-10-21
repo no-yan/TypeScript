@@ -36,11 +36,11 @@ type FileIncludeReason struct {
 	isDefaultLib           bool
 	referencedFile         *referencedFileData
 	automaticTypeDirective *automaticTypeDirectiveFileData
-	canonicalSourceFile    tspath.Path
+	canonicalSourceFile    tspath.PathKey
 }
 
 type referencedFileData struct {
-	file      tspath.Path
+	file      tspath.PathKey
 	index     int
 	synthetic store.Node
 }
@@ -142,22 +142,24 @@ func (r *FileIncludeReason) getReferencedLocation(program *Program) *referenceFi
 	}
 }
 
-func (r *FileIncludeReason) toDiagnostic(program *Program, relativeFileName bool) *store.Diagnostic {
-	key := includeReasonDiagnosticKey{reason: r, relativeFileName: relativeFileName}
+func (r *FileIncludeReason) toDiagnostic(program *Program, relativeFileName bool, relativeTo tspath.RootedDirectoryPath) *store.Diagnostic {
+	key := includeReasonDiagnosticKey{reason: r, relativeFileName: relativeFileName, relativeTo: relativeTo}
 	if diagnostic, ok := program.includeProcessor.reasonDiagnostics.Load(key); ok {
 		return diagnostic
 	}
-	diagnostic := r.computeDiagnostic(program, func(fileName string) string {
+	diagnostic := r.computeDiagnostic(program, func(fileName tspath.RootedFilePath) string {
 		if relativeFileName {
-			return tspath.GetRelativePathFromDirectory(program.GetCurrentDirectory(), fileName, program.comparePathsOptions)
+			if relativePath, ok := program.caseSensitivity.RelativePathFromDirectory(relativeTo, fileName); ok {
+				return relativePath.AsString()
+			}
 		}
-		return fileName
+		return fileName.AsString()
 	})
 	diagnostic, _ = program.includeProcessor.reasonDiagnostics.LoadOrStore(key, diagnostic)
 	return diagnostic
 }
 
-func (r *FileIncludeReason) computeDiagnostic(program *Program, toFileName func(string) string) *store.Diagnostic {
+func (r *FileIncludeReason) computeDiagnostic(program *Program, toFileName func(tspath.RootedFilePath) string) *store.Diagnostic {
 	if r.isReferencedFile() {
 		return r.computeReferenceFileDiagnostic(program, toFileName)
 	}
@@ -165,7 +167,7 @@ func (r *FileIncludeReason) computeDiagnostic(program *Program, toFileName func(
 	case fileIncludeKindRootFile:
 		if program.opts.Config.ConfigFile != nil {
 			config := program.opts.Config
-			fileName := tspath.GetNormalizedAbsolutePath(config.FileNames()[r.asIndex()], program.GetCurrentDirectory())
+			fileName := config.FileNames()[r.asIndex()]
 			if matchedFileSpec := config.GetMatchedFileSpec(fileName); matchedFileSpec != "" {
 				return store.NewCompilerDiagnostic(diagnostics.Part_of_files_list_in_tsconfig_json, matchedFileSpec, toFileName(fileName))
 			} else if matchedIncludeSpec, isDefaultIncludeSpec := config.GetMatchedIncludeSpec(fileName); matchedIncludeSpec != "" {
@@ -211,7 +213,7 @@ func (r *FileIncludeReason) computeDiagnostic(program *Program, toFileName func(
 	}
 }
 
-func (r *FileIncludeReason) computeReferenceFileDiagnostic(program *Program, toFileName func(string) string) *store.Diagnostic {
+func (r *FileIncludeReason) computeReferenceFileDiagnostic(program *Program, toFileName func(tspath.RootedFilePath) string) *store.Diagnostic {
 	referenceLocation := program.includeProcessor.getReferenceLocation(r, program)
 	referenceText := referenceLocation.text()
 	switch r.kind {
@@ -222,7 +224,7 @@ func (r *FileIncludeReason) computeReferenceFileDiagnostic(program *Program, toF
 			} else {
 				return store.NewCompilerDiagnostic(diagnostics.Imported_via_0_from_file_1, referenceText, toFileName(referenceLocation.file.FileName()))
 			}
-		} else if specifier, ok := program.importHelpersImportSpecifiers[referenceLocation.file.Path()]; ok && store.SameNode(specifier, referenceLocation.node) {
+		} else if specifier, ok := program.importHelpersImportSpecifiers[referenceLocation.file.PathKey()]; ok && store.SameNode(specifier, referenceLocation.node) {
 			if referenceLocation.packageId.Name != "" {
 				return store.NewCompilerDiagnostic(diagnostics.Imported_via_0_from_file_1_with_packageId_2_to_import_importHelpers_as_specified_in_compilerOptions, referenceText, toFileName(referenceLocation.file.FileName()), referenceLocation.packageId.String())
 			} else {

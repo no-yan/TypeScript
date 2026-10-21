@@ -18,8 +18,8 @@ import (
 )
 
 type parseTask struct {
-	normalizedFilePath          string
-	path                        tspath.Path
+	normalizedFilePath          tspath.RootedFilePath
+	path                        tspath.PathKey
 	file                        *store.File
 	libFile                     *LibFile
 	redirectedParseTask         *parseTask
@@ -49,17 +49,18 @@ type parseTask struct {
 	allIncludeReasons []*FileIncludeReason
 }
 
-func (t *parseTask) FileName() string {
+func (t *parseTask) FileName() tspath.RootedFilePath {
 	return t.normalizedFilePath
 }
 
-func (t *parseTask) Path() tspath.Path {
+func (t *parseTask) PathKey() tspath.PathKey {
 	return t.path
 }
 
-func (t *parseTask) redirect(loader *fileLoader, fileName string) {
+func (t *parseTask) redirect(loader *fileLoader, fileName tspath.RootedFilePath, path tspath.PathKey) {
 	t.redirectedParseTask = &parseTask{
-		normalizedFilePath: tspath.NormalizePath(fileName),
+		normalizedFilePath: fileName,
+		path:               path,
 		libFile:            t.libFile,
 		includeReason:      t.includeReason,
 	}
@@ -81,7 +82,8 @@ func (t *parseTask) loadAutomaticTypeDirectives(loader *fileLoader) {
 }
 
 type resolvedRef struct {
-	fileName      string
+	fileName      tspath.RootedFilePath
+	path          tspath.PathKey
 	increaseDepth bool
 	elideOnDepth  bool
 	includeReason *FileIncludeReason
@@ -89,9 +91,9 @@ type resolvedRef struct {
 }
 
 func (t *parseTask) addSubTask(ref resolvedRef, libFile *LibFile) {
-	normalizedFilePath := tspath.NormalizePath(ref.fileName)
 	subTask := &parseTask{
-		normalizedFilePath: normalizedFilePath,
+		normalizedFilePath: ref.fileName,
+		path:               ref.path,
 		libFile:            libFile,
 		increaseDepth:      ref.increaseDepth,
 		elideOnDepth:       ref.elideOnDepth,
@@ -103,14 +105,14 @@ func (t *parseTask) addSubTask(ref resolvedRef, libFile *LibFile) {
 
 type filesParser struct {
 	wg             core.WorkGroup
-	taskDataByPath collections.SyncMap[tspath.Path, *parseTaskData]
+	taskDataByPath collections.SyncMap[tspath.PathKey, *parseTaskData]
 	maxDepth       int
 }
 
 var parseTaskDataPool = sync.Pool{
 	New: func() any {
 		return &parseTaskData{
-			tasks: make(map[string]*parseTask, 1),
+			tasks: make(map[tspath.RootedFilePath]*parseTask, 1),
 		}
 	},
 }
@@ -129,7 +131,7 @@ func putParseTaskData(td *parseTaskData) {
 
 type parseTaskData struct {
 	// map of tasks by file casing
-	tasks           map[string]*parseTask
+	tasks           map[tspath.RootedFilePath]*parseTask
 	mu              sync.Mutex
 	lowestDepth     int
 	startedSubTasks bool
@@ -143,7 +145,9 @@ func (w *filesParser) parse(loader *fileLoader, tasks []*parseTask) {
 
 func (w *filesParser) start(loader *fileLoader, tasks []*parseTask, depth int) {
 	for i, task := range tasks {
-		task.path = loader.toPath(task.normalizedFilePath)
+		if task.path == "" {
+			panic("parse task must have a path key: " + task.normalizedFilePath.AsString())
+		}
 		candidate := getParseTaskData(task)
 		data, loaded := w.taskDataByPath.LoadOrStore(task.path, candidate)
 		if loaded {

@@ -53,59 +53,60 @@ func (l *lazyValue[T]) getValue(compute func() *T) *T {
 	return l.value
 }
 
-func (p *Program) FileExists(path string) bool {
+func (p *Program) FileExists(path tspath.RootedFilePath) bool {
 	return p.Host().FS().FileExists(path)
 }
 
-func (p *Program) GetCurrentDirectory() string {
-	return p.Host().GetCurrentDirectory()
+func (p *Program) BaseDirectory() tspath.RootedDirectoryPath {
+	return p.opts.Config.BaseDirectory()
 }
 
-func (p *Program) GetGlobalTypingsCacheLocation() string {
+func (p *Program) GetGlobalTypingsCacheLocation() tspath.RootedDirectoryPath {
 	return p.opts.TypingsLocation
 }
 
-func (p *Program) GetNearestAncestorDirectoryWithPackageJson(dirname string) string {
+func (p *Program) GetNearestAncestorDirectoryWithPackageJson(dirname tspath.RootedDirectoryPath) tspath.RootedDirectoryPath {
 	scoped := p.newResolver().GetPackageScopeForPath(dirname)
 	if scoped != nil && scoped.Exists() {
-		return scoped.PackageDirectory
+		return scoped.PackageDirectory.AsDirectoryPath()
 	}
 	return ""
 }
 
-func (p *Program) GetPackageJsonInfo(pkgJsonPath string) *packagejson.InfoCacheEntry {
-	directory := tspath.GetDirectoryPath(pkgJsonPath)
+func (p *Program) GetPackageJsonInfo(pkgJsonPath tspath.RootedFilePath) *packagejson.InfoCacheEntry {
+	directory := pkgJsonPath.Directory()
 	scoped := p.newResolver().GetPackageScopeForPath(directory)
-	if scoped != nil && scoped.Exists() && scoped.PackageDirectory == directory {
+	if scoped != nil && scoped.Exists() && scoped.PackageDirectory.AsDirectoryPath() == directory {
 		return scoped
 	}
 	return nil
 }
 
 func (p *Program) newResolver() *module.DefaultResolver {
-	return p.resolutionData.NewResolver(p.projectReferenceFileMapper.resolutionHost(p.hosts.Host))
+	host := &compilerResolutionHost{host: p.hosts.Host, baseDirectory: p.BaseDirectory()}
+	return p.resolutionData.NewResolver(p.projectReferenceFileMapper.resolutionHost(host))
 }
 
-func (p *Program) GetRedirectTargets(path tspath.Path) []string {
+func (p *Program) GetRedirectTargets(path tspath.PathKey) []tspath.RootedFilePath {
 	return p.redirectTargetsMap[path]
 }
 
-func (p *Program) GetSourceOfProjectReferenceIfOutputIncluded(file ast.HasFileName) string {
-	if source, ok := p.outputFileToProjectReferenceSource[file.Path()]; ok {
+func (p *Program) GetSourceOfProjectReferenceIfOutputIncluded(file ast.HasFileName) tspath.RootedFilePath {
+	if source, ok := p.outputFileToProjectReferenceSource[file.PathKey()]; ok {
 		return source
 	}
 	return file.FileName()
 }
 
-func (p *Program) GetProjectReferenceFromSource(path tspath.Path) *tsoptions.SourceOutputAndProjectReference {
+func (p *Program) GetProjectReferenceFromSource(path tspath.PathKey) *tsoptions.SourceOutputAndProjectReference {
 	return p.projectReferenceFileMapper.getProjectReferenceFromSource(path)
 }
 
-func (p *Program) IsSourceFromProjectReference(path tspath.Path) bool {
+func (p *Program) IsSourceFromProjectReference(path tspath.PathKey) bool {
 	return p.projectReferenceFileMapper.isSourceFromProjectReference(path)
 }
 
-func (p *Program) GetProjectReferenceFromOutputDts(path tspath.Path) *tsoptions.SourceOutputAndProjectReference {
+func (p *Program) GetProjectReferenceFromOutputDts(path tspath.PathKey) *tsoptions.SourceOutputAndProjectReference {
 	return p.projectReferenceFileMapper.getProjectReferenceFromOutputDts(path)
 }
 
@@ -114,12 +115,13 @@ func (p *Program) GetRedirectForResolution(file ast.HasFileName) *tsoptions.Pars
 	return redirect
 }
 
-func (p *Program) GetParseFileRedirect(fileName string) string {
-	return p.projectReferenceFileMapper.getParseFileRedirect(ast.NewHasFileName(fileName, p.toPath(fileName)))
+func (p *Program) getParseFileRedirectByFileName(fileName tspath.RootedFilePath) tspath.RootedFilePath {
+	redirect, _ := p.projectReferenceFileMapper.getParseFileRedirect(ast.NewHasFileName(fileName, p.caseSensitivity.PathKey(tspath.RootedPath(fileName))))
+	return redirect
 }
 
-func (p *Program) UseCaseSensitiveFileNames() bool {
-	return p.Host().FS().UseCaseSensitiveFileNames()
+func (p *Program) CaseSensitivity() tspath.CaseSensitivity {
+	return p.caseSensitivity
 }
 
 func (p *Program) jsxRuntimeImportSpecifier(file *store.File) string {
@@ -173,7 +175,7 @@ func (p *Program) BindSourceFiles() {
 
 func (p *Program) bindSourceFile(file *store.File) {
 	if p.hosts.Tracing != nil {
-		defer p.hosts.Tracing.Push(tracing.PhaseBind, "bindSourceFile", map[string]any{"path": string(file.Path())}, true)()
+		defer p.hosts.Tracing.Push(tracing.PhaseBind, "bindSourceFile", map[string]any{"path": string(file.PathKey())}, true)()
 	}
 	storebinder.BindSourceFile(file)
 }
@@ -185,7 +187,7 @@ func (p *Program) ForEachCheckerParallel(cb func(idx int, c *storechecker.Checke
 }
 
 func (p *Program) GetResolvedModule(file ast.HasFileName, moduleReference string, mode core.ResolutionMode) *module.ResolvedModule {
-	if resolutions, ok := p.resolvedModules[file.Path()]; ok {
+	if resolutions, ok := p.resolvedModules[file.PathKey()]; ok {
 		if resolved, ok := resolutions[module.ModeAwareCacheKey{Name: moduleReference, Mode: mode}]; ok {
 			return resolved
 		}
@@ -204,7 +206,7 @@ func (p *Program) GetResolvedModuleFromModuleSpecifier(file ast.HasFileName, mod
 	return p.GetResolvedModule(file, moduleSpecifier.Text(), mode)
 }
 
-func (p *Program) GetResolvedModules() map[tspath.Path]module.ModeAwareCache[*module.ResolvedModule] {
+func (p *Program) GetResolvedModules() map[tspath.PathKey]module.ModeAwareCache[*module.ResolvedModule] {
 	return p.resolvedModules
 }
 
@@ -284,8 +286,8 @@ func (p *Program) GetIncludeProcessorDiagnostics(sourceFile *store.File) []*stor
 func (p *Program) SkipTypeChecking(sourceFile *store.File, ignoreNoCheck bool) bool {
 	return (!ignoreNoCheck && p.Options().NoCheck.IsTrue()) ||
 		p.Options().SkipLibCheck.IsTrue() && sourceFile.IsDeclarationFile ||
-		p.Options().SkipDefaultLibCheck.IsTrue() && p.IsSourceFileDefaultLibrary(sourceFile.Path()) ||
-		p.IsSourceFromProjectReference(sourceFile.Path()) ||
+		p.Options().SkipDefaultLibCheck.IsTrue() && p.IsSourceFileDefaultLibrary(sourceFile.PathKey()) ||
+		p.IsSourceFromProjectReference(sourceFile.PathKey()) ||
 		!p.canIncludeBindAndCheckDiagnostics(sourceFile)
 }
 
@@ -481,64 +483,63 @@ func (p *Program) Program() *Program {
 	return p
 }
 
-func (p *Program) GetSourceFileMetaData(path tspath.Path) ast.SourceFileMetaData {
+func (p *Program) GetSourceFileMetaData(path tspath.PathKey) ast.SourceFileMetaData {
 	return p.sourceFileMetaDatas[path]
 }
 
 func (p *Program) GetEmitModuleFormatOfFile(sourceFile ast.HasFileName) core.ModuleKind {
-	return ast.GetEmitModuleFormatOfFileWorker(sourceFile.FileName(), p.projectReferenceFileMapper.getCompilerOptionsForFile(sourceFile), p.GetSourceFileMetaData(sourceFile.Path()))
+	return ast.GetEmitModuleFormatOfFileWorker(sourceFile.FileName(), p.projectReferenceFileMapper.getCompilerOptionsForFile(sourceFile), p.GetSourceFileMetaData(sourceFile.PathKey()))
 }
 
 func (p *Program) GetEmitSyntaxForUsageLocation(sourceFile ast.HasFileName, location store.Node) core.ResolutionMode {
-	return getEmitSyntaxForUsageLocationWorker(sourceFile.FileName(), p.sourceFileMetaDatas[sourceFile.Path()], location, p.projectReferenceFileMapper.getCompilerOptionsForFile(sourceFile))
+	return getEmitSyntaxForUsageLocationWorker(sourceFile.FileName(), p.sourceFileMetaDatas[sourceFile.PathKey()], location, p.projectReferenceFileMapper.getCompilerOptionsForFile(sourceFile))
 }
 
 func (p *Program) GetImpliedNodeFormatForEmit(sourceFile ast.HasFileName) core.ResolutionMode {
-	return ast.GetImpliedNodeFormatForEmitWorker(sourceFile.FileName(), p.projectReferenceFileMapper.getCompilerOptionsForFile(sourceFile).GetEmitModuleKind(), p.GetSourceFileMetaData(sourceFile.Path()))
+	return ast.GetImpliedNodeFormatForEmitWorker(sourceFile.FileName(), p.projectReferenceFileMapper.getCompilerOptionsForFile(sourceFile).GetEmitModuleKind(), p.GetSourceFileMetaData(sourceFile.PathKey()))
 }
 
 func (p *Program) GetModeForUsageLocation(sourceFile ast.HasFileName, location store.Node) core.ResolutionMode {
-	return getModeForUsageLocation(sourceFile.FileName(), p.sourceFileMetaDatas[sourceFile.Path()], location, p.projectReferenceFileMapper.getCompilerOptionsForFile(sourceFile))
+	return getModeForUsageLocation(sourceFile.FileName(), p.sourceFileMetaDatas[sourceFile.PathKey()], location, p.projectReferenceFileMapper.getCompilerOptionsForFile(sourceFile))
 }
 
 func (p *Program) GetDefaultResolutionModeForFile(sourceFile ast.HasFileName) core.ResolutionMode {
-	return getDefaultResolutionModeForFile(sourceFile.FileName(), p.sourceFileMetaDatas[sourceFile.Path()], p.projectReferenceFileMapper.getCompilerOptionsForFile(sourceFile))
+	return getDefaultResolutionModeForFile(sourceFile.FileName(), p.sourceFileMetaDatas[sourceFile.PathKey()], p.projectReferenceFileMapper.getCompilerOptionsForFile(sourceFile))
 }
 
-func (p *Program) IsSourceFileDefaultLibrary(path tspath.Path) bool {
+func (p *Program) IsSourceFileDefaultLibrary(path tspath.PathKey) bool {
 	_, ok := p.libFiles[path]
 	return ok
 }
 
-func (p *Program) CommonSourceDirectory() string {
+func (p *Program) CommonSourceDirectory() tspath.RootedDirectoryPath {
 	p.commonSourceDirectoryOnce.Do(func() {
-		files := func() []string {
-			return core.MapFiltered(p.files, func(file *store.File) (string, bool) {
+		files := func() []tspath.RootedFilePath {
+			return core.MapFiltered(p.files, func(file *store.File) (tspath.RootedFilePath, bool) {
 				return file.FileName(), sourceFileMayBeEmitted(file, p, false /*forceDtsEmit*/, false /*forceJsEmit*/) && !file.IsDeclarationFile
 			})
 		}
 		p.commonSourceDirectory = outputpaths.GetCommonSourceDirectory(
 			p.Options(),
 			files,
-			p.GetCurrentDirectory(),
-			p.UseCaseSensitiveFileNames(),
+			p.BaseDirectory(),
+			p.CaseSensitivity(),
 			p.checkSourceFilesBelongToPath,
 		)
 	})
 	return p.commonSourceDirectory
 }
 
-func (p *Program) checkSourceFilesBelongToPath(sourceFiles []string, rootDirectory string) bool {
+func (p *Program) checkSourceFilesBelongToPath(sourceFiles []tspath.RootedFilePath, rootDirectory tspath.RootedDirectoryPath) bool {
 	allFilesBelongToPath := true
 	for _, file := range sourceFiles {
-		absoluteSourceFilePath := tspath.GetCanonicalFileName(tspath.GetNormalizedAbsolutePath(file, p.GetCurrentDirectory()), p.UseCaseSensitiveFileNames())
-		if !tspath.ContainsPath(rootDirectory, file, p.comparePathsOptions) {
+		if !p.caseSensitivity.ContainsFilePath(rootDirectory, file) {
 			p.addProcessingDiagnostic(&processingDiagnostic{
 				kind: processingDiagnosticKindExplainingFileInclude,
 				explanation: &includeExplainingDiagnostic{
-					file:    tspath.Path(absoluteSourceFilePath),
+					file:    p.caseSensitivity.PathKey(tspath.RootedPath(file)),
 					message: diagnostics.File_0_is_not_under_rootDir_1_rootDir_is_expected_to_contain_all_source_files,
-					args:    []string{file, rootDirectory},
+					args:    []string{file.AsString(), rootDirectory.AsString()},
 				},
 			})
 			allFilesBelongToPath = false
@@ -548,19 +549,22 @@ func (p *Program) checkSourceFilesBelongToPath(sourceFiles []string, rootDirecto
 	return allFilesBelongToPath
 }
 
-func (p *Program) toPath(filename string) tspath.Path {
-	return tspath.ToPath(filename, p.GetCurrentDirectory(), p.UseCaseSensitiveFileNames())
+func (p *Program) PathKeyForFileName(fileName tspath.RootedFilePath) tspath.PathKey {
+	return p.caseSensitivity.PathKey(tspath.RootedPath(fileName))
 }
 
-func (p *Program) GetSourceFile(filename string) *store.File {
-	path := p.toPath(filename)
-	return p.GetSourceFileByPath(path)
+func (p *Program) GetSourceFile(fileName tspath.RootedFilePath) *store.File {
+	return p.GetSourceFileByPath(p.PathKeyForFileName(fileName))
 }
 
-func (p *Program) GetSourceFileForResolvedModule(fileName string) *store.File {
-	file := p.GetSourceFile(fileName)
+func (p *Program) GetSourceFileForResolvedModule(resolved *module.ResolvedModule) *store.File {
+	return p.getSourceFileWithRedirect(resolved.ResolvedFileName, resolved.ResolvedPath)
+}
+
+func (p *Program) getSourceFileWithRedirect(fileName tspath.RootedFilePath, path tspath.PathKey) *store.File {
+	file := p.GetSourceFileByPath(path)
 	if file == nil {
-		filename := p.GetParseFileRedirect(fileName)
+		filename := p.getParseFileRedirectByFileName(fileName)
 		if filename != "" {
 			return p.GetSourceFile(filename)
 		}
@@ -568,36 +572,34 @@ func (p *Program) GetSourceFileForResolvedModule(fileName string) *store.File {
 	return file
 }
 
-func (p *Program) GetSourceFileByPath(path tspath.Path) *store.File {
+func (p *Program) GetSourceFileByPath(path tspath.PathKey) *store.File {
 	return p.filesByPath[path]
 }
 
-func (p *Program) GetIncludeReasons() map[tspath.Path][]*FileIncludeReason {
+func (p *Program) GetIncludeReasons() map[tspath.PathKey][]*FileIncludeReason {
 	return p.fileIncludeReasons
 }
 
-func (p *Program) IsMissingPath(path tspath.Path) bool {
-	return slices.ContainsFunc(p.missingFiles, func(missingPath string) bool {
-		return p.toPath(missingPath) == path
-	})
+func (p *Program) IsMissingPath(path tspath.PathKey) bool {
+	return p.missingFiles.Has(path)
 }
 
-func (p *Program) GetResolvedTypeReferenceDirectives() map[tspath.Path]module.ModeAwareCache[*module.ResolvedTypeReferenceDirective] {
+func (p *Program) GetResolvedTypeReferenceDirectives() map[tspath.PathKey]module.ModeAwareCache[*module.ResolvedTypeReferenceDirective] {
 	return p.typeResolutionsInFile
 }
 
 func (p *Program) IsSourceFileFromExternalLibrary(file *store.File) bool {
-	return p.sourceFilesFoundSearchingNodeModules.Has(file.Path())
+	return p.sourceFilesFoundSearchingNodeModules.Has(file.PathKey())
 }
 
-func (p *Program) GetJSXRuntimeImportSpecifier(path tspath.Path) (moduleReference string, specifier store.Node) {
+func (p *Program) GetJSXRuntimeImportSpecifier(path tspath.PathKey) (moduleReference string, specifier store.Node) {
 	if result := p.jsxRuntimeImportSpecifiers[path]; result != nil {
 		return result.moduleReference, result.specifier
 	}
 	return "", store.Node{}
 }
 
-func (p *Program) GetImportHelpersImportSpecifier(path tspath.Path) store.Node {
+func (p *Program) GetImportHelpersImportSpecifier(path tspath.PathKey) store.Node {
 	return p.importHelpersImportSpecifiers[path]
 }
 
@@ -605,19 +607,19 @@ func (p *Program) SourceFileMayBeEmitted(sourceFile *store.File, forceDtsEmit bo
 	return sourceFileMayBeEmitted(sourceFile, p, forceDtsEmit, false)
 }
 
-func (p *Program) ForEachResolvedModule(callback func(resolution *module.ResolvedModule, moduleName string, mode core.ResolutionMode, filePath tspath.Path), file *store.File) {
+func (p *Program) ForEachResolvedModule(callback func(resolution *module.ResolvedModule, moduleName string, mode core.ResolutionMode, filePath tspath.PathKey), file *store.File) {
 	forEachResolution(p.resolvedModules, callback, file)
 }
 
-func (p *Program) ForEachResolvedTypeReferenceDirective(callback func(resolution *module.ResolvedTypeReferenceDirective, moduleName string, mode core.ResolutionMode, filePath tspath.Path), file *store.File) {
+func (p *Program) ForEachResolvedTypeReferenceDirective(callback func(resolution *module.ResolvedTypeReferenceDirective, moduleName string, mode core.ResolutionMode, filePath tspath.PathKey), file *store.File) {
 	forEachResolution(p.typeResolutionsInFile, callback, file)
 }
 
-func forEachResolution[T any](resolutionCache map[tspath.Path]module.ModeAwareCache[T], callback func(resolution T, moduleName string, mode core.ResolutionMode, filePath tspath.Path), file *store.File) {
+func forEachResolution[T any](resolutionCache map[tspath.PathKey]module.ModeAwareCache[T], callback func(resolution T, moduleName string, mode core.ResolutionMode, filePath tspath.PathKey), file *store.File) {
 	if file != nil {
-		if resolutions, ok := resolutionCache[file.Path()]; ok {
+		if resolutions, ok := resolutionCache[file.PathKey()]; ok {
 			for key, resolution := range resolutions {
-				callback(resolution, key.Name, key.Mode, file.Path())
+				callback(resolution, key.Name, key.Mode, file.PathKey())
 			}
 		}
 	} else {

@@ -80,7 +80,7 @@ func performPointerCheck(
 	compileTimes *tsc.CompileTimes,
 	testing tsc.CommandLineTesting,
 ) tsc.CommandLineResult {
-	host := compiler.NewCachedFSCompilerHost(sys.GetCurrentDirectory(), sys.FS(), sys.DefaultLibraryPath(), extendedConfigCache, getTraceFromSys(sys, config.Locale(), testing), nil)
+	host := compiler.NewCachedFSCompilerHost(sys.FS(), sys.DefaultLibraryPath(), extendedConfigCache, getTraceFromSys(sys, config.Locale(), testing), nil)
 	parseStart := sys.Now()
 	program := compiler.NewProgram(compiler.ProgramOptions{Config: config, Host: host})
 	compileTimes.ParseTime = sys.Now().Sub(parseStart)
@@ -98,7 +98,7 @@ func performPointerCheck(
 	})
 	fileNames := make([]string, 0, len(program.GetSourceFiles()))
 	for _, file := range program.GetSourceFiles() {
-		fileNames = append(fileNames, file.FileName())
+		fileNames = append(fileNames, file.FileName().AsString())
 	}
 	status := tsc.ReportCompilation(sys, config.CompilerOptions(), reporters, tsc.CompilationReport{
 		Diagnostics: diagnosticwriter.FromASTDiagnostics(diagnostics),
@@ -132,7 +132,7 @@ func performStoreCheck(
 	compileTimes *tsc.CompileTimes,
 	testing tsc.CommandLineTesting,
 ) tsc.CommandLineResult {
-	host := storecompiler.NewCachedFSCompilerHost(sys.GetCurrentDirectory(), sys.FS(), sys.DefaultLibraryPath(), extendedConfigCache, getTraceFromSys(sys, config.Locale(), testing))
+	host := storecompiler.NewCachedFSCompilerHost(sys.FS(), sys.DefaultLibraryPath(), extendedConfigCache, getTraceFromSys(sys, config.Locale(), testing))
 	parseStart := sys.Now()
 	program := storecompiler.NewProgram(storecompiler.ProgramOptions{Config: config, Host: host})
 	compileTimes.ParseTime = sys.Now().Sub(parseStart)
@@ -148,7 +148,7 @@ func performStoreCheck(
 	})
 	fileNames := make([]string, 0, len(program.SourceFiles()))
 	for _, file := range program.SourceFiles() {
-		fileNames = append(fileNames, file.FileName())
+		fileNames = append(fileNames, file.FileName().AsString())
 	}
 	status := tsc.ReportCompilation(sys, config.CompilerOptions(), reporters, tsc.CompilationReport{
 		Diagnostics: storecompiler.WrapDiagnostics(diagnostics),

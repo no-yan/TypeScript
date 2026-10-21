@@ -721,29 +721,28 @@ func (c *Checker) checkUnusedLocalsAndParameters(node store.Node) {
 // (their diagnostics are the resolver's *ast.Diagnostic, as the parse
 // diagnostics of a store.File are, R11).
 //
-// storetranslate:pointer-hash 0cdd6935a2e99410 checker.go:Program
+// storetranslate:pointer-hash 675c95a696640b56 checker.go:Program
 type Program interface {
 	Host
 	Options() *core.CompilerOptions
 	SourceFiles() []*store.File
 	BindSourceFiles()
-	FileExists(fileName string) bool
-	GetSourceFile(fileName string) *store.File
-	GetSourceFileForResolvedModule(fileName string) *store.File
+	FileExists(fileName tspath.RootedFilePath) bool
+	GetSourceFileForResolvedModule(resolved *module.ResolvedModule) *store.File
 	GetEmitModuleFormatOfFile(sourceFile ast.HasFileName) core.ModuleKind
 	GetEmitSyntaxForUsageLocation(sourceFile ast.HasFileName, usageLocation store.Node) core.ResolutionMode
 	GetImpliedNodeFormatForEmit(sourceFile ast.HasFileName) core.ModuleKind
 	GetResolvedModule(currentSourceFile ast.HasFileName, moduleReference string, mode core.ResolutionMode) *module.ResolvedModule
-	GetResolvedModules() map[tspath.Path]module.ModeAwareCache[*module.ResolvedModule]
+	GetResolvedModules() map[tspath.PathKey]module.ModeAwareCache[*module.ResolvedModule]
 	GetPackagesMap() map[string]bool
-	GetSourceFileMetaData(path tspath.Path) ast.SourceFileMetaData
-	GetJSXRuntimeImportSpecifier(path tspath.Path) (moduleReference string, specifier store.Node)
-	GetImportHelpersImportSpecifier(path tspath.Path) store.Node
+	GetSourceFileMetaData(path tspath.PathKey) ast.SourceFileMetaData
+	GetJSXRuntimeImportSpecifier(path tspath.PathKey) (moduleReference string, specifier store.Node)
+	GetImportHelpersImportSpecifier(path tspath.PathKey) store.Node
 	SourceFileMayBeEmitted(sourceFile *store.File, forceDtsEmit bool) bool
-	IsSourceFileDefaultLibrary(path tspath.Path) bool
-	GetProjectReferenceFromOutputDts(path tspath.Path) *tsoptions.SourceOutputAndProjectReference
+	IsSourceFileDefaultLibrary(path tspath.PathKey) bool
+	GetProjectReferenceFromOutputDts(path tspath.PathKey) *tsoptions.SourceOutputAndProjectReference
 	GetRedirectForResolution(file ast.HasFileName) *tsoptions.ParsedCommandLine
-	CommonSourceDirectory() string
+	CommonSourceDirectory() tspath.RootedDirectoryPath
 	// IDSpace is the program's StoreID namespace: the checker's region is made
 	// in it (5.1).
 	IDSpace() *store.IDSpace

@@ -23,7 +23,7 @@ import (
 // no emit, and no content mapper: a file's root path is its own path, not its
 // canonical source file's.
 //
-// storetranslate:pointer-hash ba818283f2890fa8 program.go:Program.verifyCompilerOptions
+// storetranslate:pointer-hash e35dbf548a197441 program.go:Program.verifyCompilerOptions
 func (p *Program) verifyCompilerOptions() {
 	options := p.Options()
 	var programDiagnostics []*ast.Diagnostic
@@ -37,7 +37,7 @@ func (p *Program) verifyCompilerOptions() {
 		return configFile.SourceFile
 	})
 
-	configFilePath := core.Memoize(func() string {
+	configFilePath := core.Memoize(func() tspath.RootedFilePath {
 		file := sourceFile()
 		if file != nil {
 			return file.FileName()
@@ -123,7 +123,7 @@ func (p *Program) verifyCompilerOptions() {
 		// BaseUrl will have been turned absolute by this point.
 		var useInstead string
 		if configFilePath() != "" {
-			relative := tspath.GetRelativePathFromFile(configFilePath(), options.BaseUrl, p.comparePathsOptions)
+			relative := tspath.GetRelativePathFromFile(configFilePath().AsString(), options.BaseUrl.AsString(), p.caseSensitivity)
 			if !(strings.HasPrefix(relative, "./") || strings.HasPrefix(relative, "../")) {
 				relative = "./" + relative
 			}
@@ -216,19 +216,19 @@ func (p *Program) verifyCompilerOptions() {
 	// verifyProjectReferences: the program has no project reference (addProjectReferenceTasks).
 
 	if options.Composite.IsTrue() {
-		var rootPaths collections.Set[tspath.Path]
+		var rootPaths collections.Set[tspath.PathKey]
 		for _, fileName := range p.opts.Config.FileNames() {
-			rootPaths.Add(p.toPath(fileName))
+			rootPaths.Add(p.caseSensitivity.PathKey(tspath.RootedPath(fileName)))
 		}
 
 		for _, file := range p.files {
-			if sourceFileMayBeEmitted(file, p, false, false) && !rootPaths.Has(file.Path()) {
+			if sourceFileMayBeEmitted(file, p, false, false) && !rootPaths.Has(file.PathKey()) {
 				p.addProcessingDiagnostic(&processingDiagnostic{
 					kind: processingDiagnosticKindExplainingFileInclude,
 					explanation: &includeExplainingDiagnostic{
-						file:    file.Path(),
+						file:    file.PathKey(),
 						message: diagnostics.File_0_is_not_listed_within_the_file_list_of_project_1_Projects_must_list_all_files_or_use_an_include_pattern,
-						args:    []string{file.FileName(), configFilePath()},
+						args:    []string{file.FileName().AsString(), configFilePath().AsString()},
 					},
 				})
 			}
@@ -338,7 +338,7 @@ func (p *Program) verifyCompilerOptions() {
 		(options.GetEmitDeclarations() && options.DeclarationDir != "") {
 		// !!! sheetal checkSourceFilesBelongToPath - for root Dir and configFile - explaining why file is in the program
 		dir := p.CommonSourceDirectory()
-		if options.OutDir != "" && dir == "" && core.Some(p.files, func(f *store.File) bool { return tspath.GetRootLength(f.FileName()) > 1 }) {
+		if options.OutDir != "" && dir == "" && core.Some(p.files, func(f *store.File) bool { return f.FileName().RootLength() > 1 }) {
 			createDiagnosticForOptionName(diagnostics.Cannot_find_the_common_subdirectory_path_for_the_input_files, "outDir", "")
 		}
 	}
@@ -352,14 +352,14 @@ func (p *Program) verifyCompilerOptions() {
 			options.OutFile != "") {
 		// Check if rootDir inferred changed and issue diagnostic
 		dir := p.CommonSourceDirectory()
-		var emittedFiles []string
+		var emittedFiles []tspath.RootedFilePath
 		for _, file := range p.files {
 			if !file.IsDeclarationFile && sourceFileMayBeEmitted(file, p, false, false) {
 				emittedFiles = append(emittedFiles, file.FileName())
 			}
 		}
-		dir59 := outputpaths.GetComputedCommonSourceDirectory(emittedFiles, p.GetCurrentDirectory(), p.UseCaseSensitiveFileNames())
-		if dir59 != "" && tspath.GetCanonicalFileName(dir, p.UseCaseSensitiveFileNames()) != tspath.GetCanonicalFileName(dir59, p.UseCaseSensitiveFileNames()) {
+		dir59 := outputpaths.GetComputedCommonSourceDirectory(emittedFiles, p.BaseDirectory(), p.CaseSensitivity())
+		if dir59 != "" && p.caseSensitivity.ComparePaths(dir.AsPath(), dir59.AsPath()) != 0 {
 			// change in layout
 			var option1 string
 			if options.OutFile != "" {
@@ -373,13 +373,20 @@ func (p *Program) verifyCompilerOptions() {
 			if options.OutFile == "" && options.OutDir != "" {
 				option2 = "declarationDir"
 			}
+			commonSourceDirectory := dir59.AsString()
+			if relativePath, ok := p.caseSensitivity.RelativePathFromFileToPath(
+				options.ConfigFilePath,
+				dir59.AsPath(),
+			); ok {
+				commonSourceDirectory = relativePath.AsModuleSpecifier().AsString()
+			}
 			diag := createDiagnosticForOption(
 				true, /*onKey*/
 				option1,
 				option2,
 				diagnostics.The_common_source_directory_of_0_is_1_The_rootDir_setting_must_be_explicitly_set_to_this_or_another_path_to_adjust_your_output_s_file_layout,
-				tspath.GetBaseFileName(options.ConfigFilePath),
-				tspath.GetRelativePathFromFile(options.ConfigFilePath, dir59, p.comparePathsOptions),
+				options.ConfigFilePath.BaseName(),
+				commonSourceDirectory,
 			)
 			diag.AddMessageChain(ast.NewCompilerDiagnostic(diagnostics.Visit_https_Colon_Slash_Slashaka_ms_Slashts6_for_migration_information))
 		}

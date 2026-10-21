@@ -5,6 +5,7 @@
 package storemodulespecifiers
 
 import (
+	"cmp"
 	"fmt"
 	"slices"
 	"strings"
@@ -16,30 +17,31 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
-func comparePathsByRedirect(a modulespecifiers.ModulePath, b modulespecifiers.ModulePath, useCaseSensitiveFileNames bool) int {
+func comparePathsByRedirect(a modulespecifiers.ModulePath, b modulespecifiers.ModulePath, caseSensitivity tspath.CaseSensitivity) int {
 	// Redirects sort first, matching Strada's compareBooleans(b.isRedirect, a.isRedirect).
 	if c := core.CompareBooleans(b.IsRedirect, a.IsRedirect); c != 0 {
 		return c
 	}
-	if c := tspath.CompareNumberOfDirectorySeparators(a.FileName, b.FileName); c != 0 {
+	if c := cmp.Compare(a.FileName.DirectorySeparatorCount(), b.FileName.DirectorySeparatorCount()); c != 0 {
 		return c
 	}
 	// Strada relies on Map insertion order to break remaining ties deterministically;
 	// Go maps are unordered, so compare paths to keep the ordering stable.
-	return tspath.ComparePaths(a.FileName, b.FileName, tspath.ComparePathsOptions{UseCaseSensitiveFileNames: useCaseSensitiveFileNames})
-}
-
-func ensurePathIsNonModuleName(path string) string {
-	if modulespecifiers.PathIsBareSpecifier(path) {
-		return "./" + path
-	}
-	return path
+	return caseSensitivity.CompareFilePaths(a.FileName, b.FileName)
 }
 
 func getJSExtensionForFile(fileName string, options *core.CompilerOptions) string {
 	result := module.TryGetJSExtensionForFile(fileName, options)
 	if len(result) == 0 {
 		panic(fmt.Sprintf("Extension %s is unsupported:: FileName:: %s", extensionFromPath(fileName), fileName))
+	}
+	return result
+}
+
+func getJSExtensionForFileName(fileName tspath.RootedFilePath, options *core.CompilerOptions) string {
+	result := module.TryGetJSExtensionForFileName(fileName, options)
+	if len(result) == 0 {
+		panic(fmt.Sprintf("Extension %s is unsupported:: FileName:: %s", fileName.Extension(), fileName))
 	}
 	return result
 }
@@ -52,7 +54,7 @@ func extensionFromPath(path string) string {
 	return ext
 }
 
-func tryGetAnyFileFromPath(host ModuleSpecifierGenerationHost, path string) bool {
+func tryGetAnyFileFromPath(host ModuleSpecifierGenerationHost, path tspath.RootedFilePath) bool {
 	// !!! TODO: shouldn't this use readdir instead of fileexists for perf?
 	// We check all js, `node` and `json` extensions in addition to TS, since node module resolution would also choose those over the directory
 	extGroups := tsoptions.GetSupportedExtensions(
@@ -63,8 +65,7 @@ func tryGetAnyFileFromPath(host ModuleSpecifierGenerationHost, path string) bool
 	)
 	for _, exts := range extGroups {
 		for _, e := range exts {
-			fullPath := path + e
-			if host.FileExists(tspath.GetNormalizedAbsolutePath(fullPath, host.GetCurrentDirectory())) {
+			if host.FileExists(path.AppendSuffix(e)) {
 				return true
 			}
 		}
@@ -72,10 +73,10 @@ func tryGetAnyFileFromPath(host ModuleSpecifierGenerationHost, path string) bool
 	return false
 }
 
-func getPathsRelativeToRootDirs(path string, rootDirs []string, useCaseSensitiveFileNames bool) []string {
-	var results []string
+func getPathsRelativeToRootDirs(path tspath.RootedFilePath, rootDirs []tspath.RootedDirectoryPath, caseSensitivity tspath.CaseSensitivity) []tspath.RelativePath {
+	var results []tspath.RelativePath
 	for _, rootDir := range rootDirs {
-		relativePath := getRelativePathIfInSameVolume(path, rootDir, useCaseSensitiveFileNames)
+		relativePath := getRelativePathIfInSameVolume(path, rootDir, caseSensitivity)
 		if !isPathRelativeToParent(relativePath) {
 			results = append(results, relativePath)
 		}
@@ -83,29 +84,41 @@ func getPathsRelativeToRootDirs(path string, rootDirs []string, useCaseSensitive
 	return results
 }
 
-func isPathRelativeToParent(path string) bool {
-	return strings.HasPrefix(path, "..")
+func isPathRelativeToParent(path tspath.RelativePath) bool {
+	return path.IsParentRelative()
 }
 
-func getRelativePathIfInSameVolume(path string, directoryPath string, useCaseSensitiveFileNames bool) string {
-	relativePath := tspath.GetRelativePathToDirectoryOrUrl(directoryPath, path, false, tspath.ComparePathsOptions{
-		UseCaseSensitiveFileNames: useCaseSensitiveFileNames,
-		CurrentDirectory:          directoryPath,
-	})
+func getRelativePathIfInSameVolume(path tspath.RootedFilePath, directoryPath tspath.RootedDirectoryPath, caseSensitivity tspath.CaseSensitivity) tspath.RelativePath {
+	relativePath, ok := caseSensitivity.RelativePathFromDirectory(directoryPath, path)
+	if !ok {
+		return ""
+	}
+	return relativePath
+}
+
+func resolvePathPatternIfInSameVolume(path string, directoryPath tspath.RootedDirectoryPath, caseSensitivity tspath.CaseSensitivity) string {
+	relativePath := tspath.ResolveRelativePathToDirectoryOrUrl(
+		directoryPath.AsString(),
+		path,
+		false,
+		directoryPath,
+		caseSensitivity,
+	)
+
 	if tspath.IsRootedDiskPath(relativePath) {
 		return ""
 	}
 	return relativePath
 }
 
-func packageJsonPathsAreEqual(a string, b string, options tspath.ComparePathsOptions) bool {
+func packageJsonPathsAreEqual(a tspath.RootedDirectoryPath, b tspath.RootedDirectoryPath, caseSensitivity tspath.CaseSensitivity) bool {
 	if a == b {
 		return true
 	}
-	if len(a) == 0 || len(b) == 0 {
+	if a == "" || b == "" {
 		return false
 	}
-	return tspath.ComparePaths(a, b, options) == 0
+	return caseSensitivity.ComparePaths(a.AsPath(), b.AsPath()) == 0
 }
 
 func prefersTsExtension(allowedEndings []modulespecifiers.ModuleSpecifierEnding) bool {

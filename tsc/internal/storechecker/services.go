@@ -18,7 +18,7 @@ func (c *Checker) IsLibSymbolForHoverVerbosity(symbol *store.Symbol) bool {
 	}
 	for _, decl := range symbol.Declarations {
 		sf := decl.File()
-		if sf != nil && c.program.IsSourceFileDefaultLibrary(sf.Path()) {
+		if sf != nil && c.program.IsSourceFileDefaultLibrary(sf.PathKey()) {
 			return true
 		}
 	}

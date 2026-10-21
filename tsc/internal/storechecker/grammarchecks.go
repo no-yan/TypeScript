@@ -741,7 +741,7 @@ func (c *Checker) checkGrammarArrowFunction(node store.Node, file *store.File) b
 		typeParamNodes := typeParameters
 		hasConstraint := typeParamNodes.Len() > 0 && !typeParamNodes.At(0).AsTypeParameterDeclaration().Constraint().IsNil()
 		if !(typeParamNodes.Len() > 1 || typeParameters.HasTrailingComma() || hasConstraint) {
-			if tspath.FileExtensionIsOneOf(file.FileName(), []string{tspath.ExtensionMts, tspath.ExtensionCts}) {
+			if file.FileName().ExtensionIsOneOf([]string{tspath.ExtensionMts, tspath.ExtensionCts}) {
 				// TODO(danielr): should we return early here?
 				c.grammarErrorOnNode(typeParameters.At(0), diagnostics.This_syntax_is_reserved_in_files_with_the_mts_or_cts_extension_Add_a_trailing_comma_or_explicit_constraint)
 			}
@@ -962,7 +962,7 @@ func (c *Checker) checkGrammarForInOrForOfStatement(forInOrOfStatement store.For
 					}
 					switch c.moduleKind {
 					case core.ModuleKindNode16, core.ModuleKindNode18, core.ModuleKindNode20, core.ModuleKindNodeNext:
-						sourceFileMetaData := c.program.GetSourceFileMetaData(sourceFile.Path())
+						sourceFileMetaData := c.program.GetSourceFileMetaData(sourceFile.PathKey())
 						if sourceFileMetaData.ImpliedNodeFormat == core.ModuleKindCommonJS {
 							c.addDiagnostic(createDiagnosticForNode(forInOrOfStatement.AwaitModifier(), diagnostics.The_current_file_is_a_CommonJS_module_and_cannot_use_await_at_the_top_level))
 							break
@@ -1406,7 +1406,7 @@ func (c *Checker) checkGrammarAwaitOrAwaitUsing(node store.Node) bool {
 					core.ModuleKindNode18,
 					core.ModuleKindNode20,
 					core.ModuleKindNodeNext:
-					sourceFileMetaData := c.program.GetSourceFileMetaData(sourceFile.Path())
+					sourceFileMetaData := c.program.GetSourceFileMetaData(sourceFile.PathKey())
 					if sourceFileMetaData.ImpliedNodeFormat == core.ModuleKindCommonJS {
 						if !spanCalculated {
 							span = storescanner.GetRangeOfTokenAtPosition(sourceFile, int(node.Pos()))

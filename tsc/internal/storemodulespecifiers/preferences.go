@@ -14,8 +14,8 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
-func shouldAllowImportingTsExtension(compilerOptions *core.CompilerOptions, fromFileName string) bool {
-	return compilerOptions.GetAllowImportingTsExtensions() || len(fromFileName) > 0 && tspath.IsDeclarationFileName(fromFileName)
+func shouldAllowImportingTsExtension(compilerOptions *core.CompilerOptions, fromFileName tspath.RootedFilePath) bool {
+	return compilerOptions.GetAllowImportingTsExtensions() || fromFileName.IsDeclarationFile()
 }
 
 func usesExtensionsOnImports(file SourceFileForSpecifierGeneration) bool {

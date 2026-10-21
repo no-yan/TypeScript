@@ -13,9 +13,9 @@ import (
 
 type SourceFileMayBeEmittedHost interface {
 	Options() *core.CompilerOptions
-	GetProjectReferenceFromSource(path tspath.Path) *tsoptions.SourceOutputAndProjectReference
+	GetProjectReferenceFromSource(path tspath.PathKey) *tsoptions.SourceOutputAndProjectReference
 	IsSourceFileFromExternalLibrary(file *store.File) bool
-	GetCurrentDirectory() string
-	UseCaseSensitiveFileNames() bool
+	BaseDirectory() tspath.RootedDirectoryPath
+	CaseSensitivity() tspath.CaseSensitivity
 	SourceFiles() []*store.File
 }

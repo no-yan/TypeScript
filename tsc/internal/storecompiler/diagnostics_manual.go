@@ -13,7 +13,6 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/storebinder"
 	"github.com/microsoft/TypeScript/tsc/internal/storechecker"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
-	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
 // The P2 declarations of the program's diagnostics
@@ -176,7 +175,7 @@ func (i *includeProcessor) getDiagnostics(p *Program) *store.DiagnosticsCollecti
 // toRelatedInfo points into the config file, the Pointer's, through its Store
 // file (Program.configFile).
 //
-// storetranslate:pointer-hash 08d04b782f105724 fileInclude.go:FileIncludeReason.toRelatedInfo
+// storetranslate:pointer-hash de732864b4625886 fileInclude.go:FileIncludeReason.toRelatedInfo
 func (r *FileIncludeReason) toRelatedInfo(program *Program) *store.Diagnostic {
 	if r.isReferencedFile() {
 		return r.computeReferenceFileRelatedInfo(program)
@@ -188,7 +187,7 @@ func (r *FileIncludeReason) toRelatedInfo(program *Program) *store.Diagnostic {
 	inConfig := func(d *ast.Diagnostic) *store.Diagnostic { return store.DiagnosticFromAST(d, program.configFile) }
 	switch r.kind {
 	case fileIncludeKindRootFile:
-		fileName := tspath.GetNormalizedAbsolutePath(config.FileNames()[r.asIndex()], program.GetCurrentDirectory())
+		fileName := config.FileNames()[r.asIndex()]
 		if matchedFileSpec := config.GetMatchedFileSpec(fileName); matchedFileSpec != "" {
 			if filesNode := tsoptions.GetTsConfigPropArrayElementValue(config.ConfigFile.SourceFile, "files", matchedFileSpec); filesNode != nil {
 				return inConfig(tsoptions.CreateDiagnosticForNodeInSourceFile(config.ConfigFile.SourceFile, filesNode.AsNode(), diagnostics.File_is_matched_by_files_list_specified_here))
