@@ -30,6 +30,9 @@ func (p *Program) GetResolvedModuleFromModuleSpecifier(file ast.HasFileName, mod
 	if !store.IsStringLiteralLike(moduleSpecifier) {
 		panic("moduleSpecifier must be a StringLiteralLike")
 	}
+	if store.IsSourcePhaseImport(moduleSpecifier.Parent()) {
+		return nil
+	}
 	mode := p.GetModeForUsageLocation(file, moduleSpecifier)
 	return p.pointer.GetResolvedModule(file, moduleSpecifier.Text(), mode)
 }
