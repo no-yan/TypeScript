@@ -3,14 +3,17 @@ import {
     formatDiagnostics,
     formatDiagnosticsWithColorAndContext,
 } from "@typescript/typescript/unstable/async";
-import { createVirtualFileSystem } from "@typescript/typescript/unstable/fs";
 import assert from "node:assert";
 import {
     describe,
     test,
 } from "node:test";
+import {
+    areTestsFiltered,
+    createVirtualFileSystem,
+} from "./testUtils.ts";
 
-describe("diagnosticFormatter", () => {
+describe("diagnosticFormatter", { concurrency: areTestsFiltered() }, () => {
     test("formats diagnostics with a configured program host", async () => {
         const source = `const x: number = "oops";\n`;
         const api = spawnAPI({
