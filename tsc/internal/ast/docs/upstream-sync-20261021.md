@@ -445,7 +445,7 @@ commit:
 - node と symbol の id は、checker ごとの `ast.NodeIdGenerator`・`SymbolIdGenerator` が 256 個ずつの連続した塊で配る (`BlockIdOffset` 以上)。link が密に並ぶ。
 - `nodeLinkStore` と、`symbolArenaLinkStore` から改名した `symbolLinkStore` は、generator の id で page を引く。
 
-### Store 側の設計 (案、承認待ち)
+### Store 側の設計 (2026-10-21 承認)
 
 1. **nodeLinkStore (P2) は今の形のまま、hash だけ更新する。**
    - Store は node を NodeKey (StoreID・NodeRef) で引く。NodeKey は Store ごとに密なので、generator が要らない。
@@ -455,7 +455,9 @@ commit:
 2. **symbolLinkStore は翻訳に任せ、Store に `SymbolIdGenerator` を足す。**
    - Pointer の `valueSymbolLinks.Has` は、node builder と services で 6 か所の分岐に使われる。意味を Pointer と同じ (厳密) にする必要があるので、翻訳に任せる。
    - 翻訳器は ast の型の method を翻訳しない。そこで `store.SymbolIdGenerator` を手で書く。
-     - 型 (`nextId`・`lastId`) は symbol.go に置く。Pointer と同じ形なので、翻訳の型の対応は自動で付く。
+     - 型 (`nextId`・`lastId`) は symbol.go に置く。
+       - 案では「Pointer と同じ形なので型の対応は自動で付く」としていたが、誤りだった。非公開の field を持つ struct は、package が違うと同じ型と見なされない。
+       - S5 の `SymbolWithData` と同じく、型の対応表に名前で 1 行足した (2026-10-21 承認)。以後、同じ種類の 1 行は報告だけで進める。
      - method `GetSymbolId` は utilities_manual.go の P2 にして、pointer-hash を付ける。
      - id は Store の `gid` と、Store 自身の block の counter から取る。`ast.BlockIdOffset`・`BlockIdSize` は ast の定数を使う。
    - `NodeIdGenerator` は要らない (1. のとおり)。
@@ -464,3 +466,63 @@ commit:
 
 - `nodeLinkStore`、`.Get`、`.Has`、`.TryGet`
 - store-only の `nodeLinkStore.newPage` が写していた `PagedLinkStore.Get` も変わったが、1. のとおり Store の形を保つ。
+
+### 結果 (合格)
+
+commit:
+
+- a1e563a72c2 merge (衝突なし)
+- 4080167d3da 再翻訳、nodeLinkStore の hash と doc、`store.SymbolIdGenerator`、翻訳の型の対応 1 行
+
+判断:
+
+- 翻訳器は ast の `SymbolIdGenerator` を、Pointer と共有する型として残した。method の呼び出しの型の不一致を検知せず、ビルドで分かった。これは計画の穴の 1 つ (翻訳器は出力を型検査しない) に当たる。
+- 型の対応表に名前で 1 行足した。ユーザーは追認し、以後この種類の 1 行は報告だけで進めると決めた。
+
+検証 (2026-10-21、合格):
+
+- 段 1: equal 17,630。除外は Pointer panic の 1 件。Pointer の非決定は今回は出なかった。
+- 段 2: equal 13,577。
+- mode: 5,143 か所で不一致 0。
+
+## S7a: aa8149273b..6aace8b1bbe (#136〜#155)
+
+### ast・parser・scanner・binder の PR
+
+無し。承認の対象は無い。
+
+### 古くなる P2 (1)
+
+`Program.verifyCompilerOptions`。
+
+upstream は emit の出力 path の検査に、content mapper の外部出力 (`ExternalOutputFilePath`) を足した。Store の P2 はこの検査を持たない (Store の program は emit しない) ので、hash だけ更新する。
+
+### Mirror
+
+storeharness の adapter の `ContentMapperExtensions`。Pointer 側は整形だけで、adapter は委譲なので変更は無い。
+
+### テキスト衝突
+
+診断の生成物 2 つ。upstream を取って再生成する。
+
+## S7b: 6aace8b1bbe..6c976dad5d6 (#156〜#169、upstream の hot/cold 系列)
+
+### ast・parser・scanner・binder・core の PR と Store 側の扱い
+
+| PR | Pointer の変更 | Store 側の扱い | 承認 |
+|---|---|---|---|
+| 67a1c76aac generated AST accessors | `nodeData` interface を、生成した Kind ごとの accessor に置き換える。公開の method は同じ | 無し。Store の手書きの `Node.Text`・`ParameterList`・`KindString` は Mirror に出るが、Pointer 側は `n.data` を経ない書き方・panic の文言・整形の違いだけ | |
+| 14f7762dde embedded headers | `Node.data` を消し、`AsXxx` を埋め込みの header から取る。`NewToken` は kind ごとの具体的な型を作る | `NewToken` が Null・True・False・This・Super・Import に `KeywordExpression` の data を作るようになった。これで、generate-go-store.ts に書いてある既知の差 (`HasXxxData` が kind で答えるのに、Pointer は data の型で答える) が消える。この差を前提にした試験や例外は無いので、生成器の doc comment だけ直す | |
+| 56ce7acfc8 optional symbol tables | members・exports・exportSymbol を `symbolExtra` に移し、`SymbolExtraArena` から確保する。setter は arena を取る | S5 で決めたとおり、Pointer の形に追従する。store.Symbol に `symbolExtra`・`SymbolExtraArena` を足し、storebinder の 17 宣言は Pointer の diff を写す。翻訳の型の対応に `SymbolExtraArena` を名前で足す (非公開の field を持つ型。S6 の取り決めで報告だけ) | |
+| e67b60e3388 | `core.Arena` の確保の伸ばし方を byte 数で抑える | 無し (API は同じ。storebinder の arena もこれに従う) | |
+
+### 古くなる P2 (5)
+
+- checker:
+  - `checkTypeArguments`、`getConstructorsForTypeArguments`、`getInstantiatedConstructorsForTypeArguments`、`hasCorrectTypeArgumentArity` (158a0805fe)
+  - `NewChecker`
+- 範囲の終わりでは `verifyCompilerOptions` も (S7a で直す分)。
+
+### テキスト衝突
+
+無し。
