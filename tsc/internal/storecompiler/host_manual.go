@@ -81,8 +81,8 @@ func (h *compilerHost) GetSourceFile(opts ast.SourceFileParseOptions, space *sto
 	return storeparser.ParseSourceFileIn(space, space.Next(), opts, text, core.EnsureScriptKindFromFileName(opts.FileName))
 }
 
-// storetranslate:pointer-hash 2eec6b6695dbe9eb host.go:compilerHost.GetResolvedProjectReference
+// storetranslate:pointer-hash 5cd1f8c63e644ad5 host.go:compilerHost.GetResolvedProjectReference
 func (h *compilerHost) GetResolvedProjectReference(fileName tspath.RootedFilePath, path tspath.PathKey) *tsoptions.ParsedCommandLine {
-	commandLine, _ := tsoptions.GetParsedCommandLineOfConfigFilePath(fileName, path, nil, nil /*optionsRaw*/, h.fs, h.extendedConfigCache)
+	commandLine, _ := tsoptions.GetParsedCommandLineOfConfigFilePath(fileName, path, nil, nil /*optionsRaw*/, tsoptions.NewDefaultParseConfigHost(h.fs), h.extendedConfigCache)
 	return commandLine
 }

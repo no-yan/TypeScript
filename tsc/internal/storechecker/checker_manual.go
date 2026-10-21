@@ -752,7 +752,7 @@ type Program interface {
 // Factory has no zero value. The IDSpace is the program's, not the first
 // file's: a program may have no file.
 //
-// storetranslate:pointer-hash 5d434fef4768415e checker.go:NewChecker
+// storetranslate:pointer-hash cadabec35abcb7d3 checker.go:NewChecker
 func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	program.BindSourceFiles()
 
@@ -799,7 +799,7 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.subtypeReductionCache = make(map[CacheHashKey][]*Type)
 	c.cachedTypes = make(map[CachedTypeKey]*Type)
 	c.cachedSignatures = make(map[CachedSignatureKey]*Signature)
-	c.undefinedProperties = make(map[string]*store.Symbol)
+	c.undefinedProperties = make(map[*store.Symbol]*store.Symbol)
 	c.narrowedTypes = make(map[NarrowedTypeKey]*Type)
 	c.assignmentReducedTypes = make(map[AssignmentReducedKey]*Type)
 	c.discriminatedContextualTypes = make(map[DiscriminatedContextualTypeKey]*Type)

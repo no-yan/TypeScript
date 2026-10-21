@@ -9,6 +9,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast/store"
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
+	"github.com/microsoft/TypeScript/tsc/internal/storescanner"
 )
 
 func (c *Checker) checkUnmatchedJSDocParameters(node store.Node) {
@@ -104,4 +105,37 @@ func getAllJSDocTags(node store.Node) []store.Node {
 		}
 	}
 	return nil
+}
+
+func (c *Checker) checkJSDocAugmentsTagMatchesExtends(node store.Node, baseTypeNode store.Node, baseType *Type) {
+	if !store.IsInJSFile(node) {
+		return
+	}
+	file := node.File()
+	for _, j := range node.EagerJSDoc(file) {
+		if j.AsJSDoc().Tags().IsNil() {
+			continue
+		}
+		tags := j.AsJSDoc().Tags()
+		for i := range tags.Len() {
+			tag := tags.At(i)
+			if tag.Kind() != ast.KindJSDocAugmentsTag {
+				continue
+			}
+			sourceTypeNode := tag.ClassName()
+			sourceType := c.getTypeFromTypeNode(sourceTypeNode)
+			sourceName := getIdentifierFromEntityNameExpression(sourceTypeNode.Expression())
+			if store.IsEntityNameExpression(baseTypeNode.Expression()) {
+				if c.isTypeIdenticalTo(sourceType, baseType) {
+					continue
+				}
+				targetName := getIdentifierFromEntityNameExpression(baseTypeNode.Expression())
+				if !targetName.IsNil() && !sourceName.IsNil() {
+					c.error(sourceName, diagnostics.JSDoc_0_1_does_not_match_the_extends_2_clause, tag.TagName().Text(), sourceName.Text(), targetName.Text())
+				}
+			} else if !sourceName.IsNil() && !c.isTypeAssignableTo(baseType, sourceType) {
+				c.error(sourceName, diagnostics.JSDoc_0_1_does_not_match_the_extends_2_clause, tag.TagName().Text(), sourceName.Text(), storescanner.GetTextOfNode(baseTypeNode.Expression()))
+			}
+		}
+	}
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
+	"github.com/microsoft/TypeScript/tsc/internal/nativepath"
 	"github.com/microsoft/TypeScript/tsc/internal/outputpaths"
 	"github.com/microsoft/TypeScript/tsc/internal/scanner"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
@@ -23,7 +24,7 @@ import (
 // no emit, and no content mapper: a file's root path is its own path, not its
 // canonical source file's.
 //
-// storetranslate:pointer-hash a34c02ae1dd863f2 program.go:Program.verifyCompilerOptions
+// storetranslate:pointer-hash 1f6bc8079a54cb95 program.go:Program.verifyCompilerOptions
 func (p *Program) verifyCompilerOptions() {
 	options := p.Options()
 	var programDiagnostics []*ast.Diagnostic
@@ -293,6 +294,8 @@ func (p *Program) verifyCompilerOptions() {
 			}
 			if !tspath.PathIsRelative(subst) && !tspath.PathIsAbsolute(subst) {
 				createDiagnosticForOptionPathKeyValue(key, i, diagnostics.Non_relative_paths_are_not_allowed_Did_you_forget_a_leading_Slash)
+			} else if nativepath.IsNetworkPath(tspath.GetNormalizedAbsolutePath(subst, options.GetPathsBasePath(p.BaseDirectory()))) { // the Pointer's GetCurrentDirectory is BaseDirectory
+				createDiagnosticForOptionPathKeyValue(key, i, diagnostics.Network_path_0_is_not_supported, subst)
 			}
 		}
 	}

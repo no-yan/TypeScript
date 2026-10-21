@@ -22,7 +22,7 @@ import (
 // Program owns its IDSpace (opts.idSpace): every Store of the program, the
 // source files included, takes its StoreID from it (4.3).
 //
-// storetranslate:pointer-hash 32ab36b16534b936 program.go:Program
+// storetranslate:pointer-hash fb26302a11628387 program.go:Program
 type Program struct {
 	opts                  ProgramConfig
 	hosts                 ProgramHosts

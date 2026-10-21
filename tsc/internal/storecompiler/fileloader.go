@@ -19,6 +19,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
 	"github.com/microsoft/TypeScript/tsc/internal/module"
+	"github.com/microsoft/TypeScript/tsc/internal/nativepath"
 	"github.com/microsoft/TypeScript/tsc/internal/storemodule"
 	"github.com/microsoft/TypeScript/tsc/internal/tracing"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
@@ -377,6 +378,10 @@ func (p *fileLoader) getSourceFileFromReference(
 	options := p.opts.Config.CompilerOptions()
 	allowNonTsExtensions := options.AllowNonTsExtensions.IsTrue()
 	diagnosticFileName := tspath.NormalizeSlashes(referenceText)
+
+	if nativepath.IsNetworkPath(fileName.AsString()) {
+		return "", "", &sourceFileFromReferenceDiagnostic{message: diagnostics.Network_path_0_is_not_supported, args: []string{diagnosticFileName}}
+	}
 
 	if fileName.HasExtension() {
 		canonicalFileName := p.caseSensitivity.PathKey(tspath.RootedPath(fileName))
