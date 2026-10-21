@@ -36,12 +36,7 @@ func NewPrograms(files map[string]string, options *core.CompilerOptions) (*compi
 func newPointerProgram(files map[string]string, options *core.CompilerOptions) *compiler.Program {
 	fs := bundled.WrapFS(vfstest.FromMap(files, tspath.CaseSensitive))
 	host := &libCachingHost{CompilerHost: compiler.NewCompilerHost(fs, bundled.LibPath(), nil, nil, nil)}
-	config := &tsoptions.ParsedCommandLine{
-		ParsedConfig: &tsoptions.ParsedOptions{
-			CompilerOptions: options,
-			FileNames:       rootedFileNames(slices.Sorted(maps.Keys(files))),
-		},
-	}
+	config := tsoptions.NewParsedCommandLine(options, rootedFileNames(slices.Sorted(maps.Keys(files))), nil, "/", tspath.CaseSensitive)
 	return compiler.NewProgram(compiler.ProgramOptions{Config: config, Host: host, SingleThreaded: core.TSTrue})
 }
 

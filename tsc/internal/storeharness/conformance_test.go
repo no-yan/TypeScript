@@ -431,15 +431,17 @@ func semanticSingleThreaded() core.Tristate {
 func preCommandLine(config *tsoptions.ParsedCommandLine) *tsoptions.ParsedCommandLine {
 	preCompilerOptions := config.CompilerOptions().Clone()
 	preCompilerOptions.TraceResolution = core.TSFalse
-	return &tsoptions.ParsedCommandLine{
-		ParsedConfig: &tsoptions.ParsedOptions{
-			CompilerOptions: preCompilerOptions,
-			FileNames:       config.FileNames(),
-			ContentMappers:  config.ContentMappers(),
-		},
-		ConfigFile: config.ConfigFile,
-		Errors:     config.Errors,
-	}
+	preConfig := tsoptions.NewParsedCommandLine(
+		preCompilerOptions,
+		config.FileNames(),
+		config.ProjectReferences(),
+		config.BaseDirectory(),
+		config.CaseSensitivity(),
+	)
+	preConfig.ParsedConfig.ContentMappers = config.ContentMappers()
+	preConfig.ConfigFile = config.ConfigFile
+	preConfig.Errors = config.Errors
+	return preConfig
 }
 
 // semanticSide is the texts of one side, by kind. failed is why a text of S
