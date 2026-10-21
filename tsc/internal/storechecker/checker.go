@@ -782,6 +782,7 @@ type Checker struct {
 	getGlobalPromiseType                        func() *Type
 	getGlobalPromiseTypeChecked                 func() *Type
 	getGlobalPromiseLikeType                    func() *Type
+	getGlobalAbstractModuleSourceType           func() *Type
 	getGlobalPromiseConstructorSymbol           func() *store.Symbol
 	getGlobalPromiseConstructorSymbolOrNil      func() *store.Symbol
 	getGlobalOmitSymbol                         func() *store.Symbol
@@ -7732,6 +7733,9 @@ func (c *Checker) checkImportCallExpression(node store.Node) *Type {
 		}
 		importAttributesType = c.getTypeOfPropertyOfType(optionsType, "with")
 	}
+	if store.IsSourcePhaseImportCall(node) {
+		return c.createPromiseReturnType(node, c.getGlobalAbstractModuleSourceType())
+	}
 	// resolveExternalModuleName will return undefined if the moduleReferenceExpression is not a string literal
 	moduleSymbol := c.resolveExternalModuleName(node, specifier, false /*ignoreErrors*/, importAttributesType)
 	if moduleSymbol != nil {
@@ -10185,8 +10189,10 @@ func (c *Checker) checkMetaProperty(node store.Node) *Type {
 	case ast.KindNewKeyword:
 		return c.checkNewTargetMetaProperty(node)
 	case ast.KindImportKeyword:
-		if node.Name().Text() == "defer" {
-			debug.Assert(!store.IsCallExpression(node.Parent()) || !store.SameNode(node.Parent().Expression(), node), "Trying to get the type of `import.defer` in `import.defer(...)`")
+		if store.IsImportPhaseMetaProperty(node) {
+			if store.IsCallExpression(node.Parent()) {
+				debug.Assert(!store.SameNode(node.Parent().Expression(), node), "Trying to get the type of a phase import meta-property in its call")
+			}
 			return c.errorType
 		}
 		return c.checkImportMetaProperty(node)
@@ -13886,6 +13892,17 @@ func (c *Checker) getTypeOnlyDeclarationOfEntityName(name store.Node) store.Node
 }
 
 func (c *Checker) getTargetOfImportClause(node store.Node) *store.Symbol {
+	if node.AsImportClause().PhaseModifier() == ast.KindSourceKeyword {
+		alias := c.getSymbolOfDeclaration(node)
+		links := c.aliasSymbolLinks.Get(alias)
+		if links.immediateTarget == nil {
+			symbol := c.newSymbol(ast.SymbolFlagsFunctionScopedVariable, node.Name().Text())
+			symbol.Declarations = alias.Declarations
+			c.valueSymbolLinks.Get(symbol).resolvedType = c.getGlobalAbstractModuleSourceType()
+			links.immediateTarget = symbol
+		}
+		return links.immediateTarget
+	}
 	moduleSymbol := c.resolveExternalModuleName(node, getModuleSpecifierFromNode(node.Parent()), false /*ignoreErrors*/, c.getTypeFromImportAttributes(store.GetImportAttributes(node.Parent())))
 	if moduleSymbol != nil {
 		return c.getTargetOfModuleDefault(moduleSymbol, node, true /*dontResolveAlias*/)
@@ -14456,6 +14473,9 @@ func (c *Checker) getCannotResolveModuleNameErrorForSpecificModule(moduleName st
 
 func (c *Checker) resolveExternalModuleNameWorker(location store.Node, moduleReferenceExpression store.Node, moduleNotFoundError *diagnostics.Message, ignoreErrors bool, isForAugmentation bool, importAttributesType *Type) *store.Symbol {
 	if store.IsStringLiteralLike(moduleReferenceExpression) {
+		if store.IsSourcePhaseImport(moduleReferenceExpression.Parent()) {
+			return nil
+		}
 		return c.resolveExternalModule(location, moduleReferenceExpression.Text(), moduleNotFoundError, core.IfElse(!ignoreErrors, moduleReferenceExpression, store.Node{}), isForAugmentation, importAttributesType)
 	}
 	return nil
@@ -30679,7 +30699,7 @@ func (c *Checker) getSymbolAtLocation(node store.Node, ignoreErrors bool) *store
 		}
 		return nil
 	case ast.KindImportKeyword:
-		if store.IsMetaProperty(node.Parent()) && node.Parent().Text() == "defer" {
+		if store.IsImportPhaseMetaProperty(node.Parent()) {
 			return nil
 		}
 		fallthrough

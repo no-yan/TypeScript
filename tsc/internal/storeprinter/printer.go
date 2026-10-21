@@ -2854,8 +2854,8 @@ func (p *Printer) emitNonNullExpression(node store.NonNullExpression) {
 
 func (p *Printer) emitMetaProperty(node store.MetaProperty) {
 	state := p.enterNode(store.Node(node))
-	p.emitToken(node.KeywordToken(), int(store.Node(node).Pos()), WriteKindPunctuation, store.Node(node))
-	p.writePunctuation(".")
+	pos := p.emitToken(node.KeywordToken(), int(store.Node(node).Pos()), WriteKindPunctuation, store.Node(node))
+	p.emitToken(ast.KindDotToken, pos, WriteKindPunctuation, store.Node(node))
 	p.emitIdentifierName(node.Name().AsIdentifier())
 	p.exitNode(store.Node(node), state)
 }

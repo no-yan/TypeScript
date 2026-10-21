@@ -5,7 +5,7 @@
 // internal/ast/docs/store-checker-design-20260923.md 2.1). The functions the
 // rules do not cover are written by hand in utilities_manual.go (P2).
 //
-// Reach: 447 functions of package ast that the roots of tools/cmd/storetranslate
+// Reach: 453 functions of package ast that the roots of tools/cmd/storetranslate
 // name in their bodies, called or as a value, transitively.
 
 package store
@@ -2271,7 +2271,7 @@ func IsExpressionNode(node Node) bool {
 		ast.KindJsxFragment, ast.KindYieldExpression, ast.KindAwaitExpression:
 		return true
 	case ast.KindMetaProperty:
-		// `import.defer` in `import.defer(...)` is not an expression
+		// `import.<phase>` in `import.<phase>(...)` is not an expression
 		return !IsImportCall(node.Parent()) || !SameNode(node.Parent().Expression(), node)
 	case ast.KindExpressionWithTypeArguments:
 		return !IsHeritageClause(node.Parent())
@@ -2404,7 +2404,35 @@ func IsImportCall(node Node) bool {
 		return false
 	}
 	e := node.Expression()
-	return e.Kind() == ast.KindImportKeyword || IsMetaProperty(e) && e.AsMetaProperty().KeywordToken() == ast.KindImportKeyword && e.Text() == "defer"
+	return e.Kind() == ast.KindImportKeyword || IsImportPhaseMetaProperty(e)
+}
+
+func IsImportPhaseMetaProperty(node Node) bool {
+	return IsImportDeferMetaProperty(node) || IsImportSourceMetaProperty(node)
+}
+
+func IsImportDeferMetaProperty(node Node) bool {
+	return isImportMetaProperty(node, "defer")
+}
+
+func IsImportSourceMetaProperty(node Node) bool {
+	return isImportMetaProperty(node, "source")
+}
+
+func isImportMetaProperty(node Node, name string) bool {
+	return IsMetaProperty(node) && node.AsMetaProperty().KeywordToken() == ast.KindImportKeyword && node.AsMetaProperty().Name().Text() == name
+}
+
+func IsSourcePhaseImport(node Node) bool {
+	if IsImportDeclaration(node) {
+		clause := node.AsImportDeclaration().ImportClause()
+		return !clause.IsNil() && clause.AsImportClause().PhaseModifier() == ast.KindSourceKeyword
+	}
+	return IsSourcePhaseImportCall(node)
+}
+
+func IsSourcePhaseImportCall(node Node) bool {
+	return IsCallExpression(node) && IsImportSourceMetaProperty(node.Expression())
 }
 
 func IsComputedNonLiteralName(name Node) bool {

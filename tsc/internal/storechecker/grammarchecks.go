@@ -1535,13 +1535,13 @@ func (c *Checker) checkGrammarMetaProperty(node store.MetaProperty) bool {
 	case ast.KindImportKeyword:
 		if nameText != "meta" {
 			isCallee := store.IsCallExpression(store.Node(node).Parent()) && store.SameNode(store.Node(node).Parent().Expression(), store.Node(node))
-			if nameText == "defer" {
+			if store.IsImportPhaseMetaProperty(store.Node(node)) {
 				if !isCallee {
 					return c.grammarErrorAtPos(store.Node(node), int(store.Node(node).End()), 0, diagnostics.X_0_expected, "(")
 				}
 			} else {
 				if isCallee {
-					return c.grammarErrorOnNode(nodeName, diagnostics.X_0_is_not_a_valid_meta_property_for_keyword_import_Did_you_mean_meta_or_defer, nameText)
+					return c.grammarErrorOnNode(nodeName, diagnostics.X_0_is_not_a_valid_meta_property_for_keyword_import_Did_you_mean_meta_defer_or_source, nameText)
 				}
 				return c.grammarErrorOnNode(nodeName, diagnostics.X_0_is_not_a_valid_meta_property_for_keyword_1_Did_you_mean_2, nameText, scanner.TokenToString(node.KeywordToken()), "meta")
 			}
@@ -1828,9 +1828,25 @@ func (c *Checker) checkGrammarImportClause(node store.ImportClause) bool {
 		if !node.NamedBindings().IsNil() && node.NamedBindings().Kind() == ast.KindNamedImports {
 			return c.grammarErrorOnNode(store.Node(node), diagnostics.Named_imports_are_not_allowed_in_a_deferred_import)
 		}
-		if c.moduleKind != core.ModuleKindESNext && c.moduleKind != core.ModuleKindPreserve {
-			return c.grammarErrorOnNode(store.Node(node), diagnostics.Deferred_imports_are_only_supported_when_the_module_flag_is_set_to_esnext_or_preserve)
+		if c.moduleKind.SupportsDeferredImports() {
+			break
 		}
+		return c.grammarErrorOnNode(store.Node(node), diagnostics.Deferred_imports_are_only_supported_when_the_module_flag_is_set_to_esnext_or_preserve)
+	case ast.KindSourceKeyword:
+		if !node.NamedBindings().IsNil() {
+			return c.grammarErrorOnNode(store.Node(node), diagnostics.Named_and_namespace_imports_are_not_allowed_in_a_source_phase_import)
+		}
+		if node.Name().IsNil() {
+			return c.grammarErrorOnNode(store.Node(node), diagnostics.A_source_phase_import_must_specify_a_local_binding)
+		}
+		if c.moduleKind.SupportsSourcePhaseImports() {
+			moduleSpecifier := getModuleSpecifierFromNode(store.Node(node).Parent())
+			if c.getEmitSyntaxForModuleSpecifierExpression(moduleSpecifier) == core.ModuleKindCommonJS {
+				return c.grammarErrorOnNode(store.Node(node), diagnostics.Source_phase_imports_are_not_allowed_on_statements_that_compile_to_CommonJS_require_calls)
+			}
+			break
+		}
+		return c.grammarErrorOnNode(store.Node(node), diagnostics.Source_phase_imports_are_only_supported_when_the_module_option_is_set_to_esnext_nodenext_or_preserve)
 	}
 	return false
 }
@@ -1877,15 +1893,25 @@ func (c *Checker) checkGrammarImportCallExpression(node store.Node) bool {
 		return c.grammarErrorOnNode(node, getVerbatimModuleSyntaxErrorMessage(node))
 	}
 
-	if node.Expression().Kind() == ast.KindMetaProperty {
-		if c.moduleKind != core.ModuleKindESNext && c.moduleKind != core.ModuleKindPreserve {
-			return c.grammarErrorOnNode(node, diagnostics.Deferred_imports_are_only_supported_when_the_module_flag_is_set_to_esnext_or_preserve)
+	switch {
+	case store.IsImportSourceMetaProperty(node.Expression()):
+		if c.moduleKind.SupportsSourcePhaseImports() {
+			break
 		}
-	} else if c.moduleKind == core.ModuleKindES2015 {
+		return c.grammarErrorOnNode(node, diagnostics.Source_phase_imports_are_only_supported_when_the_module_option_is_set_to_esnext_nodenext_or_preserve)
+	case store.IsImportDeferMetaProperty(node.Expression()):
+		if c.moduleKind.SupportsDeferredImports() {
+			break
+		}
+		return c.grammarErrorOnNode(node, diagnostics.Deferred_imports_are_only_supported_when_the_module_flag_is_set_to_esnext_or_preserve)
+	case c.moduleKind == core.ModuleKindES2015:
 		return c.grammarErrorOnNode(node, diagnostics.Dynamic_imports_are_only_supported_when_the_module_flag_is_set_to_es2020_es2022_esnext_commonjs_amd_system_umd_node16_node18_node20_or_nodenext)
 	}
 
 	nodeAsCall := node.AsCallExpression()
+	if store.IsSourcePhaseImportCall(node) && !nodeAsCall.QuestionDotToken().IsNil() {
+		return c.grammarErrorOnNode(nodeAsCall.QuestionDotToken(), diagnostics.Optional_chaining_cannot_be_used_with_import_source)
+	}
 	if !nodeAsCall.TypeArguments().IsNil() {
 		return c.grammarErrorOnNode(node, diagnostics.This_use_of_import_is_invalid_import_calls_can_be_written_but_they_must_have_parentheses_and_cannot_have_type_arguments)
 	}
