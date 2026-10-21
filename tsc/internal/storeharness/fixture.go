@@ -102,6 +102,7 @@ type fixtureScalars struct {
 	ResolvedModulesNil      bool
 	CommonSourceDirectory   tspath.RootedDirectoryPath
 	ContentMapperExtensions []string
+	ExtensionRewrites       []tspath.ExtensionRewrite
 	GlobalTypingsLocation   tspath.RootedDirectoryPath
 	CaseSensitivity         tspath.CaseSensitivity
 	BaseDirectory           tspath.RootedDirectoryPath
@@ -615,6 +616,13 @@ func (r *Recorder) ContentMapperExtensions() []string {
 	return v
 }
 
+func (r *Recorder) ContentMapperExtensionRewrites() []tspath.ExtensionRewrite {
+	v := r.Program.ContentMapperExtensionRewrites()
+	r.fixture.Scalars.Asked["ExtensionRewrites"] = true
+	r.fixture.Scalars.ExtensionRewrites = v
+	return v
+}
+
 func (r *Recorder) GetGlobalTypingsCacheLocation() tspath.RootedDirectoryPath {
 	v := r.Program.GetGlobalTypingsCacheLocation()
 	r.fixture.Scalars.Asked["GlobalTypingsLocation"] = true
@@ -687,6 +695,7 @@ const (
 	callSymlinkCache
 	callCommonSourceDirectory
 	callContentMapperExtensions
+	callExtensionRewrites
 	callGlobalTypingsLocation
 	callCaseSensitivity
 	callBaseDirectory
@@ -721,6 +730,7 @@ var callNames = [numCalls]string{
 	callSymlinkCache:                                "SymlinkCache",
 	callCommonSourceDirectory:                       "CommonSourceDirectory",
 	callContentMapperExtensions:                     "ContentMapperExtensions",
+	callExtensionRewrites:                           "ExtensionRewrites",
 	callGlobalTypingsLocation:                       "GlobalTypingsLocation",
 	callCaseSensitivity:                             "CaseSensitivity",
 	callBaseDirectory:                               "BaseDirectory",
@@ -961,6 +971,11 @@ func (p *FixtureProgram) CommonSourceDirectory() tspath.RootedDirectoryPath {
 func (p *FixtureProgram) ContentMapperExtensions() []string {
 	p.scalar(callContentMapperExtensions)
 	return p.fixture.Scalars.ContentMapperExtensions
+}
+
+func (p *FixtureProgram) ContentMapperExtensionRewrites() []tspath.ExtensionRewrite {
+	p.scalar(callExtensionRewrites)
+	return p.fixture.Scalars.ExtensionRewrites
 }
 
 func (p *FixtureProgram) GetGlobalTypingsCacheLocation() tspath.RootedDirectoryPath {

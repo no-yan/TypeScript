@@ -134,6 +134,9 @@ func (p *Program) CommonSourceDirectory() tspath.RootedDirectoryPath {
 
 func (p *Program) GetSymlinkCache() *symlinks.KnownSymlinks { return p.pointer.GetSymlinkCache() }
 func (p *Program) ContentMapperExtensions() []string        { return p.pointer.ContentMapperExtensions() }
+func (p *Program) ContentMapperExtensionRewrites() []tspath.ExtensionRewrite {
+	return p.pointer.ContentMapperExtensionRewrites()
+}
 func (p *Program) GetGlobalTypingsCacheLocation() tspath.RootedDirectoryPath {
 	return p.pointer.GetGlobalTypingsCacheLocation()
 }

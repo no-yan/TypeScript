@@ -56,6 +56,7 @@ func newProgram(pointer *compiler.Program) *Program {
 	}
 	for i, pf := range sources {
 		f := storeparser.ParseSourceFileIn(p.space, store.StoreID(i), pf.ParseOptions(), pf.Text(), pf.ScriptKind)
+		f.SetContentMapper(pf.ContentMapper())
 		p.files[i] = f
 		p.byPath[f.PathKey()] = f
 		p.pointers[f.PathKey()] = pf

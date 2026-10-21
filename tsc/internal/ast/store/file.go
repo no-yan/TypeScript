@@ -20,6 +20,7 @@ type File struct {
 	fileName                                                         tspath.RootedFilePath
 	pathKey                                                          tspath.PathKey
 	text                                                             string // = Store.src
+	contentMapper                                                    string // the mapper that produced the text, "" for none
 	ScriptKind                                                       core.ScriptKind
 	LanguageVariant                                                  core.LanguageVariant
 	IsDeclarationFile                                                bool
@@ -80,6 +81,16 @@ func NewFile(fileName tspath.RootedFilePath, pathKey tspath.PathKey, text string
 func (f *File) FileName() tspath.RootedFilePath { return f.fileName }
 func (f *File) PathKey() tspath.PathKey         { return f.pathKey }
 func (f *File) Text() string                    { return f.text }
+
+// ContentMapper is (*ast.SourceFile).ContentMapper: the name of the content
+// mapper that produced the file's text, or "". The Store program has none
+// (the CLI rejects content mappers); the harness, which parses the Pointer
+// program's files, copies the Pointer file's.
+func (f *File) ContentMapper() string { return f.contentMapper }
+
+// SetContentMapper names the content mapper of a file parsed from a
+// content-mapped Pointer file.
+func (f *File) SetContentMapper(name string) { f.contentMapper = name }
 
 // Imports is (*ast.SourceFile).Imports: the module specifier literals, as
 // Nodes. The parse keeps them as NodeRefs (AppendImport); the first call
