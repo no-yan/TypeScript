@@ -498,9 +498,13 @@ func (r *typeRenderer) namedType(named *types.Named) string {
 		return "ResolutionMode"
 	case r.apiPackagePath + ".EnsurePrograms":
 		return "EnsurePrograms"
+	case r.apiPackagePath + ".SymbolOwnerKind":
+		return r.importType("SymbolOwnerKind", "#enums/symbolOwnerKind")
 	case "github.com/microsoft/TypeScript/tsc/internal/project.ID":
 		r.importTypeOnly("Path", "../ast/index.ts")
 		return "ProjectId"
+	case "github.com/microsoft/TypeScript/tsc/internal/tspath.Path":
+		return r.importTypeOnly("Path", "../ast/index.ts")
 	case "github.com/microsoft/TypeScript/tsc/internal/project.SyntheticProjectID":
 		return "SyntheticProjectId"
 	case "github.com/microsoft/TypeScript/tsc/internal/packagejson.JSONValue":
@@ -513,6 +517,12 @@ func (r *typeRenderer) namedType(named *types.Named) string {
 		return "unknown"
 	case "github.com/microsoft/TypeScript/tsc/internal/core.Tristate":
 		return "boolean"
+	case "github.com/microsoft/TypeScript/tsc/internal/core.CompilerOptions":
+		return r.importTypeOnly("CompilerOptions", "./compilerOptions.generated.ts")
+	case "github.com/microsoft/TypeScript/tsc/internal/core.PluginImport":
+		return r.importTypeOnly("PluginImport", "./compilerOptions.generated.ts")
+	case "github.com/microsoft/TypeScript/tsc/internal/ls/lsutil.UserPreferences":
+		return r.importTypeOnly(obj.Name(), "./userPreferences.generated.ts")
 	case "github.com/microsoft/TypeScript/tsc/internal/core.JsxEmit":
 		return r.importType("JsxEmit", "#enums/jsxEmit")
 	case "github.com/microsoft/TypeScript/tsc/internal/core.ModuleDetectionKind":
@@ -578,8 +588,8 @@ func (r *typeRenderer) inlineStruct(structType *types.Struct) string {
 	var fields []string
 	multiline := false
 	for i := range structType.NumFields() {
-		field, include, optional, nonnil, deprecated, internal := jsonField(structType, i)
-		if !include || deprecated || internal {
+		field, include, optional, nonnil := jsonField(structType, i)
+		if !include {
 			continue
 		}
 		fieldType := r.typeString(structType.Field(i).Type(), !optional && !nonnil)
@@ -640,8 +650,8 @@ func (r *typeRenderer) declarations() (string, error) {
 			if structType.Field(i).Embedded() {
 				continue
 			}
-			field, include, optional, nonnil, deprecated, internal := jsonField(structType, i)
-			if !include || deprecated || internal {
+			field, include, optional, nonnil := jsonField(structType, i)
+			if !include {
 				continue
 			}
 			fieldType := r.typeString(structType.Field(i).Type(), !optional && !nonnil)
@@ -709,6 +719,7 @@ func (r *typeRenderer) importDeclarations() string {
 	for _, path := range paths {
 		fmt.Fprintf(&out, "export { %s } from %q;\n", strings.Join(r.imports[path], ", "), path)
 	}
+	out.WriteString("export * from \"./compilerOptions.generated.ts\";\n")
 	return out.String()
 }
 
@@ -737,19 +748,17 @@ func (r *typeRenderer) referencedNames() []string {
 	return names
 }
 
-func jsonField(structType *types.Struct, index int) (name string, include bool, optional bool, nonnil bool, deprecated bool, internal bool) {
+func jsonField(structType *types.Struct, index int) (name string, include bool, optional bool, nonnil bool) {
 	field := structType.Field(index)
 	if !field.Exported() {
-		return "", false, false, false, false, false
+		return "", false, false, false
 	}
 	tag := reflect.StructTag(structType.Tag(index)).Get("json")
 	noniltag := reflect.StructTag(structType.Tag(index)).Get("nonnil")
-	deprecatedtag := reflect.StructTag(structType.Tag(index)).Get("deprecated")
-	internaltag := reflect.StructTag(structType.Tag(index)).Get("internal")
 	parts := strings.Split(tag, ",")
 	name = parts[0]
 	if name == "-" {
-		return "", false, false, noniltag == "true", deprecatedtag == "true", internaltag == "true"
+		return "", false, false, noniltag == "true"
 	}
 	if name == "" {
 		name = field.Name()
@@ -759,7 +768,7 @@ func jsonField(structType *types.Struct, index int) (name string, include bool, 
 			optional = true
 		}
 	}
-	return name, true, optional, noniltag == "true", deprecatedtag == "true", internaltag == "true"
+	return name, true, optional, noniltag == "true"
 }
 
 func exportedName(value string) string {

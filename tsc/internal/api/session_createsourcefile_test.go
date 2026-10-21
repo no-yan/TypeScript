@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/microsoft/TypeScript/tsc/internal/api/encoder"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/lsp/lsproto"
 	"github.com/microsoft/TypeScript/tsc/internal/testutil/projecttestutil"
@@ -118,6 +119,121 @@ func TestCreateSourceFile(t *testing.T) {
 
 		_, err = session.handleReleaseSourceFile(&ReleaseSourceFileParams{Lease: secondLease})
 		assert.NilError(t, err)
+	})
+
+	t.Run("retain by descriptor", func(t *testing.T) {
+		t.Parallel()
+
+		const fileName = "/src/retained.ts"
+		const sourceText = "export const retained = true;"
+		created, err := session.createSourceFile(fileName, sourceText, CreateSourceFileOptions{})
+		assert.NilError(t, err)
+		sourceFile := created.SourceFile()
+		descriptor := newSourceFileDescriptor(sourceFile)
+
+		result, err := session.handleRetainSourceFile(&RetainSourceFileParams{File: descriptor})
+		assert.NilError(t, err)
+		assert.Assert(t, result.Lease != 0)
+		session.sourceFileLeasesMu.Lock()
+		retainedSourceFile := session.sourceFileLeases[result.Lease].SourceFile()
+		session.sourceFileLeasesMu.Unlock()
+		assert.Assert(t, retainedSourceFile == sourceFile)
+
+		created.Release()
+		key, err := descriptor.parseCacheKey()
+		assert.NilError(t, err)
+		acquired := session.snapshotHost.AcquireExistingSourceFile(key)
+		assert.Assert(t, acquired != nil)
+		acquired.Release()
+
+		_, err = session.handleReleaseSourceFile(&ReleaseSourceFileParams{Lease: result.Lease})
+		assert.NilError(t, err)
+		assert.Assert(t, session.snapshotHost.AcquireExistingSourceFile(key) == nil)
+	})
+
+	t.Run("retain cache miss", func(t *testing.T) {
+		t.Parallel()
+
+		descriptor := SourceFileDescriptor{
+			FileName:        "/src/missing.ts",
+			Path:            "/src/missing.ts",
+			ContentHash:     "00000000000000000000000000000000",
+			ParseOptionsKey: "0",
+			ScriptKind:      core.ScriptKindTS,
+			NodeID:          "1",
+		}
+		_, err := session.handleRetainSourceFile(&RetainSourceFileParams{File: descriptor})
+		assert.ErrorContains(t, err, "source file is not available")
+	})
+
+	t.Run("declaration symbol lookup", func(t *testing.T) {
+		t.Parallel()
+
+		created, err := session.createSourceFile(
+			"/src/symbols.ts",
+			"function present() {}\nimport {} from './missing';",
+			CreateSourceFileOptions{},
+		)
+		assert.NilError(t, err)
+		defer created.Release()
+
+		sourceFile := created.SourceFile()
+		table := encoder.GetNodeIndexTable(sourceFile)
+		descriptor := newSourceFileDescriptor(sourceFile)
+
+		present, err := session.handleGetSymbolOfDeclaration(&GetSymbolOfDeclarationParams{
+			File:  descriptor,
+			Index: table.GetIndex(sourceFile.Statements.Nodes[0]),
+		})
+		assert.NilError(t, err)
+		assert.Assert(t, present != nil)
+		assert.Equal(t, present.Name, "present")
+		assert.Equal(t, present.Reference.Kind, SymbolOwnerKindFile)
+
+		absent, err := session.handleGetSymbolOfDeclaration(&GetSymbolOfDeclarationParams{
+			File:  descriptor,
+			Index: table.GetIndex(sourceFile.Statements.Nodes[1]),
+		})
+		assert.ErrorContains(t, err, "has no binder symbol")
+		assert.Assert(t, absent == nil)
+
+		_, err = session.handleGetSymbolOfDeclaration(&GetSymbolOfDeclarationParams{
+			File:  descriptor,
+			Index: 0,
+		})
+		assert.ErrorContains(t, err, "out of range")
+	})
+
+	t.Run("rejects stale node ID", func(t *testing.T) {
+		t.Parallel()
+
+		created, err := session.createSourceFile("/src/stale.ts", "export {};", CreateSourceFileOptions{})
+		assert.NilError(t, err)
+		defer created.Release()
+		descriptor := newSourceFileDescriptor(created.SourceFile())
+		descriptor.NodeID = "0"
+
+		_, err = session.handleRetainSourceFile(&RetainSourceFileParams{File: descriptor})
+		assert.ErrorContains(t, err, "cached source file")
+	})
+
+	t.Run("rejects an evicted file after equal-key recreation", func(t *testing.T) {
+		t.Parallel()
+
+		const fileName = "/src/recreated.ts"
+		const sourceText = "export {};"
+		first, err := session.createSourceFile(fileName, sourceText, CreateSourceFileOptions{})
+		assert.NilError(t, err)
+		staleDescriptor := newSourceFileDescriptor(first.SourceFile())
+		first.Release()
+
+		second, err := session.createSourceFile(fileName, sourceText, CreateSourceFileOptions{})
+		assert.NilError(t, err)
+		defer second.Release()
+		assert.Assert(t, newSourceFileDescriptor(second.SourceFile()).NodeID != staleDescriptor.NodeID)
+
+		_, err = session.handleRetainSourceFile(&RetainSourceFileParams{File: staleDescriptor})
+		assert.ErrorContains(t, err, "cached source file")
 	})
 
 	t.Run("unknown extension defaults to TypeScript", func(t *testing.T) {

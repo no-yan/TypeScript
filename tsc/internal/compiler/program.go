@@ -36,21 +36,33 @@ import (
 )
 
 type ProgramOptions struct {
-	Host                        CompilerHost
+	ProgramConfig
+	ProgramHosts
+	ProgramFactories
+}
+
+type ProgramConfig struct {
 	Config                      *tsoptions.ParsedCommandLine
 	UseSourceOfProjectReference bool
 	SingleThreaded              core.Tristate
-	CreateCheckerPool           func(*Program) CheckerPool
 	TypingsLocation             string
 	ProjectName                 string
-	Tracing                     *tracing.Tracing
-	CreateModuleResolver        func(options module.ResolverOptions) module.Resolver
 	// SkipModuleResolution avoids all module and type reference resolution while
 	// still collecting import metadata needed for emit.
 	SkipModuleResolution bool
 }
 
-func (p *ProgramOptions) canUseProjectReferenceSource() bool {
+type ProgramHosts struct {
+	Host    CompilerHost
+	Tracing *tracing.Tracing
+}
+
+type ProgramFactories struct {
+	CreateCheckerPool    func(*Program) CheckerPool
+	CreateModuleResolver func(module.ResolverOptions) module.Resolver
+}
+
+func (p *ProgramConfig) canUseProjectReferenceSource() bool {
 	return p.UseSourceOfProjectReference && !p.Config.CompilerOptions().DisableSourceOfProjectReferenceRedirect.IsTrue()
 }
 
@@ -84,8 +96,12 @@ type packageNamesInfo struct {
 }
 
 type Program struct {
-	opts        ProgramOptions
-	checkerPool CheckerPool // always set; used as fallback for project system pools
+	opts                  ProgramConfig
+	hosts                 ProgramHosts
+	resolutionData        *module.ResolutionData
+	checkerPool           CheckerPool // always set; used as fallback for project system pools
+	includeProcessor      includeProcessor
+	moduleResolutionError error
 
 	// compilerCheckerPool is set only when the built-in compiler checker pool is in use
 	// (i.e. CreateCheckerPool was not provided). It enables grouped parallel iteration,
@@ -137,7 +153,7 @@ func (p *Program) GetCurrentDirectory() string {
 }
 
 func (p *Program) ContentMapperProject() contentmapper.Project {
-	return p.opts.Host.ContentMapperProject()
+	return p.hosts.Host.ContentMapperProject()
 }
 
 // GetGlobalTypingsCacheLocation implements checker.Program.
@@ -147,7 +163,7 @@ func (p *Program) GetGlobalTypingsCacheLocation() string {
 
 // GetNearestAncestorDirectoryWithPackageJson implements checker.Program.
 func (p *Program) GetNearestAncestorDirectoryWithPackageJson(dirname string) string {
-	scoped := p.resolver.GetPackageScopeForPath(dirname)
+	scoped := p.newResolver().GetPackageScopeForPath(dirname)
 	if scoped != nil && scoped.Exists() {
 		return scoped.PackageDirectory
 	}
@@ -157,7 +173,7 @@ func (p *Program) GetNearestAncestorDirectoryWithPackageJson(dirname string) str
 // GetPackageJsonInfo implements checker.Program.
 func (p *Program) GetPackageJsonInfo(pkgJsonPath string) *packagejson.InfoCacheEntry {
 	directory := tspath.GetDirectoryPath(pkgJsonPath)
-	scoped := p.resolver.GetPackageScopeForPath(directory)
+	scoped := p.newResolver().GetPackageScopeForPath(directory)
 	if scoped != nil && scoped.Exists() && scoped.PackageDirectory == directory {
 		return scoped
 	}
@@ -166,7 +182,11 @@ func (p *Program) GetPackageJsonInfo(pkgJsonPath string) *packagejson.InfoCacheE
 
 // PackageJsonCacheEntries iterates on all package json cache entries.
 func (p *Program) PackageJsonCacheEntries(f func(key tspath.Path, value *packagejson.InfoCacheEntry) bool) {
-	p.resolver.PackageJsonCacheEntries(f)
+	p.resolutionData.PackageJsonCacheEntries(f)
+}
+
+func (p *Program) newResolver() *module.DefaultResolver {
+	return p.resolutionData.NewResolver(p.projectReferenceFileMapper.resolutionHost(p.hosts.Host))
 }
 
 // GetRedirectTargets returns the list of file paths that redirect to the given path.
@@ -284,12 +304,12 @@ func (p *Program) GetSourceFileFromReference(origin *ast.SourceFile, ref *ast.Fi
 }
 
 func NewProgram(opts ProgramOptions) *Program {
-	p := &Program{opts: opts}
-	if p.opts.Tracing != nil {
-		defer p.opts.Tracing.Push(tracing.PhaseProgram, "createProgram", map[string]any{"configFilePath": opts.Config.CompilerOptions().ConfigFilePath}, true)()
+	p := &Program{opts: opts.ProgramConfig, hosts: opts.ProgramHosts}
+	if opts.Tracing != nil {
+		defer opts.Tracing.Push(tracing.PhaseProgram, "createProgram", map[string]any{"configFilePath": opts.Config.CompilerOptions().ConfigFilePath}, true)()
 	}
-	p.processedFiles = processAllProgramFiles(p.opts, p.SingleThreaded())
-	p.initCheckerPool()
+	p.processedFiles, p.resolutionData, p.moduleResolutionError = processAllProgramFiles(opts, p.SingleThreaded())
+	p.initCheckerPool(opts.CreateCheckerPool)
 	p.verifyCompilerOptions()
 	p.collectContentMapperOptionDiagnostics()
 	return p
@@ -297,8 +317,6 @@ func NewProgram(opts ProgramOptions) *Program {
 
 // Return an updated program for which it is known that only the file with the given path has changed.
 // In addition to a new program, return a boolean indicating whether the data of the old program was reused.
-// createCheckerPool, if non-nil, overrides the CreateCheckerPool stored in the old program's options,
-// ensuring each caller uses a fresh closure and avoiding data races on captured variables.
 // The returned *ast.SourceFile is the changed file as acquired through newHost; it is nil
 // only if the host cannot locate the file (e.g. it was deleted). Callers that manage
 // host-side parse caches must release this exact pointer when the old program could not be
@@ -312,15 +330,12 @@ func (p *Program) UpdateProgram(
 	if result, newFile, reused := p.ReuseProgram(changedFilePath, newHost, createCheckerPool, createModuleResolver); reused {
 		return result, newFile, true
 	} else {
-		newOpts := p.opts
-		newOpts.Host = newHost
-		if createCheckerPool != nil {
-			newOpts.CreateCheckerPool = createCheckerPool
-		}
-		if createModuleResolver != nil {
-			newOpts.CreateModuleResolver = createModuleResolver
-		}
-		return NewProgram(newOpts), newFile, false
+		return NewProgram(ProgramOptions{
+			ProgramConfig:        p.opts,
+			Host:                 newHost,
+			CreateCheckerPool:    createCheckerPool,
+			CreateModuleResolver: createModuleResolver,
+		}), newFile, false
 	}
 }
 
@@ -336,14 +351,6 @@ func (p *Program) ReuseProgram(
 	createCheckerPool func(*Program) CheckerPool,
 	createModuleResolver func(module.ResolverOptions) module.Resolver,
 ) (*Program, *ast.SourceFile, bool) {
-	newOpts := p.opts
-	newOpts.Host = newHost
-	if createCheckerPool != nil {
-		newOpts.CreateCheckerPool = createCheckerPool
-	}
-	if createModuleResolver != nil {
-		newOpts.CreateModuleResolver = createModuleResolver
-	}
 	oldFile := p.filesByPath[changedFilePath]
 	var newFile *ast.SourceFile
 	var oldSupplementalFiles []*ast.SourceFile
@@ -352,7 +359,7 @@ func (p *Program) ReuseProgram(
 		// Content-mapped files are produced by running an external transform, which a plain reparse can't
 		// reproduce. Re-run the transform through the host; any failure (or a missing file) falls back to
 		// a full rebuild so the file loader's failure policy runs.
-		mapper := newOpts.Config.GetContentMapperForFileName(oldFile.FileName())
+		mapper := p.opts.Config.GetContentMapperForFileName(oldFile.FileName())
 		var err error
 		files, transformErr := newHost.GetContentMappedSourceFiles(oldFile.ParseOptions(), mapper)
 		newFile, err = files.Canonical, transformErr
@@ -375,7 +382,7 @@ func (p *Program) ReuseProgram(
 		return nil, newFile, false
 	}
 
-	if !p.canReplaceFileInProgram(oldFile, newFile) {
+	if p.moduleResolutionError != nil || !p.canReplaceFileInProgram(oldFile, newFile) {
 		return nil, newFile, false
 	}
 	// Cloning does not recompute synthetic helper or JSX-runtime import bookkeeping. Fall back to a full
@@ -404,7 +411,9 @@ func (p *Program) ReuseProgram(
 	}
 	// TODO: reverify compiler options when config has changed?
 	result := &Program{
-		opts:                           newOpts,
+		opts:                           p.opts,
+		hosts:                          ProgramHosts{Host: newHost},
+		resolutionData:                 p.resolutionData.Clone(),
 		comparePathsOptions:            p.comparePathsOptions,
 		processedFiles:                 p.processedFiles,
 		usesUriStyleNodeCoreModules:    p.usesUriStyleNodeCoreModules,
@@ -415,7 +424,6 @@ func (p *Program) ReuseProgram(
 	result.unresolvedImports.tryReuse(&p.unresolvedImports)
 	result.knownSymlinks.tryReuse(&p.knownSymlinks)
 	result.packageNames.tryReuse(&p.packageNames)
-	result.initCheckerPool()
 	index := core.FindIndex(result.files, func(file *ast.SourceFile) bool { return file.Path() == newFile.Path() })
 	result.files = slices.Clone(result.files)
 	result.files[index] = newFile
@@ -429,19 +437,19 @@ func (p *Program) ReuseProgram(
 			result.filesByPath[newSupplemental.Path()] = newSupplemental
 		}
 	}
-	updateFileIncludeProcessor(result)
+	result.initCheckerPool(createCheckerPool)
 	return result, newFile, true
 }
 
-func (p *Program) initCheckerPool() {
+func (p *Program) initCheckerPool(create func(*Program) CheckerPool) {
 	if !p.finishedProcessing {
 		panic("Program must finish processing files before initializing checker pool")
 	}
 
-	if p.opts.CreateCheckerPool != nil {
-		p.checkerPool = p.opts.CreateCheckerPool(p)
+	if create != nil {
+		p.checkerPool = create(p)
 	} else {
-		pool := newCheckerPoolWithTracing(p, p.opts.Tracing)
+		pool := newCheckerPoolWithTracing(p, p.hosts.Tracing)
 		p.checkerPool = pool
 		p.compilerCheckerPool = pool
 	}
@@ -528,8 +536,8 @@ func (p *Program) GetContentMapper(file *ast.SourceFile) *contentmapper.Mapper {
 
 func (p *Program) ContentMapperExtensions() []string         { return p.opts.Config.ContentMapperExtensions() }
 func (p *Program) CommandLine() *tsoptions.ParsedCommandLine { return p.opts.Config }
-func (p *Program) Host() CompilerHost                        { return p.opts.Host }
-func (p *Program) Tracing() *tracing.Tracing                 { return p.opts.Tracing }
+func (p *Program) Host() CompilerHost                        { return p.hosts.Host }
+func (p *Program) Tracing() *tracing.Tracing                 { return p.hosts.Tracing }
 func (p *Program) GetConfigFileParsingDiagnostics() []*ast.Diagnostic {
 	return slices.Clip(p.opts.Config.GetConfigFileParsingDiagnostics())
 }
@@ -599,8 +607,8 @@ func (p *Program) BindSourceFiles() {
 }
 
 func (p *Program) bindSourceFile(file *ast.SourceFile) {
-	if p.opts.Tracing != nil {
-		defer p.opts.Tracing.Push(tracing.PhaseBind, "bindSourceFile", map[string]any{"path": string(file.Path())}, true)()
+	if p.hosts.Tracing != nil {
+		defer p.hosts.Tracing.Push(tracing.PhaseBind, "bindSourceFile", map[string]any{"path": string(file.Path())}, true)()
 	}
 	binder.BindSourceFile(file)
 }
@@ -1102,12 +1110,12 @@ func (p *Program) verifyCompilerOptions() {
 				rootPath = canonical.Path()
 			}
 			if sourceFileMayBeEmitted(file, p, false, false) && !rootPaths.Has(rootPath) {
-				p.includeProcessor.addProcessingDiagnostic(&processingDiagnostic{
+				p.addProcessingDiagnostic(&processingDiagnostic{
 					kind: processingDiagnosticKindExplainingFileInclude,
-					data: &includeExplainingDiagnostic{
+					explanation: &includeExplainingDiagnostic{
 						file:    file.Path(),
 						message: diagnostics.File_0_is_not_listed_within_the_file_list_of_project_1_Projects_must_list_all_files_or_use_an_include_pattern,
-						args:    []any{file.FileName(), configFilePath()},
+						args:    []string{file.FileName(), configFilePath()},
 					},
 				})
 			}
@@ -1838,12 +1846,12 @@ func (p *Program) checkSourceFilesBelongToPath(sourceFiles []string, rootDirecto
 	for _, file := range sourceFiles {
 		absoluteSourceFilePath := tspath.GetCanonicalFileName(tspath.GetNormalizedAbsolutePath(file, p.GetCurrentDirectory()), p.UseCaseSensitiveFileNames())
 		if !tspath.ContainsPath(rootDirectory, file, p.comparePathsOptions) {
-			p.includeProcessor.addProcessingDiagnostic(&processingDiagnostic{
+			p.addProcessingDiagnostic(&processingDiagnostic{
 				kind: processingDiagnosticKindExplainingFileInclude,
-				data: &includeExplainingDiagnostic{
+				explanation: &includeExplainingDiagnostic{
 					file:    tspath.Path(absoluteSourceFilePath),
 					message: diagnostics.File_0_is_not_under_rootDir_1_rootDir_is_expected_to_contain_all_source_files,
-					args:    []any{file, rootDirectory},
+					args:    []string{file, rootDirectory},
 				},
 			})
 			allFilesBelongToPath = false
@@ -1884,7 +1892,7 @@ type SourceMapEmitResult struct {
 }
 
 func (p *Program) Emit(ctx context.Context, options EmitOptions) *EmitResult {
-	if tr := p.opts.Tracing; tr != nil {
+	if tr := p.hosts.Tracing; tr != nil {
 		defer tr.Push(tracing.PhaseEmit, "emit", nil, true)()
 	}
 
@@ -1919,7 +1927,7 @@ func (p *Program) Emit(ctx context.Context, options EmitOptions) *EmitResult {
 			emitOnly:   options.EmitOnly,
 			forceEmit:  options.ForceEmit,
 			writeFile:  options.WriteFile,
-			tr:         p.opts.Tracing,
+			tr:         p.hosts.Tracing,
 		}
 		emitters = append(emitters, emitter)
 		wg.Queue(func() {
@@ -2126,7 +2134,7 @@ func (p *Program) GetSourceFiles() []*ast.SourceFile {
 
 // Testing only
 func (p *Program) GetIncludeReasons() map[tspath.Path][]*FileIncludeReason {
-	return p.includeProcessor.fileIncludeReasons
+	return p.fileIncludeReasons
 }
 
 // Testing only
@@ -2143,7 +2151,7 @@ func (p *Program) ExplainFiles(w io.Writer, locale locale.Locale) {
 	filesExplained := 0
 	explainFile := func(file ast.HasFileName) {
 		fmt.Fprintln(w, toRelativeFileName(file.FileName()))
-		for _, reason := range p.includeProcessor.fileIncludeReasons[file.Path()] {
+		for _, reason := range p.fileIncludeReasons[file.Path()] {
 			fmt.Fprintln(w, "  ", reason.toDiagnostic(p, true).Localize(locale))
 		}
 		for _, diag := range p.includeProcessor.explainRedirectAndImpliedFormat(p, file.Path(), toRelativeFileName) {
@@ -2244,6 +2252,7 @@ func (p *Program) DeepImportPackageNames() *collections.Set[string] {
 
 func (p *Program) collectPackageNames() *packageNamesInfo {
 	return p.packageNames.getValue(func() *packageNamesInfo {
+		resolver := p.newResolver()
 		packageNames := &packageNamesInfo{&collections.Set[string]{}, &collections.Set[string]{}, &collections.Set[string]{}}
 		for _, file := range p.files {
 			if p.IsSourceFileDefaultLibrary(file.Path()) || p.IsSourceFileFromExternalLibrary(file) || strings.Contains(file.FileName(), "/node_modules/") {
@@ -2266,7 +2275,7 @@ func (p *Program) collectPackageNames() *packageNamesInfo {
 						name := resolvedModule.PackageId.Name
 						if name == "" {
 							// 2. GetPackageScopeForPath - get name from package.json in the package directory
-							if packageScope := p.resolver.GetPackageScopeForPath(resolvedModule.ResolvedFileName); packageScope != nil && packageScope.Exists() {
+							if packageScope := resolver.GetPackageScopeForPath(resolvedModule.ResolvedFileName); packageScope != nil && packageScope.Exists() {
 								if scopeName, ok := packageScope.Contents.Name.GetValue(); ok {
 									name = scopeName
 								}
@@ -2284,7 +2293,7 @@ func (p *Program) collectPackageNames() *packageNamesInfo {
 							// map, so auto-import can only find them via recursive directory search.
 							_, rest := module.ParsePackageName(imp.Text())
 							if rest != "" {
-								if scope := p.resolver.GetPackageScopeForPath(resolvedModule.ResolvedFileName); scope != nil && scope.Exists() && !scope.Contents.Exports.IsPresent() {
+								if scope := resolver.GetPackageScopeForPath(resolvedModule.ResolvedFileName); scope != nil && scope.Exists() && !scope.Contents.Exports.IsPresent() {
 									packageNames.deepImportPackages.Add(module.GetPackageNameFromTypesPackageName(name))
 								}
 							}
@@ -2318,6 +2327,7 @@ func (p *Program) HasTSFile() bool {
 
 func (p *Program) GetSymlinkCache() *symlinks.KnownSymlinks {
 	return p.knownSymlinks.getValue(func() *symlinks.KnownSymlinks {
+		resolver := p.newResolver()
 		knownSymlinks := symlinks.NewKnownSymlink(p.GetCurrentDirectory(), p.UseCaseSensitiveFileNames())
 
 		// Resolved modules store realpath information when they're resolved inside node_modules
@@ -2353,7 +2363,7 @@ func (p *Program) GetSymlinkCache() *symlinks.KnownSymlinks {
 					}
 				}
 
-				if packageResolution := p.resolver.ResolvePackageDirectory(dep, packageJsonName, core.ResolutionModeCommonJS, nil); packageResolution.IsResolved() && packageResolution.OriginalPath != "" {
+				if packageResolution := resolver.ResolvePackageDirectory(dep, packageJsonName, core.ResolutionModeCommonJS, nil); packageResolution.IsResolved() && packageResolution.OriginalPath != "" {
 					knownSymlinks.ProcessResolution(
 						tspath.CombinePaths(packageResolution.OriginalPath, "package.json"),
 						tspath.CombinePaths(packageResolution.ResolvedFileName, "package.json"),

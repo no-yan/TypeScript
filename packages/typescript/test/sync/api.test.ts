@@ -17,6 +17,7 @@ import {
     getTextOfJSDocComment,
     InternalSymbolName,
     isCallExpression,
+    isClassDeclaration,
     isExpressionStatement,
     isFunctionDeclaration,
     isIdentifier,
@@ -26,6 +27,8 @@ import {
     isJSDocParameterTag,
     isModuleDeclaration,
     isNamedImports,
+    isObjectLiteralExpression,
+    isPropertyAssignment,
     isReturnStatement,
     isShorthandPropertyAssignment,
     isStringLiteral,
@@ -40,17 +43,20 @@ import {
     type NodeArray,
     NodeFlags,
     type Path,
+    type SourceFile,
     SyntaxKind,
     tryGetAmbientModuleNameFromSymbolName,
     unescapeLeadingUnderscores,
 } from "@typescript/typescript/unstable/ast";
 import {
+    cloneNode,
     createArrayTypeNode,
     createFunctionTypeNode,
     createIdentifier,
     createKeywordTypeNode,
     createNumericLiteral,
     createParameterDeclaration,
+    createSourceFile,
     createToken,
     createTypeAliasDeclaration,
     createTypeReferenceNode,
@@ -77,6 +83,7 @@ import {
     type DocumentIdentifier,
     EmitOnly,
     type FreshableType,
+    getSymbol,
     type ImportAdderAction,
     type IndexedAccessType,
     IndexKind,
@@ -113,6 +120,7 @@ import {
     TypePredicateKind,
     type TypeReference,
     type UnionOrIntersectionType,
+    type UserPreferences,
 } from "@typescript/typescript/unstable/sync";
 import assert from "node:assert";
 import { globSync } from "node:fs";
@@ -122,6 +130,11 @@ import {
     test,
 } from "node:test";
 import { fileURLToPath } from "node:url";
+import {
+    getNodeId,
+    parseNodeHandle,
+    RemoteSourceFile,
+} from "../../src/api/node/node.ts";
 import { isSignatureDeclaration } from "../../src/ast/is.ts";
 import {
     areTestsFiltered,
@@ -481,6 +494,156 @@ describe("API", { concurrency }, () => {
         assert.strictEqual(retainedAfterDispose.sourceFile, retainedAgain.sourceFile);
     });
 
+    test("remote declarations lazily fetch and cache binder symbols", () => {
+        const sourceText = "function present() {}\nimport {} from './missing';";
+        using api = spawnAPI({
+            "/symbols.ts": sourceText,
+        });
+        const snapshot = api.createSnapshot({ openFiles: ["/symbols.ts"] });
+        const project = snapshot.getProjects()[0];
+        const sourceFile = project.program.getSourceFile("/symbols.ts");
+        assert.ok(sourceFile);
+        const declaration = sourceFile.statements[0];
+        const withoutSymbol = sourceFile.statements[1];
+        assert.ok(isFunctionDeclaration(declaration));
+        assert.ok(isImportDeclaration(withoutSymbol));
+        const checkerSymbol = project.checker.getSymbolAtPosition("/symbols.ts", sourceText.indexOf("present"));
+        assert.ok(checkerSymbol);
+
+        const client = (api as unknown as {
+            client: { apiRequest(method: string, params: unknown): unknown; };
+        }).client;
+        const apiRequest = client.apiRequest.bind(client);
+        let symbolRequests = 0;
+        client.apiRequest = (method, params) => {
+            if (method === "getSymbolOfDeclaration") symbolRequests++;
+            return apiRequest(method, params);
+        };
+
+        const first = getSymbol(declaration);
+        const concurrent = api.getSymbol(declaration);
+        assert.ok(first);
+        assert.strictEqual(first, checkerSymbol);
+        assert.strictEqual(concurrent, first);
+        assert.strictEqual(getSymbol(declaration), first);
+        assert.equal(symbolRequests, 1);
+
+        symbolRequests = 0;
+        assert.throws(() => getSymbol(withoutSymbol), /has no binder symbol/);
+        assert.throws(() => api.getSymbol(withoutSymbol), /has no binder symbol/);
+        assert.equal(symbolRequests, 2);
+
+        snapshot.dispose();
+    });
+
+    test("getSymbol rejects synthesized declarations", () => {
+        using api = spawnAPI();
+        const local = createVariableDeclaration(createIdentifier("local"), undefined, undefined, undefined);
+        assert.throws(() => getSymbol(local), /Source file not found/);
+        assert.throws(() => api.getSymbol(local), /Source file not found/);
+
+        using lease = api.createSourceFile("/symbols.ts", "function present() {}");
+        const declaration = cast(lease.sourceFile.statements[0], isFunctionDeclaration);
+        assert.ok(getSymbol(declaration));
+        const shallowClone = cloneNode(declaration);
+        const deepClone = getSynthesizedDeepClone(declaration);
+        assert.throws(() => getSymbol(shallowClone), /Source file not found/);
+        assert.throws(() => api.getSymbol(deepClone), /Source file not found/);
+        assert.equal("getSymbol" in declaration, false);
+    });
+
+    test("source files own separate declaration result and request caches", () => {
+        using api = spawnAPI();
+        using lease = api.createSourceFile("/symbols.ts", "function present() {}\nimport {} from './missing';");
+        const file = lease.sourceFile;
+        assert.ok(file instanceof RemoteSourceFile);
+        const cache = file.symbolCache;
+        assert.ok(cache);
+        const declaration = cast(file.statements[0], isFunctionDeclaration);
+        const index = parseNodeHandle(getNodeId(declaration)).index;
+        const request = getSymbol(declaration);
+        const symbol = request;
+        assert.ok(symbol);
+        assert.strictEqual(cache.symbolsByDeclarationNodeIndex.get(index), symbol);
+        assert.strictEqual(cache.symbolsById.get(symbol.reference.id), symbol);
+        assert.equal(cache.declarationSymbolRequests.has(index), false);
+        const withoutSymbol = cast(file.statements[1], isImportDeclaration);
+        const absentIndex = parseNodeHandle(getNodeId(withoutSymbol)).index;
+        assert.throws(() => getSymbol(withoutSymbol), /has no binder symbol/);
+        assert.equal(cache.symbolsByDeclarationNodeIndex.has(absentIndex), false);
+        assert.equal(cache.declarationSymbolRequests.has(absentIndex), false);
+        api.clearSourceFileCache();
+        assert.strictEqual(file.symbolCache, cache);
+    });
+
+    test("standalone getSymbol delegates to the source file's API", context => {
+        using api = spawnAPI();
+        using lease = api.createSourceFile("/symbols.ts", "function present() {}");
+        assert.ok(lease.sourceFile instanceof RemoteSourceFile);
+        assert.strictEqual(lease.sourceFile.api, api);
+        const declaration = cast(lease.sourceFile.statements[0], isFunctionDeclaration);
+        // Materialize the sync API's lazy method before mocking it.
+        void api.getSymbol;
+        const method = context.mock.method(api, "getSymbol");
+        const symbol = getSymbol(declaration);
+        assert.ok(symbol);
+        assert.equal(method.mock.callCount(), 1);
+        assert.strictEqual(api.getSymbol(declaration), symbol);
+    });
+
+    test("declaration symbol results survive releasing the last lease", () => {
+        using api = spawnAPI();
+        const lease = api.createSourceFile("/symbols.ts", "function present() {}");
+        const declaration = cast(lease.sourceFile.statements[0], isFunctionDeclaration);
+        const symbol = getSymbol(declaration);
+        assert.ok(symbol);
+
+        lease.dispose();
+        assert.strictEqual(getSymbol(declaration), symbol);
+    });
+
+    test("declaration symbols can be fetched after clearing the client cache", () => {
+        using api = spawnAPI();
+        using lease = api.createSourceFile("/symbols.ts", "function first() {} function second() {}");
+        const first = cast(lease.sourceFile.statements[0], isFunctionDeclaration);
+        const second = cast(lease.sourceFile.statements[1], isFunctionDeclaration);
+        const firstSymbol = getSymbol(first);
+        assert.ok(firstSymbol);
+
+        api.clearSourceFileCache();
+        const secondSymbol = getSymbol(second);
+        assert.ok(secondSymbol);
+        assert.equal(secondSymbol.name, "second");
+        assert.strictEqual(getSymbol(first), firstSymbol);
+
+        using retained = api.retainSourceFile(lease.sourceFile);
+        assert.strictEqual(retained.sourceFile, lease.sourceFile);
+        assert.strictEqual(getSymbol(first), firstSymbol);
+        assert.strictEqual(getSymbol(second), secondSymbol);
+    });
+
+    test("declaration lookup rejects unavailable and recreated files without caching failures", () => {
+        using api = spawnAPI();
+        const text = "function present() {}";
+        const lease = api.createSourceFile("/symbols.ts", text);
+        const declaration = cast(lease.sourceFile.statements[0], isFunctionDeclaration);
+        assert.ok(lease.sourceFile instanceof RemoteSourceFile);
+        const cache = lease.sourceFile.symbolCache;
+        assert.ok(cache);
+        const index = parseNodeHandle(getNodeId(declaration)).index;
+        lease.dispose();
+
+        assert.throws(() => getSymbol(declaration), /source file is not available/);
+        assert.equal(cache.symbolsByDeclarationNodeIndex.has(index), false);
+        assert.equal(cache.declarationSymbolRequests.has(index), false);
+        using recreated = api.createSourceFile("/symbols.ts", text);
+        assert.throws(() => getSymbol(declaration), /source file descriptor no longer identifies/);
+        assert.equal(cache.symbolsByDeclarationNodeIndex.has(index), false);
+        assert.equal(cache.declarationSymbolRequests.has(index), false);
+        const recreatedDeclaration = cast(recreated.sourceFile.statements[0], isFunctionDeclaration);
+        assert.equal((getSymbol(recreatedDeclaration))?.name, "present");
+    });
+
     test("createSourceFile can be used with a compatible program", () => {
         const sourceText = "export const element = <div />;";
         using api = spawnAPI({
@@ -506,6 +669,27 @@ describe("API", { concurrency }, () => {
         const project = snapshot.getProjects()[0];
         assert.strictEqual(project.program.getSourceFile("/component.d.ts"), retained.sourceFile);
         snapshot.dispose();
+    });
+
+    test("retainSourceFile keeps a borrowed program file available", () => {
+        const sourceText = "export declare const value: number;";
+        using api = spawnAPI({
+            "/retained.d.ts": sourceText,
+        });
+        const snapshot = api.createSnapshot({ openFiles: ["/retained.d.ts"] });
+        const project = snapshot.getProjects()[0];
+        const sourceFile = project.program.getSourceFile("/retained.d.ts");
+        assert.ok(sourceFile);
+
+        using retained = api.retainSourceFile(sourceFile);
+        assert.strictEqual(retained.sourceFile, sourceFile);
+        snapshot.dispose();
+
+        using recreated = api.createSourceFile("/retained.d.ts", sourceText);
+        assert.strictEqual(recreated.sourceFile, sourceFile);
+
+        const local = createSourceFile([], createToken(SyntaxKind.EndOfFile), "", "/local.ts", "/local.ts" as Path);
+        assert.throws(() => api.retainSourceFile(local), /Only remote source files can be retained/);
     });
 
     test("createSourceFileFromFile", () => {
@@ -1878,7 +2062,11 @@ describe("LanguageService - imports", { concurrency }, () => {
             /Debug Failure\. Illegal value: "unknown"/,
         );
         assert.throws(
-            () => project.languageService.getImportAdderEdits("/src/index.ts", [{ kind: "importSymbol", symbol: { ...symbol, id: 999_999_999 } } as unknown as ImportAdderAction]),
+            () =>
+                project.languageService.getImportAdderEdits("/src/index.ts", [{
+                    kind: "importSymbol",
+                    symbol: { ...symbol, reference: { ...symbol.reference, id: 999_999_999 } },
+                } as unknown as ImportAdderAction]),
             /symbol handle \d+ not found/,
         );
     });
@@ -1948,6 +2136,54 @@ describe("LanguageService - getCompletionsAtPosition", { concurrency }, () => {
         assert.ok(nameEntry, "Expected 'name' entry");
         assert.ok(nameEntry.symbol, "Expected symbol to be set on 'name' entry when includeSymbol: true");
         assert.equal(nameEntry.symbol.name, "name", "Symbol name should match completion name");
+    });
+
+    test("auto-import completions with symbols require a prepared snapshot", () => {
+        const src = "someV";
+        using api = spawnAPI({
+            "/tsconfig.json": `{ "compilerOptions": { "module": "esnext", "target": "esnext" }, "include": ["src"] }`,
+            "/src/export.ts": "export const someValue = 1;",
+            "/src/main.ts": src,
+        });
+
+        const unprepared = api.createSnapshot({
+            openProject: "/tsconfig.json",
+            userPreferences: { includeCompletionsForModuleExports: true } satisfies UserPreferences,
+        });
+        const unpreparedProject = unprepared.getConfiguredProject("/tsconfig.json")!;
+        assert.throws(() => unpreparedProject.languageService.getCompletionsAtPosition("/src/main.ts", src.length, { includeSymbol: true }), /snapshot is not prepared for auto-imports/);
+
+        const prepared = unprepared.update({ prepareAutoImports: "/src/main.ts" });
+        const preparedProject = prepared.getConfiguredProject("/tsconfig.json")!;
+        const completions = preparedProject.languageService.getCompletionsAtPosition("/src/main.ts", src.length, { includeSymbol: true });
+        assert.ok(completions?.entries.some(entry => entry.name === "someValue"));
+    });
+
+    test("snapshot preferences disable auto-import completions", () => {
+        const src = "someV";
+        using api = spawnAPI({
+            "/tsconfig.json": `{ "compilerOptions": { "module": "esnext", "target": "esnext" }, "include": ["src"] }`,
+            "/src/export.ts": "export const someValue = 1;",
+            "/src/main.ts": src,
+        });
+
+        const snapshot = api.createSnapshot({
+            openProject: "/tsconfig.json",
+            userPreferences: { includeCompletionsForModuleExports: false } satisfies UserPreferences,
+        });
+        const project = snapshot.getConfiguredProject("/tsconfig.json")!;
+        const completions = project.languageService.getCompletionsAtPosition("/src/main.ts", src.length, {
+            includeSymbol: true,
+        });
+        assert.ok(completions);
+        assert.ok(!completions.entries.some(entry => entry.name === "someValue"));
+        const prepared = snapshot.update({
+            userPreferences: { includeCompletionsForModuleExports: true },
+            prepareAutoImports: "/src/main.ts",
+        });
+        const preparedProject = prepared.getConfiguredProject("/tsconfig.json")!;
+        const enabled = preparedProject.languageService.getCompletionsAtPosition("/src/main.ts", src.length, { includeSymbol: true });
+        assert.ok(enabled?.entries.some(entry => entry.name === "someValue"));
     });
 });
 
@@ -3419,6 +3655,170 @@ export const value = 1;
         const checkFlags: CheckFlags = symbol.checkFlags;
         assert.equal(checkFlags & CheckFlags.Readonly, 0);
     });
+
+    test("binder symbols are shared by file before the AST is fetched", () => {
+        using api = spawnAPI(symbolFiles, { collectTiming: true });
+        const firstSnapshot = api.createSnapshot({ openProject: "/tsconfig.json" });
+        const firstProject = firstSnapshot.getConfiguredProject("/tsconfig.json")!;
+        const secondSnapshot = firstSnapshot.update({});
+        const secondProject = secondSnapshot.getConfiguredProject("/tsconfig.json")!;
+        const position = symbolFiles["/src/mod.ts"].indexOf("Animal");
+
+        api.resetTimingInfo();
+        const first = firstProject.checker.getSymbolAtPosition("/src/mod.ts", position);
+        const second = secondProject.checker.getSymbolAtPosition("/src/mod.ts", position);
+        assert.ok(first);
+        assert.strictEqual(second, first);
+        assert.equal((api.getTimingInfo()).totals.sourceFilesFetched, 0);
+
+        const declaration = first.declarations[0].resolve(secondProject);
+        assert.ok(declaration);
+        assert.equal(declaration.getSourceFile().fileName, "/src/mod.ts");
+        assert.equal((api.getTimingInfo()).totals.sourceFilesFetched, 1);
+        assert.equal((getSymbol(cast(declaration, isClassDeclaration)))?.name, "Animal");
+    });
+
+    test("file-owned symbol properties do not require a snapshot or project", () => {
+        using api = spawnAPI(symbolFiles);
+        const snapshot = api.createSnapshot({ openProject: "/tsconfig.json" });
+        const project = snapshot.getConfiguredProject("/tsconfig.json")!;
+        const sourceFile = project.program.getSourceFile("/src/mod.ts");
+        assert.ok(sourceFile);
+        using retained = api.retainSourceFile(sourceFile);
+        const animal = project.checker.getSymbolAtPosition("/src/mod.ts", symbolFiles["/src/mod.ts"].indexOf("Animal"));
+        assert.ok(animal);
+        const storage = animal["storage"];
+        assert.ok("owner" in storage);
+        assert.strictEqual(storage.owner.api, api);
+        assert.deepEqual(Object.keys(storage.owner).sort(), ["api", "record"]);
+
+        snapshot.dispose();
+        const members = animal.getMembers();
+        assert.deepEqual([...members.values()].map(symbol => symbol.name), ["name", "speak"]);
+        assert.strictEqual(members.get("name" as __String)?.getParent(), animal);
+    });
+
+    test("checker-created merged symbols remain snapshot-owned", () => {
+        using api = spawnAPI({
+            "/tsconfig.json": JSON.stringify({ compilerOptions: { strict: true }, files: ["/src/a.ts", "/src/b.ts"] }),
+            "/src/a.ts": `namespace Merged { export const a = 1; }`,
+            "/src/b.ts": `namespace Merged { export const b = 1; }`,
+        });
+        const firstSnapshot = api.createSnapshot({ openProject: "/tsconfig.json" });
+        const firstProject = firstSnapshot.getConfiguredProject("/tsconfig.json")!;
+        const secondSnapshot = firstSnapshot.update({});
+        const secondProject = secondSnapshot.getConfiguredProject("/tsconfig.json")!;
+
+        const first = firstProject.checker.getSymbolAtPosition("/src/a.ts", 10);
+        const second = secondProject.checker.getSymbolAtPosition("/src/a.ts", 10);
+        assert.ok(first);
+        assert.ok(second);
+        assert.notStrictEqual(second, first);
+    });
+
+    test("snapshot-owned symbols resolve cached file-owned parents", () => {
+        const source = `interface Box<T> { value: T; }\ndeclare const box: Box<string>;\nbox;`;
+        using api = spawnAPI({
+            "/tsconfig.json": JSON.stringify({ compilerOptions: { strict: true }, files: ["/src/box.ts"] }),
+            "/src/box.ts": source,
+        }, { collectTiming: true });
+        const snapshot = api.createSnapshot({ openProject: "/tsconfig.json" });
+        const project = snapshot.getConfiguredProject("/tsconfig.json")!;
+        const box = project.checker.getSymbolAtPosition("/src/box.ts", source.indexOf("Box"));
+        assert.ok(box);
+        const boxType = project.checker.getTypeAtPosition("/src/box.ts", source.lastIndexOf("box"));
+        assert.ok(boxType);
+        const [value] = boxType.getProperties();
+        assert.ok(value);
+        assert.ok(value.checkFlags & CheckFlags.Instantiated);
+
+        api.resetTimingInfo();
+        assert.strictEqual(value.getParent(), box);
+        assert.equal((api.getTimingInfo()).totals.requestCount, 0);
+    });
+
+    test("compact symbol references retain reused file-owned symbols", () => {
+        const source = `interface Box<T> { value: T; }\ndeclare const box: Box<string>;\nbox;`;
+        using api = spawnAPI({
+            "/tsconfig.json": JSON.stringify({ compilerOptions: { strict: true }, files: ["/src/box.ts"] }),
+            "/src/box.ts": source,
+        });
+        const firstSnapshot = api.createSnapshot({ openProject: "/tsconfig.json" });
+        const firstProject = firstSnapshot.getConfiguredProject("/tsconfig.json")!;
+        // Create the second snapshot before the first symbol response populates
+        // the client cache. This ensures its registry has no direct retain on
+        // the record that will be discovered through the compact reference.
+        const secondSnapshot = firstSnapshot.update({});
+        const secondProject = secondSnapshot.getConfiguredProject("/tsconfig.json")!;
+
+        const box = firstProject.checker.getSymbolAtPosition("/src/box.ts", source.indexOf("Box"));
+        assert.ok(box);
+        const boxType = secondProject.checker.getTypeAtPosition("/src/box.ts", source.lastIndexOf("box"));
+        assert.ok(boxType);
+        const [value] = boxType.getProperties();
+        assert.ok(value);
+        assert.ok(value.checkFlags & CheckFlags.Instantiated);
+
+        // The instantiated property belongs to the second snapshot, but its
+        // compact parent reference finds `box` in the record retained only by
+        // the first snapshot. Resolving the reference borrows the wrapper into
+        // the second registry and must retain its record for that registry's
+        // lifetime.
+        const boxFromSecondSnapshot = value.getParent();
+        assert.strictEqual(boxFromSecondSnapshot, box);
+        firstSnapshot.dispose();
+
+        // If the compact lookup did not establish ownership, disposing the
+        // first snapshot evicts the record. The next lookup then interns a new
+        // wrapper for the same binder symbol instead of returning the wrapper
+        // already obtained through the still-live second snapshot.
+        const parentAfterDisposal = value.getParent();
+        secondSnapshot.dispose();
+        assert.strictEqual(parentAfterDisposal, boxFromSecondSnapshot);
+        assert.throws(() => value.getParent(), /Project object registry is disposed/);
+    });
+
+    test("file-owned declarations resolve without the snapshot that observed them", () => {
+        using api = spawnAPI(symbolFiles);
+        const firstSnapshot = api.createSnapshot({ openProject: "/tsconfig.json" });
+        const firstProject = firstSnapshot.getConfiguredProject("/tsconfig.json")!;
+        // Keeps the server AST alive after the observing snapshot is disposed.
+        using _secondSnapshot = firstSnapshot.update({});
+        const animal = firstProject.checker.getSymbolAtPosition("/src/mod.ts", symbolFiles["/src/mod.ts"].indexOf("Animal"));
+        assert.ok(animal);
+        firstSnapshot.dispose();
+
+        const declaration = animal.declarations[0].resolve();
+        assert.ok(declaration && isClassDeclaration(declaration));
+        assert.equal(declaration.name?.text, "Animal");
+    });
+
+    test("file-owned symbols are accepted by later checkers while their file is unchanged", () => {
+        const { api: disposableAPI, fs } = spawnAPIWithFS({ ...symbolFiles, "/src/other.ts": `export const other = 1;` });
+        using api = disposableAPI;
+        const firstSnapshot = api.createSnapshot({ openProject: "/tsconfig.json" });
+        const animal = firstSnapshot.getConfiguredProject("/tsconfig.json")!.checker.getSymbolAtPosition("/src/mod.ts", symbolFiles["/src/mod.ts"].indexOf("Animal"));
+        assert.ok(animal);
+
+        fs.writeFile!("/src/other.ts", `export const other = 2;`);
+        const secondSnapshot = api.createSnapshot({ openProject: "/tsconfig.json", fileNotifications: { changed: ["/src/other.ts"] } });
+        const type = secondSnapshot.getConfiguredProject("/tsconfig.json")!.checker.getTypeOfSymbol(animal);
+        assert.ok(type);
+        assert.strictEqual(type.getSymbol(), animal);
+    });
+
+    test("file-owned symbols are rejected by checkers whose program has a different version of their file", () => {
+        const { api: disposableAPI, fs } = spawnAPIWithFS(symbolFiles);
+        using api = disposableAPI;
+        const firstSnapshot = api.createSnapshot({ openProject: "/tsconfig.json" });
+        const animal = firstSnapshot.getConfiguredProject("/tsconfig.json")!.checker.getSymbolAtPosition("/src/mod.ts", symbolFiles["/src/mod.ts"].indexOf("Animal"));
+        assert.ok(animal);
+
+        fs.writeFile!("/src/mod.ts", `${symbolFiles["/src/mod.ts"]}\nexport const added = 2;`);
+        const secondSnapshot = api.createSnapshot({ openProject: "/tsconfig.json", fileNotifications: { changed: ["/src/mod.ts"] } });
+        const secondProject = secondSnapshot.getConfiguredProject("/tsconfig.json")!;
+        assert.throws(() => secondProject.checker.getTypeOfSymbol(animal), /source file is not part of the requested program/);
+    });
 });
 
 describe("Type - getSymbol", { concurrency }, () => {
@@ -3444,6 +3844,8 @@ export const instance: Foo = new Foo();
         const typeSymbol = type.getSymbol();
         assert.ok(typeSymbol);
         assert.equal(typeSymbol.name, "Foo");
+        const fooSymbol = project.checker.getSymbolAtPosition("/src/types.ts", src.indexOf("Foo"));
+        assert.strictEqual(typeSymbol, fooSymbol);
     });
 });
 
@@ -4433,27 +4835,39 @@ describe("updateSnapshot file systems", { concurrency }, () => {
         assert.equal(program.isSourceFileDefaultLibrary(defaultLibrary), true);
     });
 
-    test("full file system accepts paths decoded from VS Code document URIs", () => {
+    test("full file system accepts and caches paths decoded from VS Code document URIs", () => {
         const fileDocument = { uri: "file:///workspace/file%20name.ts" };
         const remoteDocument = { uri: "vscode-remote://ssh-remote+host/workspace/src/remote%20name.ts" };
         const notebookDocument = { uri: "vscode-notebook-cell:/workspace/notebook.ipynb/cell%20name.ts" };
+        const untitledDocument = { uri: "untitled:Untitled-1" };
+        const files: [DocumentIdentifier, string][] = [
+            [fileDocument, `export const file = true;`],
+            [remoteDocument, `export const remote = true;`],
+            [notebookDocument, `export const cell = true;`],
+            [untitledDocument, `export const untitled = true;`],
+        ];
         using api = new API({
             cwd: fileURLToPath(new URL("../../../../", import.meta.url).toString()),
+            collectTiming: true,
         });
         using snapshot = api.createSnapshot({
-            openFiles: [fileDocument, remoteDocument, notebookDocument],
-            fileSystem: createFileSystem([
-                [fileDocument, `export const file = true;`],
-                [remoteDocument, `export const remote = true;`],
-                [notebookDocument, `export const cell = true;`],
-            ]),
+            openFiles: files.map(([document]) => document),
+            fileSystem: createFileSystem(files),
         });
-        const fileProject = snapshot.getDefaultProjectForFile(fileDocument);
-        const remoteProject = snapshot.getDefaultProjectForFile(remoteDocument);
-        const notebookProject = snapshot.getDefaultProjectForFile(notebookDocument);
-        assert.equal((fileProject?.program.getSourceFile(fileDocument))?.text, `export const file = true;`);
-        assert.equal((remoteProject?.program.getSourceFile(remoteDocument))?.text, `export const remote = true;`);
-        assert.equal((notebookProject?.program.getSourceFile(notebookDocument))?.text, `export const cell = true;`);
+        for (const [document, text] of files) {
+            const project = snapshot.getDefaultProjectForFile(document);
+            assert.ok(project);
+            api.resetTimingInfo();
+            const sourceFile = project.program.getSourceFile(document);
+            assert.ok(sourceFile);
+            assert.equal(sourceFile.text, text);
+            assert.equal((api.getTimingInfo()).totals.requestCount, 1);
+
+            assert.strictEqual(project.program.getSourceFile(document), sourceFile);
+            assert.strictEqual(project.program.getSourceFile(sourceFile.fileName), sourceFile);
+            assert.strictEqual(project.program.getSourceFile(sourceFile.path), sourceFile);
+            assert.equal((api.getTimingInfo()).totals.requestCount, 1, sourceFile.fileName);
+        }
     });
 
     test("file system layer bypasses callbacks on hits and falls back on misses", () => {
@@ -7786,6 +8200,10 @@ describe("Program - diagnostics", { concurrency }, () => {
         assert.ok(rootConfig);
         assert.equal(rootConfig.fileName, "/tsconfig.json");
         assert.equal(project.program.getSourceFile("/tsconfig.json"), undefined);
+        const configObject = cast(cast(rootConfig.statements[0], isExpressionStatement).expression, isObjectLiteralExpression);
+        const configProperty = cast(configObject.properties[0], isPropertyAssignment);
+        assert.throws(() => getSymbol(configProperty), /Cached source file not found/);
+        assert.throws(() => api.getSymbol(configProperty), /Cached source file not found/);
 
         fs.writeFile!("/tsconfig.base.json", `{ "compilerOptions": { "strict": false } }`);
         const extendedConfig = project.program.getConfigSourceFile("/tsconfig.base.json");
