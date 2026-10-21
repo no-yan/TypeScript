@@ -642,3 +642,42 @@ commit:
 - 段 2: equal 13,728。
 - mode: 5,206 か所で不一致 0。
 - 再翻訳と generate:ast は 2 回目で差分なし。
+
+## 最後の全体検証 (2026-10-21)
+
+1 回目 (e3d4a1c0dbd) は不合格。
+
+- Store の全 package (tag なしと `-tags storechecks`) は、storeharness の `TestFixtureIdentityConfigurations` だけが落ちた。15,487 case 中 390 が different。
+- 次のものは合格した。
+  - conformance baseline: 適用される baseline は equal 39,719・equal-pointer-noemit 79・equal-without-output-path-check 45。store-mismatch と store panic は 0。Store の対象外は 33 (content mapper 28・captureSuggestions 5) で、これまでどおりの除外。
+  - storeclitest (CLI 等価)
+  - Pointer の全 package
+- fuzz は既知の seed a708303f が baseline coverage で落ちるため、変異の段に入っていなかった。
+
+### fixture identity の退行 (S3 から)
+
+pre-sync (80e3068407) と S2 では通り、S3 の最初にビルドできる commit (3704e3e7ed9) から落ちる。原因は fixture.go の写しが欠けていたこと。
+
+1. `fixtureModule` が `module.ResolvedModule` の field を列挙して写していた。ed4807212c の `ResolvedPath` と #64638 の `IsCustomResolution` がコンパイルエラーなしに落ちた。replay では `computeModuleSpecifiers` の既存の import との一致 (`ResolvedPath == targetPath`) が外れ、別の specifier を作った (例: `./ctor` が `mod/ctor`)。390 の大半はこれ。
+2. `KnownDirectoryLink` の写しが ed4807212c の `Symlink` を落としていた。checker は読まないので結果には出ていない。
+3. `FixtureFile` が content mapper を持たず、replay の file の `ContentMapper()` が空だった。S7a (301de82ceac) で H1 の file にだけ写したため。contentMapper の 2 case。
+
+修正 b561dd0a422:
+
+- `ResolvedModule` を値で持つ (resolution 診断だけ nil)。
+- `KnownDirectoryLink` を struct ごと写す。
+- `FixtureFile` に `ContentMapper` を足す。
+
+field の一覧をなくしたので、upstream が field を足しても同じ形では落ちない。
+
+段の終わりの検証が拾わなかった理由:
+
+- stage-end.sh は fixture identity を回していなかった。
+- 計画の「検知できないもの (d) storeharness の写し」は試験コードの写しだけを数え、fixture.go が Pointer の struct を写していることを含めていなかった。
+
+### 修正後の再検証 (合格)
+
+- `TestFixtureIdentityConfigurations`: equal 13,728・not-run 1,759。tag なしと `storechecks` の両方。
+- fixture を使うほかの試験: `TestFixtureIdentityCompilerProject` は合格。測定用の 6 本は env がないと skip する。
+- fuzz: a708303f を外した worktree で 120 秒、253,112 exec で失敗なし。
+- 1 回目のほかの結果は修正の範囲外 (storeharness の fixture.go だけ) なので、回し直していない。
