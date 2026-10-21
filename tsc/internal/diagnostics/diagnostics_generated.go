@@ -3906,6 +3906,18 @@ var This_initializer_has_a_Symbol_asyncDispose_method_Did_you_mean_to_use_await_
 
 var A_deferred_import_must_specify_a_namespace_binding = &Message{code: 18117, category: CategoryError, key: "A_deferred_import_must_specify_a_namespace_binding_18117", text: "A deferred import must specify a namespace binding."}
 
+var Content_mapper_output_extension_0_must_be_non_empty_and_begin_with_a = &Message{code: 18118, category: CategoryError, key: "Content_mapper_output_extension_0_must_be_non_empty_and_begin_with_a_18118", text: "Content mapper output extension '{0}' must be non-empty and begin with a '.'."}
+
+var Content_mapper_output_extension_mapping_source_0_is_not_registered_by_this_content_mapper = &Message{code: 18119, category: CategoryError, key: "Content_mapper_output_extension_mapping_source_0_is_not_registered_by_this_content_mapper_18119", text: "Content mapper output extension mapping source '{0}' is not registered by this content mapper."}
+
+var Content_mapper_output_extension_mapping_from_0_to_1_requires_rewriteRelativeImportExtensions_to_be_enabled = &Message{code: 18120, category: CategoryError, key: "Content_mapper_output_extension_mapping_from_0_to_1_requires_rewriteRelativeImportExtensions_to_be_e_18120", text: "Content mapper output extension mapping from '{0}' to '{1}' requires 'rewriteRelativeImportExtensions' to be enabled."}
+
+var The_typescript_contentMapper_outputExtensions_of_the_content_mapper_package_0_contains_an_invalid_mapping_from_1_to_2_Extensions_must_be_non_empty_and_begin_with_a = &Message{code: 18121, category: CategoryError, key: "The_typescript_contentMapper_outputExtensions_of_the_content_mapper_package_0_contains_an_invalid_ma_18121", text: "The 'typescript.contentMapper.outputExtensions' of the content mapper package '{0}' contains an invalid mapping from '{1}' to '{2}'. Extensions must be non-empty and begin with a '.'."}
+
+var The_typescript_contentMapper_outputExtensions_of_the_content_mapper_package_0_must_be_an_object_with_string_values = &Message{code: 18122, category: CategoryError, key: "The_typescript_contentMapper_outputExtensions_of_the_content_mapper_package_0_must_be_an_object_with_18122", text: "The 'typescript.contentMapper.outputExtensions' of the content mapper package '{0}' must be an object with string values."}
+
+var Content_mapper_extension_0_must_not_contain_path_separators = &Message{code: 18123, category: CategoryError, key: "Content_mapper_extension_0_must_not_contain_path_separators_18123", text: "Content mapper extension '{0}' must not contain path separators."}
+
 var Select_the_AST_of_the_compiler_Colon_pointer_the_default_or_store_Experimental_Colon_store_checks_a_one_shot_noEmit_program_only_without_declarations_incremental_builds_watch_build_mode_project_references_or_content_mappers = &Message{code: 18990, category: CategoryMessage, key: "Select_the_AST_of_the_compiler_Colon_pointer_the_default_or_store_Experimental_Colon_store_checks_a__18990", text: "Select the AST of the compiler: 'pointer' (the default) or 'store'. Experimental: 'store' checks a one-shot '--noEmit' program only, without declarations, incremental builds, watch, build mode, project references or content mappers."}
 
 var The_store_AST_backend_requires_0 = &Message{code: 18991, category: CategoryError, key: "The_store_AST_backend_requires_0_18991", text: "The 'store' AST backend requires '{0}'."}
@@ -6407,6 +6419,12 @@ var allMessages = [...]**Message{
 	&Source_phase_imports_are_not_allowed_on_statements_that_compile_to_CommonJS_require_calls,
 	&This_initializer_has_a_Symbol_asyncDispose_method_Did_you_mean_to_use_await_using,
 	&A_deferred_import_must_specify_a_namespace_binding,
+	&Content_mapper_output_extension_0_must_be_non_empty_and_begin_with_a,
+	&Content_mapper_output_extension_mapping_source_0_is_not_registered_by_this_content_mapper,
+	&Content_mapper_output_extension_mapping_from_0_to_1_requires_rewriteRelativeImportExtensions_to_be_enabled,
+	&The_typescript_contentMapper_outputExtensions_of_the_content_mapper_package_0_contains_an_invalid_mapping_from_1_to_2_Extensions_must_be_non_empty_and_begin_with_a,
+	&The_typescript_contentMapper_outputExtensions_of_the_content_mapper_package_0_must_be_an_object_with_string_values,
+	&Content_mapper_extension_0_must_not_contain_path_separators,
 	&Select_the_AST_of_the_compiler_Colon_pointer_the_default_or_store_Experimental_Colon_store_checks_a_one_shot_noEmit_program_only_without_declarations_incremental_builds_watch_build_mode_project_references_or_content_mappers,
 	&The_store_AST_backend_requires_0,
 	&The_store_AST_backend_does_not_support_0,
