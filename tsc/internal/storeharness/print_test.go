@@ -219,11 +219,9 @@ func (p *pointerPrint) print() {
 
 // build is the interval of build: the node builder of each type request.
 func (p *pointerPrint) build() {
-	ctx, putCtx := printer.GetEmitContext()
-	defer putCtx()
 	for i, r := range p.requests {
 		if r.Op == printType {
-			ctx.Reset()
+			ctx := printer.NewEmitContext()
 			builder := checker.NewNodeBuilder(p.checker, ctx)
 			typeFormatFlags := checker.TypeFormatFlagsNoTruncation | checker.TypeFormatFlagsAllowUniqueESSymbolType | checker.TypeFormatFlagsGenerateNamesForShadowedTypeParams
 			builder.TypeToTypeNode(p.types[i], p.at[i].Parent, nodebuilder.Flags(typeFormatFlags&checker.TypeFormatFlagsNodeBuilderFlagsMask)|nodebuilder.FlagsIgnoreErrors, nodebuilder.InternalFlagsAllowUnresolvedNames, nil)
@@ -324,7 +322,7 @@ func (p *storePrint) print() {
 func (p *storePrint) build() {
 	for i, r := range p.requests {
 		if r.Op == printType {
-			p.ctx.Reset()
+			resetEmitContext(p.ctx)
 			builder := storechecker.NewNodeBuilder(p.checker, p.ctx)
 			typeFormatFlags := storechecker.TypeFormatFlagsNoTruncation | storechecker.TypeFormatFlagsAllowUniqueESSymbolType | storechecker.TypeFormatFlagsGenerateNamesForShadowedTypeParams
 			builder.TypeToTypeNode(p.types[i], p.at[i].Parent(), nodebuilder.Flags(typeFormatFlags&storechecker.TypeFormatFlagsNodeBuilderFlagsMask)|nodebuilder.FlagsIgnoreErrors, nodebuilder.InternalFlagsAllowUnresolvedNames, nil)

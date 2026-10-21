@@ -630,6 +630,7 @@ type Checker struct {
 	ReverseMappedSymbolLinks                    core.LinkStore[*store.Symbol, ReverseMappedSymbolLinks]
 	markedAssignmentSymbolLinks                 core.LinkStore[*store.Symbol, MarkedAssignmentSymbolLinks]
 	symbolContainerLinks                        core.LinkStore[*store.Symbol, ContainingSymbolLinks]
+	externalModuleContainers                    *externalModuleContainerIndex
 	sourceFileLinks                             core.LinkStore[*store.File, SourceFileLinks]
 	regExpScanner                               *scanner.Scanner
 	patternForType                              map[*Type]store.Node
@@ -821,8 +822,7 @@ type Checker struct {
 	isStringIndexSignatureOnlyType              func(*Type) bool
 	markNodeAssignments                         func(store.Node) bool
 	compareTypesAssignable                      TypeComparer
-	emitResolver                                *EmitResolver
-	emitResolverOnce                            sync.Once
+	emitResolverLinks                           EmitResolverLinks
 	_jsxNamespace                               string
 	_jsxFactoryEntity                           store.Node
 	skipDirectInferenceNodes                    store.NodeSet
@@ -3854,7 +3854,20 @@ func (c *Checker) checkClassDeclaration(node store.Node) {
 	}
 	c.checkClassLikeDeclaration(node)
 	c.checkSourceElementsList(node.Members())
+	c.checkConstructorDeclaredProperties(node)
 	c.registerForUnusedIdentifiersCheck(node)
+}
+
+func (c *Checker) checkConstructorDeclaredProperties(node store.Node) {
+	if !store.IsInJSFile(node) {
+		return
+	}
+	classType := c.getDeclaredTypeOfSymbol(c.getSymbolOfDeclaration(node))
+	for _, property := range c.getPropertiesOfType(classType) {
+		if kind, constructor := c.isConstructorDeclaredThisProperty(property); kind == thisAssignmentDeclarationConstructor && store.SameNode(constructor.Parent(), node) {
+			c.getTypeOfSymbol(property)
+		}
+	}
 }
 
 func (c *Checker) checkClassLikeDeclaration(node store.Node) {
@@ -4566,6 +4579,9 @@ func (c *Checker) checkEnumDeclaration(node store.Node) {
 func (c *Checker) checkEnumMember(node store.Node) {
 	if store.IsPrivateIdentifier(node.Name()) {
 		c.error(node, diagnostics.An_enum_member_cannot_be_named_with_a_private_identifier)
+	}
+	if store.IsComputedPropertyName(node.Name()) {
+		c.checkExpression(node.Name().Expression())
 	}
 	if !node.Initializer().IsNil() {
 		c.checkExpression(node.Initializer())
@@ -5443,8 +5459,17 @@ func (c *Checker) checkVariableLikeDeclaration(node store.Node) {
 				globalDisposableType := c.getGlobalDisposableType()
 				if globalDisposableType != c.emptyObjectType {
 					optionalDisposableType := c.getUnionType([]*Type{globalDisposableType, c.nullType, c.undefinedType})
-					c.checkTypeAssignableTo(c.widenTypeForVariableLikeDeclaration(initializerType, node, false), optionalDisposableType, initializer,
-						diagnostics.The_initializer_of_a_using_declaration_must_be_either_an_object_with_a_Symbol_dispose_method_or_be_null_or_undefined)
+					widenedInitializerType := c.widenTypeForVariableLikeDeclaration(initializerType, node, false)
+					var diags []*store.Diagnostic
+					if !c.checkTypeAssignableToEx(widenedInitializerType, optionalDisposableType, initializer,
+						diagnostics.The_initializer_of_a_using_declaration_must_be_either_an_object_with_a_Symbol_dispose_method_or_be_null_or_undefined, &diags) {
+						globalAsyncDisposableType := c.getGlobalAsyncDisposableType()
+						optionalAsyncDisposableType := c.getUnionType([]*Type{globalAsyncDisposableType, c.nullType, c.undefinedType})
+						if globalAsyncDisposableType != c.emptyObjectType && c.isTypeAssignableTo(widenedInitializerType, optionalAsyncDisposableType) {
+							diags[0].AddMessageChain(store.NewDiagnosticChain(nil, diagnostics.This_initializer_has_a_Symbol_asyncDispose_method_Did_you_mean_to_use_await_using))
+						}
+						c.addDiagnostic(diags[0])
+					}
 				}
 			}
 		}
@@ -9539,6 +9564,7 @@ func (c *Checker) checkClassExpressionExternalHelpers(node store.Node) {
 
 func (c *Checker) checkClassExpressionDeferred(node store.Node) {
 	c.checkSourceElementsList(node.Members())
+	c.checkConstructorDeclaredProperties(node)
 	c.registerForUnusedIdentifiersCheck(node)
 }
 
@@ -13291,14 +13317,6 @@ func (c *Checker) getResolvedSymbolOrNil(node store.Node) *store.Symbol {
 	return c.symbolNodeLinks.Get(node).resolvedSymbol
 }
 
-func (c *Checker) getReferencedValueOrAliasSymbol(reference store.Node) *store.Symbol {
-	resolvedSymbol := c.symbolNodeLinks.Get(reference).resolvedSymbol
-	if resolvedSymbol != nil && resolvedSymbol != c.unknownSymbol {
-		return resolvedSymbol
-	}
-	return c.resolveName(reference, reference.Text(), ast.SymbolFlagsValue|ast.SymbolFlagsExportValue|ast.SymbolFlagsAlias, nil, false /*isUse*/, false /*excludeGlobals*/)
-}
-
 func (c *Checker) getCannotFindNameDiagnosticForName(node store.Node) *diagnostics.Message {
 	switch node.Text() {
 	case "document", "console":
@@ -13750,8 +13768,12 @@ func (c *Checker) recordMergedSymbol(target *store.Symbol, source *store.Symbol)
 	c.mergedSymbols[source] = target
 }
 
+func (c *Checker) getResolvedTarget(symbol *store.Symbol) *store.Symbol {
+	return c.getMergedSymbol(c.resolveSymbol(c.getMergedSymbol(symbol)))
+}
+
 func (c *Checker) getSymbolIfSameReference(s1 *store.Symbol, s2 *store.Symbol) *store.Symbol {
-	if c.getMergedSymbol(c.resolveSymbol(c.getMergedSymbol(s1))) == c.getMergedSymbol(c.resolveSymbol(c.getMergedSymbol(s2))) {
+	if c.getResolvedTarget(s1) == c.getResolvedTarget(s2) {
 		return s1
 	}
 	return nil
@@ -14595,7 +14617,7 @@ func (c *Checker) resolveExternalModule(
 			c.error(errorNode, resolutionDiagnostic, moduleReference, resolvedModule.ResolvedFileName)
 		}
 
-		if !errorNode.IsNil() {
+		if !errorNode.IsNil() && !resolvedModule.IsCustomResolution {
 			if resolvedModule.ResolvedUsingTsExtension && tspath.IsDeclarationFileName(moduleReference) {
 				if !store.FindAncestor(location, store.IsEmittableImport).IsNil() {
 					tsExtension := tspath.TryExtractTSExtension(moduleReference)
@@ -23001,6 +23023,7 @@ func (c *Checker) getInferTypeParameters(node store.Node) []*Type {
 			result = append(result, c.getDeclaredTypeOfSymbol(symbol))
 		}
 	}
+	slices.SortFunc(result, CompareTypes)
 	return result
 }
 
@@ -27331,13 +27354,7 @@ func (c *Checker) markLinkedReferences(location store.Node, hint ReferenceHint, 
 					return
 				}
 			}
-			// Computed property names on enum members are a grammar error and are never checked
-			// (checkEnumMember only checks the member initializer, not the name), so resolving
-			// identifiers in them here would report a spurious "Cannot find name" diagnostic.
 			if !computedName.IsNil() {
-				if store.IsEnumMember(computedName.Parent()) {
-					return
-				}
 				if isInvalidComputedPropertyName(computedName) {
 					return
 				}
@@ -27382,7 +27399,8 @@ func (c *Checker) markLinkedReferences(location store.Node, hint ReferenceHint, 
 		if store.IsPropertyAccessOrQualifiedName(location) {
 			topProp := location
 			for store.IsPropertyAccessOrQualifiedName(topProp) {
-				if store.IsPartOfTypeNode(topProp) {
+				// Names in an import type's qualifier (`ns.y` in `typeof import("./b").ns.y`) are exports of the imported module, not references to this file's imports
+				if store.IsPartOfTypeNode(topProp) || !isImportTypeQualifierPart(topProp).IsNil() {
 					return
 				}
 				topProp = topProp.Parent()
@@ -31109,14 +31127,6 @@ func (c *Checker) containsArgumentsReference(node store.Node) bool {
 
 func (c *Checker) GetTypeAtLocation(node store.Node) *Type {
 	return c.getTypeOfNode(store.GetReparsedNodeForNode(node))
-}
-
-func (c *Checker) GetEmitResolver() *EmitResolver {
-	c.emitResolverOnce.Do(func() {
-		c.emitResolver = newEmitResolver(c)
-	})
-
-	return c.emitResolver
 }
 
 func (c *Checker) GetAliasedSymbol(symbol *store.Symbol) *store.Symbol {

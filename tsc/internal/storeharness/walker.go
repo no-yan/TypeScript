@@ -147,8 +147,16 @@ func (w *storeWalker) typeOf(file *store.File, node store.Node) (t *storechecker
 // storePrintType is the type walk's string of t at node, as
 // pointerPrintType: the node builder, the printer and the writer's string, a
 // copy. ctx is reset first.
+// resetEmitContext makes ctx a new EmitContext of the same Factory: the
+// Pointer walk makes a new one for each type (253bcd86231 removed
+// EmitContext.Reset), and a new Store one would take a new region, a StoreID,
+// for each type.
+func resetEmitContext(ctx *storeprinter.EmitContext) {
+	*ctx = storeprinter.EmitContext{Factory: ctx.Factory}
+}
+
 func storePrintType(c *storechecker.Checker, ctx *storeprinter.EmitContext, t *storechecker.Type, file *store.File, node store.Node) string {
-	ctx.Reset()
+	resetEmitContext(ctx)
 	builder := storechecker.NewNodeBuilder(c, ctx)
 	typeFormatFlags := storechecker.TypeFormatFlagsNoTruncation | storechecker.TypeFormatFlagsAllowUniqueESSymbolType | storechecker.TypeFormatFlagsGenerateNamesForShadowedTypeParams
 	typeNode := builder.TypeToTypeNode(t, node.Parent(), nodebuilder.Flags(typeFormatFlags&storechecker.TypeFormatFlagsNodeBuilderFlagsMask)|nodebuilder.FlagsIgnoreErrors, nodebuilder.InternalFlagsAllowUnresolvedNames, nil)

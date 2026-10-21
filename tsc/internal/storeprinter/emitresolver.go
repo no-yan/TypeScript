@@ -34,6 +34,7 @@ type TypeReferenceSerializationKind int32
 
 type EmitResolver interface {
 	storebinder.ReferenceResolver
+	EmitContext() *EmitContext
 	IsReferencedAliasDeclaration(node store.Node) bool
 	IsValueAliasDeclaration(node store.Node) bool
 	IsTopLevelValueImportEqualsWithEntityName(node store.Node) bool
@@ -76,11 +77,11 @@ type EmitResolver interface {
 	GetReferencedValueDeclarationUnsafe(node store.Node) store.Node
 
 	// Node construction for declaration emit
-	CreateTypeOfDeclaration(emitContext *EmitContext, declaration store.Node, enclosingDeclaration store.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker storenodebuilder.SymbolTracker) store.Node
-	CreateReturnTypeOfSignatureDeclaration(emitContext *EmitContext, signatureDeclaration store.Node, enclosingDeclaration store.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker storenodebuilder.SymbolTracker) store.Node
-	CreateTypeParametersOfSignatureDeclaration(emitContext *EmitContext, signatureDeclaration store.Node, enclosingDeclaration store.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker storenodebuilder.SymbolTracker) []store.Node
-	CreateLiteralConstValue(emitContext *EmitContext, node store.Node, tracker storenodebuilder.SymbolTracker) store.Node
-	CreateTypeOfExpression(emitContext *EmitContext, expression store.Node, enclosingDeclaration store.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker storenodebuilder.SymbolTracker) store.Node
-	CreateLateBoundIndexSignatures(emitContext *EmitContext, container store.Node, enclosingDeclaration store.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker storenodebuilder.SymbolTracker) []store.Node
-	TryJSTypeNodeToTypeNode(emitContext *EmitContext, typeNode store.Node, enclosingDeclaration store.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker storenodebuilder.SymbolTracker) store.Node
+	CreateTypeOfDeclaration(declaration store.Node, enclosingDeclaration store.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker storenodebuilder.SymbolTracker) store.Node
+	CreateReturnTypeOfSignatureDeclaration(signatureDeclaration store.Node, enclosingDeclaration store.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker storenodebuilder.SymbolTracker) store.Node
+	CreateTypeParametersOfSignatureDeclaration(signatureDeclaration store.Node, enclosingDeclaration store.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker storenodebuilder.SymbolTracker) []store.Node
+	CreateLiteralConstValue(node store.Node, tracker storenodebuilder.SymbolTracker) store.Node
+	CreateTypeOfExpression(expression store.Node, enclosingDeclaration store.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker storenodebuilder.SymbolTracker) store.Node
+	CreateLateBoundIndexSignatures(container store.Node, enclosingDeclaration store.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker storenodebuilder.SymbolTracker) []store.Node
+	TryJSTypeNodeToTypeNode(typeNode store.Node, enclosingDeclaration store.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker storenodebuilder.SymbolTracker) store.Node
 }

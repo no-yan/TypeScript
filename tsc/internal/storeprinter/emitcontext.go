@@ -37,12 +37,6 @@ type varScope struct {
 	initializationStatements []store.Node
 }
 
-func (c *EmitContext) Reset() {
-	*c = EmitContext{
-		Factory: c.Factory,
-	}
-}
-
 func (c *EmitContext) onUpdate(updated store.Node, original store.Node) {
 	c.SetOriginal(updated, original)
 }

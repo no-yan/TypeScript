@@ -73,7 +73,6 @@ var checkerRoots = []string{
 	"binder.NameResolver.Resolve",
 	"checker.Checker.SymbolToStringEx",
 	"checker.IntrinsicType.IntrinsicName",
-	"printer.EmitContext.Reset",
 	"checker.Checker.CompareSymbols",
 }
 

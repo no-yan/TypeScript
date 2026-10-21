@@ -1825,7 +1825,10 @@ func (c *Checker) checkGrammarImportClause(node store.ImportClause) bool {
 		if !node.Name().IsNil() {
 			return c.grammarErrorOnNode(store.Node(node), diagnostics.Default_imports_are_not_allowed_in_a_deferred_import)
 		}
-		if !node.NamedBindings().IsNil() && node.NamedBindings().Kind() == ast.KindNamedImports {
+		if node.NamedBindings().IsNil() {
+			return c.grammarErrorOnNode(store.Node(node), diagnostics.A_deferred_import_must_specify_a_namespace_binding)
+		}
+		if node.NamedBindings().Kind() == ast.KindNamedImports {
 			return c.grammarErrorOnNode(store.Node(node), diagnostics.Named_imports_are_not_allowed_in_a_deferred_import)
 		}
 		if c.moduleKind.SupportsDeferredImports() {

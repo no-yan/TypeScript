@@ -2102,8 +2102,7 @@ func (b *NodeBuilderImpl) isTriviallySerializableComputedName(e store.Node) bool
 	if !shapeGood {
 		return false
 	}
-	// TODO: going through emit resolver here is weird. Relayer these APIs.
-	return b.ch.GetEmitResolver().isEntityNameVisible(e.Name().Expression(), b.ctx.enclosingDeclaration, false).Accessibility == storeprinter.SymbolAccessibilityAccessible
+	return b.ch.isEntityNameVisible(e.Name().Expression(), b.ctx.enclosingDeclaration, false).Accessibility == storeprinter.SymbolAccessibilityAccessible
 }
 
 func (b *NodeBuilderImpl) indexInfoToObjectComputedNamesOrSignatureDeclaration(indexInfo *IndexInfo, typeNode store.Node) []store.Node {
@@ -2230,8 +2229,7 @@ func (b *NodeBuilderImpl) serializeTypeForDeclaration(declaration store.Node, t 
 		}
 	}
 
-	// !!! TODO: JSDoc, getEmitResolver call is unfortunate layering for the helper - hoist it into checker
-	requiresAddingUndefined := !declaration.IsNil() && (store.IsParameterDeclaration(declaration) || store.IsPropertySignatureDeclaration(declaration) || store.IsPropertyDeclaration(declaration)) && b.ch.GetEmitResolver().requiresAddingImplicitUndefined(declaration, symbol, b.ctx.enclosingDeclaration)
+	requiresAddingUndefined := !declaration.IsNil() && (store.IsParameterDeclaration(declaration) || store.IsPropertySignatureDeclaration(declaration) || store.IsPropertyDeclaration(declaration)) && b.ch.requiresAddingImplicitUndefined(declaration, symbol, b.ctx.enclosingDeclaration)
 	addUndefinedForParameter := requiresAddingUndefined && (store.IsParameterDeclaration(declaration) /*|| ast.IsJSDocParameterTag(declaration)*/)
 	if addUndefinedForParameter {
 		t = b.ch.getOptionalType(t, false)

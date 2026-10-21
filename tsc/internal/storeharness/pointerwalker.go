@@ -111,9 +111,7 @@ func (w *pointerWalker) typeOf(file *ast.SourceFile, node *ast.Node) (t *checker
 // the printer and the writer's string, a copy (the writer grew to the file's
 // length in printer.Write).
 func pointerPrintType(fileChecker *checker.Checker, t *checker.Type, file *ast.SourceFile, node *ast.Node) string {
-	ctx, putCtx := printer.GetEmitContext()
-	defer putCtx()
-	ctx.Reset()
+	ctx := printer.NewEmitContext()
 	builder := checker.NewNodeBuilder(fileChecker, ctx)
 	typeFormatFlags := checker.TypeFormatFlagsNoTruncation | checker.TypeFormatFlagsAllowUniqueESSymbolType | checker.TypeFormatFlagsGenerateNamesForShadowedTypeParams
 	typeNode := builder.TypeToTypeNode(t, node.Parent, nodebuilder.Flags(typeFormatFlags&checker.TypeFormatFlagsNodeBuilderFlagsMask)|nodebuilder.FlagsIgnoreErrors, nodebuilder.InternalFlagsAllowUnresolvedNames, nil)
