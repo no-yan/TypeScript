@@ -5,6 +5,7 @@ store-ast (80e3068407、base f29aeb9f82) を upstream/main 5733ab05f5 へ merge 
 - 計画: 段は 10。merge commit には Pointer 側の解決だけを入れ、Store の追従は後続の commit で行う。
 - 承認の単位: upstream の ast PR を Store 側でどう扱うか。各段の開始時に承認を取る。
 - 段の状態はこの台帳を正とする。
+- storetranslate の設定 (共有の一覧・root) を upstream の改名や新しい呼び出しに合わせるときは、進めてから段の報告に書く。変換の規則そのものを変えるときは、先に承認を取る (2026-10-21 ユーザー決定)。
 
 古くなる P2 と Mirror・Ref の一覧は、scratchpad の `p2stale` で作った。storetranslate の `manual.go` と同じ切り出しで hash を取るもので、store-ast では 124 個の hash を全部再現する。
 
@@ -105,10 +106,10 @@ commit:
 
 | PR | Pointer の変更 | Store 側の扱い | 承認 |
 |---|---|---|---|
-| e8c1ac1603 | `ast.GetSourceFileOfSymbol`・`SourceFile.IsContentMapped` を足す (api 用) | 無し。checker から到達したら翻訳し、Symbol の形は S5 に従う | |
-| 81d3f3f5e8 | `IsInExpressionContext` が関数式・クラス式の名前を式から外す | 翻訳する (store/utilities.go) | |
+| e8c1ac1603 | `ast.GetSourceFileOfSymbol`・`SourceFile.IsContentMapped` を足す (api 用) | 無し。checker から到達したら翻訳し、Symbol の形は S5 に従う | 2026-10-21 承認 |
+| 81d3f3f5e8 | `IsInExpressionContext` が関数式・クラス式の名前を式から外す | 翻訳する (store/utilities.go) | 2026-10-21 承認 |
 
-### `--astBackend` の載せ直し (e8fd69fc1e)
+### `--astBackend` の載せ直し (e8fd69fc1e、2026-10-21 承認)
 
 upstream は option の宣言を `tools/scripts/tsc/options.ts` から生成するようになった。`declscompiler.go` は削除され、`compileroptions.go`・`enummaps.go`・`parsinghelpers.go` の中身は生成物に移った。こちらの手書きの 5 か所を、`options.ts` の 1 エントリと enum・enumMap に置き換える。
 
@@ -151,3 +152,62 @@ compiler の 41 宣言。P2 の本体から消えた宣言を呼んでいるの�
 
 - program.go: `p.opts.Tracing` を `p.hosts.Tracing` にする (a5c43c4d54)。
 - compileroptions.go・tsoptions 4 ファイル (うち declscompiler.go は upstream で削除) は upstream を取り、上の載せ直しをする。
+
+### 結果 (合格)
+
+commit:
+
+- 17467c1639b merge
+- 603a7829274 再翻訳と P2 12 件
+- b7a48d0db74 storeharness の compilerVaryBy
+- 4e1b2e1fab7 storeclitest の graph
+
+計画外の判断:
+
+- upstream の試験 2 本 (`TestShowConfigEnumSerialization`・`options.test.ts` の enum の大小文字) は、「enum の option はすべて設定ファイルの option」と仮定していた。`--astBackend` は最初の command line 専用の enum option なので、2 本とも command line 専用の option を飛ばすようにした。
+  - 生成器を変えて全部の enum に serializer を出す案も試した。生成器と生成物を upstream と同じに保つため、試験の側で揃えた。
+- `ProgramOptions` の分割 (a5c43c4d54) では、`idSpace` を置くために `ProgramConfig` を P2 にした。`fileLoader.opts` と `Program.opts` の両方から読めるためである。
+  - `ProgramFactories` も P2 にして、`CreateCheckerPool` を外した。
+  - `ProgramHosts` は翻訳に任せた。
+- storeharness の `compilerVaryBy` は写しをやめた。`testrunner/options_generated.go` を実行時に go/parser で読む。
+  - upstream は、この一覧を options.ts のメタデータから生成するようになった。実行時に計算し直す材料は無い。
+  - 写すと、検知できない写し (計画の穴 d) が 1 つ増える。
+  - 新しい一覧には `all`・`diagnostics`・`listfiles` などが入り、旧版と中身が違う。
+- storeclitest の `graph.go` は `FileIncludeReason.data` を reflect で読んでいた。a5c43c4d54 で `data` が型ごとの field に分かれたので、struct の全 field を出すようにした。
+  - 段の終わりの検証で `TestNativeGraph` の panic として見つかった。
+  - 検証スクリプトのラッパーが終了コードを返していなかったので、それも直した。
+- `tools/scripts/gen/cache.test.mts` の 1 本は macOS の `/var` → `/private/var` で落ちる。環境依存で、こちらの変更とは関係ない。
+
+検証 (2026-10-21、合格、scratchpad/S1b/stage-end.log): S1a と同じ項目に加え、`options.test.ts` (24 本) が通った。
+
+- 段 1 strict: 17,475 件。equal 17,473、既知の除外 2。
+- 段 2: 15,249 件。equal 13,490、runner-skipped 1,759。
+
+## S2: e8fd69fc1e..2f9fd09a10 (#90〜#96)
+
+### ast・parser・scanner・binder の PR と Store 側の扱い
+
+| PR | Pointer の変更 | Store 側の扱い | 承認 |
+|---|---|---|---|
+| 2f9fd09a10 source phase imports | `KindSourceKeyword` を DeferKeyword の後に足す (LastKeyword・LastToken・LastContextualKeyword を兼ね、以降の Kind の値が 1 ずれる)。ImportClause の phase に `source` を許す。ast に `IsImportPhaseMetaProperty`・`IsSourcePhaseImport(Call)` など。scanner の keyword 表に `source`。checker・printer・grammarchecks も変わる | (1) Store AST を再生成する (表は Kind の記号名で引くので、値のずれは安全)。(2) storeparser の 6 宣言を手で移植し、新しい helper 3 つ (`currentImportPhaseModifier`・`shouldParseImportPhaseModifier`・`parseImportMetaPropertyName`) を足す。`tokenAfterImportedIdentifierDefinitelyProducesImportDeclaration` は `...AllowsImportEqualsDeclaration` への改名に従う。(3) storescanner・store/utilities.go・checker・printer は翻訳する。(4) `CallExpression.computeSubtreeFacts` の変更は対象外 (Store に SubtreeFacts は無く、読むのは emit の transformer だけ) | |
+
+### 古くなる P2 (1)
+
+- checker: `NewChecker` (checker_manual.go)
+
+### Mirror (手書きの移植)
+
+storeparser の `isStartOfStatement`、`parseImportDeclarationOrImportEqualsDeclaration`、`parseLeftHandSideExpressionOrHigher`、`scanStartOfDeclaration`、`tryParseImportClause`、`tokenAfterImportedIdentifierDefinitelyProducesImportDeclaration` (改名)。新規は `currentImportPhaseModifier`・`shouldParseImportPhaseModifier`・`parseImportMetaPropertyName`。
+
+### Ref
+
+- checker の `Checker` (struct)、compiler の `fileLoader.resolveImportsAndModuleAugmentations`: 呼び出しだけ (手順 6 で確認)。
+- ast の `_` は名前の誤一致。
+
+### storeharness が写したファイル・lint
+
+変化なし。
+
+### テキスト衝突
+
+診断の生成物 2 つ (`diagnosticMessages.generated.json`・`diagnostics_generated.go`)。upstream 側を取って再生成する。
