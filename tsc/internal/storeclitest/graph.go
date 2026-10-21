@@ -132,15 +132,14 @@ func reasonLines[R any](reasons map[tspath.Path][]R, isFile func(tspath.Path) bo
 		}
 		out = append(out, line)
 		for _, r := range reasons[path] {
-			v := reflect.ValueOf(r).Elem()
-			out = append(out, "  kind="+describeReason(v.FieldByName("kind"))+" data="+describeReason(v.FieldByName("data")))
+			out = append(out, "  "+describeReason(reflect.ValueOf(r).Elem()))
 		}
 	}
 	return out
 }
 
-// describeReason prints a field of a FileIncludeReason of either package:
-// the fields are unexported, and the same in both (storecompiler's are
+// describeReason prints a FileIncludeReason of either package, field by
+// field: the fields are unexported, and the same in both (storecompiler's are
 // translated). A synthetic import node is printed by its kind and text.
 func describeReason(v reflect.Value) string {
 	if v.CanAddr() {
