@@ -93,10 +93,10 @@ func TestRules(t *testing.T) {
 		"return store.FirstNonNil(nodes, func(n store.Node) store.Node { return n.Name() })",
 		"return core.FirstNonNil(nodes, func(n store.Node) *store.Symbol { return n.Symbol() })",
 		"return store.MapNonNil(nodes, func(n store.Node) store.Node { return n.Name() })",
-		"return store.MapNonNil(symbols, func(s *store.Symbol) store.Node { return s.ValueDeclaration })",
+		"return store.MapNonNil(symbols, func(s *store.Symbol) store.Node { return s.ValueDeclaration() })",
 		"return core.MapNonNil(nodes, func(n store.Node) *store.Symbol { return n.Symbol() })",
 		"return store.OrElse(node.Name(), node)",
-		"return core.OrElse(local.ExportSymbol, local)",
+		"return core.OrElse(local.ExportSymbol(), local)",
 		// SameMap, SameMapIndex, Deduplicate, AppendIfUnique on nodes.
 		"return store.SameMap(nodes, func(n store.Node) store.Node { return n.Parent() })",
 		"return store.SameMapIndex(nodes, func(n store.Node, i int) store.Node { return n.Parent() })",

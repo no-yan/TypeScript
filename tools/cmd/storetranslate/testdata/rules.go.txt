@@ -24,7 +24,7 @@ func names(nodes []*ast.Node) []*ast.Node {
 }
 
 func kinds(symbols []*ast.Symbol) []*ast.Node {
-	return core.MapNonNil(symbols, func(s *ast.Symbol) *ast.Node { return s.ValueDeclaration })
+	return core.MapNonNil(symbols, func(s *ast.Symbol) *ast.Node { return s.ValueDeclaration() })
 }
 
 func symbolsOf(nodes []*ast.Node) []*ast.Symbol {
@@ -36,7 +36,7 @@ func nameOrNode(node *ast.Node) *ast.Node {
 }
 
 func exportOrLocal(local *ast.Symbol) *ast.Symbol {
-	return core.OrElse(local.ExportSymbol, local)
+	return core.OrElse(local.ExportSymbol(), local)
 }
 
 func parents(nodes []*ast.Node) []*ast.Node {
