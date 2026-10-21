@@ -319,8 +319,8 @@ commit:
 
 | PR | Pointer の変更 | Store 側の扱い | 承認 |
 |---|---|---|---|
-| afd02f1486 | `GetTypeAnnotationNode` が JSDocParameterTag を扱う | 翻訳する (store/utilities.go) | |
-| bea2e849e9 | `tryParseImportClause` が `defer` にも名前空間の束縛を要求する | storeparser の同じ関数に手で移植する | |
+| afd02f1486 | `GetTypeAnnotationNode` が JSDocParameterTag を扱う | 翻訳する (store/utilities.go) | 2026-10-21 承認 |
+| bea2e849e9 | `tryParseImportClause` が `defer` にも名前空間の束縛を要求する | storeparser の同じ関数に手で移植する | 2026-10-21 承認 |
 
 ### 古くなる P2
 
@@ -336,3 +336,73 @@ commit:
 ### テキスト衝突
 
 診断の生成物 2 つ。upstream を取って再生成する。
+
+### 結果 (合格)
+
+commit:
+
+- bcdb8290f7b merge
+- 2bf12fefc4b storeparser の defer import
+- dc590fab585 再翻訳 (root から `EmitContext.Reset` を外した)、harness の walker
+- 05052cb8c37 `TestReach` の例の差し替え
+
+見つかったこと・判断:
+
+- 253bcd86231 で emit resolver の処理が `emitsupport.go` に移った。check の起点から `checker.EmitResolver` に到達しなくなり、Store の `EmitResolver` の method は翻訳の出力から全部消えた。
+  - 起点から到達するコードだけを出すので、これは正しい。
+  - storetranslate の `TestReach` は、この到達を「interface 経由の到達」の例に使っていた。同じ性質の別の例 (`modulespecifiers.CheckerShape` 経由の `Checker.GetAliasedSymbol`) に差し替えた。
+- harness の walker:
+  - Pointer 側は upstream と同じく、型ごとに `printer.NewEmitContext()` を作る。
+  - Store 側は同じ Factory のまま、context の状態を新しくする (`resetEmitContext`)。新しい context を作ると、型ごとに region (StoreID) を 1 つ使うため。
+
+検証 (2026-10-21、合格、2 回目。1 回目は `TestReach` で失敗): corpus {'equal': 17623, 'diag file: MessageArgs': 1, None: 1} excluded {'Pointer nondeterministic': 1, 'Pointer panics': 1}。段 2 と mode も下限の確認に通った。
+
+## S5: c0ca4744c91..6ad8c56f9b (#131、shared data symbols)
+
+### upstream の変更
+
+`ast.Symbol` は次の形になった。
+
+- 自分だけが持つもの: flags、checkFlags、id
+- 共有できる `symbolData` (name・declarations・valueDeclaration・members・exports・parent・exportSymbol) へのポインタ
+
+field は accessor (`Flags()`/`SetFlags()` など) になった。`SymbolWithData` は Symbol と data を一緒に確保する。`SetSymbolData` は data を他の symbol と共有する (checker の instantiate が使う)。binder は field を accessor に置き換えるだけの機械的な変更で、確保は `core.Arena[ast.SymbolWithData]` になった。
+
+その後 S7b の 56ce7acfc8 (#164) で、members・exports・exportSymbol が `symbolExtra` に移り、`SymbolExtraArena` から確保されるようになる。setter は arena を取る。
+
+### store.Symbol の設計 (2026-10-21 承認。id の置き場所はユーザー決定)
+
+**各段で Pointer と同じ形にする。** S5 では #131 の形に、S7b で #164 の形に合わせる。
+
+- 理由: 最終の形 (#164) を S5 で先取りすると、S5〜S7b の Pointer の checker は `SetMembers(v)` を arena なしで呼ぶ。翻訳されたコードが Store の method と合わなくなり、P2 か規則が要る。各段で合わせれば、翻訳はどの段でも機械的に済む。#164 で増える手間は、3 つの field を extra に移して setter に arena を足すだけで、Pointer がしたことと同じ。
+- 形:
+  - `store.Symbol{flags, checkFlags, id SymbolId, gid atomic.Uint64, data *symbolData}`。`symbolData{name, declarations []Node, valueDeclaration Node, members, exports SymbolTable, parent, exportSymbol *Symbol}`。
+  - accessor の名前と意味は Pointer と同じ。`SymbolWithData`・`Initialize`・`NewSymbol`・`SetSymbolData` も同じ。
+- Store だけのもの:
+  - `gid` (process 全体の遅延の id): Pointer の `id` に当たる。symbol ごとの部分に置く。
+  - `id` (Bound の中の密な番号): **`symbolData` に置く** (ユーザー決定)。
+    - ユーザーが比べた置き場所は次のとおり。
+      - header (symbol ごとの部分) に置く: instantiate された symbol がすべて 24B → 32B。
+      - symbolData に置く: 24B のまま。`SymbolWithData` は 104B。
+      - 持たない: binder が `*Symbol` → id の map を引き、bind の CPU に効く。
+    - 欠点は、data を共有する symbol の `Id()` が共有元の id を返すこと。
+    - `Id()` を使うのは storebinder の 2 か所 (node に symbol を結ぶところ) だけで、相手は binder が作った symbol (data を自分で持つもの) に限られる。共有 (`SetSymbolData`) は checker の instantiate でしか起きない。よって実害は無い。
+- storebinder: Pointer の binder の diff をそのまま写す (field → accessor、`core.Arena[store.SymbolWithData]`)。
+- 翻訳: `*ast.Symbol` → `*store.Symbol` の対応は変わらない。method 呼び出しは同じ名前の method に移る。`SymbolWithData` には `ast` → `store` の型の対応が 1 つ要る (types.go の規則に 1 行足す見込み)。これは規則の追加なので、この承認に含める。
+
+### 古くなる P2 (7)
+
+- checker:
+  - `Checker.checkKindsOfPropertyMemberOverrides`、`checkTypeParameterListsIdentical`、`checkUnusedLocalsAndParameters`、`initializeChecker`、`NewChecker`
+  - `NodeBuilderImpl.enterNewScope`
+- printer: `isUniqueLocalName`
+
+### Mirror (手書きの移植)
+
+- store/symbol.go: `Symbol` と method 3 つ
+- storebinder/binder.go: 19 宣言 (newSymbol・declareSymbolEx・addDeclarationToSymbol ほか)
+- storeharness: walker の写し (type_symbol_baseline.go の 2 行)、symbol の field を読む試験と driver
+
+### テキスト衝突
+
+無し。
