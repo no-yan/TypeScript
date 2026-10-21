@@ -3902,6 +3902,10 @@ var Optional_chaining_cannot_be_used_with_import_source = &Message{code: 18114, 
 
 var Source_phase_imports_are_not_allowed_on_statements_that_compile_to_CommonJS_require_calls = &Message{code: 18115, category: CategoryError, key: "Source_phase_imports_are_not_allowed_on_statements_that_compile_to_CommonJS_require_calls_18115", text: "Source phase imports are not allowed on statements that compile to CommonJS 'require' calls."}
 
+var This_initializer_has_a_Symbol_asyncDispose_method_Did_you_mean_to_use_await_using = &Message{code: 18116, category: CategoryError, key: "This_initializer_has_a_Symbol_asyncDispose_method_Did_you_mean_to_use_await_using_18116", text: "This initializer has a '[Symbol.asyncDispose]()' method. Did you mean to use 'await using'?"}
+
+var A_deferred_import_must_specify_a_namespace_binding = &Message{code: 18117, category: CategoryError, key: "A_deferred_import_must_specify_a_namespace_binding_18117", text: "A deferred import must specify a namespace binding."}
+
 var Select_the_AST_of_the_compiler_Colon_pointer_the_default_or_store_Experimental_Colon_store_checks_a_one_shot_noEmit_program_only_without_declarations_incremental_builds_watch_build_mode_project_references_or_content_mappers = &Message{code: 18990, category: CategoryMessage, key: "Select_the_AST_of_the_compiler_Colon_pointer_the_default_or_store_Experimental_Colon_store_checks_a__18990", text: "Select the AST of the compiler: 'pointer' (the default) or 'store'. Experimental: 'store' checks a one-shot '--noEmit' program only, without declarations, incremental builds, watch, build mode, project references or content mappers."}
 
 var The_store_AST_backend_requires_0 = &Message{code: 18991, category: CategoryError, key: "The_store_AST_backend_requires_0_18991", text: "The 'store' AST backend requires '{0}'."}
@@ -6401,6 +6405,8 @@ var allMessages = [...]**Message{
 	&Source_phase_imports_are_only_supported_when_the_module_option_is_set_to_esnext_nodenext_or_preserve,
 	&Optional_chaining_cannot_be_used_with_import_source,
 	&Source_phase_imports_are_not_allowed_on_statements_that_compile_to_CommonJS_require_calls,
+	&This_initializer_has_a_Symbol_asyncDispose_method_Did_you_mean_to_use_await_using,
+	&A_deferred_import_must_specify_a_namespace_binding,
 	&Select_the_AST_of_the_compiler_Colon_pointer_the_default_or_store_Experimental_Colon_store_checks_a_one_shot_noEmit_program_only_without_declarations_incremental_builds_watch_build_mode_project_references_or_content_mappers,
 	&The_store_AST_backend_requires_0,
 	&The_store_AST_backend_does_not_support_0,

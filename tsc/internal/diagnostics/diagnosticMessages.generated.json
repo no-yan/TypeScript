@@ -1949,6 +1949,8 @@
     "Source_phase_imports_are_only_supported_when_the_module_option_is_set_to_esnext_nodenext_or_preserve_18113": "Source phase imports are only supported when the '--module' option is set to 'esnext', 'nodenext', or 'preserve'.",
     "Optional_chaining_cannot_be_used_with_import_source_18114": "Optional chaining cannot be used with 'import.source'.",
     "Source_phase_imports_are_not_allowed_on_statements_that_compile_to_CommonJS_require_calls_18115": "Source phase imports are not allowed on statements that compile to CommonJS 'require' calls.",
+    "This_initializer_has_a_Symbol_asyncDispose_method_Did_you_mean_to_use_await_using_18116": "This initializer has a '[Symbol.asyncDispose]()' method. Did you mean to use 'await using'?",
+    "A_deferred_import_must_specify_a_namespace_binding_18117": "A deferred import must specify a namespace binding.",
     "Select_the_AST_of_the_compiler_Colon_pointer_the_default_or_store_Experimental_Colon_store_checks_a__18990": "Select the AST of the compiler: 'pointer' (the default) or 'store'. Experimental: 'store' checks a one-shot '--noEmit' program only, without declarations, incremental builds, watch, build mode, project references or content mappers.",
     "The_store_AST_backend_requires_0_18991": "The 'store' AST backend requires '{0}'.",
     "The_store_AST_backend_does_not_support_0_18992": "The 'store' AST backend does not support '{0}'.",
