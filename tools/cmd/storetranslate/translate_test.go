@@ -227,8 +227,10 @@ func TestReach(t *testing.T) {
 	for _, key := range []string{
 		// nodebuilder.SymbolTracker, implemented by SymbolTrackerImpl.
 		"checker.SymbolTrackerImpl.ReportInaccessibleThisError",
-		// printer.EmitResolver and binder.ReferenceResolver, by EmitResolver.
-		"checker.EmitResolver.GetReferencedExportContainer",
+		// modulespecifiers.CheckerShape, by Checker. (The check reached
+		// printer.EmitResolver's implementation until 253bcd86231 moved the
+		// emit resolver's work out of it.)
+		"checker.Checker.GetAliasedSymbol",
 	} {
 		if !res.output[internal+key] {
 			t.Errorf("%s is not reached", key)
