@@ -5,7 +5,7 @@
 // internal/ast/docs/store-checker-design-20260923.md 2.1). The functions the
 // rules do not cover are written by hand in utilities_manual.go (P2).
 //
-// Reach: 453 functions of package ast that the roots of tools/cmd/storetranslate
+// Reach: 454 functions of package ast that the roots of tools/cmd/storetranslate
 // name in their bodies, called or as a value, transitively.
 
 package store
@@ -793,11 +793,15 @@ func GetTypeNodePrecedence(n Node) ast.TypePrecedence {
 	}
 }
 
+func NewSymbol() *Symbol {
+	return (&SymbolWithData{}).Initialize()
+}
+
 func SymbolName(symbol *Symbol) string {
-	if !symbol.ValueDeclaration.IsNil() && IsPrivateIdentifierClassElementDeclaration(symbol.ValueDeclaration) {
-		return symbol.ValueDeclaration.Name().Text()
+	if !symbol.ValueDeclaration().IsNil() && IsPrivateIdentifierClassElementDeclaration(symbol.ValueDeclaration()) {
+		return symbol.ValueDeclaration().Name().Text()
 	}
-	return symbol.Name
+	return symbol.Name()
 }
 
 func GetSymbolTable(data *SymbolTable) SymbolTable {
@@ -808,11 +812,11 @@ func GetSymbolTable(data *SymbolTable) SymbolTable {
 }
 
 func GetMembers(symbol *Symbol) SymbolTable {
-	return GetSymbolTable(&symbol.Members)
+	return GetSymbolTable(&symbol.data.members)
 }
 
 func GetExports(symbol *Symbol) SymbolTable {
-	return GetSymbolTable(&symbol.Exports)
+	return GetSymbolTable(&symbol.data.exports)
 }
 
 func NodeIsMissing(node Node) bool {
@@ -2681,7 +2685,7 @@ func IsConstTypeReference(node Node) bool {
 }
 
 func GetDeclarationOfKind(symbol *Symbol, kind ast.Kind) Node {
-	for _, declaration := range symbol.Declarations {
+	for _, declaration := range symbol.Declarations() {
 		if declaration.Kind() == kind {
 			return declaration
 		}
@@ -2756,8 +2760,8 @@ func IsNonLocalAlias(symbol *Symbol, excludes ast.SymbolFlags) bool {
 	if symbol == nil {
 		return false
 	}
-	return symbol.Flags&(ast.SymbolFlagsAlias|excludes) == ast.SymbolFlagsAlias ||
-		symbol.Flags&ast.SymbolFlagsAlias != 0 && symbol.Flags&ast.SymbolFlagsAssignment != 0
+	return symbol.Flags()&(ast.SymbolFlagsAlias|excludes) == ast.SymbolFlagsAlias ||
+		symbol.Flags()&ast.SymbolFlagsAlias != 0 && symbol.Flags()&ast.SymbolFlagsAssignment != 0
 }
 
 func IsAliasSymbolDeclaration(node Node) bool {
@@ -2954,7 +2958,7 @@ func IsExclusivelyTypeOnlyImportOrExport(node Node) bool {
 }
 
 func GetClassLikeDeclarationOfSymbol(symbol *Symbol) Node {
-	return core.Find(symbol.Declarations, IsClassLike)
+	return core.Find(symbol.Declarations(), IsClassLike)
 }
 
 func IsCallLikeExpression(node Node) bool {
@@ -3211,7 +3215,7 @@ func IsExternalModuleAugmentation(node Node) bool {
 }
 
 func GetSourceFileOfModule(module *Symbol) *File {
-	declaration := module.ValueDeclaration
+	declaration := module.ValueDeclaration()
 	if declaration.IsNil() {
 		declaration = GetNonAugmentationDeclaration(module)
 	}
@@ -3219,7 +3223,7 @@ func GetSourceFileOfModule(module *Symbol) *File {
 }
 
 func GetNonAugmentationDeclaration(symbol *Symbol) Node {
-	return core.Find(symbol.Declarations, func(d Node) bool {
+	return core.Find(symbol.Declarations(), func(d Node) bool {
 		return !IsExternalModuleAugmentation(d) && !IsGlobalScopeAugmentation(d)
 	})
 }

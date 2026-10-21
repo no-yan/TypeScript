@@ -219,14 +219,14 @@ func nextContainer(node store.Node) store.Node {
 // isUniqueLocalName tests LocalsContainerData() != nil with
 // HasLocalsContainerData (4.1).
 //
-// storetranslate:pointer-hash 8a84fc079eba14b2 namegenerator.go:isUniqueLocalName
+// storetranslate:pointer-hash 79d18388bbf67509 namegenerator.go:isUniqueLocalName
 func isUniqueLocalName(name string, container store.Node) bool {
 	node := container
 	for !node.IsNil() && store.IsNodeDescendantOf(node, container) && node.HasLocalsContainerData() {
 		locals := node.Locals()
 		if locals != nil {
 			// We conservatively include alias symbols to cover cases where they're emitted as locals
-			if local, ok := locals[name]; ok && local.Flags&(ast.SymbolFlagsValue|ast.SymbolFlagsExportValue|ast.SymbolFlagsAlias) != 0 {
+			if local, ok := locals[name]; ok && local.Flags()&(ast.SymbolFlagsValue|ast.SymbolFlagsExportValue|ast.SymbolFlagsAlias) != 0 {
 				return false
 			}
 		}

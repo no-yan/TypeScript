@@ -67,7 +67,7 @@ func hasReadonlyModifier(node store.Node) bool {
 }
 
 func isStaticPrivateIdentifierProperty(s *store.Symbol) bool {
-	return !s.ValueDeclaration.IsNil() && store.IsPrivateIdentifierClassElementDeclaration(s.ValueDeclaration) && store.IsStatic(s.ValueDeclaration)
+	return !s.ValueDeclaration().IsNil() && store.IsPrivateIdentifierClassElementDeclaration(s.ValueDeclaration()) && store.IsStatic(s.ValueDeclaration())
 }
 
 type AssignmentKind int32
@@ -176,7 +176,7 @@ func canHaveLocals(node store.Node) bool {
 }
 
 func isShorthandAmbientModuleSymbol(moduleSymbol *store.Symbol) bool {
-	return isShorthandAmbientModule(moduleSymbol.ValueDeclaration)
+	return isShorthandAmbientModule(moduleSymbol.ValueDeclaration())
 }
 
 func isShorthandAmbientModule(node store.Node) bool {
@@ -230,7 +230,7 @@ func isSyntacticDefault(node store.Node) bool {
 }
 
 func hasExportAssignmentSymbol(moduleSymbol *store.Symbol) bool {
-	return moduleSymbol.Exports[ast.InternalSymbolNameExportEquals] != nil
+	return moduleSymbol.Exports()[ast.InternalSymbolNameExportEquals] != nil
 }
 
 func isTypeAlias(node store.Node) bool {
@@ -325,7 +325,7 @@ func createSymbolTable(symbols []*store.Symbol) store.SymbolTable {
 	}
 	result := make(store.SymbolTable)
 	for _, symbol := range symbols {
-		result[symbol.Name] = symbol
+		result[symbol.Name()] = symbol
 	}
 	return result
 }
@@ -344,16 +344,16 @@ func (c *Checker) compareSymbolsWorker(s1, s2 *store.Symbol) int {
 	if s2 == nil {
 		return -1
 	}
-	if len(s1.Declarations) != 0 && len(s2.Declarations) != 0 {
-		if r := c.compareNodes(s1.Declarations[0], s2.Declarations[0]); r != 0 {
+	if len(s1.Declarations()) != 0 && len(s2.Declarations()) != 0 {
+		if r := c.compareNodes(s1.Declarations()[0], s2.Declarations()[0]); r != 0 {
 			return r
 		}
-	} else if len(s1.Declarations) != 0 {
+	} else if len(s1.Declarations()) != 0 {
 		return -1
-	} else if len(s2.Declarations) != 0 {
+	} else if len(s2.Declarations()) != 0 {
 		return 1
 	}
-	if r := strings.Compare(s1.Name, s2.Name); r != 0 {
+	if r := strings.Compare(s1.Name(), s2.Name()); r != 0 {
 		return r
 	}
 	// Fall back to symbol IDs. This is a last resort that should happen only when symbols have
@@ -413,11 +413,11 @@ func CompareTypes(t1, t2 *Type) int {
 		// Order other unnamed or identically named object types by symbol.
 		if t1.objectFlags&ObjectFlagsInstantiationExpressionType != 0 && t2.objectFlags&ObjectFlagsInstantiationExpressionType != 0 {
 			var declaration1, declaration2 store.Node
-			if t1.symbol != nil && len(t1.symbol.Declarations) != 0 {
-				declaration1 = t1.symbol.Declarations[0]
+			if t1.symbol != nil && len(t1.symbol.Declarations()) != 0 {
+				declaration1 = t1.symbol.Declarations()[0]
 			}
-			if t2.symbol != nil && len(t2.symbol.Declarations) != 0 {
-				declaration2 = t2.symbol.Declarations[0]
+			if t2.symbol != nil && len(t2.symbol.Declarations()) != 0 {
+				declaration2 = t2.symbol.Declarations()[0]
 			}
 			// A single instantiation expression can produce multiple types for union constituents,
 			// so compare their source declarations before comparing the shared expression node.
@@ -613,7 +613,7 @@ func compareTypeNames(t1, t2 *Type) int {
 	if s2 == nil {
 		return -1
 	}
-	if c := strings.Compare(s1.Name, s2.Name); c != 0 {
+	if c := strings.Compare(s1.Name(), s2.Name()); c != 0 {
 		return c
 	}
 	// Keep distinct same-named declarations together before comparing alias arguments or structure.
@@ -724,39 +724,39 @@ func getDeclarationModifierFlagsFromSymbol(s *store.Symbol) ast.ModifierFlags {
 }
 
 func getDeclarationModifierFlagsFromSymbolEx(s *store.Symbol, isWrite bool) ast.ModifierFlags {
-	if s.CheckFlags&ast.CheckFlagsSynthetic != 0 {
+	if s.CheckFlags()&ast.CheckFlagsSynthetic != 0 {
 		var accessModifier ast.ModifierFlags
 		switch {
-		case !isWrite && s.CheckFlags&ast.CheckFlagsContainsPublic != 0 || isWrite && s.CheckFlags&ast.CheckFlagsContainsWritePublic != 0:
+		case !isWrite && s.CheckFlags()&ast.CheckFlagsContainsPublic != 0 || isWrite && s.CheckFlags()&ast.CheckFlagsContainsWritePublic != 0:
 			accessModifier = ast.ModifierFlagsPublic
-		case !isWrite && s.CheckFlags&ast.CheckFlagsContainsProtected != 0 || isWrite && s.CheckFlags&ast.CheckFlagsContainsWriteProtected != 0:
+		case !isWrite && s.CheckFlags()&ast.CheckFlagsContainsProtected != 0 || isWrite && s.CheckFlags()&ast.CheckFlagsContainsWriteProtected != 0:
 			accessModifier = ast.ModifierFlagsProtected
-		case !isWrite && s.CheckFlags&ast.CheckFlagsContainsPrivate != 0 || isWrite && s.CheckFlags&ast.CheckFlagsContainsWritePrivate != 0:
+		case !isWrite && s.CheckFlags()&ast.CheckFlagsContainsPrivate != 0 || isWrite && s.CheckFlags()&ast.CheckFlagsContainsWritePrivate != 0:
 			accessModifier = ast.ModifierFlagsPrivate
 		}
-		if s.CheckFlags&ast.CheckFlagsContainsStatic != 0 {
+		if s.CheckFlags()&ast.CheckFlagsContainsStatic != 0 {
 			return accessModifier | ast.ModifierFlagsStatic
 		}
 		return accessModifier
 	}
-	if !s.ValueDeclaration.IsNil() {
+	if !s.ValueDeclaration().IsNil() {
 		var declaration store.Node
 		if isWrite {
-			declaration = core.Find(s.Declarations, store.IsSetAccessorDeclaration)
+			declaration = core.Find(s.Declarations(), store.IsSetAccessorDeclaration)
 		}
-		if declaration.IsNil() && s.Flags&ast.SymbolFlagsGetAccessor != 0 {
-			declaration = core.Find(s.Declarations, store.IsGetAccessorDeclaration)
+		if declaration.IsNil() && s.Flags()&ast.SymbolFlagsGetAccessor != 0 {
+			declaration = core.Find(s.Declarations(), store.IsGetAccessorDeclaration)
 		}
 		if declaration.IsNil() {
-			declaration = s.ValueDeclaration
+			declaration = s.ValueDeclaration()
 		}
 		flags := store.GetCombinedModifierFlags(declaration)
-		if s.Parent != nil && s.Parent.Flags&ast.SymbolFlagsClass != 0 {
+		if s.Parent() != nil && s.Parent().Flags()&ast.SymbolFlagsClass != 0 {
 			return flags
 		}
 		return flags & ^ast.ModifierFlagsAccessibilityModifier
 	}
-	if s.Flags&ast.SymbolFlagsPrototype != 0 {
+	if s.Flags()&ast.SymbolFlagsPrototype != 0 {
 		return ast.ModifierFlagsPublic | ast.ModifierFlagsStatic
 	}
 	return ast.ModifierFlagsNone
@@ -938,14 +938,14 @@ func isVariableDeclarationInVariableStatement(node store.Node) bool {
 }
 
 func IsKnownSymbol(symbol *store.Symbol) bool {
-	return isLateBoundName(symbol.Name)
+	return isLateBoundName(symbol.Name())
 }
 
 func IsPrivateIdentifierSymbol(symbol *store.Symbol) bool {
 	if symbol == nil {
 		return false
 	}
-	return strings.HasPrefix(symbol.Name, ast.InternalSymbolNamePrefix+"#")
+	return strings.HasPrefix(symbol.Name(), ast.InternalSymbolNamePrefix+"#")
 }
 
 func isLateBoundName(name string) bool {
@@ -999,13 +999,13 @@ func isThisInitializedDeclaration(node store.Node) bool {
 }
 
 func (c *Checker) isConstantVariable(symbol *store.Symbol) bool {
-	return symbol.Flags&ast.SymbolFlagsVariable != 0 && (c.getDeclarationNodeFlagsFromSymbol(symbol)&ast.NodeFlagsConstant) != 0
+	return symbol.Flags()&ast.SymbolFlagsVariable != 0 && (c.getDeclarationNodeFlagsFromSymbol(symbol)&ast.NodeFlagsConstant) != 0
 }
 
 func (c *Checker) isParameterOrMutableLocalVariable(symbol *store.Symbol) bool {
 	// Return true if symbol is a parameter, a catch clause variable, or a mutable local variable
-	if !symbol.ValueDeclaration.IsNil() {
-		declaration := store.GetRootDeclaration(symbol.ValueDeclaration)
+	if !symbol.ValueDeclaration().IsNil() {
+		declaration := store.GetRootDeclaration(symbol.ValueDeclaration())
 		return !declaration.IsNil() && (store.IsParameterDeclaration(declaration) || store.IsVariableDeclaration(declaration) && (store.IsCatchClause(declaration.Parent()) || c.isMutableLocalVariableDeclaration(declaration)))
 	}
 	return false
@@ -1210,7 +1210,7 @@ func getEnclosingContainer(node store.Node) store.Node {
 }
 
 func getDeclarationsOfKind(symbol *store.Symbol, kind ast.Kind) []store.Node {
-	return core.Filter(symbol.Declarations, func(d store.Node) bool { return d.Kind() == kind })
+	return core.Filter(symbol.Declarations(), func(d store.Node) bool { return d.Kind() == kind })
 }
 
 func hasType(node store.Node) bool {
@@ -1539,9 +1539,9 @@ func tryGetPropertyAccessOrIdentifierToString(expr store.Node) string {
 }
 
 func allDeclarationsInSameSourceFile(symbol *store.Symbol) bool {
-	if len(symbol.Declarations) > 1 {
+	if len(symbol.Declarations()) > 1 {
 		var sourceFile *store.File
-		for i, d := range symbol.Declarations {
+		for i, d := range symbol.Declarations() {
 			if i == 0 {
 				sourceFile = d.File()
 			} else if d.File() != sourceFile {
@@ -1626,17 +1626,17 @@ func (c *Checker) isUncheckedJSSuggestion(node store.Node, suggestion *store.Sym
 		if c.compilerOptions.CheckJs.IsUnknown() && file.CheckJsDirective == nil && (file.ScriptKind == core.ScriptKindJS || file.ScriptKind == core.ScriptKindJSX) {
 			var declarationFile *store.File
 			if suggestion != nil {
-				if firstDeclaration := core.FirstOrNil(suggestion.Declarations); !firstDeclaration.IsNil() {
+				if firstDeclaration := core.FirstOrNil(suggestion.Declarations()); !firstDeclaration.IsNil() {
 					declarationFile = firstDeclaration.File()
 				}
 			}
 			suggestionHasNoExtendsOrDecorators := suggestion == nil ||
-				suggestion.ValueDeclaration.IsNil() ||
-				!store.IsClassLike(suggestion.ValueDeclaration) ||
-				len(store.GetExtendsHeritageClauseElements(suggestion.ValueDeclaration)) != 0 ||
-				store.ClassOrConstructorParameterIsDecorated(false, suggestion.ValueDeclaration)
+				suggestion.ValueDeclaration().IsNil() ||
+				!store.IsClassLike(suggestion.ValueDeclaration()) ||
+				len(store.GetExtendsHeritageClauseElements(suggestion.ValueDeclaration())) != 0 ||
+				store.ClassOrConstructorParameterIsDecorated(false, suggestion.ValueDeclaration())
 			return !(file != declarationFile && declarationFile != nil && store.IsGlobalSourceFile(declarationFile.Root())) &&
-				!(excludeClasses && suggestion != nil && suggestion.Flags&ast.SymbolFlagsClass != 0 && suggestionHasNoExtendsOrDecorators) &&
+				!(excludeClasses && suggestion != nil && suggestion.Flags()&ast.SymbolFlagsClass != 0 && suggestionHasNoExtendsOrDecorators) &&
 				!(!node.IsNil() && excludeClasses && store.IsPropertyAccessExpression(node) && node.Expression().Kind() == ast.KindThisKeyword && suggestionHasNoExtendsOrDecorators)
 		}
 	}

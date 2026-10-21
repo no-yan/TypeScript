@@ -182,7 +182,7 @@ func (u *universe) mentions(t types.Type, named func(*types.Named) bool) bool {
 		case *types.Named:
 			if t.Obj().Pkg() == u.ast {
 				switch t.Obj().Name() {
-				case "SymbolTable", "NodeId", "NodeFactory", "Symbol":
+				case "SymbolTable", "NodeId", "NodeFactory", "Symbol", "SymbolWithData":
 					return true
 				}
 			}
@@ -385,6 +385,10 @@ func (u *universe) mapType(t types.Type) (types.Type, bool) {
 				case "Symbol":
 					// A Symbol by value: a composite literal of one.
 					return u.storeType("Symbol")
+				case "SymbolWithData":
+					// A symbol with its data (6ad8c56f9b): package store's, whose
+					// data also holds the Bound's id, so the shapes differ.
+					return u.storeType("SymbolWithData")
 				case "Node", "NodeList", "ModifierList", "FlowNode":
 					ok = false
 				}

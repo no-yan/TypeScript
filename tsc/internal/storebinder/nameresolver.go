@@ -68,10 +68,10 @@ loop:
 					// - parameters are only in the scope of function body
 					// This restriction does not apply to JSDoc comment types because they are parented
 					// at a higher level than type parameters would normally be
-					if meaning&result.Flags&ast.SymbolFlagsType != 0 && lastLocation.Kind() != ast.KindJSDoc {
+					if meaning&result.Flags()&ast.SymbolFlagsType != 0 && lastLocation.Kind() != ast.KindJSDoc {
 						// type parameters are visible in parameter list, return type and type parameter list.
 						// Synthetic fake scopes are added for signatures so type parameters are accessible from them.
-						useResult = result.Flags&ast.SymbolFlagsTypeParameter != 0 &&
+						useResult = result.Flags()&ast.SymbolFlagsTypeParameter != 0 &&
 							(lastLocation.Flags()&ast.NodeFlagsSynthesized != 0 ||
 								store.SameNode(lastLocation, location.Type()) ||
 								lastLocation.Kind() == ast.KindParameter ||
@@ -79,18 +79,18 @@ loop:
 								lastLocation.Kind() == ast.KindJSDocReturnTag ||
 								lastLocation.Kind() == ast.KindTypeParameter)
 					}
-					if meaning&result.Flags&ast.SymbolFlagsVariable != 0 {
+					if meaning&result.Flags()&ast.SymbolFlagsVariable != 0 {
 						// expression inside parameter will lookup as normal variable scope when targeting es2015+
 						if r.useOuterVariableScopeInParameter(result, location, lastLocation) {
 							useResult = false
-						} else if result.Flags&ast.SymbolFlagsFunctionScopedVariable != 0 {
+						} else if result.Flags()&ast.SymbolFlagsFunctionScopedVariable != 0 {
 							// parameters are visible only inside function body, parameter list and return type
 							// technically for parameter list case here we might mix parameters and variables declared in function,
 							// however it is detected separately when checking initializers of parameters
 							// to make sure that they reference no variables declared after them.
 							useResult = lastLocation.Kind() == ast.KindParameter ||
 								lastLocation.Flags()&ast.NodeFlagsSynthesized != 0 ||
-								store.SameNode(lastLocation, location.Type()) && !store.FindAncestor(result.ValueDeclaration, store.IsParameterDeclaration).IsNil()
+								store.SameNode(lastLocation, location.Type()) && !store.FindAncestor(result.ValueDeclaration(), store.IsParameterDeclaration).IsNil()
 						}
 					}
 				} else if location.Kind() == ast.KindConditionalType {
@@ -119,14 +119,14 @@ loop:
 			if moduleSymbol == nil {
 				break
 			}
-			moduleExports := moduleSymbol.Exports
+			moduleExports := moduleSymbol.Exports()
 			if store.IsSourceFile(location) || (store.IsModuleDeclaration(location) && location.Flags()&ast.NodeFlagsAmbient != 0 && !store.IsGlobalScopeAugmentation(location)) {
 				// It's an external module. First see if the module has an export default and if the local
 				// name of that export default matches.
 				result = moduleExports[ast.InternalSymbolNameDefault]
 				if result != nil {
 					localSymbol := GetLocalSymbolForExportDefault(result)
-					if localSymbol != nil && result.Flags&meaning != 0 && localSymbol.Name == name {
+					if localSymbol != nil && result.Flags()&meaning != 0 && localSymbol.Name() == name {
 						break loop
 					}
 					result = nil
@@ -143,13 +143,13 @@ loop:
 				//        an alias. If we used &, we'd be throwing out symbols that have non alias aspects,
 				//        which is not the desired behavior.
 				moduleExport := moduleExports[name]
-				if moduleExport != nil && moduleExport.Flags == ast.SymbolFlagsAlias && (!store.GetDeclarationOfKind(moduleExport, ast.KindExportSpecifier).IsNil() || !store.GetDeclarationOfKind(moduleExport, ast.KindNamespaceExport).IsNil()) {
+				if moduleExport != nil && moduleExport.Flags() == ast.SymbolFlagsAlias && (!store.GetDeclarationOfKind(moduleExport, ast.KindExportSpecifier).IsNil() || !store.GetDeclarationOfKind(moduleExport, ast.KindNamespaceExport).IsNil()) {
 					break
 				}
 			}
 			if name != ast.InternalSymbolNameDefault {
 				if result = r.lookup(moduleExports, name, meaning&ast.SymbolFlagsModuleMember); result != nil {
-					if store.IsSourceFile(location) && !location.File().CommonJSModuleIndicator().IsNil() && result.Flags&ast.SymbolFlagsType == 0 {
+					if store.IsSourceFile(location) && !location.File().CommonJSModuleIndicator().IsNil() && result.Flags()&ast.SymbolFlagsType == 0 {
 						result = nil
 					} else {
 						break loop
@@ -161,12 +161,12 @@ loop:
 			if enumSymbol == nil {
 				break
 			}
-			result = r.lookup(enumSymbol.Exports, name, meaning&ast.SymbolFlagsEnumMember)
+			result = r.lookup(enumSymbol.Exports(), name, meaning&ast.SymbolFlagsEnumMember)
 			if result != nil {
-				if nameNotFoundMessage != nil && r.CompilerOptions.GetIsolatedModules() && location.Flags()&ast.NodeFlagsAmbient == 0 && location.File() != result.ValueDeclaration.File() {
+				if nameNotFoundMessage != nil && r.CompilerOptions.GetIsolatedModules() && location.Flags()&ast.NodeFlagsAmbient == 0 && location.File() != result.ValueDeclaration().File() {
 					isolatedModulesLikeFlagName := core.IfElse(r.CompilerOptions.VerbatimModuleSyntax == core.TSTrue, "verbatimModuleSyntax", "isolatedModules")
 					r.error(originalLocation, diagnostics.Cannot_access_0_from_another_file_without_qualification_when_1_is_enabled_Use_2_instead,
-						name, isolatedModulesLikeFlagName, enumSymbol.Name+"."+name)
+						name, isolatedModulesLikeFlagName, enumSymbol.Name()+"."+name)
 				}
 				break loop
 			}
@@ -181,7 +181,7 @@ loop:
 				}
 			}
 		case ast.KindClassDeclaration, ast.KindClassExpression, ast.KindInterfaceDeclaration:
-			result = r.lookup(r.getSymbolOfDeclaration(location).Members, name, meaning&ast.SymbolFlagsType)
+			result = r.lookup(r.getSymbolOfDeclaration(location).Members(), name, meaning&ast.SymbolFlagsType)
 			if result != nil {
 				if !isTypeParameterSymbolDeclaredInContainer(result, location) {
 					// ignore type parameters not declared in this container
@@ -210,7 +210,7 @@ loop:
 			if store.SameNode(lastLocation, location.Expression()) && store.IsHeritageClause(location.Parent()) && location.Parent().AsHeritageClause().Token() == ast.KindExtendsKeyword {
 				container := location.Parent().Parent()
 				if store.IsClassLike(container) {
-					result = r.lookup(r.getSymbolOfDeclaration(container).Members, name, meaning&ast.SymbolFlagsType)
+					result = r.lookup(r.getSymbolOfDeclaration(container).Members(), name, meaning&ast.SymbolFlagsType)
 					if result != nil {
 						if nameNotFoundMessage != nil {
 							r.error(originalLocation, diagnostics.Base_class_expressions_cannot_reference_class_type_parameters)
@@ -230,7 +230,7 @@ loop:
 			grandparent = location.Parent().Parent()
 			if store.IsClassLike(grandparent) || store.IsInterfaceDeclaration(grandparent) {
 				// A reference to this grandparent's type parameters would be an error
-				result = r.lookup(r.getSymbolOfDeclaration(grandparent).Members, name, meaning&ast.SymbolFlagsType)
+				result = r.lookup(r.getSymbolOfDeclaration(grandparent).Members(), name, meaning&ast.SymbolFlagsType)
 				if result != nil {
 					if nameNotFoundMessage != nil {
 						r.error(originalLocation, diagnostics.A_computed_property_name_cannot_reference_a_type_parameter_from_its_containing_type)
@@ -359,7 +359,7 @@ loop:
 func (r *NameResolver) useOuterVariableScopeInParameter(result *store.Symbol, location store.Node, lastLocation store.Node) bool {
 	if store.IsParameterDeclaration(lastLocation) {
 		body := location.Body()
-		if !body.IsNil() && !result.ValueDeclaration.IsNil() && result.ValueDeclaration.Pos() >= body.Pos() && result.ValueDeclaration.End() <= body.End() {
+		if !body.IsNil() && !result.ValueDeclaration().IsNil() && result.ValueDeclaration().Pos() >= body.Pos() && result.ValueDeclaration().End() <= body.End() {
 			// check for several cases where we introduce temporaries that require moving the name/initializer of the parameter to the body
 			// - static field in a class expression
 			// - optional chaining pre-es2020
@@ -436,7 +436,7 @@ func (r *NameResolver) lookup(symbols store.SymbolTable, name string, meaning as
 	if meaning != 0 {
 		symbol := symbols[name]
 		if symbol != nil {
-			if symbol.Flags&meaning != 0 {
+			if symbol.Flags()&meaning != 0 {
 				return symbol
 			}
 		}
@@ -447,16 +447,18 @@ func (r *NameResolver) lookup(symbols store.SymbolTable, name string, meaning as
 func (r *NameResolver) argumentsSymbol() *store.Symbol {
 	if r.ArgumentsSymbol == nil {
 		// Default implementation synthesizes a transient symbol for `arguments`
-		r.ArgumentsSymbol = &store.Symbol{Name: "arguments", Flags: ast.SymbolFlagsProperty | ast.SymbolFlagsTransient}
+		r.ArgumentsSymbol = store.NewSymbol()
+		r.ArgumentsSymbol.SetName("arguments")
+		r.ArgumentsSymbol.SetFlags(ast.SymbolFlagsProperty | ast.SymbolFlagsTransient)
 	}
 	return r.ArgumentsSymbol
 }
 
 func GetLocalSymbolForExportDefault(symbol *store.Symbol) *store.Symbol {
-	if !isExportDefaultSymbol(symbol) || len(symbol.Declarations) == 0 {
+	if !isExportDefaultSymbol(symbol) || len(symbol.Declarations()) == 0 {
 		return nil
 	}
-	for _, decl := range symbol.Declarations {
+	for _, decl := range symbol.Declarations() {
 		localSymbol := decl.LocalSymbol()
 		if localSymbol != nil {
 			return localSymbol
@@ -466,7 +468,7 @@ func GetLocalSymbolForExportDefault(symbol *store.Symbol) *store.Symbol {
 }
 
 func isExportDefaultSymbol(symbol *store.Symbol) bool {
-	return symbol != nil && len(symbol.Declarations) > 0 && store.HasSyntacticModifier(symbol.Declarations[0], ast.ModifierFlagsDefault)
+	return symbol != nil && len(symbol.Declarations()) > 0 && store.HasSyntacticModifier(symbol.Declarations()[0], ast.ModifierFlagsDefault)
 }
 
 func getIsDeferredContext(location store.Node, lastLocation store.Node) bool {
@@ -488,7 +490,7 @@ func getIsDeferredContext(location store.Node, lastLocation store.Node) bool {
 }
 
 func isTypeParameterSymbolDeclaredInContainer(symbol *store.Symbol, container store.Node) bool {
-	for _, decl := range symbol.Declarations {
+	for _, decl := range symbol.Declarations() {
 		if decl.Kind() == ast.KindTypeParameter {
 			parent := decl.Parent()
 			if store.SameNode(parent, container) {

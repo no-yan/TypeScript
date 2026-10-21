@@ -43,5 +43,5 @@ type EmitResolver struct {
 }
 
 func isConstEnumOrConstEnumOnlyModule(s *store.Symbol) bool {
-	return isConstEnumSymbol(s) || s.Flags&ast.SymbolFlagsConstEnumOnlyModule != 0
+	return isConstEnumSymbol(s) || s.Flags()&ast.SymbolFlagsConstEnumOnlyModule != 0
 }

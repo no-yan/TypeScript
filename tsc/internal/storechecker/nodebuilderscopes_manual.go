@@ -15,7 +15,7 @@ import (
 // enterNewScope writes the locals of the fake scope through the Factory on the
 // node (R8): a lone LocalsContainerData() has no Store form (4.1).
 //
-// storetranslate:pointer-hash 910175ac4921b3df nodebuilderscopes.go:NodeBuilderImpl.enterNewScope
+// storetranslate:pointer-hash f4f9d183011db17f nodebuilderscopes.go:NodeBuilderImpl.enterNewScope
 func (b *NodeBuilderImpl) enterNewScope(declaration store.Node, expandedParams []*store.Symbol, typeParameters []*Type, originalParameters []*store.Symbol, mapper *TypeMapper) func() {
 	cleanupContext := cloneNodeBuilderContext(b.ctx)
 	// For regular function/method declarations, the enclosing declaration will already be signature.declaration,
@@ -134,9 +134,9 @@ func (b *NodeBuilderImpl) enterNewScope(declaration store.Node, expandedParams [
 					if originalParameters != nil && originalParam != param {
 						// Can't reference the expanded parameter name, just the original, unless we've expanded the param list for some reason
 						if originalParam != nil {
-							add(originalParam.Name, originalParam)
+							add(originalParam.Name(), originalParam)
 						}
-					} else if !core.Some(param.Declarations, func(d store.Node) bool {
+					} else if !core.Some(param.Declarations(), func(d store.Node) bool {
 						var bindElement func(e store.BindingElement)
 						var bindPattern func(e store.BindingPattern)
 
@@ -163,7 +163,7 @@ func (b *NodeBuilderImpl) enterNewScope(declaration store.Node, expandedParams [
 							}
 							symbol := b.ch.getSymbolOfDeclaration(store.Node(e))
 							if symbol != nil { // omitted expressions are now parsed as nameless binding patterns and also have no symbol
-								add(symbol.Name, symbol)
+								add(symbol.Name(), symbol)
 							}
 						}
 						bindElement = bindElementWorker
@@ -175,7 +175,7 @@ func (b *NodeBuilderImpl) enterNewScope(declaration store.Node, expandedParams [
 						}
 						return false
 					}) {
-						add(param.Name, param)
+						add(param.Name(), param)
 					}
 				}
 			})

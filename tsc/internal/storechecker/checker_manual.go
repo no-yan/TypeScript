@@ -240,7 +240,7 @@ func (c *Checker) hasCorrectTypeArgumentArityList(signature *Signature, typeArgu
 // into a []Node for the list of lists it keeps (R3 resolves them only where a
 // range or an index reads them).
 //
-// storetranslate:pointer-hash 3b37de1440a3ac4a checker.go:Checker.initializeChecker
+// storetranslate:pointer-hash be520516d7a9de2f checker.go:Checker.initializeChecker
 func (c *Checker) initializeChecker() {
 	// Initialize global symbol table
 	var ambientModuleSymbols []*store.Symbol
@@ -249,14 +249,14 @@ func (c *Checker) initializeChecker() {
 		if !store.IsExternalOrCommonJSModule(file) {
 			// It is an error for a non-external-module (i.e. script) to declare its own `globalThis`.
 			if fileGlobalThisSymbol := file.Locals()["globalThis"]; fileGlobalThisSymbol != nil {
-				for _, d := range fileGlobalThisSymbol.Declarations {
+				for _, d := range fileGlobalThisSymbol.Declarations() {
 					c.addDiagnostic(NewDiagnosticForNode(d, diagnostics.Declaration_name_conflicts_with_built_in_global_identifier_0, "globalThis"))
 				}
 			}
 			for _, symbol := range file.Locals() {
 				// We defer merging of global ambient module declarations since they may require other global symbols
 				// and types to be resolved. See https://github.com/microsoft/TypeScript/tsc/issues/2953.
-				if symbol.Flags&ast.SymbolFlagsModule != 0 && ast.IsAmbientModuleSymbolName(symbol.Name) {
+				if symbol.Flags()&ast.SymbolFlagsModule != 0 && ast.IsAmbientModuleSymbolName(symbol.Name()) {
 					ambientModuleSymbols = append(ambientModuleSymbols, symbol)
 				} else {
 					c.mergeGlobalSymbol(symbol)
@@ -396,9 +396,9 @@ func (c *Checker) checkAllCodePathsInNonVoidFunctionReturnOrThrow(fn store.Node,
 // (*ast.Node).TypeParameters, whose Store version returns a List: the list
 // copied with Nodes() (R4').
 //
-// storetranslate:pointer-hash 77c63216e3fd4859 checker.go:Checker.checkTypeParameterListsIdentical
+// storetranslate:pointer-hash 4815f262da029563 checker.go:Checker.checkTypeParameterListsIdentical
 func (c *Checker) checkTypeParameterListsIdentical(symbol *store.Symbol) {
-	if len(symbol.Declarations) == 1 {
+	if len(symbol.Declarations()) == 1 {
 		return
 	}
 	links := c.declaredTypeLinks.Get(symbol)
@@ -479,7 +479,7 @@ func (c *Checker) checkIfExpressionRefinesParameter(fn store.Node, expr store.No
 // node, which a NodeKey does not give: the nodes are kept in a second map of
 // the same keys.
 //
-// storetranslate:pointer-hash 9eef049f74be2246 checker.go:Checker.checkKindsOfPropertyMemberOverrides
+// storetranslate:pointer-hash ac123d1dacbd5242 checker.go:Checker.checkKindsOfPropertyMemberOverrides
 func (c *Checker) checkKindsOfPropertyMemberOverrides(t *Type, baseType *Type) {
 	// TypeScript 1.0 spec (April 2014): 8.2.3
 	// A derived class inherits all members from its base class it doesn't override.
@@ -505,10 +505,10 @@ func (c *Checker) checkKindsOfPropertyMemberOverrides(t *Type, baseType *Type) {
 basePropertyCheck:
 	for _, baseProperty := range c.getPropertiesOfType(baseType) {
 		base := c.getTargetSymbol(baseProperty)
-		if base.Flags&ast.SymbolFlagsPrototype != 0 {
+		if base.Flags()&ast.SymbolFlagsPrototype != 0 {
 			continue
 		}
-		baseSymbol := c.getPropertyOfObjectType(t, base.Name)
+		baseSymbol := c.getPropertyOfObjectType(t, base.Name())
 		if baseSymbol == nil {
 			continue
 		}
@@ -532,7 +532,7 @@ basePropertyCheck:
 						if otherBaseType == baseType {
 							continue
 						}
-						if baseSymbol := c.getPropertyOfObjectType(otherBaseType, base.Name); baseSymbol != nil && base != c.getTargetSymbol(baseSymbol) {
+						if baseSymbol := c.getPropertyOfObjectType(otherBaseType, base.Name()); baseSymbol != nil && base != c.getTargetSymbol(baseSymbol) {
 							// Derived property exists elsewhere.
 							continue basePropertyCheck
 						}
@@ -560,12 +560,12 @@ basePropertyCheck:
 				continue
 			}
 			var errorMessage *diagnostics.Message
-			basePropertyFlags := base.Flags & ast.SymbolFlagsPropertyOrAccessor
-			derivedPropertyFlags := derived.Flags & ast.SymbolFlagsPropertyOrAccessor
+			basePropertyFlags := base.Flags() & ast.SymbolFlagsPropertyOrAccessor
+			derivedPropertyFlags := derived.Flags() & ast.SymbolFlagsPropertyOrAccessor
 			if basePropertyFlags != 0 && derivedPropertyFlags != 0 {
 				// property/accessor is overridden with property/accessor
-				if base.CheckFlags&ast.CheckFlagsMapped != 0 ||
-					!derived.ValueDeclaration.IsNil() && store.IsBinaryExpression(derived.ValueDeclaration) ||
+				if base.CheckFlags()&ast.CheckFlagsMapped != 0 ||
+					!derived.ValueDeclaration().IsNil() && store.IsBinaryExpression(derived.ValueDeclaration()) ||
 					c.arePropertiesAbstractOrInterface(base, baseDeclarationFlags) {
 					// when the base property is abstract or from an interface, base/derived flags don't need to match
 					// for intersection properties, this must be true of *any* of the declarations, for others it must be true of *all*
@@ -578,37 +578,37 @@ basePropertyCheck:
 					errorMessage := core.IfElse(overriddenInstanceProperty,
 						diagnostics.X_0_is_defined_as_an_accessor_in_class_1_but_is_overridden_here_in_2_as_an_instance_property,
 						diagnostics.X_0_is_defined_as_a_property_in_class_1_but_is_overridden_here_in_2_as_an_accessor)
-					c.error(store.OrElse(store.GetNameOfDeclaration(derived.ValueDeclaration), derived.ValueDeclaration), errorMessage, c.symbolToString(base), c.TypeToString(baseType), c.TypeToString(t))
+					c.error(store.OrElse(store.GetNameOfDeclaration(derived.ValueDeclaration()), derived.ValueDeclaration()), errorMessage, c.symbolToString(base), c.TypeToString(baseType), c.TypeToString(t))
 				} else if c.compilerOptions.GetUseDefineForClassFields() {
-					uninitialized := core.Find(derived.Declarations, func(d store.Node) bool {
+					uninitialized := core.Find(derived.Declarations(), func(d store.Node) bool {
 						return store.IsPropertyDeclaration(d) && d.Initializer().IsNil()
 					})
-					if !uninitialized.IsNil() && derived.Flags&ast.SymbolFlagsTransient == 0 && baseDeclarationFlags&ast.ModifierFlagsAbstract == 0 && derivedDeclarationFlags&ast.ModifierFlagsAbstract == 0 && !core.Some(derived.Declarations, func(d store.Node) bool {
+					if !uninitialized.IsNil() && derived.Flags()&ast.SymbolFlagsTransient == 0 && baseDeclarationFlags&ast.ModifierFlagsAbstract == 0 && derivedDeclarationFlags&ast.ModifierFlagsAbstract == 0 && !core.Some(derived.Declarations(), func(d store.Node) bool {
 						return d.Flags()&ast.NodeFlagsAmbient != 0
 					}) {
 						constructor := store.FindConstructorDeclaration(store.GetClassLikeDeclarationOfSymbol(t.symbol))
 						propName := uninitialized.Name()
 						if isExclamationToken(uninitialized.PostfixToken()) || constructor.IsNil() || !store.IsIdentifier(propName) || !c.strictNullChecks || !c.isPropertyInitializedInConstructor(propName, t, constructor) {
 							errorMessage := diagnostics.Property_0_will_overwrite_the_base_property_in_1_If_this_is_intentional_add_an_initializer_Otherwise_add_a_declare_modifier_or_remove_the_redundant_declaration
-							c.error(store.OrElse(store.GetNameOfDeclaration(derived.ValueDeclaration), derived.ValueDeclaration), errorMessage, c.symbolToString(base), c.TypeToString(baseType))
+							c.error(store.OrElse(store.GetNameOfDeclaration(derived.ValueDeclaration()), derived.ValueDeclaration()), errorMessage, c.symbolToString(base), c.TypeToString(baseType))
 						}
 					}
 				}
 				// correct case
 				continue
 			} else if isPrototypeProperty(base) {
-				if isPrototypeProperty(derived) || derived.Flags&ast.SymbolFlagsProperty != 0 {
+				if isPrototypeProperty(derived) || derived.Flags()&ast.SymbolFlagsProperty != 0 {
 					// method is overridden with method or property -- correct case
 					continue
 				} else {
 					errorMessage = diagnostics.Class_0_defines_instance_member_function_1_but_extended_class_2_defines_it_as_instance_member_accessor
 				}
-			} else if base.Flags&ast.SymbolFlagsAccessor != 0 {
+			} else if base.Flags()&ast.SymbolFlagsAccessor != 0 {
 				errorMessage = diagnostics.Class_0_defines_instance_member_accessor_1_but_extended_class_2_defines_it_as_instance_member_function
 			} else {
 				errorMessage = diagnostics.Class_0_defines_instance_member_property_1_but_extended_class_2_defines_it_as_instance_member_function
 			}
-			c.error(store.OrElse(store.GetNameOfDeclaration(derived.ValueDeclaration), derived.ValueDeclaration), errorMessage, c.TypeToString(baseType), c.symbolToString(base), c.TypeToString(t))
+			c.error(store.OrElse(store.GetNameOfDeclaration(derived.ValueDeclaration()), derived.ValueDeclaration()), errorMessage, c.TypeToString(baseType), c.symbolToString(base), c.TypeToString(t))
 		}
 	}
 	for errorNodeKey, memberInfo := range notImplementedInfo {
@@ -671,19 +671,19 @@ func (c *Checker) findResolutionCycleStartIndex(target TypeSystemEntity, propert
 // checkUnusedLocalsAndParameters reads back the keys of a map keyed by a
 // node: as checkKindsOfPropertyMemberOverrides.
 //
-// storetranslate:pointer-hash 6b7e447d707db873 checker.go:Checker.checkUnusedLocalsAndParameters
+// storetranslate:pointer-hash 0bf39865aa50a155 checker.go:Checker.checkUnusedLocalsAndParameters
 func (c *Checker) checkUnusedLocalsAndParameters(node store.Node) {
 	var variableParents store.NodeSet
 	var importClauses map[store.NodeKey][]store.Node
 	var importClauseNodes map[store.NodeKey]store.Node
 	for _, local := range node.Locals() {
 		referenceKinds := c.symbolReferenceLinks.Get(local).referenceKinds
-		if local.Flags&ast.SymbolFlagsTypeParameter != 0 && (local.Flags&ast.SymbolFlagsVariable == 0 || referenceKinds&ast.SymbolFlagsVariable != 0) ||
-			local.Flags&ast.SymbolFlagsTypeParameter == 0 && (referenceKinds != 0 || local.ExportSymbol != nil ||
-				local.Flags&ast.SymbolFlagsModuleExports != 0) {
+		if local.Flags()&ast.SymbolFlagsTypeParameter != 0 && (local.Flags()&ast.SymbolFlagsVariable == 0 || referenceKinds&ast.SymbolFlagsVariable != 0) ||
+			local.Flags()&ast.SymbolFlagsTypeParameter == 0 && (referenceKinds != 0 || local.ExportSymbol() != nil ||
+				local.Flags()&ast.SymbolFlagsModuleExports != 0) {
 			continue
 		}
-		for _, declaration := range local.Declarations {
+		for _, declaration := range local.Declarations() {
 			switch {
 			case store.IsVariableDeclaration(declaration) || store.IsParameterDeclaration(declaration) || store.IsBindingElement(declaration):
 				variableParents.Add(store.GetRootDeclaration(declaration).Parent())
@@ -752,7 +752,7 @@ type Program interface {
 // Factory has no zero value. The IDSpace is the program's, not the first
 // file's: a program may have no file.
 //
-// storetranslate:pointer-hash 50a55d939c771ee6 checker.go:NewChecker
+// storetranslate:pointer-hash 29c6f3a7ca1363d2 checker.go:NewChecker
 func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	program.BindSourceFiles()
 
@@ -816,8 +816,8 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.errorTypes = make(map[CacheHashKey]*Type)
 	c.moduleSymbols = make(map[store.NodeKey]*store.Symbol)
 	c.globalThisSymbol = c.newSymbolEx(ast.SymbolFlagsModule, "globalThis", ast.CheckFlagsReadonly)
-	c.globalThisSymbol.Exports = c.globals
-	c.globals[c.globalThisSymbol.Name] = c.globalThisSymbol
+	c.globalThisSymbol.SetExports(c.globals)
+	c.globals[c.globalThisSymbol.Name()] = c.globalThisSymbol
 	c.resolveName = c.createNameResolver().Resolve
 	c.resolveNameForSymbolSuggestion = c.createNameResolverForSuggestion().Resolve
 	c.tupleTypes = make(map[CacheHashKey]*Type)

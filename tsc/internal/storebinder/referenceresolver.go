@@ -68,7 +68,7 @@ func (r *referenceResolver) getParentOfSymbol(symbol *store.Symbol) *store.Symbo
 		if r.hooks.GetParentOfSymbol != nil {
 			return r.hooks.GetParentOfSymbol(symbol)
 		}
-		return symbol.Parent
+		return symbol.Parent()
 	}
 	return nil
 }
@@ -135,7 +135,7 @@ func (r *referenceResolver) isTypeOnlyAliasDeclaration(symbol *store.Symbol) boo
 }
 
 func (r *referenceResolver) getDeclarationOfAliasSymbol(symbol *store.Symbol) store.Node {
-	return core.FindLast(symbol.Declarations, store.IsAliasSymbolDeclaration)
+	return core.FindLast(symbol.Declarations(), store.IsAliasSymbolDeclaration)
 }
 
 func (r *referenceResolver) getExportSymbolOfValueSymbolIfExported(symbol *store.Symbol) *store.Symbol {
@@ -143,8 +143,8 @@ func (r *referenceResolver) getExportSymbolOfValueSymbolIfExported(symbol *store
 		if r.hooks.GetExportSymbolOfValueSymbolIfExported != nil {
 			return r.hooks.GetExportSymbolOfValueSymbolIfExported(symbol)
 		}
-		if symbol.Flags&ast.SymbolFlagsExportValue != 0 && symbol.ExportSymbol != nil {
-			symbol = symbol.ExportSymbol
+		if symbol.Flags()&ast.SymbolFlagsExportValue != 0 && symbol.ExportSymbol() != nil {
+			symbol = symbol.ExportSymbol()
 		}
 		return r.getMergedSymbol(symbol)
 	}
@@ -158,20 +158,20 @@ func (r *referenceResolver) GetReferencedExportContainer(node store.Node, prefix
 	// declaration if it contains an exported member with the same name.
 	startInDeclarationContainer := !node.Parent().IsNil() && (node.Parent().Kind() == ast.KindModuleDeclaration || node.Parent().Kind() == ast.KindEnumDeclaration) && store.SameNode(node, node.Parent().Name())
 	if symbol := r.getReferencedValueSymbol(node, startInDeclarationContainer); symbol != nil {
-		if symbol.Flags&ast.SymbolFlagsExportValue != 0 {
+		if symbol.Flags()&ast.SymbolFlagsExportValue != 0 {
 			// If we reference an exported entity within the same module declaration, then whether
 			// we prefix depends on the kind of entity. SymbolFlags.ExportHasLocal encompasses all the
 			// kinds that we do NOT prefix.
-			exportSymbol := r.getMergedSymbol(symbol.ExportSymbol)
-			if !prefixLocals && exportSymbol.Flags&ast.SymbolFlagsExportHasLocal != 0 && exportSymbol.Flags&ast.SymbolFlagsVariable == 0 {
+			exportSymbol := r.getMergedSymbol(symbol.ExportSymbol())
+			if !prefixLocals && exportSymbol.Flags()&ast.SymbolFlagsExportHasLocal != 0 && exportSymbol.Flags()&ast.SymbolFlagsVariable == 0 {
 				return store.Node{}
 			}
 			symbol = exportSymbol
 		}
 		parentSymbol := r.getParentOfSymbol(symbol)
 		if parentSymbol != nil {
-			if parentSymbol.Flags&ast.SymbolFlagsValueModule != 0 && !parentSymbol.ValueDeclaration.IsNil() && parentSymbol.ValueDeclaration.Kind() == ast.KindSourceFile {
-				symbolFile := parentSymbol.ValueDeclaration.File()
+			if parentSymbol.Flags()&ast.SymbolFlagsValueModule != 0 && !parentSymbol.ValueDeclaration().IsNil() && parentSymbol.ValueDeclaration().Kind() == ast.KindSourceFile {
+				symbolFile := parentSymbol.ValueDeclaration().File()
 				referenceFile := node.File()
 				// If `node` accesses an export and that export isn't in the same file, then symbol is a namespace export, so return nil.
 				symbolIsUmdExport := symbolFile != referenceFile
@@ -204,7 +204,7 @@ func (r *referenceResolver) GetReferencedImportDeclaration(node store.Node) stor
 
 func (r *referenceResolver) GetReferencedValueDeclaration(node store.Node) store.Node {
 	if symbol := r.getReferencedValueSymbol(node, false /*startInDeclarationContainer*/); symbol != nil {
-		return r.getExportSymbolOfValueSymbolIfExported(symbol).ValueDeclaration
+		return r.getExportSymbolOfValueSymbolIfExported(symbol).ValueDeclaration()
 	}
 	return store.Node{}
 }
@@ -213,7 +213,7 @@ func (r *referenceResolver) GetReferencedValueDeclarations(node store.Node) []st
 	var declarations []store.Node
 	if symbol := r.getReferencedValueSymbol(node, false /*startInDeclarationContainer*/); symbol != nil {
 		symbol = r.getExportSymbolOfValueSymbolIfExported(symbol)
-		for _, declaration := range symbol.Declarations {
+		for _, declaration := range symbol.Declarations() {
 			switch declaration.Kind() {
 			case ast.KindVariableDeclaration,
 				ast.KindParameter,
@@ -261,5 +261,5 @@ func (r *referenceResolver) GetReferencedMemberValueDeclaration(node store.Node)
 	if s == nil {
 		return store.Node{}
 	}
-	return r.getExportSymbolOfValueSymbolIfExported(s).ValueDeclaration
+	return r.getExportSymbolOfValueSymbolIfExported(s).ValueDeclaration()
 }

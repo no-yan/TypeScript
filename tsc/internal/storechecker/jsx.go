@@ -280,17 +280,17 @@ func (c *Checker) discriminateContextualTypeByJSXAttributes(node store.Node, con
 			return false
 		}
 		initializer := p.Initializer()
-		return (initializer.IsNil() || c.isPossiblyDiscriminantValue(initializer)) && c.isDiscriminantProperty(contextualType, symbol.Name)
+		return (initializer.IsNil() || c.isPossiblyDiscriminantValue(initializer)) && c.isDiscriminantProperty(contextualType, symbol.Name())
 	})
 	discriminantMembers := core.Filter(c.getPropertiesOfType(contextualType), func(s *store.Symbol) bool {
-		if s.Flags&ast.SymbolFlagsOptional == 0 || node.Symbol() == nil {
+		if s.Flags()&ast.SymbolFlagsOptional == 0 || node.Symbol() == nil {
 			return false
 		}
 		element := node.Parent().Parent()
-		if s.Name == jsxChildrenPropertyName && store.IsJsxElement(element) && len(store.GetSemanticJsxChildrenList(element.Children())) != 0 {
+		if s.Name() == jsxChildrenPropertyName && store.IsJsxElement(element) && len(store.GetSemanticJsxChildrenList(element.Children())) != 0 {
 			return false
 		}
-		return node.Symbol().Members[s.Name] == nil && c.isDiscriminantProperty(contextualType, s.Name)
+		return node.Symbol().Members()[s.Name()] == nil && c.isDiscriminantProperty(contextualType, s.Name())
 	})
 	discriminator := &ObjectLiteralDiscriminator{c: c, props: discriminantProperties, members: discriminantMembers}
 	discriminated := c.discriminateTypeByDiscriminableItems(contextualType, discriminator)
@@ -475,8 +475,8 @@ func (c *Checker) elaborateIterableOrArrayLikeTargetElementwise(iterator iter.Se
 					diag := createDiagnosticForNode(prop, diagnostics.Type_0_is_not_assignable_to_type_1_with_exactOptionalPropertyTypes_Colon_true_Consider_adding_undefined_to_the_type_of_the_target, c.TypeToString(specificSource), c.TypeToString(targetPropType))
 					c.reportDiagnostic(diag, diagnosticOutput)
 				} else {
-					targetIsOptional := propName != ast.InternalSymbolNameMissing && core.OrElse(c.getPropertyOfType(tupleOrArrayLikeTargetParts, propName), c.unknownSymbol).Flags&ast.SymbolFlagsOptional != 0
-					sourceIsOptional := propName != ast.InternalSymbolNameMissing && core.OrElse(c.getPropertyOfType(source, propName), c.unknownSymbol).Flags&ast.SymbolFlagsOptional != 0
+					targetIsOptional := propName != ast.InternalSymbolNameMissing && core.OrElse(c.getPropertyOfType(tupleOrArrayLikeTargetParts, propName), c.unknownSymbol).Flags()&ast.SymbolFlagsOptional != 0
+					sourceIsOptional := propName != ast.InternalSymbolNameMissing && core.OrElse(c.getPropertyOfType(source, propName), c.unknownSymbol).Flags()&ast.SymbolFlagsOptional != 0
 					targetPropType = c.removeMissingType(targetPropType, targetIsOptional)
 					sourcePropType = c.removeMissingType(sourcePropType, targetIsOptional && sourceIsOptional)
 					result := c.checkTypeRelatedToEx(specificSource, targetPropType, relation, prop, nil, diagnosticOutput)
@@ -532,12 +532,12 @@ func (c *Checker) getJSXFragmentType(node store.Node) *Type {
 		links.jsxFragmentType = c.errorType
 		return links.jsxFragmentType
 	}
-	if jsxFactorySymbol.Name == ReactNames.Fragment {
+	if jsxFactorySymbol.Name() == ReactNames.Fragment {
 		links.jsxFragmentType = c.getTypeOfSymbol(jsxFactorySymbol)
 		return links.jsxFragmentType
 	}
 	resolvedAlias := jsxFactorySymbol
-	if jsxFactorySymbol.Flags&ast.SymbolFlagsAlias != 0 {
+	if jsxFactorySymbol.Flags()&ast.SymbolFlagsAlias != 0 {
 		resolvedAlias = c.resolveAlias(jsxFactorySymbol)
 	}
 
@@ -675,8 +675,8 @@ func (c *Checker) checkApplicableSignatureForJsxCallLikeElement(node store.Node,
 			// We will not report errors in this function for fragments, since we do not check them in this function
 			diag := NewDiagnosticForNode(tagName, diagnostics.Tag_0_expects_at_least_1_arguments_but_the_JSX_factory_2_provides_at_most_3, entityNameToString(tagName), absoluteMinArgCount, entityNameToString(factory), maxParamCount)
 			tagNameSymbol := c.getSymbolAtLocation(tagName, false)
-			if tagNameSymbol != nil && !tagNameSymbol.ValueDeclaration.IsNil() {
-				diag.AddRelatedInfo(NewDiagnosticForNode(tagNameSymbol.ValueDeclaration, diagnostics.X_0_is_declared_here, entityNameToString(tagName)))
+			if tagNameSymbol != nil && !tagNameSymbol.ValueDeclaration().IsNil() {
+				diag.AddRelatedInfo(NewDiagnosticForNode(tagNameSymbol.ValueDeclaration(), diagnostics.X_0_is_declared_here, entityNameToString(tagName)))
 			}
 			c.reportDiagnostic(diag, diagnosticOutput)
 		}
@@ -741,18 +741,18 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 			if store.IsJsxAttribute(attributeDecl) {
 				exprType := c.checkJsxAttribute(attributeDecl, checkMode)
 				objectFlags |= exprType.objectFlags & ObjectFlagsPropagatingFlags
-				attributeSymbol := c.newSymbol(ast.SymbolFlagsProperty|member.Flags, member.Name)
-				attributeSymbol.Declarations = member.Declarations
-				attributeSymbol.Parent = member.Parent
-				if !member.ValueDeclaration.IsNil() {
-					attributeSymbol.ValueDeclaration = member.ValueDeclaration
+				attributeSymbol := c.newSymbol(ast.SymbolFlagsProperty|member.Flags(), member.Name())
+				attributeSymbol.SetDeclarations(member.Declarations())
+				attributeSymbol.SetParent(member.Parent())
+				if !member.ValueDeclaration().IsNil() {
+					attributeSymbol.SetValueDeclaration(member.ValueDeclaration())
 				}
 				links := c.valueSymbolLinks.Get(attributeSymbol)
 				links.resolvedType = exprType
 				links.target = member
-				attributesTable[attributeSymbol.Name] = attributeSymbol
+				attributesTable[attributeSymbol.Name()] = attributeSymbol
 				if allAttributesTable != nil {
-					allAttributesTable[attributeSymbol.Name] = attributeSymbol
+					allAttributesTable[attributeSymbol.Name()] = attributeSymbol
 				}
 				if attributeDecl.Name().Text() == jsxChildrenPropertyName {
 					explicitlySpecifyChildrenAttribute = true
@@ -843,9 +843,9 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 				links.resolvedType = c.createArrayType(c.getUnionType(childTypes))
 			}
 			// Fake up a property declaration for the children
-			childrenPropSymbol.ValueDeclaration = c.factory.NewPropertySignatureDeclaration(store.List{}, c.factory.NewIdentifier(jsxChildrenPropertyName), store. /*postfixToken*/ Node{}, store. /*type*/ Node{}, store. /*initializer*/ Node{})
-			c.factory.SetParent(childrenPropSymbol.ValueDeclaration, attributeParent)
-			c.factory.SetNodeSymbol(store.Node(childrenPropSymbol.ValueDeclaration.AsPropertySignatureDeclaration()), childrenPropSymbol)
+			childrenPropSymbol.SetValueDeclaration(c.factory.NewPropertySignatureDeclaration(store.List{}, c.factory.NewIdentifier(jsxChildrenPropertyName), store. /*postfixToken*/ Node{}, store. /*type*/ Node{}, store. /*initializer*/ Node{}))
+			c.factory.SetParent(childrenPropSymbol.ValueDeclaration(), attributeParent)
+			c.factory.SetNodeSymbol(store.Node(childrenPropSymbol.ValueDeclaration().AsPropertySignatureDeclaration()), childrenPropSymbol)
 			childPropMap := make(store.SymbolTable)
 			childPropMap[jsxChildrenPropertyName] = childrenPropSymbol
 			spread = c.getSpreadType(spread, c.newAnonymousType(attributesSymbol, childPropMap, nil, nil, nil), attributesSymbol, objectFlags|c.getPropagatingFlagsOfTypes(childTypes, TypeFlagsNone), false /*readonly*/)
@@ -1032,7 +1032,7 @@ func (c *Checker) getJsxManagedAttributesFromLocatedAttributes(context store.Nod
 func (c *Checker) instantiateAliasOrInterfaceWithDefaults(managedSym *store.Symbol, typeArguments []*Type, inJavaScript bool) *Type {
 	declaredManagedType := c.getDeclaredTypeOfSymbol(managedSym)
 	// fetches interface type, or initializes symbol links type parameters
-	if managedSym.Flags&ast.SymbolFlagsTypeAlias != 0 {
+	if managedSym.Flags()&ast.SymbolFlagsTypeAlias != 0 {
 		params := c.typeAliasLinks.Get(managedSym).typeParameters
 		if len(params) >= len(typeArguments) {
 			args := c.fillMissingTypeArguments(typeArguments, params, len(typeArguments), inJavaScript)
@@ -1051,7 +1051,7 @@ func (c *Checker) instantiateAliasOrInterfaceWithDefaults(managedSym *store.Symb
 
 func (c *Checker) getJsxLibraryManagedAttributes(jsxNamespace *store.Symbol) *store.Symbol {
 	if jsxNamespace != nil {
-		return c.getSymbol(jsxNamespace.Exports, JsxNames.LibraryManagedAttributes, ast.SymbolFlagsType)
+		return c.getSymbol(jsxNamespace.Exports(), JsxNames.LibraryManagedAttributes, ast.SymbolFlagsType)
 	}
 	return nil
 }
@@ -1059,7 +1059,7 @@ func (c *Checker) getJsxLibraryManagedAttributes(jsxNamespace *store.Symbol) *st
 func (c *Checker) getJsxElementTypeSymbol(jsxNamespace *store.Symbol) *store.Symbol {
 	// JSX.ElementType [symbol]
 	if jsxNamespace != nil {
-		return c.getSymbol(jsxNamespace.Exports, JsxNames.ElementType, ast.SymbolFlagsType)
+		return c.getSymbol(jsxNamespace.Exports(), JsxNames.ElementType, ast.SymbolFlagsType)
 	}
 	return nil
 }
@@ -1079,7 +1079,7 @@ func (c *Checker) getJsxElementChildrenPropertyName(jsxNamespace *store.Symbol) 
 func (c *Checker) getNameFromJsxElementAttributesContainer(nameOfAttribPropContainer string, jsxNamespace *store.Symbol) string {
 	// JSX.ElementAttributesProperty | JSX.ElementChildrenAttribute [symbol]
 	if jsxNamespace != nil {
-		jsxElementAttribPropInterfaceSym := c.getSymbol(jsxNamespace.Exports, nameOfAttribPropContainer, ast.SymbolFlagsType)
+		jsxElementAttribPropInterfaceSym := c.getSymbol(jsxNamespace.Exports(), nameOfAttribPropContainer, ast.SymbolFlagsType)
 		if jsxElementAttribPropInterfaceSym != nil {
 			jsxElementAttribPropInterfaceType := c.getDeclaredTypeOfSymbol(jsxElementAttribPropInterfaceSym)
 			propertiesOfJsxElementAttribPropInterface := c.getPropertiesOfType(jsxElementAttribPropInterfaceType)
@@ -1088,11 +1088,11 @@ func (c *Checker) getNameFromJsxElementAttributesContainer(nameOfAttribPropConta
 				return ""
 			}
 			if len(propertiesOfJsxElementAttribPropInterface) == 1 {
-				return propertiesOfJsxElementAttribPropInterface[0].Name
+				return propertiesOfJsxElementAttribPropInterface[0].Name()
 			}
-			if len(propertiesOfJsxElementAttribPropInterface) > 1 && len(jsxElementAttribPropInterfaceSym.Declarations) != 0 {
+			if len(propertiesOfJsxElementAttribPropInterface) > 1 && len(jsxElementAttribPropInterfaceSym.Declarations()) != 0 {
 				// More than one property on ElementAttributesProperty is an error
-				c.error(jsxElementAttribPropInterfaceSym.Declarations[0], diagnostics.The_global_type_JSX_0_may_not_have_more_than_one_property, nameOfAttribPropContainer)
+				c.error(jsxElementAttribPropInterfaceSym.Declarations()[0], diagnostics.The_global_type_JSX_0_may_not_have_more_than_one_property, nameOfAttribPropContainer)
 			}
 		}
 	}
