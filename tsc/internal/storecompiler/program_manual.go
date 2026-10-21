@@ -22,9 +22,13 @@ import (
 // Program owns its IDSpace (opts.idSpace): every Store of the program, the
 // source files included, takes its StoreID from it (4.3).
 //
-// storetranslate:pointer-hash ed7a7d9119a9b624 program.go:Program
+// storetranslate:pointer-hash 798860682ab0cdb2 program.go:Program
 type Program struct {
-	opts ProgramOptions
+	opts                  ProgramConfig
+	hosts                 ProgramHosts
+	resolutionData        *module.ResolutionData
+	includeProcessor      includeProcessor
+	moduleResolutionError error
 
 	comparePathsOptions tspath.ComparePathsOptions
 
@@ -56,14 +60,14 @@ type Program struct {
 // NewProgram loads the program's files into a new IDSpace, makes the checker
 // pool and verifies the options; the pool makes its checkers on the first ask.
 //
-// storetranslate:pointer-hash 4a872292947f260d program.go:NewProgram
+// storetranslate:pointer-hash fb90e83929ba909a program.go:NewProgram
 func NewProgram(opts ProgramOptions) *Program {
 	opts.idSpace = store.NewIDSpace(0)
-	p := &Program{opts: opts}
-	if p.opts.Tracing != nil {
-		defer p.opts.Tracing.Push(tracing.PhaseProgram, "createProgram", map[string]any{"configFilePath": opts.Config.CompilerOptions().ConfigFilePath}, true)()
+	p := &Program{opts: opts.ProgramConfig, hosts: opts.ProgramHosts}
+	if opts.Tracing != nil {
+		defer opts.Tracing.Push(tracing.PhaseProgram, "createProgram", map[string]any{"configFilePath": opts.Config.CompilerOptions().ConfigFilePath}, true)()
 	}
-	p.processedFiles = processAllProgramFiles(p.opts, p.SingleThreaded())
+	p.processedFiles, p.resolutionData, p.moduleResolutionError = processAllProgramFiles(opts, p.SingleThreaded())
 	p.initCheckerPool()
 	p.verifyCompilerOptions()
 	return p
@@ -73,9 +77,10 @@ func NewProgram(opts ProgramOptions) *Program {
 // symlinks.KnownSymlinks.SetSymlinksFromResolutions takes callbacks over
 // *ast.SourceFile, so its two loops are written here.
 //
-// storetranslate:pointer-hash 17439ab81af3fde6 program.go:Program.GetSymlinkCache
+// storetranslate:pointer-hash 363e4cdce60694ad program.go:Program.GetSymlinkCache
 func (p *Program) GetSymlinkCache() *symlinks.KnownSymlinks {
 	return p.knownSymlinks.getValue(func() *symlinks.KnownSymlinks {
+		resolver := p.newResolver()
 		knownSymlinks := symlinks.NewKnownSymlink(p.GetCurrentDirectory(), p.UseCaseSensitiveFileNames())
 
 		// Resolved modules store realpath information when they're resolved inside node_modules
@@ -116,7 +121,7 @@ func (p *Program) GetSymlinkCache() *symlinks.KnownSymlinks {
 					}
 				}
 
-				if packageResolution := p.resolver.ResolvePackageDirectory(dep, packageJsonName, core.ResolutionModeCommonJS, nil); packageResolution.IsResolved() && packageResolution.OriginalPath != "" {
+				if packageResolution := resolver.ResolvePackageDirectory(dep, packageJsonName, core.ResolutionModeCommonJS, nil); packageResolution.IsResolved() && packageResolution.OriginalPath != "" {
 					knownSymlinks.ProcessResolution(
 						tspath.CombinePaths(packageResolution.OriginalPath, "package.json"),
 						tspath.CombinePaths(packageResolution.ResolvedFileName, "package.json"),

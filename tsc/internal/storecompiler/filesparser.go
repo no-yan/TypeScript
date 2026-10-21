@@ -68,8 +68,8 @@ func (t *parseTask) redirect(loader *fileLoader, fileName string) {
 }
 
 func (t *parseTask) loadAutomaticTypeDirectives(loader *fileLoader) {
-	if loader.opts.Tracing != nil {
-		defer loader.opts.Tracing.Push(tracing.PhaseProgram, "processTypeReferences", nil, false)()
+	if loader.tracing != nil {
+		defer loader.tracing.Push(tracing.PhaseProgram, "processTypeReferences", nil, false)()
 	}
 	toParseTypeRefs, typeResolutionsInFile, typeResolutionsTrace, pDiagnostics := loader.resolveAutomaticTypeDirectives(t.normalizedFilePath)
 	t.typeResolutionsInFile = typeResolutionsInFile
@@ -202,7 +202,7 @@ func (w *filesParser) start(loader *fileLoader, tasks []*parseTask, depth int) {
 	}
 }
 
-func (w *filesParser) addIncludeReason(includeProcessor *includeProcessor, task *parseTask, reason *FileIncludeReason) {
+func (w *filesParser) addIncludeReason(includeProcessor *fileIncludeData, task *parseTask, reason *FileIncludeReason) {
 	if task.redirectedParseTask != nil {
 		w.addIncludeReason(includeProcessor, task.redirectedParseTask, reason)
 	} else if task.loaded {

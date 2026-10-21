@@ -28,7 +28,12 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
-func (p *ProgramOptions) canUseProjectReferenceSource() bool {
+type ProgramHosts struct {
+	Host    CompilerHost
+	Tracing *tracing.Tracing
+}
+
+func (p *ProgramConfig) canUseProjectReferenceSource() bool {
 	return p.UseSourceOfProjectReference && !p.Config.CompilerOptions().DisableSourceOfProjectReferenceRedirect.IsTrue()
 }
 
@@ -61,7 +66,7 @@ func (p *Program) GetGlobalTypingsCacheLocation() string {
 }
 
 func (p *Program) GetNearestAncestorDirectoryWithPackageJson(dirname string) string {
-	scoped := p.resolver.GetPackageScopeForPath(dirname)
+	scoped := p.newResolver().GetPackageScopeForPath(dirname)
 	if scoped != nil && scoped.Exists() {
 		return scoped.PackageDirectory
 	}
@@ -70,11 +75,15 @@ func (p *Program) GetNearestAncestorDirectoryWithPackageJson(dirname string) str
 
 func (p *Program) GetPackageJsonInfo(pkgJsonPath string) *packagejson.InfoCacheEntry {
 	directory := tspath.GetDirectoryPath(pkgJsonPath)
-	scoped := p.resolver.GetPackageScopeForPath(directory)
+	scoped := p.newResolver().GetPackageScopeForPath(directory)
 	if scoped != nil && scoped.Exists() && scoped.PackageDirectory == directory {
 		return scoped
 	}
 	return nil
+}
+
+func (p *Program) newResolver() *module.DefaultResolver {
+	return p.resolutionData.NewResolver(p.projectReferenceFileMapper.resolutionHost(p.hosts.Host))
 }
 
 func (p *Program) GetRedirectTargets(path tspath.Path) []string {
@@ -128,9 +137,9 @@ func (p *Program) Options() *core.CompilerOptions { return p.opts.Config.Compile
 
 func (p *Program) ContentMapperExtensions() []string { return p.opts.Config.ContentMapperExtensions() }
 
-func (p *Program) Host() CompilerHost { return p.opts.Host }
+func (p *Program) Host() CompilerHost { return p.hosts.Host }
 
-func (p *Program) Tracing() *tracing.Tracing { return p.opts.Tracing }
+func (p *Program) Tracing() *tracing.Tracing { return p.hosts.Tracing }
 
 func (p *Program) SingleThreaded() bool {
 	return p.opts.SingleThreaded.DefaultIfUnknown(p.Options().SingleThreaded).IsTrue()
@@ -163,8 +172,8 @@ func (p *Program) BindSourceFiles() {
 }
 
 func (p *Program) bindSourceFile(file *store.File) {
-	if p.opts.Tracing != nil {
-		defer p.opts.Tracing.Push(tracing.PhaseBind, "bindSourceFile", map[string]any{"path": string(file.Path())}, true)()
+	if p.hosts.Tracing != nil {
+		defer p.hosts.Tracing.Push(tracing.PhaseBind, "bindSourceFile", map[string]any{"path": string(file.Path())}, true)()
 	}
 	storebinder.BindSourceFile(file)
 }
@@ -521,12 +530,12 @@ func (p *Program) checkSourceFilesBelongToPath(sourceFiles []string, rootDirecto
 	for _, file := range sourceFiles {
 		absoluteSourceFilePath := tspath.GetCanonicalFileName(tspath.GetNormalizedAbsolutePath(file, p.GetCurrentDirectory()), p.UseCaseSensitiveFileNames())
 		if !tspath.ContainsPath(rootDirectory, file, p.comparePathsOptions) {
-			p.includeProcessor.addProcessingDiagnostic(&processingDiagnostic{
+			p.addProcessingDiagnostic(&processingDiagnostic{
 				kind: processingDiagnosticKindExplainingFileInclude,
-				data: &includeExplainingDiagnostic{
+				explanation: &includeExplainingDiagnostic{
 					file:    tspath.Path(absoluteSourceFilePath),
 					message: diagnostics.File_0_is_not_under_rootDir_1_rootDir_is_expected_to_contain_all_source_files,
-					args:    []any{file, rootDirectory},
+					args:    []string{file, rootDirectory},
 				},
 			})
 			allFilesBelongToPath = false
@@ -561,7 +570,7 @@ func (p *Program) GetSourceFileByPath(path tspath.Path) *store.File {
 }
 
 func (p *Program) GetIncludeReasons() map[tspath.Path][]*FileIncludeReason {
-	return p.includeProcessor.fileIncludeReasons
+	return p.fileIncludeReasons
 }
 
 func (p *Program) IsMissingPath(path tspath.Path) bool {

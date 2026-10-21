@@ -602,6 +602,7 @@ type Checker struct {
 	signatureArena                              core.Arena[Signature]
 	indexInfoArena                              core.Arena[IndexInfo]
 	mergedSymbols                               map[*store.Symbol]*store.Symbol
+	mergedExportsChecked                        collections.Set[*store.Symbol]
 	factory                                     *store.Factory
 	nodeLinks                                   core.LinkStore[store.NodeKey, NodeLinks]
 	signatureLinks                              core.LinkStore[store.NodeKey, SignatureLinks]
@@ -4438,15 +4439,17 @@ func (c *Checker) checkInterfaceDeclaration(node store.Node) {
 	c.checkExportsOnMergedDeclarations(node)
 	symbol := c.getSymbolOfDeclaration(node)
 	c.checkTypeParameterListsIdentical(symbol)
-	// Only check this symbol once
+	// Check once per checker, but report on the first interface declaration,
+	// independently of which declaration is checked first.
 	if links := c.declaredTypeLinks.Get(symbol); !links.interfaceChecked {
 		links.interfaceChecked = true
+		firstInterfaceDeclaration := store.GetDeclarationOfKind(symbol, ast.KindInterfaceDeclaration)
 		t := c.getDeclaredTypeOfSymbol(symbol)
 		typeWithThis := c.getTypeWithThisArgument(t, nil, false)
 		// run subsequent checks only if first set succeeded
-		if c.checkInheritedPropertiesAreIdentical(t, node.Name()) {
+		if c.checkInheritedPropertiesAreIdentical(t, firstInterfaceDeclaration.Name()) {
 			for _, baseType := range c.getBaseTypes(t) {
-				c.checkTypeAssignableTo(typeWithThis, c.getTypeWithThisArgument(baseType, t.AsInterfaceType().thisType, false), node.Name(), diagnostics.Interface_0_incorrectly_extends_interface_1)
+				c.checkTypeAssignableTo(typeWithThis, c.getTypeWithThisArgument(baseType, t.AsInterfaceType().thisType, false), firstInterfaceDeclaration.Name(), diagnostics.Interface_0_incorrectly_extends_interface_1)
 			}
 			c.checkIndexConstraints(t, symbol /*isStaticIndex*/, false)
 		}
@@ -4528,7 +4531,8 @@ func (c *Checker) checkEnumDeclaration(node store.Node) {
 	if links := c.declaredTypeLinks.Get(enumSymbol); !links.enumChecked {
 		links.enumChecked = true
 		if len(enumSymbol.Declarations) > 1 {
-			enumIsConst := store.IsEnumConst(node)
+			firstEnumDeclaration := store.GetDeclarationOfKind(enumSymbol, ast.KindEnumDeclaration)
+			enumIsConst := store.IsEnumConst(firstEnumDeclaration)
 			// check that const is placed\omitted on all enum declarations
 			for _, decl := range enumSymbol.Declarations {
 				if store.IsEnumDeclaration(decl) && store.IsEnumConst(decl) != enumIsConst {
@@ -6405,8 +6409,7 @@ func (c *Checker) checkExportsOnMergedDeclarations(node store.Node) {
 			return
 		}
 	}
-	// Run the check only for the first declaration in the list.
-	if !store.SameNode(store.GetDeclarationOfKind(symbol, node.Kind()), node) {
+	if len(symbol.Declarations) < 2 || !c.mergedExportsChecked.AddIfAbsent(symbol) {
 		return
 	}
 	exportedDeclarationSpaces := DeclarationSpacesNone
@@ -14471,7 +14474,10 @@ func (c *Checker) getExternalModuleFileFromDeclaration(declaration store.Node) *
 	if store.HasImportAttributes(declaration) {
 		importAttributesType = c.getTypeFromImportAttributes(store.GetImportAttributes(declaration))
 	}
-	moduleSymbol := c.resolveExternalModuleNameWorker(specifier, specifier /*moduleNotFoundError*/, nil, false, false, importAttributesType) // TODO: GH#18217
+	// This is only used by emit and type printing, after checking has already reported any
+	// resolution errors for this specifier. Resolve with ignoreErrors so that these queries
+	// don't add new diagnostics (e.g. an implicit-any-module suggestion) as a side effect.
+	moduleSymbol := c.resolveExternalModuleNameWorker(specifier, specifier, nil /*moduleNotFoundError*/, true /*ignoreErrors*/, false /*isForAugmentation*/, importAttributesType)
 	if moduleSymbol == nil {
 		return nil
 	}
@@ -15455,7 +15461,7 @@ func (c *Checker) addDeclarationToLateBoundSymbol(symbol *store.Symbol, member s
 		// Remove all replacable-by-method members, along with their flags.
 		symbol.Declarations = append(core.Filter(symbol.Declarations, isNotReplacableByMethod), member)
 		oldFlags := symbol.Flags
-		symbol.Flags = ast.SymbolFlagsNone
+		symbol.Flags = ast.SymbolFlagsTransient
 		for _, d := range symbol.Declarations {
 			symbol.Flags |= d.Symbol().Flags
 		}
@@ -28595,7 +28601,8 @@ func (c *Checker) getContextualTypeForBindingElement(declaration store.Node, con
 
 func (c *Checker) getContextualTypeForStaticPropertyDeclaration(declaration store.Node, contextFlags ContextFlags) *Type {
 	if store.IsExpression(declaration.Parent()) {
-		if parentType := c.getContextualType(declaration.Parent(), contextFlags); parentType != nil {
+		// Don't contextually type a static property by its own class, its type might still be in-progress and that would cause spurious circularities
+		if parentType := c.getContextualType(declaration.Parent(), contextFlags); parentType != nil && parentType.symbol != c.getSymbolOfDeclaration(declaration.Parent()) {
 			return c.getTypeOfPropertyOfContextualType(parentType, c.getSymbolOfDeclaration(declaration).Name)
 		}
 	}

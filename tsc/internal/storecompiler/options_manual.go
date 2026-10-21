@@ -23,7 +23,7 @@ import (
 // no emit, and no content mapper: a file's root path is its own path, not its
 // canonical source file's.
 //
-// storetranslate:pointer-hash c61f36314e55d3c5 program.go:Program.verifyCompilerOptions
+// storetranslate:pointer-hash ba818283f2890fa8 program.go:Program.verifyCompilerOptions
 func (p *Program) verifyCompilerOptions() {
 	options := p.Options()
 	var programDiagnostics []*ast.Diagnostic
@@ -223,12 +223,12 @@ func (p *Program) verifyCompilerOptions() {
 
 		for _, file := range p.files {
 			if sourceFileMayBeEmitted(file, p, false, false) && !rootPaths.Has(file.Path()) {
-				p.includeProcessor.addProcessingDiagnostic(&processingDiagnostic{
+				p.addProcessingDiagnostic(&processingDiagnostic{
 					kind: processingDiagnosticKindExplainingFileInclude,
-					data: &includeExplainingDiagnostic{
+					explanation: &includeExplainingDiagnostic{
 						file:    file.Path(),
 						message: diagnostics.File_0_is_not_listed_within_the_file_list_of_project_1_Projects_must_list_all_files_or_use_an_include_pattern,
-						args:    []any{file.FileName(), configFilePath()},
+						args:    []string{file.FileName(), configFilePath()},
 					},
 				})
 			}

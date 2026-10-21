@@ -14,31 +14,41 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
-func (i *includeProcessor) addProcessingDiagnostic(d ...*processingDiagnostic) {
+type fileIncludeData struct {
+	fileIncludeReasons    map[tspath.Path][]*FileIncludeReason
+	processingDiagnostics []*processingDiagnostic
+}
+
+type includeReasonDiagnosticKey struct {
+	reason           *FileIncludeReason
+	relativeFileName bool
+}
+
+func (i *fileIncludeData) addProcessingDiagnostic(d ...*processingDiagnostic) {
 	i.processingDiagnostics = append(i.processingDiagnostics, d...)
 }
 
-func (i *includeProcessor) addProcessingDiagnosticsForFileCasing(file tspath.Path, existingCasing string, currentCasing string, reason *FileIncludeReason) {
+func (i *fileIncludeData) addProcessingDiagnosticsForFileCasing(file tspath.Path, existingCasing string, currentCasing string, reason *FileIncludeReason) {
 	if !reason.isReferencedFile() && slices.ContainsFunc(i.fileIncludeReasons[file], func(r *FileIncludeReason) bool {
 		return r.isReferencedFile()
 	}) {
 		i.addProcessingDiagnostic(&processingDiagnostic{
 			kind: processingDiagnosticKindExplainingFileInclude,
-			data: &includeExplainingDiagnostic{
+			explanation: &includeExplainingDiagnostic{
 				file:             file,
 				diagnosticReason: reason,
 				message:          diagnostics.Already_included_file_name_0_differs_from_file_name_1_only_in_casing,
-				args:             []any{existingCasing, currentCasing},
+				args:             []string{existingCasing, currentCasing},
 			},
 		})
 	} else {
 		i.addProcessingDiagnostic(&processingDiagnostic{
 			kind: processingDiagnosticKindExplainingFileInclude,
-			data: &includeExplainingDiagnostic{
+			explanation: &includeExplainingDiagnostic{
 				file:             file,
 				diagnosticReason: reason,
 				message:          diagnostics.File_name_0_differs_from_already_included_file_name_1_only_in_casing,
-				args:             []any{currentCasing, existingCasing},
+				args:             []string{currentCasing, existingCasing},
 			},
 		})
 	}

@@ -16,9 +16,9 @@ import (
 )
 
 type projectReferenceFileMapper struct {
-	opts   ProgramOptions
-	host   module.ResolutionHost
-	loader *fileLoader // Only present during populating the mapper and parsing, released after that
+	config                      *tsoptions.ParsedCommandLine
+	useSourceOfProjectReference bool
+	dtsDirectories              collections.Set[tspath.Path]
 
 	configToProjectReference    map[tspath.Path]*tsoptions.ParsedCommandLine // All the resolved references needed
 	referencesInConfigFile      map[tspath.Path][]tspath.Path                // Map of config file to its references
@@ -29,12 +29,24 @@ type projectReferenceFileMapper struct {
 	realpathDtsToSource collections.SyncMap[tspath.Path, *tsoptions.SourceOutputAndProjectReference]
 }
 
+type projectReferenceFileMapperBuilder struct {
+	*projectReferenceFileMapper
+	host module.ResolutionHost
+}
+
+func (mapper *projectReferenceFileMapper) resolutionHost(host module.ResolutionHost) module.ResolutionHost {
+	if mapper.useSourceOfProjectReference && len(mapper.outputDtsToProjectReference) != 0 {
+		return newProjectReferenceDtsFakingHost(host, mapper)
+	}
+	return host
+}
+
 func (mapper *projectReferenceFileMapper) getParseFileRedirect(file ast.HasFileName) string {
-	if mapper.opts.canUseProjectReferenceSource() {
+	if mapper.useSourceOfProjectReference {
 		// Map to source file from project reference
 		source := mapper.getProjectReferenceFromOutputDts(file.Path())
 		if source == nil {
-			source = mapper.getSourceToDtsIfSymlink(file)
+			source, _ = mapper.realpathDtsToSource.Load(file.Path())
 		}
 		if source != nil {
 			return source.Source
@@ -58,12 +70,12 @@ func (mapper *projectReferenceFileMapper) getProjectReferenceFromOutputDts(path 
 }
 
 func (mapper *projectReferenceFileMapper) isSourceFromProjectReference(path tspath.Path) bool {
-	return mapper.opts.canUseProjectReferenceSource() && mapper.getProjectReferenceFromSource(path) != nil
+	return mapper.useSourceOfProjectReference && mapper.getProjectReferenceFromSource(path) != nil
 }
 
 func (mapper *projectReferenceFileMapper) getCompilerOptionsForFile(file ast.HasFileName) *core.CompilerOptions {
 	redirect := mapper.getRedirectParsedCommandLineForResolution(file)
-	return module.GetCompilerOptionsWithRedirect(mapper.opts.Config.CompilerOptions(), redirect)
+	return module.GetCompilerOptionsWithRedirect(mapper.config.CompilerOptions(), redirect)
 }
 
 func (mapper *projectReferenceFileMapper) getRedirectParsedCommandLineForResolution(file ast.HasFileName) *tsoptions.ParsedCommandLine {
@@ -85,40 +97,58 @@ func (mapper *projectReferenceFileMapper) getRedirectForResolution(file ast.HasF
 		return resultFromDts.Resolved, resultFromDts.Source
 	}
 
-	realpathDtsToSource := mapper.getSourceToDtsIfSymlink(file)
+	realpathDtsToSource, _ := mapper.realpathDtsToSource.Load(path)
 	if realpathDtsToSource != nil {
 		return realpathDtsToSource.Resolved, realpathDtsToSource.Source
 	}
 	return nil, file.FileName()
 }
 
-func (mapper *projectReferenceFileMapper) getSourceToDtsIfSymlink(file ast.HasFileName) *tsoptions.SourceOutputAndProjectReference {
+func (builder *projectReferenceFileMapperBuilder) getParseFileRedirect(file ast.HasFileName) string {
+	if builder.useSourceOfProjectReference && builder.getProjectReferenceFromOutputDts(file.Path()) == nil {
+		builder.resolveSymlink(file)
+	}
+	return builder.projectReferenceFileMapper.getParseFileRedirect(file)
+}
+
+func (builder *projectReferenceFileMapperBuilder) getRedirectForResolution(file ast.HasFileName) (*tsoptions.ParsedCommandLine, string) {
+	if builder.getProjectReferenceFromSource(file.Path()) == nil && builder.getProjectReferenceFromOutputDts(file.Path()) == nil {
+		builder.resolveSymlink(file)
+	}
+	return builder.projectReferenceFileMapper.getRedirectForResolution(file)
+}
+
+func (builder *projectReferenceFileMapperBuilder) getCompilerOptionsForFile(file ast.HasFileName) *core.CompilerOptions {
+	redirect, _ := builder.getRedirectForResolution(file)
+	return module.GetCompilerOptionsWithRedirect(builder.config.CompilerOptions(), redirect)
+}
+
+func (builder *projectReferenceFileMapperBuilder) getRedirectParsedCommandLineForResolution(file ast.HasFileName) *tsoptions.ParsedCommandLine {
+	redirect, _ := builder.getRedirectForResolution(file)
+	return redirect
+}
+
+func (builder *projectReferenceFileMapperBuilder) resolveSymlink(file ast.HasFileName) {
 	// If preserveSymlinks is true, module resolution wont jump the symlink
 	// but the resolved real path may be the .d.ts from project reference
 	// Note:: Currently we try the real path only if the
 	// file is from node_modules to avoid having to run real path on all file paths
 	path := file.Path()
-	realpathDtsToSource, ok := mapper.realpathDtsToSource.Load(path)
+	_, ok := builder.realpathDtsToSource.Load(path)
 	if ok {
-		return realpathDtsToSource
+		return
 	}
-	if mapper.loader != nil && mapper.opts.Config.CompilerOptions().PreserveSymlinks == core.TSTrue {
+	if len(builder.config.ResolvedProjectReferencePaths()) != 0 && builder.config.CompilerOptions().PreserveSymlinks == core.TSTrue {
 		fileName := file.FileName()
 		if !strings.Contains(fileName, "/node_modules/") {
-			mapper.realpathDtsToSource.Store(path, nil)
+			builder.realpathDtsToSource.Store(path, nil)
 		} else {
-			realDeclarationPath := mapper.loader.toPath(mapper.host.FS().Realpath(fileName))
+			realDeclarationPath := tspath.ToPath(builder.host.FS().Realpath(fileName), builder.host.GetCurrentDirectory(), builder.host.FS().UseCaseSensitiveFileNames())
 			if realDeclarationPath == path {
-				mapper.realpathDtsToSource.Store(path, nil)
+				builder.realpathDtsToSource.Store(path, nil)
 			} else {
-				realpathDtsToSource := mapper.getProjectReferenceFromOutputDts(realDeclarationPath)
-				if realpathDtsToSource != nil {
-					mapper.realpathDtsToSource.Store(path, realpathDtsToSource)
-					return realpathDtsToSource
-				}
-				mapper.realpathDtsToSource.Store(path, nil)
+				builder.realpathDtsToSource.Store(path, builder.getProjectReferenceFromOutputDts(realDeclarationPath))
 			}
 		}
 	}
-	return nil
 }

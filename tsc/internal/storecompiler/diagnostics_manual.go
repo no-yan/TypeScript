@@ -50,10 +50,10 @@ func (p *Program) GetBindDiagnostics(ctx context.Context, sourceFile *store.File
 }
 
 // initCheckerPool makes the compiler pool: the program has no
-// CreateCheckerPool (ProgramOptions) and no tracer for the checkers (the CLI
+// CreateCheckerPool (ProgramFactories) and no tracer for the checkers (the CLI
 // rejects --generateTrace).
 //
-// storetranslate:pointer-hash 10f82fc2c7f122fe program.go:Program.initCheckerPool
+// storetranslate:pointer-hash 879a2cf19e186503 program.go:Program.initCheckerPool
 func (p *Program) initCheckerPool() {
 	if !p.finishedProcessing {
 		panic("Program must finish processing files before initializing checker pool")
@@ -148,11 +148,11 @@ func (p *Program) GetProgramDiagnostics() []*store.Diagnostic {
 // getDiagnostics takes the resolver's diagnostics, which are the Pointer's
 // with no file, as Store diagnostics.
 //
-// storetranslate:pointer-hash f1d0010fe34b94c3 includeprocessor.go:includeProcessor.getDiagnostics
+// storetranslate:pointer-hash efe627fb54a7b8eb includeprocessor.go:includeProcessor.getDiagnostics
 func (i *includeProcessor) getDiagnostics(p *Program) *store.DiagnosticsCollection {
 	i.computedDiagnosticsOnce.Do(func() {
 		i.computedDiagnostics = &store.DiagnosticsCollection{}
-		for _, d := range i.processingDiagnostics {
+		for _, d := range p.processingDiagnostics {
 			i.computedDiagnostics.Add(d.toDiagnostic(p))
 		}
 		for _, resolutions := range p.resolvedModules {

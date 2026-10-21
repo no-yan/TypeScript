@@ -1949,7 +1949,7 @@ func (c *Checker) checkGrammarImportAttributesType(attributes store.TypeLiteralN
 		}
 
 		typeNode := propertySignature.Type()
-		if !store.IsStringLiteralLikeType(typeNode) {
+		if !store.IsLiteralTypeNode(typeNode) || !store.IsStringLiteral(typeNode.AsLiteralTypeNode().Literal()) {
 			return c.grammarErrorOnNode(typeNode, diagnostics.An_import_attributes_property_must_have_a_string_literal_type_annotation)
 		}
 	}

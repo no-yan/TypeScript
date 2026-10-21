@@ -19,11 +19,9 @@ import (
 
 // includeProcessor keeps the config's compilerOptions object as the Pointer's.
 //
-// storetranslate:pointer-hash c733e8288bba12cc includeprocessor.go:includeProcessor
+// storetranslate:pointer-hash 91f94d99faf46b32 includeprocessor.go:includeProcessor
 type includeProcessor struct {
-	fileIncludeReasons    map[tspath.Path][]*FileIncludeReason
-	processingDiagnostics []*processingDiagnostic
-
+	reasonDiagnostics          collections.SyncMap[includeReasonDiagnosticKey, *store.Diagnostic]
 	reasonToReferenceLocation  collections.SyncMap[*FileIncludeReason, *referenceFileLocation]
 	includeReasonToRelatedInfo collections.SyncMap[*FileIncludeReason, *store.Diagnostic]
 	redirectAndFileFormat      collections.SyncMap[tspath.Path, []*store.Diagnostic]

@@ -5,7 +5,7 @@
 // internal/ast/docs/store-checker-design-20260923.md 2.1). The functions the
 // rules do not cover are written by hand in utilities_manual.go (P2).
 //
-// Reach: 448 functions of package ast that the roots of tools/cmd/storetranslate
+// Reach: 447 functions of package ast that the roots of tools/cmd/storetranslate
 // name in their bodies, called or as a value, transitively.
 
 package store
@@ -2315,6 +2315,9 @@ func IsInExpressionContext(node Node) bool {
 		return SameNode(parent.Expression(), node) && !IsPartOfTypeNode(parent)
 	case ast.KindShorthandPropertyAssignment:
 		return SameNode(parent.AsShorthandPropertyAssignment().ObjectAssignmentInitializer(), node)
+	case ast.KindFunctionExpression, ast.KindClassExpression:
+		// The name of a function or class expression is a declaration name, not an expression.
+		return !SameNode(parent.Name(), node)
 	default:
 		return IsExpressionNode(parent)
 	}
@@ -3702,9 +3705,4 @@ func IsNamedEvaluationSource(node Node) bool {
 
 func IsProtoSetter(node Node) bool {
 	return (IsIdentifier(node) || IsStringLiteral(node)) && node.Text() == "__proto__"
-}
-
-func IsStringLiteralLikeType(node Node) bool {
-	return node.Kind() == ast.KindLiteralType &&
-		IsStringLiteralLike(node.AsLiteralTypeNode().Literal())
 }

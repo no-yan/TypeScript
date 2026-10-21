@@ -22,24 +22,39 @@ import (
 // not have. The CLI rejects content mappers and non-empty project references
 // before a Store program is made (D).
 
-// ProgramOptions has no checker pool: the Store program owns its one checker.
-// idSpace is the program's StoreID namespace (4.3), which NewProgram makes.
+// ProgramOptions is the Pointer's, of the Store's ProgramConfig and
+// ProgramFactories.
 //
-// storetranslate:pointer-hash eea831a5ace2f126 program.go:ProgramOptions
+// storetranslate:pointer-hash 4333292bf59c7b6f program.go:ProgramOptions
 type ProgramOptions struct {
-	Host                        CompilerHost
+	ProgramConfig
+	ProgramHosts
+	ProgramFactories
+}
+
+// ProgramConfig carries idSpace, the program's StoreID namespace (4.3), which
+// NewProgram makes: the loader and the program read it from their opts.
+//
+// storetranslate:pointer-hash df441283ccff190e program.go:ProgramConfig
+type ProgramConfig struct {
 	Config                      *tsoptions.ParsedCommandLine
 	UseSourceOfProjectReference bool
 	SingleThreaded              core.Tristate
 	TypingsLocation             string
 	ProjectName                 string
-	Tracing                     *tracing.Tracing
-	CreateModuleResolver        func(options module.ResolverOptions) module.Resolver
 	// SkipModuleResolution avoids all module and type reference resolution while
 	// still collecting import metadata needed for emit.
 	SkipModuleResolution bool
 
 	idSpace *store.IDSpace
+}
+
+// ProgramFactories has no checker pool factory: the Store program owns the
+// compiler's pool (initCheckerPool).
+//
+// storetranslate:pointer-hash 09172c98ac10b4af program.go:ProgramFactories
+type ProgramFactories struct {
+	CreateModuleResolver func(module.ResolverOptions) module.Resolver
 }
 
 // CompilerHost parses into the Store: GetSourceFile takes the program's
@@ -58,29 +73,32 @@ type CompilerHost interface {
 
 // parseSourceFile has no content-mapped files.
 //
-// storetranslate:pointer-hash 50fefef9856a4d2a fileloader.go:fileLoader.parseSourceFile
+// storetranslate:pointer-hash 374185d5d78a8f21 fileloader.go:fileLoader.parseSourceFile
 func (p *fileLoader) parseSourceFile(t *parseTask) *store.File {
-	if p.opts.Tracing != nil {
-		defer p.opts.Tracing.Push(tracing.PhaseParse, "createSourceFile", map[string]any{"path": t.normalizedFilePath}, true)()
+	if p.tracing != nil {
+		defer p.tracing.Push(tracing.PhaseParse, "createSourceFile", map[string]any{"path": t.normalizedFilePath}, true)()
 	}
 	path := p.toPath(t.normalizedFilePath)
-	options := p.projectReferenceFileMapper.getCompilerOptionsForFile(t)
+	options := p.projectReferences.getCompilerOptionsForFile(t)
 	parseOptions := ast.SourceFileParseOptions{
 		FileName:                       t.normalizedFilePath,
 		Path:                           path,
 		ExternalModuleIndicatorOptions: ast.GetExternalModuleIndicatorOptions(t.normalizedFilePath, options, t.metadata),
 	}
-	return p.opts.Host.GetSourceFile(parseOptions, p.opts.idSpace)
+	return p.host.GetSourceFile(parseOptions, p.opts.idSpace)
 }
 
 // addProjectReferenceTasks makes the mapper with no reference: the CLI
 // rejects a non-empty references list for the Store program.
 //
-// storetranslate:pointer-hash d957643b2eb4542e fileloader.go:fileLoader.addProjectReferenceTasks
+// storetranslate:pointer-hash 33d8adac6a985bbb fileloader.go:fileLoader.addProjectReferenceTasks
 func (p *fileLoader) addProjectReferenceTasks(singleThreaded bool) {
-	p.projectReferenceFileMapper = &projectReferenceFileMapper{
-		opts: p.opts,
-		host: p.opts.Host,
+	p.projectReferences = &projectReferenceFileMapperBuilder{
+		projectReferenceFileMapper: &projectReferenceFileMapper{
+			config:                      p.opts.Config,
+			useSourceOfProjectReference: p.opts.canUseProjectReferenceSource(),
+		},
+		host: p.host,
 	}
 	if len(p.opts.Config.ResolvedProjectReferencePaths()) != 0 {
 		panic("storecompiler: project references are not supported; the CLI rejects them")
@@ -100,7 +118,7 @@ func (p *fileLoader) createSyntheticImport(text string, file *store.File) store.
 // load has no content-mapped file: no virtual file name and no supplemental
 // files.
 //
-// storetranslate:pointer-hash 306708cc349f5aa6 filesparser.go:parseTask.load
+// storetranslate:pointer-hash 996ea7b4bd9a8896 filesparser.go:parseTask.load
 func (t *parseTask) load(loader *fileLoader) {
 	t.loaded = true
 	if t.isForAutomaticTypeDirective {
@@ -112,10 +130,10 @@ func (t *parseTask) load(loader *fileLoader) {
 		// exists only to carry its processing diagnostic, so nothing is parsed.
 		return
 	}
-	if loader.opts.Tracing != nil {
-		defer loader.opts.Tracing.Push(tracing.PhaseProgram, "findSourceFile", map[string]any{"fileName": t.normalizedFilePath}, false)()
+	if loader.tracing != nil {
+		defer loader.tracing.Push(tracing.PhaseProgram, "findSourceFile", map[string]any{"fileName": t.normalizedFilePath}, false)()
 	}
-	redirect := loader.projectReferenceFileMapper.getParseFileRedirect(t)
+	redirect := loader.projectReferences.getParseFileRedirect(t)
 	if redirect != "" {
 		t.redirect(loader, redirect)
 		return
@@ -125,24 +143,24 @@ func (t *parseTask) load(loader *fileLoader) {
 		compilerOptions := loader.opts.Config.CompilerOptions()
 		allowNonTsExtensions := compilerOptions.AllowNonTsExtensions.IsTrue()
 		if !allowNonTsExtensions {
-			canonicalFileName := tspath.GetCanonicalFileName(t.normalizedFilePath, loader.opts.Host.FS().UseCaseSensitiveFileNames())
+			canonicalFileName := tspath.GetCanonicalFileName(t.normalizedFilePath, loader.host.FS().UseCaseSensitiveFileNames())
 			if !loader.isSupportedExtension(canonicalFileName) {
 				if tspath.HasJSFileExtension(canonicalFileName) {
 					t.processingDiagnostics = append(t.processingDiagnostics, &processingDiagnostic{
 						kind: processingDiagnosticKindExplainingFileInclude,
-						data: &includeExplainingDiagnostic{
+						explanation: &includeExplainingDiagnostic{
 							diagnosticReason: t.includeReason,
 							message:          diagnostics.File_0_is_a_JavaScript_file_Did_you_mean_to_enable_the_allowJs_option,
-							args:             []any{t.normalizedFilePath},
+							args:             []string{t.normalizedFilePath},
 						},
 					})
 				} else {
 					t.processingDiagnostics = append(t.processingDiagnostics, &processingDiagnostic{
 						kind: processingDiagnosticKindExplainingFileInclude,
-						data: &includeExplainingDiagnostic{
+						explanation: &includeExplainingDiagnostic{
 							diagnosticReason: t.includeReason,
 							message:          diagnostics.File_0_has_an_unsupported_extension_The_only_supported_extensions_are_1,
-							args:             []any{t.normalizedFilePath, "'" + strings.Join(core.Flatten(loader.supportedExtensions), "', '") + "'"},
+							args:             []string{t.normalizedFilePath, "'" + strings.Join(core.Flatten(loader.supportedExtensions), "', '") + "'"},
 						},
 					})
 				}
@@ -190,7 +208,7 @@ func (t *parseTask) load(loader *fileLoader) {
 		for index, lib := range file.LibReferenceDirectives {
 			includeReason := &FileIncludeReason{
 				kind: fileIncludeKindLibReferenceDirective,
-				data: &referencedFileData{
+				referencedFile: &referencedFileData{
 					file:  t.path,
 					index: index,
 				},
@@ -203,8 +221,8 @@ func (t *parseTask) load(loader *fileLoader) {
 				}, libFile)
 			} else {
 				t.processingDiagnostics = append(t.processingDiagnostics, &processingDiagnostic{
-					kind: processingDiagnosticKindUnknownReference,
-					data: includeReason,
+					kind:   processingDiagnosticKindUnknownReference,
+					reason: includeReason,
 				})
 			}
 		}
@@ -216,7 +234,7 @@ func (t *parseTask) load(loader *fileLoader) {
 // getProcessedFiles keeps no duplicate source files: the Store program has
 // no parse cache whose acquires they balance.
 //
-// storetranslate:pointer-hash b3418e73adef2551 filesparser.go:filesParser.getProcessedFiles
+// storetranslate:pointer-hash 286417aa36dcae02 filesparser.go:filesParser.getProcessedFiles
 func (w *filesParser) getProcessedFiles(loader *fileLoader) processedFiles {
 	totalFileCount := int(loader.totalFileCount.Load())
 	libFileCount := int(loader.libFileCount.Load())
@@ -233,7 +251,7 @@ func (w *filesParser) getProcessedFiles(loader *fileLoader) processedFiles {
 		tasksSeenByNameIgnoreCase = make(map[string]*parseTask, totalFileCount)
 	}
 
-	includeProcessor := &includeProcessor{
+	includeData := &fileIncludeData{
 		fileIncludeReasons: make(map[tspath.Path][]*FileIncludeReason, totalFileCount),
 	}
 	var outputFileToProjectReferenceSource map[tspath.Path]string
@@ -267,7 +285,7 @@ func (w *filesParser) getProcessedFiles(loader *fileLoader) processedFiles {
 				if task.loadedTask != nil {
 					task = task.loadedTask
 				}
-				w.addIncludeReason(includeProcessor, task, includeReason)
+				w.addIncludeReason(includeData, task, includeReason)
 			}
 			data, _ := w.taskDataByPath.Load(task.path)
 			if !task.loaded {
@@ -281,7 +299,7 @@ func (w *filesParser) getProcessedFiles(loader *fileLoader) processedFiles {
 					checkedAbsolutePath := tspath.GetNormalizedAbsolutePathWithoutRoot(checkedName, loader.comparePathsOptions.CurrentDirectory)
 					inputAbsolutePath := tspath.GetNormalizedAbsolutePathWithoutRoot(task.normalizedFilePath, loader.comparePathsOptions.CurrentDirectory)
 					if checkedAbsolutePath != inputAbsolutePath {
-						includeProcessor.addProcessingDiagnosticsForFileCasing(task.path, checkedName, task.normalizedFilePath, includeReason)
+						includeData.addProcessingDiagnosticsForFileCasing(task.path, checkedName, task.normalizedFilePath, includeReason)
 					}
 				}
 				continue
@@ -292,17 +310,17 @@ func (w *filesParser) getProcessedFiles(loader *fileLoader) processedFiles {
 			if tasksSeenByNameIgnoreCase != nil {
 				pathLowerCase := tspath.ToFileNameLowerCase(string(task.path))
 				if taskByIgnoreCase, ok := tasksSeenByNameIgnoreCase[pathLowerCase]; ok {
-					includeProcessor.addProcessingDiagnosticsForFileCasing(taskByIgnoreCase.path, taskByIgnoreCase.normalizedFilePath, task.normalizedFilePath, includeReason)
+					includeData.addProcessingDiagnosticsForFileCasing(taskByIgnoreCase.path, taskByIgnoreCase.normalizedFilePath, task.normalizedFilePath, includeReason)
 				} else {
 					tasksSeenByNameIgnoreCase[pathLowerCase] = task
 				}
 			}
 
 			for _, trace := range task.typeResolutionsTrace {
-				loader.opts.Host.Trace(trace.Message, trace.Args...)
+				loader.host.Trace(trace.Message, trace.Args...)
 			}
 			for _, trace := range task.resolutionsTrace {
-				loader.opts.Host.Trace(trace.Message, trace.Args...)
+				loader.host.Trace(trace.Message, trace.Args...)
 			}
 
 			file := task.file
@@ -345,7 +363,7 @@ func (w *filesParser) getProcessedFiles(loader *fileLoader) processedFiles {
 			if task.isForAutomaticTypeDirective {
 				typeResolutionsInFile[task.path] = task.typeResolutionsInFile
 				if len(task.processingDiagnostics) > 0 {
-					includeProcessor.processingDiagnostics = append(includeProcessor.processingDiagnostics, task.processingDiagnostics...)
+					includeData.processingDiagnostics = append(includeData.processingDiagnostics, task.processingDiagnostics...)
 				}
 				continue
 			}
@@ -353,7 +371,7 @@ func (w *filesParser) getProcessedFiles(loader *fileLoader) processedFiles {
 			path := task.path
 
 			if len(task.processingDiagnostics) > 0 {
-				includeProcessor.processingDiagnostics = append(includeProcessor.processingDiagnostics, task.processingDiagnostics...)
+				includeData.processingDiagnostics = append(includeData.processingDiagnostics, task.processingDiagnostics...)
 			}
 
 			if file == nil {
@@ -406,16 +424,15 @@ func (w *filesParser) getProcessedFiles(loader *fileLoader) processedFiles {
 			module.ModeAwareCacheKey{Name: value.libraryName, Mode: core.ModuleKindCommonJS}: value.resolution,
 		}
 		for _, trace := range value.trace {
-			loader.opts.Host.Trace(trace.Message, trace.Args...)
+			loader.host.Trace(trace.Message, trace.Args...)
 		}
 	}
 
 	return processedFiles{
 		finishedProcessing:                   true,
-		resolver:                             loader.resolver,
 		files:                                allFiles,
 		filesByPath:                          filesByPath,
-		projectReferenceFileMapper:           loader.projectReferenceFileMapper,
+		projectReferenceFileMapper:           loader.projectReferences.projectReferenceFileMapper,
 		resolvedModules:                      resolvedModules,
 		typeResolutionsInFile:                typeResolutionsInFile,
 		sourceFileMetaDatas:                  sourceFileMetaDatas,
@@ -424,11 +441,10 @@ func (w *filesParser) getProcessedFiles(loader *fileLoader) processedFiles {
 		sourceFilesFoundSearchingNodeModules: sourceFilesFoundSearchingNodeModules,
 		libFiles:                             libFilesMap,
 		missingFiles:                         missingFiles,
-		includeProcessor:                     includeProcessor,
+		fileIncludeData:                      *includeData,
 		outputFileToProjectReferenceSource:   outputFileToProjectReferenceSource,
 		redirectTargetsMap:                   redirectTargetsMap,
 		redirectFilesByPath:                  redirectFilesByPath,
 		contentMapperDiagnostics:             loader.contentMapperDiagnostics,
-		moduleResolutionError:                loader.moduleResolutionError,
 	}
 }

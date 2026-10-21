@@ -24,23 +24,24 @@ const (
 )
 
 type processingDiagnostic struct {
-	kind processingDiagnosticKind
-	data any
+	kind        processingDiagnosticKind
+	reason      *FileIncludeReason
+	explanation *includeExplainingDiagnostic
 }
 
 func (d *processingDiagnostic) asFileIncludeReason() *FileIncludeReason {
-	return d.data.(*FileIncludeReason)
+	return d.reason
 }
 
 type includeExplainingDiagnostic struct {
 	file             tspath.Path
 	diagnosticReason *FileIncludeReason
 	message          *diagnostics.Message
-	args             []any
+	args             []string
 }
 
 func (d *processingDiagnostic) asIncludeExplainingDiagnostic() *includeExplainingDiagnostic {
-	return d.data.(*includeExplainingDiagnostic)
+	return d.explanation
 }
 
 func (d *processingDiagnostic) toDiagnostic(program *Program) *store.Diagnostic {
@@ -102,7 +103,7 @@ func (d *processingDiagnostic) createDiagnosticExplainingFile(program *Program) 
 	// !!! todo sheetal caching
 
 	if diag.file != "" {
-		reasons := program.includeProcessor.fileIncludeReasons[diag.file]
+		reasons := program.fileIncludeReasons[diag.file]
 		includeDetails = make([]*store.Diagnostic, 0, len(reasons))
 		for _, reason := range reasons {
 			processInclude(reason)
@@ -123,11 +124,12 @@ func (d *processingDiagnostic) createDiagnosticExplainingFile(program *Program) 
 	}
 
 	var result *store.Diagnostic
+	args := core.Map(diag.args, func(arg string) any { return arg })
 	if preferredLocation != nil {
-		result = program.includeProcessor.getReferenceLocation(preferredLocation, program).diagnosticAt(diag.message, diag.args...)
+		result = program.includeProcessor.getReferenceLocation(preferredLocation, program).diagnosticAt(diag.message, args...)
 	}
 	if result == nil {
-		result = store.NewCompilerDiagnostic(diag.message, diag.args...)
+		result = store.NewCompilerDiagnostic(diag.message, args...)
 	}
 	if chain != nil {
 		result.SetMessageChain(chain)
