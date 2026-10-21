@@ -546,3 +546,70 @@ commit:
 ### テキスト衝突
 
 無し。
+
+### 結果 (合格)
+
+commit:
+
+- c9867c6b309 merge (衝突なし)
+- 63b95b9dcec 生成器の `HasXxxData` の doc から NewToken の注意書きを消す (14f7762dde)
+- 636830ee05c 翻訳器:
+  - 67a1c76aac で `nodeData` interface が消え、翻訳器が panic した。node の struct の判定を「`Node` を埋め込む struct」に替えた。`Node` を直接埋め込むのは前後とも `NodeDefault` だけで、集合は前後とも同じ 227 型。
+  - `SymbolExtraArena` の型の対応を名前で 1 行足した (S6 の取り決めで報告だけ)。
+- 06d0bf4399b store.Symbol の `symbolExtra`・`SymbolExtraArena` (56ce7acfc8)。symbolData は 16B 減る。storebinder は Pointer の 23 か所を写した。arena は putBinder で file ごとに空になる。
+- 123cabeef5d signature・typeNode の link を NodeKey の map に置く (下の判断)
+- 4dd59f49e70 再翻訳と P2 の 5 つ (`TypeParameters()` 4 つと `NewChecker` の arena)
+
+判断 (ユーザー決定):
+
+- e36179bde84 は checker の signatureLinks・typeNodeLinks を map から nodeLinkStore に移す。そのまま翻訳すると、Store の値の page に載る。
+- 計画どおり S7b の前に page の密度を Monaco で測った。4 checker、overlay で Get の key と page を数えた。
+
+  | link | V | key | page | 密度 |
+  |---|---|---|---|---|
+  | SignatureLinks | 24B | 162,104 | 13,798 | 0.046 |
+  | TypeNodeLinks | 16B | 227,297 | 15,214 | 0.058 |
+  | SymbolNodeLinks (参考) | 8B | 646,596 | 15,009 | 0.168 |
+
+- 3 つの形で Memory used を比べた。Check time は 5 run で区別できなかった。
+
+  | 形 | Memory used |
+  |---|---|
+  | A 値の page (翻訳のまま) | 739 MB |
+  | B pointer の page と arena (upstream の形を NodeKey で) | 651 MB |
+  | C NodeKey の map (S7b 前の形) | 596 MB |
+  | Pointer | 635 MB |
+
+- ユーザーは C を選んだ。
+  - store-only の `nodeLinkMap` (links_manual.go) を置き、翻訳器の `isMapNodeLinks` がこの 2 つの nodeLinkStore をそれに書き換える。
+  - symbolNodeLinks は値の page のまま。
+  - `nodeLinkMap.TryGet` は、Get していない key に nil を返す。これは Pointer と同じ。
+- 機能はどの形でも等価になる。getTypeOfInitializer の `typeNodeLinks.Has` は、値の page だと Get していない key に true を返すが、resolvedType が nil なので式の型の計算に落ちる。結果は Pointer と同じ。
+
+検証 (2026-10-21、合格):
+
+- 段 1: equal 17,711。除外は既知の 2 件。
+- 段 2: equal 13,604。
+- mode: 5,186 か所で不一致 0。
+- 再翻訳と generate:ast は 2 回目で差分なし。最終のツリーの Monaco の Memory used は 596 MB で、C と一致した。
+
+## S8: 6c976dad5d6..5733ab05f5 (#170〜#189)
+
+### ast・parser・scanner・binder の PR と Store 側の扱い
+
+| PR | Pointer の変更 | Store 側の扱い | 承認 |
+|---|---|---|---|
+| f5cdce998e reparse @extends | JSDoc の `@extends` の型引数を class の extends に写す条件を広げる。null の extends は除き、entity name でない式 (call expression など) には名前の一致を問わず写す。写す処理は `setReparsedTypeArguments` に切り出す | storeparser の reparser.go (`KindJSDocAugmentsTag` の枝) を手で移植する。関数の切り出しも Pointer に合わせる | 承認 (2026-10-21) |
+
+ast・scanner・binder の変更は無い。
+
+### ほかの Store 側の作業 (見込み)
+
+- checker: 翻訳。
+  - 5237fd46890 は undefined widening の cache の key を名前から symbol に替える。
+  - 76c4f5078b1 は compareNodes に fast path を足す。
+  - `checkJSDocAugmentsTagMatchesExtends` が jsdoc.go に移って `EagerJSDoc` を読む。Store の遅延 JSDoc の経路に当たるかは翻訳で見る。
+- compiler:
+  - network path の拒否 (ce30dd50a5d) は、file loader の分は翻訳で入る。`verifyCompilerOptions` の paths の検査は Store の P2 (options_manual.go:295) にもあるので、diff を写す。
+  - `GetResolvedProjectReference` の P2 (host_manual.go) は `NewDefaultParseConfigHost` を写す。
+  - `GetSourceFileByNodeID` は、到達すれば Store 版が要る。
