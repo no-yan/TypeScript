@@ -584,6 +584,7 @@ commit:
   - store-only の `nodeLinkMap` (links_manual.go) を置き、翻訳器の `isMapNodeLinks` がこの 2 つの nodeLinkStore をそれに書き換える。
   - symbolNodeLinks は値の page のまま。
   - `nodeLinkMap.TryGet` は、Get していない key に nil を返す。これは Pointer と同じ。
+- 2026-10-22 にユーザーが C から B に変更した。C の map が CheckAll の命令数の約 1.3% (Monaco) を使っていた。B は store-only の `nodeLinkPagedStore` (Store ごとの `core.PagedLinkStore`) で、翻訳器の規則は `isPagedNodeLinks`。詳細は `perf-linkstore-experiment-report-20261022.md`。
 - 機能はどの形でも等価になる。getTypeOfInitializer の `typeNodeLinks.Has` は、値の page だと Get していない key に true を返すが、resolvedType が nil なので式の型の計算に落ちる。結果は Pointer と同じ。
 
 検証 (2026-10-21、合格):

@@ -628,9 +628,9 @@ type Checker struct {
 	mergedExportsChecked                        collections.Set[*store.Symbol]
 	factory                                     *store.Factory
 	nodeLinks                                   core.LinkStore[store.NodeKey, NodeLinks]
-	signatureLinks                              nodeLinkMap[SignatureLinks]
+	signatureLinks                              nodeLinkPagedStore[SignatureLinks]
 	symbolNodeLinks                             nodeLinkStore[SymbolNodeLinks]
-	typeNodeLinks                               nodeLinkMap[TypeNodeLinks]
+	typeNodeLinks                               nodeLinkPagedStore[TypeNodeLinks]
 	enumMemberLinks                             core.LinkStore[store.NodeKey, EnumMemberLinks]
 	assertionLinks                              core.LinkStore[store.NodeKey, AssertionLinks]
 	arrayLiteralLinks                           core.LinkStore[store.NodeKey, ArrayLiteralLinks]
