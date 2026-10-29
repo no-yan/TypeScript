@@ -362,31 +362,6 @@ func (c *Checker) compareSymbolsWorker(s1, s2 *store.Symbol) int {
 	return cmp.Compare(ast.SymbolId(store.GetSymbolId(s1)), ast.SymbolId(store.GetSymbolId(s2)))
 }
 
-func (c *Checker) compareNodes(n1, n2 store.Node) int {
-	if store.SameNode(n1, n2) {
-		return 0
-	}
-	if n1.IsNil() {
-		return 1
-	}
-	if n2.IsNil() {
-		return -1
-	}
-	if !n1.Parent().IsNil() && store.SameNode(n1.Parent(), n2.Parent()) {
-		return int(n1.Pos()) - int(n2.Pos())
-	}
-	s1 := n1.File()
-	s2 := n2.File()
-	if s1 != s2 {
-		f1 := c.fileIndexMap[s1]
-		f2 := c.fileIndexMap[s2]
-		// Order by index of file in the containing program
-		return f1 - f2
-	}
-	// In the same file, order by source position
-	return int(n1.Pos()) - int(n2.Pos())
-}
-
 func CompareTypes(t1, t2 *Type) int {
 	if t1 == t2 {
 		return 0
